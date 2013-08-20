@@ -1,0 +1,11 @@
+[
+{
+  "modid": "OpenComputers",
+  "name": "OpenComputers",
+  "version": "0.0.0",
+  "credits" : "Inspired by ComputerCraft",
+  "authors": ["Sangar"],
+  "description": "This mod adds modular computers that can be programmed in Lua.",
+  "logoFile" : "assets/opencomputers/textures/gui/logo.png"
+}
+]
