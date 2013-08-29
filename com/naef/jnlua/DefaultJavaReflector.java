@@ -1,5 +1,5 @@
 /*
- * $Id: DefaultJavaReflector.java 174 2013-07-28 20:46:22Z andre@naef.com $
+ * $Id: DefaultJavaReflector.java 173 2013-07-28 20:46:07Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -49,6 +50,8 @@ public class DefaultJavaReflector implements JavaReflector {
 	private JavaFunction lessThan = new LessThan();
 	private JavaFunction lessThanOrEqual = new LessThanOrEqual();
 	private JavaFunction toString = new ToString();
+	private JavaFunction pairs = new Pairs();
+	private JavaFunction ipairs = new IPairs();
 	private JavaFunction javaFields = new AccessorPairs(FieldAccessor.class);
 	private JavaFunction javaMethods = new AccessorPairs(
 			InvocableAccessor.class);
@@ -80,16 +83,20 @@ public class DefaultJavaReflector implements JavaReflector {
 			return index;
 		case NEWINDEX:
 			return newIndex;
-		case EQ:
-			return equal;
 		case LEN:
 			return length;
+		case EQ:
+			return equal;
 		case LT:
 			return lessThan;
 		case LE:
 			return lessThanOrEqual;
 		case TOSTRING:
 			return toString;
+		case PAIRS:
+			return pairs;
+		case IPAIRS:
+			return ipairs;
 		case JAVAFIELDS:
 			return javaFields;
 		case JAVAMETHODS:
@@ -181,7 +188,6 @@ public class DefaultJavaReflector implements JavaReflector {
 							currentInvocable.getDeclaringClass())) {
 				continue;
 			}
-
 			overloaded.put(parameterTypes, new InvocableMethod(method));
 		}
 		for (Map.Entry<String, Map<List<Class<?>>, Invocable>> entry : accessibleMethods
@@ -243,7 +249,7 @@ public class DefaultJavaReflector implements JavaReflector {
 			if (method != null
 					&& !Modifier.isPublic(method.getDeclaringClass()
 							.getModifiers())) {
-				method = getInterfaceMethod(clazz, method.getName(),
+				method = getPublicClassMethod(clazz, method.getName(),
 						method.getParameterTypes());
 				try {
 					propertyDescriptors[i].setWriteMethod(method);
@@ -530,6 +536,181 @@ public class DefaultJavaReflector implements JavaReflector {
 	}
 
 	/**
+	 * <code>__tostring</code> metamethod implementation.
+	 */
+	private class ToString implements JavaFunction {
+		@Override
+		public int invoke(LuaState luaState) {
+			Object object = luaState.toJavaObject(1, Object.class);
+			luaState.pushString(object != null ? object.toString() : "null");
+			return 1;
+		}
+	}
+
+	/**
+	 * Provides an iterator for maps. For <code>NavigableMap</code> objects, the
+	 * function returns a stateless iterator which allows concurrent
+	 * modifications to the map. For other maps, the function returns an
+	 * iterator based on <code>Iterator</code> which does not support concurrent
+	 * modifications.
+	 */
+	private static class Pairs implements NamedJavaFunction {
+		// -- Static
+		private final JavaFunction navigableMapNext = new NavigableMapNext();
+
+		// -- JavaFunction methods
+		@SuppressWarnings("unchecked")
+		@Override
+		public int invoke(LuaState luaState) {
+			Map<Object, Object> map = luaState.checkJavaObject(1, Map.class);
+			luaState.checkArg(1, map != null,
+					String.format("expected map, got %s", luaState.typeName(1)));
+			if (map instanceof NavigableMap) {
+				luaState.pushJavaFunction(navigableMapNext);
+			} else {
+				luaState.pushJavaFunction(new MapNext(map.entrySet().iterator()));
+			}
+			luaState.pushJavaObject(map);
+			luaState.pushNil();
+			return 3;
+		}
+
+		@Override
+		public String getName() {
+			return "pairs";
+		}
+
+		/**
+		 * Provides a stateful iterator function for maps.
+		 */
+		private static class MapNext implements JavaFunction {
+			// -- State
+			private Iterator<Map.Entry<Object, Object>> iterator;
+
+			// -- Construction
+			/**
+			 * Creates a new instance.
+			 */
+			public MapNext(Iterator<Map.Entry<Object, Object>> iterator) {
+				this.iterator = iterator;
+			}
+
+			// -- JavaFunction methods
+			public int invoke(LuaState luaState) {
+				if (iterator.hasNext()) {
+					Map.Entry<Object, Object> entry = iterator.next();
+					luaState.pushJavaObject(entry.getKey());
+					luaState.pushJavaObject(entry.getValue());
+					return 2;
+				} else {
+					luaState.pushNil();
+					return 1;
+				}
+			}
+		}
+
+		/**
+		 * Provides a stateless iterator function for navigable maps.
+		 */
+		private static class NavigableMapNext implements JavaFunction {
+			// -- JavaFunction methods
+			@SuppressWarnings("unchecked")
+			public int invoke(LuaState luaState) {
+				NavigableMap<Object, Object> navigableMap = luaState
+						.checkJavaObject(1, NavigableMap.class);
+				Object key = luaState.checkJavaObject(2, Object.class);
+				Map.Entry<Object, Object> entry;
+				if (key != null) {
+					entry = navigableMap.higherEntry(key);
+				} else {
+					entry = navigableMap.firstEntry();
+				}
+				if (entry != null) {
+					luaState.pushJavaObject(entry.getKey());
+					luaState.pushJavaObject(entry.getValue());
+					return 2;
+				} else {
+					luaState.pushNil();
+					return 1;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Provides an iterator for lists and arrays.
+	 */
+	private static class IPairs implements NamedJavaFunction {
+		// -- Static
+		private final JavaFunction listNext = new ListNext();
+		private final JavaFunction arrayNext = new ArrayNext();
+
+		// -- JavaFunction methods
+		@Override
+		public int invoke(LuaState luaState) {
+			Object object;
+			if (luaState.isJavaObject(1, List.class)) {
+				object = luaState.toJavaObject(1, List.class);
+				luaState.pushJavaFunction(listNext);
+			} else {
+				object = luaState.checkJavaObject(1, Object.class);
+				luaState.checkArg(1, object.getClass().isArray(), String
+						.format("expected list or array, got %s",
+								luaState.typeName(1)));
+				luaState.pushJavaFunction(arrayNext);
+			}
+			luaState.pushJavaObject(object);
+			luaState.pushInteger(0);
+			return 3;
+		}
+
+		@Override
+		public String getName() {
+			return "ipairs";
+		}
+
+		/**
+		 * Provides a stateless iterator function for lists.
+		 */
+		private static class ListNext implements JavaFunction {
+			public int invoke(LuaState luaState) {
+				List<?> list = luaState.checkJavaObject(1, List.class);
+				int size = list.size();
+				int index = luaState.checkInteger(2);
+				index++;
+				if (index >= 1 && index <= size) {
+					luaState.pushInteger(index);
+					luaState.pushJavaObject(list.get(index - 1));
+					return 2;
+				} else {
+					luaState.pushNil();
+					return 1;
+				}
+			}
+		}
+
+		/**
+		 * Provides a stateless iterator function for arrays.
+		 */
+		private static class ArrayNext implements JavaFunction {
+			public int invoke(LuaState luaState) {
+				Object array = luaState.checkJavaObject(1, Object.class);
+				int length = java.lang.reflect.Array.getLength(array);
+				int index = luaState.checkInteger(2);
+				index++;
+				if (index >= 1 && index <= length) {
+					luaState.pushInteger(index);
+					luaState.pushJavaObject(Array.get(array, index - 1));
+					return 2;
+				} else {
+					luaState.pushNil();
+					return 1;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Provides an iterator for accessors.
 	 */
 	private class AccessorPairs implements JavaFunction {
@@ -614,18 +795,6 @@ public class DefaultJavaReflector implements JavaReflector {
 				// End iteration
 				return 0;
 			}
-		}
-	}
-
-	/**
-	 * <code>__tostring</code> metamethod implementation.
-	 */
-	private class ToString implements JavaFunction {
-		@Override
-		public int invoke(LuaState luaState) {
-			Object object = luaState.toJavaObject(1, Object.class);
-			luaState.pushString(object != null ? object.toString() : "null");
-			return 1;
 		}
 	}
 
@@ -1207,8 +1376,6 @@ public class DefaultJavaReflector implements JavaReflector {
 
 		/**
 		 * Returns the modifiers of this invocable.
-		 * 
-		 * @return
 		 */
 		public int getModifiers();
 
@@ -1245,8 +1412,6 @@ public class DefaultJavaReflector implements JavaReflector {
 
 		/**
 		 * Returns whether this invocable has a variable number of arguments.
-		 * 
-		 * @return
 		 */
 		public boolean isVarArgs();
 

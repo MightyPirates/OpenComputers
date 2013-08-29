@@ -1,5 +1,5 @@
 /*
- * $Id: LuaScriptEngine.java 121 2012-01-22 01:40:14Z andre@naef.com $
+ * $Id: LuaScriptEngine.java 53 2012-01-05 16:58:58Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
@@ -59,10 +59,6 @@ class LuaScriptEngine extends AbstractScriptEngine implements Compilable,
 		// Configuration
 		context.setBindings(createBindings(), ScriptContext.ENGINE_SCOPE);
 		luaState.openLibs();
-		luaState.load("io.stdout:setvbuf(\"no\")", "setvbuf");
-		luaState.call(0, 0);
-		luaState.load("io.stderr:setvbuf(\"no\")", "setvbuf");
-		luaState.call(0, 0);
 	}
 
 	// -- ScriptEngine methods
@@ -127,7 +123,7 @@ class LuaScriptEngine extends AbstractScriptEngine implements Compilable,
 	@Override
 	public <T> T getInterface(Class<T> clasz) {
 		synchronized (luaState) {
-			luaState.pushValue(LuaState.GLOBALSINDEX);
+			getLuaState().rawGet(LuaState.REGISTRYINDEX, LuaState.RIDX_GLOBALS);
 			try {
 				return luaState.getProxy(-1, clasz);
 			} finally {
@@ -229,16 +225,16 @@ class LuaScriptEngine extends AbstractScriptEngine implements Compilable,
 	 */
 	void loadChunk(Reader reader, ScriptContext scriptContext)
 			throws ScriptException {
-		loadChunk(new ReaderInputStream(reader), scriptContext);
+		loadChunk(new ReaderInputStream(reader), scriptContext, "t");
 	}
 
 	/**
 	 * Loads a chunk from an input stream.
 	 */
-	void loadChunk(InputStream inputStream, ScriptContext scriptContext)
-			throws ScriptException {
+	void loadChunk(InputStream inputStream, ScriptContext scriptContext,
+			String mode) throws ScriptException {
 		try {
-			luaState.load(inputStream, getChunkName(scriptContext));
+			luaState.load(inputStream, getChunkName(scriptContext), mode);
 		} catch (LuaException e) {
 			throw getScriptException(e);
 		} catch (IOException e) {
@@ -341,10 +337,10 @@ class LuaScriptEngine extends AbstractScriptEngine implements Compilable,
 		if (context != null) {
 			Object fileName = context.getAttribute(FILENAME);
 			if (fileName != null) {
-				return fileName.toString();
+				return "@" + fileName.toString();
 			}
 		}
-		return "null";
+		return "=null";
 	}
 
 	/**

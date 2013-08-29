@@ -1,11 +1,12 @@
 package li.cil.oc.server.computer
 
 import scala.collection.mutable.Map
+
 import li.cil.oc.api.IBlockDriver
 import li.cil.oc.api.IItemDriver
+import li.cil.oc.common.computer.IInternalComputerContext
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
-import com.naef.jnlua.LuaState
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -15,7 +16,7 @@ import com.naef.jnlua.LuaState
  * computers, since this class is used to determine whether an object is a
  * valid component or not.
  */
-object Drivers {
+private[oc] object Drivers {
   private val blocks = Map.empty[Int, Driver]
   private val items = Map.empty[Int, Driver]
 
@@ -50,5 +51,6 @@ object Drivers {
 
   def getDriver(item: ItemStack) = blocks(item.itemID)
 
-  def injectInto(context: IComputerContext) = (blocks.values ++ items.values).foreach(_.injectInto(context))
+  def injectInto(context: IInternalComputerContext) =
+    (blocks.values ++ items.values).foreach(_.injectInto(context))
 }

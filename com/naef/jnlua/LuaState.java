@@ -1,5 +1,5 @@
 /*
- * $Id: LuaState.java 156 2012-10-05 22:57:25Z andre@naef.com $
+ * $Id: LuaState.java 157 2012-10-05 23:00:17Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
@@ -14,7 +14,6 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,8 +45,8 @@ import com.naef.jnlua.JavaReflector.Metamethod;
  * </tr>
  * <tr>
  * <td>{@link java.lang.IllegalArgumentException}</td>
- * <td>if a stack index refers to an undefined stack location and the API does
- * not explicitly specify that the stack index may be undefined</td>
+ * <td>if a stack index refers to a non-valid stack location and the API does
+ * not explicitly specify that the stack index may be non-valid</td>
  * </tr>
  * <tr>
  * <td>{@link java.lang.IllegalArgumentException}</td>
@@ -65,36 +64,42 @@ import com.naef.jnlua.JavaReflector.Metamethod;
  * </tr>
  * <tr>
  * <td>{@link com.naef.jnlua.LuaSyntaxException}</td>
- * <td>if a the syntax of a Lua chunk is incorrect</td>
+ * <td>if the syntax of a Lua chunk is incorrect</td>
  * </tr>
  * <tr>
  * <td>{@link com.naef.jnlua.LuaMemoryAllocationException}</td>
  * <td>if the Lua memory allocator runs out of memory or if a JNI allocation
  * fails</td>
  * </tr>
+ * <tr>
+ * <td>{@link com.naef.jnlua.LuaGcMetamethodException}</td>
+ * <td>if an error occurs running a <code>__gc</code> metamethod during garbage
+ * collection</td>
+ * </tr>
+ * <tr>
+ * <td>{@link com.naef.jnlua.LuaMessageHandlerException}</td>
+ * <td>if an error occurs running the message handler of a protected call</td>
+ * </tr>
  * </table>
  */
 public class LuaState {
 	// -- Static
 	/**
-	 * Registry pseudo-index.
-	 */
-	public static final int REGISTRYINDEX = -10000;
-
-	/**
-	 * Environment pseudo-index.
-	 */
-	public static final int ENVIRONINDEX = -10001;
-
-	/**
-	 * Globals pseudo-index.
-	 */
-	public static final int GLOBALSINDEX = -10002;
-
-	/**
 	 * Multiple returns pseudo return value count.
 	 */
 	public static final int MULTRET = -1;
+
+	/**
+	 * Registry pseudo-index.
+	 */
+	public static final int REGISTRYINDEX;
+
+	/**
+	 * OK status.
+	 * 
+	 * @since JNLua 1.0.0
+	 */
+	public static final int OK = 0;
 
 	/**
 	 * Status indicating that a thread is suspended.
@@ -102,9 +107,23 @@ public class LuaState {
 	public static final int YIELD = 1;
 
 	/**
+	 * Registry index of the main thread.
+	 * 
+	 * @since JNLua 1.0.0
+	 */
+	public static final int RIDX_MAINTHREAD = 1;
+
+	/**
+	 * Registry index of the global environment.
+	 * 
+	 * @since JNLua 1.0.0
+	 */
+	public static final int RIDX_GLOBALS = 2;
+
+	/**
 	 * The JNLua version. The format is &lt;major&gt;.&lt;minor&gt;.
 	 */
-	public static final String VERSION = "0.9";
+	public static final String VERSION = "1.0";
 
 	/**
 	 * The Lua version. The format is &lt;major&gt;.&lt;minor&gt;.
@@ -113,13 +132,14 @@ public class LuaState {
 
 	static {
 		NativeSupport.getInstance().getLoader().load();
+		REGISTRYINDEX = lua_registryindex();
 		LUA_VERSION = lua_version();
 	}
 
 	/**
 	 * The API version.
 	 */
-	private static final int APIVERSION = 2;
+	private static final int APIVERSION = 3;
 
 	// -- State
 	/**
@@ -141,6 +161,12 @@ public class LuaState {
 	 * not be touched on the Java side.
 	 */
 	private long luaThread;
+
+	/**
+	 * The yield flag. This field is modified from both the JNI side and Java
+	 * side and signals a pending yield.
+	 */
+	private boolean yield;
 
 	/**
 	 * The maximum amount of memory the may be used by the Lua state, in bytes.
@@ -391,19 +417,6 @@ public class LuaState {
 		this.converter = converter;
 	}
 
-	/**
-	 * Returns whether this Lua state is open.
-	 * 
-	 * <p>
-	 * The method may be invoked on a closed Lua state.
-	 * </p>
-	 * 
-	 * @return whether this Lua state is open
-	 */
-	public final synchronized boolean isOpen() {
-		return isOpenInternal();
-	}
-
 	// -- Memory
 	/**
 	 * Returns the maximum memory consumption of this Lua state. This is the
@@ -454,6 +467,19 @@ public class LuaState {
 
 	// -- Life cycle
 	/**
+	 * Returns whether this Lua state is open.
+	 * 
+	 * <p>
+	 * The method may be invoked on a closed Lua state.
+	 * </p>
+	 * 
+	 * @return whether this Lua state is open
+	 */
+	public final synchronized boolean isOpen() {
+		return isOpenInternal();
+	}
+
+	/**
 	 * Closes this Lua state and releases all resources.
 	 * 
 	 * <p>
@@ -466,15 +492,14 @@ public class LuaState {
 	}
 
 	/**
-	 * Performs a garbage collection operation.
+	 * Performs a garbage collection operation. Please see the Lua Reference
+	 * Manual for an explanation of the actions, arguments and return values.
 	 * 
 	 * @param what
 	 *            the operation to perform
 	 * @param data
-	 *            the argument required by some operations (see Lua Reference
-	 *            Manual)
-	 * @return a return value depending on the GC operation performed (see Lua
-	 *         Reference Manual)
+	 *            the argument required by some operations
+	 * @return a return value depending on the GC operation performed
 	 */
 	public synchronized int gc(GcAction what, int data) {
 		check();
@@ -483,7 +508,8 @@ public class LuaState {
 
 	// -- Registration
 	/**
-	 * Opens the specified library in this Lua state.
+	 * Opens the specified library in this Lua state. The library is pushed onto
+	 * the stack.
 	 * 
 	 * @param library
 	 *            the library
@@ -506,6 +532,7 @@ public class LuaState {
 		check();
 		for (Library library : Library.values()) {
 			library.open(this);
+			pop(1);
 		}
 	}
 
@@ -519,44 +546,33 @@ public class LuaState {
 		check();
 		String name = namedJavaFunction.getName();
 		if (name == null) {
-			throw new IllegalArgumentException("Anonymous function");
+			throw new IllegalArgumentException("anonymous function");
 		}
 		pushJavaFunction(namedJavaFunction);
 		setGlobal(name);
 	}
 
 	/**
-	 * Registers a module and pushes the module on the stack. The module name is
-	 * allowed to contain dots to define module hierarchies.
+	 * Registers a module and pushes the module on the stack. Optionally, a
+	 * module can be registered globally. As of Lua 5.2, modules are <i>not</i>
+	 * expected to set global variables anymore.
 	 * 
 	 * @param moduleName
 	 *            the module name
 	 * @param namedJavaFunctions
 	 *            the Java functions of the module
+	 * @param global
+	 *            whether to register the module globally
 	 */
 	public synchronized void register(String moduleName,
-			NamedJavaFunction[] namedJavaFunctions) {
+			NamedJavaFunction[] namedJavaFunctions, boolean global) {
 		check();
 		/*
-		 * The following code corresponds to luaL_openlib() and must be kept in
+		 * The following code corresponds to luaL_requiref() and must be kept in
 		 * sync. The original code cannot be called due to the necessity of
 		 * pushing each C function with an individual closure.
 		 */
-		lua_findtable(REGISTRYINDEX, "_LOADED", 1);
-		getField(-1, moduleName);
-		if (!isTable(-1)) {
-			pop(1);
-			String conflict = lua_findtable(GLOBALSINDEX, moduleName,
-					namedJavaFunctions.length);
-			if (conflict != null) {
-				throw new IllegalArgumentException(String.format(
-						"naming conflict for module name '%s' at '%s'",
-						moduleName, conflict));
-			}
-			pushValue(-1);
-			setField(-3, moduleName);
-		}
-		remove(-2);
+		newTable(0, namedJavaFunctions.length);
 		for (int i = 0; i < namedJavaFunctions.length; i++) {
 			String name = namedJavaFunctions[i].getName();
 			if (name == null) {
@@ -566,28 +582,38 @@ public class LuaState {
 			pushJavaFunction(namedJavaFunctions[i]);
 			setField(-2, name);
 		}
+		lua_getsubtable(REGISTRYINDEX, "_LOADED");
+		pushValue(-2);
+		setField(-2, moduleName);
+		pop(1);
+		if (global) {
+			rawGet(REGISTRYINDEX, RIDX_GLOBALS);
+			pushValue(-2);
+			setField(-2, moduleName);
+			pop(1);
+		}
 	}
 
 	// -- Load and dump
 	/**
 	 * Loads a Lua chunk from an input stream and pushes it on the stack as a
-	 * function. The Lua chunk must be either a UTF-8 encoded source chunk or a
-	 * pre-compiled binary chunk.
+	 * function. Depending on the value of mode, the the Lua chunk can either be
+	 * a pre-compiled binary chunk or a UTF-8 encoded text chunk.
 	 * 
 	 * @param inputStream
 	 *            the input stream
 	 * @param chunkName
 	 *            the name of the chunk for use in error messages
+	 * @param mode
+	 *            <code>"b"</code> to accept binary, <code>"t"</code> to accept
+	 *            text, or <code>"bt"</code> to accept both
 	 * @throws IOException
 	 *             if an IO error occurs
 	 */
-	public synchronized void load(InputStream inputStream, String chunkName)
-			throws IOException {
-		if (chunkName == null) {
-			throw new NullPointerException();
-		}
+	public synchronized void load(InputStream inputStream, String chunkName,
+			String mode) throws IOException {
 		check();
-		lua_load(inputStream, "=" + chunkName);
+		lua_load(inputStream, chunkName, mode);
 	}
 
 	/**
@@ -600,10 +626,12 @@ public class LuaState {
 	 *            the name of the chunk for use in error messages
 	 */
 	public synchronized void load(String chunk, String chunkName) {
+		check();
 		try {
-			load(new ByteArrayInputStream(chunk.getBytes("UTF-8")), chunkName);
+			load(new ByteArrayInputStream(chunk.getBytes("UTF-8")), chunkName,
+					"t");
 		} catch (IOException e) {
-			throw new LuaMemoryAllocationException(e.getMessage());
+			throw new LuaMemoryAllocationException(e.getMessage(), e);
 		}
 	}
 
@@ -641,7 +669,7 @@ public class LuaState {
 		lua_pcall(argCount, returnCount);
 	}
 
-	// -- Global
+	// -- Globals
 	/**
 	 * Pushes the value of a global variable on the stack.
 	 * 
@@ -712,6 +740,20 @@ public class LuaState {
 	}
 
 	/**
+	 * Pushes a Java object on the stack with conversion. The object is
+	 * processed the by the configured converter.
+	 * 
+	 * @param object
+	 *            the Java object
+	 * @see #getConverter()
+	 * @see #setConverter(Converter)
+	 */
+	public synchronized void pushJavaObject(Object object) {
+		check();
+		getConverter().convertJavaObject(this, object);
+	}
+
+	/**
 	 * Pushes a Java object on the stack. The object is pushed "as is", i.e.
 	 * without conversion.
 	 * 
@@ -733,20 +775,6 @@ public class LuaState {
 	public synchronized void pushJavaObjectRaw(Object object) {
 		check();
 		lua_pushjavaobject(object);
-	}
-
-	/**
-	 * Pushes a Java object on the stack with conversion. The object is
-	 * processed the by the configured converter.
-	 * 
-	 * @param object
-	 *            the Java object
-	 * @see #getConverter()
-	 * @see #setConverter(Converter)
-	 */
-	public synchronized void pushJavaObject(Object object) {
-		check();
-		getConverter().convertJavaObject(this, object);
 	}
 
 	/**
@@ -784,7 +812,7 @@ public class LuaState {
 	 * Returns whether the value at the specified stack index is a boolean.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -800,7 +828,7 @@ public class LuaState {
 	 * Returns whether the value at the specified stack index is a C function.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -817,7 +845,7 @@ public class LuaState {
 	 * (either a C function, a Java function or a Lua function.)
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -834,7 +862,7 @@ public class LuaState {
 	 * function.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -847,35 +875,12 @@ public class LuaState {
 	}
 
 	/**
-	 * Returns whether the value at the specified stack index is a Java object.
-	 * 
-	 * <p>
-	 * Note that the method does not perform conversion. If you want to check if
-	 * a value <i>is convertible to</i> a Java object, then invoke <code>
-	 * isJavaObject(index, Object.class)</code>.
-	 * </p>
-	 * 
-	 * <p>
-	 * The stack index may be undefined.
-	 * </p>
-	 * 
-	 * @param index
-	 *            the stack index
-	 * @return whether the value is a Java object
-	 * @see #isJavaObject(int, Class)
-	 */
-	public synchronized boolean isJavaObjectRaw(int index) {
-		check();
-		return lua_isjavaobject(index) != 0;
-	}
-
-	/**
 	 * Returns whether the value at the specified stack index is convertible to
 	 * a Java object of the specified type. The conversion is checked by the
 	 * configured converter.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -891,11 +896,34 @@ public class LuaState {
 	}
 
 	/**
+	 * Returns whether the value at the specified stack index is a Java object.
+	 * 
+	 * <p>
+	 * Note that the method does not perform conversion. If you want to check if
+	 * a value <i>is convertible to</i> a Java object, then invoke <code>
+	 * isJavaObject(index, Object.class)</code>.
+	 * </p>
+	 * 
+	 * <p>
+	 * The stack index may be non-valid.
+	 * </p>
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return whether the value is a Java object
+	 * @see #isJavaObject(int, Class)
+	 */
+	public synchronized boolean isJavaObjectRaw(int index) {
+		check();
+		return lua_isjavaobject(index) != 0;
+	}
+
+	/**
 	 * Returns whether the value at the specified stack index is
 	 * <code>nil</code>.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -908,15 +936,15 @@ public class LuaState {
 	}
 
 	/**
-	 * Returns whether the value at the specified stack index is undefined.
+	 * Returns whether the specified stack index is non-valid.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
 	 *            the stack index
-	 * @return whether the value is undefined
+	 * @return whether the stack index is non-valid
 	 */
 	public synchronized boolean isNone(int index) {
 		check();
@@ -924,16 +952,17 @@ public class LuaState {
 	}
 
 	/**
-	 * Returns whether the value at the specified stack index is undefined or
+	 * Returns whether the specified stack index is non-valid or its value is
 	 * <code>nil</code>.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
 	 *            the stack index
-	 * @return whether the value is undefined
+	 * @return whether the stack index is non-valid or its value is
+	 *         <code>nil</code>
 	 */
 	public synchronized boolean isNoneOrNil(int index) {
 		check();
@@ -945,7 +974,7 @@ public class LuaState {
 	 * string convertible to a number.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -962,7 +991,7 @@ public class LuaState {
 	 * number (which is always convertible to a string.)
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -978,7 +1007,7 @@ public class LuaState {
 	 * Returns whether the value at the specified stack index is a table.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -994,7 +1023,7 @@ public class LuaState {
 	 * Returns whether the value at the specified stack index is a thread.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
@@ -1008,6 +1037,30 @@ public class LuaState {
 
 	// -- Stack query
 	/**
+	 * Compares the values at two specified stack indexes for the specified
+	 * operator according to Lua semantics.
+	 * 
+	 * <p>
+	 * Any stack index may be non-valid in which case the method returns
+	 * <code>false</code>.
+	 * </p>
+	 * 
+	 * @param index1
+	 *            the first stack index
+	 * @param index2
+	 *            the second stack index
+	 * @param operator
+	 *            the operator
+	 * @return the result of the comparison
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized boolean compare(int index1, int index2,
+			RelOperator operator) {
+		check();
+		return lua_compare(index1, index2, operator.ordinal()) != 0;
+	}
+
+	/**
 	 * Returns whether the values at two specified stack indexes are equal
 	 * according to Lua semantics.
 	 * 
@@ -1016,10 +1069,23 @@ public class LuaState {
 	 * @param index2
 	 *            the second stack index
 	 * @return whether the values are equal
+	 * @deprecated instead use {@link #compare(int, int, RelOperator)}
 	 */
 	public synchronized boolean equal(int index1, int index2) {
-		check();
-		return lua_equal(index1, index2) != 0;
+		return compare(index1, index2, RelOperator.EQ);
+	}
+
+	/**
+	 * Returns the length of the value at the specified stack index. Please see
+	 * the Lua Reference Manual for the definition of the raw length of a value.
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the length
+	 * @deprecated instead use {@link #rawLen(int)}
+	 */
+	public synchronized int length(int index) {
+		return rawLen(index);
 	}
 
 	/**
@@ -1032,31 +1098,21 @@ public class LuaState {
 	 *            the second stack index
 	 * @return whether the value at the first index is less than the value at
 	 *         the second index
+	 * @deprecated instead use {@link #compare(int, int, RelOperator)}
 	 */
 	public synchronized boolean lessThan(int index1, int index2)
 			throws LuaMemoryAllocationException, LuaRuntimeException {
-		check();
-		return lua_lessthan(index1, index2) != 0;
-	}
-
-	/**
-	 * Returns the length of the value at the specified stack index. The
-	 * definition of the length depends on the type of the value. For strings,
-	 * it is the length of the string, for tables it is the result of the length
-	 * operator. For other types, the return value is undefined.
-	 * 
-	 * @param index
-	 *            the stack index
-	 * @return the length
-	 */
-	public synchronized int length(int index) {
-		check();
-		return lua_objlen(index);
+		return compare(index1, index2, RelOperator.LT);
 	}
 
 	/**
 	 * Bypassing metatable logic, returns whether the values at two specified
 	 * stack indexes are equal according to Lua semantics.
+	 * 
+	 * <p>
+	 * Any stack index may be non-valid in which case the method returns
+	 * <code>false</code>.
+	 * </p>
 	 * 
 	 * @param index1
 	 *            the first stack index
@@ -1070,9 +1126,25 @@ public class LuaState {
 	}
 
 	/**
+	 * Bypassing metatable logic, returns the length of the value at the
+	 * specified stack index. Please see the Lua Reference Manual for the
+	 * definition of the raw length of a value.
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the length
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized int rawLen(int index) {
+		check();
+		return lua_rawlen(index);
+	}
+
+	/**
 	 * Returns the boolean representation of the value at the specified stack
 	 * index. The boolean representation is <code>true</code> for all values
-	 * except <code>false</code> and <code>nil</code>.
+	 * except <code>false</code> and <code>nil</code>. The method also returns
+	 * <code>false</code> if the index is non-valid.
 	 * 
 	 * @param index
 	 *            the stack index
@@ -1113,6 +1185,21 @@ public class LuaState {
 	}
 
 	/**
+	 * Returns the integer representation of the value at the specified stack
+	 * index. The value must be a number or a string convertible to a number.
+	 * Otherwise, the method returns <code>null</code>.
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the integer representation, or <code>null</code>
+	 * @since JNLua 1.0.2
+	 */
+	public synchronized Integer toIntegerX(int index) {
+		check();
+		return lua_tointegerx(index);
+	}
+
+	/**
 	 * Returns the Java function of the value at the specified stack index. If
 	 * the value is not a Java function, the method returns <code>null</code>.
 	 * 
@@ -1123,26 +1210,6 @@ public class LuaState {
 	public synchronized JavaFunction toJavaFunction(int index) {
 		check();
 		return lua_tojavafunction(index);
-	}
-
-	/**
-	 * Returns the Java object of the value at the specified stack index. If the
-	 * value is not a Java object, the method returns <code>null</code>.
-	 * 
-	 * <p>
-	 * Note that the method does not convert values to Java objects. If you
-	 * require <i>any</i> Java object that represents the value at the specified
-	 * index, then invoke <code>toJavaObject(index, Object.class)</code>.
-	 * </p>
-	 * 
-	 * @param index
-	 *            the stack index
-	 * @return the Java object, or <code>null</code>
-	 * @see #toJavaObject(int, Class)
-	 */
-	public synchronized Object toJavaObjectRaw(int index) {
-		check();
-		return lua_tojavaobject(index);
 	}
 
 	/**
@@ -1167,6 +1234,26 @@ public class LuaState {
 	}
 
 	/**
+	 * Returns the Java object of the value at the specified stack index. If the
+	 * value is not a Java object, the method returns <code>null</code>.
+	 * 
+	 * <p>
+	 * Note that the method does not convert values to Java objects. If you
+	 * require <i>any</i> Java object that represents the value at the specified
+	 * index, then invoke <code>toJavaObject(index, Object.class)</code>.
+	 * </p>
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the Java object, or <code>null</code>
+	 * @see #toJavaObject(int, Class)
+	 */
+	public synchronized Object toJavaObjectRaw(int index) {
+		check();
+		return lua_tojavaobject(index);
+	}
+
+	/**
 	 * Returns the number representation of the value at the specified stack
 	 * index. The value must be a number or a string convertible to a number.
 	 * Otherwise, the method returns <code>0.0</code>.
@@ -1178,6 +1265,21 @@ public class LuaState {
 	public synchronized double toNumber(int index) {
 		check();
 		return lua_tonumber(index);
+	}
+
+	/**
+	 * Returns the number representation of the value at the specified stack
+	 * index. The value must be a number or a string convertible to a number.
+	 * Otherwise, the method returns <code>null</code>.
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the number representation, or <code>null</code>
+	 * @since JNLua 1.0.2
+	 */
+	public synchronized Double toNumberX(int index) {
+		check();
+		return lua_tonumberx(index);
 	}
 
 	/**
@@ -1215,12 +1317,12 @@ public class LuaState {
 	 * Returns the type of the value at the specified stack index.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid.
 	 * </p>
 	 * 
 	 * @param index
 	 *            the stack index
-	 * @return the type, or <code>null</code> if the stack index is undefined
+	 * @return the type, or <code>null</code> if the stack index is non-valid
 	 */
 	public synchronized LuaType type(int index) {
 		check();
@@ -1234,7 +1336,8 @@ public class LuaState {
 	 * type name is the canonical class name.
 	 * 
 	 * <p>
-	 * The stack index may be undefined.
+	 * The stack index may be non-valid in which case the method returns the
+	 * string <code>"none"</code>.
 	 * </p>
 	 * 
 	 * @param index
@@ -1247,7 +1350,7 @@ public class LuaState {
 		check();
 		LuaType type = type(index);
 		if (type == null) {
-			return "no value";
+			return "none";
 		}
 		switch (type) {
 		case USERDATA:
@@ -1268,6 +1371,36 @@ public class LuaState {
 
 	// -- Stack operation
 	/**
+	 * Returns the absolute stack index of the specified index.
+	 * 
+	 * <p>
+	 * The stack index may be non-valid.
+	 * </p>
+	 * 
+	 * @param index
+	 *            the stack index
+	 * @return the absolute stack index
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized int absIndex(int index) {
+		check();
+		return lua_absindex(index);
+	}
+
+	/**
+	 * Performs an arithmetic operation with values on top of the stack using
+	 * Lua semantics.
+	 * 
+	 * @param operator
+	 *            the operator to apply
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized void arith(ArithOperator operator) {
+		check();
+		lua_arith(operator.ordinal());
+	}
+
+	/**
 	 * Concatenates the specified number values on top of the stack and replaces
 	 * them with the concatenated value.
 	 * 
@@ -1280,6 +1413,21 @@ public class LuaState {
 	}
 
 	/**
+	 * Copies a value at a specified index to another index, replacing the value
+	 * at that index.
+	 * 
+	 * @param fromIndex
+	 *            the index to copy from
+	 * @param toIndex
+	 *            the index to copy to
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized void copy(int fromIndex, int toIndex) {
+		check();
+		lua_copy(fromIndex, toIndex);
+	}
+
+	/**
 	 * Returns the number of values on the stack.
 	 * 
 	 * @return the number of values on the tack
@@ -1287,6 +1435,20 @@ public class LuaState {
 	public synchronized int getTop() {
 		check();
 		return lua_gettop();
+	}
+
+	/**
+	 * Pushes the length of the value at the specified stack index on the stack.
+	 * The value pushed by the method corresponds to the Lua <code>#</code>
+	 * operator.
+	 * 
+	 * @param index
+	 *            the index for which to push the length
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized void len(int index) {
+		check();
+		lua_len(index);
 	}
 
 	/**
@@ -1550,41 +1712,10 @@ public class LuaState {
 	 * 
 	 * @param index
 	 *            the stack index containing the value to set the metatable for
-	 * @return whether the metatable was set
 	 */
-	public synchronized boolean setMetatable(int index) {
+	public synchronized void setMetatable(int index) {
 		check();
-		return lua_setmetatable(index) != 0;
-	}
-
-	// -- Environment table
-	/**
-	 * Pushes on the stack the environment table of the value at the specified
-	 * index. If the value does not have an environment table, <code>nil</code>
-	 * is pushed on the stack.
-	 * 
-	 * @param index
-	 *            the stack index containing the value to get the environment
-	 *            table from
-	 */
-	public synchronized void getFEnv(int index) {
-		check();
-		lua_getfenv(index);
-	}
-
-	/**
-	 * Sets the value on top of the stack as the environment table of the value
-	 * at the specified index. The environment table to be set is popped from
-	 * the stack regardless whether it can be set or not.
-	 * 
-	 * @param index
-	 *            the stack index containing the value to set the environment
-	 *            table for
-	 * @return whether the environment table was set
-	 */
-	public synchronized boolean setFEnv(int index) {
-		check();
-		return lua_setfenv(index) != 0;
+		lua_setmetatable(index);
 	}
 
 	// -- Thread
@@ -1644,7 +1775,8 @@ public class LuaState {
 	 */
 	public synchronized int yield(int returnCount) {
 		check();
-		return lua_yield(returnCount);
+		yield = true;
+		return returnCount;
 	}
 
 	// -- Reference
@@ -1737,48 +1869,9 @@ public class LuaState {
 	 */
 	public synchronized void checkArg(int index, boolean condition, String msg) {
 		check();
-		if (condition) {
-			return;
+		if (!condition) {
+			throw getArgException(index, msg);
 		}
-		throw getArgException(index, msg);
-	}
-
-	/**
-	 * Checks if the value of the specified function argument is a boolean. If
-	 * so, the argument value is returned as a boolean. Otherwise, the method
-	 * throws a Lua runtime exception with a descriptive error message.
-	 * 
-	 * @param index
-	 *            the argument index
-	 * @return the boolean value, or the default value
-	 */
-	public synchronized boolean checkBoolean(int index) {
-		check();
-		if (!isBoolean(index)) {
-			throw getArgTypeException(index, LuaType.BOOLEAN);
-		}
-		return toBoolean(index);
-	}
-
-	/**
-	 * Checks if the value of the specified function argument is a boolean. If
-	 * so, the argument value is returned as a boolean. If the value of the
-	 * specified argument is undefined or <code>nil</code>, the method returns
-	 * the specified default value. Otherwise, the method throws a Lua runtime
-	 * exception with a descriptive error message.
-	 * 
-	 * @param index
-	 *            the argument index
-	 * @param d
-	 *            the default value
-	 * @return the boolean value
-	 */
-	public synchronized boolean checkBoolean(int index, boolean d) {
-		check();
-		if (isNoneOrNil(index)) {
-			return d;
-		}
-		return checkBoolean(index);
 	}
 
 	/**
@@ -1821,6 +1914,54 @@ public class LuaState {
 	}
 
 	/**
+	 * Checks if the value of the specified function argument is a string or a
+	 * number matching the name of one of the specified enum values. If so, the
+	 * argument value is returned as an enum value. Otherwise, the method throws
+	 * a Lua runtime exception with a descriptive error message.
+	 * 
+	 * @param index
+	 *            the argument index
+	 * @param values
+	 *            the enum values
+	 * @return the string value
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized <T extends Enum<T>> T checkEnum(int index, T[] values) {
+		check();
+		return checkEnum(index, values, null);
+	}
+
+	/**
+	 * Checks if the value of the specified function argument is a string or a
+	 * number matching one of the specified enum values. If so, the argument
+	 * value is returned as an enum value. If the specified stack index is
+	 * non-valid or if its value is <code>nil</code>, the method returns the
+	 * specified default value. Otherwise, the method throws a Lua runtime
+	 * exception with a descriptive error message.
+	 * 
+	 * @param index
+	 *            the argument index
+	 * @param values
+	 *            the enum values
+	 * @param d
+	 *            the default value
+	 * @return the string value, or the default value
+	 * @since JNLua 1.0.0
+	 */
+	public synchronized <T extends Enum<T>> T checkEnum(int index, T[] values,
+			T d) {
+		check();
+		String s = d != null ? checkString(index, d.name())
+				: checkString(index);
+		for (int i = 0; i < values.length; i++) {
+			if (values[i].name().equals(s)) {
+				return values[i];
+			}
+		}
+		throw getArgException(index, String.format("invalid option '%s'", s));
+	}
+
+	/**
 	 * Checks if the value of the specified function argument is a number or a
 	 * string convertible to a number. If so, the argument value is returned as
 	 * an integer. Otherwise, the method throws a Lua runtime exception with a
@@ -1832,16 +1973,17 @@ public class LuaState {
 	 */
 	public synchronized int checkInteger(int index) {
 		check();
-		if (!isNumber(index)) {
+		Integer integer = toIntegerX(index);
+		if (integer == null) {
 			throw getArgTypeException(index, LuaType.NUMBER);
 		}
-		return toInteger(index);
+		return integer.intValue();
 	}
 
 	/**
 	 * Checks if the value of the specified function argument is a number or a
 	 * string convertible to a number. If so, the argument value is returned as
-	 * an integer. If the value of the specified argument is undefined or
+	 * an integer. If the specified stack index is non-valid or if its value is
 	 * <code>nil</code>, the method returns the specified default value.
 	 * Otherwise, the method throws a Lua runtime exception with a descriptive
 	 * error message.
@@ -1858,46 +2000,6 @@ public class LuaState {
 			return d;
 		}
 		return checkInteger(index);
-	}
-
-	/**
-	 * Checks if the value of the specified function argument is a number or a
-	 * string convertible to a number. If so, the argument value is returned as
-	 * a number. Otherwise, the method throws a Lua runtime exception with a
-	 * descriptive error message.
-	 * 
-	 * @param index
-	 *            the argument index
-	 * @return the number value
-	 */
-	public synchronized double checkNumber(int index) {
-		check();
-		if (!isNumber(index)) {
-			throw getArgTypeException(index, LuaType.NUMBER);
-		}
-		return toNumber(index);
-	}
-
-	/**
-	 * Checks if the value of the specified function argument is a number or a
-	 * string convertible to a number. If so, the argument value is returned as
-	 * a number. If the value of the specified argument is undefined or
-	 * <code>nil</code>, the method returns the specified default value.
-	 * Otherwise, the method throws a Lua runtime exception with a descriptive
-	 * error message.
-	 * 
-	 * @param index
-	 *            the argument index
-	 * @param d
-	 *            the default value
-	 * @return the number value, or the default value
-	 */
-	public synchronized double checkNumber(int index, double d) {
-		check();
-		if (isNoneOrNil(index)) {
-			return d;
-		}
-		return checkNumber(index);
 	}
 
 	/**
@@ -1921,9 +2023,10 @@ public class LuaState {
 	public synchronized <T> T checkJavaObject(int index, Class<T> clazz) {
 		check();
 		if (!isJavaObject(index, clazz)) {
-			throw getArgException(
+			checkArg(
 					index,
-					String.format("exptected %s, got %s",
+					false,
+					String.format("%s expected, got %s",
 							clazz.getCanonicalName(), typeName(index)));
 		}
 		return toJavaObject(index, clazz);
@@ -1932,10 +2035,10 @@ public class LuaState {
 	/**
 	 * Checks if the value of the specified function argument is convertible to
 	 * a Java object of the specified type. If so, the argument value is
-	 * returned as a Java object of the specified type. If the value of the
-	 * specified argument is undefined or <code>nil</code>, the method returns
-	 * the specified default value. Otherwise, the method throws a Lua runtime
-	 * exception with a descriptive error message.
+	 * returned as a Java object of the specified type. If the specified stack
+	 * index is non-valid or if its value is <code>nil</code>, the method
+	 * returns the specified default value. Otherwise, the method throws a Lua
+	 * runtime exception with a descriptive error message.
 	 * 
 	 * @param index
 	 *            the argument index
@@ -1954,38 +2057,70 @@ public class LuaState {
 	}
 
 	/**
+	 * Checks if the value of the specified function argument is a number or a
+	 * string convertible to a number. If so, the argument value is returned as
+	 * a number. Otherwise, the method throws a Lua runtime exception with a
+	 * descriptive error message.
+	 * 
+	 * @param index
+	 *            the argument index
+	 * @return the number value
+	 */
+	public synchronized double checkNumber(int index) {
+		check();
+		Double number = toNumberX(index);
+		if (number == null) {
+			throw getArgTypeException(index, LuaType.NUMBER);
+		}
+		return number.doubleValue();
+	}
+
+	/**
+	 * Checks if the value of the specified function argument is a number or a
+	 * string convertible to a number. If so, the argument value is returned as
+	 * a number. If the specified stack index is non-valid or if its value is
+	 * <code>nil</code>, the method returns the specified default value.
+	 * Otherwise, the method throws a Lua runtime exception with a descriptive
+	 * error message.
+	 * 
+	 * @param index
+	 *            the argument index
+	 * @param d
+	 *            the default value
+	 * @return the number value, or the default value
+	 */
+	public synchronized double checkNumber(int index, double d) {
+		check();
+		if (isNoneOrNil(index)) {
+			return d;
+		}
+		return checkNumber(index);
+	}
+
+	/**
 	 * Checks if the value of the specified function argument is a string or a
-	 * number matching one of the specified options. If so, the argument value
-	 * is returned as a string. Otherwise, the method throws a Lua runtime
-	 * exception with a descriptive error message.
+	 * number matching one of the specified options. If so, the index position
+	 * of the matched option is returned. Otherwise, the method throws a Lua
+	 * runtime exception with a descriptive error message.
 	 * 
 	 * @param index
 	 *            the argument index
 	 * @param options
 	 *            the options
-	 * @return the string value
+	 * @return the index position of the matched option
 	 */
-	public synchronized String checkOption(int index, String[] options) {
+	public synchronized int checkOption(int index, String[] options) {
 		check();
-		String s = checkString(index);
-		for (int i = 0; i < options.length; i++) {
-			if (s.equals(options[i])) {
-				return s;
-			}
-		}
-		throw getArgException(
-				index,
-				String.format("expected one of %s, got %s",
-						Arrays.asList(options), s));
+		return checkOption(index, options, null);
 	}
 
 	/**
 	 * Checks if the value of the specified function argument is a string or a
-	 * number matching one of the specified options. If so, argument value is
-	 * returned as a string. If the value of the specified argument is undefined
-	 * or <code>nil</code>, the method returns the specified default value.
-	 * Otherwise, the method throws a Lua runtime exception with a descriptive
-	 * error message.
+	 * number matching one of the specified options. If so, the index position
+	 * of the matched option is returned. If the specified stack index is
+	 * non-valid or if its value is <code>nil</code>, the method matches the
+	 * specified default value. If no match is found, the method throws a Lua
+	 * runtime exception with a descriptive error message.
 	 * 
 	 * @param index
 	 *            the argument index
@@ -1993,14 +2128,17 @@ public class LuaState {
 	 *            the options
 	 * @param d
 	 *            the default value
-	 * @return the string value, or the default value
+	 * @return the index position of the matched option
 	 */
-	public synchronized String checkOption(int index, String[] options, String d) {
+	public synchronized int checkOption(int index, String[] options, String d) {
 		check();
-		if (isNoneOrNil(index)) {
-			return d;
+		String s = d != null ? checkString(index, d) : checkString(index);
+		for (int i = 0; i < options.length; i++) {
+			if (options[i].equals(s)) {
+				return i;
+			}
 		}
-		return checkOption(index, options);
+		throw getArgException(index, String.format("invalid option '%s'", s));
 	}
 
 	/**
@@ -2022,10 +2160,10 @@ public class LuaState {
 
 	/**
 	 * Checks if the value of the specified function argument is a string or a
-	 * number. If so, the argument value is returned as a string. If the value
-	 * of the specified argument is undefined or <code>nil</code>, the method
-	 * returns the specified default value. Otherwise, the method throws a Lua
-	 * runtime exception with a descriptive error message.
+	 * number. If so, the argument value is returned as a string. If the
+	 * specified stack index is non-valid or if its value is <code>nil</code>,
+	 * the method returns the specified default value. Otherwise, the method
+	 * throws a Lua runtime exception with a descriptive error message.
 	 * 
 	 * @param index
 	 *            the argument index
@@ -2067,6 +2205,7 @@ public class LuaState {
 	 * @return the Lua value proxy
 	 */
 	public synchronized LuaValueProxy getProxy(int index) {
+		check();
 		pushValue(index);
 		return new LuaValueProxyImpl(ref(REGISTRYINDEX));
 	}
@@ -2086,6 +2225,7 @@ public class LuaState {
 	 */
 	@SuppressWarnings("unchecked")
 	public synchronized <T> T getProxy(int index, Class<T> interfaze) {
+		check();
 		return (T) getProxy(index, new Class<?>[] { interfaze });
 	}
 
@@ -2103,6 +2243,7 @@ public class LuaState {
 	 * @return the proxy object
 	 */
 	public synchronized LuaValueProxy getProxy(int index, Class<?>[] interfaces) {
+		check();
 		pushValue(index);
 		if (!isTable(index)) {
 			throw new IllegalArgumentException(String.format(
@@ -2166,7 +2307,7 @@ public class LuaState {
 	 */
 	private LuaRuntimeException getArgTypeException(int index, LuaType type) {
 		return getArgException(index,
-				String.format("expected %s, got %s", type.toString()
+				String.format("%s expected, got %s", type.toString()
 						.toLowerCase(), type(index).toString().toLowerCase()));
 	}
 
@@ -2178,14 +2319,28 @@ public class LuaState {
 	 */
 	private LuaRuntimeException getArgException(int index, String extraMsg) {
 		check();
-		String funcName = lua_funcname();
-		index = lua_narg(index);
+
+		// Get execution point
+		String name = null, nameWhat = null;
+		LuaDebug luaDebug = lua_getstack(0);
+		if (luaDebug != null) {
+			lua_getinfo("n", luaDebug);
+			name = luaDebug.getName();
+			nameWhat = luaDebug.getNameWhat();
+		}
+
+		// Adjust for methods
+		if ("method".equals(nameWhat)) {
+			index--;
+		}
+
+		// Format message
 		String msg;
 		String argument = index > 0 ? String.format("argument #%d", index)
 				: "self argument";
-		if (funcName != null) {
-			msg = String.format("bad %s to '%s' (%s)", argument, funcName,
-					extraMsg);
+		if (name != null) {
+			msg = String
+					.format("bad %s to '%s' (%s)", argument, name, extraMsg);
 		} else {
 			msg = String.format("bad %s (%s)", argument, extraMsg);
 		}
@@ -2208,6 +2363,8 @@ public class LuaState {
 	}
 
 	// -- Native methods
+	private static native int lua_registryindex();
+
 	private static native String lua_version();
 
 	private native void lua_newstate(int apiversion, long luaState);
@@ -2218,8 +2375,8 @@ public class LuaState {
 
 	private native void lua_openlib(int lib);
 
-	private native void lua_load(InputStream inputStream, String chunkname)
-			throws IOException;
+	private native void lua_load(InputStream inputStream, String chunkname,
+			String mode) throws IOException;
 
 	private native void lua_dump(OutputStream outputStream) throws IOException;
 
@@ -2232,7 +2389,7 @@ public class LuaState {
 	private native void lua_pushboolean(int b);
 
 	private native void lua_pushbytearray(byte[] b);
-
+	
 	private native void lua_pushinteger(int n);
 
 	private native void lua_pushjavafunction(JavaFunction f);
@@ -2269,19 +2426,19 @@ public class LuaState {
 
 	private native int lua_isthread(int index);
 
-	private native int lua_equal(int index1, int index2);
-
-	private native int lua_lessthan(int index1, int index2);
-
-	private native int lua_objlen(int index);
+	private native int lua_compare(int index1, int index2, int operator);
 
 	private native int lua_rawequal(int index1, int index2);
+
+	private native int lua_rawlen(int index);
 
 	private native int lua_toboolean(int index);
 
 	private native byte[] lua_tobytearray(int index);
-
+	
 	private native int lua_tointeger(int index);
+
+	private native Integer lua_tointegerx(int index);
 
 	private native JavaFunction lua_tojavafunction(int index);
 
@@ -2289,13 +2446,25 @@ public class LuaState {
 
 	private native double lua_tonumber(int index);
 
+	private native Double lua_tonumberx(int index);
+
 	private native long lua_topointer(int index);
 
 	private native String lua_tostring(int index);
 
+	private native int lua_type(int index);
+
+	private native int lua_absindex(int index);
+
+	private native int lua_arith(int operator);
+
 	private native void lua_concat(int n);
 
+	private native int lua_copy(int fromIndex, int toIndex);
+
 	private native int lua_gettop();
+
+	private native void lua_len(int index);
 
 	private native void lua_insert(int index);
 
@@ -2309,11 +2478,9 @@ public class LuaState {
 
 	private native void lua_settop(int index);
 
-	private native int lua_type(int index);
-
 	private native void lua_createtable(int narr, int nrec);
 
-	private native String lua_findtable(int idx, String fname, int szhint);
+	private native int lua_getsubtable(int idx, String fname);
 
 	private native void lua_gettable(int index);
 
@@ -2337,13 +2504,9 @@ public class LuaState {
 
 	private native int lua_getmetatable(int index);
 
-	private native int lua_setmetatable(int index);
+	private native void lua_setmetatable(int index);
 
 	private native int lua_getmetafield(int index, String k);
-
-	private native void lua_getfenv(int index);
-
-	private native int lua_setfenv(int index);
 
 	private native void lua_newthread();
 
@@ -2351,15 +2514,13 @@ public class LuaState {
 
 	private native int lua_status(int index);
 
-	private native int lua_yield(int nresults);
-
 	private native int lua_ref(int index);
 
 	private native void lua_unref(int index, int ref);
 
-	private native String lua_funcname();
+	private native LuaDebug lua_getstack(int level);
 
-	private native int lua_narg(int narg);
+	private native int lua_getinfo(String what, LuaDebug ar);
 
 	private native int lua_tablesize(int index);
 
@@ -2370,10 +2531,25 @@ public class LuaState {
 	 * Represents a Lua library.
 	 */
 	public enum Library {
+		/*
+		 * The order of the libraries follows the definition in linit.c.
+		 */
 		/**
-		 * The base library, including the coroutine functions.
+		 * The base library.
 		 */
 		BASE,
+
+		/**
+		 * The package library.
+		 */
+		PACKAGE,
+
+		/**
+		 * The coroutine library.
+		 * 
+		 * @since JNLua 1.0.0
+		 */
+		COROUTINE,
 
 		/**
 		 * The table library.
@@ -2396,6 +2572,12 @@ public class LuaState {
 		STRING,
 
 		/**
+//		 * The bit32 library. * 
+		 * @since JNLua 1.0.0
+		 */
+		BIT32,
+
+		/**
 		 * The math library.
 		 */
 		MATH,
@@ -2405,10 +2587,10 @@ public class LuaState {
 		 */
 		DEBUG,
 
-		/**
-		 * The package library.
-		 */
-		PACKAGE,
+    /**
+     * The persistence library.
+     */
+    ERIS,
 
 		/**
 		 * The Java library.
@@ -2430,8 +2612,8 @@ public class LuaState {
 	}
 
 	/**
-	 * Represents a Lua garbage collector action. See the Lua Reference Manual
-	 * for an explanation of these actions.
+	 * Represents a Lua garbage collector action. Please see the Lua Reference
+	 * Manual for an explanation of these actions.
 	 */
 	public enum GcAction {
 		/**
@@ -2472,7 +2654,101 @@ public class LuaState {
 		/**
 		 * Set step multiplier.
 		 */
-		SETSTEPMUL
+		SETSTEPMUL,
+
+		/**
+		 * Undocumented.
+		 * 
+		 * @since JNLua 1.0.0
+		 */
+		SETMAJORINC,
+
+		/**
+		 * Returns whether the collector is running (i.e. not stopped).
+		 * 
+		 * @since JNLua 1.0.0
+		 */
+		ISRUNNING,
+
+		/**
+		 * Changes the collector to the generational mode.
+		 * 
+		 * @since JNLua 1.0.0
+		 */
+		GEN,
+
+		/**
+		 * Changes the collector to the incremental mode.
+		 * 
+		 * @since JNLua 1.0.0
+		 */
+		INC
+	}
+
+	/**
+	 * Represents a Lua arithmetic operator. Please see the Lua Reference Manual
+	 * for an explanation of these operators.
+	 * 
+	 * @since JNLua 1.0.0
+	 */
+	public enum ArithOperator {
+		/**
+		 * Addition operator.
+		 */
+		ADD,
+
+		/**
+		 * Subtraction operator.
+		 */
+		SUB,
+
+		/**
+		 * Multiplication operator.
+		 */
+		MUL,
+
+		/**
+		 * Division operator.
+		 */
+		DIV,
+
+		/**
+		 * Modulo operator.
+		 */
+		MOD,
+
+		/**
+		 * Exponentiation operator.
+		 */
+		POW,
+
+		/**
+		 * Mathematical negation operator.
+		 */
+		UNM
+	}
+
+	/**
+	 * Represents a Lua relational operator. Please see the Lua Reference Manual
+	 * for an explanation of these operators.
+	 * 
+	 * @since JNLua 1.0.0
+	 */
+	public enum RelOperator {
+		/**
+		 * Equality operator.
+		 */
+		EQ,
+
+		/**
+		 * Less than operator.
+		 */
+		LT,
+
+		/**
+		 * Less or equal operator.
+		 */
+		LE
 	}
 
 	// -- Nested types
@@ -2579,5 +2855,63 @@ public class LuaState {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Lua debug structure.
+	 */
+	private static class LuaDebug {
+		/**
+		 * The <code>lua_Debug</code> pointer on the JNI side. <code>0</code>
+		 * implies that the activation record has been freed. The field is
+		 * modified exclusively on the JNI side and must not be touched on the
+		 * Java side.
+		 */
+		private long luaDebug;
+
+		/**
+		 * Ensures proper finalization of this Lua debug structure.
+		 */
+		private Object finalizeGuardian;
+
+		/**
+		 * Creates a new instance.
+		 */
+		private LuaDebug(long luaDebug, boolean ownDebug) {
+			this.luaDebug = luaDebug;
+			if (ownDebug) {
+				finalizeGuardian = new Object() {
+					@Override
+					public void finalize() {
+						synchronized (LuaDebug.this) {
+							lua_debugfree();
+						}
+					}
+				};
+			}
+		}
+
+		// -- Properties
+		/**
+		 * Returns a reasonable name for the function given by this activation
+		 * record, or <code>null</code> if none is found.
+		 */
+		public String getName() {
+			return lua_debugname();
+		}
+
+		/**
+		 * Explains the name of the function given by this activation record.
+		 */
+		public String getNameWhat() {
+			return lua_debugnamewhat();
+		}
+
+		// -- Native methods
+		private native void lua_debugfree();
+
+		private native String lua_debugname();
+
+		private native String lua_debugnamewhat();
 	}
 }

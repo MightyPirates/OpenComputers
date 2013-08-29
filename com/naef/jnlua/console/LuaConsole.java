@@ -1,5 +1,5 @@
 /*
- * $Id: LuaConsole.java 121 2012-01-22 01:40:14Z andre@naef.com $
+ * $Id: LuaConsole.java 79 2012-01-08 11:08:32Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
@@ -85,9 +85,9 @@ public class LuaConsole {
 		luaState.openLibs();
 
 		// Set buffer mode
-		luaState.load("io.stdout:setvbuf(\"no\")", "setvbuf");
+		luaState.load("io.stdout:setvbuf(\"no\")", "=consoleInitStdout");
 		luaState.call(0, 0);
-		luaState.load("io.stderr:setvbuf(\"no\")", "setvbuf");
+		luaState.load("io.stderr:setvbuf(\"no\")", "=consoleInitStderr");
 		luaState.call(0, 0);
 	}
 
@@ -163,7 +163,7 @@ public class LuaConsole {
 		try {
 			long start = System.nanoTime();
 			luaState.setTop(0);
-			luaState.load(in, "console");
+			luaState.load(in, "=console", "t");
 			luaState.call(0, LuaState.MULTRET);
 			long stop = System.nanoTime();
 			for (int i = 1; i <= luaState.getTop(); i++) {
@@ -187,7 +187,6 @@ public class LuaConsole {
 			System.out.println();
 		} catch (LuaRuntimeException e) {
 			e.printLuaStackTrace();
-			e.printStackTrace();
 		} catch (LuaException e) {
 			System.err.println(e.getMessage());
 		}

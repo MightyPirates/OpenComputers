@@ -465,7 +465,7 @@ public class DefaultConverter implements Converter {
 				};
 			}
 			if (formalType.isArray()) {
-				int length = luaState.length(index);
+				int length = luaState.rawLen(index);
 				Class<?> componentType = formalType.getComponentType();
 				Object array = Array.newInstance(formalType.getComponentType(),
 						length);

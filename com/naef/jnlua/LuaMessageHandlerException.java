@@ -1,5 +1,5 @@
 /*
- * $Id: LuaMessageHandlerException.java 121 2012-01-22 01:40:14Z andre@naef.com $
+ * $Id: LuaMessageHandlerException.java 43 2012-01-05 00:24:31Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 

@@ -1,5 +1,5 @@
 /*
- * $Id: CompiledLuaScript.java 121 2012-01-22 01:40:14Z andre@naef.com $
+ * $Id: CompiledLuaScript.java 38 2012-01-04 22:44:15Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
@@ -34,7 +34,7 @@ class CompiledLuaScript extends CompiledScript {
 	@Override
 	public Object eval(ScriptContext context) throws ScriptException {
 		synchronized (engine.getLuaState()) {
-			engine.loadChunk(new ByteArrayInputStream(script), context);
+			engine.loadChunk(new ByteArrayInputStream(script), context, "b");
 			return engine.callChunk(context);
 		}
 	}

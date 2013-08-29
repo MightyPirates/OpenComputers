@@ -1,19 +1,21 @@
 /*
- * $Id: LuaMemoryAllocationException.java 38 2012-01-04 22:44:15Z andre@naef.com $
+ * $Id: LuaGcMetamethodException.java 76 2012-01-06 01:25:52Z andre@naef.com $
  * See LICENSE.txt for license terms.
  */
 
 package com.naef.jnlua;
 
 /**
- * Indicates a Lua memory allocation error.
+ * Indicates a Lua garbage collection metamethod error.
  * 
  * <p>
- * The exception is thrown if the Lua memory allocator runs out of memory or if
- * a JNI allocation fails.
+ * This exception is thrown if an error occurs running a <code>__gc</code>
+ * metamethod during garbage collection.
  * </p>
+ * 
+ * @since JNLua 1.0.0
  */
-public class LuaMemoryAllocationException extends LuaException {
+public class LuaGcMetamethodException extends LuaException {
 	// -- Static
 	private static final long serialVersionUID = 1L;
 
@@ -24,7 +26,7 @@ public class LuaMemoryAllocationException extends LuaException {
 	 * @param msg
 	 *            the message
 	 */
-	public LuaMemoryAllocationException(String msg) {
+	public LuaGcMetamethodException(String msg) {
 		super(msg);
 	}
 
@@ -36,7 +38,7 @@ public class LuaMemoryAllocationException extends LuaException {
 	 * @param cause
 	 *            the cause of this exception
 	 */
-	public LuaMemoryAllocationException(String msg, Throwable cause) {
+	public LuaGcMetamethodException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 }

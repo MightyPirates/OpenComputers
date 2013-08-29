@@ -9,9 +9,10 @@ import com.naef.jnlua.LuaState
 
 import li.cil.oc.api.Callback
 import li.cil.oc.api.IDriver
+import li.cil.oc.common.computer.IInternalComputerContext
 
-class Driver(val driver: IDriver) {
-  def injectInto(context: IComputerContext) {
+private[oc] class Driver(val driver: IDriver) {
+  def injectInto(context: IInternalComputerContext) {
     // Check if the component actually provides an API.
     val api = driver.apiName
     if (api == null || api.isEmpty()) return
@@ -49,7 +50,12 @@ class Driver(val driver: IDriver) {
         else {
           // No such entry yet. Pop the nil and build our callback wrapper.
           lua.pop(1)
-          lua.pushJavaFunction(new MethodWrapper(context, method))
+          if (annotation.synchronize) {
+            lua.pushJavaFunction(new SynchronizedMethodWrapper(context, method))
+          }
+          else {
+            lua.pushJavaFunction(new MethodWrapper(context, method))
+          }
           lua.setField(-2, name)
         }
       }
@@ -66,7 +72,7 @@ class Driver(val driver: IDriver) {
    * This copies an existing API table from the registry and executes any
    * initialization code provided by the driver.
    */
-  def install(context: IComputerContext) {
+  def install(context: IInternalComputerContext) {
     copyAPI(context)
 
     // Do we have custom initialization code?
@@ -80,7 +86,7 @@ class Driver(val driver: IDriver) {
     }
   }
 
-  private def copyAPI(context: IComputerContext) {
+  private def copyAPI(context: IInternalComputerContext) {
     // Check if the component actually provides an API.
     val api = driver.apiName
     if (api == null && api.isEmpty()) return
@@ -121,7 +127,7 @@ class Driver(val driver: IDriver) {
     lua.pop(2)
   }
 
-  private class MethodWrapper(val context: IComputerContext, val method: Method) extends JavaFunction {
+  private class MethodWrapper(val context: IInternalComputerContext, val method: Method) extends JavaFunction {
     private val classOfBoolean = classOf[Boolean]
     private val classOfByte = classOf[Byte]
     private val classOfShort = classOf[Short]
@@ -136,10 +142,11 @@ class Driver(val driver: IDriver) {
     private val returnsTuple = returnType.isInstanceOf[Array[Object]]
     private val returnsNothing = returnType.equals(Void.TYPE)
 
+    // TODO Rework all of this, most likely won't work because of type erasure.
     def invoke(state: LuaState): Int = {
       // Parse the parameters, convert them to Java types.
       val parameters = Array(context) ++ parameterTypes.map {
-        case (classOfBoolean, i) => boolean2Boolean(state.checkBoolean(i + 1))
+        //case (classOfBoolean, i) => boolean2Boolean(state.checkBoolean(i + 1))
         case (classOfByte, i) => java.lang.Byte.valueOf(state.checkInteger(i + 1).toByte)
         case (classOfShort, i) => java.lang.Short.valueOf(state.checkInteger(i + 1).toShort)
         case (classOfInteger, i) => java.lang.Integer.valueOf(state.checkInteger(i + 1))
@@ -151,7 +158,7 @@ class Driver(val driver: IDriver) {
       }
 
       // Call the actual function, grab the result, if any.
-      val result = method.invoke(driver, parameters: _*)
+      val result = call(parameters: _*)
 
       // Check the result, convert it to Lua.
       if (returnsTuple) {
@@ -174,6 +181,18 @@ class Driver(val driver: IDriver) {
       case classOfDouble => state.pushNumber(value.asInstanceOf[Double])
       case classOfString => state.pushString(value.asInstanceOf[String])
       case _ => state.pushNil()
+    }
+
+    protected def call(args: AnyRef*) = {
+      method.invoke(driver, args)
+    }
+  }
+
+  private class SynchronizedMethodWrapper(context: IInternalComputerContext, method: Method) extends MethodWrapper(context, method) {
+    override def call(args: AnyRef*) = {
+      context.lock()
+      try super.call(args)
+      finally context.unlock()
     }
   }
 }

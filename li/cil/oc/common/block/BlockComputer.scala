@@ -81,7 +81,8 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
         false
     else
       // TODO Open GUI if we're a client.
-      false
+      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
+      true
   }
 
   def rotation(world: IBlockAccess, x: Int, y: Int, z: Int) =
