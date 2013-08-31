@@ -8,4 +8,7 @@ import net.minecraft.world.World
  */
 trait IComputerEnvironment {
   def world: World
+
+  /** Called when the computer state changed, so it should be saved again. */
+  def markAsChanged(): Unit
 }

@@ -5,5 +5,5 @@ import com.naef.jnlua.LuaState
 import net.minecraft.nbt.NBTTagCompound
 
 trait IComputerContext {
-  def signal(pid: Int, name: String, args: Any*)
+  def signal(name: String, args: Any*)
 }

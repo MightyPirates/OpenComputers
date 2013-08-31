@@ -10,11 +10,9 @@ trait IInternalComputerContext extends IComputerContext {
 
   def start(): Boolean
 
+  def stop(): Unit
+
   def update()
-
-  def lock()
-
-  def unlock()
 
   def readFromNBT(nbt: NBTTagCompound)
 

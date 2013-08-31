@@ -59,19 +59,14 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
   override def createTileEntity(world: World, metadata: Int) = new TileEntityComputer(world.isRemote)
 
   // ----------------------------------------------------------------------- //
-  // Block rotation
+  // Destruction / Interaction
   // ----------------------------------------------------------------------- //
 
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, itemStack: ItemStack) {
-    if (!world.isRemote) {
-      val facing = MathHelper.floor_double(entity.rotationYaw * 4 / 360 + 0.5) & 3
-      setRotation(world, x, y, z, facing)
-    }
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, `side?`: Int, metadata: Int) = {
+    world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOff()
+    super.breakBlock(world, x, y, z, `side?`, metadata)
   }
-
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
-    Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
-
+  
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
     side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking())
@@ -84,6 +79,20 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
       world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
       true
   }
+
+  // ----------------------------------------------------------------------- //
+  // Block rotation
+  // ----------------------------------------------------------------------- //
+
+  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, itemStack: ItemStack) {
+    if (!world.isRemote) {
+      val facing = MathHelper.floor_double(entity.rotationYaw * 4 / 360 + 0.5) & 3
+      setRotation(world, x, y, z, facing)
+    }
+  }
+
+  override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
+    Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
 
   def rotation(world: IBlockAccess, x: Int, y: Int, z: Int) =
     // Renderer(down, up, north, south, west, east) -> Facing(south, west, north, east) inverted.

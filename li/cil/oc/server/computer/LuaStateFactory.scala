@@ -88,7 +88,29 @@ private[computer] object LuaStateFactory {
     val state = new LuaState(Integer.MAX_VALUE)
     try {
       // Load all libraries.
-      state.openLibs()
+      state.openLib(LuaState.Library.BASE)
+      state.openLib(LuaState.Library.BIT32)
+      state.openLib(LuaState.Library.COROUTINE)
+      state.openLib(LuaState.Library.DEBUG)
+      state.openLib(LuaState.Library.ERIS)
+      state.openLib(LuaState.Library.MATH)
+      state.openLib(LuaState.Library.STRING)
+      state.openLib(LuaState.Library.TABLE)
+      state.pop(8)
+
+      // Prepare table for os stuff.
+      state.newTable()
+      state.setGlobal("os")
+
+      // Remove some other functions we don't need and are dangerous.
+      state.pushNil()
+      state.setGlobal("dofile")
+      state.pushNil()
+      state.setGlobal("loadfile")
+      state.pushNil()
+      state.setGlobal("module")
+      state.pushNil()
+      state.setGlobal("require")
     }
     catch {
       case ex: Throwable => {

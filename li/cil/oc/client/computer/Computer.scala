@@ -7,14 +7,12 @@ class Computer(val owner: AnyRef) extends IInternalComputerContext {
   def luaState = null
 
   def start() = false
+  
+  def stop() {}
 
   def update() {}
 
-  def lock() {}
-
-  def unlock() {}
-
-  def signal(pid: Int, name: String, args: Any*) {}
+  def signal(name: String, args: Any*) {}
 
   def readFromNBT(nbt: NBTTagCompound) {}
 
