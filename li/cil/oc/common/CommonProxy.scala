@@ -8,6 +8,9 @@ import li.cil.oc.Blocks
 import li.cil.oc.Config
 import li.cil.oc.Items
 import li.cil.oc.server.computer.Computer
+import cpw.mods.fml.common.network.NetworkRegistry
+import li.cil.oc.gui.GuiHandler
+import li.cil.oc.OpenComputers
 
 class CommonProxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -26,7 +29,7 @@ class CommonProxy {
 
     // TODO Figure out how resource pack based localization works.
     LanguageRegistry.addName(Blocks.computer, "Computer")
-
+    NetworkRegistry.instance().registerGuiHandler(OpenComputers, new GuiHandler());
     new Computer(null)
   }
 

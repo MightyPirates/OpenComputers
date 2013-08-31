@@ -13,6 +13,8 @@ import net.minecraft.util.MathHelper
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.CommonProxy
+import li.cil.oc.OpenComputers
 
 class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
   // ----------------------------------------------------------------------- //
@@ -75,9 +77,12 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
       else
         false
     else
-      // TODO Open GUI if we're a client.
-      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
+    {   // TODO Open GUI if we're a client.
+      val computer = world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer]
+      computer.turnOn()
+      player.openGui(OpenComputers,0, world, x,y, z)
       true
+    }
   }
 
   // ----------------------------------------------------------------------- //
