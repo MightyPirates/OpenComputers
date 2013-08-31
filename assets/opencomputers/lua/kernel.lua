@@ -11,8 +11,7 @@ local deadline = 0
 
 --[[ The hook installed for process coroutines enforcing the timeout. ]]
 local function timeoutHook()
-  local now = os.clock()
-  if now > deadline then
+  if os.realTime() > deadline then
     error({timeout=debug.traceback(2)}, 0)
   end
 end
@@ -42,7 +41,7 @@ local function buildSandbox()
     tostring = tostring,
 
     -- We don't care what users do with metatables. The only raised concern was
-    -- about breaking an environment, and we don't care about that.
+    -- about breaking an environment, which is pretty much void in Lua 5.2.
     getmetatable = getmetatable,
     setmetatable = setmetatable,
 
@@ -137,11 +136,7 @@ local function buildSandbox()
       pack = table.pack,
       remove = table.remove,
       sort = table.sort,
-      unpack = unpack,
-      -- Custom functions.
-      copy = table.copy,
-      asreadonly = table.asreadonly,
-      isreadonly = table.isreadonly
+      unpack = table.unpack
     }
   }
   sandbox._G = sandbox
@@ -248,6 +243,22 @@ local function main()
   --[[ Create the sandbox as a thread-local variable so it is persisted. ]]
   local sandbox = buildSandbox()
 
+  --[[ Creates a function that runs another function as a coroutine and
+       re-creates the coroutine in case it dies due to timeout errors.
+  --]]
+  local makeRunner = function(f)
+    local runner = coroutine.create(f)
+    return function(...)
+      if not runner or coroutine.status(runner) == "dead" then
+        runner = coroutine.create(f)
+      end
+      if not debug.gethook(runner) then
+        debug.sethook(runner, timeoutHook, "", 10000)
+      end
+      return coroutine.resume(runner, ...)
+    end
+  end
+
   --[[ List of signal handlers, by name. ]]
   local signals = setmetatable({}, {__mode = "v"})
 
@@ -261,41 +272,38 @@ local function main()
     return oldCallback
   end
 
-  --[[ Error handler for signal callbacks. ]]
-  local function onSignalError(msg)
-    if type(msg) == "table" then
-      if msg.timeout then
-        msg = "too long without yielding"
-      else
-        msg = msg.message
-      end
-    end
-    print(msg)
-    return msg
-  end
-
-  --[[ Set up the shell, which is really just a Lua interpreter. ]]
-  local shellThread
-  local function startShell(safeMode)
-    -- Set sandbox environment and create the shell runner.
-    local _ENV = sandbox
-    local function shell()
-      function test(arg)
-        print(string.format("%d SIGNAL! Available RAM: %d/%d",
-          os.time(), os.freeMemory(), os.totalMemory()))
-      end
-      os.signal("test", test)
-
-      local i = 0
+  --[[ Runner function for signal callbacks. ]]
+  local signalRunner = makeRunner(
+    function(signal)
       while true do
-        i = i + 1
-        print("ping " .. i)
-        os.sleep(1)
+        signal = coroutine.yield(
+          signals[signal[1]](select(2, table.unpack(signal))))
       end
-    end
-    shellThread = coroutine.create(shell)
-  end
-  startShell()
+    end)
+
+  --[[ Runner function for the shell. ]]
+  local shellRunner = makeRunner(
+    (function()
+      -- Set sandbox environment and create the shell runner.
+      local _ENV = sandbox
+      return function()
+        function test(arg)
+          print(string.format("%f SIGNAL! Available RAM: %d/%d",
+            os.clock(), os.freeMemory(), os.totalMemory()))
+        end
+        os.signal("test", test)
+
+        local i = 0
+        while true do
+          i = i + 1
+          print("ping " .. i)
+          os.sleep(1)
+          if i > 4 then
+            repeat until false -- timeout test
+          end
+        end
+      end
+    end)())
 
   print("Running kernel...")
 
@@ -303,28 +311,28 @@ local function main()
   -- the shell, to keep the chance of long blocks low (and "accidentally" going
   -- over the timeout).
   local signal
-  while coroutine.status(shellThread) ~= "dead" do
-    deadline = os.clock() + 5
+  while true do
+    deadline = os.realTime() + 3
     local result
     if signal and signals[signal[1]] then
-      xpcall(signals[signal[1]], onSignalError, select(2, table.unpack(signal)))
+      -- We have a signal and a callback for it. Run it in the signal runner
+      -- which we use to enforce a timeout via the debug count hook.
+      result = {signalRunner(signal)}
     else
-      if not debug.gethook(shellThread) then
-        debug.sethook(shellThread, timeoutHook, "", 10000)
-      end
-      local status = {coroutine.resume(shellThread)}
-      if status[1] then
-        -- All is well, in case we had a yield return the yielded value.
-        if coroutine.status(shellThread) ~= "dead" then
-          result = status[2]
-        end
-      elseif status[2].timeout then
-        -- Timeout, restart the shell but don't start user scripts this time.
-        startShell(true)
-      else
-        -- Some other error, go kill ourselves.
-        error(result[2], 0)
-      end
+      -- Either we have no signal, or there's no signal callback. Run the main
+      -- shell, also wrapped in a thread to enforce the timeout.
+      result = {shellRunner()}
+    end
+    if result[1] then
+      -- The signal and shell runners only yield successfully, they can never
+      -- actually return. Meaning the second parameter is an internal value.
+      result = result[2]
+    elseif result[2].timeout then
+      print("too long without yielding")
+      result = nil
+    else
+      -- Some other error, go kill ourselves.
+      error(result[2], 0)
     end
     signal = {coroutine.yield(result)}
   end

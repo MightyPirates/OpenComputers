@@ -51,7 +51,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
    * custom implementation of os.clock(), which returns the amount of the time
    * the computer has been running.
    */
-  private var timeStarted = 0L
+  private var timeStarted = 0.0
 
   /**
    * The last time (system time) the update function was called by the server
@@ -75,14 +75,11 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
    */
   private var future: Future[_] = null
 
-  /**
-   * The object our executor thread waits on if the last update has been a
-   * while, and the update function calls notify on each time it is run.
-   */
-  private val pauseMonitor = new Object()
-
   /** This is used to synchronize access to the state field. */
   private val stateMonitor = new Object()
+
+  /** This is used to synchronize while saving, so we don't stop while we do. */
+  private val saveMonitor = new Object()
 
   // ----------------------------------------------------------------------- //
   // State
@@ -100,7 +97,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     })
 
   /** Stops a computer, possibly asynchronously. */
-  def stop(): Unit = stateMonitor.synchronized {
+  def stop(): Unit = saveMonitor.synchronized(stateMonitor.synchronized {
     if (state != State.Stopped) {
       if (state != State.Running) {
         // If the computer is not currently running we can simply close it,
@@ -117,11 +114,9 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
         // the computer again. The executor will check for this state and
         // call close.
         state = State.Stopping
-        // Make sure the thread isn't waiting for an update.
-        pauseMonitor.synchronized(pauseMonitor.notify())
       }
     }
-  }
+  })
 
   // ----------------------------------------------------------------------- //
   // IComputerContext
@@ -142,7 +137,11 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
         state = State.DriverReturn
         future = Executor.pool.submit(this)
       }
-      case _ => /* nothing special to do */
+      case State.Paused | State.DriverReturnPaused => {
+        state = State.Suspended
+        future = Executor.pool.submit(this)
+      }
+      case _ => /* Nothing special to do. */
     })
 
     // Remember when we started the computer for os.clock(). We do this in the
@@ -153,16 +152,13 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo().getWorldTotalTime()
 
-    if (worldTime % 40 == 0) {
+    if (worldTime % 47 == 0) {
       signal("test", "ha!")
     }
 
     // Update last time run to let our executor thread know it doesn't have to
     // pause, and wake it up if it did pause (because the game was paused).
     lastUpdate = System.currentTimeMillis
-
-    // Tell the executor thread it may continue if it's waiting.
-    pauseMonitor.synchronized(pauseMonitor.notify())
   }
 
   def signal(name: String, args: Any*) = {
@@ -172,7 +168,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     }
     stateMonitor.synchronized(state match {
       // We don't push new signals when stopped or shutting down.
-      case State.Stopped | State.Stopping =>
+      case State.Stopped | State.Stopping => /* Nothing. */
       // Currently sleeping. Cancel that and start immediately.
       case State.Sleeping =>
         future.cancel(true)
@@ -185,144 +181,146 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     })
   }
 
-  def readFromNBT(nbt: NBTTagCompound): Unit = this.synchronized {
-    // Clear out what we currently have, if anything.
-    stateMonitor.synchronized {
-      assert(state != State.Running) // Lock on 'this' should guarantee this.
-      stop()
-    }
+  def readFromNBT(nbt: NBTTagCompound): Unit =
+    saveMonitor.synchronized(this.synchronized {
+      // Clear out what we currently have, if anything.
+      stateMonitor.synchronized {
+        assert(state != State.Running) // Lock on 'this' should guarantee this.
+        stop()
+      }
 
-    state = State(nbt.getInteger("state"))
+      state = State(nbt.getInteger("state"))
 
-    if (state != State.Stopped && init()) {
-      // Unlimit memory use while unpersisting.
+      if (state != State.Stopped && init()) {
+        // Unlimit memory use while unpersisting.
+        val memory = lua.getTotalMemory()
+        lua.setTotalMemory(Integer.MAX_VALUE)
+        try {
+          // Try unpersisting Lua, because that's what all of the rest depends
+          // on. First, clear the stack, meaning the current kernel.
+          lua.setTop(0)
+
+          if (!unpersist(nbt.getByteArray("kernel")) || !lua.isThread(1)) {
+            // This shouldn't really happen, but there's a chance it does if
+            // the save was corrupt (maybe someone modified the Lua files).
+            throw new IllegalStateException("Could not restore kernel.")
+          }
+          if (state == State.DriverCall || state == State.DriverReturn) {
+            if (!unpersist(nbt.getByteArray("stack")) ||
+              (state == State.DriverCall && !lua.isFunction(2)) ||
+              (state == State.DriverReturn && !lua.isTable(2))) {
+              // Same as with the above, should not really happen normally, but
+              // could for the same reasons.
+              throw new IllegalStateException("Could not restore driver call.")
+            }
+          }
+
+          assert(signals.size() == 0)
+          val signalsTag = nbt.getTagList("signals")
+          signals.addAll((0 until signalsTag.tagCount()).
+            map(signalsTag.tagAt(_).asInstanceOf[NBTTagCompound]).
+            map(signal => {
+              val argsTag = signal.getCompoundTag("args")
+              val argsLength = argsTag.getInteger("length")
+              new Signal(signal.getString("name"),
+                (0 until argsLength).map("arg" + _).map(argsTag.getTag(_)).map {
+                  case tag: NBTTagByte => tag.data
+                  case tag: NBTTagShort => tag.data
+                  case tag: NBTTagInt => tag.data
+                  case tag: NBTTagLong => tag.data
+                  case tag: NBTTagFloat => tag.data
+                  case tag: NBTTagDouble => tag.data
+                  case tag: NBTTagString => tag.data
+                }.toArray)
+            }))
+
+          timeStarted = nbt.getDouble("timeStarted")
+
+          // Start running our worker thread.
+          assert(future == null)
+          future = Executor.pool.submit(this)
+        }
+        catch {
+          case t: Throwable => {
+            t.printStackTrace()
+            // TODO display error in-game on monitor or something
+            //signal("crash", "memory corruption")
+            close()
+          }
+        }
+        finally if (lua != null) {
+          // Clean up some after we're done and limit memory again.
+          lua.gc(LuaState.GcAction.COLLECT, 0)
+          lua.setTotalMemory(memory)
+        }
+      }
+    })
+
+  def writeToNBT(nbt: NBTTagCompound): Unit =
+    saveMonitor.synchronized(this.synchronized {
+      stateMonitor.synchronized {
+        assert(state != State.Running) // Lock on 'this' should guarantee this.
+        assert(state != State.Stopping) // Only set while executor is running.
+      }
+
+      nbt.setInteger("state", state.id)
+      if (state == State.Stopped) {
+        return
+      }
+
+      // Unlimit memory while persisting.
       val memory = lua.getTotalMemory()
       lua.setTotalMemory(Integer.MAX_VALUE)
       try {
-        // Try unpersisting Lua, because that's what all of the rest depends on.
-        // Clear the stack (meaning the current kernel).
-        lua.setTop(0)
-
-        if (!unpersist(nbt.getByteArray("kernel")) || !lua.isThread(1)) {
-          // This shouldn't really happen, but there's a chance it does if
-          // the save was corrupt (maybe someone modified the Lua files).
-          throw new IllegalStateException("Could not restore kernel.")
-        }
+        // Try persisting Lua, because that's what all of the rest depends on.
+        // While in a driver call we have one object on the global stack: either
+        // the function to call the driver with, or the result of the call.
         if (state == State.DriverCall || state == State.DriverReturn) {
-          if (!unpersist(nbt.getByteArray("stack")) ||
-            (state == State.DriverCall && !lua.isFunction(2)) ||
-            (state == State.DriverReturn && !lua.isTable(2))) {
-            // Same as with the above, should not really happen normally, but
-            // could for the same reasons.
-            throw new IllegalStateException("Could not restore driver call.")
-          }
+          assert(
+            if (state == State.DriverCall) lua.`type`(2) == LuaType.FUNCTION
+            else lua.`type`(2) == LuaType.TABLE)
+          nbt.setByteArray("stack", persist())
         }
+        // Save the kernel state (which is always at stack index one).
+        assert(lua.`type`(1) == LuaType.THREAD)
+        nbt.setByteArray("kernel", persist())
 
-        assert(signals.size() == 0)
-        val signalsTag = nbt.getTagList("signals")
-        signals.addAll((0 until signalsTag.tagCount()).
-          map(signalsTag.tagAt(_).asInstanceOf[NBTTagCompound]).
-          map(signal => {
-            val argsTag = signal.getCompoundTag("args")
-            val argsLength = argsTag.getInteger("length")
-            new Signal(signal.getString("name"),
-              (0 until argsLength).map("arg" + _).map(argsTag.getTag(_)).map {
-                case tag: NBTTagByte => tag.data
-                case tag: NBTTagShort => tag.data
-                case tag: NBTTagInt => tag.data
-                case tag: NBTTagLong => tag.data
-                case tag: NBTTagFloat => tag.data
-                case tag: NBTTagDouble => tag.data
-                case tag: NBTTagString => tag.data
-              }.toArray)
-          }))
+        val list = new NBTTagList()
+        for (s <- signals.iterator()) {
+          val signal = new NBTTagCompound()
+          signal.setString("name", s.name)
+          // TODO Test with NBTTagList, but supposedly it only allows entries
+          //      with the same type, so I went with this for now...
+          val args = new NBTTagCompound()
+          args.setInteger("length", s.args.length)
+          s.args.zipWithIndex.foreach {
+            case (arg: Byte, i) => args.setByte("arg" + i, arg)
+            case (arg: Short, i) => args.setShort("arg" + i, arg)
+            case (arg: Int, i) => args.setInteger("arg" + i, arg)
+            case (arg: Long, i) => args.setLong("arg" + i, arg)
+            case (arg: Float, i) => args.setFloat("arg" + i, arg)
+            case (arg: Double, i) => args.setDouble("arg" + i, arg)
+            case (arg: String, i) => args.setString("arg" + i, arg)
+          }
+          signal.setCompoundTag("args", args)
+          list.appendTag(signal)
+        }
+        nbt.setTag("signals", list)
 
-        timeStarted = nbt.getLong("timeStarted")
-
-        // Start running our worker thread.
-        assert(future == null)
-        future = Executor.pool.submit(this)
+        nbt.setDouble("timeStarted", timeStarted)
       }
       catch {
         case t: Throwable => {
           t.printStackTrace()
-          // TODO display error in-game on monitor or something
-          //signal("crash", "memory corruption")
-          close()
+          nbt.setInteger("state", State.Stopped.id)
         }
       }
-      finally if (lua != null) {
+      finally {
         // Clean up some after we're done and limit memory again.
         lua.gc(LuaState.GcAction.COLLECT, 0)
         lua.setTotalMemory(memory)
       }
-    }
-  }
-
-  def writeToNBT(nbt: NBTTagCompound): Unit = this.synchronized {
-    stateMonitor.synchronized {
-      assert(state != State.Running) // Lock on 'this' should guarantee this.
-      assert(state != State.Stopping) // Only set while executor is running.
-    }
-
-    nbt.setInteger("state", state.id)
-    if (state == State.Stopped) {
-      return
-    }
-
-    // Unlimit memory while persisting.
-    val memory = lua.getTotalMemory()
-    lua.setTotalMemory(Integer.MAX_VALUE)
-    try {
-      // Try persisting Lua, because that's what all of the rest depends on.
-      // While in a driver call we have one object on the global stack: either
-      // the function to call the driver with, or the result of the call.
-      if (state == State.DriverCall || state == State.DriverReturn) {
-        assert(
-          if (state == State.DriverCall) lua.`type`(2) == LuaType.FUNCTION
-          else lua.`type`(2) == LuaType.TABLE)
-        nbt.setByteArray("stack", persist())
-      }
-      // Save the kernel state (which is always at stack index one).
-      assert(lua.`type`(1) == LuaType.THREAD)
-      nbt.setByteArray("kernel", persist())
-
-      val list = new NBTTagList()
-      for (s <- signals.iterator()) {
-        val signal = new NBTTagCompound()
-        signal.setString("name", s.name)
-        // TODO Test with NBTTagList, but supposedly it only allows entries
-        //      with the same type, so I went with this for now...
-        val args = new NBTTagCompound()
-        args.setInteger("length", s.args.length)
-        s.args.zipWithIndex.foreach {
-          case (arg: Byte, i) => args.setByte("arg" + i, arg)
-          case (arg: Short, i) => args.setShort("arg" + i, arg)
-          case (arg: Int, i) => args.setInteger("arg" + i, arg)
-          case (arg: Long, i) => args.setLong("arg" + i, arg)
-          case (arg: Float, i) => args.setFloat("arg" + i, arg)
-          case (arg: Double, i) => args.setDouble("arg" + i, arg)
-          case (arg: String, i) => args.setString("arg" + i, arg)
-        }
-        signal.setCompoundTag("args", args)
-        list.appendTag(signal)
-      }
-      nbt.setTag("signals", list)
-
-      nbt.setLong("timeStarted", timeStarted)
-    }
-    catch {
-      case t: Throwable => {
-        t.printStackTrace()
-        nbt.setInteger("state", State.Stopped.id)
-      }
-    }
-    finally {
-      // Clean up some after we're done and limit memory again.
-      lua.gc(LuaState.GcAction.COLLECT, 0)
-      lua.setTotalMemory(memory)
-    }
-  }
+    })
 
   private def persist(): Array[Byte] = {
     lua.getGlobal("persist") // ... obj persist?
@@ -399,6 +397,15 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       })
       lua.setField(-2, "difftime")
 
+      // Allow getting the real world time via os.realTime() for timeouts.
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          lua.pushNumber(System.currentTimeMillis() / 1000.0)
+          return 1
+        }
+      })
+      lua.setField(-2, "realTime")
+
       // Allow the system to read how much memory it uses and has available.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
@@ -473,6 +480,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
               case LuaType.LIGHTUSERDATA | LuaType.USERDATA => print("userdata")
             }
           }
+          println()
           return 0
         }
       })
@@ -494,7 +502,8 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       // couple of library functions and sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
       // available as globals.
-      lua.load(classOf[Computer].getResourceAsStream("/assets/opencomputers/lua/boot.lua"), "boot", "t")
+      lua.load(classOf[Computer].getResourceAsStream(
+        "/assets/opencomputers/lua/boot.lua"), "boot", "t")
       lua.call(0, 0)
 
       // Load the basic kernel which takes care of handling signals by managing
@@ -502,7 +511,8 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       // implement in Lua, so we also implement most of the kernel's
       // functionality in Lua. Why? Because like this it's automatically
       // persisted for us without having to write more additional NBT stuff.
-      lua.load(classOf[Computer].getResourceAsStream("/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
+      lua.load(classOf[Computer].getResourceAsStream(
+        "/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
       lua.newThread() // Leave it as the first value on the stack.
 
       // Run the garbage collector to get rid of stuff left behind after the
@@ -513,8 +523,6 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       lua.gc(LuaState.GcAction.COLLECT, 0)
       kernelMemory = lua.getTotalMemory() - lua.getFreeMemory()
       lua.setTotalMemory(kernelMemory + 64 * 1024)
-
-      println("Kernel uses " + (kernelMemory / 1024) + "KB of memory.")
 
       // Clear any left-over signals from a previous run.
       signals.clear()
@@ -546,17 +554,27 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
   def run(): Unit = this.synchronized {
     println(" > executor enter")
 
-    val driverReturn = State.DriverReturn == stateMonitor.synchronized {
+    // See if the game appears to be paused, in which case we also pause.
+    if (System.currentTimeMillis - lastUpdate > 200)
+      stateMonitor.synchronized {
+        state =
+          if (state == State.DriverReturn) State.DriverReturnPaused
+          else State.Paused
+        future = null
+        println(" < executor leave")
+        return
+      }
+
+    val driverReturn = stateMonitor.synchronized {
       val oldState = state
       state = State.Running
       oldState
+    } match {
+      case State.DriverReturn | State.DriverReturnPaused => true
+      case _ => false
     }
 
     try {
-      // See if the game appears to be paused, in which case we also pause.
-      if (System.currentTimeMillis - lastUpdate > 500)
-        pauseMonitor.synchronized(pauseMonitor.wait())
-
       // This is synchronized so that we don't run a Lua state while saving or
       // loading the computer to or from an NBTTagCompound or other stuff
       // corrupting our Lua state.
@@ -664,6 +682,9 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     /** The computer is running but yielding for a longer amount of time. */
     val Sleeping = Value("Sleeping")
 
+    /** The computer is paused and waiting for the game to resume. */
+    val Paused = Value("Paused")
+
     /** The computer is up and running, executing Lua code. */
     val Running = Value("Running")
 
@@ -675,27 +696,31 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
 
     /** The computer should resume with the result of a driver call. */
     val DriverReturn = Value("DriverReturn")
+
+    /** The computer is paused and waiting for the game to resume. */
+    val DriverReturnPaused = Value("DriverReturnPaused")
   }
 
   /** Singleton for requesting executors that run our Lua states. */
   private object Executor {
-    val pool = Executors.newScheduledThreadPool(Config.threads, new ThreadFactory() {
-      private val threadNumber = new AtomicInteger(1)
+    val pool = Executors.newScheduledThreadPool(Config.threads,
+      new ThreadFactory() {
+        private val threadNumber = new AtomicInteger(1)
 
-      private val group = System.getSecurityManager() match {
-        case null => Thread.currentThread().getThreadGroup()
-        case s => s.getThreadGroup()
-      }
+        private val group = System.getSecurityManager() match {
+          case null => Thread.currentThread().getThreadGroup()
+          case s => s.getThreadGroup()
+        }
 
-      def newThread(r: Runnable): Thread = {
-        val name = "OpenComputers-" + threadNumber.getAndIncrement()
-        val thread = new Thread(group, r, name)
-        if (!thread.isDaemon())
-          thread.setDaemon(true)
-        if (thread.getPriority() != Thread.MIN_PRIORITY)
-          thread.setPriority(Thread.MIN_PRIORITY)
-        return thread
-      }
-    })
+        def newThread(r: Runnable): Thread = {
+          val name = "OpenComputers-" + threadNumber.getAndIncrement()
+          val thread = new Thread(group, r, name)
+          if (!thread.isDaemon())
+            thread.setDaemon(true)
+          if (thread.getPriority() != Thread.MIN_PRIORITY)
+            thread.setPriority(Thread.MIN_PRIORITY)
+          return thread
+        }
+      })
   }
 }
