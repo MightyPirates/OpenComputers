@@ -57,14 +57,21 @@ private[computer] object LuaStateFactory {
       }
       // Found file with proper extension. Create a temporary file.
       val file = new File(tmpPath + library + libExt)
-      if (!file.exists()) {
-        file.deleteOnExit()
+      try {
         // Copy the file contents to the temporary file.
         val in = Channels.newChannel(libraryUrl.openStream())
         val out = new FileOutputStream(file).getChannel()
         out.transferFrom(in, 0, Long.MaxValue)
         in.close()
         out.close()
+        file.deleteOnExit()
+      }
+      catch {
+        // Java (or Windows?) locks the library file when opening it, so any
+        // further tries to update it while another instance is still running
+        // will fail. We still want to try each time, since the files may have
+        // been updated.
+        case t: Throwable => // Nothing.
       }
       // Remember the temporary file's location for later.
       libraries += library -> file.getAbsolutePath()
