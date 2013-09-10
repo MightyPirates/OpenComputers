@@ -6,6 +6,7 @@ import li.cil.oc.api.IBlockDriver
 import li.cil.oc.api.IItemDriver
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
+import net.minecraft.world.World
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -66,7 +67,7 @@ private[oc] object Drivers {
    * @param block the type of block to check for a driver for.
    * @return the driver for that block type if we have one.
    */
-  def driverFor(block: Block) = blocks.find(_.instance.worksWith(block))
+  def driverFor(world: World, block: Block) = blocks.find(_.instance.worksWith(world: World, block))
 
   /**
    * Used when an item component is added to a computer to see if we have a

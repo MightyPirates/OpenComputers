@@ -1,22 +1,24 @@
 package li.cil.oc.server.computer
 
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
+
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
 import scala.collection.mutable._
 import scala.reflect.runtime.universe._
 import scala.util.Random
+
 import com.naef.jnlua._
+
 import li.cil.oc.Config
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.common.computer.IComputer
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
-import java.util.Date
-import java.util.Calendar
-import java.util.Locale
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -148,6 +150,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   def component[T: TypeTag](id: Int) = components.get(id) match {
     case None => throw new IllegalArgumentException("no such component")
     case Some(component) =>
+      // TODO is this right?
       if (component.getClass() == typeOf[T]) component.asInstanceOf[T]
       else throw new IllegalArgumentException("bad component type")
   }
@@ -241,10 +244,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     }
 
   def add(block: Block, x: Int, y: Int, z: Int, id: Int) =
-    Drivers.driverFor(block) match {
+    Drivers.driverFor(owner.world, block) match {
       case None => None
       case Some(driver) if !components.contains(id) =>
-        val component = driver.instance.component(x, y, z)
+        val component = driver.instance.component(owner.world, x, y, z)
         components += id -> (component, driver)
         driver.instance.onInstall(this, component)
         signal("component_install", id)

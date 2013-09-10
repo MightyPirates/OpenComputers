@@ -1,14 +1,13 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.event.FMLInitializationEvent
-import cpw.mods.fml.common.event.FMLPostInitializationEvent
-import cpw.mods.fml.common.event.FMLPreInitializationEvent
+import cpw.mods.fml.common.event._
+import cpw.mods.fml.common.network.Player
 import cpw.mods.fml.common.registry.LanguageRegistry
-import li.cil.oc.Blocks
-import li.cil.oc.Config
-import li.cil.oc.Items
-import li.cil.oc.server.computer.Computer
+import li.cil.oc._
+import li.cil.oc.api.OpenComputersAPI
 import li.cil.oc.server.computer.Drivers
+import li.cil.oc.server.drivers._
+import net.minecraft.world.World
 
 class CommonProxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -17,8 +16,8 @@ class CommonProxy {
 
     Config.blockComputerId = config.getBlock("computer", Config.blockComputerId,
       "The block ID used for computers.").getInt(Config.blockComputerId)
-    Config.blockMonitorId = config.getBlock("computer", Config.blockMonitorId,
-      "The block ID used for monitors.").getInt(Config.blockMonitorId)
+    Config.blockScreenId = config.getBlock("screen", Config.blockScreenId,
+      "The block ID used for screens.").getInt(Config.blockScreenId)
   }
 
   def init(e: FMLInitializationEvent): Unit = {
@@ -28,7 +27,8 @@ class CommonProxy {
     // TODO Figure out how resource pack based localization works.
     LanguageRegistry.addName(Blocks.computer, "Computer")
 
-    new Computer(null)
+    OpenComputersAPI.addDriver(GraphicsCardDriver)
+    OpenComputersAPI.addDriver(ScreenDriver)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
@@ -37,4 +37,7 @@ class CommonProxy {
     // over the course of a game, since that could lead to weird effects.
     Drivers.locked = true
   }
+
+  // TODO
+  def getWorldForPlayer(player: Player): World = null
 }

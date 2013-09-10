@@ -39,6 +39,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Callback {
-  /** The name under which the method will be available in Lua. */
-  String name();
+  /**
+   * The name under which the method will be available in Lua.
+   * 
+   * If this is not specified, the method's name itself will be used.
+   */
+  String name() default "";
 }

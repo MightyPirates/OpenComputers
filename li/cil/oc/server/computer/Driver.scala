@@ -55,7 +55,10 @@ abstract private[oc] class Driver {
     for (method <- instanceType.members collect { case m if m.isMethod => m.asMethod })
       method.annotations collect {
         case annotation: Callback => {
-          val name = annotation.name
+          val name = annotation.name match {
+            case s if s == null || s.isEmpty() => method.name.decoded
+            case name => name
+          }
           lua.getField(-1, name) // ... drivers api func?
           if (lua.isNil(-1)) { // ... drivers api nil
             // No such entry yet.

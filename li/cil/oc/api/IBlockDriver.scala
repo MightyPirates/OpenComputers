@@ -1,6 +1,7 @@
 package li.cil.oc.api
 
 import net.minecraft.block.Block
+import net.minecraft.world.World
 
 /**
  * Interface for block component drivers.
@@ -36,7 +37,7 @@ trait IBlockDriver extends IDriver {
    *
    * param block the block type to check for.
    */
-  def worksWith(block: Block): Boolean
+  def worksWith(world: World, block: Block): Boolean
 
   /**
    * Get a reference to the actual component.
@@ -50,5 +51,5 @@ trait IBlockDriver extends IDriver {
    * @param z the Z coordinate of the block to get the component for.
    * @return the block component at that location, controlled by this driver.
    */
-  def component(x: Int, y: Int, z: Int): Object
+  def component(world: World, x: Int, y: Int, z: Int): Any
 }

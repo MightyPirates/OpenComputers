@@ -21,7 +21,7 @@ object HDDDriver extends IItemDriver {
 
   def componentType(item: ItemStack) = ComponentType.HDD
 
-  def component(item: ItemStack) = new HDDComponent(item)
+  def component(item: ItemStack) = null
 
   def close(component: Any) {
     component.asInstanceOf[HDDComponent].close()
