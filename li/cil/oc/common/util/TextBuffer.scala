@@ -64,7 +64,7 @@ class TextBuffer(var width: Int, var height: Int) {
     val h = nbt.getInteger("height")
     size = (w, h)
     val b = nbt.getTagList("buffer")
-    for (i <- 0 to (h min b.tagCount())) {
+    for (i <- 0 until (h min b.tagCount())) {
       set(0, i, b.tagAt(i).asInstanceOf[NBTTagString].data)
     }
   }
@@ -73,7 +73,7 @@ class TextBuffer(var width: Int, var height: Int) {
     nbt.setInteger("width", width)
     nbt.setInteger("height", height)
     val b = new NBTTagList("buffer")
-    for (i <- 0 to height) {
+    for (i <- 0 until height) {
       b.appendTag(new NBTTagString(null, String.valueOf(buffer(i))))
     }
   }

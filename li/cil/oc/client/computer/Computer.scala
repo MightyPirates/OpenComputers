@@ -1,12 +1,12 @@
 package li.cil.oc.client.computer
 
 import scala.reflect.runtime.universe._
-
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.common.computer.IComputer
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.computer.Driver
 
 /**
  * This is a dummy class for the client side. It does nothing, really, just
@@ -27,9 +27,7 @@ class Computer(val owner: AnyRef) extends IComputerContext with IComputer {
   // IComputer
   // ----------------------------------------------------------------------- //
 
-  def add(item: ItemStack, id: Int) = None
-
-  def add(block: Block, x: Int, y: Int, z: Int, id: Int) = None
+  def add(component: Any, driver: Driver) = false
 
   def remove(id: Int) = false
 

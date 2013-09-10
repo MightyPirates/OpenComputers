@@ -35,9 +35,13 @@ trait IBlockDriver extends IDriver {
    * does, though, an already installed component will not be ejected, since
    * this value is only checked when adding components.
    *
-   * param block the block type to check for.
+   * @param world the world in which the block to check lives.
+   * @param x the X coordinate of the block to check.
+   * @param y the Y coordinate of the block to check.
+   * @param z the Z coordinate of the block to check.
+   * @return true if the block is supported; false otherwise.
    */
-  def worksWith(world: World, block: Block): Boolean
+  def worksWith(world: World, x: Int, y: Int, z: Int): Boolean
 
   /**
    * Get a reference to the actual component.
@@ -46,6 +50,7 @@ trait IBlockDriver extends IDriver {
    * when an API method is called this will always be passed as the first
    * parameter. It is also passed to the {@link IDriver#close} method.
    *
+   * @param world the world in which the block to get the component for lives.
    * @param x the X coordinate of the block to get the component for.
    * @param y the Y coordinate of the block to get the component for.
    * @param z the Z coordinate of the block to get the component for.

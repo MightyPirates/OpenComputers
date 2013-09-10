@@ -66,6 +66,10 @@ object GraphicsCardDriver extends IItemDriver {
 
   override def apiName = "gpu"
 
+  def id(component: Any) = component.asInstanceOf[GraphicsCard].id
+
+  def id(component: Any, id: Int) = component.asInstanceOf[GraphicsCard].id = id
+
   // ----------------------------------------------------------------------- //
   // IItemDriver
   // ----------------------------------------------------------------------- //

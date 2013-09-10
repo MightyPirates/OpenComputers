@@ -297,6 +297,11 @@ local function main()
         end
         os.signal("test", test)
 
+        function onInstall(id) print("Component installed: " .. id) end
+        os.signal("component_install", onInstall)
+        function onUninstall(id) print("Component uninstalled: " .. id) end
+        os.signal("component_uninstall", onUninstall)
+
         local i = 0
         while true do
           i = i + 1

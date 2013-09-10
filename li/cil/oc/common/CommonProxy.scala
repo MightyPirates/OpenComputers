@@ -11,7 +11,6 @@ import net.minecraft.world.World
 
 class CommonProxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
-
     val config = new net.minecraftforge.common.Configuration(e.getSuggestedConfigurationFile())
 
     Config.blockComputerId = config.getBlock("computer", Config.blockComputerId,

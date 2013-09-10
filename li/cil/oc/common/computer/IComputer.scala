@@ -4,6 +4,7 @@ import li.cil.oc.api.IItemDriver
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.computer.Driver
 
 /**
  * This interface is used to be able to use the same basic type for storing a
@@ -13,37 +14,27 @@ import net.minecraft.nbt.NBTTagCompound
  */
 trait IComputer {
   /**
-   * Tries to add the specified item as a component to the computer.
+   * Tries to add the specified component to the computer.
    *
-   * This can fail if there's either no driver for that item type, or another
-   * component with that ID is already installed in the computer. It returns
-   * the driver used for that item, to allow further checks (such as whether
-   * the slot the item should be installed into is valid based on the component
-   * type specified in the driver).
+   * This can fail if another component with that ID is already installed in
+   * the computer. This will add the component and driver to the list of
+   * installed components and send the install signal to the computer, as well
+   * as call the install function of the driver.
    *
-   * This will add the component and driver to the list of installed components
-   * and send the install signal to the computer.
+   * @param component the component object.
+   * @param driver the driver used for the component.
+   * @return true if the component was installed, fals otherwise.
    */
-  def add(item: ItemStack, id: Int): Option[IItemDriver]
-
-  /**
-   * Tries to add the specified block as a component to the computer.
-   *
-   * This can fail if there's either no driver for that block type, or another
-   * component with that ID is already installed in the computer. It returns
-   * the driver used for that block, to allow further checks.
-   *
-   * This will add the component and driver to the list of installed components
-   * and send the install signal to the computer.
-   */
-  def add(block: Block, x: Int, y: Int, z: Int, id: Int): Option[IBlockDriver]
+  def add(component: Any, driver: Driver): Boolean
 
   /**
    * Tries to remove the component with the specified ID from the computer.
    *
    * This can fail if there is no such component installed in the computer. The
-   * driver's {@see IDriver#close()} function will be called, and the uninstall
-   * signal will be sent to the computer.
+   * driver's uninstall function will be called, and the uninstall signal will
+   * be sent to the computer.
+   *
+   * @param id the id of the component to remove.
    */
   def remove(id: Int): Boolean
 

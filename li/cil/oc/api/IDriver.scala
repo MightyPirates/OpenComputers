@@ -80,6 +80,27 @@ trait IDriver {
   def apiCode: InputStream = null
 
   /**
+   * Set the ID for a component supported by this driver.
+   *
+   * IDs are used to reference components installed in a computer from the Lua
+   * side, so different components installed in a single computer must cannot
+   * have the same ID. If a component with the same ID as an already installed
+   * component should be installed in a computer it is simply ignored.
+   *
+   * @param component the component to set the ID for.
+   * @param id the ID to set for the specified component.
+   */
+  def id(component: Any, id: Int)
+
+  /**
+   * Gets the ID of a component supported by this driver.
+   *
+   * @param component the component to get the ID for.
+   * @return the ID of the specified component.
+   */
+  def id(component: Any): Int
+
+  /**
    * This is called when a component is added to a computer.
    *
    * This happens if either of the following takes place:

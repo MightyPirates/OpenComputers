@@ -64,10 +64,14 @@ private[oc] object Drivers {
    * Used when a new block is placed next to a computer to see if we have a
    * driver for it. If we have one, we'll return it.
    *
-   * @param block the type of block to check for a driver for.
-   * @return the driver for that block type if we have one.
+   * @param world the world in which the block to check lives.
+   * @param x the X coordinate of the block to check.
+   * @param y the Y coordinate of the block to check.
+   * @param z the Z coordinate of the block to check.
+   * @return the driver for that block if we have one.
    */
-  def driverFor(world: World, block: Block) = blocks.find(_.instance.worksWith(world: World, block))
+  def driverFor(world: World, x: Int, y: Int, z: Int) =
+    blocks.find(_.instance.worksWith(world, x, y, z))
 
   /**
    * Used when an item component is added to a computer to see if we have a

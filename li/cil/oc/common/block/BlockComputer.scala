@@ -80,6 +80,13 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
       true
   }
 
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
+    if (!world.isRemote) {
+      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].
+        onNeighborBlockChange(blockId)
+    }
+  }
+  
   // ----------------------------------------------------------------------- //
   // Block rotation
   // ----------------------------------------------------------------------- //

@@ -14,9 +14,9 @@ import scala.util.Random
 import com.naef.jnlua._
 
 import li.cil.oc.Config
+import li.cil.oc.api._
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.common.computer.IComputer
-import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 
@@ -232,37 +232,26 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   // ----------------------------------------------------------------------- //
   // Note: driver interaction is synchronized, so we don't have to lock here.
 
-  def add(item: ItemStack, id: Int) =
-    Drivers.driverFor(item) match {
-      case None => None
-      case Some(driver) if !components.contains(id) =>
-        val component = driver.instance.component(item)
-        components += id -> (component, driver)
-        driver.instance.onInstall(this, component)
-        signal("component_install", id)
-        Some(driver.instance)
-    }
-
-  def add(block: Block, x: Int, y: Int, z: Int, id: Int) =
-    Drivers.driverFor(owner.world, block) match {
-      case None => None
-      case Some(driver) if !components.contains(id) =>
-        val component = driver.instance.component(owner.world, x, y, z)
-        components += id -> (component, driver)
-        driver.instance.onInstall(this, component)
-        signal("component_install", id)
-        Some(driver.instance)
-    }
-
-  def remove(id: Int) =
-    if (components.contains(id)) {
-      val (component, driver) = components(id)
-      components.remove(id)
-      driver.instance.onUninstall(this, component)
-      signal("component_uninstall", id)
+  def add(component: Any, driver: Driver) = {
+    val id = driver.instance.id(component)
+    if (components.contains(id)) false
+    else {
+      components += id -> (component, driver)
+      driver.instance.onInstall(this, component)
+      signal("component_install", id)
       true
     }
-    else false
+  }
+
+  def remove(id: Int) =
+    components.remove(id) match {
+      case None => false
+      case Some((component, driver)) => {
+        driver.instance.onUninstall(this, component)
+        signal("component_uninstall", id)
+        true
+      }
+    }
 
   // ----------------------------------------------------------------------- //
 

@@ -15,7 +15,7 @@ import net.minecraft.nbt.NBTTagCompound
  *
  * TODO minimize NBT updates, i.e. only write what really changed?
  */
-class GraphicsCard(val nbt: NBTTagCompound) {
+class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
   readFromNBT()
 
   val resolutions = List(List(40, 24), List(80, 24))
