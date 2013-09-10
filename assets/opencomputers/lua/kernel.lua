@@ -72,6 +72,8 @@ local function buildSandbox()
       yield = coroutine.yield
     },
 
+    driver = driver,
+
     math = {
       abs = math.abs,
       acos = math.acos,
@@ -139,6 +141,8 @@ local function buildSandbox()
       unpack = table.unpack
     }
   }
+
+  -- Make the sandbox its own globals table.
   sandbox._G = sandbox
 
   -- Allow sandboxes to load code, but only in text form, and in the sandbox.

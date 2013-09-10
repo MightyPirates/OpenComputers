@@ -9,42 +9,65 @@ import net.minecraft.item.ItemStack
  * inserted into computers. An example for this are internal drives, memory
  * and power supply units.
  *
- * When an item component is added to a computer, the computer's OS will be
- * notified via a signal so that it may install the component's driver, for
- * example. After that the OS may start to interact with the component via the
- * API functions it provides.
+ * When trying to add an item to a computer the list of registered drivers is
+ * queried using the drivers' {@see #worksWith} functions. The first driver
+ * that replies positively and whose check against the slot type is successful,
+ * i.e. for which the {@see #componentType} matches the slot, will be used as
+ * the component's driver and the component will be installed. If no driver is
+ * found the item will be rejected and cannot be installed.
+ *
+ * The computer will store a list of installed components, the values of which
+ * are based on what the driver returns from its {@see #component} function
+ * at the point of time the component is installed.
+ * If a driver's API function queries a component via the context using
+ * {@see IComputerContext#component()} the returned value will be exactly that.
+ * 
+ * Note that it is possible to write one driver that supports as many different
+ * items as you wish. I'd recommend writing one per device (type), though, to
+ * keep things modular and the {@see IDriver#componentName} more meaningful.
  */
 trait IItemDriver extends IDriver {
   /**
-   * The component type of this item component.
+   * Used to determine the item types this driver handles.
    *
-   * This is used to determine into which slot of a computer this component may
-   * go.
+   * This is used to determine which driver to use for an item when installed
+   * in a computer. Note that the return value should not change over time; if
+   * it does, though, an already installed component will not be ejected, since
+   * this value is only checked when adding components.
    *
-   * @return the component type.
+   * @param item the item to check.
+   * @return true if the item is supported; false otherwise.
    */
-  def componentType: ComponentType.Value
+  def worksWith(item: ItemStack): Boolean
 
   /**
-   * The type of item this driver handles.
+   * The component type of the specified item this driver supports.
    *
-   * When an item is added into a computer and has this type, this driver will
-   * be used for the block. The return value must not change over the lifetime
-   * of this driver.
+   * This is used to determine into which slot of a computer the components
+   * this driver supports may go. This will only be called if a previous call
+   * to {@see #worksWith} with the same item type returned true.
    *
-   * @return the item type this driver is used for.
+   * @return the component type of the specified item.
    */
-  def itemType: ItemStack
+  def componentType(item: ItemStack): ComponentType.Value
 
   /**
-   * Get a reference to the actual component.
+   * Gets a reference to the actual component.
    *
-   * This is used to provide context to the driver's methods, for example
-   * when an API method is called this will always be passed as the first
-   * parameter. It is also passed to the {@link IDriver#close} method.
+   * It is called once when a component is installed in a computer. At that
+   * time, the component will be assigned a unique ID by which it is referred
+   * to by from the Lua side. The computer keeps track of the mapping from ID
+   * to the actual component, which will be the value returned from this.
+   *
+   * This is used to provide context to the driver's API methods. The driver
+   * may get a reference to a component via the ID passed from a Lua program,
+   * and act accordingly (for that it must also have a context parameter, see
+   * the general interface documentation).
+   *
+   * This value also passed to the driver's {@link IDriver#close} method.
    *
    * @param item the item instance for which to get the component.
    * @return the item component for that item, controlled by this driver.
    */
-  def getComponent(item: ItemStack): Object
+  def component(item: ItemStack): Any
 }

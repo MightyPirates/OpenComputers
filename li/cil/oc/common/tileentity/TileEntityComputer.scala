@@ -34,7 +34,6 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
-    println("SAVING")
     super.writeToNBT(nbt)
     computer.writeToNBT(nbt)
   }
@@ -52,14 +51,12 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
 
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) = {
-    println("CHUNK UNLOADING")
     MinecraftForge.EVENT_BUS.unregister(this)
     computer.stop()
   }
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) = {
-    println("WORLD UNLOADING")
     MinecraftForge.EVENT_BUS.unregister(this)
     computer.stop()
   }

@@ -9,22 +9,34 @@ import net.minecraft.block.Block
  * placed in the world, and particularly: next to computers. An example for
  * this are external drives, monitors and modems.
  *
- * When a block component is added next to a computer, the computer's OS will
- * be notified via a signal so that it may install the component's driver, for
- * example. After that the OS may start to interact with the component via the
- * API functions it provides.
+ * When a block component is placed next to a computer, the list of registered
+ * drivers is queried using the drivers' {@see #worksWith} functions. The first
+ * driver that replies positively will be used as the component's driver and
+ * the component will be installed. If no driver is found the item will be
+ * ignored.
+ *
+ * The computer will store a list of installed components, the values of which
+ * are based on what the driver returns from its {@see #component} function
+ * at the point of time the component is installed.
+ * If a driver's API function queries a component via the context using
+ * {@see IComputerContext#component()} the returned value will be exactly that.
+ *
+ * Note that it is possible to write one driver that supports as many different
+ * blocks as you wish. I'd recommend writing one per device (type), though, to
+ * keep things modular and the {@see IDriver#componentName} more meaningful.
  */
 trait IBlockDriver extends IDriver {
   /**
-   * The type of block this driver handles.
+   * Used to determine the block types this driver handles.
    *
-   * When a block is added next to a computer and has this type, this driver
-   * will be used for the block. The return value must not change over the
-   * lifetime of this driver.
+   * This is used to determine which driver to use for a block placed next to a
+   * computer. Note that the return value should not change over time; if it
+   * does, though, an already installed component will not be ejected, since
+   * this value is only checked when adding components.
    *
-   * @return the block type this driver is used for.
+   * param block the block type to check for.
    */
-  def blockType: Block
+  def worksWith(block: Block): Boolean
 
   /**
    * Get a reference to the actual component.
@@ -38,5 +50,5 @@ trait IBlockDriver extends IDriver {
    * @param z the Z coordinate of the block to get the component for.
    * @return the block component at that location, controlled by this driver.
    */
-  def getComponent(x: Int, y: Int, z: Int): Object
+  def component(x: Int, y: Int, z: Int): Object
 }

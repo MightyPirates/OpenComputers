@@ -5,6 +5,7 @@ object Config {
   var blockMonitorId = 3651
 
   var itemHDDId = 4600
+  var itemGPUId = 4601
 
   var threads = 4
 }

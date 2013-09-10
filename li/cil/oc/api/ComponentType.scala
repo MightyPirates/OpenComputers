@@ -12,5 +12,4 @@ object ComponentType extends Enumeration {
   val RAM = Value("RAM")
   val HDD = Value("HDD")
   val PCI = Value("PCI")
-  val GPU = Value("GPU")
 }

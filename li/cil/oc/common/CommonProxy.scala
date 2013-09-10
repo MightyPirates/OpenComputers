@@ -8,6 +8,7 @@ import li.cil.oc.Blocks
 import li.cil.oc.Config
 import li.cil.oc.Items
 import li.cil.oc.server.computer.Computer
+import li.cil.oc.server.computer.Drivers
 
 class CommonProxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -30,5 +31,10 @@ class CommonProxy {
     new Computer(null)
   }
 
-  def postInit(e: FMLPostInitializationEvent): Unit = {}
+  def postInit(e: FMLPostInitializationEvent): Unit = {
+    // Lock the driver registry to avoid drivers being added after computers
+    // may have already started up. This makes sure the driver API won't change
+    // over the course of a game, since that could lead to weird effects.
+    Drivers.locked = true
+  }
 }

@@ -1,5 +1,7 @@
 package li.cil.oc
 
+import java.util.logging.Logger
+
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.SidedProxy
@@ -12,6 +14,9 @@ import li.cil.oc.common.CommonProxy
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0", dependencies = "required-after:Forge@[9.10.0.804,)", modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false)
 object OpenComputers {
+  /** Logger used all throughout this mod. */
+  val log = Logger.getLogger("OpenComputers")
+
   @SidedProxy(
     clientSide = "li.cil.oc.client.ClientProxy",
     serverSide = "li.cil.oc.common.CommonProxy")
