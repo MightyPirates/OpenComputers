@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
+import li.cil.oc.server.components.IBlockComponentProxy
 import li.cil.oc.server.computer.IComputerEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -14,21 +15,22 @@ import net.minecraft.entity.player.EntityPlayer
 import java.lang.Boolean
 import net.minecraft.nbt.NBTTagList
 
-class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnvironment with IInventory {
+class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnvironment with IInventory with IBlockComponentProxy {
   var inv = new Array[ItemStack](9)
+
 
   def this() = this(false)
   MinecraftForge.EVENT_BUS.register(this)
+
+  private val computer =
+    if (isClient) new li.cil.oc.client.computer.Computer(this)
+    else new li.cil.oc.server.computer.Computer(this)
 
   private val hasChanged = new AtomicBoolean()
 
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
-
-  private val computer =
-    if (isClient) new li.cil.oc.client.computer.Computer(this)
-    else new li.cil.oc.server.computer.Computer(this)
 
   def turnOn() = computer.start()
 
@@ -49,7 +51,6 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
-    println("SAVING")
     super.writeToNBT(nbt)
     computer.writeToNBT(nbt)
 
@@ -75,6 +76,9 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
   // ----------------------------------------------------------------------- //
   // Inventory
   // ----------------------------------------------------------------------- //
+
+  def onNeighborBlockChange(blockId: Int) =
+    (0 to 5).foreach(checkBlockChanged(xCoord, yCoord, zCoord, computer, _))
 
   /**
    * Returns the number of slots in the inventory.
@@ -180,20 +184,18 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
 
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) = {
-    println("CHUNK UNLOADING")
     MinecraftForge.EVENT_BUS.unregister(this)
     computer.stop()
   }
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) = {
-    println("WORLD UNLOADING")
     MinecraftForge.EVENT_BUS.unregister(this)
     computer.stop()
   }
 
   // ----------------------------------------------------------------------- //
-  // IComputerEnvironment
+  // IComputerEnvironment / IBlockComponentProxy
   // ----------------------------------------------------------------------- //
 
   def world = worldObj

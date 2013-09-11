@@ -72,6 +72,8 @@ local function buildSandbox()
       yield = coroutine.yield
     },
 
+    driver = driver,
+
     math = {
       abs = math.abs,
       acos = math.acos,
@@ -139,6 +141,8 @@ local function buildSandbox()
       unpack = table.unpack
     }
   }
+
+  -- Make the sandbox its own globals table.
   sandbox._G = sandbox
 
   -- Allow sandboxes to load code, but only in text form, and in the sandbox.
@@ -292,6 +296,11 @@ local function main()
             os.clock(), os.freeMemory(), os.totalMemory()))
         end
         os.signal("test", test)
+
+        function onInstall(id) print("Component installed: " .. id) end
+        os.signal("component_install", onInstall)
+        function onUninstall(id) print("Component uninstalled: " .. id) end
+        os.signal("component_uninstall", onUninstall)
 
         local i = 0
         while true do

@@ -750,7 +750,7 @@ public class LuaState {
 	 */
 	public synchronized void pushJavaObject(Object object) {
 		check();
-		getConverter().convertJavaObject(this, object);
+		converter.convertJavaObject(this, object);
 	}
 
 	/**
@@ -1960,6 +1960,23 @@ public class LuaState {
 		}
 		throw getArgException(index, String.format("invalid option '%s'", s));
 	}
+
+  /**
+   * Checks if the value of the specified function argument is a boolean. If
+   * so, the argument value is returned as a boolean. Otherwise, the method
+   * throws a Lua runtime exception with a descriptive error message.
+   * 
+   * @param index
+   *            the argument index
+   * @return the integer value
+   */
+  public synchronized boolean checkBoolean(int index) {
+    check();
+    if (!isBoolean(index)) {
+      throw getArgTypeException(index, LuaType.BOOLEAN);
+    }
+    return toBoolean(index);
+  }
 
 	/**
 	 * Checks if the value of the specified function argument is a number or a

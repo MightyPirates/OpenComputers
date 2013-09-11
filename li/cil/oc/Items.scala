@@ -1,11 +1,18 @@
 package li.cil.oc
 
 import li.cil.oc.common.items.ItemHDD
+import li.cil.oc.common.items.ItemGraphicsCard
+import li.cil.oc.common.util.ItemComponentCache
+import li.cil.oc.server.components.GraphicsCard
 
 object Items {
+  var gpu: ItemGraphicsCard = null
   var hdd: ItemHDD = null
 
   def init() {
-    hdd = new ItemHDD()
+    gpu = new ItemGraphicsCard
+    hdd = new ItemHDD
+
+    ItemComponentCache.register(Config.itemGPUId, nbt => new GraphicsCard(nbt))
   }
 }

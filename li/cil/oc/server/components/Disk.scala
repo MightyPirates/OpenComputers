@@ -4,6 +4,6 @@ import li.cil.oc.Items
 import li.cil.oc.api.IItemDriver
 import net.minecraft.item.ItemStack
 
-class Disk {
+class Disk extends IComponent {
   def close() {}
 }

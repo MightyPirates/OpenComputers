@@ -1,23 +1,43 @@
 package li.cil.oc.server.computer
 
 import java.lang.reflect.Method
-
+import scala.compat.Platform.EOL
+import scala.reflect.runtime.universe._
 import com.naef.jnlua.JavaFunction
+import com.naef.jnlua.LuaRuntimeException
 import com.naef.jnlua.LuaState
+import li.cil.oc.OpenComputers
+import li.cil.oc.api._
 
-import li.cil.oc.api.Callback
-import li.cil.oc.api.IDriver
-import li.cil.oc.common.computer.IInternalComputerContext
+class ItemDriver(val instance: IItemDriver) extends Driver
+class BlockDriver(val instance: IBlockDriver) extends Driver
 
-private[oc] class Driver(val driver: IDriver) {
-  def injectInto(context: IInternalComputerContext) {
+/**
+ * Wrapper for external drivers.
+ *
+ * We create one instance per registered driver of this. It is used to inject
+ * the API the driver offers into the computer, and, in particular, for
+ * generating the wrappers for the API functions, which are closures with the
+ * computer the API was installed into to provide context should a function
+ * require it.
+ */
+abstract private[oc] class Driver {
+  /** The actual driver as registered via the Drivers registry. */
+  def instance: IDriver
+
+  /** Installs this driver's API on the specified computer. */
+  def installOn(computer: Computer) {
     // Check if the component actually provides an API.
-    val api = driver.apiName
+    val api = instance.apiName
     if (api == null || api.isEmpty()) return
-    val lua = context.luaState
+    if (api.equals("component")) {
+      OpenComputers.log.warning("Trying to register API with reserved name 'component'.")
+      return
+    }
+    val lua = computer.lua
 
     // Get or create table holding API tables.
-    lua.getGlobal("drivers") // ... drivers?
+    lua.getGlobal("driver") // ... drivers?
     assert(!lua.isNil(-1)) // ... drivers
 
     // Get or create API table.
@@ -29,95 +49,128 @@ private[oc] class Driver(val driver: IDriver) {
       lua.setField(-3, api) // ... drivers api
     } // ... drivers api
 
-    for (method <- driver.getClass().getMethods())
-      method.getAnnotation(classOf[Callback]) match {
-        case null => Unit // No annotation.
-        case annotation => {
-          val name = annotation.name
+    val mirror = runtimeMirror(instance.getClass.getClassLoader)
+    val instanceMirror = mirror.reflect(instance)
+    val instanceType = instanceMirror.symbol.typeSignature
+    for (method <- instanceType.members collect { case m if m.isMethod => m.asMethod })
+      method.annotations collect {
+        case annotation: Callback => {
+          val name = annotation.name match {
+            case s if s == null || s.isEmpty() => method.name.decoded
+            case name => name
+          }
           lua.getField(-1, name) // ... drivers api func?
           if (lua.isNil(-1)) { // ... drivers api nil
             // No such entry yet.
             lua.pop(1) // ... drivers api
-            lua.pushJavaFunction(new MethodWrapper(context, method)) // ... drivers api func
+            lua.pushJavaFunction(new APIClosure(mirror, instanceMirror.reflectMethod(method), computer)) // ... drivers api func
             lua.setField(-2, name) // ... drivers api
           }
           else { // ... drivers api func
             // Entry already exists, skip it.
             lua.pop(1) // ... drivers api
-            // TODO Log warning properly via a logger.
-            println("WARNING: Duplicate API entry, ignoring: " + api + "." + name)
+            // Note that we can be sure it's an issue with two drivers
+            // colliding, because this is guaranteed to run before any user
+            // code had a chance to mess with the table.
+            OpenComputers.log.warning(String.format(
+              "Duplicate API entry, ignoring %s.%s of driver %s.",
+              api, name, instance.componentName))
           }
         }
       } // ... drivers api
     lua.pop(2) // ...
+
+    // Run custom init script.
+    val apiCode = instance.apiCode
+    if (apiCode != null) {
+      try {
+        lua.load(apiCode, instance.apiName, "t") // ... func
+        apiCode.close()
+        lua.call(0, 0) // ...
+      }
+      catch {
+        case e: LuaRuntimeException =>
+          OpenComputers.log.warning(String.format(
+            "Initialization code of driver %s threw an error: %s",
+            instance.componentName, e.getLuaStackTrace.mkString("", EOL, EOL)))
+        case e: Throwable =>
+          OpenComputers.log.warning(String.format(
+            "Initialization code of driver %s threw an error: %s",
+            instance.componentName, e.getStackTraceString))
+      }
+    }
   }
 
-  private class MethodWrapper(val context: IInternalComputerContext, val method: Method) extends JavaFunction {
-    def invoke(state: LuaState): Int = {
-      return 0
+  /**
+   * This class is used to represent closures for driver API callbacks.
+   *
+   * It stores the computer it is used by, to allow passing it along as the
+   * {@see IComputerContext} for callbacks if they specify it as a parameter,
+   * and for interacting with the Lua state to pull parameters and push results
+   * returned from the callback.
+   */
+  private class APIClosure(mirror: Mirror, val method: MethodMirror, val computer: Computer) extends JavaFunction {
+    /**
+     * Based on the method's parameters we build a list of transformations
+     * that convert Lua input to the expected parameter type.
+     */
+    val parameterTransformations = buildParameterTransformations(mirror, method.symbol)
+
+    /**
+     * Based on the method's return value we build a callback that will push
+     * that result to the stack, if any, and return the number of pushed values.
+     */
+    val returnTransformation = buildReturnTransformation(method.symbol)
+
+    /** This is the function actually called from the Lua state. */
+    def invoke(lua: LuaState): Int = {
+      return returnTransformation(computer,
+        method(parameterTransformations.map(_(computer)): _*))
     }
   }
 
-  /*
-  private class MethodWrapper(val context: IInternalComputerContext, val method: Method) extends JavaFunction {
-    private val classOfBoolean = classOf[Boolean]
-    private val classOfByte = classOf[Byte]
-    private val classOfShort = classOf[Short]
-    private val classOfInteger = classOf[Int]
-    private val classOfLong = classOf[Long]
-    private val classOfFloat = classOf[Float]
-    private val classOfDouble = classOf[Double]
-    private val classOfString = classOf[String]
-    private val parameterTypes = method.getParameterTypes.zipWithIndex
-    private val parameterCount = parameterTypes.size
-    private val returnType = method.getReturnType
-    private val returnsTuple = returnType.isInstanceOf[Array[Object]]
-    private val returnsNothing = returnType.equals(Void.TYPE)
-
-    // TODO Rework all of this, most likely won't work because of type erasure.
-    def invoke(state: LuaState): Int = {
-      // Parse the parameters, convert them to Java types.
-      val parameters = Array(context) ++ parameterTypes.map {
-        //case (classOfBoolean, i) => boolean2Boolean(state.checkBoolean(i + 1))
-        case (classOfByte, i) => java.lang.Byte.valueOf(state.checkInteger(i + 1).toByte)
-        case (classOfShort, i) => java.lang.Short.valueOf(state.checkInteger(i + 1).toShort)
-        case (classOfInteger, i) => java.lang.Integer.valueOf(state.checkInteger(i + 1))
-        case (classOfLong, i) => java.lang.Long.valueOf(state.checkInteger(i + 1).toLong)
-        case (classOfFloat, i) => java.lang.Float.valueOf(state.checkNumber(i + 1).toFloat)
-        case (classOfDouble, i) => java.lang.Double.valueOf(state.checkNumber(i + 1))
-        case (classOfString, i) => state.checkString(i + 1)
-        case _ => null
-      }
-
-      // Call the actual function, grab the result, if any.
-      val result = call(parameters: _*)
-
-      // Check the result, convert it to Lua.
-      if (returnsTuple) {
-        val array = result.asInstanceOf[Array[Object]]
-        array.foreach(v => push(state, v, v.getClass()))
-        return array.length
-      }
-      else if (returnsNothing) {
-        return 0
-      }
-      else {
-        push(state, result, returnType)
-        return 1
-      }
+  /**
+   * This generates the transformation functions that are used to convert the
+   * Lua parameters to Java types to be passed on to the API function.
+   */
+  private def buildParameterTransformations(mirror: Mirror, method: MethodSymbol): Array[Computer => Any] = {
+    // No parameters?
+    if (method.paramss.length == 0 || method.paramss(0).length == 0) {
+      return Array()
     }
 
-    private def push(state: LuaState, value: Object, clazz: Class[_]) = clazz match {
-      case classOfBoolean => state.pushBoolean(value.asInstanceOf[Boolean])
-      case classOfInteger => state.pushNumber(value.asInstanceOf[Int])
-      case classOfDouble => state.pushNumber(value.asInstanceOf[Double])
-      case classOfString => state.pushString(value.asInstanceOf[String])
-      case _ => state.pushNil()
-    }
+    val params = method.paramss(0)
 
-    protected def call(args: AnyRef*) = {
-      method.invoke(driver, args)
+    // Do we have a callback function that wants to handle its arguments
+    // manually? If so, convert all arguments and pack them into an array.
+    // TODO test if this really works.
+    if (params.length == 2 &&
+      params(0) == typeOf[IComputerContext].typeSymbol &&
+      params(1) == typeOf[Array[Any]].typeSymbol) {
+      Array(
+        (c: Computer) => c,
+        (c: Computer) => (1 to c.lua.getTop()).map(
+          c.lua.toJavaObject(_, classOf[Object])))
     }
+    // Otherwise build converters based on the method's signature.
+    else params.zipWithIndex.map {
+      case (t, i) if t == typeOf[IComputerContext].typeSymbol => (c: Computer) => c
+      case (t, i) => {
+        val clazz = mirror.runtimeClass(t.asClass)
+        (c: Computer) => c.lua.toJavaObject(i, clazz)
+      }
+    }.toArray
   }
-*/
+
+  /**
+   * This generates the transformation function that is used to convert the
+   * return value of an API function to a Lua type and push it onto the stack,
+   * returning the number of values pushed. We need that number in case we
+   * return a tuple (i.e. the function returned an array).
+   */
+  private def buildReturnTransformation(method: MethodSymbol): (Computer, Any) => Int =
+    method.returnType match {
+      case t if t == Unit => (c, v) => 0
+      case t => (c, v) => c.lua.pushJavaObject(v); 1
+    }
 }

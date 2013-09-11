@@ -1,22 +1,60 @@
 package li.cil.oc.server.computer
 
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
+import scala.collection.mutable._
+import scala.reflect.runtime.universe._
 import scala.util.Random
 
 import com.naef.jnlua._
 
 import li.cil.oc.Config
-import li.cil.oc.common.computer.IInternalComputerContext
+import li.cil.oc.api._
+import li.cil.oc.api.IComputerContext
+import li.cil.oc.common.computer.IComputer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 
-class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext with Runnable {
+/**
+ * Wrapper class for Lua states set up to behave like a pseudo-OS.
+ *
+ * This class takes care of the following:
+ * - Creating a new Lua state when started from a previously stopped state.
+ * - Updating the Lua state in a parallel thread so as not to block the game.
+ * - Managing a list of installed components and their drivers.
+ * - Synchronizing calls from the computer thread to drivers.
+ * - Saving the internal state of the computer across chunk saves/loads.
+ * - Closing the Lua state when stopping a previously running computer.
+ *
+ * See {@see Driver} to read more about component drivers and how they interact
+ * with computers - and through them the components they interface.
+ */
+class Computer(val owner: IComputerEnvironment) extends IComputerContext with IComputer with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
+
+  /**
+   * This is the list of components currently attached to the computer. It is
+   * updated whenever a component is placed into the computer or removed from
+   * it, as well as when a block component is placed next to it or removed.
+   *
+   * On the Lua side we only refer to components by an ID, which is the array
+   * index for the component array. Drivers may fetch the underlying component
+   * object via the IComputerContext.
+   *
+   * Since the Lua program may query a component's type from its own thread we
+   * have to synchronize access to the component map. Note that there's a
+   * chance the Lua programs may see a component before its install signal has
+   * been processed, but I can't think of a scenario where this could become
+   * a real problem.
+   */
+  private val components = new HashMap[Int, (Any, Driver)] with SynchronizedMap[Int, (Any, Driver)]
 
   /**
    * The current execution state of the computer. This is used to track how to
@@ -26,7 +64,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
   private var state = State.Stopped
 
   /** The internal Lua state. Only set while the computer is running. */
-  private var lua: LuaState = null
+  private[computer] var lua: LuaState = null
 
   /**
    * The base memory consumption of the kernel. Used to permit a fixed base
@@ -42,7 +80,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
    * means to communicate actively with the computer (passively only drivers
    * can interact with the computer by providing API functions).
    */
-  private val signals = new LinkedBlockingQueue[Signal](256)
+  private val signals = new LinkedBlockingQueue[Signal](100)
 
   // ----------------------------------------------------------------------- //
 
@@ -82,22 +120,59 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
   private val saveMonitor = new Object()
 
   // ----------------------------------------------------------------------- //
-  // State
+  // IComputerContext
   // ----------------------------------------------------------------------- //
 
-  /** Starts asynchronous execution of this computer if it isn't running. */
-  def start(): Boolean = stateMonitor.synchronized(
+  def world = owner.world
+
+  def signal(name: String, args: Any*) = {
+    args.foreach {
+      case null | _: Byte | _: Char | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
+      case _ => throw new IllegalArgumentException()
+    }
+    stateMonitor.synchronized(state match {
+      // We don't push new signals when stopped or shutting down.
+      case State.Stopped | State.Stopping => false
+      // Currently sleeping. Cancel that and start immediately.
+      case State.Sleeping =>
+        future.cancel(true)
+        state = State.Suspended
+        signals.offer(new Signal(name, args.toArray))
+        future = Executor.pool.submit(this)
+        true
+      // Running or in driver call or only a short yield, just push the signal.
+      case _ =>
+        signals.offer(new Signal(name, args.toArray))
+        true
+    })
+  }
+
+  def component[T](id: Int) = components.get(id) match {
+    case None => throw new IllegalArgumentException("no such component")
+    case Some(component) => component.asInstanceOf[T]
+  }
+
+  // ----------------------------------------------------------------------- //
+  // IComputer
+  // ----------------------------------------------------------------------- //
+
+  def start() = stateMonitor.synchronized(
     state == State.Stopped && init() && {
       state = State.Suspended
       // Inject a dummy signal so that real one don't get swallowed. This way
-      // we can just ignore the parameters the first time the kernel is run.
+      // we can just ignore the parameters the first time the kernel is run
+      // and all actual signals will be read using coroutine.yield().
       signal("dummy")
+
+      // Initialize any installed components.
+      for ((component, driver) <- components.values)
+        driver.instance.onInstall(this, component)
+
       future = Executor.pool.submit(this)
       true
     })
 
-  /** Stops a computer, possibly asynchronously. */
-  def stop(): Unit = saveMonitor.synchronized(stateMonitor.synchronized {
+  def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
     if (state != State.Stopped) {
       if (state != State.Running) {
         // If the computer is not currently running we can simply close it,
@@ -117,12 +192,6 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       }
     }
   })
-
-  // ----------------------------------------------------------------------- //
-  // IComputerContext
-  // ----------------------------------------------------------------------- //
-
-  def luaState = lua
 
   def update() {
     stateMonitor.synchronized(state match {
@@ -152,34 +221,36 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo().getWorldTotalTime()
 
-    if (worldTime % 47 == 0) {
-      signal("test", "ha!")
-    }
-
     // Update last time run to let our executor thread know it doesn't have to
-    // pause, and wake it up if it did pause (because the game was paused).
+    // pause.
     lastUpdate = System.currentTimeMillis
   }
 
-  def signal(name: String, args: Any*) = {
-    args.foreach {
-      case _: Byte | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
-      case _ => throw new IllegalArgumentException()
+  // ----------------------------------------------------------------------- //
+  // Note: driver interaction is synchronized, so we don't have to lock here.
+
+  def add(component: Any, driver: Driver) = {
+    val id = driver.instance.id(component)
+    if (components.contains(id)) false
+    else {
+      components += id -> (component, driver)
+      driver.instance.onInstall(this, component)
+      signal("component_install", id)
+      true
     }
-    stateMonitor.synchronized(state match {
-      // We don't push new signals when stopped or shutting down.
-      case State.Stopped | State.Stopping => /* Nothing. */
-      // Currently sleeping. Cancel that and start immediately.
-      case State.Sleeping =>
-        future.cancel(true)
-        state = State.Suspended
-        signals.offer(new Signal(name, args.toArray))
-        future = Executor.pool.submit(this)
-      // Running or in driver call or only a short yield, just push the signal.
-      case _ =>
-        signals.offer(new Signal(name, args.toArray))
-    })
   }
+
+  def remove(id: Int) =
+    components.remove(id) match {
+      case None => false
+      case Some((component, driver)) => {
+        driver.instance.onUninstall(this, component)
+        signal("component_uninstall", id)
+        true
+      }
+    }
+
+  // ----------------------------------------------------------------------- //
 
   def readFromNBT(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
@@ -347,7 +418,11 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     return false
   }
 
-  def init(): Boolean = {
+  // ----------------------------------------------------------------------- //
+  // Internals
+  // ----------------------------------------------------------------------- //
+
+  private def init(): Boolean = {
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
@@ -359,18 +434,38 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
 
     try {
       // Push a couple of functions that override original Lua API functions or
-      // that add new functionality to it.1)
-      lua.getGlobal("os")
+      // that add new functionality to it.
+      lua.newTable()
 
-      // Return ingame time for os.time().
+      // Set up driver information callbacks, i.e. to query for the presence of
+      // components with a given ID, and their type.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          // Minecraft starts days at 6 o'clock, so we add those six hours.
-          lua.pushNumber(worldTime + 6000)
+          lua.pushBoolean(components.contains(lua.checkInteger(1)))
           return 1
         }
       })
-      lua.setField(-2, "time")
+      lua.setField(-2, "exists")
+
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          val id = lua.checkInteger(1)
+          components.get(id) match {
+            case None => lua.pushNil()
+            case Some((component, driver)) =>
+              lua.pushString(driver.instance.componentName)
+          }
+          return 1
+        }
+      })
+      lua.setField(-2, "type")
+
+      // "Pop" the components table.
+      lua.setGlobal("component")
+
+      // Push a couple of functions that override original Lua API functions or
+      // that add new functionality to it.
+      lua.getGlobal("os")
 
       // Custom os.clock() implementation returning the time the computer has
       // been running, instead of the native library...
@@ -384,6 +479,29 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
         }
       })
       lua.setField(-2, "clock")
+
+      // Return ingame time for os.time().
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          // Game time is in ticks, so that each day has 24000 ticks, meaning
+          // one hour is game time divided by one thousand. Also, Minecraft
+          // starts days at 6 o'clock, so we add those six hours. Thus:
+          // timestamp = (time + 6000) / 1000[h] * 60[m] * 60[s] * 1000[ms]
+          lua.pushNumber((worldTime + 6000) * 60 * 60)
+          return 1
+        }
+      })
+      lua.setField(-2, "time")
+
+      // Date-time formatting using Java's formatting capabilities.
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          val calendar = Calendar.getInstance(Locale.ENGLISH);
+          calendar.setTimeInMillis(lua.checkInteger(1))
+          return 1
+        }
+      })
+      lua.setField(-2, "date")
 
       // Custom os.difftime(). For most Lua implementations this would be the
       // same anyway, but just to be on the safe side.
@@ -494,8 +612,8 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
       // building a table of permanent values used when persisting/unpersisting
       // the state.
       lua.newTable()
-      lua.setGlobal("drivers")
-      Drivers.injectInto(this)
+      lua.setGlobal("driver")
+      Drivers.installOn(this)
 
       // Run the boot script. This creates the global sandbox variable that is
       // used as the environment for any processes the kernel spawns, adds a
@@ -538,9 +656,14 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     return false
   }
 
-  def close(): Unit = stateMonitor.synchronized(
+  private def close(): Unit = stateMonitor.synchronized(
     if (state != State.Stopped) {
       state = State.Stopped
+
+      // Shutdown any installed components.
+      for ((component, driver) <- components.values)
+        driver.instance.onUninstall(this, component)
+
       lua.setTotalMemory(Integer.MAX_VALUE);
       lua.close()
       lua = null
@@ -595,15 +718,7 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
         // Got a signal, inject it and call any handlers (if any).
         case signal => {
           lua.pushString(signal.name)
-          signal.args.foreach {
-            case arg: Byte => lua.pushInteger(arg)
-            case arg: Short => lua.pushInteger(arg)
-            case arg: Int => lua.pushInteger(arg)
-            case arg: Long => lua.pushNumber(arg)
-            case arg: Float => lua.pushNumber(arg)
-            case arg: Double => lua.pushNumber(arg)
-            case arg: String => lua.pushString(arg)
-          }
+          signal.args.foreach(lua.pushJavaObject)
           lua.resume(1, 1 + signal.args.length)
         }
       }
@@ -700,27 +815,27 @@ class Computer(val owner: IComputerEnvironment) extends IInternalComputerContext
     /** The computer is paused and waiting for the game to resume. */
     val DriverReturnPaused = Value("DriverReturnPaused")
   }
+}
 
-  /** Singleton for requesting executors that run our Lua states. */
-  private object Executor {
-    val pool = Executors.newScheduledThreadPool(Config.threads,
-      new ThreadFactory() {
-        private val threadNumber = new AtomicInteger(1)
+/** Singleton for requesting executors that run our Lua states. */
+private[computer] object Executor {
+  val pool = Executors.newScheduledThreadPool(Config.threads,
+    new ThreadFactory() {
+      private val threadNumber = new AtomicInteger(1)
 
-        private val group = System.getSecurityManager() match {
-          case null => Thread.currentThread().getThreadGroup()
-          case s => s.getThreadGroup()
-        }
+      private val group = System.getSecurityManager() match {
+        case null => Thread.currentThread().getThreadGroup()
+        case s => s.getThreadGroup()
+      }
 
-        def newThread(r: Runnable): Thread = {
-          val name = "OpenComputers-" + threadNumber.getAndIncrement()
-          val thread = new Thread(group, r, name)
-          if (!thread.isDaemon())
-            thread.setDaemon(true)
-          if (thread.getPriority() != Thread.MIN_PRIORITY)
-            thread.setPriority(Thread.MIN_PRIORITY)
-          return thread
-        }
-      })
-  }
+      def newThread(r: Runnable): Thread = {
+        val name = "OpenComputers-" + threadNumber.getAndIncrement()
+        val thread = new Thread(group, r, name)
+        if (!thread.isDaemon())
+          thread.setDaemon(true)
+        if (thread.getPriority() != Thread.MIN_PRIORITY)
+          thread.setPriority(Thread.MIN_PRIORITY)
+        return thread
+      }
+    })
 }
