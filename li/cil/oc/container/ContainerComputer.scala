@@ -21,14 +21,12 @@ class ContainerComputer(inventory: InventoryPlayer, tile: TileEntityComputer) ex
   def bindPlayerInventory(inventoryPlayer: InventoryPlayer) = {
     for (i <- 0 until 3) {
       for (j <- 0 until 9) {
-        System.out.println("creating"+(j + i * 9 + 9))
         addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9,
           8 + j * 18, 84 + i * 18));
       }
     }
 
     for (i <- 0 until 9) {
-      System.out.println("creating"+i)
       addSlotToContainer(new Slot(inventoryPlayer, i, 8 + i * 18, 142));
     }
   }
@@ -49,7 +47,7 @@ class ContainerComputer(inventory: InventoryPlayer, tile: TileEntityComputer) ex
 
       //merges the item into player inventory since its in the tileEntity
       if (slot < 9) {
-        if (!this.mergeItemStack(stackInSlot, 0, 27+9-1, true)) {
+        if (!this.mergeItemStack(stackInSlot, 0, 27+9, true)) {
           return null;
         }
       } //places it into the tileEntity is possible since its in the player inventory

@@ -8,10 +8,15 @@ import net.minecraft.util.StatCollector
 import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf
 import org.lwjgl.opengl.GL11
 import net.minecraft.util.ResourceLocation
+import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiTextField
 
 class GuiComputer(inventory: InventoryPlayer, tile: TileEntityComputer) extends GuiContainer(new ContainerComputer(inventory, tile)) {
   val tileEntity = tile
-
+	var b = new GuiButton(1,5,4,"test") 
+  var t:GuiTextField = null
+  
+ 
   override def drawGuiContainerForegroundLayer(param1: Int, par2: Int) = {
     //draw text and stuff here
     //the parameters for drawString are: string, x, y, color
@@ -25,14 +30,24 @@ class GuiComputer(inventory: InventoryPlayer, tile: TileEntityComputer) extends 
 
     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     this.mc.renderEngine.func_110577_a(new ResourceLocation(""));
-    var x = (width - xSize) / 2;
-    var y = (height - ySize) / 2;
-    this.drawTexturedModalRect(x, y, 0, 0, xSize, ySize);
+    var x = (width - xSize*2) / 2;
+    var y = (height - ySize*2) / 2;
+    this.drawTexturedModalRect(x, y, 0, 0, xSize*2, ySize*2);
   }
   
   override def initGui()={
     super.initGui()
+    System.out.println(" FONTRENDERER != NULL???"+this.fontRenderer)
+     t = new GuiTextField(this.fontRenderer,20,0,200,200)
+    t.setText("Hallo das ist ein TEst")
     
+    }
+  override def drawScreen(i:Int,j:Int,f:Float)={
+    super.drawScreen(i, j, f);
+    b.drawButton(this.mc,i,j)
+    
+    t.drawTextBox()
+    t.setCursorPosition(0)
     
   }
 }
