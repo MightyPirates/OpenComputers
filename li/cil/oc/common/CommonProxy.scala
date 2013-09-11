@@ -36,7 +36,4 @@ class CommonProxy {
     // over the course of a game, since that could lead to weird effects.
     Drivers.locked = true
   }
-
-  // TODO
-  def getWorldForPlayer(player: Player): World = null
 }

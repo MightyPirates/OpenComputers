@@ -2,7 +2,6 @@ package li.cil.oc.client
 
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
-
 import cpw.mods.fml.common.network.IPacketHandler
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.OpenComputers
@@ -10,6 +9,7 @@ import li.cil.oc.client.components.Screen
 import li.cil.oc.common.PacketType
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
+import net.minecraft.entity.player.EntityPlayer
 
 /**
  * Client side packet handler, processes packets sent from the server.
@@ -66,7 +66,7 @@ class PacketHandler extends IPacketHandler {
 
   /** Utility class for packet parsing. */
   private class PacketParser(packet: Packet250CustomPayload, player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
-    val world = OpenComputers.proxy.getWorldForPlayer(player)
+    val world = player.asInstanceOf[EntityPlayer].worldObj
     val packetType = PacketType(readByte())
 
     def readTileEntity[T]() = {
