@@ -1,13 +1,11 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.network.Player
 import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.api.OpenComputersAPI
 import li.cil.oc.server.computer.Drivers
 import li.cil.oc.server.drivers._
-import net.minecraft.world.World
 
 class CommonProxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {

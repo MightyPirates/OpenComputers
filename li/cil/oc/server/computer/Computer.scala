@@ -147,12 +147,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     })
   }
 
-  def component[T: TypeTag](id: Int) = components.get(id) match {
+  def component[T](id: Int) = components.get(id) match {
     case None => throw new IllegalArgumentException("no such component")
-    case Some(component) =>
-      // TODO is this right?
-      if (component.getClass() == typeOf[T]) component.asInstanceOf[T]
-      else throw new IllegalArgumentException("bad component type")
+    case Some(component) => component.asInstanceOf[T]
   }
 
   // ----------------------------------------------------------------------- //

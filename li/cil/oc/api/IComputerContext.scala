@@ -46,5 +46,5 @@ trait IComputerContext {
    *
    * @param id the id of the component to get.
    */
-  def component[T: TypeTag](id: Int): T
+  def component[T](id: Int): T
 }

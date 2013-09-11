@@ -21,7 +21,7 @@ class Computer(val owner: AnyRef) extends IComputerContext with IComputer {
 
   def signal(name: String, args: Any*) = throw new NotImplementedError
 
-  def component[T: TypeTag](id: Int) = throw new NotImplementedError
+  def component[T](id: Int) = throw new NotImplementedError
 
   // ----------------------------------------------------------------------- //
   // IComputer
