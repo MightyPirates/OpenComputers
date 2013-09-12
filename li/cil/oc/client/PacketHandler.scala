@@ -10,6 +10,7 @@ import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
+import net.minecraft.tileentity.TileEntity
 
 /**
  * Client side packet handler, processes packets sent from the server.
@@ -69,7 +70,7 @@ class PacketHandler extends IPacketHandler {
     val world = player.asInstanceOf[EntityPlayer].worldObj
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T]() = {
+    def readTileEntity[T <: TileEntity]() = {
       val x = readInt()
       val y = readInt()
       val z = readInt()
