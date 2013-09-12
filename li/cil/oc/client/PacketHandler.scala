@@ -2,14 +2,15 @@ package li.cil.oc.client
 
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+
 import cpw.mods.fml.common.network.IPacketHandler
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.OpenComputers
-import li.cil.oc.client.components.Screen
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.tileentity.TileEntityScreen
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.tileentity.TileEntity
 
 /**
  * Client side packet handler, processes packets sent from the server.
@@ -29,39 +30,39 @@ class PacketHandler extends IPacketHandler {
   }
 
   def onScreenResolutionChange(p: PacketParser) = {
-    val t = p.readTileEntity[Screen]()
+    val t = p.readTileEntity[TileEntityScreen]()
     val w = p.readInt()
     val h = p.readInt()
-    t.resolution = (w, h)
+    t.component.resolution = (w, h)
   }
 
   def onScreenSet(p: PacketParser) = {
-    val t = p.readTileEntity[Screen]()
+    val t = p.readTileEntity[TileEntityScreen]()
     val col = p.readInt()
     val row = p.readInt()
     val s = p.readUTF()
-    t.set(col, row, s)
+    t.component.set(col, row, s)
   }
 
   def onScreenFill(p: PacketParser) = {
-    val t = p.readTileEntity[Screen]()
+    val t = p.readTileEntity[TileEntityScreen]()
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
     val h = p.readInt()
     val c = p.readChar()
-    t.fill(col, row, w, h, c)
+    t.component.fill(col, row, w, h, c)
   }
 
   def onScreenCopy(p: PacketParser) = {
-    val t = p.readTileEntity[Screen]()
+    val t = p.readTileEntity[TileEntityScreen]()
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
     val h = p.readInt()
     val tx = p.readInt()
     val ty = p.readInt()
-    t.copy(col, row, w, h, tx, ty)
+    t.component.copy(col, row, w, h, tx, ty)
   }
 
   /** Utility class for packet parsing. */
@@ -69,7 +70,7 @@ class PacketHandler extends IPacketHandler {
     val world = player.asInstanceOf[EntityPlayer].worldObj
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T]() = {
+    def readTileEntity[T <: TileEntity]() = {
       val x = readInt()
       val y = readInt()
       val z = readInt()

@@ -1,12 +1,13 @@
 package li.cil.oc.server.drivers
 
-import li.cil.oc.Config
+import li.cil.oc.Items
 import li.cil.oc.api.Callback
 import li.cil.oc.api.ComponentType
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.api.IItemDriver
 import li.cil.oc.common.util.ItemComponentCache
 import li.cil.oc.server.components.GraphicsCard
+import li.cil.oc.server.components.IComponent
 import li.cil.oc.server.components.Screen
 import net.minecraft.item.ItemStack
 
@@ -31,18 +32,18 @@ object GraphicsCardDriver extends IItemDriver {
 
   @Callback
   def set(computer: IComputerContext, idGpu: Int, x: Int, y: Int, value: String) =
-    computer.component[GraphicsCard](idGpu).set(x, y, value)
+    computer.component[GraphicsCard](idGpu).set(x - 1, y - 1, value)
 
   @Callback
   def fill(computer: IComputerContext, idGpu: Int, value: String, x: Int, y: Int, w: Int, h: Int) = {
     if (value == null || value.length < 1)
       throw new IllegalArgumentException("bad argument #2 (invalid string)")
-    computer.component[GraphicsCard](idGpu).fill(x, y, w, h, value.charAt(0))
+    computer.component[GraphicsCard](idGpu).fill(x - 1, y - 1, w, h, value.charAt(0))
   }
 
   @Callback
   def copy(computer: IComputerContext, idGpu: Int, x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    computer.component[GraphicsCard](idGpu).copy(x, y, w, h, tx, ty)
+    computer.component[GraphicsCard](idGpu).copy(x - 1, y - 1, w, h, tx, ty)
 
   /**
    * Binds the GPU to the specified monitor, meaning it'll send its output to
@@ -74,9 +75,9 @@ object GraphicsCardDriver extends IItemDriver {
   // IItemDriver
   // ----------------------------------------------------------------------- //
 
-  def worksWith(item: ItemStack) = item.itemID == Config.itemGPUId
+  def worksWith(item: ItemStack) = item.itemID == Items.gpu.itemID
 
   def componentType(item: ItemStack) = ComponentType.PCI
 
-  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item)
+  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item).getOrElse(null)
 }

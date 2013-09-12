@@ -3,13 +3,13 @@ package li.cil.oc.gui
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.client.gui.inventory.GuiContainer
-import li.cil.oc.container.ContainerComputer
 import net.minecraft.util.StatCollector
 import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf
 import org.lwjgl.opengl.GL11
 import net.minecraft.util.ResourceLocation
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiTextField
+import li.cil.oc.common.container.ContainerComputer
 
 class GuiComputer(inventory: InventoryPlayer, tile: TileEntityComputer) extends GuiContainer(new ContainerComputer(inventory, tile)) {
   val tileEntity = tile

@@ -25,5 +25,8 @@ object ScreenDriver extends IBlockDriver {
     world.getBlockId(x, y, z) == Config.blockScreenId
 
   def component(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityScreen].component
+    world.getBlockTileEntity(x, y, z) match {
+      case tileEntity: TileEntityScreen => tileEntity.component
+      case _ => null
+    }
 }

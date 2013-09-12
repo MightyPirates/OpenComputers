@@ -8,16 +8,16 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
 import scala.collection.mutable._
+import scala.io.Source
 import scala.reflect.runtime.universe._
 import scala.util.Random
 
 import com.naef.jnlua._
-
 import li.cil.oc.Config
 import li.cil.oc.api._
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.common.computer.IComputer
-import net.minecraft.item.ItemStack
+import li.cil.oc.server.components.IComponent
 import net.minecraft.nbt._
 
 /**
@@ -149,7 +149,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
   def component[T](id: Int) = components.get(id) match {
     case None => throw new IllegalArgumentException("no such component")
-    case Some(component) => component.asInstanceOf[T]
+    case Some((component, driver)) => component.asInstanceOf[T]
   }
 
   // ----------------------------------------------------------------------- //
@@ -198,11 +198,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       case State.Stopped | State.Stopping => return
       case State.DriverCall => {
         assert(lua.getTop() == 2)
-        assert(lua.`type`(1) == LuaType.THREAD)
-        assert(lua.`type`(2) == LuaType.FUNCTION)
-        lua.resume(1, 1)
-        assert(lua.getTop() == 2)
-        assert(lua.`type`(2) == LuaType.TABLE)
+        assert(lua.isThread(1))
+        assert(lua.isFunction(2))
+        println("> drivercall")
+        lua.call(0, 1)
+        println("< drivercall")
+        assert(lua.isTable(2))
         state = State.DriverReturn
         future = Executor.pool.submit(this)
       }
@@ -633,6 +634,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         "/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
       lua.newThread() // Leave it as the first value on the stack.
 
+      // Load the init script. This is run by the kernel as a separate
+      // coroutine to enforce timeouts and sandbox user scripts. It also
+      // provides some basic functionality to make working with signals easier.
+      lua.pushString(Source.fromInputStream(classOf[Computer].
+        getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
+      lua.setGlobal("init")
+
       // Run the garbage collector to get rid of stuff left behind after the
       // initialization phase to get a good estimate of the base memory usage
       // the kernel has. We remember that size to grant user-space programs a
@@ -689,6 +697,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       }
 
     val driverReturn = stateMonitor.synchronized {
+      if (state == State.Stopped) return
       val oldState = state
       state = State.Running
       oldState
@@ -735,6 +744,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
             close()
           }
           else if (results == 1 && lua.isNumber(2)) {
+            println("sleep")
             // We got a number. This tells us how long we should wait before
             // resuming the state again.
             val sleep = (lua.toNumber(2) * 1000).toLong
@@ -743,6 +753,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
             future = Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS)
           }
           else if (results == 1 && lua.isFunction(2)) {
+            println("drivercall")
             // If we get one function it's a wrapper for a driver call.
             state = State.DriverCall
             future = null
@@ -759,6 +770,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
         // Avoid getting to the closing part after the exception handling.
         return
+      }
+      else if (lua.isBoolean(2) && !lua.toBoolean(2)) {
+        println(lua.toString(3))
       }
     }
     catch {

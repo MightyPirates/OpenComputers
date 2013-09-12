@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound
  * TODO minimize NBT updates, i.e. only write what really changed?
  */
 class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
+  id = 1
   readFromNBT()
 
   val resolutions = List(List(40, 24), List(80, 24))
@@ -39,7 +40,7 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
   def set(x: Int, y: Int, s: String): Unit = {
     // Make sure the string isn't longer than it needs to be, in particular to
     // avoid sending too much data to our clients.
-    val truncated = s.substring(0, buffer.width)
+    val truncated = s.substring(0, buffer.width min s.length)
     buffer.set(x, y, truncated)
     if (screen != null) {
       screen.set(x, y, truncated)

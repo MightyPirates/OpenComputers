@@ -1,11 +1,13 @@
 package li.cil.oc.server.computer
 
-import java.lang.reflect.Method
 import scala.compat.Platform.EOL
+import scala.reflect.runtime.{ universe => ru }
 import scala.reflect.runtime.universe._
+
 import com.naef.jnlua.JavaFunction
 import com.naef.jnlua.LuaRuntimeException
 import com.naef.jnlua.LuaState
+
 import li.cil.oc.OpenComputers
 import li.cil.oc.api._
 
@@ -49,15 +51,16 @@ abstract private[oc] class Driver {
       lua.setField(-3, api) // ... drivers api
     } // ... drivers api
 
-    val mirror = runtimeMirror(instance.getClass.getClassLoader)
+    val mirror = ru.runtimeMirror(instance.getClass.getClassLoader)
     val instanceMirror = mirror.reflect(instance)
     val instanceType = instanceMirror.symbol.typeSignature
+    val callbackSymbol = ru.typeOf[Callback].typeSymbol
     for (method <- instanceType.members collect { case m if m.isMethod => m.asMethod })
-      method.annotations collect {
-        case annotation: Callback => {
-          val name = annotation.name match {
-            case s if s == null || s.isEmpty() => method.name.decoded
-            case name => name
+      method.annotations.filter(_.tpe.typeSymbol == callbackSymbol).
+        foreach(annotation => {
+          val name = annotation.javaArgs.get(newTermName("name")) match {
+            case Some(arg) if arg != null => arg.asInstanceOf[String]
+            case _ => method.name.decoded
           }
           lua.getField(-1, name) // ... drivers api func?
           if (lua.isNil(-1)) { // ... drivers api nil
@@ -76,8 +79,8 @@ abstract private[oc] class Driver {
               "Duplicate API entry, ignoring %s.%s of driver %s.",
               api, name, instance.componentName))
           }
-        }
-      } // ... drivers api
+        })
+    // ... drivers api
     lua.pop(2) // ...
 
     // Run custom init script.
@@ -114,6 +117,7 @@ abstract private[oc] class Driver {
      * Based on the method's parameters we build a list of transformations
      * that convert Lua input to the expected parameter type.
      */
+    var parameterCountCheck = (c: Computer) => {}
     val parameterTransformations = buildParameterTransformations(mirror, method.symbol)
 
     /**
@@ -123,54 +127,75 @@ abstract private[oc] class Driver {
     val returnTransformation = buildReturnTransformation(method.symbol)
 
     /** This is the function actually called from the Lua state. */
-    def invoke(lua: LuaState): Int = {
-      return returnTransformation(computer,
-        method(parameterTransformations.map(_(computer)): _*))
-    }
-  }
-
-  /**
-   * This generates the transformation functions that are used to convert the
-   * Lua parameters to Java types to be passed on to the API function.
-   */
-  private def buildParameterTransformations(mirror: Mirror, method: MethodSymbol): Array[Computer => Any] = {
-    // No parameters?
-    if (method.paramss.length == 0 || method.paramss(0).length == 0) {
-      return Array()
-    }
-
-    val params = method.paramss(0)
-
-    // Do we have a callback function that wants to handle its arguments
-    // manually? If so, convert all arguments and pack them into an array.
-    // TODO test if this really works.
-    if (params.length == 2 &&
-      params(0) == typeOf[IComputerContext].typeSymbol &&
-      params(1) == typeOf[Array[Any]].typeSymbol) {
-      Array(
-        (c: Computer) => c,
-        (c: Computer) => (1 to c.lua.getTop()).map(
-          c.lua.toJavaObject(_, classOf[Object])))
-    }
-    // Otherwise build converters based on the method's signature.
-    else params.zipWithIndex.map {
-      case (t, i) if t == typeOf[IComputerContext].typeSymbol => (c: Computer) => c
-      case (t, i) => {
-        val clazz = mirror.runtimeClass(t.asClass)
-        (c: Computer) => c.lua.toJavaObject(i, clazz)
+    def invoke(lua: LuaState) = {
+      try {
+        parameterCountCheck(computer)
+        returnTransformation(computer,
+          method(parameterTransformations.map(_(computer)): _*))
       }
-    }.toArray
-  }
-
-  /**
-   * This generates the transformation function that is used to convert the
-   * return value of an API function to a Lua type and push it onto the stack,
-   * returning the number of values pushed. We need that number in case we
-   * return a tuple (i.e. the function returned an array).
-   */
-  private def buildReturnTransformation(method: MethodSymbol): (Computer, Any) => Int =
-    method.returnType match {
-      case t if t == Unit => (c, v) => 0
-      case t => (c, v) => c.lua.pushJavaObject(v); 1
+      catch {
+        case e: Throwable =>
+          e.printStackTrace(); throw new Throwable {
+            override def toString = e.getMessage
+          }
+      }
     }
+
+    /**
+     * This generates the transformation functions that are used to convert the
+     * Lua parameters to Java types to be passed on to the API function.
+     */
+    private def buildParameterTransformations(mirror: Mirror, method: MethodSymbol): Array[Computer => Any] = {
+      // No parameters?
+      if (method.paramss.length == 0 || method.paramss(0).length == 0) {
+        return Array()
+      }
+
+      val params = method.paramss(0).map(_.typeSignature.typeSymbol)
+
+      // Do we have a callback function that wants to handle its arguments
+      // manually? If so, convert all arguments and pack them into an array.
+      // TODO test if this really works.
+      if (params.length == 2 &&
+        params(0) == typeOf[IComputerContext].typeSymbol &&
+        params(1) == typeOf[Array[Any]].typeSymbol) {
+        Array(
+          (c: Computer) => c,
+          (c: Computer) => (1 to c.lua.getTop()).map(
+            c.lua.toJavaObject(_, classOf[Object])))
+      }
+      // Otherwise build converters based on the method's signature.
+      else {
+        var index = 0
+        val result = params.map {
+          case t if t == typeOf[IComputerContext].typeSymbol =>
+            (c: Computer) => c
+            case t => {
+            val clazz = mirror.runtimeClass(t.asClass)
+            index = index + 1
+            val i = index
+            (c: Computer) => c.lua.toJavaObject(i, clazz)
+          }
+        }.toArray
+        parameterCountCheck = (c: Computer) =>
+          if (c.lua.getTop() != index)
+            throw new Throwable {
+              override def getMessage = "invalid argument count"
+            }
+        result
+      }
+    }
+
+    /**
+     * This generates the transformation function that is used to convert the
+     * return value of an API function to a Lua type and push it onto the stack,
+     * returning the number of values pushed. We need that number in case we
+     * return a tuple (i.e. the function returned an array).
+     */
+    private def buildReturnTransformation(method: MethodSymbol): (Computer, Any) => Int =
+      method.returnType match {
+        case t if t.typeSymbol == typeOf[Unit].typeSymbol => (c, v) => 0
+        case t => (c, v) => c.lua.pushJavaObject(v); 1
+      }
+  }
 }

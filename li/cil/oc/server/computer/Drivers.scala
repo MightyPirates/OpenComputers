@@ -71,7 +71,10 @@ private[oc] object Drivers {
    * @return the driver for that block if we have one.
    */
   def driverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.find(_.instance.worksWith(world, x, y, z))
+    blocks.find(_.instance.worksWith(world, x, y, z)) match {
+      case Some(driver) if driver.instance.id(driver.instance.component(world, x, y, z)) != 0 => Some(driver)
+      case _ => None
+    }
 
   /**
    * Used when an item component is added to a computer to see if we have a
@@ -80,7 +83,12 @@ private[oc] object Drivers {
    * @param item the type of item to check for a driver for.
    * @return the driver for that item type if we have one.
    */
-  def driverFor(item: ItemStack) = items.find(_.instance.worksWith(item))
+  def driverFor(item: ItemStack) =
+    if (item != null) items.find(_.instance.worksWith(item)) match {
+      case Some(driver) if driver.instance.id(driver.instance.component(item)) != 0 => Some(driver)
+      case _ => None
+    }
+    else None
 
   /**
    * Used by the computer to initialize its Lua state, injecting the APIs of
