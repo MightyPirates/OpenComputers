@@ -16,6 +16,7 @@ class TileEntityScreen(isClient: Boolean) extends TileEntity {
   @SideOnly(Side.CLIENT)
   def updateGui(value: () => String): Unit = {
     // TODO if GUI is open, call value() to get the new display string and show it
+      println("CLIENT SCREEN: " + value())
   }
 
   // TODO open GUI on right click

@@ -32,18 +32,18 @@ object GraphicsCardDriver extends IItemDriver {
 
   @Callback
   def set(computer: IComputerContext, idGpu: Int, x: Int, y: Int, value: String) =
-    computer.component[GraphicsCard](idGpu).set(x, y, value)
+    computer.component[GraphicsCard](idGpu).set(x - 1, y - 1, value)
 
   @Callback
   def fill(computer: IComputerContext, idGpu: Int, value: String, x: Int, y: Int, w: Int, h: Int) = {
     if (value == null || value.length < 1)
       throw new IllegalArgumentException("bad argument #2 (invalid string)")
-    computer.component[GraphicsCard](idGpu).fill(x, y, w, h, value.charAt(0))
+    computer.component[GraphicsCard](idGpu).fill(x - 1, y - 1, w, h, value.charAt(0))
   }
 
   @Callback
   def copy(computer: IComputerContext, idGpu: Int, x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    computer.component[GraphicsCard](idGpu).copy(x, y, w, h, tx, ty)
+    computer.component[GraphicsCard](idGpu).copy(x - 1, y - 1, w, h, tx, ty)
 
   /**
    * Binds the GPU to the specified monitor, meaning it'll send its output to
