@@ -1,12 +1,13 @@
 package li.cil.oc.server.drivers
 
-import li.cil.oc.Config
+import li.cil.oc.Items
 import li.cil.oc.api.Callback
 import li.cil.oc.api.ComponentType
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.api.IItemDriver
 import li.cil.oc.common.util.ItemComponentCache
 import li.cil.oc.server.components.GraphicsCard
+import li.cil.oc.server.components.IComponent
 import li.cil.oc.server.components.Screen
 import net.minecraft.item.ItemStack
 
@@ -74,9 +75,9 @@ object GraphicsCardDriver extends IItemDriver {
   // IItemDriver
   // ----------------------------------------------------------------------- //
 
-  def worksWith(item: ItemStack) = item.itemID == Config.itemGPUId
+  def worksWith(item: ItemStack) = item.itemID == Items.gpu.itemID
 
   def componentType(item: ItemStack) = ComponentType.PCI
 
-  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item)
+  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item).getOrElse(null)
 }

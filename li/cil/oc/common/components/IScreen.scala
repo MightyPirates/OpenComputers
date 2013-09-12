@@ -1,5 +1,7 @@
 package li.cil.oc.common.components
 
+import li.cil.oc.server.components.IComponent
+
 trait IScreen {
   def resolution_=(value: (Int, Int)): Unit
   def resolution {} // Required for setter.

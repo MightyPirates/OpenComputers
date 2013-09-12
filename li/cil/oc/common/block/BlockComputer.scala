@@ -68,7 +68,7 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
     world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOff()
     super.breakBlock(world, x, y, z, `side?`, metadata)
   }
-  
+
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
     side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (player.isSneaking())
@@ -76,11 +76,10 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
         setRotation(world, x, y, z, rotation(world, x, y, z) + 1)
       else
         false
-    else
-    {   // TODO Open GUI if we're a client.
-      val computer = world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer]
-      computer.turnOn()
-      player.openGui(OpenComputers,0, world, x,y, z)
+    else {
+      // Start the computer if it isn't already running and open the GUI.
+      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
+      player.openGui(OpenComputers, 0, world, x, y, z)
       true
     }
   }
@@ -91,7 +90,7 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
         onNeighborBlockChange(blockId)
     }
   }
-  
+
   // ----------------------------------------------------------------------- //
   // Block rotation
   // ----------------------------------------------------------------------- //

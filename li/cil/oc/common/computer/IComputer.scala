@@ -1,10 +1,8 @@
 package li.cil.oc.common.computer
-import li.cil.oc.api.IBlockDriver
-import li.cil.oc.api.IItemDriver
-import net.minecraft.block.Block
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+
+import li.cil.oc.server.components.IComponent
 import li.cil.oc.server.computer.Driver
+import net.minecraft.nbt.NBTTagCompound
 
 /**
  * This interface is used to be able to use the same basic type for storing a

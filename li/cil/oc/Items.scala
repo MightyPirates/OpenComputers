@@ -13,6 +13,6 @@ object Items {
     gpu = new ItemGraphicsCard
     hdd = new ItemHDD
 
-    ItemComponentCache.register(Config.itemGPUId, nbt => new GraphicsCard(nbt))
+    ItemComponentCache.register(gpu.itemID, nbt => new GraphicsCard(nbt))
   }
 }

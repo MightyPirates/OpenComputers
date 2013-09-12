@@ -17,7 +17,7 @@ import li.cil.oc.Config
 import li.cil.oc.api._
 import li.cil.oc.api.IComputerContext
 import li.cil.oc.common.computer.IComputer
-import net.minecraft.item.ItemStack
+import li.cil.oc.server.components.IComponent
 import net.minecraft.nbt._
 
 /**

@@ -12,4 +12,7 @@ class ItemGraphicsCard extends Item(Config.itemGPUId) {
   setCreativeTab(CreativeTab)
 
   override def shouldPassSneakingClickToBlock(world: World, x: Int, y: Int, z: Int) = true
+
+  /** Buffer is only needed on server, we synchronize it ourselves. */
+  override def getShareTag = false
 }

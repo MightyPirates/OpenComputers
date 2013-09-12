@@ -1,6 +1,7 @@
 package li.cil.oc.api
 
-import net.minecraft.block.Block
+import li.cil.oc.server.components.IComponent
+
 import net.minecraft.world.World
 
 /**

@@ -1,5 +1,7 @@
 package li.cil.oc.api
 
+import li.cil.oc.server.components.IComponent
+
 import net.minecraft.item.ItemStack
 
 /**
@@ -21,7 +23,7 @@ import net.minecraft.item.ItemStack
  * at the point of time the component is installed.
  * If a driver's API function queries a component via the context using
  * {@see IComputerContext#component()} the returned value will be exactly that.
- * 
+ *
  * Note that it is possible to write one driver that supports as many different
  * items as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular and the {@see IDriver#componentName} more meaningful.
