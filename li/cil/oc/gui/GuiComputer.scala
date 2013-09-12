@@ -14,7 +14,7 @@ import net.minecraft.client.gui.GuiTextField
 class GuiComputer(inventory: InventoryPlayer, tile: TileEntityComputer) extends GuiContainer(new ContainerComputer(inventory, tile)) {
   val tileEntity = tile
 	var b = new GuiButton(1,5,4,"test") 
-  var t:GuiTextField = null
+  var t:GuiMultilineTextField = null
   
  
   override def drawGuiContainerForegroundLayer(param1: Int, par2: Int) = {
@@ -38,8 +38,8 @@ class GuiComputer(inventory: InventoryPlayer, tile: TileEntityComputer) extends 
   override def initGui()={
     super.initGui()
     System.out.println(" FONTRENDERER != NULL???"+this.fontRenderer)
-     t = new GuiTextField(this.fontRenderer,20,0,200,200)
-    t.setText("Hallo das ist ein TEst")
+     t = new GuiMultilineTextField(this.fontRenderer,20,0,200,200)
+    t.setText("Hallo das ist ein TEst\n über mehrere zeilen?")
     
     }
   override def drawScreen(i:Int,j:Int,f:Float)={
