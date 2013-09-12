@@ -1,4 +1,4 @@
-package li.cil.oc.gui;
+package li.cil.oc.common.gui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

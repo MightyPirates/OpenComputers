@@ -13,7 +13,7 @@ import net.minecraft.util.StatCollector
 
 class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer) extends GuiContainer(new ContainerComputer(inventory, tileEntity)) {
   val button = new GuiButton(1, 5, 4, "test")
-  var textField: GuiTextField = null
+  var textField: GuiMultilineTextField = null
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     //draw text and stuff here
@@ -34,8 +34,8 @@ class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer
 
   override def initGui() = {
     super.initGui()
-    textField = new GuiTextField(this.fontRenderer, 20, 0, 100, 20)
-    textField.setText("Hallo das ist ein Test")
+    textField = new GuiMultilineTextField(this.fontRenderer, 20, 0, 100, 40)
+    textField.setText("Hallo das ist ein Test\n über mehrere zeilen?")
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) = {
