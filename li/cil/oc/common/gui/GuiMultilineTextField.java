@@ -93,6 +93,7 @@ public class GuiMultilineTextField extends Gui {
 			int xStart = this.xPos + 4;
 			int yStart = this.yPos + 4;
 			int currentX = xStart;
+
 			for (String line : lines)
 
 			{
@@ -100,22 +101,30 @@ public class GuiMultilineTextField extends Gui {
 				while (!completeLinePrinted) {
 					String s = fontRenderer.trimStringToWidth(line, getWidth());
 					if (s.length() != line.length()) {
+
 						int end = s.lastIndexOf(" ");
+						if (end == -1) {
+							end = s.length();
+						}
 						s = s.substring(0, end);
-						line = line.substring(end+1);
-					}
-					else{
+						line = line.substring(end + 1);
+					} else {
 						completeLinePrinted = true;
 					}
 
 					if (s.length() > 0) {
-
 						int heightOld = fontRenderer.FONT_HEIGHT;
 						currentX = fontRenderer.drawStringWithShadow(s, xStart,
 								yStart, color);
 						yStart += heightOld;
 
+					} else {
 					}
+					if (yStart > height + yPos) {
+
+						return;
+					}
+
 				}
 
 			}

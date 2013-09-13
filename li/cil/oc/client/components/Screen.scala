@@ -9,6 +9,7 @@ class Screen(owner: TileEntityScreen) extends IScreen {
 
   override def toString = buffer.toString
   
+  def resolution = buffer.size
   def resolution_=(value: (Int, Int)) = {
     buffer.size = value
     owner.updateGui(buffer.toString)

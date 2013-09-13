@@ -9,7 +9,15 @@ class ScreenGui(val tileEntity: TileEntityScreen) extends GuiScreen {
   
   override def initGui() = {
     super.initGui()
-    textField = new GuiMultilineTextField(this.fontRenderer, 20, 20, 200, 100)
+    var(w,h) = tileEntity.component.resolution
+    println(" widht: "+w)
+    println("heigth:" +h)
+    w *=2
+    h *=2
+    var x =  (width - w)/2
+    var y = (height -h)/2
+      
+    textField = new GuiMultilineTextField(this.fontRenderer, x, y, w, h)
     textField.setText(tileEntity.text)
   }
 

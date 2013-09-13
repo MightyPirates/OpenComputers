@@ -21,7 +21,7 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
 
   val resolutions = List(List(40, 24), List(80, 24))
 
-  private val buffer = new TextBuffer(40, 24)
+  private val buffer = new TextBuffer(80, 24)
 
   var screen: Screen = null
 
