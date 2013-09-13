@@ -34,8 +34,8 @@ class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer
 
   override def initGui() = {
     super.initGui()
-    textField = new GuiMultilineTextField(this.fontRenderer, 20, 0, 100, 40)
-    textField.setText("Hallo das ist ein Test\n über mehrere zeilen?")
+    textField = new GuiMultilineTextField(this.fontRenderer, 20, 0, 100, 100)
+    textField.setText("Hallo das ist ein Test\nueber mehrere zeilen? \nevtl auch 3?")
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) = {
@@ -44,6 +44,5 @@ class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer
     button.drawButton(this.mc, mouseX, mouseY)
 
     textField.drawTextBox()
-    textField.setCursorPosition(0)
   }
 }
