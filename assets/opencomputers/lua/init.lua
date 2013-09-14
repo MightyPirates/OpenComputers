@@ -1,7 +1,6 @@
 --[[ Top level program run by the kernel. ]]
 
 do
-  _print = print
   local idGpu = 0
   local cursorX, cursorY = 1, 1
   term = {
@@ -21,12 +20,9 @@ do
     end,
     write = function(value, wrap)
       value = tostring(value)
-      _print("write: ", value)
       if idGpu <= 0 or value:len() == 0 then return end
       local resX, resY = driver.gpu.getResolution(idGpu)
-      _print("resolution = ", resX, resY)
       local function checkCursor()
-        _print("check ", cursorX, " ", resX, " ", cursorY, " ", resY)
         if cursorX > resX then
           cursorX = 1
           cursorY = cursorY + 1
@@ -40,7 +36,6 @@ do
       checkCursor()
       local first = true
       for line in value:gmatch("[^\r\n]*") do
-        _print("line: ", line)
         if not first then
           cursorX = 1
           cursorY = cursorY + 1
@@ -48,7 +43,6 @@ do
         end
         first = false
         while wrap and line:len() > resX - cursorX + 1 do
-          _print("partial")
           local partial = line:sub(1, resX - cursorX + 1)
           line = line:sub(partial:len() + 1)
           driver.gpu.set(idGpu, cursorX, cursorY, partial)

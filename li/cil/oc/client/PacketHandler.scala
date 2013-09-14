@@ -31,38 +31,46 @@ class PacketHandler extends IPacketHandler {
 
   def onScreenResolutionChange(p: PacketParser) = {
     val t = p.readTileEntity[TileEntityScreen]()
-    val w = p.readInt()
-    val h = p.readInt()
-    t.component.resolution = (w, h)
+    if (t != null) {
+      val w = p.readInt()
+      val h = p.readInt()
+      t.component.resolution = (w, h)
+    }
   }
 
   def onScreenSet(p: PacketParser) = {
     val t = p.readTileEntity[TileEntityScreen]()
-    val col = p.readInt()
-    val row = p.readInt()
-    val s = p.readUTF()
-    t.component.set(col, row, s)
+    if (t != null) {
+      val col = p.readInt()
+      val row = p.readInt()
+      val s = p.readUTF()
+      t.component.set(col, row, s)
+    }
   }
 
   def onScreenFill(p: PacketParser) = {
     val t = p.readTileEntity[TileEntityScreen]()
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val c = p.readChar()
-    t.component.fill(col, row, w, h, c)
+    if (t != null) {
+      val col = p.readInt()
+      val row = p.readInt()
+      val w = p.readInt()
+      val h = p.readInt()
+      val c = p.readChar()
+      t.component.fill(col, row, w, h, c)
+    }
   }
 
   def onScreenCopy(p: PacketParser) = {
     val t = p.readTileEntity[TileEntityScreen]()
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val tx = p.readInt()
-    val ty = p.readInt()
-    t.component.copy(col, row, w, h, tx, ty)
+    if (t != null) {
+      val col = p.readInt()
+      val row = p.readInt()
+      val w = p.readInt()
+      val h = p.readInt()
+      val tx = p.readInt()
+      val ty = p.readInt()
+      t.component.copy(col, row, w, h, tx, ty)
+    }
   }
 
   /** Utility class for packet parsing. */

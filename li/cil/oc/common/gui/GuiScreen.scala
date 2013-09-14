@@ -9,11 +9,11 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   override def initGui() = {
     super.initGui()
     val (w, h) = tileEntity.component.resolution
-    val (pixelWidth, pixelHeight) = (w * 5, h * 8)
+    val (pixelWidth, pixelHeight) = (w * 5 + 4, h * fontRenderer.FONT_HEIGHT + 4)
     val x = (width - pixelWidth) / 2
     val y = (height - pixelHeight) / 2
     textField = new GuiMultilineTextField(
-      this.fontRenderer, x, y, pixelWidth, pixelHeight)
+      fontRenderer, x, y, pixelWidth, pixelHeight)
     textField.setText(tileEntity.component.toString)
   }
 
