@@ -3,6 +3,8 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
+import li.cil.oc.OpenComputers
+import li.cil.oc.common.gui.GuiType
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -13,8 +15,6 @@ import net.minecraft.util.MathHelper
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.CommonProxy
-import li.cil.oc.OpenComputers
 
 class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
   // ----------------------------------------------------------------------- //
@@ -79,7 +79,7 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
     else {
       // Start the computer if it isn't already running and open the GUI.
       world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
-      player.openGui(OpenComputers, 0, world, x, y, z)
+      player.openGui(OpenComputers, GuiType.Computer.id, world, x, y, z)
       true
     }
   }

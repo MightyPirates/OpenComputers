@@ -7,11 +7,13 @@ import li.cil.oc.server.PacketSender
 class Screen(val owner: TileEntityScreen) extends IScreen with IComponent {
   id = 2
 
+  def resolution = throw new NotImplementedError
+
   def resolution_=(value: (Int, Int)) = {
     val (w, h) = value
     PacketSender.sendScreenResolutionChange(owner, w, h)
   }
-  def resolution = throw new NotImplementedError
+
   def set(col: Int, row: Int, s: String) =
     PacketSender.sendScreenSet(owner, col, row, s)
 

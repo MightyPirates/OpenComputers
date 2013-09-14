@@ -58,6 +58,10 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
 
   def bind(value: Option[Screen]): Unit = {
     screen = value
+    screen.foreach(screen => {
+      screen.resolution = resolution
+      fill(0, 0, buffer.width, buffer.height, ' ')
+    })
     writeToNBT()
   }
 

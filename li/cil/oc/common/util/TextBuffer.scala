@@ -14,7 +14,7 @@ class TextBuffer(var width: Int, var height: Int) {
   def size_=(value: (Int, Int)): Unit = {
     val (w, h) = value
     val nbuffer = Array.fill(h, w)(' ')
-    (0 to (h min height)) foreach {
+    (0 until (h min height)) foreach {
       y => Array.copy(buffer(y), 0, nbuffer(y), 0, w min width)
     }
     buffer = nbuffer

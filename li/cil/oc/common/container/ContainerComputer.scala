@@ -6,7 +6,6 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
 class ContainerComputer(playerInventory: InventoryPlayer, computer: TileEntityComputer) extends GenericInventoryContainer(playerInventory, computer) {
-  
   // Show the computer's inventory.
   // TODO nicer layout, separate for types, based on background image once it exists
   for (slotY <- 0 until 3) {
