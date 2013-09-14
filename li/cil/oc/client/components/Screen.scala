@@ -7,6 +7,7 @@ import li.cil.oc.common.util.TextBuffer
 class Screen(owner: TileEntityScreen) extends IScreen {
   val buffer = new TextBuffer(40, 24)
   
+  def resolution = buffer.size
   def resolution_=(value: (Int, Int)) = {
     buffer.size = value
     owner.updateGui(buffer.toString)

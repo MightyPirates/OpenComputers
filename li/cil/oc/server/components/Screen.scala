@@ -11,7 +11,7 @@ class Screen(val owner: TileEntityScreen) extends IScreen with IComponent {
     val (w, h) = value
     PacketSender.sendScreenResolutionChange(owner, w, h)
   }
-
+  def resolution = throw new NotImplementedError
   def set(col: Int, row: Int, s: String) =
     PacketSender.sendScreenSet(owner, col, row, s)
 
