@@ -32,6 +32,10 @@ public class DefaultConverter implements Converter {
 	 */
 	private static final DefaultConverter INSTANCE = new DefaultConverter();
 
+  public static boolean isTypeSupported(Class<?> clazz) {
+    return JAVA_OBJECT_CONVERTERS.get(clazz) != null;
+  }
+
 	/**
 	 * Boolean distance map.
 	 */

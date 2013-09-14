@@ -111,7 +111,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
    * This is used to keep track of the current executor of the Lua state, for
    * example to wait for the computer to finish running a task.
    */
-  private var future: Future[_] = null
+  private var future: Option[Future[_]] = None
 
   /** This is used to synchronize access to the state field. */
   private val stateMonitor = new Object()
@@ -135,10 +135,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       case State.Stopped | State.Stopping => false
       // Currently sleeping. Cancel that and start immediately.
       case State.Sleeping =>
-        future.cancel(true)
+        future.get.cancel(true)
         state = State.Suspended
         signals.offer(new Signal(name, args.toArray))
-        future = Executor.pool.submit(this)
+        future = Some(Executor.pool.submit(this))
         true
       // Running or in driver call or only a short yield, just push the signal.
       case _ =>
@@ -168,7 +168,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       for ((component, driver) <- components.values)
         driver.instance.onInstall(this, component)
 
-      future = Executor.pool.submit(this)
+      future = Some(Executor.pool.submit(this))
       true
     })
 
@@ -178,9 +178,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         // If the computer is not currently running we can simply close it,
         // and cancel any pending future - which may already be running and
         // waiting for the stateMonitor, so we do a hard abort.
-        if (future != null) {
-          future.cancel(true)
-        }
+        future.foreach(_.cancel(true))
         close()
       }
       else {
@@ -205,11 +203,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         println("< drivercall")
         assert(lua.isTable(2))
         state = State.DriverReturn
-        future = Executor.pool.submit(this)
+        future = Some(Executor.pool.submit(this))
       }
       case State.Paused | State.DriverReturnPaused => {
         state = State.Suspended
-        future = Executor.pool.submit(this)
+        future = Some(Executor.pool.submit(this))
       }
       case _ => /* Nothing special to do. */
     })
@@ -309,8 +307,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           timeStarted = nbt.getDouble("timeStarted")
 
           // Start running our worker thread.
-          assert(future == null)
-          future = Executor.pool.submit(this)
+          assert(!future.isDefined)
+          future = Some(Executor.pool.submit(this))
         }
         catch {
           case t: Throwable => {
@@ -427,11 +425,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
-    lua = LuaStateFactory.createState()
-
-    // If something went wrong while creating the state there's nothing else
-    // we can do here...
-    if (lua == null) return false
+    LuaStateFactory.createState() match {
+      case None =>
+        lua = null; return false
+      case Some(state) => lua = state
+    }
 
     try {
       // Push a couple of functions that override original Lua API functions or
@@ -678,7 +676,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       kernelMemory = 0
       signals.clear()
       timeStarted = 0
-      future = null
+      future = None
     })
 
   // This is a really high level lock that we only use for saving and loading.
@@ -691,7 +689,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         state =
           if (state == State.DriverReturn) State.DriverReturnPaused
           else State.Paused
-        future = null
+        future = None
         println(" < executor leave")
         return
       }
@@ -750,19 +748,20 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
             val sleep = (lua.toNumber(2) * 1000).toLong
             lua.pop(results)
             state = State.Sleeping
-            future = Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS)
+            future = Some(Executor.pool.
+              schedule(this, sleep, TimeUnit.MILLISECONDS))
           }
           else if (results == 1 && lua.isFunction(2)) {
             println("drivercall")
             // If we get one function it's a wrapper for a driver call.
             state = State.DriverCall
-            future = null
+            future = None
           }
           else {
             // Something else, just pop the results and try again.
             lua.pop(results)
             state = State.Suspended
-            future = Executor.pool.submit(this)
+            future = Some(Executor.pool.submit(this))
           }
         }
 

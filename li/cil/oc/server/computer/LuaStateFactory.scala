@@ -91,7 +91,7 @@ private[computer] object LuaStateFactory {
   // Factory
   // ----------------------------------------------------------------------- //
 
-  def createState(): LuaState = {
+  def createState(): Option[LuaState] = {
     val state = new LuaState(Integer.MAX_VALUE)
     try {
       // Load all libraries.
@@ -118,14 +118,15 @@ private[computer] object LuaStateFactory {
       state.setGlobal("module")
       state.pushNil()
       state.setGlobal("require")
+
+      return Some(state)
     }
     catch {
       case ex: Throwable => {
         ex.printStackTrace()
         state.close()
-        return null
+        return None
       }
     }
-    return state
   }
 }

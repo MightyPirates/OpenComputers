@@ -44,8 +44,12 @@ local sandbox = {
   getmetatable = getmetatable,
   setmetatable = setmetatable,
 
-  -- Custom print that actually writes to the screen buffer.
+  -- TODO replace with a dummy function once we can replicate this with screens.
   print = print,
+
+  checkArg = checkArg,
+  component = component,
+  driver = driver,
 
   bit32 = {
     arshift = bit32.arshift,
@@ -62,8 +66,6 @@ local sandbox = {
     rshift = bit32.rshift
   },
 
-  component = component,
-
   coroutine = {
     create = coroutine.create,
     resume = coroutine.resume,
@@ -72,8 +74,6 @@ local sandbox = {
     wrap = coroutine.wrap,
     yield = coroutine.yield
   },
-
-  driver = driver,
 
   math = {
     abs = math.abs,
@@ -202,8 +202,8 @@ end
 
 --[[ Pull a signal with an optional timeout. ]]
 function sandbox.os.signal(name, timeout)
-  checkType(1, name, "string", "nil")
-  checkType(2, timeout, "number", "nil")
+  checkArg(1, name, "string", "nil")
+  checkArg(2, timeout, "number", "nil")
   local deadline = os.clock() + (timeout or math.huge)
   while os.clock() < deadline do
     local signal = {coroutine.yield(deadline - os.clock())}
@@ -215,7 +215,7 @@ end
 
 --[[ Suspends the computer for the specified amount of time. ]]
 function sandbox.os.sleep(seconds)
-  checkType(1, seconds, "number")
+  checkArg(1, seconds, "number")
   local target = os.clock() + seconds
   while os.clock() < target do
     -- Yielding a number here will tell the host it can wait with running us
@@ -228,19 +228,27 @@ end
 
 print("Running kernel...")
 
--- Replace init script code with loaded, sandboxed and threaded script.
-init = coroutine.create(load(init, nil, "t", sandbox))
-local data = {}
-while true do
-  deadline = os.realTime() + 3
-  local result = {coroutine.resume(init, table.unpack(data))}
-  if result[1] then
-    -- Init should never return, so we have a system yield.
-    result = result[2]
-    print("yield: " .. type(result))
-  else
-    -- Some other error, go kill ourselves.
-    return table.unpack(result)
+-- JNLua / Lua suck at reporting errors from coroutines, so we do it manually.
+return pcall(function()
+  -- Replace init script code with loaded, sandboxed and threaded script.
+  do
+    local result, reason = load(init, nil, "t", sandbox)
+    if not result then error(reason, 0) end
+    init = coroutine.create(result)
   end
-  data = {coroutine.yield(result)}
-end
+  local data = {}
+  while true do
+    deadline = os.realTime() + 3
+    local result = {coroutine.resume(init, table.unpack(data))}
+    if result[1] then
+      -- Init should never return, so we have a system yield.
+      result = result[2]
+      print("yield: " .. type(result))
+    else
+      -- Some other error, go kill ourselves.
+      print("error: ", table.unpack(result))
+      return table.unpack(result)
+    end
+    data = {coroutine.yield(result)}
+  end
+end)

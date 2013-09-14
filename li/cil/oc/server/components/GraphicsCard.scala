@@ -23,16 +23,14 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
 
   private val buffer = new TextBuffer(40, 24)
 
-  var screen: Screen = null
+  var screen: Option[Screen] = None
 
   def resolution = buffer.size
 
   def resolution_=(value: (Int, Int)) =
     if (resolutions.contains(value)) {
       buffer.size = value
-      if (screen != null) {
-        screen.resolution = value
-      }
+      screen.foreach(_.resolution = value)
       writeToNBT()
     }
     else throw new IllegalArgumentException("unsupported resolution")
@@ -42,30 +40,24 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
     // avoid sending too much data to our clients.
     val truncated = s.substring(0, buffer.width min s.length)
     buffer.set(x, y, truncated)
-    if (screen != null) {
-      screen.set(x, y, truncated)
-    }
+    screen.foreach(_.set(x, y, truncated))
     writeToNBT()
   }
 
   def fill(x: Int, y: Int, w: Int, h: Int, c: Char) = {
     buffer.fill(x, y, w, h, c)
-    if (screen != null) {
-      screen.fill(x, y, w, h, c)
-    }
+    screen.foreach(_.fill(x, y, w, h, c))
     writeToNBT()
   }
 
   def copy(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) = {
     buffer.copy(x, y, w, h, tx, ty)
-    if (screen != null) {
-      screen.copy(x, y, w, h, tx, ty)
-    }
+    screen.foreach(_.copy(x, y, w, h, tx, ty))
     writeToNBT()
   }
 
-  def bind(m: Screen): Unit = {
-    screen = m
+  def bind(value: Option[Screen]): Unit = {
+    screen = value
     writeToNBT()
   }
 
@@ -75,14 +67,17 @@ class GraphicsCard(val nbt: NBTTagCompound) extends IComponent {
     val x = nbt.getInteger("monitor.x")
     val y = nbt.getInteger("monitor.y")
     val z = nbt.getInteger("monitor.z")
-    // TODO get tile entity in world, get its monitor component
+    // TODO get tile entity in world, get its screen component
     buffer.readFromNBT(nbt)
   }
 
   def writeToNBT(): Unit = {
-    nbt.setInteger("monitor.x", screen.owner.xCoord)
-    nbt.setInteger("monitor.y", screen.owner.yCoord)
-    nbt.setInteger("monitor.z", screen.owner.zCoord)
+    if (screen.isDefined) {
+      val owner = screen.get.owner
+      nbt.setInteger("monitor.x", owner.xCoord)
+      nbt.setInteger("monitor.y", owner.yCoord)
+      nbt.setInteger("monitor.z", owner.zCoord)
+    }
     buffer.writeToNBT(nbt)
   }
 }

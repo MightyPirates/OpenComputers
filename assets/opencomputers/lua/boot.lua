@@ -1,7 +1,7 @@
 --[[ Low level boot logic. ]]
 
 --[[ Argument checking for functions. ]]
-function checkType(n, have, ...)
+function checkArg(n, have, ...)
   have = type(have)
   for _, want in pairs({...}) do
     if have == want then return end
@@ -32,9 +32,6 @@ do
         -- b) only the first item in the global stack is persisted.
         return {pcall(f, table.unpack(args))}
       end)
-      print(result)
-      print(result[1])
-      print(result[2])
       -- The next time our executor runs it pushes that result and calls
       -- resume, so we get it via the yield. Thus: result = pcall(f, ...)
       if result[1] then

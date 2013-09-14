@@ -35,7 +35,7 @@ object GraphicsCardDriver extends IItemDriver {
     computer.component[GraphicsCard](idGpu).set(x - 1, y - 1, value)
 
   @Callback
-  def fill(computer: IComputerContext, idGpu: Int, value: String, x: Int, y: Int, w: Int, h: Int) = {
+  def fill(computer: IComputerContext, idGpu: Int, x: Int, y: Int, w: Int, h: Int, value: String) = {
     if (value == null || value.length < 1)
       throw new IllegalArgumentException("bad argument #2 (invalid string)")
     computer.component[GraphicsCard](idGpu).fill(x - 1, y - 1, w, h, value.charAt(0))
@@ -55,8 +55,8 @@ object GraphicsCardDriver extends IItemDriver {
   @Callback
   def bind(computer: IComputerContext, idGpu: Int, idScreen: Int) = {
     val gpu = computer.component[GraphicsCard](idGpu)
-    if (idScreen > 0) gpu.bind(computer.component[Screen](idScreen))
-    else gpu.bind(null)
+    if (idScreen > 0) gpu.bind(Some(computer.component[Screen](idScreen)))
+    else gpu.bind(None)
   }
 
   // ----------------------------------------------------------------------- //
