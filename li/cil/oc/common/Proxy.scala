@@ -11,7 +11,7 @@ import li.cil.oc.common.gui.GuiHandler
 import li.cil.oc.server.computer.Drivers
 import li.cil.oc.server.drivers._
 
-class CommonProxy {
+class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
     val config = new net.minecraftforge.common.Configuration(e.getSuggestedConfigurationFile())
 

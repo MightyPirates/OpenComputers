@@ -9,7 +9,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkMod
 import cpw.mods.fml.common.network.NetworkMod._
-import li.cil.oc.common.CommonProxy
+import li.cil.oc.common.Proxy
 import li.cil.oc.client.{ PacketHandler => ClientPacketHandler }
 import li.cil.oc.server.{ PacketHandler => ServerPacketHandler }
 
@@ -24,9 +24,9 @@ object OpenComputers {
   val log = Logger.getLogger("OpenComputers")
 
   @SidedProxy(
-    clientSide = "li.cil.oc.client.ClientProxy",
-    serverSide = "li.cil.oc.server.ServerProxy")
-  var proxy: CommonProxy = null
+    clientSide = "li.cil.oc.client.Proxy",
+    serverSide = "li.cil.oc.server.Proxy")
+  var proxy: Proxy = null
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)
