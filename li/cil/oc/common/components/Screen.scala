@@ -13,6 +13,8 @@ class Screen(val owner: IScreenEnvironment) extends IComponent {
 
   def text = buffer.toString
 
+  def lines = buffer.lines
+
   def resolution = buffer.size
 
   def resolution_=(value: (Int, Int)) =

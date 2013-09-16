@@ -48,7 +48,7 @@ class TileEntityScreen extends TileEntity with IScreenEnvironment {
 
   def onScreenSet(col: Int, row: Int, s: String) =
     if (worldObj.isRemote) {
-      gui.foreach(_.setText(component.text))
+      gui.foreach(_.lines = component.lines)
     }
     else {
       markAsChanged()
@@ -57,7 +57,7 @@ class TileEntityScreen extends TileEntity with IScreenEnvironment {
 
   def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) =
     if (worldObj.isRemote) {
-      gui.foreach(_.setText(component.text))
+      gui.foreach(_.lines = component.lines)
     }
     else {
       markAsChanged()
@@ -66,7 +66,7 @@ class TileEntityScreen extends TileEntity with IScreenEnvironment {
 
   def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
     if (worldObj.isRemote) {
-      gui.foreach(_.setText(component.text))
+      gui.foreach(_.lines = component.lines)
     }
     else {
       markAsChanged()

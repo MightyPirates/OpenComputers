@@ -63,7 +63,7 @@ class TextBuffer(var width: Int, var height: Int) {
 
   /**
    * Fills an area of the buffer with the specified character.
-   * 
+   *
    * Note that like set() this will ignore control characters (it will do
    * nothing in that case).
    */
@@ -131,6 +131,8 @@ class TextBuffer(var width: Int, var height: Int) {
     }
     nbt.setTag("buffer", b)
   }
+
+  def lines = buffer.map(String.valueOf(_))
 
   override def toString = {
     val b = StringBuilder.newBuilder
