@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
 import li.cil.oc.OpenComputers
-import li.cil.oc.common.gui.GuiType
+import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -15,6 +15,7 @@ import net.minecraft.util.MathHelper
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.GuiType
 
 class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
   // ----------------------------------------------------------------------- //

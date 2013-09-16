@@ -1,7 +1,6 @@
-package li.cil.oc.common.gui
+package li.cil.oc.client.gui
 
 import org.lwjgl.opengl.GL11
-
 import li.cil.oc.common.container.ContainerComputer
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.client.gui.GuiButton

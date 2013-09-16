@@ -7,7 +7,6 @@ import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.OpenComputersAPI
-import li.cil.oc.common.gui.GuiHandler
 import li.cil.oc.server.computer.Drivers
 import li.cil.oc.server.drivers._
 
@@ -33,7 +32,7 @@ class Proxy {
     // TODO Figure out how resource pack based localization works.
     LanguageRegistry.addName(Blocks.computer, "Computer")
 
-    NetworkRegistry.instance().registerGuiHandler(OpenComputers, new GuiHandler());
+    NetworkRegistry.instance.registerGuiHandler(OpenComputers, new GuiHandler)
 
     OpenComputersAPI.addDriver(GraphicsCardDriver)
     OpenComputersAPI.addDriver(ScreenDriver)

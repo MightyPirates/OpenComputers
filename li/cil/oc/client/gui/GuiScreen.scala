@@ -1,4 +1,4 @@
-package li.cil.oc.common.gui
+package li.cil.oc.client.gui
 
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.client.gui.Gui

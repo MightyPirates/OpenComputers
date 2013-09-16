@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher._
 import li.cil.oc.client.{ PacketSender => ClientPacketSender }
 import li.cil.oc.common.components.IScreenEnvironment
 import li.cil.oc.common.components.Screen
-import li.cil.oc.common.gui.GuiScreen
+import li.cil.oc.client.gui.GuiScreen
 import li.cil.oc.server.{ PacketSender => ServerPacketSender }
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
