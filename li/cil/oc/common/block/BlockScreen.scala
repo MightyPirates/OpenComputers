@@ -28,7 +28,7 @@ class BlockScreen extends Block(Config.blockScreenId, Material.iron) {
 
   override def hasTileEntity(metadata: Int) = true
 
-  override def createTileEntity(world: World, metadata: Int) = new TileEntityScreen(world.isRemote)
+  override def createTileEntity(world: World, metadata: Int) = new TileEntityScreen
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
     side: Int, hitX: Float, hitY: Float, hitZ: Float) = {

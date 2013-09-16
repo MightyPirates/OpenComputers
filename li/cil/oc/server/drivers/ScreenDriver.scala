@@ -3,7 +3,7 @@ package li.cil.oc.server.drivers
 import li.cil.oc.Config
 import li.cil.oc.api.IBlockDriver
 import li.cil.oc.common.tileentity.TileEntityScreen
-import li.cil.oc.server.components.Screen
+import li.cil.oc.common.components.Screen
 import net.minecraft.world.World
 
 object ScreenDriver extends IBlockDriver {

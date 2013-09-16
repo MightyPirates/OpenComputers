@@ -44,8 +44,7 @@ local sandbox = {
   getmetatable = getmetatable,
   setmetatable = setmetatable,
 
-  -- TODO replace with a dummy function once we can replicate this with screens.
-  print = print,
+  print = function() end,
 
   checkArg = checkArg,
   component = component,
@@ -231,11 +230,11 @@ print("Running kernel...")
 -- JNLua / Lua suck at reporting errors from coroutines, so we do it manually.
 return pcall(function()
   -- Replace init script code with loaded, sandboxed and threaded script.
-  do
-    local result, reason = load(init, nil, "t", sandbox)
+  local init = (function()
+    local result, reason = load(init(), nil, "t", sandbox)
     if not result then error(reason, 0) end
-    init = coroutine.create(result)
-  end
+    return coroutine.create(result)
+  end)()
   local data = {}
   while true do
     deadline = os.realTime() + 3

@@ -15,13 +15,13 @@ trait IComputer {
    * Tries to add the specified component to the computer.
    *
    * This can fail if another component with that ID is already installed in
-   * the computer. This will add the component and driver to the list of
-   * installed components and send the install signal to the computer, as well
-   * as call the install function of the driver.
+   * the computer. This will add the component ID to the list of installed
+   * components and send the install signal to the computer, as well as call
+   * the install function of the driver.
    *
    * @param component the component object.
    * @param driver the driver used for the component.
-   * @return true if the component was installed, fals otherwise.
+   * @return true if the component was installed, false otherwise.
    */
   def add(component: Any, driver: Driver): Boolean
 

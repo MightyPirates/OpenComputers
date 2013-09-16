@@ -30,7 +30,13 @@ do
         -- It runs the actual API function protected mode. We return this as
         -- a table because a) we need it like this on the outside anyway and
         -- b) only the first item in the global stack is persisted.
-        return {pcall(f, table.unpack(args))}
+        local result = {pcall(f, table.unpack(args))}
+        if not result[1] then
+          -- We apply tostring to error messages immediately  because JNLua
+          -- pushes the original Java exceptions which cannot be persisted.
+          result[2] = tostring(result[2])
+        end
+        return result
       end)
       -- The next time our executor runs it pushes that result and calls
       -- resume, so we get it via the yield. Thus: result = pcall(f, ...)
@@ -38,8 +44,7 @@ do
         -- API call was successful, return the results.
         return select(2, table.unpack(result))
       else
-        -- API call failed, re-throw the error. We apply tostring to it
-        -- because JNLua pushes the original Java exceptions.
+        -- API call failed, re-throw the error.
         error(tostring(result[2]), 2)
       end
     end

@@ -1,7 +1,7 @@
 package li.cil.oc
 
-import li.cil.oc.common.items.ItemHDD
 import li.cil.oc.common.items.ItemGraphicsCard
+import li.cil.oc.common.items.ItemHDD
 import li.cil.oc.common.util.ItemComponentCache
 import li.cil.oc.server.components.GraphicsCard
 

@@ -44,17 +44,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
    * updated whenever a component is placed into the computer or removed from
    * it, as well as when a block component is placed next to it or removed.
    *
-   * On the Lua side we only refer to components by an ID, which is the array
-   * index for the component array. Drivers may fetch the underlying component
-   * object via the IComputerContext.
+   * On the Lua side we only refer to components by an ID, which is the key.
    *
    * Since the Lua program may query a component's type from its own thread we
    * have to synchronize access to the component map. Note that there's a
    * chance the Lua programs may see a component before its install signal has
    * been processed, but I can't think of a scenario where this could become
-   * a real problem.
+   * a real problem, plus this can happen anyway if the signal queue is long.
    */
-  private val components = new HashMap[Int, (Any, Driver)] with SynchronizedMap[Int, (Any, Driver)]
+  private val components = new HashMap[Int, String] with SynchronizedMap[Int, String]
 
   /**
    * The current execution state of the computer. This is used to track how to
@@ -147,9 +145,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     })
   }
 
-  def component[T](id: Int) = components.get(id) match {
+  def component[T](id: Int) = owner.component(id) match {
     case None => throw new IllegalArgumentException("no such component")
-    case Some((component, driver)) => component.asInstanceOf[T]
+    case Some(component) => component.asInstanceOf[T]
   }
 
   // ----------------------------------------------------------------------- //
@@ -165,8 +163,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       signal("dummy")
 
       // Initialize any installed components.
-      for ((component, driver) <- components.values)
-        driver.instance.onInstall(this, component)
+      for (id <- components.keys)
+        owner.driver(id).get.instance.onInstall(this, owner.component(id).get)
 
       future = Some(Executor.pool.submit(this))
       true
@@ -232,7 +230,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     val id = driver.instance.id(component)
     if (components.contains(id)) false
     else {
-      components += id -> (component, driver)
+      components += id -> driver.instance.componentName
       driver.instance.onInstall(this, component)
       signal("component_install", id)
       true
@@ -242,10 +240,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   def remove(id: Int) =
     components.remove(id) match {
       case None => false
-      case Some((component, driver)) => {
-        driver.instance.onUninstall(this, component)
+      case Some(_) => {
+        // TODO won't work for blocks, because we won't know the old one at
+        // this point, since we only get the info that *some* neighbor block
+        // changed, and not which, and much less what it previously was...
+        //owner.driver(id).get.instance.onUninstall(this, owner.component(id))
         signal("component_uninstall", id)
-        true
       }
     }
 
@@ -257,6 +257,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       stateMonitor.synchronized {
         assert(state != State.Running) // Lock on 'this' should guarantee this.
         stop()
+      }
+
+      components.clear()
+      val componentList = nbt.getTagList("components")
+      for (i <- 0 until componentList.tagCount) {
+        val component = componentList.tagAt(i).asInstanceOf[NBTTagCompound]
+        val id = component.getInteger("id")
+        val componentName = component.getString("componentName")
+        components += id -> componentName
       }
 
       state = State(nbt.getInteger("state"))
@@ -333,6 +342,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         assert(state != State.Stopping) // Only set while executor is running.
       }
 
+      val componentList = new NBTTagList
+      for ((id, componentName) <- components) {
+        val component = new NBTTagCompound
+        component.setInteger("id", id)
+        component.setString("componentName", componentName)
+        componentList.appendTag(component)
+      }
+      nbt.setTag("components", componentList)
+
       nbt.setInteger("state", state.id)
       if (state == State.Stopped) {
         return
@@ -355,13 +373,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         assert(lua.`type`(1) == LuaType.THREAD)
         nbt.setByteArray("kernel", persist())
 
-        val list = new NBTTagList()
-        for (s <- signals.iterator()) {
-          val signal = new NBTTagCompound()
+        val list = new NBTTagList
+        for (s <- signals.iterator) {
+          val signal = new NBTTagCompound
           signal.setString("name", s.name)
           // TODO Test with NBTTagList, but supposedly it only allows entries
           //      with the same type, so I went with this for now...
-          val args = new NBTTagCompound()
+          val args = new NBTTagCompound
           args.setInteger("length", s.args.length)
           s.args.zipWithIndex.foreach {
             case (arg: Byte, i) => args.setByte("arg" + i, arg)
@@ -451,8 +469,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           val id = lua.checkInteger(1)
           components.get(id) match {
             case None => lua.pushNil()
-            case Some((component, driver)) =>
-              lua.pushString(driver.instance.componentName)
+            case Some(componentName) => lua.pushString(componentName)
           }
           return 1
         }
@@ -632,11 +649,16 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         "/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
       lua.newThread() // Leave it as the first value on the stack.
 
-      // Load the init script. This is run by the kernel as a separate
+      // Loads the init script. This is run by the kernel as a separate
       // coroutine to enforce timeouts and sandbox user scripts. It also
       // provides some basic functionality to make working with signals easier.
-      lua.pushString(Source.fromInputStream(classOf[Computer].
-        getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          lua.pushString(Source.fromInputStream(classOf[Computer].
+            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
+          return 1
+        }
+      })
       lua.setGlobal("init")
 
       // Run the garbage collector to get rid of stuff left behind after the
@@ -667,8 +689,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       state = State.Stopped
 
       // Shutdown any installed components.
-      for ((component, driver) <- components.values)
-        driver.instance.onUninstall(this, component)
+      for (id <- components.keys)
+        owner.driver(id).get.instance.onUninstall(this, owner.component(id).get)
 
       lua.setTotalMemory(Integer.MAX_VALUE);
       lua.close()

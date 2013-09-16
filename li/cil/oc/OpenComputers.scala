@@ -8,21 +8,24 @@ import cpw.mods.fml.common.event.FMLInitializationEvent
 import cpw.mods.fml.common.event.FMLPostInitializationEvent
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkMod
-import cpw.mods.fml.common.network.NetworkMod.SidedPacketHandler
+import cpw.mods.fml.common.network.NetworkMod._
 import li.cil.oc.common.CommonProxy
 import li.cil.oc.client.{ PacketHandler => ClientPacketHandler }
+import li.cil.oc.server.{ PacketHandler => ServerPacketHandler }
 
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0", dependencies = "required-after:Forge@[9.10.0.804,)", modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
-    channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]))
+    channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),
+  serverPacketHandlerSpec = new SidedPacketHandler(
+    channels = Array("OpenComp"), packetHandler = classOf[ServerPacketHandler]))
 object OpenComputers {
   /** Logger used all throughout this mod. */
   val log = Logger.getLogger("OpenComputers")
 
   @SidedProxy(
     clientSide = "li.cil.oc.client.ClientProxy",
-    serverSide = "li.cil.oc.common.CommonProxy")
+    serverSide = "li.cil.oc.server.ServerProxy")
   var proxy: CommonProxy = null
 
   @EventHandler
