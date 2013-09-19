@@ -14,7 +14,7 @@ object GuiType extends Enumeration {
   val Screen = Value("Screen")
 }
 
-class GuiHandler extends IGuiHandler {
+object GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case tileEntity: TileEntityComputer =>

@@ -9,6 +9,7 @@ import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
 import net.minecraft.world.World
+import scala.reflect.runtime.universe._
 
 abstract class PacketHandler extends IPacketHandler {
   /** Top level dispatcher based on packet type. */
@@ -32,7 +33,7 @@ abstract class PacketHandler extends IPacketHandler {
   protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T <: TileEntity](): Option[T] = {
+    def readTileEntity[T <: TileEntity: TypeTag](): Option[T] = {
       val dimension = readInt()
       val x = readInt()
       val y = readInt()
@@ -42,8 +43,8 @@ abstract class PacketHandler extends IPacketHandler {
         case None => // Invalid dimension.
         case Some(world) => {
           val t = world.getBlockTileEntity(x, y, z)
-          // TODO type check, return null on mismatch
-          if (t != null)
+          val m = runtimeMirror(this.getClass.getClassLoader)
+          if (t != null && m.classSymbol(t.getClass).toType =:= typeOf[T])
             return Some(t.asInstanceOf[T])
         }
       }

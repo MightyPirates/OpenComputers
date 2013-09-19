@@ -3,7 +3,6 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
-
 import li.cil.oc._
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.OpenComputersAPI
@@ -12,27 +11,17 @@ import li.cil.oc.server.drivers._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
-    val config = new net.minecraftforge.common.Configuration(e.getSuggestedConfigurationFile())
+    Config.load(e.getSuggestedConfigurationFile)
 
-    Config.blockComputerId = config.getBlock("computer", Config.blockComputerId,
-      "The block ID used for computers.").getInt(Config.blockComputerId)
-    Config.blockScreenId = config.getBlock("screen", Config.blockScreenId,
-      "The block ID used for screens.").getInt(Config.blockScreenId)
-
-    Config.itemGPUId = config.getItem("gpu", Config.itemGPUId,
-      "The item ID used for graphics cards.").getInt(Config.itemGPUId)
-    Config.itemHDDId = config.getItem("hdd", Config.itemHDDId,
-      "The item ID used for hard disk drives.").getInt(Config.itemHDDId)
+    LanguageRegistry.instance.loadLocalization(
+      "/assets/appeng/lang/en_US.properties", "en_US", false)
   }
 
   def init(e: FMLInitializationEvent): Unit = {
     Blocks.init()
     Items.init()
 
-    // TODO Figure out how resource pack based localization works.
-    LanguageRegistry.addName(Blocks.computer, "Computer")
-
-    NetworkRegistry.instance.registerGuiHandler(OpenComputers, new GuiHandler)
+    NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     OpenComputersAPI.addDriver(GraphicsCardDriver)
     OpenComputersAPI.addDriver(ScreenDriver)

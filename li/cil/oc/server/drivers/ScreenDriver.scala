@@ -1,9 +1,9 @@
 package li.cil.oc.server.drivers
 
-import li.cil.oc.Config
+import li.cil.oc.Blocks
 import li.cil.oc.api.IBlockDriver
-import li.cil.oc.common.tileentity.TileEntityScreen
 import li.cil.oc.common.components.Screen
+import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.world.World
 
 object ScreenDriver extends IBlockDriver {
@@ -22,7 +22,7 @@ object ScreenDriver extends IBlockDriver {
   // ----------------------------------------------------------------------- //
 
   def worksWith(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockId(x, y, z) == Config.blockScreenId
+    Blocks.multi.subBlockId(world, x, y, z) == Blocks.screen.blockId
 
   def component(world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {

@@ -66,7 +66,7 @@ object MonospaceFontRenderer {
       GL11.glPushMatrix()
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
-      GL11.glColor3f(255, 255, 255)
+      GL11.glColor3f(0xFF / 255f, 0xFF / 255f, 0xFF / 255f)
       for (c <- value) {
         listBuffer.put(charLists + c)
         if (listBuffer.remaining == 0)

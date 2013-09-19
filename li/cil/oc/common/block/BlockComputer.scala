@@ -1,13 +1,9 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.Config
-import li.cil.oc.CreativeTab
+import li.cil.oc.Blocks
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity.TileEntityComputer
-import net.minecraft.block.Block
-import net.minecraft.block.material.Material
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -15,18 +11,9 @@ import net.minecraft.util.MathHelper
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.GuiType
 
-class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
-  // ----------------------------------------------------------------------- //
-  // Construction
-  // ----------------------------------------------------------------------- //
-
-  setHardness(2f)
-  GameRegistry.registerBlock(this, "oc.computer")
-  GameRegistry.registerTileEntity(classOf[TileEntityComputer], "oc.computer")
-  setUnlocalizedName("oc.computer")
-  setCreativeTab(CreativeTab)
+class BlockComputer extends SubBlock {
+  val unlocalizedName = "Computer"
 
   // ----------------------------------------------------------------------- //
   // Rendering stuff
@@ -72,17 +59,13 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
     side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (player.isSneaking())
-      if (canWrench(player, x, y, z))
-        setRotation(world, x, y, z, rotation(world, x, y, z) + 1)
-      else
-        false
-    else {
+    if (!player.isSneaking()) {
       // Start the computer if it isn't already running and open the GUI.
       world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
       player.openGui(OpenComputers, GuiType.Computer.id, world, x, y, z)
       true
     }
+    else false
   }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
@@ -96,35 +79,6 @@ class BlockComputer extends Block(Config.blockComputerId, Material.iron) {
   // Block rotation
   // ----------------------------------------------------------------------- //
 
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, itemStack: ItemStack) {
-    if (!world.isRemote) {
-      val facing = MathHelper.floor_double(entity.rotationYaw * 4 / 360 + 0.5) & 3
-      setRotation(world, x, y, z, facing)
-    }
-  }
-
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
     Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
-
-  def rotation(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    // Renderer(down, up, north, south, west, east) -> Facing(south, west, north, east) inverted.
-    Array(0, 0, 0, 2, 3, 1)(world.getBlockMetadata(x, y, z))
-
-  private def setRotation(world: World, x: Int, y: Int, z: Int, value: Int) =
-    // Facing(south, west, north, east) -> Renderer(down, up, north, south, west, east) inverted.
-    world.setBlockMetadataWithNotify(x, y, z, Array(2, 5, 3, 4)((value + 4) % 4), 3)
-
-  private def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int) = {
-    if (player.getCurrentEquippedItem() != null)
-      try {
-        player.getCurrentEquippedItem().getItem().asInstanceOf[{
-          def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean
-        }].canWrench(player, x, y, z)
-      }
-      catch {
-        case e: Throwable => false
-      }
-    else
-      false
-  }
 }
