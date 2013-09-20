@@ -46,19 +46,28 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
     }
 
   def onScreenSet(col: Int, row: Int, s: String) =
-    if (!worldObj.isRemote) {
+    if (worldObj.isRemote) {
+      gui.foreach(_.updateText())
+    }
+    else {
       markAsChanged()
       ServerPacketSender.sendScreenSet(this, col, row, s)
     }
 
   def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) =
-    if (!worldObj.isRemote) {
+    if (worldObj.isRemote) {
+      gui.foreach(_.updateText())
+    }
+    else {
       markAsChanged()
       ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
     }
 
   def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    if (!worldObj.isRemote) {
+    if (worldObj.isRemote) {
+      gui.foreach(_.updateText())
+    }
+    else {
       markAsChanged()
       ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
     }

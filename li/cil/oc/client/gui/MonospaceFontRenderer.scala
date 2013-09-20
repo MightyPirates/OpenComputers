@@ -41,7 +41,12 @@ object MonospaceFontRenderer {
       val vOffset = vStep * 1 / 20
       val vSize = vStep * 18 / 20
       val t = Tessellator.instance
-      for (index <- (32 until 0x7F).union(0x9F until 0xFF)) {
+      // Special case for whitespace: just translate, don't render.
+      GL11.glNewList(charLists + 32, GL11.GL_COMPILE)
+      GL11.glTranslatef(charWidth, 0, 0)
+      GL11.glEndList()
+      // Now create lists for all printable chars.
+      for (index <- (33 until 0x7F).union(0x9F until 0xFF)) {
         // The font texture does not contain the 0-1F range, nor the 0x7F to
         // 0x9F range (control chars as per Character.isISOControl).
         val textureIndex =
