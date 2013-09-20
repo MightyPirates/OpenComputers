@@ -24,9 +24,9 @@ abstract class TileEntityRotatable extends TileEntity {
     // Pitch = Down
     Array(
       // Yaw = North
-      Array(D.south, D.north, D.down, D.up, D.east, D.west, D.unknown),
+      Array(D.south, D.north, D.up, D.down, D.east, D.west, D.unknown),
       // Yaw = South
-      Array(D.south, D.north, D.up, D.down, D.west, D.east, D.unknown),
+      Array(D.south, D.north, D.down, D.up, D.west, D.east, D.unknown),
       // Yaw = West
       Array(D.south, D.north, D.west, D.east, D.up, D.down, D.unknown),
       // Yaw = East
@@ -119,7 +119,10 @@ abstract class TileEntityRotatable extends TileEntity {
       case _ => ForgeDirection.NORTH
     }, _yaw.getOpposite)
 
-  def facing = translate(ForgeDirection.SOUTH)
+  def facing = _pitch match {
+    case ForgeDirection.DOWN | ForgeDirection.UP => _pitch
+    case _ => _yaw
+  }
 
   def translate(value: ForgeDirection) = cachedTranslation(value.ordinal)
 

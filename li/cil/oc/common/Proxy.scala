@@ -14,7 +14,7 @@ class Proxy {
     Config.load(e.getSuggestedConfigurationFile)
 
     LanguageRegistry.instance.loadLocalization(
-      "/assets/appeng/lang/en_US.properties", "en_US", false)
+      "/assets/opencomputers/lang/en_US.lang", "en_US", false)
   }
 
   def init(e: FMLInitializationEvent): Unit = {

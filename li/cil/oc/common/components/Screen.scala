@@ -13,7 +13,7 @@ class Screen(val owner: IScreenEnvironment) extends IComponent {
 
   def text = buffer.toString
 
-  def lines = buffer.lines
+  def lines = buffer.buffer
 
   def resolution = buffer.size
 
@@ -28,7 +28,7 @@ class Screen(val owner: IScreenEnvironment) extends IComponent {
     // avoid sending too much data to our clients.
     val truncated = s.substring(0, buffer.width min s.length)
     if (buffer.set(col, row, truncated))
-      owner.onScreenSet(col, row, s)
+      owner.onScreenSet(col, row, truncated)
   }
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =

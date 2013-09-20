@@ -8,8 +8,6 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
 
   private var (x, y, bufferWidth, bufferHeight) = (0, 0, 0, 0)
 
-  var lines = Array.empty[String]
-
   def setSize(w: Int, h: Int) = {
     bufferWidth = w * MonospaceFontRenderer.fontWidth + 4
     bufferHeight = h * MonospaceFontRenderer.fontHeight + 4
@@ -22,7 +20,6 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
     MonospaceFontRenderer.init(mc.renderEngine)
     val (w, h) = tileEntity.component.resolution
     setSize(w, h)
-    lines = tileEntity.component.lines
   }
 
   override def onGuiClosed = {
@@ -38,7 +35,7 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
     val currentX = x + padding
     var currentY = y + padding
 
-    for (line <- lines) {
+    for (line <- tileEntity.component.lines) {
       MonospaceFontRenderer.drawString(line, currentX, currentY)
       currentY += MonospaceFontRenderer.fontHeight
       if (currentY > bufferHeight + y) {

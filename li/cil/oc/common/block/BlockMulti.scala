@@ -33,10 +33,10 @@ import net.minecraftforge.common.ForgeDirection
  * local coordinate space for the sub block (i.e. "up" will always be up
  * relative to the block itself. So if it's rotated up may actually be west).
  */
-class BlockMulti extends Block(Config.blockId, Material.iron) {
+class BlockMulti(id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerBlock(this, classOf[ItemBlockMulti], "oc.block")
+  GameRegistry.registerBlock(this, classOf[ItemBlockMulti], "oc.block." + id)
 
   // ----------------------------------------------------------------------- //
   // SubBlock
@@ -134,10 +134,19 @@ class BlockMulti extends Block(Config.blockId, Material.iron) {
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => super.getBlockTexture(world, x, y, z, side)
       case Some(subBlock) => subBlock.getBlockTextureFromSide(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
+        world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
           case null => super.getBlockTexture(world, x, y, z, side)
           case icon => icon
         }
+    }
+
+  override def getIcon(side: Int, metadata: Int) =
+    subBlock(metadata) match {
+      case None => super.getIcon(side, metadata)
+      case Some(subBlock) => subBlock.getIcon(ForgeDirection.getOrientation(side)) match {
+        case null => super.getIcon(side, metadata)
+        case icon => icon
+      }
     }
 
   override def getLightOpacity(world: World, x: Int, y: Int, z: Int) =
@@ -145,6 +154,8 @@ class BlockMulti extends Block(Config.blockId, Material.iron) {
       case None => 255
       case Some(subBlock) => subBlock.getLightOpacity(world, x, y, z)
     }
+
+  override def getRenderType = Config.blockRenderId
 
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: java.util.List[_]) = {
     // Workaround for MC's untyped lists... I'm too tired to rage anymore.

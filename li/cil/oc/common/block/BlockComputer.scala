@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity.TileEntityComputer
@@ -10,7 +11,9 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class BlockComputer extends SubBlock {
+class BlockComputer(val parent: BlockMulti) extends SubBlock {
+  GameRegistry.registerTileEntity(classOf[TileEntityComputer], "oc.computer")
+
   val unlocalizedName = "Computer"
 
   // ----------------------------------------------------------------------- //
@@ -18,33 +21,38 @@ class BlockComputer extends SubBlock {
   // ----------------------------------------------------------------------- //
 
   object Icons {
-    var back = Array.fill[Icon](2)(null)
-    var front = Array.fill[Icon](2)(null)
-    var side = Array.fill[Icon](2)(null)
-    var top: Icon = null
+    val on = Array.fill[Icon](6)(null)
+    val off = Array.fill[Icon](6)(null)
   }
 
-  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = {
-    val isOn = if (world.getBlockTileEntity(x, y, z) match {
+  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
+    getIcon(localSide, world.getBlockTileEntity(x, y, z) match {
       case computer: TileEntityComputer => computer.isOn
       case _ => false
-    }) 1 else 0
-    side match {
-      case ForgeDirection.NORTH => Icons.back(isOn)
-      case ForgeDirection.SOUTH => Icons.front(isOn)
-      case ForgeDirection.WEST | ForgeDirection.EAST => Icons.side(isOn)
-      case _ => Icons.top
-    }
+    })
   }
 
+  override def getIcon(side: ForgeDirection) = getIcon(side, false)
+
+  private def getIcon(side: ForgeDirection, isOn: Boolean) =
+    if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal)
+
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.back(0) = iconRegister.registerIcon("opencomputers:computer_back")
-    Icons.back(1) = iconRegister.registerIcon("opencomputers:computer_back_on")
-    Icons.front(0) = iconRegister.registerIcon("opencomputers:computer_front")
-    Icons.front(1) = iconRegister.registerIcon("opencomputers:computer_front_on")
-    Icons.side(0) = iconRegister.registerIcon("opencomputers:computer_side")
-    Icons.side(1) = iconRegister.registerIcon("opencomputers:computer_side_on")
-    Icons.top = iconRegister.registerIcon("opencomputers:computer_top")
+    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon("opencomputers:computer_top")
+    Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
+    Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
+    Icons.on(ForgeDirection.UP.ordinal) = Icons.on(ForgeDirection.UP.ordinal)
+
+    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_back")
+    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_back_on")
+
+    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_front")
+    Icons.on(ForgeDirection.SOUTH.ordinal) = Icons.off(ForgeDirection.SOUTH.ordinal)
+
+    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon("opencomputers:computer_side")
+    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon("opencomputers:computer_side_on")
+    Icons.off(ForgeDirection.EAST.ordinal) = Icons.off(ForgeDirection.WEST.ordinal)
+    Icons.on(ForgeDirection.EAST.ordinal) = Icons.on(ForgeDirection.WEST.ordinal)
   }
 
   // ----------------------------------------------------------------------- //

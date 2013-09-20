@@ -3,9 +3,12 @@ package li.cil.oc.common.block
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.Config
 
 /** Used for sub blocks that need special rendering. */
-class BlockSpecialMulti extends BlockMulti {
+class BlockSpecialMulti(id: Int) extends BlockMulti(id) {
+  override def getRenderType = Config.blockRenderId
+
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => false

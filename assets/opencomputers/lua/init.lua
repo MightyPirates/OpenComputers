@@ -21,7 +21,7 @@ function newTerm(idGpu, idScreen)
         end
         if cursorY > resY then
           driver.gpu.copy(idGpu, idScreen, 1, 1, resX, resY, 0, -1)
-          driver.gpu.fill(idGpu, idScreen, 1, resY, 1, resY, " ")
+          driver.gpu.fill(idGpu, idScreen, 1, resY, resX, 1, " ")
           cursorY = resY
         end
       end

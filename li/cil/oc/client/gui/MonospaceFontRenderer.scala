@@ -17,7 +17,7 @@ object MonospaceFontRenderer {
 
   val (fontWidth, fontHeight) = (5, 10)
 
-  def drawString(value: String, x: Int, y: Int) = instance match {
+  def drawString(value: Array[Char], x: Int, y: Int) = instance match {
     case None => // Do nothing, not initialized.
     case Some(renderer) => renderer.drawString(value, x, y)
   }
@@ -61,12 +61,12 @@ object MonospaceFontRenderer {
       }
     }
 
-    def drawString(value: String, x: Int, y: Int) = {
-      textureManager.func_110577_a(MonospaceFontRenderer.font)
+    def drawString(value: Array[Char], x: Int, y: Int) = {
+      setTexture(textureManager, MonospaceFontRenderer.font)
       GL11.glPushMatrix()
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
-      GL11.glColor3f(0xFF / 255f, 0xFF / 255f, 0xFF / 255f)
+      GL11.glColor4f(1, 1, 1, 1)
       for (c <- value) {
         listBuffer.put(charLists + c)
         if (listBuffer.remaining == 0)
@@ -82,4 +82,6 @@ object MonospaceFontRenderer {
       listBuffer.clear()
     }
   }
+
+  private def setTexture(tm: TextureManager, resource: ResourceLocation) = tm.func_110577_a(resource)
 }

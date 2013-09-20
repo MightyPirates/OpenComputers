@@ -132,8 +132,6 @@ class TextBuffer(var width: Int, var height: Int) {
     nbt.setTag("buffer", b)
   }
 
-  def lines = buffer.map(String.valueOf(_))
-
   override def toString = {
     val b = StringBuilder.newBuilder
     if (buffer.length > 0) {

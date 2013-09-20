@@ -45,7 +45,6 @@ class PacketHandler extends CommonPacketHandler {
         val col = p.readInt()
         val row = p.readInt()
         val s = p.readUTF()
-        println("client apply screen set")
         t.component.set(col, row, s)
       }
     }
@@ -80,8 +79,10 @@ class PacketHandler extends CommonPacketHandler {
   def onScreenBufferResponse(p: PacketParser) =
     p.readTileEntity[TileEntityScreen] match {
       case None => // Invalid packet.
-      case Some(t) => p.readUTF.split('\n').zipWithIndex.
-        foreach { case (line, i) => t.component.set(0, i, line) }
+      case Some(t) =>
+        p.readUTF.split('\n').zipWithIndex.foreach {
+          case (line, i) => t.component.set(0, i, line)
+        }
     }
 
   def onComputerStateResponse(p: PacketParser) =

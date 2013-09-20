@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity.TileEntityScreen
@@ -10,7 +11,9 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class BlockScreen extends SubBlock {
+class BlockScreen(val parent: BlockMulti) extends SubBlock {
+  GameRegistry.registerTileEntity(classOf[TileEntityScreen], "oc.screen")
+
   val unlocalizedName = "Screen"
 
   // ----------------------------------------------------------------------- //
@@ -23,13 +26,20 @@ class BlockScreen extends SubBlock {
     var top: Icon = null
   }
 
-  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = {
+  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
+    worldSide match {
+      case f if f == parent.getFacing(world, x, y, z) => getIcon(ForgeDirection.SOUTH)
+      case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top
+      case _ => Icons.side
+    }
+  }
+
+  override def getIcon(side: ForgeDirection) =
     side match {
       case ForgeDirection.SOUTH => Icons.front
       case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top
       case _ => Icons.side
     }
-  }
 
   override def registerIcons(iconRegister: IconRegister) = {
     Icons.front = iconRegister.registerIcon("opencomputers:screen_front")

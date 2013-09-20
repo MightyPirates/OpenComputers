@@ -16,9 +16,11 @@ import net.minecraftforge.common.RotationHelper
 
 /** The base class on which all our blocks are built. */
 trait SubBlock {
-  val blockId = Blocks.multi.add(this)
+  def parent: BlockMulti
 
   def unlocalizedName: String
+
+  val blockId = parent.add(this)
 
   // ----------------------------------------------------------------------- //
   // Block
@@ -30,10 +32,12 @@ trait SubBlock {
 
   def createTileEntity(world: World, metadata: Int): TileEntity = null
 
-  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection): Icon = null
+  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Icon = getIcon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+
+  def getIcon(side: ForgeDirection): Icon = null
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
 
