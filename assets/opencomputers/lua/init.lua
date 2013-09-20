@@ -26,14 +26,7 @@ function newTerm(idGpu, idScreen)
         end
       end
       checkCursor()
-      local first = true
-      for line in value:gmatch("[^\r\n]*") do
-        if not first then
-          cursorX = 1
-          cursorY = cursorY + 1
-          checkCursor()
-        end
-        first = false
+      for line, nl in value:gmatch("([^\r\n]*)([\r\n]?)") do
         while wrap and line:len() > resX - cursorX + 1 do
           local partial = line:sub(1, resX - cursorX + 1)
           line = line:sub(partial:len() + 1)
@@ -44,6 +37,11 @@ function newTerm(idGpu, idScreen)
         if line:len() > 0 then
           driver.gpu.set(idGpu, idScreen, cursorX, cursorY, line)
           cursorX = cursorX + line:len()
+          checkCursor()
+        end
+        if nl:len() == 1 then
+          cursorX = 1
+          cursorY = cursorY + 1
           checkCursor()
         end
       end
@@ -58,7 +56,7 @@ function onInstall(id)
 
   local function hello(idGpu, idScreen)
     term = newTerm(idGpu, idScreen)
-    print = function(...)
+    write = function(...)
       local args = {...}
       for _, value in ipairs(args) do
         term.write(value, true)
@@ -88,11 +86,12 @@ end
 
 -- Main OS loop, keeps everything else running.
 while true do
-  local signal, id = os.signal(nil, 3)
+  local signal, id = os.signal(nil, 2)
   if signal == "component_install" then
     onInstall(id)
   elseif signal == "component_uninstall" then
     onUninstall(id)
   end
+  write("Clock: ")
   print(os.clock())
 end

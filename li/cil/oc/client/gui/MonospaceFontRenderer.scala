@@ -15,7 +15,7 @@ object MonospaceFontRenderer {
   def init(textureManager: TextureManager) =
     instance = instance.orElse(Some(new Renderer(textureManager)))
 
-  val (fontWidth, fontHeight) = (5, 10)
+  val (fontWidth, fontHeight) = (5, 9)
 
   def drawString(value: Array[Char], x: Int, y: Int) = instance match {
     case None => // Do nothing, not initialized.
@@ -38,7 +38,8 @@ object MonospaceFontRenderer {
       val vStep = 1.0 / 12 * 240 / 256 // Correct for padding at bottom.
       val uOffset = uStep * 3 / 16
       val uSize = uStep * 10 / 16
-      val vSize = vStep
+      val vOffset = vStep * 1 / 20
+      val vSize = vStep * 18 / 20
       val t = Tessellator.instance
       for (index <- (32 until 0x7F).union(0x9F until 0xFF)) {
         // The font texture does not contain the 0-1F range, nor the 0x7F to
@@ -48,7 +49,7 @@ object MonospaceFontRenderer {
         val x = textureIndex % charsPerRow
         val y = textureIndex / charsPerRow
         val u = x * uStep + uOffset
-        val v = y * vStep
+        val v = y * vStep + vOffset
         GL11.glNewList(charLists + index, GL11.GL_COMPILE)
         t.startDrawingQuads()
         t.addVertexWithUV(0, charHeight, 0, u, v + vSize)

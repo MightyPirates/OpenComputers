@@ -44,7 +44,7 @@ local sandbox = {
   getmetatable = getmetatable,
   setmetatable = setmetatable,
 
-  print = function() end,
+  write = function() end,
 
   checkArg = checkArg,
   component = component,
@@ -141,6 +141,10 @@ local sandbox = {
     unpack = table.unpack
   }
 }
+function sandbox.print(...)
+  sandbox.write(...)
+  sandbox.write("\n")
+end
 
 -- Make the sandbox its own globals table.
 sandbox._G = sandbox
