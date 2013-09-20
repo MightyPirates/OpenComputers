@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 import li.cil.oc.Blocks
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.TileEntityRotatable
 
 /** Used to represent multiblocks when in item form. */
 class ItemBlockMulti(id: Int) extends ItemBlock(id) {
@@ -27,8 +28,11 @@ class ItemBlockMulti(id: Int) extends ItemBlock(id) {
 
   override def placeBlockAt(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, metadata: Int) = {
     if (super.placeBlockAt(item, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
-      // Rotate the block to face the player that placed it.
-      Blocks.multi.rotateBlock(world, x, y, z, ForgeDirection.getOrientation(side))
+      // If it's a rotatable block try to make it face the player.
+      world.getBlockTileEntity(x, y, z) match {
+        case rotatable: TileEntityRotatable =>
+          rotatable.setFromEntityPitchAndYaw(player).invertRotation()
+      }
       true
     }
     else false

@@ -11,14 +11,10 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.common.RotationHelper
 
-/**
- * The base class on which all our blocks are built.
- *
- * TODO abstract away rotation (implemented in multi block) and only pass along
- * forge directions to the methods in here (which will then be "local").
- */
+/** The base class on which all our blocks are built. */
 trait SubBlock {
   val blockId = Blocks.multi.add(this)
 
@@ -30,11 +26,11 @@ trait SubBlock {
 
   def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) {}
 
-  def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = false
+  def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   def createTileEntity(world: World, metadata: Int): TileEntity = null
 
-  def getBlockTextureFromSide(side: Int): Icon = null
+  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection): Icon = null
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
@@ -46,11 +42,11 @@ trait SubBlock {
 
   def hasTileEntity(metadata: Int) = false
 
-  def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = 0
+  def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
-  def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = 0
+  def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
-  def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = false
+  def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
 
   def onBlockAdded(world: World, x: Int, y: Int, z: Int) {}
 
@@ -72,8 +68,8 @@ trait SubBlock {
 
   def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
 
-  def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = true
+  def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
+  def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.isBlockOpaqueCube(x, y, z)
 }

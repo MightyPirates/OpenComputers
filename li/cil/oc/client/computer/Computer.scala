@@ -33,7 +33,9 @@ class Computer(val owner: AnyRef) extends IComputerContext with IComputer {
 
   def start() = false
 
-  def stop() {}
+  def stop() = false
+
+  var isRunning = false
 
   def update() {}
 

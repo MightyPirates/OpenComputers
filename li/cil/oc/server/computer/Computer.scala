@@ -157,7 +157,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   def start() = stateMonitor.synchronized(
     state == State.Stopped && init() && {
       state = State.Suspended
-      // Inject a dummy signal so that real one don't get swallowed. This way
+
+      // Mark state change in owner, to send it to clients.
+      owner.markAsChanged()
+
+      // Inject a dummy signal so that real ones don't get swallowed. This way
       // we can just ignore the parameters the first time the kernel is run
       // and all actual signals will be read using coroutine.yield().
       signal("dummy")
@@ -186,8 +190,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         // call close.
         state = State.Stopping
       }
+      true
     }
+    else false
   })
+
+  def isRunning = stateMonitor.synchronized(state != State.Stopped)
 
   def update() {
     stateMonitor.synchronized(state match {
@@ -699,6 +707,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       signals.clear()
       timeStarted = 0
       future = None
+
+      // Mark state change in owner, to send it to clients.
+      owner.markAsChanged()
     })
 
   // This is a really high level lock that we only use for saving and loading.

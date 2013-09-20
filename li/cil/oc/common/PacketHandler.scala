@@ -2,14 +2,16 @@ package li.cil.oc.common
 
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+
+import scala.reflect.runtime.universe._
+
 import cpw.mods.fml.common.network.IPacketHandler
 import cpw.mods.fml.common.network.Player
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.DimensionManager
 import net.minecraft.world.World
-import scala.reflect.runtime.universe._
+import net.minecraftforge.common.ForgeDirection
 
 abstract class PacketHandler extends IPacketHandler {
   /** Top level dispatcher based on packet type. */
@@ -44,11 +46,13 @@ abstract class PacketHandler extends IPacketHandler {
         case Some(world) => {
           val t = world.getBlockTileEntity(x, y, z)
           val m = runtimeMirror(this.getClass.getClassLoader)
-          if (t != null && m.classSymbol(t.getClass).toType =:= typeOf[T])
+          if (t != null && m.classSymbol(t.getClass).toType <:< typeOf[T])
             return Some(t.asInstanceOf[T])
         }
       }
       return None
     }
+
+    def readDirection() = ForgeDirection.getOrientation(readInt())
   }
 }

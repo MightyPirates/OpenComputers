@@ -1,8 +1,11 @@
 package li.cil.oc.server
 
 import li.cil.oc.common.PacketBuilder
+import li.cil.oc.common.PacketBuilder._
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.tileentity.TileEntityRotatable
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.common.ForgeDirection
 
 /** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
@@ -50,6 +53,25 @@ object PacketSender {
     pb.writeInt(h)
     pb.writeInt(tx)
     pb.writeInt(ty)
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendComputerState(t: TileEntity, value: Boolean) = {
+    val pb = new PacketBuilder(PacketType.ComputerStateResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(value)
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendRotatableRotate(t: TileEntityRotatable, pitch: ForgeDirection, yaw: ForgeDirection) = {
+    val pb = new PacketBuilder(PacketType.RotatableStateResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeDirection(pitch)
+    pb.writeDirection(yaw)
 
     pb.sendToAllPlayers()
   }

@@ -42,7 +42,10 @@ trait IComputer {
   def start(): Boolean
 
   /** Stops a computer, possibly asynchronously, possibly blocking. */
-  def stop(): Unit
+  def stop(): Boolean
+
+  /** Whether the computer is currently running. */
+  def isRunning: Boolean
 
   /**
    * Passively drives the computer and performs driver calls. If this is not

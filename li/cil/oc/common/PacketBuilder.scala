@@ -8,6 +8,7 @@ import cpw.mods.fml.common.network.Player
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.common.ForgeDirection
 
 /** Utility class for packet creation. */
 class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayOutputStream = new ByteArrayOutputStream) extends DataOutputStream(stream) {
@@ -19,6 +20,8 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     writeInt(t.yCoord)
     writeInt(t.zCoord)
   }
+
+  def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 

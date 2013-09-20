@@ -1,7 +1,6 @@
 package li.cil.oc.common
 
 object PacketType extends Enumeration {
-
   /** These are sent from the server to the client for partial updates. */
   val ScreenResolutionChange = Value("ScreenResolutionChange")
   val ScreenSet = Value("ScreenSet")
@@ -17,4 +16,18 @@ object PacketType extends Enumeration {
    */
   val ScreenBufferRequest = Value("ScreenBufferRequest")
   val ScreenBufferResponse = Value("ScreenBufferResponse")
+
+  /**
+   * Computer running / stopped.
+   *
+   * Same as for screen, but for computer running state. The running state is
+   * used on the client side to display different textures based on whether the
+   * computer is running or not.
+   */
+  val ComputerStateRequest = Value("ComputerStateRequest")
+  val ComputerStateResponse = Value("ComputerStateResponse")
+
+  /** Sent by rotatable tile entities to notify clients of changes. */
+  val RotatableStateRequest = Value("RotatableStateRequest")
+  val RotatableStateResponse = Value("RotatableStateResponse")
 }

@@ -1,10 +1,13 @@
 package li.cil.oc.client
 
+import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.{ PacketHandler => CommonPacketHandler }
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
-import cpw.mods.fml.common.network.Player
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.TileEntityComputer
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) = {
@@ -20,6 +23,8 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenFill => onScreenFill(p)
       case PacketType.ScreenCopy => onScreenCopy(p)
       case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
+      case PacketType.ComputerStateResponse => onComputerStateResponse(p)
+      case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
       case _ => // Invalid packet.
     }
 
@@ -77,5 +82,21 @@ class PacketHandler extends CommonPacketHandler {
       case None => // Invalid packet.
       case Some(t) => p.readUTF.split('\n').zipWithIndex.
         foreach { case (line, i) => t.component.set(0, i, line) }
+    }
+
+  def onComputerStateResponse(p: PacketParser) =
+    p.readTileEntity[TileEntityComputer] match {
+      case None => // Invalid packet.
+      case Some(t) => {
+        t.isOn = p.readBoolean()
+      }
+    }
+
+  def onRotatableStateResponse(p: PacketParser) =
+    p.readTileEntity[TileEntityRotatable] match {
+      case None => // Invalid packet.
+      case Some(t) =>
+        t.pitch = p.readDirection()
+        t.yaw = p.readDirection()
     }
 }

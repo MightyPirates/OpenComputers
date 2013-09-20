@@ -1,6 +1,9 @@
 package li.cil.oc
 
 import java.util.logging.Logger
+
+import scala.reflect.runtime.universe._
+
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.SidedProxy
@@ -36,4 +39,9 @@ object OpenComputers {
 
   @EventHandler
   def postInit(e: FMLPostInitializationEvent) = proxy.postInit(e)
+
+  // Workaround for threading issues in Scala 2.10's runtime reflection: just
+  // initialize it once in the beginning. For more on this issue see
+  // http://docs.scala-lang.org/overviews/reflection/thread-safety.html
+  val dummyMirror = runtimeMirror(OpenComputers.getClass.getClassLoader)
 }

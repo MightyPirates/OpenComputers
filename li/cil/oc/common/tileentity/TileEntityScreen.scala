@@ -2,15 +2,13 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher._
 import li.cil.oc.client.{ PacketSender => ClientPacketSender }
+import li.cil.oc.client.gui.GuiScreen
 import li.cil.oc.common.components.IScreenEnvironment
 import li.cil.oc.common.components.Screen
-import li.cil.oc.client.gui.GuiScreen
 import li.cil.oc.server.{ PacketSender => ServerPacketSender }
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
-import cpw.mods.fml.common.FMLCommonHandler
 
-class TileEntityScreen extends TileEntity with IScreenEnvironment {
+class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
   val component = new Screen(this)
 
   var gui: Option[GuiScreen] = None
@@ -22,6 +20,7 @@ class TileEntityScreen extends TileEntity with IScreenEnvironment {
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
+
     val componentNbt = new NBTTagCompound
     component.writeToNBT(componentNbt)
     nbt.setCompoundTag("component", componentNbt)

@@ -2,19 +2,24 @@ package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import li.cil.oc.client.{ PacketSender => ClientPacketSender }
+import li.cil.oc.client.computer.{ Computer => ClientComputer }
+import li.cil.oc.server.{ PacketSender => ServerPacketSender }
+import li.cil.oc.server.computer.{ Computer => ServerComputer }
 import li.cil.oc.server.computer.IComputerEnvironment
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 
-class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnvironment with ItemComponentProxy with BlockComponentProxy {
+class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy with BlockComponentProxy {
   def this() = this(false)
 
   protected val computer =
-    if (isClient) new li.cil.oc.client.computer.Computer(this)
-    else new li.cil.oc.server.computer.Computer(this)
+    if (isClient) new ClientComputer(this)
+    else new ServerComputer(this)
 
-  private val hasChanged = new AtomicBoolean()
+  private val hasChanged = new AtomicBoolean(true)
+
+  private var isRunning = computer.isRunning
 
   // ----------------------------------------------------------------------- //
   // General
@@ -23,6 +28,13 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
   def turnOn() = computer.start()
 
   def turnOff() = computer.stop()
+
+  def isOn = computer.isRunning
+
+  def isOn_=(value: Boolean) = {
+    computer.asInstanceOf[ClientComputer].isRunning = value
+    worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
+  }
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
@@ -49,9 +61,20 @@ class TileEntityComputer(isClient: Boolean) extends TileEntity with IComputerEnv
 
   override def updateEntity() = {
     computer.update()
-    if (hasChanged.get)
+    if (hasChanged.get) {
       worldObj.updateTileEntityChunkAndDoNothing(
         xCoord, yCoord, zCoord, this)
+      if (isRunning != computer.isRunning) {
+        isRunning = computer.isRunning
+        ServerPacketSender.sendComputerState(this, isRunning)
+      }
+    }
+  }
+
+  override def validate() = {
+    super.validate()
+    if (worldObj.isRemote)
+      ClientPacketSender.sendComputerStateRequest(this)
   }
 
   // ----------------------------------------------------------------------- //
