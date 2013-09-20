@@ -6,19 +6,41 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
 class ContainerComputer(playerInventory: InventoryPlayer, computer: TileEntityComputer) extends GenericInventoryContainer(playerInventory, computer) {
-  // Show the computer's inventory.
-  // TODO nicer layout, separate for types, based on background image once it exists
-  for (slotY <- 0 until 3) {
-    for (slotX <- 0 until 3) {
-      val index = slotX + slotY * 3
-      val x = 62 + slotX * slotSize
-      val y = 17 + slotY * slotSize
-      addSlotToContainer(new Slot(computer, index, x, y) {
-        override def isItemValid(item: ItemStack) = {
-          computer.isItemValidForSlot(index, item)
-        }
-      })
+  // PSU
+  addSlotToContainer(new Slot(computer, 0, 58, 17) {
+    override def isItemValid(item: ItemStack) = {
+      computer.isItemValidForSlot(0, item)
     }
+  })
+
+  // PCI
+  for (i <- 0 to 2) {
+    val index = i + 1
+    addSlotToContainer(new Slot(computer, index, 80, 17 + i * slotSize) {
+      override def isItemValid(item: ItemStack) = {
+        computer.isItemValidForSlot(index, item)
+      }
+    })
+  }
+
+  // RAM
+  for (i <- 0 to 1) {
+    val index = i + 4
+    addSlotToContainer(new Slot(computer, index, 102, 17 + i * slotSize) {
+      override def isItemValid(item: ItemStack) = {
+        computer.isItemValidForSlot(index, item)
+      }
+    })
+  }
+
+  // HDD
+  for (i <- 0 to 1) {
+    val index = i + 6
+    addSlotToContainer(new Slot(computer, index, 124, 17 + i * slotSize) {
+      override def isItemValid(item: ItemStack) = {
+        computer.isItemValidForSlot(index, item)
+      }
+    })
   }
 
   // Show the player's inventory.

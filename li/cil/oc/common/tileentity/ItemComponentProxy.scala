@@ -10,7 +10,7 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
 trait ItemComponentProxy extends IInventory {
-  protected val inventory = new Array[ItemStack](9)
+  protected val inventory = new Array[ItemStack](8)
 
   protected val itemComponents = Array.fill(inventory.length)(0)
 
@@ -119,9 +119,9 @@ trait ItemComponentProxy extends IInventory {
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
     case (_, None) => false // Invalid item.
     case (0, Some(driver)) => driver.instance.componentType(item) == ComponentType.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.instance.componentType(item) == ComponentType.RAM
-    case (4 | 5 | 6, Some(driver)) => driver.instance.componentType(item) == ComponentType.HDD
-    case (7 | 8, Some(driver)) => driver.instance.componentType(item) == ComponentType.PCI
+    case (1 | 2 | 3, Some(driver)) => driver.instance.componentType(item) == ComponentType.PCI
+    case (4 | 5, Some(driver)) => driver.instance.componentType(item) == ComponentType.RAM
+    case (6 | 7, Some(driver)) => driver.instance.componentType(item) == ComponentType.HDD
     case (_, Some(_)) => false // Invalid slot.
   }
 

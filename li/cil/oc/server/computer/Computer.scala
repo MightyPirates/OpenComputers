@@ -155,7 +155,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   // ----------------------------------------------------------------------- //
 
   def start() = stateMonitor.synchronized(
-    state == State.Stopped && init() && {
+    state == State.Stopped && init() && (try {
       state = State.Suspended
 
       // Mark state change in owner, to send it to clients.
@@ -172,7 +172,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
       future = Some(Executor.pool.submit(this))
       true
-    })
+    }
+    catch {
+      // The above code may throw if some component was removed by abnormal
+      // means (e.g. mod providing the block was removed/disabled).
+      case _: Throwable => close(); false
+    }))
 
   def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
     if (state != State.Stopped) {
@@ -697,8 +702,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       state = State.Stopped
 
       // Shutdown any installed components.
-      for (id <- components.keys)
-        owner.driver(id).get.instance.onUninstall(this, owner.component(id).get)
+      try {
+        for (id <- components.keys)
+          owner.driver(id).get.instance.onUninstall(this, owner.component(id).get)
+      }
+      catch {
+        // The above code may throw if some component was removed by abnormal
+        // means (e.g. mod providing the block was removed/disabled).
+        case _: Throwable => // Ignore.
+      }
 
       lua.setTotalMemory(Integer.MAX_VALUE);
       lua.close()
