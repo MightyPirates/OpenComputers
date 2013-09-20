@@ -17,35 +17,34 @@ class BlockComputer extends SubBlock {
   // Rendering stuff
   // ----------------------------------------------------------------------- //
 
-  var computerBack: Icon = null
-  var computerBackOn: Icon = null
-  var computerFront: Icon = null
-  var computerFrontOn: Icon = null
-  var computerSide: Icon = null
-  var computerSideOn: Icon = null
-  var computerTop: Icon = null
+  object Icons {
+    var back = Array.fill[Icon](2)(null)
+    var front = Array.fill[Icon](2)(null)
+    var side = Array.fill[Icon](2)(null)
+    var top: Icon = null
+  }
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = {
-    val isOn = world.getBlockTileEntity(x, y, z) match {
+    val isOn = if (world.getBlockTileEntity(x, y, z) match {
       case computer: TileEntityComputer => computer.isOn
       case _ => false
-    }
+    }) 1 else 0
     side match {
-      case ForgeDirection.NORTH => if (isOn) computerBackOn else computerBack
-      case ForgeDirection.SOUTH => if (isOn) computerFrontOn else computerFront
-      case ForgeDirection.WEST | ForgeDirection.EAST => if (isOn) computerSideOn else computerSide
-      case _ => computerTop
+      case ForgeDirection.NORTH => Icons.back(isOn)
+      case ForgeDirection.SOUTH => Icons.front(isOn)
+      case ForgeDirection.WEST | ForgeDirection.EAST => Icons.side(isOn)
+      case _ => Icons.top
     }
   }
 
   override def registerIcons(iconRegister: IconRegister) = {
-    computerBack = iconRegister.registerIcon("opencomputers:computer_back")
-    computerBackOn = iconRegister.registerIcon("opencomputers:computer_back_on")
-    computerFront = iconRegister.registerIcon("opencomputers:computer_front")
-    computerFrontOn = iconRegister.registerIcon("opencomputers:computer_front_on")
-    computerSide = iconRegister.registerIcon("opencomputers:computer_side")
-    computerSideOn = iconRegister.registerIcon("opencomputers:computer_side_on")
-    computerTop = iconRegister.registerIcon("opencomputers:computer_top")
+    Icons.back(0) = iconRegister.registerIcon("opencomputers:computer_back")
+    Icons.back(1) = iconRegister.registerIcon("opencomputers:computer_back_on")
+    Icons.front(0) = iconRegister.registerIcon("opencomputers:computer_front")
+    Icons.front(1) = iconRegister.registerIcon("opencomputers:computer_front_on")
+    Icons.side(0) = iconRegister.registerIcon("opencomputers:computer_side")
+    Icons.side(1) = iconRegister.registerIcon("opencomputers:computer_side_on")
+    Icons.top = iconRegister.registerIcon("opencomputers:computer_top")
   }
 
   // ----------------------------------------------------------------------- //
@@ -87,6 +86,12 @@ class BlockComputer extends SubBlock {
   // Block rotation
   // ----------------------------------------------------------------------- //
 
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
-    Array(ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST)
+  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
+
+  /** Avoid creating new arrays at the cost of this possibly getting modified. */
+  private val validRotations = Array(
+    ForgeDirection.SOUTH,
+    ForgeDirection.WEST,
+    ForgeDirection.NORTH,
+    ForgeDirection.EAST)
 }
