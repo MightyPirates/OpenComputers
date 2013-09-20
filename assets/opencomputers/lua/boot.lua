@@ -93,7 +93,7 @@ do
         -- b) only the first item in the global stack is persisted.
         local result = {pcall(f, table.unpack(args))}
         if not result[1] then
-          -- We apply tostring to error messages immediately  because JNLua
+          -- We apply tostring to error messages immediately because JNLua
           -- pushes the original Java exceptions which cannot be persisted.
           result[2] = tostring(result[2])
         end
@@ -106,7 +106,7 @@ do
         return select(2, table.unpack(result))
       else
         -- API call failed, re-throw the error.
-        error(tostring(result[2]), 2)
+        error(result[2], 2)
       end
     end
   end
