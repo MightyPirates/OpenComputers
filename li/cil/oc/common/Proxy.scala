@@ -7,9 +7,7 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.INetworkNode
-import li.cil.oc.api.NetworkAPI
-import li.cil.oc.api.scala.OpenComputersAPI
+import li.cil.oc.api.{OpenComputersAPI, INetworkNode, NetworkAPI}
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.server.computer.Drivers
 import li.cil.oc.server.drivers._
@@ -34,7 +32,6 @@ class Proxy {
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     OpenComputersAPI.addDriver(GraphicsCardDriver)
-    OpenComputersAPI.addDriver(ScreenDriver)
 
     MinecraftForge.EVENT_BUS.register(ForgeEventHandler)
   }
@@ -49,13 +46,11 @@ class Proxy {
   private object ForgeEventHandler {
     @ForgeSubscribe
     def onChunkUnload(e: ChunkEvent.Unload) =
-      onUnload(e.world, e.getChunk.chunkTileEntityMap.values.
-        map(_.asInstanceOf[TileEntity]))
+      onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
 
     @ForgeSubscribe
     def onChunkLoad(e: ChunkEvent.Load) =
-      onLoad(e.world, e.getChunk.chunkTileEntityMap.values.
-        map(_.asInstanceOf[TileEntity]))
+      onLoad(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
 
     private def onUnload(w: World, tileEntities: Iterable[TileEntity]) =
       if (!w.isRemote) {
@@ -66,8 +61,7 @@ class Proxy {
           foreach(_.turnOff())
 
         // Remove all network nodes from their networks.
-        // TODO add a more efficient batch remove operation? something along
-        // the lines of if #remove > #n*factor remove all, re-add remaining?
+        // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
         tileEntities.
           filter(_.isInstanceOf[INetworkNode]).
           map(_.asInstanceOf[TileEntity with INetworkNode]).
@@ -77,11 +71,7 @@ class Proxy {
     private def onLoad(w: World, tileEntities: Iterable[TileEntity]) =
       if (!w.isRemote) {
         // Add all network nodes to networks.
-        tileEntities.
-          filter(_.isInstanceOf[INetworkNode]).
-          map(_.asInstanceOf[TileEntity with INetworkNode]).
-          foreach(t => NetworkAPI.
-          joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord, t))
+        tileEntities.foreach(t => NetworkAPI.joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
       }
   }
 

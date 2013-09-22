@@ -9,7 +9,7 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraft.client.renderer.OpenGlHelper
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
-  def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+  override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val tileEntity = t.asInstanceOf[TileEntityScreen]
 
     GL11.glPushAttrib(0xFFFFFF)

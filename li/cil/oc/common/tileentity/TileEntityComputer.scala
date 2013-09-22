@@ -11,7 +11,7 @@ import li.cil.oc.server.computer.IComputerEnvironment
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy with BlockComponentProxy {
+class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy {
   def this() = this(false)
 
   protected val computer =
@@ -59,7 +59,6 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     computer.readFromNBT(nbt.getCompoundTag("computer"))
-    readBlocksFromNBT(nbt.getCompoundTag("blocks"))
     readItemsFromNBT(nbt.getCompoundTag("items"))
   }
 
@@ -69,10 +68,6 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
     val computerNbt = new NBTTagCompound
     computer.writeToNBT(computerNbt)
     nbt.setCompoundTag("computer", computerNbt)
-
-    val blocksNbt = new NBTTagCompound
-    writeBlocksToNBT(blocksNbt)
-    nbt.setCompoundTag("blocks", blocksNbt)
 
     val itemsNbt = new NBTTagCompound
     writeItemsToNBT(itemsNbt)
@@ -101,20 +96,11 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   // Interfaces and updating
   // ----------------------------------------------------------------------- //
 
-  def onNeighborBlockChange(blockId: Int) =
-    (0 to 5).foreach(checkBlockChanged)
-
-  def isUseableByPlayer(player: EntityPlayer) =
+  override def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
       player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
 
-  def world = worldObj
+  override def world = worldObj
 
-  def coordinates = (xCoord, yCoord, zCoord)
-
-  def driver(id: Int) = itemDriver(id).orElse(blockDriver(id))
-
-  def component(id: Int) = itemComponent(id).orElse(blockComponent(id))
-
-  def markAsChanged() = hasChanged.set(true)
+  override def markAsChanged() = hasChanged.set(true)
 }

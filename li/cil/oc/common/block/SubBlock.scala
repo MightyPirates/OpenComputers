@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.api.INetworkNode
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
@@ -21,14 +20,6 @@ trait SubBlock {
   def unlocalizedName: String
 
   val blockId = parent.add(this)
-
-  // ----------------------------------------------------------------------- //
-  // INetworkBlock
-  // ----------------------------------------------------------------------- //
-
-  def hasNode = false
-
-  def getNode(world: IBlockAccess, x: Int, y: Int, z: Int): INetworkNode = null
 
   // ----------------------------------------------------------------------- //
   // Block

@@ -17,17 +17,6 @@ class BlockScreen(val parent: BlockMulti) extends SubBlock {
   val unlocalizedName = "Screen"
 
   // ----------------------------------------------------------------------- //
-  // INetworkBlock
-  // ----------------------------------------------------------------------- //
-
-  override def hasNode = true
-
-  override def getNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case screen: TileEntityScreen => screen
-    }
-
-  // ----------------------------------------------------------------------- //
   // Rendering stuff
   // ----------------------------------------------------------------------- //
 
@@ -71,10 +60,12 @@ class BlockScreen(val parent: BlockMulti) extends SubBlock {
   // ----------------------------------------------------------------------- //
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
-    true
-  }
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+    if (!player.isSneaking) {
+      player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+      true
+    }
+    else false
 
   // ----------------------------------------------------------------------- //
   // Block rotation

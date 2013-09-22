@@ -5,7 +5,6 @@ import java.io.DataOutputStream
 
 import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
-import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection

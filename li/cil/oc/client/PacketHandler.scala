@@ -9,13 +9,13 @@ import net.minecraft.entity.player.EntityPlayer
 import li.cil.oc.common.tileentity.TileEntityComputer
 
 class PacketHandler extends CommonPacketHandler {
-  protected def world(player: Player, dimension: Int) = {
+  protected override def world(player: Player, dimension: Int) = {
     val world = player.asInstanceOf[EntityPlayer].worldObj
     if (world.provider.dimensionId == dimension) Some(world)
     else None
   }
 
-  def dispatch(p: PacketParser) =
+  override def dispatch(p: PacketParser) =
     p.packetType match {
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)

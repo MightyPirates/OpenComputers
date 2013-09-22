@@ -81,7 +81,7 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
     GuiScreen.draw()
     GL11.glPopMatrix()
 
-    super.drawScreen(mouseX, mouseY, dt);
+    super.drawScreen(mouseX, mouseY, dt)
   }
 
   override def doesGuiPauseGame = false

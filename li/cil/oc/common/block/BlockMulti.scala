@@ -4,7 +4,7 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
-import li.cil.oc.api.NetworkAPI
+import li.cil.oc.api.{INetworkNode, NetworkAPI}
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -104,9 +104,8 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
-        if (subBlock.hasNode) {
-          val node = subBlock.getNode(world, x, y, z)
-          node.getNetwork.remove(node)
+        world.getBlockTileEntity(x, y, z) match {
+          case node: INetworkNode => node.getNetwork.remove(node)
         }
         subBlock.breakBlock(world, x, y, z, blockId, metadata)
       }
@@ -269,8 +268,8 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
-        if (subBlock.hasNode) {
-          NetworkAPI.joinOrCreateNetwork(world, x, y, z, subBlock.getNode(world, x, y, z))
+        world.getBlockTileEntity(x, y, z) match {
+          case _: INetworkNode => NetworkAPI.joinOrCreateNetwork(world, x, y, z)
         }
         subBlock.onBlockAdded(world, x, y, z)
       }

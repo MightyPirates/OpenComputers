@@ -3,7 +3,6 @@ package li.cil.oc.server.drivers
 import li.cil.oc.Config
 import li.cil.oc.api.Callback
 import li.cil.oc.api.ComponentType
-import li.cil.oc.api.scala.IItemDriver
 import li.cil.oc.server.components.Disk
 import net.minecraft.item.ItemStack
 

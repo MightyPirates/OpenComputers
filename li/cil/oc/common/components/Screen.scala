@@ -1,10 +1,9 @@
 package li.cil.oc.common.components
 
 import li.cil.oc.common.util.TextBuffer
-import li.cil.oc.server.components.IComponent
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen(val owner: IScreenEnvironment) extends IComponent {
+class Screen(val owner: IScreenEnvironment) {
   val supportedResolutions = List((40, 24), (80, 24))
 
   private val buffer = new TextBuffer(80, 24)

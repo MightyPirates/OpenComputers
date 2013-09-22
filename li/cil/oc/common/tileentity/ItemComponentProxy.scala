@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.ComponentType
+import li.cil.oc.api.{INetworkNode, ComponentType}
 import li.cil.oc.common.computer.IComputer
-import li.cil.oc.server.computer.Drivers
+import li.cil.oc.server.computer.{NetworkNode, Drivers}
 
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
@@ -10,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
-trait ItemComponentProxy extends IInventory {
+trait ItemComponentProxy extends IInventory with NetworkNode {
   protected val inventory = new Array[ItemStack](8)
 
   protected val itemComponents = Array.fill(inventory.length)(0)
@@ -24,11 +24,11 @@ trait ItemComponentProxy extends IInventory {
     case slot => Drivers.driverFor(inventory(slot))
   }
 
-  def itemComponent(id: Int) = itemComponents.indexOf(id) match {
+  def itemNode(id: Int) = itemComponents.indexOf(id) match {
     case -1 => None
     case slot => Drivers.driverFor(inventory(slot)) match {
       case None => None
-      case Some(driver) => driver.instance.component(inventory(slot))
+      case Some(driver) => Option(driver.instance.getNode(inventory(slot)))
     }
   }
 
@@ -65,6 +65,30 @@ trait ItemComponentProxy extends IInventory {
   }
 
   // ----------------------------------------------------------------------- //
+  // NetworkNode
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect() = {
+    super.onConnect()
+    for (i <- 0 until inventory.length) {
+      itemNode(i) match {
+        case None => // Ignore.
+        case Some(node) => getNetwork.connect(this, node)
+      }
+    }
+  }
+
+  override def onDisconnect() = {
+    super.onDisconnect()
+    for (i <- 0 until inventory.length) {
+      itemNode(i) match {
+        case None => // Ignore.
+        case Some(node) => node.getNetwork.remove(node)
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
   // IInventory
   // ----------------------------------------------------------------------- //
 
@@ -96,11 +120,11 @@ trait ItemComponentProxy extends IInventory {
   def getStackInSlotOnClosing(slot: Int) = null
 
   def setInventorySlotContents(slot: Int, item: ItemStack) = {
-    if (itemComponents(slot) != 0) {
-      // Uninstall component previously in that slot.
-      computer.remove(itemComponents(slot))
-      itemComponents(slot) = 0
+    // Uninstall component previously in that slot.
+    itemNode(slot) match {
+      case Some(node: INetworkNode) => node.getNetwork.remove(node)
     }
+    itemComponents(slot) = 0
 
     inventory(slot) = item
     if (item != null && item.stackSize > getInventoryStackLimit)
@@ -110,11 +134,9 @@ trait ItemComponentProxy extends IInventory {
       Drivers.driverFor(inventory(slot)) match {
         case None => // Nothing to do, but avoid match errors.
         case Some(driver) => {
-          driver.instance.component(inventory(slot)) match {
+          driver.instance.getNode(inventory(slot)) match {
             case None => // Ignore.
-            case Some(component) =>
-              if (computer.add(component, driver))
-                itemComponents(slot) = driver.instance.id(component)
+            case Some(node: INetworkNode) => getNetwork.connect(this, node)
           }
         }
       }
@@ -123,10 +145,10 @@ trait ItemComponentProxy extends IInventory {
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
     case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.instance.componentType(item) == ComponentType.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.instance.componentType(item) == ComponentType.PCI
-    case (4 | 5, Some(driver)) => driver.instance.componentType(item) == ComponentType.RAM
-    case (6 | 7, Some(driver)) => driver.instance.componentType(item) == ComponentType.HDD
+    case (0, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.PSU
+    case (1 | 2 | 3, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.PCI
+    case (4 | 5, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.RAM
+    case (6 | 7, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.HDD
     case (_, Some(_)) => false // Invalid slot.
   }
 

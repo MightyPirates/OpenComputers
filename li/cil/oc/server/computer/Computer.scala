@@ -8,30 +8,29 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
 import scala.io.Source
-import scala.util.Random
 
 import com.naef.jnlua._
 
 import li.cil.oc.Config
-import li.cil.oc.api.scala._
 import li.cil.oc.common.computer.IComputer
 import net.minecraft.nbt._
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
- *
+ * <p/>
  * This class takes care of the following:
- * - Creating a new Lua state when started from a previously stopped state.
- * - Updating the Lua state in a parallel thread so as not to block the game.
- * - Managing a list of installed components and their drivers.
- * - Synchronizing calls from the computer thread to drivers.
- * - Saving the internal state of the computer across chunk saves/loads.
- * - Closing the Lua state when stopping a previously running computer.
- *
- * See {@see Driver} to read more about component drivers and how they interact
+ * <ul>
+ * <li>Creating a new Lua state when started from a previously stopped state.</li>
+ * <li>Updating the Lua state in a parallel thread so as not to block the game.</li>
+ * <li>Synchronizing calls from the computer thread to the network.</li>
+ * <li>Saving the internal state of the computer across chunk saves/loads.</li>
+ * <li>Closing the Lua state when stopping a previously running computer.</li>
+ * </ul>
+ * <p/>
+ * See {@link Driver} to read more about component drivers and how they interact
  * with computers - and through them the components they interface.
  */
-class Computer(val owner: IComputerEnvironment) extends IComputerContext with IComputer with Runnable {
+class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
@@ -103,9 +102,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   // IComputerContext
   // ----------------------------------------------------------------------- //
 
-  def world = owner.world
-
-  def signal(name: String, args: Any*) = {
+  override def signal(name: String, args: Any*) = {
     println("signal", name, args.toArray)
     args.foreach {
       case null | _: Byte | _: Char | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
@@ -132,7 +129,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   // IComputer
   // ----------------------------------------------------------------------- //
 
-  def start() = stateMonitor.synchronized(
+  override def start() = stateMonitor.synchronized(
     state == State.Stopped && init() && (try {
       state = State.Suspended
 
@@ -156,7 +153,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       case _: Throwable => close(); false
     }))
 
-  def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
+  override def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
     if (state != State.Stopped) {
       if (state != State.Running) {
         // If the computer is not currently running we can simply close it,
@@ -177,9 +174,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     else false
   })
 
-  def isRunning = stateMonitor.synchronized(state != State.Stopped)
+  override def isRunning = stateMonitor.synchronized(state != State.Stopped)
 
-  def update() {
+  override def update() {
     stateMonitor.synchronized(state match {
       case State.Stopped | State.Stopping => return
       case State.DriverCall => {
@@ -215,7 +212,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
   // ----------------------------------------------------------------------- //
 
-  def readFromNBT(nbt: NBTTagCompound): Unit =
+  override def readFromNBT(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
       // Clear out what we currently have, if anything.
       stateMonitor.synchronized {
@@ -290,7 +287,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       }
     })
 
-  def writeToNBT(nbt: NBTTagCompound): Unit =
+  override def writeToNBT(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
       stateMonitor.synchronized {
         assert(state != State.Running) // Lock on 'this' should guarantee this.
@@ -403,11 +400,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // that add new functionality to it.
 
       // Set up function used to send network messages.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          1
-        }
-      })
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        1
+      }))
       lua.setGlobal("sendMessage")
 
       // Push a couple of functions that override original Lua API functions or
@@ -416,139 +411,72 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
       // Custom os.clock() implementation returning the time the computer has
       // been running, instead of the native library...
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          // World time is in ticks, and each second has 20 ticks. Since we
-          // want os.clock() to return real seconds, though, we'll divide it
-          // accordingly.
-          lua.pushNumber((owner.world.getTotalWorldTime - timeStarted) / 20.0)
-          1
-        }
-      })
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        // World time is in ticks, and each second has 20 ticks. Since we
+        // want os.clock() to return real seconds, though, we'll divide it
+        // accordingly.
+        lua.pushNumber((worldTime - timeStarted) / 20.0)
+        1
+      }))
       lua.setField(-2, "clock")
 
       // Return ingame time for os.time().
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          // Game time is in ticks, so that each day has 24000 ticks, meaning
-          // one hour is game time divided by one thousand. Also, Minecraft
-          // starts days at 6 o'clock, so we add those six hours. Thus:
-          // timestamp = (time + 6000) / 1000[h] * 60[m] * 60[s] * 1000[ms]
-          lua.pushNumber((worldTime + 6000) * 60 * 60)
-          1
-        }
-      })
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        // Game time is in ticks, so that each day has 24000 ticks, meaning
+        // one hour is game time divided by one thousand. Also, Minecraft
+        // starts days at 6 o'clock, so we add those six hours. Thus:
+        // timestamp = (time + 6000) / 1000[h] * 60[m] * 60[s] * 1000[ms]
+        lua.pushNumber((worldTime + 6000) * 60 * 60)
+        1
+      }))
       lua.setField(-2, "time")
 
       // Date-time formatting using Java's formatting capabilities.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          val calendar = Calendar.getInstance(Locale.ENGLISH)
-          calendar.setTimeInMillis(lua.checkInteger(1))
-          1
-        }
-      })
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        val calendar = Calendar.getInstance(Locale.ENGLISH)
+        calendar.setTimeInMillis(lua.checkInteger(1))
+        // TODO
+        1
+      }))
       lua.setField(-2, "date")
 
       // Custom os.difftime(). For most Lua implementations this would be the
       // same anyway, but just to be on the safe side.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          val t2 = lua.checkNumber(1)
-          val t1 = lua.checkNumber(2)
-          lua.pushNumber(t2 - t1)
-          1
-        }
-      })
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        val t2 = lua.checkNumber(1)
+        val t1 = lua.checkNumber(2)
+        lua.pushNumber(t2 - t1)
+        1
+      }))
       lua.setField(-2, "difftime")
 
-      // Allow getting the real world time via os.realTime() for timeouts.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushNumber(System.currentTimeMillis() / 1000.0)
-          1
-        }
-      })
-      lua.setField(-2, "realTime")
-
       // Allow the system to read how much memory it uses and has available.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushInteger(lua.getTotalMemory - kernelMemory)
-          1
-        }
-      })
-      lua.setField(-2, "totalMemory")
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushInteger(lua.getFreeMemory)
-          1
-        }
-      })
-      lua.setField(-2, "freeMemory")
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushInteger(kernelMemory)
+        1
+      }))
+      lua.setField(-2, "romSize")
 
       // Pop the os table.
       lua.pop(1)
 
-      lua.getGlobal("math")
-
-      // We give each Lua state it's own randomizer, since otherwise they'd
-      // use the good old rand() from C. Which can be terrible, and isn't
-      // necessarily thread-safe.
-      val random = new Random
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.getTop match {
-            case 0 => lua.pushNumber(random.nextDouble())
-            case 1 => {
-              val u = lua.checkInteger(1)
-              lua.checkArg(1, 1 < u, "interval is empty")
-              lua.pushInteger(1 + random.nextInt(u))
-            }
-            case 2 => {
-              val l = lua.checkInteger(1)
-              val u = lua.checkInteger(2)
-              lua.checkArg(1, l < u, "interval is empty")
-              lua.pushInteger(l + random.nextInt(u - l))
-            }
-            case _ => throw new IllegalArgumentException("wrong number of arguments")
-          }
-          1
-        }
-      })
-      lua.setField(-2, "random")
-
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          val seed = lua.checkInteger(1)
-          random.setSeed(seed)
-          0
-        }
-      })
-      lua.setField(-2, "randomseed")
-
-      // Pop the math table.
-      lua.pop(1)
-
       // Until we get to ingame screens we log to Java's stdout.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          for (i <- 1 to lua.getTop) {
-            lua.`type`(i) match {
-              case LuaType.NIL => print("nil")
-              case LuaType.BOOLEAN => print(lua.toBoolean(i))
-              case LuaType.NUMBER => print(lua.toNumber(i))
-              case LuaType.STRING => print(lua.toString(i))
-              case LuaType.TABLE => print("table")
-              case LuaType.FUNCTION => print("function")
-              case LuaType.THREAD => print("thread")
-              case LuaType.LIGHTUSERDATA | LuaType.USERDATA => print("userdata")
-            }
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        for (i <- 1 to lua.getTop) {
+          lua.`type`(i) match {
+            case LuaType.NIL => print("nil")
+            case LuaType.BOOLEAN => print(lua.toBoolean(i))
+            case LuaType.NUMBER => print(lua.toNumber(i))
+            case LuaType.STRING => print(lua.toString(i))
+            case LuaType.TABLE => print("table")
+            case LuaType.FUNCTION => print("function")
+            case LuaType.THREAD => print("thread")
+            case LuaType.LIGHTUSERDATA | LuaType.USERDATA => print("userdata")
           }
-          println()
-          0
         }
-      })
+        println()
+        0
+      }))
       lua.setGlobal("print")
 
       // TODO Other overrides?
@@ -633,7 +561,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     })
 
   // This is a really high level lock that we only use for saving and loading.
-  def run(): Unit = this.synchronized {
+  override def run(): Unit = this.synchronized {
     println(" > executor enter")
 
     // See if the game appears to be paused, in which case we also pause.

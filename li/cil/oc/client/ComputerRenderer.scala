@@ -12,7 +12,7 @@ import net.minecraft.util.ResourceLocation
 object ComputerRenderer extends TileEntitySpecialRenderer {
   private val frontOn = new ResourceLocation("opencomputers", "textures/blocks/computer_front_on.png")
 
-  def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val computer = tileEntity.asInstanceOf[TileEntityComputer]
     if (computer.isOn) {
       GL11.glPushAttrib(0xFFFFFF)

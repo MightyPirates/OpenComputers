@@ -78,7 +78,7 @@ abstract class GenericInventoryContainer(protected val playerInventory: Inventor
     for (index <- 0 until InventoryPlayer.getHotbarSize) {
       val x = left + index * slotSize
       val y = top + slotSize * (playerInventorySizeY - 1) + quickBarSpacing
-      addSlotToContainer(new Slot(playerInventory, index, x, y));
+      addSlotToContainer(new Slot(playerInventory, index, x, y))
     }
   }
 }

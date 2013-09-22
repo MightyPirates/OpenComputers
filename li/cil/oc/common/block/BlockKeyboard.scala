@@ -4,23 +4,11 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.tileentity.TileEntityKeyboard
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.world.IBlockAccess
 
 class BlockKeyboard(val parent: BlockMulti) extends SubBlock {
   GameRegistry.registerTileEntity(classOf[TileEntityKeyboard], "oc.keyboard")
 
   val unlocalizedName = "Keyboard"
-
-  // ----------------------------------------------------------------------- //
-  // INetworkBlock
-  // ----------------------------------------------------------------------- //
-
-  override def hasNode = true
-
-  override def getNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case keyboard: TileEntityKeyboard => keyboard
-    }
 
   // ----------------------------------------------------------------------- //
   // Tile entity

@@ -5,9 +5,13 @@ import java.io.FileOutputStream
 import java.nio.channels.Channels
 
 
-import com.naef.jnlua.LuaState
-import com.naef.jnlua.NativeSupport
+import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
 import com.naef.jnlua.NativeSupport.Loader
+import scala.util.Random
+
+case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
+  override def invoke(state: LuaState) = f(state)
+}
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -96,7 +100,7 @@ private[computer] object LuaStateFactory {
 
   def createState(): Option[LuaState] = {
     val state = new LuaState(Integer.MAX_VALUE)
-    try {
+    try
       // Load all libraries.
       state.openLib(LuaState.Library.BASE)
       state.openLib(LuaState.Library.BIT32)
@@ -122,8 +126,70 @@ private[computer] object LuaStateFactory {
       state.pushNil()
       state.setGlobal("require")
 
+      // Push a couple of functions that override original Lua API functions or
+      // that add new functionality to it.
+      state.getGlobal("os")
+
+      // Allow getting the real world time via os.realTime() for timeouts.
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushNumber(System.currentTimeMillis() / 1000.0)
+        1
+      }))
+      state.setField(-2, "realTime")
+
+      // Allow the system to read how much memory it uses and has available.
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushInteger(lua.getTotalMemory)
+        1
+      }))
+      state.setField(-2, "totalMemory")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushInteger(lua.getFreeMemory)
+        1
+      }))
+      state.setField(-2, "freeMemory")
+
+      // Pop the os table.
+      state.pop(1)
+
+      state.getGlobal("math")
+
+      // We give each Lua state it's own randomizer, since otherwise they'd
+      // use the good old rand() from C. Which can be terrible, and isn't
+      // necessarily thread-safe.
+      val random = new Random
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.getTop match {
+          case 0 => lua.pushNumber(random.nextDouble())
+          case 1 => {
+            val u = lua.checkInteger(1)
+            lua.checkArg(1, 1 < u, "interval is empty")
+            lua.pushInteger(1 + random.nextInt(u))
+          }
+          case 2 => {
+            val l = lua.checkInteger(1)
+            val u = lua.checkInteger(2)
+            lua.checkArg(1, l < u, "interval is empty")
+            lua.pushInteger(l + random.nextInt(u - l))
+          }
+          case _ => throw new IllegalArgumentException("wrong number of arguments")
+        }
+        1
+      }))
+      state.setField(-2, "random")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        random.setSeed(lua.checkInteger(1))
+        0
+      }))
+      state.setField(-2, "randomseed")
+
+      // Pop the math table.
+      state.pop(1)
+
       Some(state)
-    }
+
     catch {
       case ex: Throwable => {
         ex.printStackTrace()

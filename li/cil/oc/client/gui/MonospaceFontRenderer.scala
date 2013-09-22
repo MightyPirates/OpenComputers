@@ -5,7 +5,6 @@ import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.opengl.GL11
 import net.minecraft.client.renderer.GLAllocation
-import java.nio.charset.Charset
 
 object MonospaceFontRenderer {
   private val font = new ResourceLocation("opencomputers", "textures/font/ascii.png")
@@ -36,7 +35,7 @@ object MonospaceFontRenderer {
       val (charWidth, charHeight) = (MonospaceFontRenderer.fontWidth * 2, MonospaceFontRenderer.fontHeight * 2)
       val uStep = 1.0 / charsPerRow
       val vStep = 1.0 / 12 * 240 / 256 // Correct for padding at bottom.
-      val uOffset = uStep * 3 / 16
+    val uOffset = uStep * 3 / 16
       val uSize = uStep * 10 / 16
       val vOffset = vStep * 1 / 20
       val vSize = vStep * 18 / 20

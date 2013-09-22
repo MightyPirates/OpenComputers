@@ -17,17 +17,6 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
   val unlocalizedName = "Computer"
 
   // ----------------------------------------------------------------------- //
-  // INetworkBlock
-  // ----------------------------------------------------------------------- //
-
-  override def hasNode = true
-
-  override def getNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case computer: TileEntityComputer => computer
-    }
-
-  // ----------------------------------------------------------------------- //
   // Rendering stuff
   // ----------------------------------------------------------------------- //
 
@@ -43,7 +32,7 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
     })
   }
 
-  override def getIcon(side: ForgeDirection) = getIcon(side, false)
+  override def getIcon(side: ForgeDirection) = getIcon(side, isOn = false)
 
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
     if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal)
@@ -78,9 +67,9 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
   // Destruction / Interaction
   // ----------------------------------------------------------------------- //
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, `side?`: Int, metadata: Int) = {
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOff()
-    super.breakBlock(world, x, y, z, `side?`, metadata)
+    super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
@@ -92,13 +81,6 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
       true
     }
     else false
-  }
-
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
-    if (!world.isRemote) {
-      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].
-        onNeighborBlockChange(blockId)
-    }
   }
 
   // ----------------------------------------------------------------------- //

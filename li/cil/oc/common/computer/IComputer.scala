@@ -1,6 +1,5 @@
 package li.cil.oc.common.computer
 
-import li.cil.oc.server.computer.Driver
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -26,6 +25,8 @@ trait IComputer {
    * synchronized manner.
    */
   def update()
+
+  def signal(name: String, args: Any*): Boolean
 
   // ----------------------------------------------------------------------- //
 
