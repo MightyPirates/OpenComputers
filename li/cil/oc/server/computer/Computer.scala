@@ -13,11 +13,10 @@ import scala.reflect.runtime.universe._
 import scala.util.Random
 
 import com.naef.jnlua._
+
 import li.cil.oc.Config
-import li.cil.oc.api._
-import li.cil.oc.api.IComputerContext
+import li.cil.oc.api.scala._
 import li.cil.oc.common.computer.IComputer
-import li.cil.oc.server.components.IComponent
 import net.minecraft.nbt._
 
 /**
@@ -38,21 +37,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
-
-  /**
-   * This is the list of components currently attached to the computer. It is
-   * updated whenever a component is placed into the computer or removed from
-   * it, as well as when a block component is placed next to it or removed.
-   *
-   * On the Lua side we only refer to components by an ID, which is the key.
-   *
-   * Since the Lua program may query a component's type from its own thread we
-   * have to synchronize access to the component map. Note that there's a
-   * chance the Lua programs may see a component before its install signal has
-   * been processed, but I can't think of a scenario where this could become
-   * a real problem, plus this can happen anyway if the signal queue is long.
-   */
-  private val components = new HashMap[Int, String] with SynchronizedMap[Int, String]
 
   /**
    * The current execution state of the computer. This is used to track how to
@@ -124,6 +108,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   def world = owner.world
 
   def signal(name: String, args: Any*) = {
+    println("signal", name, args.toArray)
     args.foreach {
       case null | _: Byte | _: Char | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
       case _ => throw new IllegalArgumentException()
@@ -145,11 +130,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     })
   }
 
-  def component[T](id: Int) = owner.component(id) match {
-    case None => throw new IllegalArgumentException("no such component")
-    case Some(component) => component.asInstanceOf[T]
-  }
-
   // ----------------------------------------------------------------------- //
   // IComputer
   // ----------------------------------------------------------------------- //
@@ -167,8 +147,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       signal("dummy")
 
       // Initialize any installed components.
-      for (id <- components.keys)
-        owner.driver(id).get.instance.onInstall(this, owner.component(id).get)
+      owner.getNetwork.sendToAll(owner, "computer.start")
 
       future = Some(Executor.pool.submit(this))
       true
@@ -237,32 +216,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   }
 
   // ----------------------------------------------------------------------- //
-  // Note: driver interaction is synchronized, so we don't have to lock here.
-
-  def add(component: Any, driver: Driver) = {
-    val id = driver.instance.id(component)
-    if (components.contains(id)) false
-    else {
-      components += id -> driver.instance.componentName
-      driver.instance.onInstall(this, component)
-      signal("component_install", id)
-      true
-    }
-  }
-
-  def remove(id: Int) =
-    components.remove(id) match {
-      case None => false
-      case Some(_) => {
-        // TODO won't work for blocks, because we won't know the old one at
-        // this point, since we only get the info that *some* neighbor block
-        // changed, and not which, and much less what it previously was...
-        //owner.driver(id).get.instance.onUninstall(this, owner.component(id))
-        signal("component_uninstall", id)
-      }
-    }
-
-  // ----------------------------------------------------------------------- //
 
   def readFromNBT(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
@@ -270,15 +223,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       stateMonitor.synchronized {
         assert(state != State.Running) // Lock on 'this' should guarantee this.
         stop()
-      }
-
-      components.clear()
-      val componentList = nbt.getTagList("components")
-      for (i <- 0 until componentList.tagCount) {
-        val component = componentList.tagAt(i).asInstanceOf[NBTTagCompound]
-        val id = component.getInteger("id")
-        val componentName = component.getString("componentName")
-        components += id -> componentName
       }
 
       state = State(nbt.getInteger("state"))
@@ -354,15 +298,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         assert(state != State.Running) // Lock on 'this' should guarantee this.
         assert(state != State.Stopping) // Only set while executor is running.
       }
-
-      val componentList = new NBTTagList
-      for ((id, componentName) <- components) {
-        val component = new NBTTagCompound
-        component.setInteger("id", id)
-        component.setString("componentName", componentName)
-        componentList.appendTag(component)
-      }
-      nbt.setTag("components", componentList)
 
       nbt.setInteger("state", state.id)
       if (state == State.Stopped) {
@@ -465,32 +400,14 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     try {
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
-      lua.newTable()
 
-      // Set up driver information callbacks, i.e. to query for the presence of
-      // components with a given ID, and their type.
+      // Set up function used to send network messages.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          lua.pushBoolean(components.contains(lua.checkInteger(1)))
           return 1
         }
       })
-      lua.setField(-2, "exists")
-
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          val id = lua.checkInteger(1)
-          components.get(id) match {
-            case None => lua.pushNil()
-            case Some(componentName) => lua.pushString(componentName)
-          }
-          return 1
-        }
-      })
-      lua.setField(-2, "type")
-
-      // "Pop" the components table.
-      lua.setGlobal("component")
+      lua.setGlobal("sendMessage")
 
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
@@ -700,18 +617,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
   private def close(): Unit = stateMonitor.synchronized(
     if (state != State.Stopped) {
       state = State.Stopped
-
-      // Shutdown any installed components.
-      try {
-        for (id <- components.keys)
-          owner.driver(id).get.instance.onUninstall(this, owner.component(id).get)
-      }
-      catch {
-        // The above code may throw if some component was removed by abnormal
-        // means (e.g. mod providing the block was removed/disabled).
-        case _: Throwable => // Ignore.
-      }
-
       lua.setTotalMemory(Integer.MAX_VALUE);
       lua.close()
       lua = null
@@ -722,6 +627,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
+
+      owner.getNetwork.sendToAll(owner, "computer.stop")
     })
 
   // This is a really high level lock that we only use for saving and loading.

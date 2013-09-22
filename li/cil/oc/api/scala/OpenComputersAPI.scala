@@ -1,4 +1,4 @@
-package li.cil.oc.api
+package li.cil.oc.api.scala
 
 import li.cil.oc.server.computer.Drivers
 

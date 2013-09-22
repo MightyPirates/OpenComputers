@@ -30,4 +30,8 @@ object PacketType extends Enumeration {
   /** Sent by rotatable tile entities to notify clients of changes. */
   val RotatableStateRequest = Value("RotatableStateRequest")
   val RotatableStateResponse = Value("RotatableStateResponse")
+
+  /** Sent by clients on keyboard input for computers. */
+  val KeyDown = Value("KeyDown")
+  val KeyUp = Value("KeyUp")
 }

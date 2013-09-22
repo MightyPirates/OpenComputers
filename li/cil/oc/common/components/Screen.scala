@@ -2,11 +2,10 @@ package li.cil.oc.common.components
 
 import li.cil.oc.common.util.TextBuffer
 import li.cil.oc.server.components.IComponent
+import li.cil.oc.server.computer.NetworkNode
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: IScreenEnvironment) extends IComponent {
-  id = 2 // TODO remove once component IDs can be set via some tool
-
   val supportedResolutions = List((40, 24), (80, 24))
 
   private val buffer = new TextBuffer(80, 24)
@@ -40,12 +39,10 @@ class Screen(val owner: IScreenEnvironment) extends IComponent {
       owner.onScreenCopy(col, row, w, h, tx, ty)
 
   def readFromNBT(nbt: NBTTagCompound) = {
-    id = nbt.getInteger("componentId")
     buffer.readFromNBT(nbt.getCompoundTag("buffer"))
   }
 
   def writeToNBT(nbt: NBTTagCompound) = {
-    nbt.setInteger("componentId", id)
     val nbtBuffer = new NBTTagCompound
     buffer.writeToNBT(nbtBuffer)
     nbt.setCompoundTag("buffer", nbtBuffer)

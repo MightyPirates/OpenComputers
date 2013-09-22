@@ -1,15 +1,22 @@
 package li.cil.oc.server.computer
 
+import java.lang.reflect.InvocationTargetException
+
 import scala.compat.Platform.EOL
 import scala.reflect.runtime.{ universe => ru }
 import scala.reflect.runtime.universe._
+
+import com.naef.jnlua.DefaultConverter
 import com.naef.jnlua.JavaFunction
 import com.naef.jnlua.LuaRuntimeException
 import com.naef.jnlua.LuaState
+
 import li.cil.oc.OpenComputers
-import li.cil.oc.api._
-import com.naef.jnlua.DefaultConverter
-import java.lang.reflect.InvocationTargetException
+import li.cil.oc.api.Callback
+import li.cil.oc.api.IComputerContext
+import li.cil.oc.api.scala.IBlockDriver
+import li.cil.oc.api.scala.IDriver
+import li.cil.oc.api.scala.IItemDriver
 
 class ItemDriver(val instance: IItemDriver) extends Driver
 class BlockDriver(val instance: IBlockDriver) extends Driver
@@ -30,9 +37,9 @@ abstract private[oc] class Driver {
   /** Installs this driver's API on the specified computer. */
   def installOn(computer: Computer) {
     // Check if the component actually provides an API.
-    val api = instance.apiName
-    if (api == null || api.isEmpty()) return
-    if (api.equals("component")) {
+    val apiName = instance.apiName
+    if (!apiName.isDefined || apiName.get.isEmpty) return
+    if (apiName.get == "component") {
       OpenComputers.log.warning("Trying to register API with reserved name 'component'.")
       return
     }
@@ -43,12 +50,12 @@ abstract private[oc] class Driver {
     assert(!lua.isNil(-1)) // ... drivers
 
     // Get or create API table.
-    lua.getField(-1, api) // ... drivers api?
+    lua.getField(-1, apiName.get) // ... drivers api?
     if (lua.isNil(-1)) { // ... drivers nil
       lua.pop(1) // ... drivers
       lua.newTable() // ... drivers api
       lua.pushValue(-1) // ... drivers api api
-      lua.setField(-3, api) // ... drivers api
+      lua.setField(-3, apiName.get) // ... drivers api
     } // ... drivers api
 
     val mirror = ru.runtimeMirror(instance.getClass.getClassLoader)
@@ -77,30 +84,31 @@ abstract private[oc] class Driver {
             // code had a chance to mess with the table.
             OpenComputers.log.warning(String.format(
               "Duplicate API entry, ignoring %s.%s of driver %s.",
-              api, name, instance.componentName))
+              apiName, name, instance.componentName))
           }
         })
     // ... drivers api
     lua.pop(2) // ...
 
     // Run custom init script.
-    val apiCode = instance.apiCode
-    if (apiCode != null) {
-      try {
-        lua.load(apiCode, instance.apiName, "t") // ... func
-        apiCode.close()
-        lua.call(0, 0) // ...
-      }
-      catch {
-        case e: LuaRuntimeException =>
-          OpenComputers.log.warning(String.format(
-            "Initialization code of driver %s threw an error: %s",
-            instance.componentName, e.getLuaStackTrace.mkString("", EOL, EOL)))
-        case e: Throwable =>
-          OpenComputers.log.warning(String.format(
-            "Initialization code of driver %s threw an error: %s",
-            instance.componentName, e.getStackTraceString))
-      }
+    instance.apiCode match {
+      case None => // Nothing to do.
+      case Some(apiCode) =>
+        try {
+          lua.load(apiCode, apiName.get, "t") // ... func
+          apiCode.close()
+          lua.call(0, 0) // ...
+        }
+        catch {
+          case e: LuaRuntimeException =>
+            OpenComputers.log.warning(String.format(
+              "Initialization code of driver %s threw an error: %s",
+              instance.componentName, e.getLuaStackTrace.mkString("", EOL, EOL)))
+          case e: Throwable =>
+            OpenComputers.log.warning(String.format(
+              "Initialization code of driver %s threw an error: %s",
+              instance.componentName, e.getStackTraceString))
+        }
     }
   }
 

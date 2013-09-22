@@ -3,23 +3,19 @@ package li.cil.oc.server.drivers
 import li.cil.oc.Config
 import li.cil.oc.api.Callback
 import li.cil.oc.api.ComponentType
-import li.cil.oc.api.IItemDriver
+import li.cil.oc.api.scala.IItemDriver
 import li.cil.oc.server.components.Disk
 import net.minecraft.item.ItemStack
 
 object HDDDriver extends IItemDriver {
   @Callback(name = "mount")
-  def mount(component: Any, path: String) {
+  def mount(hddId: Int, path: String) {
 
   }
 
   def componentName = "disk"
 
-  override def apiName = "disk"
-
-  def id(component: Any) = component.asInstanceOf[Disk].id
-
-  def id(component: Any, id: Int) = component.asInstanceOf[Disk].id = id
+  override def apiName = Some("disk")
 
   def worksWith(item: ItemStack) = item.itemID == Config.itemHDDId
 

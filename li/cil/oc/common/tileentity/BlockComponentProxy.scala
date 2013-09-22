@@ -36,7 +36,7 @@ trait BlockComponentProxy {
       val (cx, cy, cz) = (x + d.offsetX, y + d.offsetY, z + d.offsetZ)
       Drivers.driverFor(world, cx, cy, cz) match {
         case None => None
-        case Some(driver) => Some(driver.instance.component(world, cx, cy, cz))
+        case Some(driver) => driver.instance.component(world, cx, cy, cz)
       }
     }
   }
@@ -61,15 +61,19 @@ trait BlockComponentProxy {
       }
       case None => // Nothing to do, but avoid match errors.
       case Some(driver) => {
-        val component = driver.instance.component(world, cx, cy, cz)
-        val id = driver.instance.id(component)
-        // TODO we can miss changes this way, if a component was swapped for
-        // another one with the same ID (frames?)
-        if (blockComponents(side) != id) {
-          computer.remove(blockComponents(side))
-          blockComponents(side) =
-            if (computer.add(component, driver)) id
-            else 0
+        driver.instance.component(world, cx, cy, cz) match {
+          case None => // Ignore.
+          case Some(component) => {
+            val id = driver.instance.id(component)
+            // TODO we can miss changes this way, if a component was swapped for
+            // another one with the same ID (frames?)
+            if (blockComponents(side) != id) {
+              computer.remove(blockComponents(side))
+              blockComponents(side) =
+                if (computer.add(component, driver)) id
+                else 0
+            }
+          }
         }
       }
     }

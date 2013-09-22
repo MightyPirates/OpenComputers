@@ -34,7 +34,7 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t) => {
         val w = p.readInt()
         val h = p.readInt()
-        t.component.resolution = (w, h)
+        t.screen.resolution = (w, h)
       }
     }
 
@@ -45,7 +45,7 @@ class PacketHandler extends CommonPacketHandler {
         val col = p.readInt()
         val row = p.readInt()
         val s = p.readUTF()
-        t.component.set(col, row, s)
+        t.screen.set(col, row, s)
       }
     }
 
@@ -58,7 +58,7 @@ class PacketHandler extends CommonPacketHandler {
         val w = p.readInt()
         val h = p.readInt()
         val c = p.readChar()
-        t.component.fill(col, row, w, h, c)
+        t.screen.fill(col, row, w, h, c)
       }
     }
 
@@ -72,7 +72,7 @@ class PacketHandler extends CommonPacketHandler {
         val h = p.readInt()
         val tx = p.readInt()
         val ty = p.readInt()
-        t.component.copy(col, row, w, h, tx, ty)
+        t.screen.copy(col, row, w, h, tx, ty)
       }
     }
 
@@ -81,7 +81,7 @@ class PacketHandler extends CommonPacketHandler {
       case None => // Invalid packet.
       case Some(t) =>
         p.readUTF.split('\n').zipWithIndex.foreach {
-          case (line, i) => t.component.set(0, i, line)
+          case (line, i) => t.screen.set(0, i, line)
         }
     }
 

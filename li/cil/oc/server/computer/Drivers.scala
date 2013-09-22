@@ -2,9 +2,11 @@ package li.cil.oc.server.computer
 
 import scala.collection.mutable.ArrayBuffer
 
-import li.cil.oc.api.IBlockDriver
-import li.cil.oc.api.IItemDriver
-import net.minecraft.block.Block
+import li.cil.oc.api.ComponentType
+import li.cil.oc.api.{ IBlockDriver => IJavaBlockDriver }
+import li.cil.oc.api.{ IItemDriver => IJavaItemDriver }
+import li.cil.oc.api.scala.IBlockDriver
+import li.cil.oc.api.scala.IItemDriver
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
@@ -46,6 +48,14 @@ private[oc] object Drivers {
       blocks += new BlockDriver(driver)
   }
 
+  def add(driver: IJavaBlockDriver): Unit = add(new IBlockDriver {
+    // IDriver
+    def componentName: String = driver.getComponentName
+    // IBlockDriver
+    def component(world: World, x: Int, y: Int, z: Int): Option[AnyRef] = Some(driver.getComponent(world, x, y, z))
+    def worksWith(world: World, x: Int, y: Int, z: Int): Boolean = driver.worksWith(world, x, y, z)
+  })
+
   /**
    * Registers a new driver for an item component.
    *
@@ -60,6 +70,15 @@ private[oc] object Drivers {
       items += new ItemDriver(driver)
   }
 
+  def add(driver: IJavaItemDriver): Unit = add(new IItemDriver {
+    // IDriver
+    def componentName: String = driver.getComponentName
+    // IItemDriver
+    def component(item: ItemStack): Option[AnyRef] = Some(driver.getComponent(item))
+    def componentType(item: ItemStack): ComponentType = driver.getComponentType(item)
+    def worksWith(item: ItemStack): Boolean = driver.worksWith(item)
+  })
+
   /**
    * Used when a new block is placed next to a computer to see if we have a
    * driver for it. If we have one, we'll return it.
@@ -72,7 +91,7 @@ private[oc] object Drivers {
    */
   def driverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.find(_.instance.worksWith(world, x, y, z)) match {
-      case Some(driver) if driver.instance.id(driver.instance.component(world, x, y, z)) != 0 => Some(driver)
+      case Some(driver) => Some(driver)
       case _ => None
     }
 
@@ -85,7 +104,7 @@ private[oc] object Drivers {
    */
   def driverFor(item: ItemStack) =
     if (item != null) items.find(_.instance.worksWith(item)) match {
-      case Some(driver) if driver.instance.id(driver.instance.component(item)) != 0 => Some(driver)
+      case Some(driver) => Some(driver)
       case _ => None
     }
     else None

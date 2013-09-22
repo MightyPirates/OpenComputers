@@ -9,19 +9,19 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraft.client.renderer.OpenGlHelper
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
-  def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
-    val screen = tileEntity.asInstanceOf[TileEntityScreen]
+  def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+    val tileEntity = t.asInstanceOf[TileEntityScreen]
 
     GL11.glPushAttrib(0xFFFFFF)
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    screen.pitch match {
+    tileEntity.pitch match {
       case ForgeDirection.DOWN => GL11.glRotatef(-90, 1, 0, 0)
       case ForgeDirection.UP => GL11.glRotatef(90, 1, 0, 0)
       case _ => // No pitch.
     }
-    screen.yaw match {
+    tileEntity.yaw match {
       case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
       case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
       case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
@@ -36,7 +36,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     GL11.glScalef(11.5f / 16f, 11.5f / 16f, 1)
 
     // Scale based on actual buffer size.
-    val (w, h) = screen.component.resolution
+    val (w, h) = tileEntity.screen.resolution
     val scale = 1f / ((w * MonospaceFontRenderer.fontWidth) max (h * MonospaceFontRenderer.fontHeight))
     GL11.glScalef(scale, scale, 1)
 
@@ -52,7 +52,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 200, 200)
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
-    for ((line, i) <- screen.component.lines.zipWithIndex) {
+    for ((line, i) <- tileEntity.screen.lines.zipWithIndex) {
       MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
     }
 

@@ -7,22 +7,23 @@ import li.cil.oc.common.components.IScreenEnvironment
 import li.cil.oc.common.components.Screen
 import li.cil.oc.server.{ PacketSender => ServerPacketSender }
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.computer.NetworkNode
 
-class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
-  val component = new Screen(this)
+class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment with NetworkNode {
+  val screen = new Screen(this)
 
   var gui: Option[GuiScreen] = None
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    component.readFromNBT(nbt.getCompoundTag("component"))
+    screen.readFromNBT(nbt.getCompoundTag("component"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
 
     val componentNbt = new NBTTagCompound
-    component.writeToNBT(componentNbt)
+    screen.writeToNBT(componentNbt)
     nbt.setCompoundTag("component", componentNbt)
   }
 

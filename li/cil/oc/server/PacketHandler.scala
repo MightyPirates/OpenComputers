@@ -6,9 +6,11 @@ import li.cil.oc.common.PacketBuilder._
 import li.cil.oc.common.{ PacketHandler => CommonPacketHandler }
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.common.tileentity.TileEntityKeyboard
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraftforge.common.DimensionManager
+import li.cil.oc.api.INetworkNode
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -19,6 +21,8 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
       case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
+      case PacketType.KeyDown => onKeyDown(p)
+      case PacketType.KeyUp => onKeyUp(p)
       case _ => // Invalid packet.
     }
 
@@ -29,7 +33,7 @@ class PacketHandler extends CommonPacketHandler {
         val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
 
         pb.writeTileEntity(t)
-        pb.writeUTF(t.component.text)
+        pb.writeUTF(t.screen.text)
 
         pb.sendToPlayer(p.player)
       }
@@ -60,5 +64,17 @@ class PacketHandler extends CommonPacketHandler {
 
         pb.sendToPlayer(p.player)
       }
+    }
+
+  def onKeyDown(p: PacketParser) =
+    p.readTileEntity[INetworkNode] match {
+      case None => // Invalid packet.
+      case Some(n) => n.getNetwork.sendToAll(n, "tryKeyDown", p.player, char2Character(p.readChar()))
+    }
+
+  def onKeyUp(p: PacketParser) =
+    p.readTileEntity[INetworkNode] match {
+      case None => // Invalid packet.
+      case Some(n) => n.getNetwork.sendToAll(n, "tryKeyUp", p.player, char2Character(p.readChar()))
     }
 }

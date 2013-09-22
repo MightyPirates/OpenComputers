@@ -3,8 +3,8 @@ package li.cil.oc.server.drivers
 import li.cil.oc.Items
 import li.cil.oc.api.Callback
 import li.cil.oc.api.ComponentType
-import li.cil.oc.api.IComputerContext
-import li.cil.oc.api.IItemDriver
+import li.cil.oc.api.scala.IComputerContext
+import li.cil.oc.api.scala.IItemDriver
 import li.cil.oc.common.components.Screen
 import li.cil.oc.common.util.ItemComponentCache
 import li.cil.oc.server.components.GraphicsCard
@@ -21,7 +21,7 @@ object GraphicsCardDriver extends IItemDriver {
 
   @Callback
   def getResolution(computer: IComputerContext, idGpu: Int, idScreen: Int) = {
-    val res = computer.component[GraphicsCard](idGpu).resolution(computer.component[Screen](idScreen))
+    val res = computer.component[GraphicsCard](idGpu).resolution(computer.getComponent[Screen](idScreen))
     Array(res._1, res._2)
   }
 
@@ -46,24 +46,16 @@ object GraphicsCardDriver extends IItemDriver {
     computer.component[GraphicsCard](idGpu).copy(computer.component[Screen](idScreen), x - 1, y - 1, w, h, tx, ty)
 
   // ----------------------------------------------------------------------- //
-  // IDriver
+  // IDriver / IItemDriver
   // ----------------------------------------------------------------------- //
 
   def componentName = "gpu"
 
-  override def apiName = "gpu"
-
-  def id(component: Any) = component.asInstanceOf[GraphicsCard].id
-
-  def id(component: Any, id: Int) = component.asInstanceOf[GraphicsCard].id = id
-
-  // ----------------------------------------------------------------------- //
-  // IItemDriver
-  // ----------------------------------------------------------------------- //
+  override def apiName = Some("gpu")
 
   def worksWith(item: ItemStack) = item.itemID == Items.gpu.itemID
 
   def componentType(item: ItemStack) = ComponentType.PCI
 
-  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item).getOrElse(null)
+  def component(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item)
 }

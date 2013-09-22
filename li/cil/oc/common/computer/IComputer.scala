@@ -1,7 +1,7 @@
 package li.cil.oc.common.computer
 
-import li.cil.oc.server.components.IComponent
 import li.cil.oc.server.computer.Driver
+import li.cil.oc.server.computer.NetworkNode
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -11,6 +11,8 @@ import net.minecraft.nbt.NBTTagCompound
  * the client, which does nothing at all.
  */
 trait IComputer {
+  // ----------------------------------------------------------------------- //
+
   /**
    * Tries to add the specified component to the computer.
    *
@@ -23,7 +25,7 @@ trait IComputer {
    * @param driver the driver used for the component.
    * @return true if the component was installed, false otherwise.
    */
-  def add(component: Any, driver: Driver): Boolean
+  def add(component: AnyRef, driver: Driver): Boolean
 
   /**
    * Tries to remove the component with the specified ID from the computer.

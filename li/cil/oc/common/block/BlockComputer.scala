@@ -17,6 +17,17 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
   val unlocalizedName = "Computer"
 
   // ----------------------------------------------------------------------- //
+  // INetworkBlock
+  // ----------------------------------------------------------------------- //
+
+  override def hasNode = true
+
+  override def getNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case computer: TileEntityComputer => computer
+    }
+
+  // ----------------------------------------------------------------------- //
   // Rendering stuff
   // ----------------------------------------------------------------------- //
 
@@ -59,7 +70,7 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
   // Tile entity
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity(metadata: Int) = true
+  override def hasTileEntity = true
 
   override def createTileEntity(world: World, metadata: Int) = new TileEntityComputer(world.isRemote)
 

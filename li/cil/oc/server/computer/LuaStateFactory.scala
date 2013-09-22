@@ -22,9 +22,6 @@ private[computer] object LuaStateFactory {
   // Initialization
   // ----------------------------------------------------------------------- //
 
-  private val libraries = Map.empty[String, String]
-  private val basePath = "/assets/opencomputers/"
-
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
   // libraries compiled for that system. It also means we have to unpack the
@@ -36,7 +33,7 @@ private[computer] object LuaStateFactory {
       case name if (name.startsWith("windows")) => "windows"
       case name if (name.startsWith("mac")) => "mac"
     }
-    val libPath = basePath + "lib/" + System.getProperty("os.arch") + "/" + platform + "/"
+    val libPath = "/assets/opencomputers/lib/" + System.getProperty("os.arch") + "/"
 
     val libExt = platform match {
       case "linux" => ".so"
@@ -50,39 +47,46 @@ private[computer] object LuaStateFactory {
       else path + "/"
     }
 
-    for (library <- Array("lua52", "jnlua52")) {
-      val libraryUrl = classOf[Computer].getResource(libPath + library + libExt)
-      if (libraryUrl == null) {
-        throw new NotImplementedError("Unsupported platform.")
-      }
-      // Found file with proper extension. Create a temporary file.
-      val file = new File(tmpPath + library + libExt)
-      try {
-        // Copy the file contents to the temporary file.
-        val in = Channels.newChannel(libraryUrl.openStream())
-        val out = new FileOutputStream(file).getChannel()
-        out.transferFrom(in, 0, Long.MaxValue)
-        in.close()
-        out.close()
-        file.deleteOnExit()
-      }
-      catch {
-        // Java (or Windows?) locks the library file when opening it, so any
-        // further tries to update it while another instance is still running
-        // will fail. We still want to try each time, since the files may have
-        // been updated.
-        case t: Throwable => // Nothing.
-      }
-      // Remember the temporary file's location for later.
-      libraries += library -> file.getAbsolutePath()
+    val library = "native"
+    val libraryUrl = classOf[Computer].getResource(libPath + library + libExt)
+    if (libraryUrl == null) {
+      throw new NotImplementedError("Unsupported platform.")
     }
+    // Found file with proper extension. Create a temporary file.
+    val file = new File(tmpPath + library + libExt)
+    // Try to delete an old instance of the library, in case we have an update
+    // and deleteOnExit fails (which it regularly does on Windows it seems).
+    try {
+      file.delete()
+    }
+    catch {
+      case t: Throwable => // Ignore.
+    }
+    // Copy the file contents to the temporary file.
+    try {
+      val in = Channels.newChannel(libraryUrl.openStream())
+      val out = new FileOutputStream(file).getChannel()
+      out.transferFrom(in, 0, Long.MaxValue)
+      in.close()
+      out.close()
+      file.deleteOnExit()
+    }
+    catch {
+      // Java (or Windows?) locks the library file when opening it, so any
+      // further tries to update it while another instance is still running
+      // will fail. We still want to try each time, since the files may have
+      // been updated.
+      case t: Throwable => // Nothing.
+    }
+
+    // Remember the temporary file's location for the loader.
+    val libraryPath = file.getAbsolutePath()
 
     // Register a custom library loader with JNLua to actually load the ones we
     // just extracted.
     NativeSupport.getInstance().setLoader(new Loader {
       def load() {
-        System.load(libraries("lua52"))
-        System.load(libraries("jnlua52"))
+        System.load(libraryPath)
       }
     })
   }

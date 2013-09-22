@@ -5,6 +5,7 @@ import scala.collection.mutable.MutableList
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
+import li.cil.oc.api.NetworkAPI
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -28,10 +29,13 @@ import net.minecraftforge.common.ForgeDirection
  *
  * This means this block contains barely any logic, it only forwards calls to
  * the underlying sub block, based on the metadata. The only actual logic done
- * in here is for the block rotation (and, well, the forwarding), if the block
- * has a rotatable tile entity. In that case all sides are also translated into
- * local coordinate space for the sub block (i.e. "up" will always be up
- * relative to the block itself. So if it's rotated up may actually be west).
+ * in here is:
+ * - block rotation, if the block has a rotatable tile entity. In that case all
+ *   sides are also translated into local coordinate space for the sub block
+ *   (i.e. "up" will always be up relative to the block itself. So if it's
+ *   rotated up may actually be west).
+ * - Component network logic for adding / removing blocks from the component
+ *   network when they are placed / removed.
  */
 class BlockMulti(id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
@@ -99,7 +103,13 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => // Invalid but avoid match error.
-      case Some(subBlock) => subBlock.breakBlock(world, x, y, z, blockId, metadata)
+      case Some(subBlock) => {
+        if (subBlock.hasNode) {
+          val node = subBlock.getNode(world, x, y, z)
+          node.getNetwork.remove(node)
+        }
+        subBlock.breakBlock(world, x, y, z, blockId, metadata)
+      }
     }
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
@@ -178,7 +188,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
 
   override def hasTileEntity(metadata: Int) = subBlock(metadata) match {
     case None => false
-    case Some(subBlock) => subBlock.hasTileEntity(metadata)
+    case Some(subBlock) => subBlock.hasTileEntity
   }
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
@@ -258,7 +268,12 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case None => // Invalid but avoid match error.
-      case Some(subBlock) => subBlock.onBlockAdded(world, x, y, z)
+      case Some(subBlock) => {
+        if (subBlock.hasNode) {
+          NetworkAPI.joinOrCreateNetwork(world, x, y, z, subBlock.getNode(world, x, y, z))
+        }
+        subBlock.onBlockAdded(world, x, y, z)
+      }
     }
 
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) =

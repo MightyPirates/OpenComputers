@@ -34,7 +34,7 @@ abstract class PacketHandler extends IPacketHandler {
   protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T <: TileEntity: TypeTag](): Option[T] = {
+    def readTileEntity[T: TypeTag](): Option[T] = {
       val dimension = readInt()
       val x = readInt()
       val y = readInt()

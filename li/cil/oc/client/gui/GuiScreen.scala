@@ -7,6 +7,10 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.texture.TextureManager
+import org.lwjgl.input.Keyboard
+import li.cil.oc.client.PacketSender
+import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.TileEntityKeyboard
 
 /**
  * This GUI shows the buffer of a single screen.
@@ -40,17 +44,29 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
 
     // Re-build display lists.
     GuiScreen.compileBackground(innerWidth, innerHeight)
-    GuiScreen.compileText(scale, tileEntity.component.lines)
+    GuiScreen.compileText(scale, tileEntity.screen.lines)
   }
 
   /** Must be called whenever the buffer of the underlying screen changes. */
-  def updateText() = GuiScreen.compileText(scale, tileEntity.component.lines)
+  def updateText() = GuiScreen.compileText(scale, tileEntity.screen.lines)
+
+  override def handleKeyboardInput() = {
+    // Find all keyboards next to this screen and type on them.
+    for (k <- neighboringKeyboards) {
+      if (Keyboard.getEventKeyState()) {
+        PacketSender.sendKeyDown(k, Keyboard.getEventCharacter())
+      }
+      else {
+        PacketSender.sendKeyUp(k, Keyboard.getEventCharacter())
+      }
+    }
+  }
 
   override def initGui() = {
     super.initGui()
     MonospaceFontRenderer.init(mc.renderEngine)
     GuiScreen.init(mc.renderEngine)
-    val (w, h) = tileEntity.component.resolution
+    val (w, h) = tileEntity.screen.resolution
     setSize(w, h)
   }
 
@@ -70,6 +86,16 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   }
 
   override def doesGuiPauseGame = false
+
+  private def neighboringKeyboards =
+    (ForgeDirection.VALID_DIRECTIONS).
+      map(d => tileEntity.worldObj.getBlockTileEntity(
+        tileEntity.xCoord + d.offsetX,
+        tileEntity.yCoord + d.offsetY,
+        tileEntity.zCoord + d.offsetZ)).
+      filter(_ != null).
+      filter(_.isInstanceOf[TileEntityKeyboard]).
+      map(_.asInstanceOf[TileEntityKeyboard])
 }
 
 /** We cache OpenGL stuff in a singleton to avoid having to re-allocate. */

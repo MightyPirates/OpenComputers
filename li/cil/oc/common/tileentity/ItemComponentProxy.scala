@@ -27,7 +27,7 @@ trait ItemComponentProxy extends IInventory {
     case -1 => None
     case slot => Drivers.driverFor(inventory(slot)) match {
       case None => None
-      case Some(driver) => Some(driver.instance.component(inventory(slot)))
+      case Some(driver) => driver.instance.component(inventory(slot))
     }
   }
 
@@ -107,10 +107,12 @@ trait ItemComponentProxy extends IInventory {
       Drivers.driverFor(inventory(slot)) match {
         case None => // Nothing to do, but avoid match errors.
         case Some(driver) => {
-          val component = driver.instance.component(inventory(slot))
-          val id = driver.instance.id(component)
-          if (computer.add(component, driver))
-            itemComponents(slot) = id
+          driver.instance.component(inventory(slot)) match {
+            case None => // Ignore.
+            case Some(component) =>
+              if (computer.add(component, driver))
+                itemComponents(slot) = driver.instance.id(component)
+          }
         }
       }
     }
