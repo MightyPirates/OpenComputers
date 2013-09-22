@@ -1,12 +1,12 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraft.entity.player.EntityPlayer
-import li.cil.oc.common.tileentity.TileEntityComputer
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {

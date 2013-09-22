@@ -1,9 +1,9 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.Config
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.Config
 
 /** Used for sub blocks that need special rendering. */
 class BlockSpecialMulti(id: Int) extends BlockMulti(id) {

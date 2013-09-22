@@ -1,14 +1,14 @@
 package li.cil.oc.client.gui
 
-import org.lwjgl.opengl.GL11
 import li.cil.oc.common.container.ContainerComputer
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.inventory.Slot
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.StatCollector
-import net.minecraft.inventory.Slot
-import net.minecraft.client.renderer.Tessellator
+import org.lwjgl.opengl.GL11
 
 class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer) extends GuiContainer(new ContainerComputer(inventory, tileEntity)) {
   private val background = new ResourceLocation("opencomputers", "textures/gui/computer.png")

@@ -7,12 +7,12 @@ import net.minecraft.nbt.NBTTagCompound
  * This is a dummy class for the client side. It does nothing, really, just
  * saves us a couple of side checks.
  */
-class Computer(val owner: AnyRef) extends IComputer {
+class Computer(owner: Any) extends IComputer {
   override def start() = false
 
   override def stop() = false
 
-  override var isRunning = false
+  var isRunning = false
 
   override def update() {}
 

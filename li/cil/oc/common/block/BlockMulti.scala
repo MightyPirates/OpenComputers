@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
@@ -105,7 +104,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case node: INetworkNode => node.getNetwork.remove(node)
+          case node: INetworkNode => node.network.remove(node)
         }
         subBlock.breakBlock(world, x, y, z, blockId, metadata)
       }

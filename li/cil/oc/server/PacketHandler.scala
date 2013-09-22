@@ -1,14 +1,14 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.api.INetworkNode
 import li.cil.oc.common.PacketBuilder
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraftforge.common.DimensionManager
-import li.cil.oc.api.INetworkNode
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -67,12 +67,12 @@ class PacketHandler extends CommonPacketHandler {
   def onKeyDown(p: PacketParser) =
     p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
-      case Some(n) => n.getNetwork.sendToAll(n, "tryKeyDown", p.player, char2Character(p.readChar()))
+      case Some(n) => n.network.sendToAll(n, "keyboard.keyDown", p.player, p.readChar())
     }
 
   def onKeyUp(p: PacketParser) =
     p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
-      case Some(n) => n.getNetwork.sendToAll(n, "tryKeyUp", p.player, char2Character(p.readChar()))
+      case Some(n) => n.network.sendToAll(n, "keyboard.keyUp", p.player, p.readChar())
     }
 }

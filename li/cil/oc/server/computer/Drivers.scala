@@ -1,10 +1,9 @@
 package li.cil.oc.server.computer
 
-import scala.collection.mutable.ArrayBuffer
-
 import li.cil.oc.api.{IItemDriver, IBlockDriver}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * This class keeps track of registered drivers and provides installation logic

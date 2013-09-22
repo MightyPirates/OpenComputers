@@ -2,15 +2,14 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.{INetworkNode, ComponentType}
 import li.cil.oc.common.computer.IComputer
-import li.cil.oc.server.computer.{NetworkNode, Drivers}
-
+import li.cil.oc.server.computer.Drivers
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
-trait ItemComponentProxy extends IInventory with NetworkNode {
+trait ItemComponentProxy extends IInventory with INetworkNode {
   protected val inventory = new Array[ItemStack](8)
 
   protected val itemComponents = Array.fill(inventory.length)(0)
@@ -28,7 +27,7 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
     case -1 => None
     case slot => Drivers.driverFor(inventory(slot)) match {
       case None => None
-      case Some(driver) => Option(driver.instance.getNode(inventory(slot)))
+      case Some(driver) => driver.instance.node(inventory(slot))
     }
   }
 
@@ -73,7 +72,7 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
     for (i <- 0 until inventory.length) {
       itemNode(i) match {
         case None => // Ignore.
-        case Some(node) => getNetwork.connect(this, node)
+        case Some(node) => network.connect(this, node)
       }
     }
   }
@@ -83,7 +82,7 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
     for (i <- 0 until inventory.length) {
       itemNode(i) match {
         case None => // Ignore.
-        case Some(node) => node.getNetwork.remove(node)
+        case Some(node) => node.network.remove(node)
       }
     }
   }
@@ -121,8 +120,9 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
 
   def setInventorySlotContents(slot: Int, item: ItemStack) = {
     // Uninstall component previously in that slot.
-    itemNode(slot) match {
-      case Some(node: INetworkNode) => node.getNetwork.remove(node)
+    if (!world.isRemote) itemNode(slot) match {
+      case Some(node) => node.network.remove(node)
+      case _ => // Nothing to do.
     }
     itemComponents(slot) = 0
 
@@ -130,13 +130,13 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
     if (item != null && item.stackSize > getInventoryStackLimit)
       item.stackSize = getInventoryStackLimit
 
-    if (inventory(slot) != null) {
+    if (!world.isRemote && inventory(slot) != null) {
       Drivers.driverFor(inventory(slot)) match {
         case None => // Nothing to do, but avoid match errors.
         case Some(driver) => {
-          driver.instance.getNode(inventory(slot)) match {
+          driver.instance.node(inventory(slot)) match {
             case None => // Ignore.
-            case Some(node: INetworkNode) => getNetwork.connect(this, node)
+            case Some(node) => network.connect(this, node)
           }
         }
       }
@@ -145,10 +145,10 @@ trait ItemComponentProxy extends IInventory with NetworkNode {
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
     case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.PCI
-    case (4 | 5, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.RAM
-    case (6 | 7, Some(driver)) => driver.instance.getComponentType(item) == ComponentType.HDD
+    case (0, Some(driver)) => driver.instance.componentType(item) == ComponentType.PSU
+    case (1 | 2 | 3, Some(driver)) => driver.instance.componentType(item) == ComponentType.PCI
+    case (4 | 5, Some(driver)) => driver.instance.componentType(item) == ComponentType.RAM
+    case (6 | 7, Some(driver)) => driver.instance.componentType(item) == ComponentType.HDD
     case (_, Some(_)) => false // Invalid slot.
   }
 

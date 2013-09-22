@@ -1,13 +1,13 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
+import li.cil.oc.client.gui.GuiComputer
+import li.cil.oc.client.gui.GuiScreen
 import li.cil.oc.common.container.ContainerComputer
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
-import li.cil.oc.client.gui.GuiScreen
-import li.cil.oc.client.gui.GuiComputer
 
 object GuiType extends Enumeration {
   val Computer = Value("Computer")

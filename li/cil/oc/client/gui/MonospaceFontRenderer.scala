@@ -1,10 +1,10 @@
 package li.cil.oc.client.gui
 
-import net.minecraft.util.ResourceLocation
-import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.client.renderer.Tessellator
-import org.lwjgl.opengl.GL11
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureManager
+import net.minecraft.util.ResourceLocation
+import org.lwjgl.opengl.GL11
 
 object MonospaceFontRenderer {
   private val font = new ResourceLocation("opencomputers", "textures/font/ascii.png")

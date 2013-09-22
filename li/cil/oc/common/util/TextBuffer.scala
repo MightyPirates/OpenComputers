@@ -2,7 +2,6 @@ package li.cil.oc.common.util
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
-
 import net.minecraft.nbt.NBTTagString
 
 /**

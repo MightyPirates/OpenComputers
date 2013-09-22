@@ -1,9 +1,9 @@
 package li.cil.oc.server.computer
 
-import scala.compat.Platform.EOL
 import com.naef.jnlua.LuaRuntimeException
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.{IDriver, IBlockDriver, IItemDriver}
+import scala.compat.Platform.EOL
 
 class ItemDriver(val instance: IItemDriver) extends Driver
 
@@ -25,13 +25,13 @@ abstract private[oc] class Driver {
   /** Installs this driver's API on the specified computer. */
   def installOn(computer: Computer) {
     // Run custom init script.
-    Option(instance.getApiCode) match {
+    instance.api match {
       case None => // Nothing to do.
-      case Some(apiCode) =>
+      case Some(code) =>
         val name = instance.getClass.getName
         try {
-          computer.lua.load(apiCode, name, "t") // ... func
-          apiCode.close()
+          computer.lua.load(code, name, "t") // ... func
+          code.close()
           computer.lua.call(0, 0) // ...
         }
         catch {

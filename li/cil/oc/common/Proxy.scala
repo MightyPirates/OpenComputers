@@ -1,12 +1,9 @@
 package li.cil.oc.common
 
-import scala.collection.JavaConversions._
-
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
-import li.cil.oc.OpenComputers
 import li.cil.oc.api.{OpenComputersAPI, INetworkNode, NetworkAPI}
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.server.computer.Drivers
@@ -16,6 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.ChunkEvent
+import scala.collection.JavaConversions._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -65,7 +63,7 @@ class Proxy {
         tileEntities.
           filter(_.isInstanceOf[INetworkNode]).
           map(_.asInstanceOf[TileEntity with INetworkNode]).
-          foreach(t => t.getNetwork.remove(t))
+          foreach(t => t.network.remove(t))
       }
 
     private def onLoad(w: World, tileEntities: Iterable[TileEntity]) =

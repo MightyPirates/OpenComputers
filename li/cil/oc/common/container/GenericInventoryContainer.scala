@@ -1,11 +1,11 @@
 package li.cil.oc.common.container
 
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.IInventory
+import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
-import net.minecraft.entity.player.EntityPlayer
 
 /** Utility for inventory containers providing basic re-usable functionality. */
 abstract class GenericInventoryContainer(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {

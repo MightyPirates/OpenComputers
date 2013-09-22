@@ -7,11 +7,11 @@ import li.cil.oc.server.components.GraphicsCard
 import net.minecraft.item.ItemStack
 
 object GraphicsCardDriver extends IItemDriver {
-  override def getApiCode = getClass.getResourceAsStream("/assets/opencomputers/lua/gpu.lua")
+  override def api = Option(getClass.getResourceAsStream("/assets/opencomputers/lua/gpu.lua"))
 
   override def worksWith(item: ItemStack) = item.itemID == Items.gpu.itemID
 
-  override def getComponentType(item: ItemStack) = ComponentType.PCI
+  override def componentType(item: ItemStack) = ComponentType.PCI
 
-  override def getNode(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item).orNull
+  override def node(item: ItemStack) = ItemComponentCache.get[GraphicsCard](item)
 }

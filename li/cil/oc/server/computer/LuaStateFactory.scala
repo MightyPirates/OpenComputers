@@ -1,12 +1,10 @@
 package li.cil.oc.server.computer
 
+import com.naef.jnlua.NativeSupport.Loader
+import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
-
-
-import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
-import com.naef.jnlua.NativeSupport.Loader
 import scala.util.Random
 
 case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
@@ -100,7 +98,7 @@ private[computer] object LuaStateFactory {
 
   def createState(): Option[LuaState] = {
     val state = new LuaState(Integer.MAX_VALUE)
-    try
+    try {
       // Load all libraries.
       state.openLib(LuaState.Library.BASE)
       state.openLib(LuaState.Library.BIT32)
@@ -189,8 +187,7 @@ private[computer] object LuaStateFactory {
       state.pop(1)
 
       Some(state)
-
-    catch {
+    } catch {
       case ex: Throwable => {
         ex.printStackTrace()
         state.close()

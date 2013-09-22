@@ -1,19 +1,16 @@
 package li.cil.oc.server.computer
 
+import com.naef.jnlua._
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
-
-import scala.Array.canBuildFrom
-import scala.collection.JavaConversions._
-import scala.io.Source
-
-import com.naef.jnlua._
-
 import li.cil.oc.Config
 import li.cil.oc.common.computer.IComputer
 import net.minecraft.nbt._
+import scala.Array.canBuildFrom
+import scala.collection.JavaConversions._
+import scala.io.Source
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -142,7 +139,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       signal("dummy")
 
       // Initialize any installed components.
-      owner.getNetwork.sendToAll(owner, "computer.start")
+      owner.network.sendToAll(owner, "computer.start")
 
       future = Some(Executor.pool.submit(this))
       true
@@ -557,7 +554,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
 
-      owner.getNetwork.sendToAll(owner, "computer.stop")
+      if (owner.network != null) {
+        owner.network.sendToAll(owner, "computer.stop")
+      }
     })
 
   // This is a really high level lock that we only use for saving and loading.

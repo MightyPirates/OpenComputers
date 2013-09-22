@@ -1,4 +1,4 @@
-package li.cil.oc.api;
+package li.cil.oc.api
 
 /**
  * Unlike all other component drivers, drivers for memory (RAM) need to
@@ -8,11 +8,11 @@ package li.cil.oc.api;
  * to really make available to the computer (makes an upper limit realizable
  * even if mods add custom RAM modules).
  */
-public interface IMemory extends IDriver {
+trait IMemory {
   /**
    * The amount of memory this component provides. Note that this number may, in
    * fact, be negative, so you could make components that reserve some portion
    * of the memory, for example.
    */
-  int getAmount();
+  def amount: Int
 }

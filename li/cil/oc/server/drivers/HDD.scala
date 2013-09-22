@@ -1,26 +1,22 @@
 package li.cil.oc.server.drivers
 
 import li.cil.oc.Config
-import li.cil.oc.api.Callback
-import li.cil.oc.api.ComponentType
+import li.cil.oc.api.{IItemDriver, ComponentType}
 import li.cil.oc.server.components.Disk
 import net.minecraft.item.ItemStack
 
 object HDDDriver extends IItemDriver {
-  @Callback(name = "mount")
   def mount(hddId: Int, path: String) {
 
   }
 
-  def componentName = "disk"
+  override def api = null
 
-  override def apiName = Some("disk")
+  override def worksWith(item: ItemStack) = item.itemID == Config.itemHDDId
 
-  def worksWith(item: ItemStack) = item.itemID == Config.itemHDDId
+  override def componentType(item: ItemStack) = ComponentType.HDD
 
-  def componentType(item: ItemStack) = ComponentType.HDD
-
-  def component(item: ItemStack) = null
+  override def node(item: ItemStack) = null
 
   def close(component: Any) {
     component.asInstanceOf[HDDComponent].close()

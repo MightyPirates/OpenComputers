@@ -1,12 +1,12 @@
 package li.cil.oc.client
 
-import org.lwjgl.opengl.GL11
 import li.cil.oc.client.gui.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.TileEntityScreen
+import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.client.renderer.OpenGlHelper
+import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) = {

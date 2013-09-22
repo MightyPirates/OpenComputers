@@ -1,4 +1,4 @@
-package li.cil.oc.api;
+package li.cil.oc.api
 
 /**
  * List of possible item component types.
@@ -7,6 +7,9 @@ package li.cil.oc.api;
  * computer, since unlike block components, item components must be placed
  * inside the computer, not next to it.
  */
-public enum ComponentType {
-    PSU, RAM, HDD, PCI
+object ComponentType extends Enumeration {
+  val PSU = Value("PSU")
+  val RAM = Value("RAM")
+  val HDD = Value("HDD")
+  val PCI = Value("PCI")
 }

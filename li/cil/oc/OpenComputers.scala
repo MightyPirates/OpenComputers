@@ -1,9 +1,5 @@
 package li.cil.oc
 
-import java.util.logging.Logger
-
-import scala.reflect.runtime.universe._
-
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.SidedProxy
@@ -12,9 +8,11 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.network.NetworkMod
 import cpw.mods.fml.common.network.NetworkMod._
-import li.cil.oc.common.Proxy
+import java.util.logging.Logger
 import li.cil.oc.client.{ PacketHandler => ClientPacketHandler }
+import li.cil.oc.common.Proxy
 import li.cil.oc.server.{ PacketHandler => ServerPacketHandler }
+import scala.reflect.runtime.universe._
 
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0", dependencies = "required-after:Forge@[9.10.0.804,)", modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,

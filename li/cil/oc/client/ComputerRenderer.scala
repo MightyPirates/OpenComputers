@@ -1,13 +1,13 @@
 package li.cil.oc.client
 
-import org.lwjgl.opengl.GL11
 import li.cil.oc.common.tileentity.TileEntityComputer
 import net.minecraft.client.renderer.OpenGlHelper
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.ForgeDirection
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.common.ForgeDirection
+import org.lwjgl.opengl.GL11
 
 object ComputerRenderer extends TileEntitySpecialRenderer {
   private val frontOn = new ResourceLocation("opencomputers", "textures/blocks/computer_front_on.png")

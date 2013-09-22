@@ -1,5 +1,5 @@
 package li.cil.oc.server.components
 
-class Disk extends IComponent {
+class Disk {
   def close() {}
 }

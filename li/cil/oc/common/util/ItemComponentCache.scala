@@ -1,6 +1,5 @@
 package li.cil.oc.common.util
 
-
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.mutable
