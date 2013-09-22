@@ -1,13 +1,10 @@
 package li.cil.oc.common.block
 
 import net.minecraft.item.ItemBlock
-import li.cil.oc.Config
 import net.minecraft.item.ItemStack
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
-import li.cil.oc.Blocks
-import net.minecraftforge.common.ForgeDirection
 import li.cil.oc.common.tileentity.TileEntityRotatable
 
 /** Used to represent multiblocks when in item form. */

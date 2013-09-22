@@ -2,11 +2,9 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
-import li.cil.oc.common.PacketBuilder._
-import li.cil.oc.common.{ PacketHandler => CommonPacketHandler }
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityComputer
-import li.cil.oc.common.tileentity.TileEntityKeyboard
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraftforge.common.DimensionManager
@@ -27,7 +25,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
@@ -40,7 +38,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityComputer] match {
+    p.readTileEntity[TileEntityComputer]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.ComputerStateResponse)
@@ -53,7 +51,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityRotatable] match {
+    p.readTileEntity[TileEntityRotatable]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.RotatableStateResponse)
@@ -67,13 +65,13 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onKeyDown(p: PacketParser) =
-    p.readTileEntity[INetworkNode] match {
+    p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
       case Some(n) => n.getNetwork.sendToAll(n, "tryKeyDown", p.player, char2Character(p.readChar()))
     }
 
   def onKeyUp(p: PacketParser) =
-    p.readTileEntity[INetworkNode] match {
+    p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
       case Some(n) => n.getNetwork.sendToAll(n, "tryKeyUp", p.player, char2Character(p.readChar()))
     }

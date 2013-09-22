@@ -30,22 +30,4 @@ public interface IComputerContext {
    *          any parameters to pass along with the signal.
    */
   boolean signal(String name, Object[] args);
-
-  /**
-   * Gets a component with the specified ID from the computer.
-   * 
-   * The Lua state refers to components only by their ID. They may pass this ID
-   * along to a driver API function, so that it in turn may resolve it to the
-   * actual component (originally retrieved by the computer via {@see
-   * IItemDriver#getComponent(ItemStack)} or {@see
-   * IBlockDriver#getComponent(Int, Int, Int)}).
-   * 
-   * This will try to convert the component to the specified type and throw an
-   * exception if the type does not match. It also throws an exception if there
-   * is no such component.
-   * 
-   * @param id
-   *          the id of the component to get.
-   */
-  <T> T getComponent(int id);
 }

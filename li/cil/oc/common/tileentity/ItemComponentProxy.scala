@@ -1,4 +1,5 @@
 package li.cil.oc.common.tileentity
+
 import li.cil.oc.api.ComponentType
 import li.cil.oc.common.computer.IComputer
 import li.cil.oc.server.computer.Drivers
@@ -46,18 +47,20 @@ trait ItemComponentProxy extends IInventory {
 
   def writeItemsToNBT(nbt: NBTTagCompound) = {
     val list = new NBTTagList
-    inventory.zipWithIndex.filter { case (stack, slot) => stack != null }.
+    inventory.zipWithIndex.filter {
+      case (stack, slot) => stack != null
+    }.
       foreach {
-        case (stack, slot) => {
-          val slotNbt = new NBTTagCompound
-          slotNbt.setByte("slot", slot.toByte)
-          val itemNbt = new NBTTagCompound
-          stack.writeToNBT(itemNbt)
-          slotNbt.setCompoundTag("item", itemNbt)
-          slotNbt.setInteger("id", itemComponents(slot))
-          list.appendTag(slotNbt)
-        }
+      case (stack, slot) => {
+        val slotNbt = new NBTTagCompound
+        slotNbt.setByte("slot", slot.toByte)
+        val itemNbt = new NBTTagCompound
+        stack.writeToNBT(itemNbt)
+        slotNbt.setCompoundTag("item", itemNbt)
+        slotNbt.setInteger("id", itemComponents(slot))
+        list.appendTag(slotNbt)
       }
+    }
     nbt.setTag("list", list)
   }
 

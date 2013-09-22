@@ -81,7 +81,8 @@ class Proxy {
           filter(_.isInstanceOf[INetworkNode]).
           map(_.asInstanceOf[TileEntity with INetworkNode]).
           foreach(t => NetworkAPI.
-            joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord, t))
+          joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord, t))
       }
   }
+
 }

@@ -3,7 +3,6 @@ package li.cil.oc.client.gui
 import org.lwjgl.opengl.GL11
 import li.cil.oc.common.container.ContainerComputer
 import li.cil.oc.common.tileentity.TileEntityComputer
-import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.ResourceLocation
@@ -31,7 +30,7 @@ class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer
 
   override def drawSlotInventory(slot: Slot) = {
     super.drawSlotInventory(slot)
-    if (slot.slotNumber < 8 && !slot.getHasStack())
+    if (slot.slotNumber < 8 && !slot.getHasStack)
       drawSlotIcon(slot, icons(slot.slotNumber))
   }
 

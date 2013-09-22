@@ -92,15 +92,15 @@ class TextBuffer(var width: Int, var height: Int) {
       case destx => destx.swap
     }
     val (dy0, dy1) = ((row + ty + h - 1) max 0 min (height - 1), (row + ty) max 0 min height) match {
-      case desty if (ty > 0) => desty
+      case desty if ty > 0 => desty
       case desty => desty.swap
     }
-    val (sx, sy) = ((if (tx > 0) -1 else 1), (if (ty > 0) -1 else 1))
+    val (sx, sy) = (if (tx > 0) -1 else 1, if (ty > 0) -1 else 1)
     // Copy values to destination rectangle if there source is valid.
     var changed = false
-    for (ny <- dy0 to dy1 by sy) (ny - ty) match {
+    for (ny <- dy0 to dy1 by sy) ny - ty match {
       case oy if oy >= 0 && oy < height =>
-        for (nx <- dx0 to dx1 by sx) (nx - tx) match {
+        for (nx <- dx0 to dx1 by sx) nx - tx match {
           case ox if ox >= 0 && ox < width => {
             changed = changed || (buffer(ny)(nx) != buffer(oy)(ox))
             buffer(ny)(nx) = buffer(oy)(ox)
@@ -140,6 +140,6 @@ class TextBuffer(var width: Int, var height: Int) {
         b.append('\n').appendAll(buffer(y))
       }
     }
-    b.toString
+    b.toString()
   }
 }

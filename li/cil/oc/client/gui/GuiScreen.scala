@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.common.tileentity.TileEntityScreen
-import net.minecraft.client.gui.Gui
 import org.lwjgl.opengl.GL11
 import net.minecraft.util.ResourceLocation
 import net.minecraft.client.renderer.Tessellator
@@ -53,11 +52,11 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   override def handleKeyboardInput() = {
     // Find all keyboards next to this screen and type on them.
     for (k <- neighboringKeyboards) {
-      if (Keyboard.getEventKeyState()) {
-        PacketSender.sendKeyDown(k, Keyboard.getEventCharacter())
+      if (Keyboard.getEventKeyState) {
+        PacketSender.sendKeyDown(k, Keyboard.getEventCharacter)
       }
       else {
-        PacketSender.sendKeyUp(k, Keyboard.getEventCharacter())
+        PacketSender.sendKeyUp(k, Keyboard.getEventCharacter)
       }
     }
   }
@@ -70,7 +69,7 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
     setSize(w, h)
   }
 
-  override def onGuiClosed = {
+  override def onGuiClosed() = {
     super.onGuiClosed()
     tileEntity.gui = None
   }
@@ -88,11 +87,11 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   override def doesGuiPauseGame = false
 
   private def neighboringKeyboards =
-    (ForgeDirection.VALID_DIRECTIONS).
+    ForgeDirection.VALID_DIRECTIONS.
       map(d => tileEntity.worldObj.getBlockTileEntity(
-        tileEntity.xCoord + d.offsetX,
-        tileEntity.yCoord + d.offsetY,
-        tileEntity.zCoord + d.offsetZ)).
+      tileEntity.xCoord + d.offsetX,
+      tileEntity.yCoord + d.offsetY,
+      tileEntity.zCoord + d.offsetZ)).
       filter(_ != null).
       filter(_.isInstanceOf[TileEntityKeyboard]).
       map(_.asInstanceOf[TileEntityKeyboard])

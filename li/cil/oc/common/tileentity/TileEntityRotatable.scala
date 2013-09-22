@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.client.{ PacketSender => ClientPacketSender }
-import li.cil.oc.server.{ PacketSender => ServerPacketSender }
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound

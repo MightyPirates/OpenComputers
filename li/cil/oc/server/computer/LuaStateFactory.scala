@@ -4,7 +4,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 
-import scala.collection.mutable.Map
 
 import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport
@@ -28,10 +27,10 @@ private[computer] object LuaStateFactory {
   // shared libraries somewhere so that we can load them, because we cannot
   // load them directly from a JAR.
   {
-    val platform = System.getProperty("os.name").toLowerCase() match {
-      case name if (name.startsWith("linux")) => "linux"
-      case name if (name.startsWith("windows")) => "windows"
-      case name if (name.startsWith("mac")) => "mac"
+    val platform = System.getProperty("os.name").toLowerCase match {
+      case name if name.startsWith("linux") => "linux"
+      case name if name.startsWith("windows") => "windows"
+      case name if name.startsWith("mac") => "mac"
     }
     val libPath = "/assets/opencomputers/lib/" + System.getProperty("os.arch") + "/"
 
@@ -65,7 +64,7 @@ private[computer] object LuaStateFactory {
     // Copy the file contents to the temporary file.
     try {
       val in = Channels.newChannel(libraryUrl.openStream())
-      val out = new FileOutputStream(file).getChannel()
+      val out = new FileOutputStream(file).getChannel
       out.transferFrom(in, 0, Long.MaxValue)
       in.close()
       out.close()
@@ -80,7 +79,7 @@ private[computer] object LuaStateFactory {
     }
 
     // Remember the temporary file's location for the loader.
-    val libraryPath = file.getAbsolutePath()
+    val libraryPath = file.getAbsolutePath
 
     // Register a custom library loader with JNLua to actually load the ones we
     // just extracted.
@@ -123,7 +122,7 @@ private[computer] object LuaStateFactory {
       state.pushNil()
       state.setGlobal("require")
 
-      return Some(state)
+      Some(state)
     }
     catch {
       case ex: Throwable => {

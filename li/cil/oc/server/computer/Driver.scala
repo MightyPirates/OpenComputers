@@ -3,8 +3,6 @@ package li.cil.oc.server.computer
 import java.lang.reflect.InvocationTargetException
 
 import scala.compat.Platform.EOL
-import scala.reflect.runtime.{ universe => ru }
-import scala.reflect.runtime.universe._
 
 import com.naef.jnlua.DefaultConverter
 import com.naef.jnlua.JavaFunction
@@ -19,6 +17,7 @@ import li.cil.oc.api.scala.IDriver
 import li.cil.oc.api.scala.IItemDriver
 
 class ItemDriver(val instance: IItemDriver) extends Driver
+
 class BlockDriver(val instance: IBlockDriver) extends Driver
 
 /**
@@ -51,7 +50,8 @@ abstract private[oc] class Driver {
 
     // Get or create API table.
     lua.getField(-1, apiName.get) // ... drivers api?
-    if (lua.isNil(-1)) { // ... drivers nil
+    if (lua.isNil(-1)) {
+      // ... drivers nil
       lua.pop(1) // ... drivers
       lua.newTable() // ... drivers api
       lua.pushValue(-1) // ... drivers api api
@@ -62,31 +62,36 @@ abstract private[oc] class Driver {
     val instanceMirror = mirror.reflect(instance)
     val instanceType = instanceMirror.symbol.typeSignature
     val callbackSymbol = ru.typeOf[Callback].typeSymbol
-    for (method <- instanceType.members collect { case m if m.isMethod => m.asMethod })
+    for (method <- instanceType.members collect {
+      case m if m.isMethod => m.asMethod
+    }) {
       method.annotations.filter(_.tpe.typeSymbol == callbackSymbol).
         foreach(annotation => {
-          val name = annotation.javaArgs.get(newTermName("name")) match {
-            case Some(arg) if arg != null => arg.asInstanceOf[String]
-            case _ => method.name.decoded
-          }
-          lua.getField(-1, name) // ... drivers api func?
-          if (lua.isNil(-1)) { // ... drivers api nil
-            // No such entry yet.
-            lua.pop(1) // ... drivers api
-            lua.pushJavaFunction(new APIClosure(mirror, instanceMirror.reflectMethod(method), computer)) // ... drivers api func
-            lua.setField(-2, name) // ... drivers api
-          }
-          else { // ... drivers api func
-            // Entry already exists, skip it.
-            lua.pop(1) // ... drivers api
-            // Note that we can be sure it's an issue with two drivers
-            // colliding, because this is guaranteed to run before any user
-            // code had a chance to mess with the table.
-            OpenComputers.log.warning(String.format(
-              "Duplicate API entry, ignoring %s.%s of driver %s.",
-              apiName, name, instance.componentName))
-          }
-        })
+        val name = annotation.javaArgs.get(newTermName("name")) match {
+          case Some(arg) if arg != null => arg.asInstanceOf[String]
+          case _ => method.name.decoded
+        }
+        lua.getField(-1, name) // ... drivers api func?
+        if (lua.isNil(-1)) {
+          // ... drivers api nil
+          // No such entry yet.
+          lua.pop(1) // ... drivers api
+          lua.pushJavaFunction(new APIClosure(mirror, instanceMirror.reflectMethod(method), computer)) // ... drivers api func
+          lua.setField(-2, name) // ... drivers api
+        }
+        else {
+          // ... drivers api func
+          // Entry already exists, skip it.
+          lua.pop(1) // ... drivers api
+          // Note that we can be sure it's an issue with two drivers
+          // colliding, because this is guaranteed to run before any user
+          // code had a chance to mess with the table.
+          OpenComputers.log.warning(String.format(
+            "Duplicate API entry, ignoring %s.%s of driver %s.",
+            apiName, name, instance.componentName))
+        }
+      })
+    }
     // ... drivers api
     lua.pop(2) // ...
 
@@ -147,11 +152,13 @@ abstract private[oc] class Driver {
         // Transform error messages to only keep the actual message, to avoid
         // Java/scala specific stuff to be shown on the Lua side.
         case e: InvocationTargetException =>
-          e.getCause.printStackTrace(); throw new Throwable {
+          e.getCause.printStackTrace();
+          throw new Throwable {
             override def toString = e.getCause.getMessage
           }
         case e: Throwable =>
-          e.printStackTrace(); throw new Throwable {
+          e.printStackTrace();
+          throw new Throwable {
             override def toString = e.getMessage
           }
       }
@@ -164,7 +171,7 @@ abstract private[oc] class Driver {
     private def buildParameterTransformations(mirror: Mirror, method: MethodSymbol): (Array[Computer => Any], Computer => Boolean) =
       if (method.paramss.length == 0 || method.paramss(0).length == 0) {
         // No parameters.
-        (Array(), c => c.lua.getTop() == 0)
+        (Array(), c => c.lua.getTop == 0)
       }
       else {
         val paramTypes = method.paramss(0).map(_.typeSignature.typeSymbol)
@@ -172,11 +179,11 @@ abstract private[oc] class Driver {
         if (paramTypes.length == 2 &&
           paramTypes(0) == typeOf[IComputerContext].typeSymbol &&
           paramTypes(1) == typeOf[Array[Any]].typeSymbol)
-          // Callback function that wants to handle its arguments manually.
-          // Convert all arguments and pack them into an array.
+        // Callback function that wants to handle its arguments manually.
+        // Convert all arguments and pack them into an array.
           (Array(
             c => c,
-            c => (1 to c.lua.getTop()).map(
+            c => (1 to c.lua.getTop).map(
               c.lua.toJavaObject(_, classOf[Object]))), c => true)
 
         // Normal callback. Build converters based on the method's signature.
@@ -189,13 +196,13 @@ abstract private[oc] class Driver {
           (paramTypes.map {
             case t if t == typeOf[IComputerContext].typeSymbol =>
               (c: Computer) => c
-              case t => {
+            case t => {
               val clazz = mirror.runtimeClass(t.asClass)
               paramIndex = paramIndex + 1
               val i = paramIndex
               (c: Computer) => c.lua.toJavaObject(i, clazz)
             }
-          }.toArray, c => c.lua.getTop() == paramIndex)
+          }.toArray, c => c.lua.getTop == paramIndex)
         }
       }
 
@@ -210,7 +217,7 @@ abstract private[oc] class Driver {
         case t if t.typeSymbol == typeOf[Unit].typeSymbol => (c, v) => 0
         case t if t.typeSymbol == typeOf[Array[_]].typeSymbol && checkType(mirror, t.asInstanceOf[TypeRefApi].args(0).typeSymbol) => (c, v) => {
           val array = v.asInstanceOf[Array[_]]
-          array.foreach(c.lua.pushJavaObject(_))
+          array.foreach(c.lua.pushJavaObject)
           array.length
         }
         case t if checkType(mirror, t.typeSymbol) => (c, v) => c.lua.pushJavaObject(v); 1
@@ -224,4 +231,5 @@ abstract private[oc] class Driver {
       else if (t.isType) DefaultConverter.isTypeSupported(mirror.runtimeClass(t.typeSignature))
       else false
   }
+
 }

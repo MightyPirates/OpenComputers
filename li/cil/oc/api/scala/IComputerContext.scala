@@ -9,14 +9,10 @@ trait IComputerContext extends IJavaComputerContext {
 
   def signal(name: String, args: Any*): Boolean
 
-  def component[T <: AnyRef](id: Int): T
-
   // ----------------------------------------------------------------------- //
 
   def getWorld = world
 
   def signal(name: String, args: Array[Object]): Boolean =
     signal(name, args: _*)
-
-  override def getComponent[T >: Nothing](id: Int) = component(id)
 }

@@ -84,8 +84,8 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
   }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-    side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking()) {
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (!player.isSneaking) {
       // Start the computer if it isn't already running and open the GUI.
       world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
       player.openGui(OpenComputers, GuiType.Computer.id, world, x, y, z)

@@ -71,7 +71,7 @@ class BlockScreen(val parent: BlockMulti) extends SubBlock {
   // ----------------------------------------------------------------------- //
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-    side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
     true
   }

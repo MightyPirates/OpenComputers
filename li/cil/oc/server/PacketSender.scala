@@ -1,7 +1,6 @@
 package li.cil.oc.server
 
 import li.cil.oc.common.PacketBuilder
-import li.cil.oc.common.PacketBuilder._
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import net.minecraft.tileentity.TileEntity

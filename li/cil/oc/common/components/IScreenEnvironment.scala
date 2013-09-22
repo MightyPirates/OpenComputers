@@ -1,7 +1,5 @@
 package li.cil.oc.common.components
 
-import cpw.mods.fml.relauncher._
-
 /**
  * Environment for screen components.
  *

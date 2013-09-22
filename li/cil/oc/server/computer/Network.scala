@@ -1,15 +1,12 @@
 package li.cil.oc.server.computer
 
 import scala.beans.BeanProperty
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Map
-import scala.collection.mutable.MutableList
-import scala.collection.mutable.Queue
 
 import li.cil.oc.api.INetwork
 import li.cil.oc.api.INetworkMessage
 import li.cil.oc.api.INetworkNode
+import scala.collection.mutable
 
 /**
  * Network implementation for component networks.
@@ -22,8 +19,8 @@ import li.cil.oc.api.INetworkNode
  * It keeps the list of nodes as a lookup table for fast id->node resolving.
  * Note that it is possible for multiple nodes to have the same ID, though.
  */
-class Network private (private val nodes: Map[Int, ArrayBuffer[Network.Node]]) extends INetwork {
-  def this(node: INetworkNode) = this(Map(node.getAddress -> ArrayBuffer(new Network.Node(node))))
+class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends INetwork {
+  def this(node: INetworkNode) = this(mutable.Map(node.getAddress -> ArrayBuffer(new Network.Node(node))))
 
   /** Do not allow modification of the network while it's updating. */
   private var locked = false
@@ -91,7 +88,7 @@ class Network private (private val nodes: Map[Int, ArrayBuffer[Network.Node]]) e
 
   private def send(message: Network.Message, nodes: Iterator[INetworkNode]) =
     while (!message.isCanceled && nodes.hasNext) {
-      nodes.next.receive(message)
+      nodes.next().receive(message)
     }
 
   private def add(oldNode: Network.Node, node: INetworkNode) = {
@@ -100,7 +97,7 @@ class Network private (private val nodes: Map[Int, ArrayBuffer[Network.Node]]) e
       // Other node is not yet in a network, create internal node and add it
       // to our lookup table of internal nodes.
       val newNode = new Network.Node(node)
-      node.setAddress(findId)
+      node.setAddress(findId())
       nodes.getOrElseUpdate(node.getAddress, new ArrayBuffer[Network.Node]) += newNode
       node.setNetwork(this)
       sendToAll(node, "network.connect")
@@ -148,6 +145,7 @@ class Network private (private val nodes: Map[Int, ArrayBuffer[Network.Node]]) e
 }
 
 object Network {
+
   private class Node(val data: INetworkNode) {
     val edges = ArrayBuffer.empty[Edge]
 
@@ -157,20 +155,24 @@ object Network {
         edge.other(this).edges -= edge
       }
       // Build neighbor graphs to see if our removal resulted in a split.
-      val subgraphs = MutableList.empty[(Map[Int, ArrayBuffer[Node]], Queue[Node])]
+      val subGraphs = mutable.MutableList.empty[(mutable.Map[Int, ArrayBuffer[Node]], mutable.Queue[Node])]
       for (edge <- edges) {
         val other = edge.other(this)
-        subgraphs += ((Map(other.data.getAddress -> ArrayBuffer(other)), Queue(other.edges.map(_.other(other)): _*)))
+        subGraphs += ((mutable.Map(other.data.getAddress -> ArrayBuffer(other)), mutable.Queue(other.edges.map(_.other(other)): _*)))
       }
       // Breadth-first search to make early merges more likely.
-      while (!subgraphs.forall { case (_, queue) => queue.isEmpty }) {
-        for (subgraph <- subgraphs.filter { case (_, queue) => !queue.isEmpty }) {
-          val (nodes, queue) = subgraph
-          val node = queue.dequeue
+      while (!subGraphs.forall {
+        case (_, queue) => queue.isEmpty
+      }) {
+        for (subGraph <- subGraphs.filter {
+          case (_, queue) => !queue.isEmpty
+        }) {
+          val (nodes, queue) = subGraph
+          val node = queue.dequeue()
           // See if the node is already in some other graph, in which case we
           // merge this graph into the other graph.
-          if (!subgraphs.filter(_ != subgraph).find(otherSubgraph => {
-            val (otherNodes, _) = otherSubgraph
+          if (!subGraphs.filter(_ != subGraph).exists(otherSubGraph => {
+            val (otherNodes, _) = otherSubGraph
             otherNodes.get(node.data.getAddress) match {
               case Some(list) if list.contains(node) => {
                 // Merge.
@@ -181,7 +183,7 @@ object Network {
               }
               case _ => false
             }
-          }).isDefined) {
+          })) {
             // Not in any other graph yet.
             nodes.getOrElseUpdate(node.data.getAddress, new ArrayBuffer[Network.Node]) += node
             // Add nodes this node is connected to to the queue if they're not
@@ -191,10 +193,10 @@ object Network {
           }
         }
       }
-      // Create new subnetworks for separated sub-networks. Skip the first one
+      // Create new sub networks for separated sub-networks. Skip the first one
       // to re-use the originating network and avoid re-creation if there is no
       // split at all.
-      subgraphs map (_._1) filter (!_.isEmpty) drop 1 map (new Network(_))
+      subGraphs map (_._1) filter (!_.isEmpty) drop 1 map (new Network(_))
     }
   }
 
@@ -202,12 +204,12 @@ object Network {
     def other(side: Node) = if (side == left) right else left
   }
 
-  private class Message(
-    @BeanProperty val source: INetworkNode,
-    @BeanProperty val name: String,
-    @BeanProperty val data: Array[Object] = Array()) extends INetworkMessage {
+  private class Message(@BeanProperty val source: INetworkNode,
+                        @BeanProperty val name: String,
+                        @BeanProperty val data: Array[Object] = Array()) extends INetworkMessage {
     var isCanceled = false
 
-    def cancel = isCanceled = true
+    def cancel() = isCanceled = true
   }
+
 }

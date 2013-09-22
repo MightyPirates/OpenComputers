@@ -29,11 +29,11 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def sendToServer() = PacketDispatcher.sendPacketToServer(packet)
 
-  private def packet: Packet = {
+  private def packet = {
     val p = new Packet250CustomPayload
     p.channel = "OpenComp"
     p.data = stream.toByteArray
     p.length = stream.size
-    return p
+    p
   }
 }

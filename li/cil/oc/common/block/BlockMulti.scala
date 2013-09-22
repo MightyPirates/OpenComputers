@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import scala.collection.mutable.MutableList
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
@@ -19,6 +18,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import scala.collection.mutable
 
 /**
  * Block proxy for all real block implementations.
@@ -31,11 +31,11 @@ import net.minecraftforge.common.ForgeDirection
  * the underlying sub block, based on the metadata. The only actual logic done
  * in here is:
  * - block rotation, if the block has a rotatable tile entity. In that case all
- *   sides are also translated into local coordinate space for the sub block
- *   (i.e. "up" will always be up relative to the block itself. So if it's
- *   rotated up may actually be west).
+ * sides are also translated into local coordinate space for the sub block
+ * (i.e. "up" will always be up relative to the block itself. So if it's
+ * rotated up may actually be west).
  * - Component network logic for adding / removing blocks from the component
- *   network when they are placed / removed.
+ * network when they are placed / removed.
  */
 class BlockMulti(id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
@@ -46,7 +46,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   // SubBlock
   // ----------------------------------------------------------------------- //
 
-  val subBlocks = MutableList.empty[SubBlock]
+  val subBlocks = mutable.MutableList.empty[SubBlock]
 
   def add(subBlock: SubBlock) = {
     val blockId = subBlocks.length
@@ -62,7 +62,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
 
   protected def subBlock(metadata: Int) =
     metadata match {
-      case id if id >= 0 && id < subBlocks.length => Some(subBlocks(id))
+      case blockId if blockId >= 0 && blockId < subBlocks.length => Some(subBlocks(blockId))
       case _ => None
     }
 
@@ -145,9 +145,9 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
       case None => super.getBlockTexture(world, x, y, z, side)
       case Some(subBlock) => subBlock.getBlockTextureFromSide(
         world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
-          case null => super.getBlockTexture(world, x, y, z, side)
-          case icon => icon
-        }
+        case null => super.getBlockTexture(world, x, y, z, side)
+        case icon => icon
+      }
     }
 
   override def getIcon(side: Int, metadata: Int) =
@@ -212,7 +212,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     def canWrench = {
       if (player.getCurrentEquippedItem != null)
         try {
-          player.getCurrentEquippedItem.getItem.asInstanceOf[{
+          player.getCurrentEquippedItem.getItem.asInstanceOf[ {
             def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean
           }].canWrench(player, x, y, z)
         }
@@ -228,11 +228,11 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     if (valid.length > 1 && canWrench)
       world.getBlockTileEntity(x, y, z) match {
         case rotatable: TileEntityRotatable => {
-          if (player.isSneaking()) {
+          if (player.isSneaking) {
             // Rotate pitch. Get the valid pitch rotations.
             val validPitch = valid.collect {
-              case valid if valid == ForgeDirection.DOWN || valid == ForgeDirection.UP => valid
-              case valid if valid != ForgeDirection.UNKNOWN => ForgeDirection.NORTH
+              case direction if direction == ForgeDirection.DOWN || direction == ForgeDirection.UP => direction
+              case direction if direction != ForgeDirection.UNKNOWN => ForgeDirection.NORTH
             }
             // Check if there's more than one, and if so set to the next one.
             if (validPitch.length > 1) {
@@ -244,7 +244,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
           else {
             // Rotate yaw. Get the valid yaw rotations.
             val validYaw = valid.collect {
-              case valid if valid != ForgeDirection.DOWN && valid != ForgeDirection.UP && valid != ForgeDirection.UNKNOWN => valid
+              case direction if direction != ForgeDirection.DOWN && direction != ForgeDirection.UP && direction != ForgeDirection.UNKNOWN => direction
             }
             // Check if there's more than one, and if so set to the next one.
             if (validYaw.length > 1) {

@@ -3,8 +3,6 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.common.computer.IComputer
 import li.cil.oc.server.computer.Drivers
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagIntArray
-import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 

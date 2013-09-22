@@ -7,9 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
-import scala.collection.mutable._
 import scala.io.Source
-import scala.reflect.runtime.universe._
 import scala.util.Random
 
 import com.naef.jnlua._
@@ -185,7 +183,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     stateMonitor.synchronized(state match {
       case State.Stopped | State.Stopping => return
       case State.DriverCall => {
-        assert(lua.getTop() == 2)
+        assert(lua.getTop == 2)
         assert(lua.isThread(1))
         assert(lua.isFunction(2))
         println("> drivercall")
@@ -205,10 +203,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     // Remember when we started the computer for os.clock(). We do this in the
     // update because only then can we be sure the world is available.
     if (timeStarted == 0)
-      timeStarted = owner.world.getWorldInfo().getWorldTotalTime()
+      timeStarted = owner.world.getWorldInfo.getWorldTotalTime
 
     // Update world time for computer threads.
-    worldTime = owner.world.getWorldInfo().getWorldTotalTime()
+    worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
@@ -229,7 +227,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
       if (state != State.Stopped && init()) {
         // Unlimit memory use while unpersisting.
-        val memory = lua.getTotalMemory()
+        val memory = lua.getTotalMemory
         lua.setTotalMemory(Integer.MAX_VALUE)
         try {
           // Try unpersisting Lua, because that's what all of the rest depends
@@ -256,19 +254,19 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           signals.addAll((0 until signalsTag.tagCount()).
             map(signalsTag.tagAt(_).asInstanceOf[NBTTagCompound]).
             map(signal => {
-              val argsTag = signal.getCompoundTag("args")
-              val argsLength = argsTag.getInteger("length")
-              new Signal(signal.getString("name"),
-                (0 until argsLength).map("arg" + _).map(argsTag.getTag(_)).map {
-                  case tag: NBTTagByte => tag.data
-                  case tag: NBTTagShort => tag.data
-                  case tag: NBTTagInt => tag.data
-                  case tag: NBTTagLong => tag.data
-                  case tag: NBTTagFloat => tag.data
-                  case tag: NBTTagDouble => tag.data
-                  case tag: NBTTagString => tag.data
-                }.toArray)
-            }))
+            val argsTag = signal.getCompoundTag("args")
+            val argsLength = argsTag.getInteger("length")
+            new Signal(signal.getString("name"),
+              (0 until argsLength).map("arg" + _).map(argsTag.getTag).map {
+                case tag: NBTTagByte => tag.data
+                case tag: NBTTagShort => tag.data
+                case tag: NBTTagInt => tag.data
+                case tag: NBTTagLong => tag.data
+                case tag: NBTTagFloat => tag.data
+                case tag: NBTTagDouble => tag.data
+                case tag: NBTTagString => tag.data
+              }.toArray)
+          }))
 
           timeStarted = nbt.getDouble("timeStarted")
 
@@ -305,7 +303,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       }
 
       // Unlimit memory while persisting.
-      val memory = lua.getTotalMemory()
+      val memory = lua.getTotalMemory
       lua.setTotalMemory(Integer.MAX_VALUE)
       try {
         // Try persisting Lua, because that's what all of the rest depends on.
@@ -360,27 +358,30 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
 
   private def persist(): Array[Byte] = {
     lua.getGlobal("persist") // ... obj persist?
-    if (lua.`type`(-1) == LuaType.FUNCTION) { // ... obj persist
+    if (lua.`type`(-1) == LuaType.FUNCTION) {
+      // ... obj persist
       lua.pushValue(-2) // ... obj persist obj
       lua.call(1, 1) // ... obj str?
-      if (lua.`type`(-1) == LuaType.STRING) { // ... obj str
+      if (lua.`type`(-1) == LuaType.STRING) {
+        // ... obj str
         val result = lua.toByteArray(-1)
         lua.pop(1) // ... obj
         return result
       } // ... obj :(
     } // ... obj :(
     lua.pop(1) // ... obj
-    return Array[Byte]()
+    Array[Byte]()
   }
 
   private def unpersist(value: Array[Byte]): Boolean = {
     lua.getGlobal("unpersist") // ... unpersist?
-    if (lua.`type`(-1) == LuaType.FUNCTION) { // ... unpersist
+    if (lua.`type`(-1) == LuaType.FUNCTION) {
+      // ... unpersist
       lua.pushByteArray(value) // ... unpersist str
       lua.call(1, 1) // ... obj
       return true
     } // ... :(
-    return false
+    false
   }
 
   // ----------------------------------------------------------------------- //
@@ -394,7 +395,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     LuaStateFactory.createState() match {
       case None =>
         lua = null; return false
-      case Some(state) => lua = state
+      case Some(value) => lua = value
     }
 
     try {
@@ -404,7 +405,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // Set up function used to send network messages.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          return 1
+          1
         }
       })
       lua.setGlobal("sendMessage")
@@ -420,8 +421,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           // World time is in ticks, and each second has 20 ticks. Since we
           // want os.clock() to return real seconds, though, we'll divide it
           // accordingly.
-          lua.pushNumber((owner.world.getTotalWorldTime() - timeStarted) / 20.0)
-          return 1
+          lua.pushNumber((owner.world.getTotalWorldTime - timeStarted) / 20.0)
+          1
         }
       })
       lua.setField(-2, "clock")
@@ -434,7 +435,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           // starts days at 6 o'clock, so we add those six hours. Thus:
           // timestamp = (time + 6000) / 1000[h] * 60[m] * 60[s] * 1000[ms]
           lua.pushNumber((worldTime + 6000) * 60 * 60)
-          return 1
+          1
         }
       })
       lua.setField(-2, "time")
@@ -442,9 +443,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // Date-time formatting using Java's formatting capabilities.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          val calendar = Calendar.getInstance(Locale.ENGLISH);
+          val calendar = Calendar.getInstance(Locale.ENGLISH)
           calendar.setTimeInMillis(lua.checkInteger(1))
-          return 1
+          1
         }
       })
       lua.setField(-2, "date")
@@ -456,7 +457,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
           val t2 = lua.checkNumber(1)
           val t1 = lua.checkNumber(2)
           lua.pushNumber(t2 - t1)
-          return 1
+          1
         }
       })
       lua.setField(-2, "difftime")
@@ -465,7 +466,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
           lua.pushNumber(System.currentTimeMillis() / 1000.0)
-          return 1
+          1
         }
       })
       lua.setField(-2, "realTime")
@@ -473,15 +474,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // Allow the system to read how much memory it uses and has available.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          lua.pushInteger(lua.getTotalMemory() - kernelMemory)
-          return 1
+          lua.pushInteger(lua.getTotalMemory - kernelMemory)
+          1
         }
       })
       lua.setField(-2, "totalMemory")
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          lua.pushInteger(lua.getFreeMemory())
-          return 1
+          lua.pushInteger(lua.getFreeMemory)
+          1
         }
       })
       lua.setField(-2, "freeMemory")
@@ -497,8 +498,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       val random = new Random
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          lua.getTop() match {
-            case 0 => lua.pushNumber(random.nextDouble)
+          lua.getTop match {
+            case 0 => lua.pushNumber(random.nextDouble())
             case 1 => {
               val u = lua.checkInteger(1)
               lua.checkArg(1, 1 < u, "interval is empty")
@@ -512,7 +513,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
             }
             case _ => throw new IllegalArgumentException("wrong number of arguments")
           }
-          return 1
+          1
         }
       })
       lua.setField(-2, "random")
@@ -521,7 +522,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         def invoke(lua: LuaState): Int = {
           val seed = lua.checkInteger(1)
           random.setSeed(seed)
-          return 0
+          0
         }
       })
       lua.setField(-2, "randomseed")
@@ -532,7 +533,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // Until we get to ingame screens we log to Java's stdout.
       lua.pushJavaFunction(new JavaFunction() {
         def invoke(lua: LuaState): Int = {
-          for (i <- 1 to lua.getTop()) {
+          for (i <- 1 to lua.getTop) {
             lua.`type`(i) match {
               case LuaType.NIL => print("nil")
               case LuaType.BOOLEAN => print(lua.toBoolean(i))
@@ -545,7 +546,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
             }
           }
           println()
-          return 0
+          0
         }
       })
       lua.setGlobal("print")
@@ -586,7 +587,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         def invoke(lua: LuaState): Int = {
           lua.pushString(Source.fromInputStream(classOf[Computer].
             getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
-          return 1
+          1
         }
       })
       lua.setGlobal("init")
@@ -597,7 +598,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // fixed base amount of memory, regardless of the memory need of the
       // underlying system (which may change across releases).
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = lua.getTotalMemory() - lua.getFreeMemory()
+      kernelMemory = lua.getTotalMemory - lua.getFreeMemory
       lua.setTotalMemory(kernelMemory + 64 * 1024)
 
       // Clear any left-over signals from a previous run.
@@ -611,13 +612,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
         close()
       }
     }
-    return false
+    false
   }
 
   private def close(): Unit = stateMonitor.synchronized(
     if (state != State.Stopped) {
       state = State.Stopped
-      lua.setTotalMemory(Integer.MAX_VALUE);
+      lua.setTotalMemory(Integer.MAX_VALUE)
       lua.close()
       lua = null
       kernelMemory = 0
@@ -667,7 +668,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
       // Resume the Lua state and remember the number of results we get.
       val results = if (driverReturn) {
         // If we were doing a driver call, continue where we left off.
-        assert(lua.getTop() == 2)
+        assert(lua.getTop == 2)
         lua.resume(1, 1)
       }
       else signals.poll() match {
@@ -780,6 +781,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputerContext with IC
     /** The computer is paused and waiting for the game to resume. */
     val DriverReturnPaused = Value("DriverReturnPaused")
   }
+
 }
 
 /** Singleton for requesting executors that run our Lua states. */
@@ -788,19 +790,19 @@ private[computer] object Executor {
     new ThreadFactory() {
       private val threadNumber = new AtomicInteger(1)
 
-      private val group = System.getSecurityManager() match {
-        case null => Thread.currentThread().getThreadGroup()
-        case s => s.getThreadGroup()
+      private val group = System.getSecurityManager match {
+        case null => Thread.currentThread().getThreadGroup
+        case s => s.getThreadGroup
       }
 
       def newThread(r: Runnable): Thread = {
-        val name = "OpenComputers-" + threadNumber.getAndIncrement()
+        val name = "OpenComputers-" + threadNumber.getAndIncrement
         val thread = new Thread(group, r, name)
-        if (!thread.isDaemon())
+        if (!thread.isDaemon)
           thread.setDaemon(true)
-        if (thread.getPriority() != Thread.MIN_PRIORITY)
+        if (thread.getPriority != Thread.MIN_PRIORITY)
           thread.setPriority(Thread.MIN_PRIORITY)
-        return thread
+        thread
       }
     })
 }

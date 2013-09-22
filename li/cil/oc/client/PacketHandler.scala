@@ -1,12 +1,11 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.common.{ PacketHandler => CommonPacketHandler }
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.common.ForgeDirection
 import li.cil.oc.common.tileentity.TileEntityComputer
 
 class PacketHandler extends CommonPacketHandler {
@@ -29,7 +28,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenResolutionChange(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val w = p.readInt()
@@ -39,7 +38,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenSet(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val col = p.readInt()
@@ -50,7 +49,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenFill(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val col = p.readInt()
@@ -63,7 +62,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenCopy(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val col = p.readInt()
@@ -77,7 +76,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferResponse(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen] match {
+    p.readTileEntity[TileEntityScreen]() match {
       case None => // Invalid packet.
       case Some(t) =>
         p.readUTF.split('\n').zipWithIndex.foreach {
@@ -86,7 +85,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateResponse(p: PacketParser) =
-    p.readTileEntity[TileEntityComputer] match {
+    p.readTileEntity[TileEntityComputer]() match {
       case None => // Invalid packet.
       case Some(t) => {
         t.isOn = p.readBoolean()
@@ -94,7 +93,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateResponse(p: PacketParser) =
-    p.readTileEntity[TileEntityRotatable] match {
+    p.readTileEntity[TileEntityRotatable]() match {
       case None => // Invalid packet.
       case Some(t) =>
         t.pitch = p.readDirection()

@@ -3,7 +3,6 @@ package li.cil.oc.server.drivers
 import li.cil.oc.Blocks
 import li.cil.oc.api.scala.IBlockDriver
 import li.cil.oc.common.block.BlockMulti
-import li.cil.oc.common.components.Screen
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.block.Block
 import net.minecraft.world.World

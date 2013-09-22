@@ -22,7 +22,7 @@ abstract class GenericInventoryContainer(protected val playerInventory: Inventor
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
     val slot = inventorySlots.get(index).asInstanceOf[Slot]
-    if (slot != null && slot.getHasStack()) {
+    if (slot != null && slot.getHasStack) {
       // Get search range and direction for checking for merge options.
       val playerInventorySize = 4 * 9
       val (begin, length, direction) =
@@ -35,7 +35,7 @@ abstract class GenericInventoryContainer(protected val playerInventory: Inventor
           (0, otherInventory.getSizeInventory, false)
         }
 
-      val stack = slot.getStack()
+      val stack = slot.getStack
       val originalStack = stack.copy()
       // TODO this won't check a slot's isItemValidForSlot value...
       if (mergeItemStack(stack, begin, length, direction)) {
@@ -57,7 +57,7 @@ abstract class GenericInventoryContainer(protected val playerInventory: Inventor
       // else: Merge failed.
     }
     // else: Empty slot.
-    return null
+    null
   }
 
   /** Render player inventory at the specified coordinates. */

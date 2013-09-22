@@ -3,8 +3,8 @@ package li.cil.oc.server.computer
 import scala.collection.mutable.ArrayBuffer
 
 import li.cil.oc.api.ComponentType
-import li.cil.oc.api.{ IBlockDriver => IJavaBlockDriver }
-import li.cil.oc.api.{ IItemDriver => IJavaItemDriver }
+import li.cil.oc.api.{IBlockDriver => IJavaBlockDriver}
+import li.cil.oc.api.{IItemDriver => IJavaItemDriver}
 import li.cil.oc.api.scala.IBlockDriver
 import li.cil.oc.api.scala.IItemDriver
 import net.minecraft.item.ItemStack
@@ -49,10 +49,10 @@ private[oc] object Drivers {
   }
 
   def add(driver: IJavaBlockDriver): Unit = add(new IBlockDriver {
-    // IDriver
     def componentName: String = driver.getComponentName
-    // IBlockDriver
+
     def component(world: World, x: Int, y: Int, z: Int): Option[AnyRef] = Some(driver.getComponent(world, x, y, z))
+
     def worksWith(world: World, x: Int, y: Int, z: Int): Boolean = driver.worksWith(world, x, y, z)
   })
 
@@ -71,11 +71,12 @@ private[oc] object Drivers {
   }
 
   def add(driver: IJavaItemDriver): Unit = add(new IItemDriver {
-    // IDriver
     def componentName: String = driver.getComponentName
-    // IItemDriver
+
     def component(item: ItemStack): Option[AnyRef] = Some(driver.getComponent(item))
+
     def componentType(item: ItemStack): ComponentType = driver.getComponentType(item)
+
     def worksWith(item: ItemStack): Boolean = driver.worksWith(item)
   })
 

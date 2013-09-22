@@ -2,7 +2,6 @@ package li.cil.oc.common.components
 
 import li.cil.oc.common.util.TextBuffer
 import li.cil.oc.server.components.IComponent
-import li.cil.oc.server.computer.NetworkNode
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: IScreenEnvironment) extends IComponent {
