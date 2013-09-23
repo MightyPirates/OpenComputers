@@ -23,6 +23,17 @@ package li.cil.oc.api
  */
 trait INetworkNode {
   /**
+   * The name of the node.
+   * <p/>
+   * This should be the type name of the component represented by the node,
+   * since this is what is returned from `driver.componentType`. As such it
+   * is to be expected that there be multiple nodes with the same name.
+   *
+   * @return the name of the node.
+   */
+  def name: String
+
+  /**
    * The address of the node, so that it can be found in the network.
    * <p/>
    * This is used by the network manager when a node is added to a network to

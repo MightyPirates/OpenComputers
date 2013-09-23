@@ -86,6 +86,11 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
     }
   }
 
+  def node(address: Int) = nodes.get(address) match {
+    case None => None
+    case Some(list) => Some(list.last.data)
+  }
+
   def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*) =
     nodes.get(target) match {
       case None => None

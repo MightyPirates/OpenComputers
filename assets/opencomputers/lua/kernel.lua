@@ -229,8 +229,6 @@ function sandbox.os.sleep(seconds)
   end
 end
 
-print("Running kernel...")
-
 -- JNLua / Lua suck at reporting errors from coroutines, so we do it manually.
 return pcall(function()
   -- Replace init script code with loaded, sandboxed and threaded script.
@@ -246,10 +244,8 @@ return pcall(function()
     if result[1] then
       -- Init should never return, so we have a system yield.
       result = result[2]
-      print("yield: " .. type(result))
     else
       -- Some other error, go kill ourselves.
-      print("error: ", table.unpack(result))
       return table.unpack(result)
     end
     data = {coroutine.yield(result)}

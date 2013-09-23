@@ -78,6 +78,17 @@ trait INetwork {
   def remove(node: INetworkNode): Boolean
 
   /**
+   * Get the network node with the specified address.
+   * <p/>
+   * If there are multiple nodes with the same address this will return the
+   * node that most recently joined the network.
+   *
+   * @param address the address of the node to get.
+   * @return the node with that address.
+   */
+  def node(address: Int): Option[INetworkNode]
+
+  /**
    * Sends a message to a specific node.
    * <p/>
    * Messages should have a unique name to allow differentiating them when

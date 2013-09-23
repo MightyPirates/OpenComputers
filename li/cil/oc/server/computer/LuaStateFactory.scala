@@ -5,6 +5,7 @@ import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
+import java.util.{Locale, Calendar}
 import scala.util.Random
 
 case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
@@ -134,6 +135,25 @@ private[computer] object LuaStateFactory {
         1
       }))
       state.setField(-2, "realTime")
+
+      // Date-time formatting using Java's formatting capabilities.
+      state.pushJavaFunction(ScalaFunction(lua => {
+        val calendar = Calendar.getInstance(Locale.ENGLISH)
+        calendar.setTimeInMillis(lua.checkInteger(1))
+        // TODO
+        1
+      }))
+      state.setField(-2, "date")
+
+      // Custom os.difftime(). For most Lua implementations this would be the
+      // same anyway, but just to be on the safe side.
+      state.pushJavaFunction(ScalaFunction(lua => {
+        val t2 = lua.checkNumber(1)
+        val t1 = lua.checkNumber(2)
+        lua.pushNumber(t2 - t1)
+        1
+      }))
+      state.setField(-2, "difftime")
 
       // Allow the system to read how much memory it uses and has available.
       state.pushJavaFunction(ScalaFunction(lua => {

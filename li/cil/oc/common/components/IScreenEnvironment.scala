@@ -12,13 +12,7 @@ import li.cil.oc.api.{INetworkMessage, INetworkNode}
 trait IScreenEnvironment extends INetworkNode {
   val screen = new Screen(this)
 
-  def onScreenResolutionChange(w: Int, h: Int)
-
-  def onScreenSet(col: Int, row: Int, s: String)
-
-  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
-
-  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
+  override def name = "screen"
 
   override def receive(message: INetworkMessage): Option[Array[Any]] = message.data match {
     case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
@@ -37,4 +31,12 @@ trait IScreenEnvironment extends INetworkNode {
       screen.copy(x, y, w, h, tx, ty); None
     case _ => None
   }
+
+  def onScreenResolutionChange(w: Int, h: Int)
+
+  def onScreenSet(col: Int, row: Int, s: String)
+
+  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
+
+  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
 }

@@ -51,7 +51,7 @@ end
 
 local components = {}
 function onInstall(id)
-  components[id] = component.type(id)
+  components[id] = driver.componentType(id)
   print("Component installed: " .. id .. " (" .. components[id] .. ")")
 
   local function hello(idGpu, idScreen)
@@ -87,9 +87,9 @@ end
 -- Main OS loop, keeps everything else running.
 while true do
   local signal, id = os.signal(nil, 2)
-  if signal == "component_install" then
+  if signal == "component_added" then
     onInstall(id)
-  elseif signal == "component_uninstall" then
+  elseif signal == "component_removed" then
     onUninstall(id)
   end
   write("Clock: ")

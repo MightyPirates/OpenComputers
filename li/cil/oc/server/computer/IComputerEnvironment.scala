@@ -8,6 +8,8 @@ import net.minecraft.world.World
  * computers to access information about the world they live in.
  */
 trait IComputerEnvironment extends INetworkNode {
+  override def name = "computer"
+
   def world: World
 
   /**

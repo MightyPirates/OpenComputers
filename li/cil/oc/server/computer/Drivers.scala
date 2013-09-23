@@ -1,9 +1,13 @@
 package li.cil.oc.server.computer
 
+import com.naef.jnlua.LuaRuntimeException
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.{IItemDriver, IBlockDriver}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import scala.Some
 import scala.collection.mutable.ArrayBuffer
+import scala.compat.Platform._
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -21,10 +25,10 @@ import scala.collection.mutable.ArrayBuffer
  */
 private[oc] object Drivers {
   /** The list of registered block drivers. */
-  private val blocks = ArrayBuffer.empty[BlockDriver]
+  private val blocks = ArrayBuffer.empty[IBlockDriver]
 
   /** The list of registered item drivers. */
-  private val items = ArrayBuffer.empty[ItemDriver]
+  private val items = ArrayBuffer.empty[IItemDriver]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -39,8 +43,7 @@ private[oc] object Drivers {
    */
   def add(driver: IBlockDriver) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.exists(entry => entry.instance == driver))
-      blocks += new BlockDriver(driver)
+    if (!blocks.contains(driver)) blocks += driver
   }
 
   /**
@@ -53,8 +56,7 @@ private[oc] object Drivers {
    */
   def add(driver: IItemDriver) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
-    if (!blocks.exists(entry => entry.instance == driver))
-      items += new ItemDriver(driver)
+    if (!blocks.contains(driver)) items += driver
   }
 
   /**
@@ -68,9 +70,9 @@ private[oc] object Drivers {
    * @return the driver for that block if we have one.
    */
   def driverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.find(_.instance.worksWith(world, x, y, z)) match {
+    blocks.find(_.worksWith(world, x, y, z)) match {
+      case None => None
       case Some(driver) => Some(driver)
-      case _ => None
     }
 
   /**
@@ -81,9 +83,9 @@ private[oc] object Drivers {
    * @return the driver for that item type if we have one.
    */
   def driverFor(item: ItemStack) =
-    if (item != null) items.find(_.instance.worksWith(item)) match {
+    if (item != null) items.find(_.worksWith(item)) match {
+      case None => None
       case Some(driver) => Some(driver)
-      case _ => None
     }
     else None
 
@@ -92,5 +94,26 @@ private[oc] object Drivers {
    * all known drivers.
    */
   private[computer] def installOn(computer: Computer) =
-    (blocks ++ items).foreach(_.installOn(computer))
+    (blocks ++ items).foreach(driver => {
+      driver.api match {
+        case None => // Nothing to do.
+        case Some(code) =>
+          val name = driver.getClass.getName
+          try {
+            computer.lua.load(code, name, "t") // ... func
+            code.close()
+            computer.lua.call(0, 0) // ...
+          }
+          catch {
+            case e: LuaRuntimeException =>
+              OpenComputers.log.warning(String.format(
+                "Initialization code of driver %s threw an error: %s",
+                name, e.getLuaStackTrace.mkString("", EOL, EOL)))
+            case e: Throwable =>
+              OpenComputers.log.warning(String.format(
+                "Initialization code of driver %s threw an error: %s",
+                name, e.getStackTraceString))
+          }
+      }
+    })
 }

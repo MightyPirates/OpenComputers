@@ -24,10 +24,6 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
       if (slot >= 0 && slot < inventory.length) {
         inventory(slot) = ItemStack.loadItemStackFromNBT(
           slotNbt.getCompoundTag("item"))
-        itemNode(slot) match {
-          case None => // Nothing to do.
-          case Some(node) => network.connect(this, node)
-        }
       }
     }
   }
@@ -58,7 +54,9 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
         case None => // Ignore.
-        case Some(node) => network.connect(this, node)
+        case Some(node) =>
+          println("Connecting item " + node.hashCode)
+          network.connect(this, node)
       }
     }
   }
@@ -68,14 +66,16 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
         case None => // Ignore.
-        case Some(node) => node.network.remove(node)
+        case Some(node) =>
+          println("Disconnecting item " + node.hashCode)
+          node.network.remove(node)
       }
     }
   }
 
   private def itemNode(slot: Int) = Drivers.driverFor(inventory(slot)) match {
     case None => None
-    case Some(driver) => driver.instance.node(inventory(slot))
+    case Some(driver) => driver.node(inventory(slot))
   }
 
   // ----------------------------------------------------------------------- //
@@ -113,7 +113,9 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     // Uninstall component previously in that slot.
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
-      case Some(node) => node.network.remove(node)
+      case Some(node) =>
+        println("Disconnecting item " + node.hashCode)
+        node.network.remove(node)
     }
 
     inventory(slot) = item
@@ -122,16 +124,18 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
 
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
-      case Some(node) => network.connect(this, node)
+      case Some(node) =>
+        println("Connecting item " + node.hashCode)
+        network.connect(this, node)
     }
   }
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
     case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.instance.componentType(item) == ComponentType.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.instance.componentType(item) == ComponentType.PCI
-    case (4 | 5, Some(driver)) => driver.instance.componentType(item) == ComponentType.RAM
-    case (6 | 7, Some(driver)) => driver.instance.componentType(item) == ComponentType.HDD
+    case (0, Some(driver)) => driver.componentType(item) == ComponentType.PSU
+    case (1 | 2 | 3, Some(driver)) => driver.componentType(item) == ComponentType.PCI
+    case (4 | 5, Some(driver)) => driver.componentType(item) == ComponentType.RAM
+    case (6 | 7, Some(driver)) => driver.componentType(item) == ComponentType.HDD
     case (_, Some(_)) => false // Invalid slot.
   }
 

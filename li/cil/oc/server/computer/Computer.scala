@@ -1,12 +1,10 @@
 package li.cil.oc.server.computer
 
 import com.naef.jnlua._
-import java.util.Calendar
-import java.util.Locale
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
-import li.cil.oc.Config
 import li.cil.oc.common.computer.IComputer
+import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
@@ -24,7 +22,7 @@ import scala.io.Source
  * <li>Closing the Lua state when stopping a previously running computer.</li>
  * </ul>
  * <p/>
- * See {@link Driver} to read more about component drivers and how they interact
+ * See `Driver` to read more about component drivers and how they interact
  * with computers - and through them the components they interface.
  */
 class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable {
@@ -53,8 +51,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   /**
    * The queue of signals the Lua state should process. Signals are queued from
    * the Java side and processed one by one in the Lua VM. They are the only
-   * means to communicate actively with the computer (passively only drivers
-   * can interact with the computer by providing API functions).
+   * means to communicate actively with the computer (passively only message
+   * handlers can interact with the computer by returning some result).
    */
   private val signals = new LinkedBlockingQueue[Signal](100)
 
@@ -114,7 +112,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         signals.offer(new Signal(name, args.toArray))
         future = Some(Executor.pool.submit(this))
         true
-      // Running or in driver call or only a short yield, just push the signal.
+      // Running or in synchronized call or only a short yield, just push the signal.
       case _ =>
         signals.offer(new Signal(name, args.toArray))
         true
@@ -175,18 +173,28 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   override def update() {
     stateMonitor.synchronized(state match {
       case State.Stopped | State.Stopping => return
-      case State.DriverCall => {
+      case State.SynchronizedCall => {
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
         assert(lua.isFunction(2))
-        println("> drivercall")
-        lua.call(0, 1)
-        println("< drivercall")
-        assert(lua.isTable(2))
-        state = State.DriverReturn
-        future = Some(Executor.pool.submit(this))
+        try {
+          lua.call(0, 1)
+          lua.checkType(2, LuaType.TABLE)
+          state = State.SynchronizedReturn
+          future = Some(Executor.pool.submit(this))
+        } catch {
+          // This can happen if we run out of memory while converting a Java exception to a string.
+          case _: LuaMemoryAllocationException =>
+            // TODO error message somewhere ingame
+            close()
+          // This should not happen.
+          case _: Throwable => {
+            OpenComputers.log.warning("Faulty Lua implementation for synchronized calls.")
+            close()
+          }
+        }
       }
-      case State.Paused | State.DriverReturnPaused => {
+      case State.Paused | State.SynchronizedReturnPaused => {
         state = State.Suspended
         future = Some(Executor.pool.submit(this))
       }
@@ -232,10 +240,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             // the save was corrupt (maybe someone modified the Lua files).
             throw new IllegalStateException("Could not restore kernel.")
           }
-          if (state == State.DriverCall || state == State.DriverReturn) {
+          if (state == State.SynchronizedCall || state == State.SynchronizedReturn) {
             if (!unpersist(nbt.getByteArray("stack")) ||
-              (state == State.DriverCall && !lua.isFunction(2)) ||
-              (state == State.DriverReturn && !lua.isTable(2))) {
+              (state == State.SynchronizedCall && !lua.isFunction(2)) ||
+              (state == State.SynchronizedReturn && !lua.isTable(2))) {
               // Same as with the above, should not really happen normally, but
               // could for the same reasons.
               throw new IllegalStateException("Could not restore driver call.")
@@ -302,9 +310,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // Try persisting Lua, because that's what all of the rest depends on.
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
-        if (state == State.DriverCall || state == State.DriverReturn) {
+        if (state == State.SynchronizedCall || state == State.SynchronizedReturn) {
           assert(
-            if (state == State.DriverCall) lua.`type`(2) == LuaType.FUNCTION
+            if (state == State.SynchronizedCall) lua.`type`(2) == LuaType.FUNCTION
             else lua.`type`(2) == LuaType.TABLE)
           nbt.setByteArray("stack", persist())
         }
@@ -395,12 +403,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
 
-      // Set up function used to send network messages.
-      lua.pushJavaFunction(ScalaFunction(lua => {
-        1
-      }))
-      lua.setGlobal("sendMessage")
-
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
       lua.getGlobal("os")
@@ -426,25 +428,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         1
       }))
       lua.setField(-2, "time")
-
-      // Date-time formatting using Java's formatting capabilities.
-      lua.pushJavaFunction(ScalaFunction(lua => {
-        val calendar = Calendar.getInstance(Locale.ENGLISH)
-        calendar.setTimeInMillis(lua.checkInteger(1))
-        // TODO
-        1
-      }))
-      lua.setField(-2, "date")
-
-      // Custom os.difftime(). For most Lua implementations this would be the
-      // same anyway, but just to be on the safe side.
-      lua.pushJavaFunction(ScalaFunction(lua => {
-        val t2 = lua.checkNumber(1)
-        val t1 = lua.checkNumber(2)
-        lua.pushNumber(t2 - t1)
-        1
-      }))
-      lua.setField(-2, "difftime")
 
       // Allow the system to read how much memory it uses and has available.
       lua.pushJavaFunction(ScalaFunction(lua => {
@@ -475,25 +458,92 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       }))
       lua.setGlobal("print")
 
-      // TODO Other overrides?
+      // Set up functions used to send network messages.
+      def parseArgument(lua: LuaState, index: Int) = lua.`type`(index) match {
+        case LuaType.BOOLEAN => lua.toBoolean(index)
+        case LuaType.NUMBER => lua.toNumber(index)
+        case LuaType.STRING => lua.toString(index)
+        case _ => Unit
+      }
 
-      // Install all driver callbacks into the state. This is done once in
-      // the beginning so that we can take the memory the callbacks use into
-      // account when computing the kernel's memory use, as well as for
-      // building a table of permanent values used when persisting/unpersisting
-      // the state.
-      lua.newTable()
-      lua.setGlobal("driver")
-      Drivers.installOn(this)
+      def parseArguments(lua: LuaState, start: Int) =
+        for (index <- start to lua.getTop) yield parseArgument(lua, index)
 
-      // Run the boot script. This creates the global sandbox variable that is
-      // used as the environment for any processes the kernel spawns, adds a
-      // couple of library functions and sets up the permanent value tables as
+      def pushResult(lua: LuaState, value: Any): Unit = value match {
+        case value: Boolean => lua.pushBoolean(value)
+        case value: Byte => lua.pushNumber(value)
+        case value: Short => lua.pushNumber(value)
+        case value: Int => lua.pushNumber(value)
+        case value: Long => lua.pushNumber(value)
+        case value: Float => lua.pushNumber(value)
+        case value: Double => lua.pushNumber(value)
+        case value: String => lua.pushString(value)
+        case value: Array[_] => {
+          lua.newTable()
+          value.zipWithIndex.foreach {
+            case (entry, index) =>
+              pushResult(lua, entry)
+              lua.rawSet(-2, index)
+          }
+        }
+        // TODO maps, tuples/seqs?
+        // TODO I fear they are, but check if the following are really necessary for Java interop.
+        case value: java.lang.Byte => lua.pushNumber(value.byteValue)
+        case value: java.lang.Short => lua.pushNumber(value.shortValue)
+        case value: java.lang.Integer => lua.pushNumber(value.intValue)
+        case value: java.lang.Long => lua.pushNumber(value.longValue)
+        case value: java.lang.Float => lua.pushNumber(value.floatValue)
+        case value: java.lang.Double => lua.pushNumber(value.doubleValue)
+        case _ => lua.pushNil()
+      }
+
+      lua.pushJavaFunction(ScalaFunction(lua =>
+        owner.network.sendToNode(owner, lua.checkInteger(1), lua.checkString(2), parseArguments(lua, 3): _*) match {
+          case Some(Array(results@_*)) =>
+            results.foreach(pushResult(lua, _))
+            results.length
+          case None => 0
+        }))
+      lua.setGlobal("sendToNode")
+
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        owner.network.sendToAll(owner, lua.checkString(1), parseArguments(lua, 2): _*)
+        0
+      }))
+      lua.setGlobal("sendToAll")
+
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        owner.network.node(lua.checkInteger(1)) match {
+          case None => 0
+          case Some(node) => lua.pushString(node.name); 1
+        }
+      }))
+      lua.setGlobal("nodeName")
+
+      // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
-      // available as globals.
+      // available as globals. It also wraps the message sending functions
+      // so that they yield a closure doing the actual call so that that
+      // message call can be performed in a synchronized fashion.
       lua.load(classOf[Computer].getResourceAsStream(
         "/assets/opencomputers/lua/boot.lua"), "boot", "t")
       lua.call(0, 0)
+
+      // Install all driver callbacks into the state. This is done once in
+      // the beginning so that we can take the memory the callbacks use into
+      // account when computing the kernel's memory use.
+      Drivers.installOn(this)
+
+      // Loads the init script. This is run by the kernel as a separate
+      // coroutine to enforce timeouts and sandbox user scripts.
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          lua.pushString(Source.fromInputStream(classOf[Computer].
+            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
+          1
+        }
+      })
+      lua.setGlobal("init")
 
       // Load the basic kernel which takes care of handling signals by managing
       // the list of active processes. Whatever functionality we can we
@@ -503,18 +553,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       lua.load(classOf[Computer].getResourceAsStream(
         "/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
       lua.newThread() // Leave it as the first value on the stack.
-
-      // Loads the init script. This is run by the kernel as a separate
-      // coroutine to enforce timeouts and sandbox user scripts. It also
-      // provides some basic functionality to make working with signals easier.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushString(Source.fromInputStream(classOf[Computer].
-            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
-          1
-        }
-      })
-      lua.setGlobal("init")
 
       // Run the garbage collector to get rid of stuff left behind after the
       // initialization phase to get a good estimate of the base memory usage
@@ -532,7 +570,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     }
     catch {
       case ex: Throwable => {
-        ex.printStackTrace()
+        OpenComputers.log.warning("Failed initializing computer:\n" + ex.getStackTraceString)
         close()
       }
     }
@@ -560,16 +598,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = this.synchronized {
-    println(" > executor enter")
-
     // See if the game appears to be paused, in which case we also pause.
     if (System.currentTimeMillis - lastUpdate > 200)
       stateMonitor.synchronized {
         state =
-          if (state == State.DriverReturn) State.DriverReturnPaused
+          if (state == State.SynchronizedReturn) State.SynchronizedReturnPaused
           else State.Paused
         future = None
-        println(" < executor leave")
         return
       }
 
@@ -579,7 +614,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       state = State.Running
       oldState
     } match {
-      case State.DriverReturn | State.DriverReturnPaused => true
+      case State.SynchronizedReturn | State.SynchronizedReturnPaused => true
       case _ => false
     }
 
@@ -621,7 +656,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             close()
           }
           else if (results == 1 && lua.isNumber(2)) {
-            println("sleep")
             // We got a number. This tells us how long we should wait before
             // resuming the state again.
             val sleep = (lua.toNumber(2) * 1000).toLong
@@ -631,9 +665,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
               schedule(this, sleep, TimeUnit.MILLISECONDS))
           }
           else if (results == 1 && lua.isFunction(2)) {
-            println("drivercall")
             // If we get one function it's a wrapper for a driver call.
-            state = State.DriverCall
+            state = State.SynchronizedCall
             future = None
           }
           else {
@@ -643,8 +676,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             future = Some(Executor.pool.submit(this))
           }
         }
-
-        println(" < executor leave")
 
         // Avoid getting to the closing part after the exception handling.
         return
@@ -671,8 +702,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
     // If we come here there was an error or we stopped, kill off the state.
     close()
-
-    println(" < executor leave")
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
@@ -698,14 +727,14 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     /** The computer is currently shutting down (waiting for executor). */
     val Stopping = Value("Stopping")
 
-    /** The computer executor is waiting for a driver call to be made. */
-    val DriverCall = Value("DriverCall")
+    /** The computer executor is waiting for a synchronized call to be made. */
+    val SynchronizedCall = Value("SynchronizedCall")
 
-    /** The computer should resume with the result of a driver call. */
-    val DriverReturn = Value("DriverReturn")
+    /** The computer should resume with the result of a synchronized call. */
+    val SynchronizedReturn = Value("SynchronizedReturn")
 
     /** The computer is paused and waiting for the game to resume. */
-    val DriverReturnPaused = Value("DriverReturnPaused")
+    val SynchronizedReturnPaused = Value("SynchronizedReturnPaused")
   }
 
 }

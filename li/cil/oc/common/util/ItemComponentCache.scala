@@ -1,8 +1,9 @@
 package li.cil.oc.common.util
 
+import com.google.common.collect.MapMaker
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import scala.collection.mutable
+import scala.collection.{JavaConversions, mutable}
 
 /**
  * This singleton is responsible for caching actual item component instances,
@@ -21,7 +22,7 @@ object ItemComponentCache {
     caches += id -> new Cache[T](id, constructor)
 
   private class Cache[T](val id: Int, val constructor: (NBTTagCompound) => T) {
-    private val instances = mutable.WeakHashMap.empty[NBTTagCompound, T]
+    private val instances = JavaConversions.mapAsScalaMap(new MapMaker().weakKeys().makeMap[NBTTagCompound, T]())
 
     def get(item: ItemStack): Option[T] =
       if (item.itemID == id) {
@@ -29,6 +30,7 @@ object ItemComponentCache {
           case null => new NBTTagCompound
           case tag => tag
         }
+        item.setTagCompound(nbt)
         instances.get(nbt) orElse {
           val component = constructor(nbt)
           instances += nbt -> component
