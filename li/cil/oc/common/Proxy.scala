@@ -30,6 +30,7 @@ class Proxy {
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     OpenComputersAPI.addDriver(GraphicsCardDriver)
+    OpenComputersAPI.addDriver(KeyboardDriver)
 
     MinecraftForge.EVENT_BUS.register(ForgeEventHandler)
   }

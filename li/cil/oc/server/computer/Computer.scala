@@ -660,12 +660,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             // resuming the state again.
             val sleep = (lua.toNumber(2) * 1000).toLong
             lua.pop(results)
-            state = State.Sleeping
-            future = Some(Executor.pool.
-              schedule(this, sleep, TimeUnit.MILLISECONDS))
+            if (signals.isEmpty) {
+              state = State.Sleeping
+              future = Some(Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS))
+            } else future = Some(Executor.pool.submit(this))
           }
           else if (results == 1 && lua.isFunction(2)) {
-            // If we get one function it's a wrapper for a driver call.
+            // If we get one function it's a wrapper for a synchronized call.
             state = State.SynchronizedCall
             future = None
           }
@@ -673,7 +674,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             // Something else, just pop the results and try again.
             lua.pop(results)
             state = State.Suspended
-            future = Some(Executor.pool.submit(this))
+            if (signals.isEmpty) future = None
+            else future = Some(Executor.pool.submit(this))
           }
         }
 

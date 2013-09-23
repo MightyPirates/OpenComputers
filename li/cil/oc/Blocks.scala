@@ -1,15 +1,13 @@
 package li.cil.oc
 
-import li.cil.oc.common.block.BlockComputer
-import li.cil.oc.common.block.BlockMulti
-import li.cil.oc.common.block.BlockScreen
-import li.cil.oc.common.block.BlockSpecialMulti
+import li.cil.oc.common.block._
 
 object Blocks {
   var blockSimple: BlockMulti = null
   var blockSpecial: BlockMulti = null
   var computer: BlockComputer = null
   var screen: BlockScreen = null
+  var keyboard: BlockKeyboard = null
 
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -20,5 +18,6 @@ object Blocks {
 
     computer = new BlockComputer(blockSimple)
     screen = new BlockScreen(blockSimple)
+    keyboard = new BlockKeyboard(blockSpecial)
   }
 }

@@ -1,13 +1,11 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.PacketSender
-import li.cil.oc.common.tileentity.TileEntityKeyboard
 import li.cil.oc.common.tileentity.TileEntityScreen
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -49,16 +47,15 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   /** Must be called whenever the buffer of the underlying screen changes. */
   def updateText() = GuiScreen.compileText(scale, tileEntity.screen.lines)
 
-  override def handleKeyboardInput() = {
-    // Find all keyboards next to this screen and type on them.
-    for (k <- neighboringKeyboards) {
+  override def keyTyped(char: Char, code: Int) = {
+    super.keyTyped(char, code)
+    if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
       if (Keyboard.getEventKeyState) {
-        PacketSender.sendKeyDown(k, Keyboard.getEventCharacter)
+        PacketSender.sendKeyDown(tileEntity, char, code)
       }
       else {
-        PacketSender.sendKeyUp(k, Keyboard.getEventCharacter)
+        PacketSender.sendKeyUp(tileEntity, char, code)
       }
-    }
   }
 
   override def initGui() = {
@@ -85,16 +82,6 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   }
 
   override def doesGuiPauseGame = false
-
-  private def neighboringKeyboards =
-    ForgeDirection.VALID_DIRECTIONS.
-      map(d => tileEntity.worldObj.getBlockTileEntity(
-      tileEntity.xCoord + d.offsetX,
-      tileEntity.yCoord + d.offsetY,
-      tileEntity.zCoord + d.offsetZ)).
-      filter(_ != null).
-      filter(_.isInstanceOf[TileEntityKeyboard]).
-      map(_.asInstanceOf[TileEntityKeyboard])
 }
 
 /** We cache OpenGL stuff in a singleton to avoid having to re-allocate. */

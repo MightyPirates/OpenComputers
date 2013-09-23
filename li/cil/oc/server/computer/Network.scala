@@ -1,5 +1,6 @@
 package li.cil.oc.server.computer
 
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.INetwork
 import li.cil.oc.api.INetworkMessage
 import li.cil.oc.api.INetworkNode
@@ -35,10 +36,9 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
 
   nodes.values.flatten.foreach(_.data.network = this)
 
-  def connect(nodeA: INetworkNode, nodeB: INetworkNode) = try {
+  def connect(nodeA: INetworkNode, nodeB: INetworkNode) = {
     if (locked) throw new IllegalStateException(
       "Cannot modify network while it is already updating its structure.")
-    locked = true
 
     val containsA = nodes.get(nodeA.address).exists(_.exists(_.data == nodeA))
     val containsB = nodes.get(nodeB.address).exists(_.exists(_.data == nodeB))
@@ -65,9 +65,6 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
     // New node for this network, order the nodes and add the new one.
     else if (containsA) add(nodes(nodeA.address).find(_.data == nodeA).get, nodeB)
     else add(nodes(nodeB.address).find(_.data == nodeB).get, nodeA)
-  }
-  finally {
-    locked = false
   }
 
   def remove(node: INetworkNode) = nodes.get(node.address) match {
@@ -103,9 +100,14 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
   private def send(message: Network.Message, nodes: Iterator[INetworkNode]) = {
     var result = None: Option[Array[Any]]
     while (!message.isCanceled && nodes.hasNext) {
-      nodes.next().receive(message) match {
-        case None => // Ignore.
-        case r => result = r
+      try {
+        nodes.next().receive(message) match {
+          case None => // Ignore.
+          case r => result = r
+        }
+      } catch {
+        case e: Throwable =>
+          OpenComputers.log.warning("Error in message handler:\n" + e.getStackTraceString)
       }
     }
     result
@@ -124,7 +126,6 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
       newNode
     }
     else {
-      val otherNetwork = node.network.asInstanceOf[Network]
       // We have to merge. First create a copy of the old nodes to have the
       // list of nodes to which to send "network.connect" messages.
       val oldNodes = nodes.values.flatten.map(_.data).toArray
@@ -132,7 +133,12 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
       // iteration to merge into this network, used to send "network.reconnect"
       // messages to old nodes in case we have to change a node's address to
       // ensure unique addresses in the merged network.
+      val otherNetwork = node.network.asInstanceOf[Network]
       val otherNodes = otherNetwork.nodes.values.flatten.map(_.data)
+      // Lock this network to avoid message handlers adding nodes, which could
+      // lead to addresses getting taken that we will need for the nodes we are
+      // about to merge into this network.
+      locked = true
       // Pre-merge step: ensure addresses are unique.
       for (node <- otherNodes if nodes.contains(node.address)) {
         val oldAddress = node.address
@@ -148,6 +154,8 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
         node.data.network = this
         send(new Network.Message(node.data, "network.connect"), oldNodes.iterator)
       }
+      // Done, unlock again.
+      locked = false
       // Return the node object of the newly connected node for the next step.
       nodes(node.address).find(_.data == node).get
     }

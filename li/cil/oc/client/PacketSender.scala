@@ -27,20 +27,22 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: TileEntity with INetworkNode](t: T, c: Char) = {
+  def sendKeyDown[T <: TileEntity with INetworkNode](t: T, char: Char, code: Int) = {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
-    pb.writeChar(c)
+    pb.writeChar(char)
+    pb.writeInt(code)
 
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: TileEntity with INetworkNode](t: T, c: Char) = {
+  def sendKeyUp[T <: TileEntity with INetworkNode](t: T, char: Char, code: Int) = {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
-    pb.writeChar(c)
+    pb.writeChar(char)
+    pb.writeInt(code)
 
     pb.sendToServer()
   }

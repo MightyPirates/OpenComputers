@@ -1,6 +1,5 @@
 package li.cil.oc.api
 
-import _root_.scala.beans.BeanProperty
 import net.minecraft.world.World
 
 /**
@@ -9,6 +8,9 @@ import net.minecraft.world.World
  * This driver type is used for components that are blocks, i.e. that can be
  * placed in the world, but cannot be modified to or don't want to have their
  * `TileEntities` implement `INetworkNode`.
+ * <p/>
+ * A block driver is used by proxy blocks to check its neighbors and whether
+ * those neighbors should be treated as components or not.
  * <p/>
  * Note that it is possible to write one driver that supports as many different
  * blocks as you wish. I'd recommend writing one per device (type), though, to
@@ -34,15 +36,17 @@ trait IBlockDriver extends IDriver {
   /**
    * Get a reference to the network node wrapping the specified block.
    * <p/>
-   * This is used to provide context to the driver's methods, for example when
-   * an API method is called this will always be passed as the first parameter.
+   * This is used to connect the component to the component network when it is
+   * detected next to a proxy. Components that are not part of the component
+   * network probably don't make much sense (can't think of any uses at this
+   * time), but you may still opt to not implement this.
    *
-   * @param world the world in which the block to get the component for lives.
-   * @param x     the X coordinate of the block to get the component for.
-   * @param y     the Y coordinate of the block to get the component for.
-   * @param z     the Z coordinate of the block to get the component for.
-   * @return the block component at that location, controlled by this driver.
+   * @param world the world in which the block to get the node for lives.
+   * @param x     the X coordinate of the block to get the node for.
+   * @param y     the Y coordinate of the block to get the node for.
+   * @param z     the Z coordinate of the block to get the node for.
+   * @return the network node for the block at that location.
    */
-  @BeanProperty
-  def node(world: World, x: Int, y: Int, z: Int): INetworkNode
+  def node(world: World, x: Int, y: Int, z: Int): INetworkNode =
+    world.getBlockTileEntity(x, y, z).asInstanceOf[INetworkNode]
 }

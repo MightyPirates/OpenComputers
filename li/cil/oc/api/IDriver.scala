@@ -10,36 +10,36 @@ import java.io.InputStream
  * Lua state when the driver is installed, and provide general information used
  * by the computer.
  * <p/>
- * Note that drivers themselves are singletons. They can define a parameter of
- * type {@link IComputerContext} in their API functions which will hold the
- * context in which they are called - essentially a representation of the
- * computer they were called form. This context can be used to get a component
- * in the computer (e.g. passed as another parameter) and to send signals to the
- * computer.
- * <p/>
- * Do not implement this interface directly; use the {@link IItemDriver} and
- * {@link IBlockDriver} interfaces for the respective component types.
+ * Do not implement this interface directly; use the `IItemDriver` and
+ * `IBlockDriver` interfaces for the respective component types.
  */
 trait IDriver {
   /**
    * Some initialization code that is run when the driver is installed.
    * <p/>
-   * This is loaded
-   * into the Lua state and run in the global, un-sandboxed environment. This
-   * means your scripts can mess things up bad, so make sure you know what
-   * you're doing and exposing.
+   * These will usually be some functions that generate network messages of
+   * the particular signature the node of the driver handles, but may contain
+   * arbitrary other functions. However, whatever you do, keep in mind that
+   * only certain parts of the global namespace will be made available to the
+   * computer at runtime, so it's best to keep all you declare in the driver
+   * table (global variable `driver`).
    * <p/>
-   * This can be null to do nothing. Otherwise this is expected to be valid Lua
-   * code (it is simply loaded via <code>load()</code> and then executed).
+   * This is loaded into the Lua state and run in the global, un-sandboxed
+   * environment. This means your scripts can mess things up bad, so make sure
+   * you know what you're doing and exposing.
+   * <p/>
+   * This can be `None` to do nothing. Otherwise this is expected to be valid
+   * Lua code (it is simply loaded via <code>load()</code> and then executed).
    * <p/>
    * The stream has to be recreated each time this is called. Normally you will
    * return something along the lines of
-   * <code>Mod.class.getResourceAsStream("/assets/mod/lua/ocapi.lua")</code>
+   * `Mod.class.getResourceAsStream("/assets/yourmod/lua/ocapi.lua")`
    * from this method. If you wish to hard-code the returned script, you can use
-   * <code>new ByteArrayInputStream(yourScript.getBytes())</code> instead. Note
-   * that the stream will automatically closed.
+   * `new ByteArrayInputStream(yourScript.getBytes())` instead.
+   * <p/>
+   * IMPORTANT: Note that the stream will automatically closed.
    *
-   * @return the Lua code to run after installing the API table.
+   * @return the Lua code to run when a computer is started up.
    */
   def api: Option[InputStream] = None
 }

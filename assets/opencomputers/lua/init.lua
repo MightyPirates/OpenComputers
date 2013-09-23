@@ -86,12 +86,15 @@ end
 
 -- Main OS loop, keeps everything else running.
 while true do
-  local signal, id = os.signal(nil, 2)
+  local signal, param = os.signal(nil, 2)
   if signal == "component_added" then
-    onInstall(id)
+    onInstall(param)
   elseif signal == "component_removed" then
-    onUninstall(id)
+    onUninstall(param)
+  elseif signal == "key_down" then
+    write(param)
+  else
+    write("Clock: ")
+    print(os.clock())
   end
-  write("Clock: ")
-  print(os.clock())
 end

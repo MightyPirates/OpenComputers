@@ -19,14 +19,16 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
 
   private val hasChanged = new AtomicBoolean(true)
 
-  private var isRunning = computer.isRunning
+  private var isRunning = false
 
   // ----------------------------------------------------------------------- //
   // NetworkNode
   // ----------------------------------------------------------------------- //
 
   override def receive(message: INetworkMessage) = message.data match {
-    case Array() if message.name == "network.connect" =>
+    // The isRunning check is here to avoid network.connect messages being sent
+    // while loading a chunk (thus leading to "false" component_added signals).
+    case Array() if message.name == "network.connect" && isRunning =>
       computer.signal("component_added", message.source.address); None
     case Array() if message.name == "network.disconnect" =>
       computer.signal("component_removed", message.source.address); None

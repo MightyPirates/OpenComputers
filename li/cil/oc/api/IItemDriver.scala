@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack
  * queried using the drivers' `worksWith` functions. The first driver that
  * replies positively and whose check against the slot type is successful, i.e.
  * for which the `componentType` matches the slot, will be used as the
- * component's driver and the component will be installed. If no driver is found
+ * component's driver and the component will be added. If no driver is found
  * the item will be rejected and cannot be installed.
  * <p/>
  * Note that it is possible to write one driver that supports as many different
@@ -47,6 +47,11 @@ trait IItemDriver extends IDriver {
 
   /**
    * Gets a reference to the network node interfacing the specified item.
+   * <p/>
+   * This is used to connect the component to the component network when it is
+   * added to a computer, for example. Components that are not part of the
+   * component network probably don't make much sense (can't think of any uses
+   * at this time), but you may still opt to not implement this.
    *
    * @param item the item instance for which to get the node.
    * @return the network node for that item.
