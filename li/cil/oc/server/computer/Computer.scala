@@ -100,7 +100,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   // ----------------------------------------------------------------------- //
 
   override def signal(name: String, args: Any*) = {
-    println("signal", name, args.toArray)
     args.foreach {
       case null | _: Byte | _: Char | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
       case _ => throw new IllegalArgumentException()

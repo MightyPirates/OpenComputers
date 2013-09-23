@@ -16,7 +16,7 @@ class Computer(owner: Any) extends IComputer {
 
   override def update() {}
 
-  override def signal(name: String, args: Any*) = throw new NotImplementedError
+  override def signal(name: String, args: Any*) = ???
 
   override def readFromNBT(nbt: NBTTagCompound) {}
 

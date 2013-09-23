@@ -14,7 +14,7 @@ object ItemComponentCache {
 
   def get[T](item: ItemStack) = caches.get(item.itemID) match {
     case None => None
-    case Some(cache) => cache.asInstanceOf[Cache[T]].getComponent(item)
+    case Some(cache) => cache.asInstanceOf[Cache[T]].get(item)
   }
 
   def register[T](id: Int, constructor: (NBTTagCompound) => T): Unit =
@@ -23,13 +23,13 @@ object ItemComponentCache {
   private class Cache[T](val id: Int, val constructor: (NBTTagCompound) => T) {
     private val instances = mutable.WeakHashMap.empty[NBTTagCompound, T]
 
-    def getComponent(item: ItemStack): Option[T] =
+    def get(item: ItemStack): Option[T] =
       if (item.itemID == id) {
         val nbt = item.getTagCompound match {
           case null => new NBTTagCompound
           case tag => tag
         }
-        instances.get(nbt).orElse {
+        instances.get(nbt) orElse {
           val component = constructor(nbt)
           instances += nbt -> component
           Some(component)

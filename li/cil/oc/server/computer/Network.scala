@@ -3,6 +3,10 @@ package li.cil.oc.server.computer
 import li.cil.oc.api.INetwork
 import li.cil.oc.api.INetworkMessage
 import li.cil.oc.api.INetworkNode
+import net.minecraft.block.Block
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.world.IBlockAccess
+import net.minecraftforge.common.ForgeDirection
 import scala.beans.BeanProperty
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -19,7 +23,12 @@ import scala.collection.mutable.ArrayBuffer
  * Note that it is possible for multiple nodes to have the same ID, though.
  */
 class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends INetwork {
-  def this(node: INetworkNode) = this(mutable.Map(node.address -> ArrayBuffer(new Network.Node(node))))
+  def this(node: INetworkNode) = {
+    this(mutable.Map({
+      node.address = 1
+      node.address -> ArrayBuffer(new Network.Node(node))
+    }))
+  }
 
   /** Do not allow modification of the network while it's updating. */
   private var locked = false
@@ -66,7 +75,8 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
     case Some(list) => list.find(_.data == node) match {
       case None => false
       case Some(entry) => if (list.contains(entry)) {
-        list -= entry
+        if ((list -= entry).isEmpty)
+          nodes -= node.address
         node.network = null
         entry.remove().foreach(_.sendToAll(node, "network.disconnect"))
         sendToAll(node, "network.disconnect")
@@ -78,17 +88,23 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
 
   def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*) =
     nodes.get(target) match {
-      case None => // No such target, ignore.
-      case Some(list) => send(new Network.Message(source, name, Array(data)), list.map(_.data).iterator)
+      case None => None
+      case Some(list) => send(new Network.Message(source, name, Array(data: _*)), list.map(_.data).iterator)
     }
 
   def sendToAll(source: INetworkNode, name: String, data: Any*) =
-    send(new Network.Message(source, name, Array(data)), nodes.values.flatten.map(_.data).iterator)
+    send(new Network.Message(source, name, Array(data: _*)), nodes.values.flatten.map(_.data).iterator)
 
-  private def send(message: Network.Message, nodes: Iterator[INetworkNode]) =
+  private def send(message: Network.Message, nodes: Iterator[INetworkNode]) = {
+    var result = None: Option[Array[Any]]
     while (!message.isCanceled && nodes.hasNext) {
-      nodes.next().receive(message)
+      nodes.next().receive(message) match {
+        case None => // Ignore.
+        case r => result = r
+      }
     }
+    result
+  }
 
   private def add(oldNode: Network.Node, node: INetworkNode) = {
     // The node is new to this network, check if we have to merge networks.
@@ -144,6 +160,33 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
 }
 
 object Network {
+
+  def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
+    getNetworkNode(world, x, y, z) match {
+      case None => // Invalid block.
+      case Some(node) => {
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+            case None => // Ignore.
+            case Some(neighborNode) =>
+              if (neighborNode != null && neighborNode.network != null) {
+                neighborNode.network.connect(neighborNode, node)
+              }
+          }
+        }
+        if (node.network == null) new Network(node)
+      }
+    }
+
+  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[TileEntity with INetworkNode] =
+    Option(Block.blocksList(world.getBlockId(x, y, z))) match {
+      case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
+        world.getBlockTileEntity(x, y, z) match {
+          case tileEntity: TileEntity with INetworkNode => Some(tileEntity)
+          case _ => None
+        }
+      case _ => None
+    }
 
   private class Node(val data: INetworkNode) {
     val edges = ArrayBuffer.empty[Edge]

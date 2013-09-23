@@ -1,7 +1,5 @@
 package li.cil.oc.api
 
-import _root_.scala.beans.BeanProperty
-
 /**
  * A single node in a `INetwork`.
  * <p/>
@@ -39,12 +37,12 @@ trait INetworkNode {
    *
    * @return the id of this node.
    */
-  @BeanProperty
   def address = address_
 
   def address_=(value: Int) = if (value != address_) {
     address_ = value
     onAddressChange()
+    this
   }
 
   /**
@@ -59,7 +57,6 @@ trait INetworkNode {
    *
    * @return the network the node is in.
    */
-  @BeanProperty
   def network = network_.orNull
 
   def network_=(n: INetwork) = {
@@ -71,14 +68,21 @@ trait INetworkNode {
     if (network_.isDefined) {
       onConnect()
     }
+    this
   }
 
   /**
    * Makes the node handle a message.
    *
+   * Some messages may expect a result. In this case the handler function may
+   * return that result. If multiple handlers are executed, the last result
+   * that was not `None` will be used, if any. Otherwise the overall result
+   * will also be `None`.
+   *
    * @param message the message to handle.
+   * @return the result of the message being handled, if any.
    */
-  def receive(message: INetworkMessage) {}
+  def receive(message: INetworkMessage): Option[Array[Any]] = None
 
   def onConnect() {}
 

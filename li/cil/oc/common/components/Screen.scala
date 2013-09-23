@@ -18,7 +18,9 @@ class Screen(val owner: IScreenEnvironment) {
     if (supportedResolutions.contains(value) && (buffer.size = value)) {
       val (w, h) = value
       owner.onScreenResolutionChange(w, h)
+      true
     }
+    else false
 
   def set(col: Int, row: Int, s: String) = {
     // Make sure the string isn't longer than it needs to be, in particular to

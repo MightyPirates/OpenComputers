@@ -85,13 +85,19 @@ trait INetwork {
    * messages named "signal" by converting the message data to a signal and
    * inject that signal into the Lua VM, so no message not used for this purpose
    * should be named "signal".
+   * <p/>
+   * Note that message handlers may also return results. In this case that
+   * result will be returned from this function. In the case that there are
+   * more than one target node (shared addresses) the last result that was not
+   * `None` will be returned, or `None` if all were.
    *
    * @param source the node that sends the message.
    * @param target the id of the node to send the message to.
    * @param name   the name of the message.
    * @param data   the message to send.
+   * @return the result of the message being handled, if any.
    */
-  def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*)
+  def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*): Option[Array[Any]]
 
   /**
    * Sends a message to all nodes in the network.
