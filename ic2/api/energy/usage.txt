@@ -1,0 +1,144 @@
+--------------------------------
+-- Energy Network Description --
+--------------------------------
+
+There are currently three different types of energy network blocks:
+- energy sources, e.g. generators or the output side of a storage block/transformer
+- energy sinks, e.g. machines or the input side of a storage block/transformer
+- conductors, e.g. cables
+
+Note that storage blocks or transformers are both sources and sinks.
+
+All those blocks have to have a tile entity which has to implement the interface corresponding to
+its function and also post events to the Forge event bus.
+
+The energy generation, distribution and consumption is strictly limited to the simulating (server)
+side, use the proper side checks before posting the related events. One possibility is to check for
+FMLCommonHandler.instance().getEffectiveSide().isClient() being false.
+
+The energy network works by calculating the energy flow between the sources which offer energy
+through getOfferedEnergy() and the sinks which request energy through demandedEnergyUnits().
+Conductors will carry the energy over a distance. Once the energy distribution is calculated, the
+energy net will update the sources and sinks through drawEnergy() and injectEnergyUnits() respectively.
+
+
+---------------------------
+-- Energy Network Events --
+---------------------------
+
+The energy network currently requires 2 events to manage its internal representation of the grids:
+
+-- EnergyTileLoadEvent --
+
+For all energy network tiles (sources, sinks, conductors) you have to post an EnergyTileLoadEvent.
+
+The event has to be posted as soon as the implementing tile entity is fully loaded, usually after
+loading the chunk which contains it or after the user placing the block.
+
+The energy net implementation will use the event to add it to its energy grid map, taking it into
+account for further energy transfers.
+
+You can detect the loading by either using the 1st iteration of updateEntity() or by waiting for
+the next world tick after TileEntity.validate(). The 2nd approach is obviously more sophisticated
+and requires to use some tick queuing mechanism.
+
+The event can by posted as following:
+  MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
+
+-- EnergyTileUnloadEvent --
+
+Another event every energy tile has to post is the EnergyTileUnloadEvent.
+
+The event has to be posted as soon as the implementing tile entity is being unloaded, either by
+unloading the containing chunk or by destroying the block containing it.
+
+It's possible to detect the unloading by triggering on both the beginning of
+TileEntity.invalidate() and the beginning of TileEntity.onChunkUnload().
+
+It is important that the tile entity is still properly linked to the world while posting the unload
+event, otherwise the energy net can't find all affected connections.
+
+
+--------------------------------------
+-- Participating Block Requirements --
+--------------------------------------
+
+The energy net blocks have to do the following to work properly:
+
+-- energy source --
+
+An energy source has to post the following events:
+ - EnergyTileLoadEvent on load
+ - EnergyTileUnloadEvent on unload
+
+Additionally the interface IEnergySource has to be implemented.
+
+-- energy sink --
+
+An energy sink has to post the following events:
+ - EnergyTileLoadEvent on load
+ - EnergyTileUnloadEvent on unload
+
+Additionally the interface IEnergySink has to be implemented.
+
+-- energy conductor --
+
+An energy conductor has to post the following events:
+ - EnergyTileLoadEvent on load
+ - EnergyTileUnloadEvent on unload
+
+Additionally the interface IEnergyConductor has to be implemented.
+
+
+------------------------------
+-- Energy Network Delegates --
+------------------------------
+
+A delegate is a separate object which performs tasks for the original object, in this case handling
+the energy net interaction.
+
+The TileEntity instances used by the events don't have to be the same as the in-world TileEntity
+instance for the corresponding position, it can be delegated to a separate TileEntity instance.
+This separate instance (delegate) needs to have its world and xyz coordinate fields set to match
+the in-world instance. The delegate implements the energy net interfaces and is added and removed
+to/from the energy net through EnergyTileLoadEvent and EnergyTileUnloadEvent.
+
+Separating the interfaces through a delegate allows to isolate the IC2 API usage into separate
+classes an potentially share common code like an input buffer with battery discharging outside the
+class hierarchy.
+It's even possible to use an ic2 energy net delegate alongside an in-world TileEntity which isn't
+designed to work with ic2 energy at all, like making a furnace electric by receiving energy through
+a delegate and adding the corresponding fuel amount to the in-world furnace TileEntity.
+
+Getting the in-world TileEntity for a delegate involves calling World.getBlockTileEntity() with the
+delegate's world and xyz coordinate information.
+
+
+------------------
+-- Multi Blocks --
+------------------
+
+Multi blocks are a group of blocks which act as one functional entity. 
+
+The IMetaDelegate interface groups multiple TileEntity instances (=sub tiles) representing the
+individual blocks to a single Energy Net relevant node. The sub tiles may be normal in-world or
+delegate TileEntity instances.
+
+The meta delegate is added to energy net once for the whole multi block structure and implements
+the energy net interfaces as well. The sub tiles may optionally implement IEnergyEmitter and/or
+IEnergyAcceptor to specify their connectivity rules independently, otherwise the meta delegate will
+be queried.
+
+
+--------------------------------------------------
+-- How to implement/add your own energy network --
+--------------------------------------------------
+
+If you want to create an alternative way of distributing energy, e.g. to have different
+distribution rules or to use energy networks provided by other mods, you can register to the energy
+tile events and use the interfaces to handle the energy distribution yourself. It's no longer
+required to use conversion blocks.
+
+IC2's EnergyNet itself is built on top of the api events and interfaces, providing their default
+use case.
+
