@@ -78,12 +78,11 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def updateEntity() = {
     computer.update()
     if (hasChanged.get) {
-      worldObj.updateTileEntityChunkAndDoNothing(
-        xCoord, yCoord, zCoord, this)
-      if (isRunning != computer.isRunning) {
-        isRunning = computer.isRunning
-        ServerPacketSender.sendComputerState(this, isRunning)
-      }
+      worldObj.updateTileEntityChunkAndDoNothing(xCoord, yCoord, zCoord, this)
+    }
+    if (isRunning != computer.isRunning) {
+      isRunning = computer.isRunning
+      ServerPacketSender.sendComputerState(this, isRunning)
     }
   }
 

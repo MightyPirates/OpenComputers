@@ -246,7 +246,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
               (state == State.SynchronizedReturn && !lua.isTable(2))) {
               // Same as with the above, should not really happen normally, but
               // could for the same reasons.
-              throw new IllegalStateException("Could not restore driver call.")
+              throw new IllegalStateException("Could not restore stack.")
             }
           }
 
@@ -271,6 +271,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
           timeStarted = nbt.getDouble("timeStarted")
 
+          // Clean up some after we're done and limit memory again.
+          lua.gc(LuaState.GcAction.COLLECT, 0)
+          lua.setTotalMemory(memory)
+
           // Start running our worker thread.
           assert(!future.isDefined)
           future = Some(Executor.pool.submit(this))
@@ -282,11 +286,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             //signal("crash", "memory corruption")
             close()
           }
-        }
-        finally if (lua != null) {
-          // Clean up some after we're done and limit memory again.
-          lua.gc(LuaState.GcAction.COLLECT, 0)
-          lua.setTotalMemory(memory)
         }
       }
     })
@@ -314,11 +313,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           assert(
             if (state == State.SynchronizedCall) lua.`type`(2) == LuaType.FUNCTION
             else lua.`type`(2) == LuaType.TABLE)
-          nbt.setByteArray("stack", persist())
+          nbt.setByteArray("stack", persist(2))
         }
         // Save the kernel state (which is always at stack index one).
         assert(lua.`type`(1) == LuaType.THREAD)
-        nbt.setByteArray("kernel", persist())
+        nbt.setByteArray("kernel", persist(1))
 
         val list = new NBTTagList
         for (s <- signals.iterator) {
@@ -357,11 +356,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       }
     })
 
-  private def persist(): Array[Byte] = {
+  private def persist(index: Int): Array[Byte] = {
     lua.getGlobal("persist") // ... obj persist?
     if (lua.`type`(-1) == LuaType.FUNCTION) {
       // ... obj persist
-      lua.pushValue(-2) // ... obj persist obj
+      lua.pushValue(index) // ... obj persist obj
       lua.call(1, 1) // ... obj str?
       if (lua.`type`(-1) == LuaType.STRING) {
         // ... obj str
@@ -648,7 +647,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       owner.markAsChanged()
 
       // Only queue for next execution step if the kernel is still alive.
-      if (lua.status(1) == LuaState.YIELD) {
+      if (lua.status(1) == LuaState.OK || lua.status(1) == LuaState.YIELD) {
         // Lua state yielded normally, see what we have.
         stateMonitor.synchronized {
           if (state == State.Stopping) {

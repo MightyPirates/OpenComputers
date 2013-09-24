@@ -26,8 +26,8 @@ end
 local perms, uperms = {}, {}
 
 --[[ Used by the Java side to persist the state when the world is saved. ]]
-function persist(kernel)
-  return eris.persist(perms, kernel)
+function persist(value)
+  return eris.persist(perms, value)
 end
 
 --[[ Used by the Java side unpersist the state when the world is loaded. ]]

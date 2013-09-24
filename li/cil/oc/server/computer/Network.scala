@@ -31,15 +31,11 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
     }))
   }
 
-  /** Do not allow modification of the network while it's updating. */
-  private var locked = false
+  private def values = nodes.values.flatten.map(_.data)
 
-  nodes.values.flatten.foreach(_.data.network = this)
+  values.foreach(_.network = this)
 
   def connect(nodeA: INetworkNode, nodeB: INetworkNode) = {
-    if (locked) throw new IllegalStateException(
-      "Cannot modify network while it is already updating its structure.")
-
     val containsA = nodes.get(nodeA.address).exists(_.exists(_.data == nodeA))
     val containsB = nodes.get(nodeB.address).exists(_.exists(_.data == nodeB))
     if (!containsA && !containsB) throw new IllegalArgumentException(
@@ -75,8 +71,37 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
         if ((list -= entry).isEmpty)
           nodes -= node.address
         node.network = null
-        entry.remove().foreach(_.sendToAll(node, "network.disconnect"))
-        sendToAll(node, "network.disconnect")
+        // Build a queue of messages to send when we're done. These are all the
+        // removal messages that are caused by the removal (including those
+        // caused by a net split, if any).
+        val sendQueue = mutable.MutableList.empty[(Network.Message, Iterator[INetworkNode])]
+        // Queue the removal event for all other nodes in this graph; make a
+        // copy of the list, to ignore incoming modifications.
+        sendQueue += ((new Network.Message(node, "network.disconnect"), values.toArray.iterator))
+
+        // Remove it from the graph and create sub networks if the removal
+        // caused a net split (was the last bridge between two graphs).
+        val newNetworks = entry.remove()
+
+        // Create disconnect messages introduced by net splits by creating a
+        // disconnect for each network node in one network in all others.
+        for (i <- 0 until newNetworks.length) {
+          // Remove all nodes in the first network from all other networks.
+          for (node <- newNetworks(i).values) {
+            // Remove from this network.
+            sendQueue += ((new Network.Message(node, "network.disconnect"), values.iterator))
+            // Remove from all new networks.
+            for (j <- (i + 1) until newNetworks.length) {
+              sendQueue += ((new Network.Message(node, "network.disconnect"), newNetworks(j).values.iterator))
+            }
+          }
+          // Remove second network's nodes from the first one.
+          for (j <- (i + 1) until newNetworks.length) {
+            for (node <- newNetworks(j).values) {
+              sendQueue += ((new Network.Message(node, "network.disconnect"), newNetworks(i).values.iterator))
+            }
+          }
+        }
         true
       }
       else false
@@ -115,15 +140,15 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
 
   private def add(oldNode: Network.Node, node: INetworkNode) = {
     // The node is new to this network, check if we have to merge networks.
-    val newNode = if (node.network == null) {
+    val (newNode, sendQueue) = if (node.network == null) {
       // Other node is not yet in a network, create internal node and add it
       // to our lookup table of internal nodes.
       val newNode = new Network.Node(node)
+      val sendQueue = List((new Network.Message(node, "network.connect"), nodes.values.flatten.map(_.data).toArray.iterator))
       node.address = findId()
       nodes.getOrElseUpdate(node.address, new ArrayBuffer[Network.Node]) += newNode
       node.network = this
-      sendToAll(node, "network.connect")
-      newNode
+      (newNode, Some(sendQueue))
     }
     else {
       // We have to merge. First create a copy of the old nodes to have the
@@ -135,34 +160,36 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
       // ensure unique addresses in the merged network.
       val otherNetwork = node.network.asInstanceOf[Network]
       val otherNodes = otherNetwork.nodes.values.flatten.map(_.data)
-      // Lock this network to avoid message handlers adding nodes, which could
-      // lead to addresses getting taken that we will need for the nodes we are
-      // about to merge into this network.
-      locked = true
+      // We queue all messages we would send due to renaming and adding until
+      // we're done, to make sure handlers don't add nodes while we merge,
+      // since that could lead to duplicate addresses (an add taking one that
+      // we reserved for a node we will merge into this network).
+      val sendQueue = mutable.MutableList.empty[(Network.Message, Iterator[INetworkNode])]
       // Pre-merge step: ensure addresses are unique.
       for (node <- otherNodes if nodes.contains(node.address)) {
         val oldAddress = node.address
         node.address = findId(otherNetwork)
         if (node.address != oldAddress) {
           // If we successfully changed the address send message.
-          send(new Network.Message(node, "network.reconnect", Array(int2Integer(oldAddress))), otherNodes.iterator)
+          sendQueue += ((new Network.Message(node, "network.reconnect", Array(int2Integer(oldAddress))), otherNodes.iterator))
         }
       }
       // Merge step: add nodes from other network into this network.
       for (node <- otherNetwork.nodes.values.flatten) {
         nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
         node.data.network = this
-        send(new Network.Message(node.data, "network.connect"), oldNodes.iterator)
+        sendQueue += ((new Network.Message(node.data, "network.connect"), oldNodes.iterator))
       }
-      // Done, unlock again.
-      locked = false
       // Return the node object of the newly connected node for the next step.
-      nodes(node.address).find(_.data == node).get
+      (nodes(node.address).find(_.data == node).get, Some(sendQueue.toList))
     }
     // Either way, add the connection between the two nodes.
     val edge = new Network.Edge(oldNode, newNode)
     oldNode.edges += edge
     newNode.edges += edge
+    sendQueue.foreach(_.foreach {
+      case (message, receivers) => send(message, receivers)
+    })
     true
   }
 

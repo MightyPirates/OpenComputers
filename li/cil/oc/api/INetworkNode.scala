@@ -70,7 +70,7 @@ trait INetworkNode {
    */
   def network = network_.orNull
 
-  def network_=(n: INetwork) = {
+  def network_=(n: INetwork) = if (network_.forall(_ != n)) {
     if (network_.isDefined) {
       network_ = None
       onDisconnect()
@@ -79,7 +79,6 @@ trait INetworkNode {
     if (network_.isDefined) {
       onConnect()
     }
-    this
   }
 
   /**

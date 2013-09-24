@@ -30,32 +30,34 @@ private[computer] object LuaStateFactory {
   // shared libraries somewhere so that we can load them, because we cannot
   // load them directly from a JAR.
   {
-    val platform = System.getProperty("os.name").toLowerCase match {
-      case name if name.startsWith("linux") => "linux"
-      case name if name.startsWith("windows") => "windows"
-      case name if name.startsWith("mac") => "mac"
-    }
-    val libPath = "/assets/opencomputers/lib/" + System.getProperty("os.arch") + "/"
-
-    val libExt = platform match {
-      case "linux" => ".so"
-      case "windows" => ".dll"
-      case "mac" => ".dylib"
+    // See http://lopica.sourceforge.net/os.html
+    val architecture = System.getProperty("os.arch").toLowerCase match {
+      case "i386" | "x86" => "32"
+      case "amd64" | "x86_64" => "64"
+      case "ppc" | "powerpc" => "ppc"
       case _ => ""
     }
+    val extension = System.getProperty("os.name").toLowerCase match {
+      case name if name.startsWith("linux") => ".so"
+      case name if name.startsWith("windows") => ".dll"
+      case name if name.startsWith("mac") => ".dylib"
+      case _ => ""
+    }
+    val libPath = "/assets/opencomputers/lib/"
+
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")
       if (path.endsWith("/") || path.endsWith("\\")) path
       else path + "/"
     }
 
-    val library = "native"
-    val libraryUrl = classOf[Computer].getResource(libPath + library + libExt)
+    val library = "native." + architecture + extension
+    val libraryUrl = classOf[Computer].getResource(libPath + library)
     if (libraryUrl == null) {
       throw new NotImplementedError("Unsupported platform.")
     }
     // Found file with proper extension. Create a temporary file.
-    val file = new File(tmpPath + library + libExt)
+    val file = new File(tmpPath + library)
     // Try to delete an old instance of the library, in case we have an update
     // and deleteOnExit fails (which it regularly does on Windows it seems).
     try {
