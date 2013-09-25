@@ -2,6 +2,7 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.tileentity.TileEntityScreen
+import net.minecraft.client.gui.{GuiScreen => MCGuiScreen}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
@@ -20,7 +21,7 @@ import org.lwjgl.opengl.GL11
  * called whenever the text actually changes, otherwise there will be no change
  * in the text displayed in the GUI.
  */
-class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.gui.GuiScreen {
+class GuiScreen(val tileEntity: TileEntityScreen) extends MCGuiScreen {
   tileEntity.gui = Some(this)
 
   var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
@@ -50,7 +51,9 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends net.minecraft.client.g
   override def keyTyped(char: Char, code: Int) = {
     super.keyTyped(char, code)
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
-      if (Keyboard.getEventKeyState) {
+      if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown)
+        PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+      else if (Keyboard.getEventKeyState) {
         PacketSender.sendKeyDown(tileEntity, char, code)
       }
       else {

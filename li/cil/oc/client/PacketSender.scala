@@ -46,4 +46,13 @@ object PacketSender {
 
     pb.sendToServer()
   }
+
+  def sendClipboard[T <: TileEntity with INetworkNode](t: T, value: String) = if (!value.isEmpty) {
+    val pb = new PacketBuilder(PacketType.Clipboard)
+
+    pb.writeTileEntity(t)
+    pb.writeUTF(value)
+
+    pb.sendToServer()
+  }
 }

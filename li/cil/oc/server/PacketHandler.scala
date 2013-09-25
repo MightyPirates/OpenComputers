@@ -21,6 +21,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
+      case PacketType.Clipboard => onClipboard(p)
       case _ => // Invalid packet.
     }
 
@@ -75,4 +76,10 @@ class PacketHandler extends CommonPacketHandler {
       case None => // Invalid packet.
       case Some(n) => n.network.sendToAll(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt())
     }
+
+  def onClipboard(p: PacketParser) =
+  p.readTileEntity[INetworkNode]() match {
+    case None => // Invalid packet.
+    case Some(n) => n.network.sendToAll(n, "keyboard.clipboard", p.player, p.readUTF())
+  }
 }

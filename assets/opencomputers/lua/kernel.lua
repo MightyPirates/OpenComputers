@@ -152,8 +152,8 @@ sandbox._G = sandbox
 -- Allow sandboxes to load code, but only in text form, and in the sandbox.
 -- Note that we allow passing a custom environment, because if this is called
 -- from inside the sandbox, env must already be in the sandbox.
-function sandbox.load(code, env)
-  return load(code, code, "t", env or sandbox)
+function sandbox.load(code, source, env)
+  return load(code, source, "t", env or sandbox)
 end
 
 --[[ Install wrappers for coroutine management that reserves the first value
@@ -218,7 +218,7 @@ end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return xpcall(function()
+return pcall(function()
   -- Replace init script code with loaded, sandboxed and threaded script.
   local init = (function()
     local result, reason = load(init(), "init", "t", sandbox)
@@ -240,4 +240,4 @@ return xpcall(function()
     end
     data = {coroutine.yield(result)}
   end
-end, function(msg) return msg end)
+end)

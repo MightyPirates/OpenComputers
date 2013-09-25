@@ -34,4 +34,5 @@ object PacketType extends Enumeration {
   /** Sent by clients on keyboard input for computers. */
   val KeyDown = Value("KeyDown")
   val KeyUp = Value("KeyUp")
+  val Clipboard = Value("Clipboard")
 }

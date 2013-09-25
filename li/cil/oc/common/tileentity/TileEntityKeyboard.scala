@@ -22,6 +22,12 @@ class TileEntityKeyboard extends TileEntityRotatable with INetworkNode {
         message.cancel() // One keyboard is enough.
         None
       }
+      case Array(p: Player, value: String) if message.name == "keyboard.clipboard" => {
+        // TODO check if player is close enough and only consume message if so
+        network.sendToAll(this, "signal", "clipboard", value)
+        message.cancel()
+        None
+      }
       case _ => None
     }
   }

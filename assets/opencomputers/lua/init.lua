@@ -202,7 +202,6 @@ function term.write(value, wrap)
       cursorY = h
     end
   end
-  checkCursor()
   for line, nl in value:gmatch("([^\r\n]*)([\r\n]?)") do
     while wrap and line:len() > w - cursorX + 1 do
       local partial = line:sub(1, w - cursorX + 1)
@@ -214,7 +213,6 @@ function term.write(value, wrap)
     if line:len() > 0 then
       gpu.set(cursorX, cursorY, line)
       cursorX = cursorX + line:len()
-      checkCursor()
     end
     if nl:len() == 1 then
       cursorX = 1
@@ -243,7 +241,7 @@ end
 
 --[[ Primitive command line. ]]
 local command = ""
-local function commandLine(_, char, code)
+local function commandLineKey(_, char, code)
   local keys = driver.keyboard.keys
   local gpu = term.gpu()
   local x, y = term.getCursor()
@@ -254,8 +252,11 @@ local function commandLine(_, char, code)
     gpu.set(x - 1, y, "  ") -- overwrite cursor blink
   elseif code == keys.enter then
     if command:len() == 0 then return end
-    print()
-    local code, result = load("return " .. command)
+    print(" ") -- overwrite cursor blink
+    local code, result = load("return " .. command, "=stdin")
+    if not code then
+      code, result = load(command, "=stdin") -- maybe it's a statement
+    end
     if code then
       local result = {pcall(code)}
       if not result[1] or result[2] ~= nil then
@@ -267,11 +268,18 @@ local function commandLine(_, char, code)
     end
     command = ""
     write("> ")
-  elseif char ~= 0 then
+  elseif not keys.isControl(char) then
     -- Non-control character, add to command.
     char = string.char(char)
     command = command .. char
-    write(char)
+    term.write(char)
+  end
+end
+local function commandLineClipboard(_, value)
+  value = value:match("([^\r\n]+)")
+  if value and value:len() > 0 then
+    command = command .. value
+    term.write(value)
   end
 end
 
@@ -280,10 +288,12 @@ event.listen("term_available", function()
   term.clear()
   command = ""
   write("> ")
-  event.listen("key_down", commandLine)
+  event.listen("key_down", commandLineKey)
+  event.listen("clipboard", commandLineClipboard)
 end)
 event.listen("term_unavailable", function()
-  event.ignore("key_down", commandLine)
+  event.ignore("key_down", commandLineKey)
+  event.listen("clipboard", commandLineClipboard)
 end)
 
 -- Serves as main event loop while keeping the cursor blinking. As soon as
