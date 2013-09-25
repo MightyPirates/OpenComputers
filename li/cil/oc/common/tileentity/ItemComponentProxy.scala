@@ -57,7 +57,6 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
       itemNode(slot) match {
         case None => // Ignore.
         case Some(node) =>
-          println("Connecting item " + node.hashCode)
           network.connect(this, node)
       }
     }
@@ -69,7 +68,6 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
       itemNode(slot) match {
         case None => // Ignore.
         case Some(node) =>
-          println("Disconnecting item " + node.hashCode)
           node.network.remove(node)
       }
     }

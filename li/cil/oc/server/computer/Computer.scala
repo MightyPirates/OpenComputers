@@ -645,7 +645,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
         // Got a signal, inject it and call any handlers (if any).
         case signal => {
-          println("inject signal " + signal.name)
           lua.pushString(signal.name)
           signal.args.foreach(lua.pushJavaObject)
           lua.resume(1, 1 + signal.args.length)

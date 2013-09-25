@@ -1,4 +1,23 @@
---[[ Top level program run by the kernel. ]]
+--[[ Top level program run by the kernel.
+
+  We actually do quite a bit of work here, since we want to provide at least
+  some very rudimentary way to print to screens - flying blind really would
+  be a bit too harsh. And to get that in a robust fashion we also want to
+  keep track of connected components. For which we want to keep track of
+  signals related to that.
+
+  Thus we have these basic program parts:
+  - Events: provide a global event system into which signals are injected as
+      they come in in a global event loop, or a convenience `coroutine.sleep`
+      function.
+  - Components: keeps track of components via an ID unique for this computer,
+      which will still be valid if a component changes its address.
+  - Terminal: basic implementation of a write function that keeps track of
+      the first connected GPU and Screen and an internal cursor position. It
+      will provide a global `write` function and provides wrapping + scrolling.
+  - Command line: simple command line that allows entering a single line
+      command that will be executed when pressing enter.
+]]
 
 --[[ Distribute signals as events. ]]
 local listeners = {}
@@ -15,17 +34,23 @@ local function listenersFor(name, weak)
   end
 end
 
-function os.listen(name, callback, weak)
+--[[ Event API table. ]]
+event = {}
+
+--[[ Register a new event listener for the specified event. ]]
+function event.listen(name, callback, weak)
   checkArg(2, callback, "function")
   listenersFor(name, weak)[callback] = true
 end
 
-function os.ignore(name, callback)
+--[[ Remove an event listener. ]]
+function event.ignore(name, callback)
   listenersFor(name, false)[callback] = nil
   listenersFor(name, true)[callback] = nil
 end
 
-function os.event(name, ...)
+--[[ Dispatch an event with the specified parameter. ]]
+function event.fire(name, ...)
   if name then
     for callback, _ in pairs(listenersFor(name, false)) do
       callback(name, ...)
@@ -36,13 +61,12 @@ function os.event(name, ...)
   end
 end
 
-
 --[[ Suspends a thread for the specified amount of time. ]]
 function coroutine.sleep(seconds)
   checkArg(1, seconds, "number")
   local target = os.clock() + seconds
   repeat
-    os.event(os.signal(nil, target - os.clock()))
+    event.fire(os.signal(nil, target - os.clock()))
   until os.clock() >= target
 end
 
@@ -73,19 +97,19 @@ function component.id(address)
   end
 end
 
-os.listen("component_added", function(_, address)
+event.listen("component_added", function(_, address)
   local id = #components + 1
   components[id] = {address = address, name = driver.componentType(address)}
-  os.event("component_installed", id)
+  event.fire("component_installed", id)
 end)
 
-os.listen("component_removed", function(_, address)
+event.listen("component_removed", function(_, address)
   local id = component.id(address)
   components[id] = nil
-  os.event("component_uninstalled", id)
+  event.fire("component_uninstalled", id)
 end)
 
-os.listen("component_changed", function(_, newAddress, oldAddress)
+event.listen("component_changed", function(_, newAddress, oldAddress)
   components[component.id(oldAddress)].address = newAddress
 end)
 
@@ -95,7 +119,7 @@ local idGpu, idScreen = 0, 0
 local boundGpu = nil
 local cursorX, cursorY = 1, 1
 
-os.listen("component_installed", function(_, id)
+event.listen("component_installed", function(_, id)
   local type = component.type(id)
   if type == "gpu" and idGpu < 1 then
     term.gpuId(id)
@@ -104,7 +128,7 @@ os.listen("component_installed", function(_, id)
   end
 end)
 
-os.listen("component_uninstalled", function(_, id)
+event.listen("component_uninstalled", function(_, id)
   if idGpu == id then
     term.gpuId(0)
   elseif idScreen == id then
@@ -118,16 +142,17 @@ function term.gpu()
   return boundGpu
 end
 
-
 local function bindIfPossible()
   if idGpu > 0 and idScreen > 0 then
     if not boundGpu then
       local function gpu() return component.address(idGpu) end
       local function screen() return component.address(idScreen) end
       boundGpu = driver.gpu.bind(gpu, screen)
+      event.fire("term_available")
     end
-  else
+  elseif boundGpu then
     boundGpu = nil
+    event.fire("term_unavailable")
   end
 end
 
@@ -164,23 +189,23 @@ function term.write(value, wrap)
   value = tostring(value)
   local gpu = term.gpu()
   if not gpu or value:len() == 0 then return end
-  local resX, resY = gpu.getResolution()
-  if resX < 1 or resY < 1 then return end
+  local w, h = gpu.getResolution()
+  if w < 1 or h < 1 then return end
   local function checkCursor()
-    if cursorX > resX then
+    if cursorX > w then
       cursorX = 1
       cursorY = cursorY + 1
     end
-    if cursorY > resY then
-      gpu.copy(1, 1, resX, resY, 0, -1)
-      gpu.fill(1, resY, resX, 1, " ")
-      cursorY = resY
+    if cursorY > h then
+      gpu.copy(1, 1, w, h, 0, -1)
+      gpu.fill(1, h, w, 1, " ")
+      cursorY = h
     end
   end
   checkCursor()
   for line, nl in value:gmatch("([^\r\n]*)([\r\n]?)") do
-    while wrap and line:len() > resX - cursorX + 1 do
-      local partial = line:sub(1, resX - cursorX + 1)
+    while wrap and line:len() > w - cursorX + 1 do
+      local partial = line:sub(1, w - cursorX + 1)
       line = line:sub(partial:len() + 1)
       gpu.set(cursorX, cursorY, partial)
       cursorX = cursorX + partial:len()
@@ -199,6 +224,14 @@ function term.write(value, wrap)
   end
 end
 
+function term.clear()
+  local gpu = term.gpu()
+  if not gpu then return end
+  local w, h = gpu.getResolution()
+  gpu.fill(1, 1, w, h, " ")
+  cursorX, cursorY = 1, 1
+end
+
 -- Set custom write function to replace the dummy.
 write = function(...)
   local args = {...}
@@ -208,41 +241,65 @@ write = function(...)
 end
 
 
-
-
-os.listen("key_down", function(_, char, code)
+--[[ Primitive command line. ]]
+local command = ""
+local function commandLine(_, char, code)
   local keys = driver.keyboard.keys
   local gpu = term.gpu()
   local x, y = term.getCursor()
   if code == keys.back then
-    term.setCursor(x - 1, y)
-    gpu.set(x - 1, y, " ")
-  elseif code == keys.delete then
-    gpu.set(x, y, " ")
-  elseif code == keys.up then
-    term.setCursor(x, y - 1)
-  elseif code == keys.down then
-    term.setCursor(x, y + 1)
-  elseif code == keys.left then
-    term.setCursor(x - 1, y)
-  elseif code == keys.right then
-    term.setCursor(x + 1, y)
-  elseif code == keys.home then
-    term.setCursor(1, y)
-  elseif code == keys["end"] then
-    local rx, ry = gpu.getResolution()
-    term.setCursor(rx, y)
-  elseif code == keys.tab then
-    write("  ")
+    if command:len() == 0 then return end
+    command = command:sub(1, -2)
+    term.setCursor(command:len() + 3, y) -- from leading "> "
+    gpu.set(x - 1, y, "  ") -- overwrite cursor blink
   elseif code == keys.enter then
-    term.setCursor(1, y + 1)
+    if command:len() == 0 then return end
+    print()
+    local code, result = load("return " .. command)
+    if code then
+      local result = {pcall(code)}
+      if not result[1] or result[2] ~= nil then
+        -- TODO handle multiple results?
+        print(result[2])
+      end
+    else
+      print(result)
+    end
+    command = ""
+    write("> ")
   elseif char ~= 0 then
-    write(string.char(char))
+    -- Non-control character, add to command.
+    char = string.char(char)
+    command = command .. char
+    write(char)
   end
+end
+
+-- Reset when the term is reset and ignore input while we have no terminal.
+event.listen("term_available", function()
+  term.clear()
+  command = ""
+  write("> ")
+  event.listen("key_down", commandLine)
+end)
+event.listen("term_unavailable", function()
+  event.ignore("key_down", commandLine)
 end)
 
-
-
+-- Serves as main event loop while keeping the cursor blinking. As soon as
+-- we run a command from the command line this will stop until the process
+-- returned, since indirectly it was called via our sleep.
+local blinkState = false
 while true do
-  os.event(os.signal())
+  coroutine.sleep(0.5)
+  local gpu = term.gpu()
+  if gpu then
+    local x, y = term.getCursor()
+    if blinkState then
+      term.gpu().set(x, y, string.char(219)) -- Solid block.
+    else
+      term.gpu().set(x, y, " ")
+    end
+  end
+  blinkState = not blinkState
 end

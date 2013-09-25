@@ -26,13 +26,16 @@ class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
             Some(Array(supportedResolutions.intersect(resolutions): _*))
           case _ => None
         }
-      case Array(screen: Double, x: Double, y: Double, value: String) if message.name == "gpu.set" =>
+      case Array(screen: Double, x: Double, y: Double, value: String)
+        if message.name == "gpu.set" && x > 0 && y > 0 =>
         network.sendToNode(this, screen.toInt, "screen.set", x.toInt - 1, y.toInt - 1, value)
-      case Array(screen: Double, x: Double, y: Double, w: Double, h: Double, value: String) if message.name == "gpu.fill" =>
+      case Array(screen: Double, x: Double, y: Double, w: Double, h: Double, value: String)
+        if message.name == "gpu.fill" && x > 0 && y > 0 && w > 0 && h > 0 =>
         if (value != null && value.length == 1)
           network.sendToNode(this, screen.toInt, "screen.fill", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, value.charAt(0))
         else Some(Array(None, "invalid fill value"))
-      case Array(screen: Double, x: Double, y: Double, w: Double, h: Double, tx: Double, ty: Double) if message.name == "gpu.copy" =>
+      case Array(screen: Double, x: Double, y: Double, w: Double, h: Double, tx: Double, ty: Double)
+        if message.name == "gpu.copy" && x > 0 && y > 0 && w > 0 && h > 0 =>
         network.sendToNode(this, screen.toInt, "screen.copy", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, tx.toInt, ty.toInt)
       case _ => None
     }

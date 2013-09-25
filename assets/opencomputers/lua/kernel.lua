@@ -153,7 +153,7 @@ sandbox._G = sandbox
 -- Note that we allow passing a custom environment, because if this is called
 -- from inside the sandbox, env must already be in the sandbox.
 function sandbox.load(code, env)
-  return load(code, nil, "t", env or sandbox)
+  return load(code, code, "t", env or sandbox)
 end
 
 --[[ Install wrappers for coroutine management that reserves the first value
@@ -236,10 +236,8 @@ return xpcall(function()
       result = result[2]
     else
       -- Some other error, go kill ourselves.
-      return table.unpack(result)
+      error(result[2])
     end
     data = {coroutine.yield(result)}
   end
-end, function(msg)
-  return debug.traceback(msg, 1)
-end)
+end, function(msg) return msg end)
