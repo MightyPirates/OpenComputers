@@ -25,21 +25,24 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   // NetworkNode
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: INetworkMessage) = message.data match {
-    // The isRunning check is here to avoid network.connect messages being sent
-    // while loading a chunk (thus leading to "false" component_added signals).
-    case Array() if message.name == "network.connect" && isRunning =>
-      computer.signal("component_added", message.source.address); None
-    case Array() if message.name == "network.disconnect" =>
-      computer.signal("component_removed", message.source.address); None
-    case Array(oldAddress: Integer) if message.name == "network.reconnect" =>
-      computer.signal("component_updated", message.source.address, oldAddress); None
-    case Array(name: String, args@_*) if message.name == "signal" =>
-      computer.signal(name, args: _*); None
-    case _ => None
+  override def receive(message: INetworkMessage) = {
+    super.receive(message)
+    message.data match {
+      // The isRunning check is here to avoid network.connect messages being sent
+      // while loading a chunk (thus leading to "false" component_added signals).
+      case Array() if message.name == "network.connect" && isRunning =>
+        computer.signal("component_added", message.source.address); None
+      case Array() if message.name == "network.disconnect" =>
+        computer.signal("component_removed", message.source.address); None
+      case Array(oldAddress: Integer) if message.name == "network.reconnect" =>
+        computer.signal("component_updated", message.source.address, oldAddress); None
+      case Array(name: String, args@_*) if message.name == "signal" =>
+        computer.signal(name, args: _*); None
+      case _ => None
+    }
   }
 
-  override def onAddressChange() = computer.signal("address_change", address)
+  override protected def onAddressChange() = computer.signal("address_change", address)
 
   // ----------------------------------------------------------------------- //
   // General

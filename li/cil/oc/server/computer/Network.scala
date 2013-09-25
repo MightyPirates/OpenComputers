@@ -1,5 +1,6 @@
 package li.cil.oc.server.computer
 
+import java.util.logging.Level
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.INetwork
 import li.cil.oc.api.INetworkMessage
@@ -29,6 +30,7 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
       node.address = 1
       node.address -> ArrayBuffer(new Network.Node(node))
     }))
+    Network.send(new Network.ConnectMessage(node), List(node))
   }
 
   private def values = nodes.values.flatten.map(_.data)
@@ -41,15 +43,16 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
     if (!containsA && !containsB) throw new IllegalArgumentException(
       "At least one of the nodes must already be in this network.")
 
+    def oldNodeA = nodes(nodeA.address).find(_.data == nodeA).get
+    def oldNodeB = nodes(nodeB.address).find(_.data == nodeB).get
     if (containsA && containsB) {
       // Both nodes already exist in the network but there is a new connection.
       // This can happen if a new node sequentially connects to multiple nodes
       // in an existing network, e.g. in a setup like so:
       // O O   Where O is an old node, and N is the new Node. It would connect
       // O N   to the node above and left to it (in no particular order).
-      val oldNodeA = nodes(nodeA.address).find(_.data == nodeA).get
-      val oldNodeB = nodes(nodeB.address).find(_.data == nodeB).get
-      if (!oldNodeA.edges.exists(edge => edge.other(oldNodeA) == oldNodeB)) {
+      if (!oldNodeA.edges.exists(_.isBetween(oldNodeA, oldNodeB))) {
+        assert(!oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
         val edge = new Network.Edge(oldNodeA, oldNodeB)
         oldNodeA.edges += edge
         oldNodeB.edges += edge
@@ -59,52 +62,125 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
       else false
     }
     // New node for this network, order the nodes and add the new one.
-    else if (containsA) add(nodes(nodeA.address).find(_.data == nodeA).get, nodeB)
-    else add(nodes(nodeB.address).find(_.data == nodeB).get, nodeA)
+    else if (containsA) add(oldNodeA, nodeB)
+    else add(oldNodeB, nodeA)
+  }
+
+  private def add(oldNode: Network.Node, addedNode: INetworkNode) = {
+    // Check if the other node is new or if we have to merge networks.
+    val (newNode, sendQueue) = if (addedNode.network == null) {
+      val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[INetworkNode])]
+      sendQueue += ((new Network.ConnectMessage(addedNode), List(addedNode) ++ values))
+      values.foreach(node => sendQueue += ((new Network.ConnectMessage(node), List(addedNode))))
+      val newNode = new Network.Node(addedNode)
+      if (nodes.contains(addedNode.address))
+        addedNode.address = findId() // Assign address first since it may be ignored.
+      nodes.getOrElseUpdate(addedNode.address, new ArrayBuffer[Network.Node]) += newNode
+      addedNode.network = this
+      (newNode, sendQueue)
+    }
+    else {
+      // Queue any messages to avoid side effects from receivers.
+      val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[INetworkNode])]
+      val thisNodes = values.toBuffer
+      val otherNetwork = addedNode.network.asInstanceOf[Network]
+      val otherNodes = otherNetwork.values.toBuffer
+      otherNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), thisNodes)))
+      thisNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), otherNodes)))
+
+      // Change addresses for conflicting nodes in other network.
+      val reserved = mutable.Set(otherNetwork.nodes.keySet.toSeq: _*)
+      otherNodes.filter(node => nodes.contains(node.address)).foreach(node => {
+        val oldAddress = node.address
+        node.address = findId(reserved)
+        if (node.address != oldAddress) {
+          reserved += node.address
+          // Prepend to notify old nodes of address changes first.
+          sendQueue.+=:((new Network.ReconnectMessage(node, oldAddress), otherNodes))
+        }
+      })
+
+      // Add nodes from other network into this network.
+      otherNetwork.nodes.values.flatten.foreach(node => {
+        nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
+        node.data.network = this
+      })
+
+      // Return the node object of the newly connected node for the next step.
+      (nodes(addedNode.address).find(_.data == addedNode).get, sendQueue)
+    }
+
+    // Add the connection between the two nodes.
+    val edge = new Network.Edge(oldNode, newNode)
+    oldNode.edges += edge
+    newNode.edges += edge
+
+    // Send all generated messages.
+    for ((message, nodes) <- sendQueue) Network.send(message, nodes)
+
+    true
+  }
+
+  def disconnect(nodeA: INetworkNode, nodeB: INetworkNode) = {
+    val containsA = nodes.get(nodeA.address).exists(_.exists(_.data == nodeA))
+    val containsB = nodes.get(nodeB.address).exists(_.exists(_.data == nodeB))
+    if (!containsA || !containsB) throw new IllegalArgumentException(
+      "Both of the nodes must be in this network.")
+
+    def oldNodeA = nodes(nodeA.address).find(_.data == nodeA).get
+    def oldNodeB = nodes(nodeB.address).find(_.data == nodeB).get
+    if (oldNodeA.edges.exists(_.isBetween(oldNodeA, oldNodeB))) {
+      assert(oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
+
+      true
+    }
+    // That connection doesn't exists.
+    else false
   }
 
   def remove(node: INetworkNode) = nodes.get(node.address) match {
     case None => false
     case Some(list) => list.find(_.data == node) match {
       case None => false
-      case Some(entry) => if (list.contains(entry)) {
-        if ((list -= entry).isEmpty)
-          nodes -= node.address
+      case Some(entry) => {
+        // Removing a node may result in a net split, leaving us with multiple
+        // networks. The remove function returns all resulting networks, one
+        // of which we'll re-use for this network. For all additional ones we
+        // create new network instances.
+        val subGraphs = entry.remove()
+
+        // Sending the removal messages can have side effects, so we'll keep a
+        // copy of the original list of nodes in each sub network.
+        val subNodes = subGraphs.map(_.values.flatten.map(_.data).toBuffer).toBuffer
+
+        // We re-use this network by assigning the first sub graph to it. For
+        // all additional sub graphs (if any) we'll have to create new ones.
+        nodes.clear()
         node.network = null
-        // Build a queue of messages to send when we're done. These are all the
-        // removal messages that are caused by the removal (including those
-        // caused by a net split, if any).
-        val sendQueue = mutable.MutableList.empty[(Network.Message, Iterator[INetworkNode])]
-        // Queue the removal event for all other nodes in this graph; make a
-        // copy of the list, to ignore incoming modifications.
-        sendQueue += ((new Network.Message(node, "network.disconnect"), values.toArray.iterator))
+        // Empty for the last node removed from a network.
+        if (!subGraphs.isEmpty) {
+          nodes ++= subGraphs.head
+          subGraphs.tail.map(new Network(_))
+        }
 
-        // Remove it from the graph and create sub networks if the removal
-        // caused a net split (was the last bridge between two graphs).
-        val newNetworks = entry.remove()
-
-        // Create disconnect messages introduced by net splits by creating a
-        // disconnect for each network node in one network in all others.
-        for (i <- 0 until newNetworks.length) {
-          // Remove all nodes in the first network from all other networks.
-          for (node <- newNetworks(i).values) {
-            // Remove from this network.
-            sendQueue += ((new Network.Message(node, "network.disconnect"), values.iterator))
-            // Remove from all new networks.
-            for (j <- (i + 1) until newNetworks.length) {
-              sendQueue += ((new Network.Message(node, "network.disconnect"), newNetworks(j).values.iterator))
-            }
-          }
-          // Remove second network's nodes from the first one.
-          for (j <- (i + 1) until newNetworks.length) {
-            for (node <- newNetworks(j).values) {
-              sendQueue += ((new Network.Message(node, "network.disconnect"), newNetworks(i).values.iterator))
-            }
+        // Send removal messages. First, to the removed node itself (for its
+        // onDisconnect handler), then one for the removed node to all sub
+        // networks, for each node in the sub networks back to the removed node
+        // and if there was a net split (we have multiple networks) also for
+        // each node now longer belonging to one of the resulting sub networks.
+        Network.send(new Network.DisconnectMessage(node), List(node))
+        for (a <- 0 until subNodes.length) {
+          val nodesA = subNodes(a)
+          nodesA.foreach(nodeA => Network.send(new Network.DisconnectMessage(nodeA), List(node)))
+          Network.send(new Network.DisconnectMessage(node), nodesA)
+          for (b <- (a + 1) until subNodes.length) {
+            val nodesB = subNodes(b)
+            nodesA.foreach(nodeA => Network.send(new Network.DisconnectMessage(nodeA), nodesB))
+            nodesB.foreach(nodeB => Network.send(new Network.DisconnectMessage(nodeB), nodesA))
           }
         }
         true
       }
-      else false
     }
   }
 
@@ -116,87 +192,16 @@ class Network private(private val nodes: mutable.Map[Int, ArrayBuffer[Network.No
   def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*) =
     nodes.get(target) match {
       case None => None
-      case Some(list) => send(new Network.Message(source, name, Array(data: _*)), list.map(_.data).iterator)
+      case Some(list) => Network.send(new Network.Message(source, name, Array(data: _*)), list.map(_.data))
     }
 
   def sendToAll(source: INetworkNode, name: String, data: Any*) =
-    send(new Network.Message(source, name, Array(data: _*)), nodes.values.flatten.map(_.data).iterator)
-
-  private def send(message: Network.Message, nodes: Iterator[INetworkNode]) = {
-    var result = None: Option[Array[Any]]
-    while (!message.isCanceled && nodes.hasNext) {
-      try {
-        nodes.next().receive(message) match {
-          case None => // Ignore.
-          case r => result = r
-        }
-      } catch {
-        case e: Throwable =>
-          OpenComputers.log.warning("Error in message handler:\n" + e.getStackTraceString)
-      }
-    }
-    result
-  }
-
-  private def add(oldNode: Network.Node, node: INetworkNode) = {
-    // The node is new to this network, check if we have to merge networks.
-    val (newNode, sendQueue) = if (node.network == null) {
-      // Other node is not yet in a network, create internal node and add it
-      // to our lookup table of internal nodes.
-      val newNode = new Network.Node(node)
-      val sendQueue = List((new Network.Message(node, "network.connect"), nodes.values.flatten.map(_.data).toArray.iterator))
-      node.address = findId()
-      nodes.getOrElseUpdate(node.address, new ArrayBuffer[Network.Node]) += newNode
-      node.network = this
-      (newNode, Some(sendQueue))
-    }
-    else {
-      // We have to merge. First create a copy of the old nodes to have the
-      // list of nodes to which to send "network.connect" messages.
-      val oldNodes = nodes.values.flatten.map(_.data).toArray
-      // Then get the list of nodes in the other network. This is, among the
-      // iteration to merge into this network, used to send "network.reconnect"
-      // messages to old nodes in case we have to change a node's address to
-      // ensure unique addresses in the merged network.
-      val otherNetwork = node.network.asInstanceOf[Network]
-      val otherNodes = otherNetwork.nodes.values.flatten.map(_.data)
-      // We queue all messages we would send due to renaming and adding until
-      // we're done, to make sure handlers don't add nodes while we merge,
-      // since that could lead to duplicate addresses (an add taking one that
-      // we reserved for a node we will merge into this network).
-      val sendQueue = mutable.MutableList.empty[(Network.Message, Iterator[INetworkNode])]
-      // Pre-merge step: ensure addresses are unique.
-      for (node <- otherNodes if nodes.contains(node.address)) {
-        val oldAddress = node.address
-        node.address = findId(otherNetwork)
-        if (node.address != oldAddress) {
-          // If we successfully changed the address send message.
-          sendQueue += ((new Network.Message(node, "network.reconnect", Array(int2Integer(oldAddress))), otherNodes.iterator))
-        }
-      }
-      // Merge step: add nodes from other network into this network.
-      for (node <- otherNetwork.nodes.values.flatten) {
-        nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
-        node.data.network = this
-        sendQueue += ((new Network.Message(node.data, "network.connect"), oldNodes.iterator))
-      }
-      // Return the node object of the newly connected node for the next step.
-      (nodes(node.address).find(_.data == node).get, Some(sendQueue.toList))
-    }
-    // Either way, add the connection between the two nodes.
-    val edge = new Network.Edge(oldNode, newNode)
-    oldNode.edges += edge
-    newNode.edges += edge
-    sendQueue.foreach(_.foreach {
-      case (message, receivers) => send(message, receivers)
-    })
-    true
-  }
+    Network.send(new Network.Message(source, name, Array(data: _*)), values)
 
   private def findId() = Range(1, Int.MaxValue).find(!nodes.contains(_)).get
 
-  private def findId(other: Network) = Range(1, Int.MaxValue).find(
-    address => !nodes.contains(address) && !other.nodes.contains(address)).get
+  private def findId(reserved: collection.Set[Int]) = Range(1, Int.MaxValue).find(
+    address => !nodes.contains(address) && !reserved.contains(address)).get
 }
 
 object Network {
@@ -228,62 +233,67 @@ object Network {
       case _ => None
     }
 
+  private def send(message: Network.Message, nodes: Iterable[INetworkNode]) = {
+    //println("send(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + " -> [" + nodes.map(_.address).mkString(", ") + "])")
+    val iterator = nodes.iterator
+    var result = None: Option[Array[Any]]
+    while (!message.isCanceled && iterator.hasNext) {
+      try {
+        iterator.next().receive(message) match {
+          case None => // Ignore.
+          case r => result = r
+        }
+      } catch {
+        case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+      }
+    }
+    result
+  }
+
   private class Node(val data: INetworkNode) {
     val edges = ArrayBuffer.empty[Edge]
 
     def remove() = {
-      // Remove self from neighbors.
-      for (edge <- edges) {
-        edge.other(this).edges -= edge
-      }
-      // Build neighbor graphs to see if our removal resulted in a split.
-      val subGraphs = mutable.MutableList.empty[(mutable.Map[Int, ArrayBuffer[Node]], mutable.Queue[Node])]
-      for (edge <- edges) {
+      // Build neighbor graphs to see if our removal resulted in a split and remove their link to us while we're at it.
+      val subGraphs = Map(edges.map(edge => {
         val other = edge.other(this)
-        subGraphs += ((mutable.Map(other.data.address -> ArrayBuffer(other)), mutable.Queue(other.edges.map(_.other(other)): _*)))
-      }
+        edge.other(this).edges -= edge
+        (mutable.Map(other.data.address -> ArrayBuffer(other)), mutable.Queue(other.edges.map(_.other(other)): _*))
+      }): _*)
       // Breadth-first search to make early merges more likely.
       while (!subGraphs.forall {
         case (_, queue) => queue.isEmpty
+      }) for (subGraph <- subGraphs.filter {
+        case (_, queue) => !queue.isEmpty
       }) {
-        for (subGraph <- subGraphs.filter {
-          case (_, queue) => !queue.isEmpty
-        }) {
-          val (nodes, queue) = subGraph
-          val node = queue.dequeue()
-          // See if the node is already in some other graph, in which case we
-          // merge this graph into the other graph.
-          if (!subGraphs.filter(_ != subGraph).exists(otherSubGraph => {
-            val (otherNodes, _) = otherSubGraph
-            otherNodes.get(node.data.address) match {
-              case Some(list) if list.contains(node) => {
-                // Merge.
-                otherNodes ++= nodes
-                nodes.clear()
-                queue.clear()
-                true
-              }
-              case _ => false
+        val (nodes, queue) = subGraph
+        val node = queue.dequeue()
+        // See if the node is already in some other graph, in which case we
+        // merge this graph into the other graph.
+        if (!subGraphs.filter(_ != subGraph).exists {
+          case (otherNodes, otherQueue) => otherNodes.get(node.data.address) match {
+            case Some(list) if list.contains(node) => {
+              otherNodes ++= nodes
+              otherQueue ++= queue
+              nodes.clear()
+              queue.clear()
+              true
             }
-          })) {
-            // Not in any other graph yet.
-            nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
-            // Add nodes this node is connected to to the queue if they're not
-            // already in this graph.
-            queue ++= node.edges.map(_.other(node)).
-              filter(node => !nodes.get(node.data.address).exists(_.contains(node)))
+            case _ => false
           }
+        }) {
+          nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
+          queue ++= node.edges.map(_.other(node)).filter(n => !nodes.get(n.data.address).exists(_.contains(n)))
         }
       }
-      // Create new sub networks for separated sub-networks. Skip the first one
-      // to re-use the originating network and avoid re-creation if there is no
-      // split at all.
-      subGraphs map (_._1) filter (!_.isEmpty) drop 1 map (new Network(_))
+      subGraphs map (_._1) filter (!_.isEmpty)
     }
   }
 
   private class Edge(val left: Node, val right: Node) {
     def other(side: Node) = if (side == left) right else left
+
+    def isBetween(a: Node, b: Node) = (a == left && b == right) || (b == left && a == right)
   }
 
   private class Message(@BeanProperty val source: INetworkNode,
@@ -293,5 +303,11 @@ object Network {
 
     def cancel() = isCanceled = true
   }
+
+  private class ConnectMessage(source: INetworkNode) extends Message(source, "network.connect")
+
+  private class DisconnectMessage(source: INetworkNode) extends Message(source, "network.disconnect")
+
+  private class ReconnectMessage(source: INetworkNode, oldAddress: Int) extends Message(source, "network.reconnect", Array(oldAddress.asInstanceOf[Any]))
 
 }

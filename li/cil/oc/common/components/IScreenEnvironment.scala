@@ -14,22 +14,25 @@ trait IScreenEnvironment extends INetworkNode {
 
   override def name = "screen"
 
-  override def receive(message: INetworkMessage): Option[Array[Any]] = message.data match {
-    case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
-      Some(Array((screen.resolution = (w, h)): Any))
-    case Array() if message.name == "screen.resolution" => {
-      val (w, h) = screen.resolution
-      Some(Array(w: Any, h: Any))
+  override def receive(message: INetworkMessage): Option[Array[Any]] = {
+    super.receive(message)
+    message.data match {
+      case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
+        Some(Array((screen.resolution = (w, h)): Any))
+      case Array() if message.name == "screen.resolution" => {
+        val (w, h) = screen.resolution
+        Some(Array(w: Any, h: Any))
+      }
+      case Array() if message.name == "screen.resolutions" =>
+        Some(Array(screen.supportedResolutions: _*))
+      case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
+        screen.set(x, y, value); None
+      case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>
+        screen.fill(x, y, w, h, value); None
+      case Array(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) if message.name == "screen.copy" =>
+        screen.copy(x, y, w, h, tx, ty); None
+      case _ => None
     }
-    case Array() if message.name == "screen.resolutions" =>
-      Some(Array(screen.supportedResolutions: _*))
-    case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
-      screen.set(x, y, value); None
-    case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>
-      screen.fill(x, y, w, h, value); None
-    case Array(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) if message.name == "screen.copy" =>
-      screen.copy(x, y, w, h, tx, ty); None
-    case _ => None
   }
 
   def onScreenResolutionChange(w: Int, h: Int)

@@ -1,5 +1,7 @@
 package li.cil.oc.api
 
+import net.minecraft.nbt.NBTTagCompound
+
 /**
  * A single node in a `INetwork`.
  * <p/>
@@ -48,13 +50,7 @@ trait INetworkNode {
    *
    * @return the id of this node.
    */
-  def address = address_
-
-  def address_=(value: Int) = if (value != address_) {
-    address_ = value
-    onAddressChange()
-    this
-  }
+  var address = 0
 
   /**
    * The network this node is currently in.
@@ -68,39 +64,55 @@ trait INetworkNode {
    *
    * @return the network the node is in.
    */
-  def network = network_.orNull
-
-  def network_=(n: INetwork) = if (network_.forall(_ != n)) {
-    if (network_.isDefined) {
-      network_ = None
-      onDisconnect()
-    }
-    network_ = Option(n)
-    if (network_.isDefined) {
-      onConnect()
-    }
-  }
+  var network: INetwork = null
 
   /**
    * Makes the node handle a message.
-   *
+   * <p/>
    * Some messages may expect a result. In this case the handler function may
    * return that result. If multiple handlers are executed, the last result
    * that was not `None` will be used, if any. Otherwise the overall result
    * will also be `None`.
+   * <p/>
+   * Note that you should always call `super.receive()` in your implementation
+   * since this also is used to trigger the `onConnect`, `onDisconnect` and
+   * `onAddressChange` functions.
    *
    * @param message the message to handle.
    * @return the result of the message being handled, if any.
    */
-  def receive(message: INetworkMessage): Option[Array[Any]] = None
+  def receive(message: INetworkMessage): Option[Array[Any]] = {
+    if (message.source == this) message.name match {
+      case "network.connect" => onConnect()
+      case "network.disconnect" => onDisconnect()
+      case "network.reconnect" => onAddressChange()
+      case _ => // Ignore.
+    }
+    None
+  }
 
-  def onConnect() {}
+  /**
+   * Reads a previously stored address value from the specified tag.
+   *
+   * This should be called when implementing class is loaded.
+   *
+   * @param nbt the tag to read from.
+   */
+  def readAddressFromNBT(nbt: NBTTagCompound) = address = nbt.getInteger("address")
 
-  def onDisconnect() {}
+  /**
+   * Stores the node's address in the specified NBT tag, to keep addresses the
+   * same across unloading/loading.
+   *
+   * This should be called when the implementing class is saved.
+   *
+   * @param nbt the tag to write to.
+   */
+  def writeAddressToNBT(nbt: NBTTagCompound) = nbt.setInteger("address", address)
 
-  def onAddressChange() {}
+  protected def onConnect() {}
 
-  private var network_ = None: Option[INetwork]
+  protected def onDisconnect() {}
 
-  private var address_ = 0
+  protected def onAddressChange() {}
 }

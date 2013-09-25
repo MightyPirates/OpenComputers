@@ -69,7 +69,6 @@ class Proxy {
 
     private def onLoad(w: World, tileEntities: Iterable[TileEntity]) =
       if (!w.isRemote) {
-        // Add all network nodes to networks.
         tileEntities.foreach(t => NetworkAPI.joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
       }
   }

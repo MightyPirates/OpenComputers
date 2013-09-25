@@ -49,7 +49,7 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
   // NetworkNode
   // ----------------------------------------------------------------------- //
 
-  override def onConnect() = {
+  override protected def onConnect() = {
     super.onConnect()
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
@@ -61,7 +61,7 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     }
   }
 
-  override def onDisconnect() = {
+  override protected def onDisconnect() = {
     super.onDisconnect()
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
