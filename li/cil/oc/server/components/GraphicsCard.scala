@@ -3,7 +3,9 @@ package li.cil.oc.server.components
 import li.cil.oc.api.{INetworkNode, INetworkMessage}
 import net.minecraft.nbt.NBTTagCompound
 
-class GraphicsCard(nbt: NBTTagCompound) extends INetworkNode {
+class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
+  if (nbt.hasKey("address")) address = nbt.getInteger("address")
+
   val supportedResolutions = List(List(40, 24), List(80, 24))
 
   override def name = "gpu"
@@ -34,5 +36,10 @@ class GraphicsCard(nbt: NBTTagCompound) extends INetworkNode {
         network.sendToNode(this, screen.toInt, "screen.copy", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, tx.toInt, ty.toInt)
       case _ => None
     }
+  }
+
+  override protected def onAddressChange() {
+    super.onAddressChange()
+    nbt.setInteger("address", address)
   }
 }

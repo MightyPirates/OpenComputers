@@ -35,7 +35,7 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
       case Array() if message.name == "network.disconnect" =>
         computer.signal("component_removed", message.source.address); None
       case Array(oldAddress: Integer) if message.name == "network.reconnect" =>
-        computer.signal("component_updated", message.source.address, oldAddress); None
+        computer.signal("component_changed", message.source.address, oldAddress); None
       case Array(name: String, args@_*) if message.name == "signal" =>
         computer.signal(name, args: _*); None
       case _ => None
@@ -63,7 +63,7 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     computer.readFromNBT(nbt.getCompoundTag("computer"))
-    readItemsFromNBT(nbt.getCompoundTag("items"))
+    load(nbt.getCompoundTag("data"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
@@ -73,9 +73,9 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
     computer.writeToNBT(computerNbt)
     nbt.setCompoundTag("computer", computerNbt)
 
-    val itemsNbt = new NBTTagCompound
-    writeItemsToNBT(itemsNbt)
-    nbt.setCompoundTag("items", itemsNbt)
+    val dataNbt = new NBTTagCompound
+    save(dataNbt)
+    nbt.setCompoundTag("data", dataNbt)
   }
 
   override def updateEntity() = {

@@ -216,27 +216,17 @@ function sandbox.os.signal(name, timeout)
   end
 end
 
---[[ Suspends the computer for the specified amount of time. ]]
-function sandbox.os.sleep(seconds)
-  checkArg(1, seconds, "number")
-  local target = os.clock() + seconds
-  while os.clock() < target do
-    -- Yielding a number here will tell the host it can wait with running us
-    -- again for that long. Note that this is *not* a sleep! We may be resumed
-    -- way sooner, e.g. because of signals or a state load (after an unload).
-    -- That's why we put a loop around the thing.
-    coroutine.yield(seconds)
-  end
-end
-
--- JNLua / Lua suck at reporting errors from coroutines, so we do it manually.
-return pcall(function()
+-- JNLua converts the coroutine to a string immediately, so we can't get the
+-- traceback later. Because of that we have to do the error handling here.
+return xpcall(function()
   -- Replace init script code with loaded, sandboxed and threaded script.
   local init = (function()
-    local result, reason = load(init(), nil, "t", sandbox)
+    local result, reason = load(init(), "init", "t", sandbox)
     if not result then error(reason, 0) end
     return coroutine.create(result)
   end)()
+
+  -- Main kernel loop.
   local data = {}
   while true do
     deadline = os.realTime() + 3
@@ -250,4 +240,6 @@ return pcall(function()
     end
     data = {coroutine.yield(result)}
   end
+end, function(msg)
+  return debug.traceback(msg, 1)
 end)

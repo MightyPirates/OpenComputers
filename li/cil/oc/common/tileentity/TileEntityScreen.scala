@@ -11,15 +11,20 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    screen.readFromNBT(nbt.getCompoundTag("component"))
+    screen.readFromNBT(nbt.getCompoundTag("screen"))
+    load(nbt.getCompoundTag("data"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
 
-    val componentNbt = new NBTTagCompound
-    screen.writeToNBT(componentNbt)
-    nbt.setCompoundTag("component", componentNbt)
+    val screenNbt = new NBTTagCompound
+    screen.writeToNBT(screenNbt)
+    nbt.setCompoundTag("screen", screenNbt)
+
+    val dataNbt = new NBTTagCompound
+    save(dataNbt)
+    nbt.setCompoundTag("data", dataNbt)
   }
 
   override def validate() = {

@@ -55,8 +55,9 @@ trait INetwork {
    * properly splitting networks when nodes are removed.
    *
    * @param nodeA the first node.
-   * @param nodeB the other node.
-   * @return whether a node was added or not.
+   * @param nodeB the second node.
+   * @return true if a new connection between the two nodes was added; false if
+   *         the connection already existed.
    * @throws IllegalArgumentException if neither node is in this network.
    * @throws IllegalStateException    if this is called while the network is
    *                                  already updating, for example from
@@ -64,6 +65,23 @@ trait INetwork {
    *                                  called during the update).
    */
   def connect(nodeA: INetworkNode, nodeB: INetworkNode): Boolean
+
+  /**
+   * Removes a node connection in the network.
+   * <p/>
+   * Both nodes must be part of the same network.
+   * <p/>
+   * This can be useful for cutting connections that depend on some condition
+   * that does not involve the nodes' actual existence in the network, such as
+   * the distance between two nodes, for example (think access points of a
+   * wireless network).
+   *
+   * @param nodeA the first node.
+   * @param nodeB the second node.
+   * @return true if the connection was cut; false if there was none.
+   * @throws IllegalArgumentException if the nodes are not in this network.
+   */
+  def disconnect(nodeA: INetworkNode, nodeB: INetworkNode): Boolean
 
   /**
    * Removes a node from the network.
@@ -87,6 +105,17 @@ trait INetwork {
    * @return the node with that address.
    */
   def node(address: Int): Option[INetworkNode]
+
+  /**
+   * The list of nodes in this network.
+   * <p/>
+   * This can be used to perform a delayed initialization of a node. For
+   * example, computers will use this when starting up to generate component
+   * added events for all nodes.
+   *
+   * @return the list of nodes in this network.
+   */
+  def nodes: Iterable[INetworkNode]
 
   /**
    * Sends a message to a specific node.

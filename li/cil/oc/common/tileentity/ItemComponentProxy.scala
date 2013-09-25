@@ -16,7 +16,8 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
 
   def world: World
 
-  def readItemsFromNBT(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
     val list = nbt.getTagList("list")
     for (i <- 0 until list.tagCount) {
       val slotNbt = list.tagAt(i).asInstanceOf[NBTTagCompound]
@@ -28,7 +29,8 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     }
   }
 
-  def writeItemsToNBT(nbt: NBTTagCompound) = {
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
     val list = new NBTTagList
     inventory.zipWithIndex filter {
       case (stack, slot) => stack != null

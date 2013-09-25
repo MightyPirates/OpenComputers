@@ -112,7 +112,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         signals.offer(new Signal(name, args.toArray))
         future = Some(Executor.pool.submit(this))
         true
-      // Running or in synchronized call or only a short yield, just push the signal.
+      // Basically running, but had nothing to do so we stopped. Resume.
+      case State.Suspended if !future.isDefined =>
+        signals.offer(new Signal(name, args.toArray))
+        future = Some(Executor.pool.submit(this))
+        true
+      // Running or in synchronized call, just push the signal.
       case _ =>
         signals.offer(new Signal(name, args.toArray))
         true
@@ -134,6 +139,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // we can just ignore the parameters the first time the kernel is run
       // and all actual signals will be read using coroutine.yield().
       signal("dummy")
+
+      // Inject component added signals for all nodes in the network.
+      owner.network.nodes.foreach(node => signal("component_added", node.address))
 
       // Initialize any installed components.
       owner.network.sendToAll(owner, "computer.start")
@@ -607,7 +615,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         return
       }
 
-    val driverReturn = stateMonitor.synchronized {
+    val callReturn = stateMonitor.synchronized {
       if (state == State.Stopped) return
       val oldState = state
       state = State.Running
@@ -623,10 +631,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // corrupting our Lua state.
 
       // The kernel thread will always be at stack index one.
-      assert(lua.`type`(1) == LuaType.THREAD)
+      assert(lua.isThread(1))
 
       // Resume the Lua state and remember the number of results we get.
-      val results = if (driverReturn) {
+      val results = if (callReturn) {
         // If we were doing a driver call, continue where we left off.
         assert(lua.getTop == 2)
         lua.resume(1, 1)
@@ -637,6 +645,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
         // Got a signal, inject it and call any handlers (if any).
         case signal => {
+          println("inject signal " + signal.name)
           lua.pushString(signal.name)
           signal.args.foreach(lua.pushJavaObject)
           lua.resume(1, 1 + signal.args.length)
@@ -647,7 +656,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       owner.markAsChanged()
 
       // Only queue for next execution step if the kernel is still alive.
-      if (lua.status(1) == LuaState.OK || lua.status(1) == LuaState.YIELD) {
+      if (lua.status(1) == LuaState.YIELD) {
         // Lua state yielded normally, see what we have.
         stateMonitor.synchronized {
           if (state == State.Stopping) {
@@ -662,7 +671,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             if (signals.isEmpty) {
               state = State.Sleeping
               future = Some(Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS))
-            } else future = Some(Executor.pool.submit(this))
+            }
+            else {
+              state = State.Suspended
+              future = Some(Executor.pool.submit(this))
+            }
           }
           else if (results == 1 && lua.isFunction(2)) {
             // If we get one function it's a wrapper for a synchronized call.
@@ -681,24 +694,22 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // Avoid getting to the closing part after the exception handling.
         return
       }
+      // Error handling.
       else if (lua.isBoolean(2) && !lua.toBoolean(2)) {
-        println(lua.toString(3))
+        // TODO Print something to an in-game screen.
+        OpenComputers.log.warning(lua.toString(3))
       }
     }
     catch {
-      // The kernel should never throw. If it does, the computer crashed
-      // hard, so we just close the state.
-      // TODO Print something to an in-game screen, a la kernel panic.
-      case ex: LuaRuntimeException => ex.printLuaStackTrace()
       case er: LuaMemoryAllocationException => {
         // This is pretty likely to happen for non-upgraded computers.
-        // TODO Print an error message to an in-game screen.
-        println("Out of memory!")
-        er.printStackTrace()
+        // TODO Print something to an in-game screen, a la kernel panic.
+        OpenComputers.log.warning("Out of memory!")
       }
       // Top-level catch-anything, because otherwise those exceptions get
       // gobbled up by the executor unless we call the future's get().
-      case t: Throwable => t.printStackTrace()
+      case t: Throwable =>
+        OpenComputers.log.warning("Faulty kernel implementation, it should never throw.")
     }
 
     // If we come here there was an error or we stopped, kill off the state.
