@@ -46,6 +46,9 @@ local sandbox = {
 
   write = function() end,
 
+  -- TODO for debbuging only
+  --nativeprint = print,
+
   checkArg = checkArg,
   component = component,
   driver = driver,
@@ -221,7 +224,7 @@ end
 return pcall(function()
   -- Replace init script code with loaded, sandboxed and threaded script.
   local init = (function()
-    local result, reason = load(init(), "init", "t", sandbox)
+    local result, reason = load(init(), "=init", "t", sandbox)
     if not result then error(reason, 0) end
     return coroutine.create(result)
   end)()

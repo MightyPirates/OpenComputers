@@ -98,7 +98,7 @@ trait INetworkNode {
    *
    * @param nbt the tag to read from.
    */
-  def save(nbt: NBTTagCompound) = address = nbt.getInteger("address")
+  def load(nbt: NBTTagCompound) = address = nbt.getInteger("address")
 
   /**
    * Stores the node's address in the specified NBT tag, to keep addresses the
@@ -108,7 +108,7 @@ trait INetworkNode {
    *
    * @param nbt the tag to write to.
    */
-  def load(nbt: NBTTagCompound) = nbt.setInteger("address", address)
+  def save(nbt: NBTTagCompound) = nbt.setInteger("address", address)
 
   protected def onConnect() {}
 

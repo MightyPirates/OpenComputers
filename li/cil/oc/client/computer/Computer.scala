@@ -18,7 +18,7 @@ class Computer(owner: Any) extends IComputer {
 
   override def signal(name: String, args: Any*) = ???
 
-  override def readFromNBT(nbt: NBTTagCompound) {}
+  override def load(nbt: NBTTagCompound) {}
 
-  override def writeToNBT(nbt: NBTTagCompound) {}
+  override def save(nbt: NBTTagCompound) {}
 }

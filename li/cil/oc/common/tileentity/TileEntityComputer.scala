@@ -62,20 +62,20 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    computer.readFromNBT(nbt.getCompoundTag("computer"))
     load(nbt.getCompoundTag("data"))
+    computer.load(nbt.getCompoundTag("computer"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
 
-    val computerNbt = new NBTTagCompound
-    computer.writeToNBT(computerNbt)
-    nbt.setCompoundTag("computer", computerNbt)
-
     val dataNbt = new NBTTagCompound
     save(dataNbt)
     nbt.setCompoundTag("data", dataNbt)
+
+    val computerNbt = new NBTTagCompound
+    computer.save(computerNbt)
+    nbt.setCompoundTag("computer", computerNbt)
   }
 
   override def updateEntity() = {
@@ -85,6 +85,11 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
     }
     if (isRunning != computer.isRunning) {
       isRunning = computer.isRunning
+      if (network != null)
+        if (isRunning)
+          network.sendToAll(this, "computer.start")
+        else
+          network.sendToAll(this, "computer.stop")
       ServerPacketSender.sendComputerState(this, isRunning)
     }
   }
@@ -100,7 +105,7 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   // ----------------------------------------------------------------------- //
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    world.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
+    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
       player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
 
   override def world = worldObj

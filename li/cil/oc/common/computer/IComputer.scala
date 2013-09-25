@@ -30,7 +30,7 @@ trait IComputer {
 
   // ----------------------------------------------------------------------- //
 
-  def readFromNBT(nbt: NBTTagCompound)
+  def load(nbt: NBTTagCompound)
 
-  def writeToNBT(nbt: NBTTagCompound)
+  def save(nbt: NBTTagCompound)
 }

@@ -4,7 +4,7 @@ import li.cil.oc.api.{INetworkNode, INetworkMessage}
 import net.minecraft.nbt.NBTTagCompound
 
 class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
-  if (nbt.hasKey("address")) address = nbt.getInteger("address")
+  address = nbt.getInteger("address")
 
   val supportedResolutions = List(List(40, 24), List(80, 24))
 

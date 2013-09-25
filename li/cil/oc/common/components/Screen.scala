@@ -38,11 +38,11 @@ class Screen(val owner: IScreenEnvironment) {
     if (buffer.copy(col, row, w, h, tx, ty))
       owner.onScreenCopy(col, row, w, h, tx, ty)
 
-  def readFromNBT(nbt: NBTTagCompound) = {
+  def load(nbt: NBTTagCompound) = {
     buffer.readFromNBT(nbt.getCompoundTag("buffer"))
   }
 
-  def writeToNBT(nbt: NBTTagCompound) = {
+  def save(nbt: NBTTagCompound) = {
     val nbtBuffer = new NBTTagCompound
     buffer.writeToNBT(nbtBuffer)
     nbt.setCompoundTag("buffer", nbtBuffer)

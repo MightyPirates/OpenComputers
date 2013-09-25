@@ -3,11 +3,14 @@ package li.cil.oc.server.computer
 import com.naef.jnlua._
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.logging.Level
 import li.cil.oc.common.computer.IComputer
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
 import scala.Array.canBuildFrom
+import scala.Some
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.io.Source
 
 /**
@@ -129,7 +132,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   // ----------------------------------------------------------------------- //
 
   override def start() = stateMonitor.synchronized(
-    state == State.Stopped && init() && (try {
+    state == State.Stopped && init() && {
       state = State.Suspended
 
       // Mark state change in owner, to send it to clients.
@@ -143,17 +146,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // Inject component added signals for all nodes in the network.
       owner.network.nodes.foreach(node => signal("component_added", node.address))
 
-      // Initialize any installed components.
-      owner.network.sendToAll(owner, "computer.start")
-
       future = Some(Executor.pool.submit(this))
       true
-    }
-    catch {
-      // The above code may throw if some component was removed by abnormal
-      // means (e.g. mod providing the block was removed/disabled).
-      case _: Throwable => close(); false
-    }))
+    })
 
   override def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
     if (state != State.Stopped) {
@@ -224,7 +219,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound): Unit =
+  override def load(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
       // Clear out what we currently have, if anything.
       stateMonitor.synchronized {
@@ -275,7 +270,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
                 case tag: NBTTagDouble => tag.data
                 case tag: NBTTagString => tag.data
               }.toArray)
-          }))
+          }).asJava)
 
           timeStarted = nbt.getDouble("timeStarted")
 
@@ -286,19 +281,17 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           // Start running our worker thread.
           assert(!future.isDefined)
           future = Some(Executor.pool.submit(this))
-        }
-        catch {
+
+        } catch {
           case t: Throwable => {
-            t.printStackTrace()
-            // TODO display error in-game on monitor or something
-            //signal("crash", "memory corruption")
+            OpenComputers.log.log(Level.WARNING, "Could not restore computer.", t)
             close()
           }
         }
       }
     })
 
-  override def writeToNBT(nbt: NBTTagCompound): Unit =
+  override def save(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
       stateMonitor.synchronized {
         assert(state != State.Running) // Lock on 'this' should guarantee this.
@@ -331,8 +324,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         for (s <- signals.iterator) {
           val signal = new NBTTagCompound
           signal.setString("name", s.name)
-          // TODO Test with NBTTagList, but supposedly it only allows entries
-          //      with the same type, so I went with this for now...
           val args = new NBTTagCompound
           args.setInteger("length", s.args.length)
           s.args.zipWithIndex.foreach {
@@ -533,7 +524,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // so that they yield a closure doing the actual call so that that
       // message call can be performed in a synchronized fashion.
       lua.load(classOf[Computer].getResourceAsStream(
-        "/assets/opencomputers/lua/boot.lua"), "boot", "t")
+        "/assets/opencomputers/lua/boot.lua"), "=boot", "t")
       lua.call(0, 0)
 
       // Install all driver callbacks into the state. This is done once in
@@ -558,7 +549,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // functionality in Lua. Why? Because like this it's automatically
       // persisted for us without having to write more additional NBT stuff.
       lua.load(classOf[Computer].getResourceAsStream(
-        "/assets/opencomputers/lua/kernel.lua"), "kernel", "t")
+        "/assets/opencomputers/lua/kernel.lua"), "=kernel", "t")
       lua.newThread() // Leave it as the first value on the stack.
 
       // Run the garbage collector to get rid of stuff left behind after the
@@ -597,10 +588,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
-
-      if (owner.network != null) {
-        owner.network.sendToAll(owner, "computer.stop")
-      }
     })
 
   // This is a really high level lock that we only use for saving and loading.

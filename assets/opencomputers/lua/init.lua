@@ -90,27 +90,39 @@ function component.type(id)
 end
 
 function component.id(address)
-  for id, component in ipairs(components) do
+  for id, component in pairs(components) do
     if component.address == address then
       return id
     end
   end
 end
 
+function component.ids()
+  local id = nil
+  return function()
+    id = next(components, id)
+    return id
+  end
+end
+
 event.listen("component_added", function(_, address)
   local id = #components + 1
+  -- TODO testing nativeprint("component_added " .. address .. " ~ " .. id)
   components[id] = {address = address, name = driver.componentType(address)}
   event.fire("component_installed", id)
 end)
 
 event.listen("component_removed", function(_, address)
   local id = component.id(address)
+  -- TODO testing nativeprint("component_removed " .. address .. " ~ " .. id)
   components[id] = nil
   event.fire("component_uninstalled", id)
 end)
 
 event.listen("component_changed", function(_, newAddress, oldAddress)
-  components[component.id(oldAddress)].address = newAddress
+  local id = component.id(oldAddress)
+  -- TODO testing nativeprint("component_changed " .. oldAddress .. " -> " .. newAddress .. " ~ " .. id)
+  components[id].address = newAddress
 end)
 
 
@@ -131,8 +143,20 @@ end)
 event.listen("component_uninstalled", function(_, id)
   if idGpu == id then
     term.gpuId(0)
+    for id in component.ids() do
+      if component.type(id) == "gpu" then
+        term.gpuId(id)
+        return
+      end
+    end
   elseif idScreen == id then
     term.screenId(0)
+    for id in component.ids() do
+      if component.type(id) == "screen" then
+        term.screenId(id)
+        return
+      end
+    end
   end
 end)
 
@@ -190,7 +214,7 @@ function term.write(value, wrap)
   local gpu = term.gpu()
   if not gpu or value:len() == 0 then return end
   local w, h = gpu.getResolution()
-  if w < 1 or h < 1 then return end
+  if not w or not h or w < 1 or h < 1 then return end
   local function checkCursor()
     if cursorX > w then
       cursorX = 1

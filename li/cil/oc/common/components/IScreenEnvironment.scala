@@ -1,6 +1,7 @@
 package li.cil.oc.common.components
 
 import li.cil.oc.api.{INetworkMessage, INetworkNode}
+import net.minecraft.nbt.NBTTagCompound
 
 /**
  * Environment for screen components.
@@ -33,6 +34,20 @@ trait IScreenEnvironment extends INetworkNode {
         screen.copy(x, y, w, h, tx, ty); None
       case _ => None
     }
+  }
+
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
+    screen.load(nbt.getCompoundTag("screen"))
+  }
+
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
+
+    val screenNbt = new NBTTagCompound
+    screen.save(screenNbt)
+    nbt.setCompoundTag("screen", screenNbt)
+
   }
 
   def onScreenResolutionChange(w: Int, h: Int)

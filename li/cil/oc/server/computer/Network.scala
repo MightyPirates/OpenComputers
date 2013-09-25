@@ -27,7 +27,7 @@ import scala.collection.mutable.ArrayBuffer
 class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends INetwork {
   def this(node: INetworkNode) = {
     this(mutable.Map({
-      node.address = 1
+      if (node.address < 1) node.address = 1
       node.address -> ArrayBuffer(new Network.Node(node))
     }))
     Network.send(new Network.ConnectMessage(node), List(node))
@@ -70,7 +70,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
       nodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), List(addedNode))))
       val newNode = new Network.Node(addedNode)
       if (nodeMap.contains(addedNode.address) || addedNode.address < 1)
-        addedNode.address = findId() // Assign address first since it may be ignored.
+        addedNode.address = findId()
       nodeMap.getOrElseUpdate(addedNode.address, new ArrayBuffer[Network.Node]) += newNode
       addedNode.network = this
       (newNode, sendQueue)
@@ -235,31 +235,12 @@ object Network {
       case _ => None
     }
 
-  private def send(message: Network.Message, nodes: Iterable[INetworkNode]) = {
-    //println("send(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + " -> [" + nodes.map(_.address).mkString(", ") + "])")
-    val iterator = nodes.iterator
-    var result = None: Option[Array[Any]]
-    while (!message.isCanceled && iterator.hasNext) {
-      try {
-        iterator.next().receive(message) match {
-          case None => // Ignore.
-          case r => result = r
-        }
-      } catch {
-        case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-      }
-    }
-    result
-  }
-
   private class Node(val data: INetworkNode) {
     val edges = ArrayBuffer.empty[Edge]
 
     def remove() = {
-      val edgesCopy = edges.toBuffer
       edges.foreach(edge => edge.other(this).edges -= edge)
-      edges.clear()
-      edgesCopy.map(_.remove().filter(_.values.head.head != this)).flatten
+      searchGraphs(edges.map(_.other(this)))
     }
   }
 
@@ -274,38 +255,34 @@ object Network {
     def remove() = {
       left.edges -= this
       right.edges -= this
-      // Build neighbor graphs to see if our removal resulted in a split.
-      val subGraphs = List(
-        (mutable.Map(left.data.address -> ArrayBuffer(left)), mutable.Queue(left.edges.map(_.other(left)): _*)),
-        (mutable.Map(right.data.address -> ArrayBuffer(right)), mutable.Queue(right.edges.map(_.other(right)): _*)))
-      // Breadth-first search to make early merges more likely.
-      while (!subGraphs.forall {
-        case (_, queue) => queue.isEmpty
-      }) for (subGraph <- subGraphs.filter {
-        case (_, queue) => !queue.isEmpty
-      }) {
-        val (nodes, queue) = subGraph
-        val node = queue.dequeue()
-        // See if the node is already in some other graph, in which case we
-        // merge this graph into the other graph.
-        if (!subGraphs.filter(_ != subGraph).exists {
-          case (otherNodes, otherQueue) => otherNodes.get(node.data.address) match {
-            case Some(list) if list.contains(node) => {
-              otherNodes ++= nodes
-              otherQueue ++= queue
-              nodes.clear()
-              queue.clear()
-              true
-            }
-            case _ => false
-          }
-        }) {
-          nodes.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
-          queue ++= node.edges.map(_.other(node)).filter(n => !nodes.get(n.data.address).exists(_.contains(n)))
-        }
-      }
-      subGraphs map (_._1) filter (!_.isEmpty)
+      searchGraphs(List(left, right))
     }
+  }
+
+  private def searchGraphs(seeds: Seq[Network.Node]) = {
+    val seen = mutable.Set.empty[Network.Node]
+    seeds.map(seed => {
+      if (seen.contains(seed)) {
+        // If our seed node is contained in another sub graph we have nothing
+        // to do, since we're a sub graph of that sub graph.
+        mutable.Map.empty[Int, mutable.ArrayBuffer[Network.Node]]
+      }
+      else {
+        // Not yet processed, start growing a network from here. We're
+        // guaranteed to not find previously processed nodes, since edges
+        // are bidirectional, and we'd be in the other branch otherwise.
+        seen += seed
+        val subGraph = mutable.Map(seed.data.address -> mutable.ArrayBuffer(seed))
+        val queue = mutable.Queue(seed.edges.map(_.other(seed)): _*)
+        while (queue.nonEmpty) {
+          val node = queue.dequeue()
+          seen += node
+          subGraph.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
+          queue ++= node.edges.map(_.other(node)).filter(n => !seen.contains(n) && !queue.contains(n))
+        }
+        subGraph
+      }
+    }) filter (_.nonEmpty)
   }
 
   private class Message(@BeanProperty val source: INetworkNode,
@@ -322,4 +299,20 @@ object Network {
 
   private class ReconnectMessage(source: INetworkNode, oldAddress: Int) extends Message(source, "network.reconnect", Array(oldAddress.asInstanceOf[Any]))
 
+  private def send(message: Network.Message, nodes: Iterable[INetworkNode]) = {
+    //println("send(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + ":" + message.source.name + " -> [" + nodes.map(node => node.address + ":" + node.name).mkString(", ") + "])")
+    val iterator = nodes.iterator
+    var result = None: Option[Array[Any]]
+    while (!message.isCanceled && iterator.hasNext) {
+      try {
+        iterator.next().receive(message) match {
+          case None => // Ignore.
+          case r => result = r
+        }
+      } catch {
+        case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+      }
+    }
+    result
+  }
 }
