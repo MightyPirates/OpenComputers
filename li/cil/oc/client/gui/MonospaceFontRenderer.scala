@@ -5,9 +5,12 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
+import scala.io.Source
 
 object MonospaceFontRenderer {
-  private val font = new ResourceLocation("opencomputers", "textures/font/ascii.png")
+  private val font = new ResourceLocation("opencomputers", "textures/font/chars.png")
+
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/opencomputers/textures/font/chars.txt")).mkString
 
   private var instance: Option[Renderer] = None
 
@@ -64,7 +67,11 @@ object MonospaceFontRenderer {
       GL11.glScalef(0.5f, 0.5f, 1)
       GL11.glColor4f(1, 1, 1, 1)
       for (c <- value) {
-        listBuffer.put(charLists + c)
+        val index = 1 + chars.indexOf(c) match {
+          case -1 => chars.indexOf('?')
+          case i => i
+        }
+        listBuffer.put(charLists + index)
         if (listBuffer.remaining == 0)
           flush()
       }

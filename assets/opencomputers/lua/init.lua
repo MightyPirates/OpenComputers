@@ -332,7 +332,7 @@ while true do
   if gpu then
     local x, y = term.getCursor()
     if blinkState then
-      term.gpu().set(x, y, string.char(219)) -- Solid block.
+      term.gpu().set(x, y, string.char(9608)) -- Solid block.
     else
       term.gpu().set(x, y, " ")
     end

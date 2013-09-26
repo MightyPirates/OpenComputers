@@ -208,6 +208,70 @@ private[computer] object LuaStateFactory {
       // Pop the math table.
       state.pop(1)
 
+      // Provide some better Unicode support.
+      state.getGlobal("string")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+        1
+      }))
+      state.setField(-2, "char")
+
+      // TODO find
+
+      // TODO format
+
+      // TODO gmatch
+
+      // TODO gsub
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushInteger(lua.checkString(1).length)
+        1
+      }))
+      state.setField(-2, "len")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushString(lua.checkString(1).toLowerCase)
+        1
+      }))
+      state.setField(-2, "lower")
+
+      // TODO match
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushString(lua.checkString(1).reverse)
+        1
+      }))
+      state.setField(-2, "reverse")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        val string = lua.checkString(1)
+        val start = (lua.checkInteger(2) match {
+          case i if i < 0 => string.length + i
+          case i => i - 1
+        }) max 0
+        val end =
+          if (lua.getTop > 2) (lua.checkInteger(3) match {
+            case i if i < 0 => string.length + i + 1
+            case i => i
+          }) min string.length
+          else string.length
+        if (end <= start) lua.pushString("")
+        else lua.pushString(string.substring(start, end))
+        1
+      }))
+      state.setField(-2, "sub")
+
+      state.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushString(lua.checkString(1).toUpperCase)
+        1
+      }))
+      state.setField(-2, "upper")
+
+      // Pop the string table.
+      state.pop(1)
+
       Some(state)
     } catch {
       case ex: Throwable => {

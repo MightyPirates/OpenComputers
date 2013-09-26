@@ -22,12 +22,14 @@ class Screen(val owner: IScreenEnvironment) {
     }
     else false
 
-  def set(col: Int, row: Int, s: String) = {
+  def set(col: Int, row: Int, s: String) = if (col < buffer.width && (col >= 0 || -col < s.length)) {
     // Make sure the string isn't longer than it needs to be, in particular to
     // avoid sending too much data to our clients.
-    val truncated = s.substring(0, buffer.width min s.length)
-    if (buffer.set(col, row, truncated))
-      owner.onScreenSet(col, row, truncated)
+    val (x, truncated) =
+      if (col < 0) (0, s.substring(-col))
+      else (col, s.substring(0, s.length min buffer.width))
+    if (buffer.set(x, row, truncated))
+      owner.onScreenSet(x, row, truncated)
   }
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =

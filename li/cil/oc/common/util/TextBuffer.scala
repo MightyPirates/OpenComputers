@@ -40,43 +40,37 @@ class TextBuffer(var width: Int, var height: Int) {
 
   /**
    * String based fill starting at a specified location.
-   *
-   * Note that this will ignore any newline characters to ensure only the
-   * specified row is changed and thereby limiting the size of the packet that
-   * has to be sent to clients to notify them of the change. In fact, this will
-   * ignore any and all control characters as according to Java's Character's
-   * 'isISOControl' property (0-31 and 127-159).
    */
-  def set(col: Int, row: Int, s: String): Boolean = {
+  def set(col: Int, row: Int, s: String): Boolean =
+    if (row < 0 || row >= height) false
+    else {
+      var changed = false
+      val line = buffer(row)
+      for (x <- col until ((col + s.length) min width)) if (x >= 0) {
+        val c = s(x - col)
+        changed = changed || (line(x) != c)
+        line(x) = c
+      }
+      changed
+    }
+
+  /**
+   * Fills an area of the buffer with the specified character.
+   */
+  def fill(col: Int, row: Int, w: Int, h: Int, c: Char): Boolean = {
+    // Anything to do at all?
+    if (w <= 0 || h <= 0) return false
+    if (col + w < 0 || row + h < 0 || col >= width || row >= height) return false
     var changed = false
-    for (i <- col until ((col + s.length) min width)) {
-      s(i - col) match {
-        case c if c.isControl => // Ignore.
-        case c =>
-          changed = changed || (buffer(row)(i) != c)
-          buffer(row)(i) = c
+    for (y <- (row max 0) until ((row + h) min height)) {
+      val line = buffer(y)
+      for (x <- (col max 0) until ((col + w) min width)) {
+        changed = changed || (line(x) != c)
+        line(x) = c
       }
     }
     changed
   }
-
-  /**
-   * Fills an area of the buffer with the specified character.
-   *
-   * Note that like set() this will ignore control characters (it will do
-   * nothing in that case).
-   */
-  def fill(x: Int, y: Int, w: Int, h: Int, c: Char): Boolean =
-    if (c.isControl) false
-    else {
-      var changed = false
-      for (y <- (y max 0 min height) until ((y + h) max 0 min height))
-        for (x <- (x max 0 min width) until ((x + w) max 0 min width)) {
-          changed = changed || (buffer(y)(x) != c)
-          buffer(y)(x) = c
-        }
-      changed
-    }
 
   /** Copies a portion of the buffer. */
   def copy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int): Boolean = {
@@ -87,26 +81,30 @@ class TextBuffer(var width: Int, var height: Int) {
     // the source rectangle and copy the data. This way we ensure we don't
     // overwrite anything we still need to copy.
     val (dx0, dx1) = ((col + tx + w - 1) max 0 min (width - 1), (col + tx) max 0 min width) match {
-      case destx if tx > 0 => destx
-      case destx => destx.swap
+      case dx if tx > 0 => dx
+      case dx => dx.swap
     }
     val (dy0, dy1) = ((row + ty + h - 1) max 0 min (height - 1), (row + ty) max 0 min height) match {
-      case desty if ty > 0 => desty
-      case desty => desty.swap
+      case dy if ty > 0 => dy
+      case dy => dy.swap
     }
     val (sx, sy) = (if (tx > 0) -1 else 1, if (ty > 0) -1 else 1)
     // Copy values to destination rectangle if there source is valid.
     var changed = false
-    for (ny <- dy0 to dy1 by sy) ny - ty match {
-      case oy if oy >= 0 && oy < height =>
-        for (nx <- dx0 to dx1 by sx) nx - tx match {
-          case ox if ox >= 0 && ox < width => {
-            changed = changed || (buffer(ny)(nx) != buffer(oy)(ox))
-            buffer(ny)(nx) = buffer(oy)(ox)
+    for (ny <- dy0 to dy1 by sy) {
+      val nl = buffer(ny)
+      ny - ty match {
+        case oy if oy >= 0 && oy < height =>
+          val ol = buffer(oy)
+          for (nx <- dx0 to dx1 by sx) nx - tx match {
+            case ox if ox >= 0 && ox < width => {
+              changed = changed || (nl(nx) != ol(ox))
+              nl(nx) = ol(ox)
+            }
+            case _ => /* Got no source column. */
           }
-          case _ => /* Got no source column. */
-        }
-      case _ => /* Got no source row. */
+        case _ => /* Got no source row. */
+      }
     }
     changed
   }

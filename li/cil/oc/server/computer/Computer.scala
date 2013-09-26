@@ -631,8 +631,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     } match {
       case State.SynchronizedReturn | State.SynchronizedReturnPaused => true
       case State.Stopped | State.Paused | State.Suspended | State.Sleeping => false
-      case _ =>
-        OpenComputers.log.warning("Running computer from invalid state!")
+      case s =>
+        OpenComputers.log.warning("Running computer from invalid state " + s.toString + "!")
+        stateMonitor.synchronized {
+          state = s
+          future = None
+        }
         return
     }
 
