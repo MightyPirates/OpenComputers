@@ -50,7 +50,9 @@ trait INetworkNode {
    *
    * @return the id of this node.
    */
-  var address = 0
+  def address = _address
+  def address_=(value: Int) = _address = value
+  private var _address = 0
 
   /**
    * The network this node is currently in.
@@ -85,7 +87,7 @@ trait INetworkNode {
     if (message.source == this) message.name match {
       case "network.connect" => onConnect()
       case "network.disconnect" => onDisconnect()
-      case "network.reconnect" => onAddressChange()
+      case "network.reconnect" => onReconnect()
       case _ => // Ignore.
     }
     None
@@ -114,5 +116,5 @@ trait INetworkNode {
 
   protected def onDisconnect() {}
 
-  protected def onAddressChange() {}
+  protected def onReconnect() {}
 }

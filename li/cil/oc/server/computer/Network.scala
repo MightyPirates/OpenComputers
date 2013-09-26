@@ -30,7 +30,8 @@ import scala.collection.mutable.ArrayBuffer
 class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends INetwork {
   def this(node: INetworkNode) = {
     this(mutable.Map({
-      if (node.address < 1) node.address = 1
+      if (node.address < 1)
+        node.address = 1
       node.address -> ArrayBuffer(new Network.Node(node))
     }))
     Network.send(new Network.ConnectMessage(node), List(node))
@@ -203,9 +204,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
   def sendToAll(source: INetworkNode, name: String, data: Any*) =
     Network.send(new Network.Message(source, name, Array(data: _*)), nodes)
 
-  private def findId() = Range(1, Int.MaxValue).find(!nodeMap.contains(_)).get
-
-  private def findId(reserved: collection.Set[Int]) = Range(1, Int.MaxValue).find(
+  private def findId(reserved: collection.Set[Int] = collection.Set.empty[Int]) = Range(1, Int.MaxValue).find(
     address => !nodeMap.contains(address) && !reserved.contains(address)).get
 }
 

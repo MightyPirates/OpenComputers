@@ -10,6 +10,11 @@ class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
 
   override def name = "gpu"
 
+  override def address_=(value: Int) =  {
+    super.address_=(value)
+    nbt.setInteger("address", address)
+  }
+
   override def receive(message: INetworkMessage) = {
     // We don't need onConnect / onDisconnect / onAddressChange yet, so no need to call super.
     // super.receive(message)
@@ -39,10 +44,5 @@ class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
         network.sendToNode(this, screen.toInt, "screen.copy", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, tx.toInt, ty.toInt)
       case _ => None
     }
-  }
-
-  override protected def onAddressChange() {
-    super.onAddressChange()
-    nbt.setInteger("address", address)
   }
 }

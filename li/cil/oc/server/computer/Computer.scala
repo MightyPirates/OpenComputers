@@ -212,8 +212,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           }
         }
       }
-      case State.Paused | State.SynchronizedReturnPaused => {
+      case State.Paused => {
         state = State.Suspended
+        assert(!future.isDefined)
+        future = Some(Computer.Executor.pool.submit(this))
+      }
+      case State.SynchronizedReturnPaused => {
+        state = State.SynchronizedReturn
         assert(!future.isDefined)
         future = Some(Computer.Executor.pool.submit(this))
       }
