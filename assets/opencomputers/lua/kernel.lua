@@ -46,9 +46,6 @@ local sandbox = {
 
   write = function() end,
 
-  -- TODO for debbuging only
-  --nativeprint = print,
-
   checkArg = checkArg,
   component = component,
   driver = driver,

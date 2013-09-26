@@ -5,8 +5,13 @@ import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.common.computer.IComputer
+import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.world.World
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.ChunkEvent
 import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.JavaConversions._
@@ -101,28 +106,38 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   // ----------------------------------------------------------------------- //
 
   override def signal(name: String, args: Any*) = {
-    args.foreach {
-      case null | _: Byte | _: Char | _: Short | _: Int | _: Long | _: Float | _: Double | _: String => Unit
+    def values = args.map {
+      case null | Unit => Unit
+      case arg: Boolean => arg
+      case arg: Byte => arg.toDouble
+      case arg: Char => arg.toDouble
+      case arg: Short => arg.toDouble
+      case arg: Int => arg.toDouble
+      case arg: Long => arg.toDouble
+      case arg: Float => arg.toDouble
+      case arg: Double => arg
+      case arg: String => arg
       case _ => throw new IllegalArgumentException()
-    }
+    }.toArray
     stateMonitor.synchronized(state match {
       // We don't push new signals when stopped or shutting down.
       case State.Stopped | State.Stopping => false
       // Currently sleeping. Cancel that and start immediately.
       case State.Sleeping =>
+        val v = values // Map first, may error.
         future.get.cancel(true)
         state = State.Suspended
-        signals.offer(new Signal(name, args.toArray))
-        future = Some(Executor.pool.submit(this))
+        signals.offer(new Signal(name, v))
+        future = Some(Computer.Executor.pool.submit(this))
         true
       // Basically running, but had nothing to do so we stopped. Resume.
       case State.Suspended if !future.isDefined =>
-        signals.offer(new Signal(name, args.toArray))
-        future = Some(Executor.pool.submit(this))
+        signals.offer(new Signal(name, values))
+        future = Some(Computer.Executor.pool.submit(this))
         true
       // Running or in synchronized call, just push the signal.
       case _ =>
-        signals.offer(new Signal(name, args.toArray))
+        signals.offer(new Signal(name, values))
         true
     })
   }
@@ -141,12 +156,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // Inject a dummy signal so that real ones don't get swallowed. This way
       // we can just ignore the parameters the first time the kernel is run
       // and all actual signals will be read using coroutine.yield().
+      // IMPORTANT: This will also create our worker thread for the first run.
       signal("dummy")
 
       // Inject component added signals for all nodes in the network.
       owner.network.nodes.foreach(node => signal("component_added", node.address))
-
-      future = Some(Executor.pool.submit(this))
       true
     })
 
@@ -184,7 +198,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           lua.call(0, 1)
           lua.checkType(2, LuaType.TABLE)
           state = State.SynchronizedReturn
-          future = Some(Executor.pool.submit(this))
+          assert(!future.isDefined)
+          future = Some(Computer.Executor.pool.submit(this))
         } catch {
           // This can happen if we run out of memory while converting a Java exception to a string.
           case _: LuaMemoryAllocationException =>
@@ -199,7 +214,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       }
       case State.Paused | State.SynchronizedReturnPaused => {
         state = State.Suspended
-        future = Some(Executor.pool.submit(this))
+        assert(!future.isDefined)
+        future = Some(Computer.Executor.pool.submit(this))
       }
       case _ => /* Nothing special to do. */
     })
@@ -251,6 +267,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
               // could for the same reasons.
               throw new IllegalStateException("Could not restore stack.")
             }
+            assert(lua.getTop == 2)
           }
 
           assert(signals.size() == 0)
@@ -262,11 +279,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             val argsLength = argsTag.getInteger("length")
             new Signal(signal.getString("name"),
               (0 until argsLength).map("arg" + _).map(argsTag.getTag).map {
-                case tag: NBTTagByte => tag.data
-                case tag: NBTTagShort => tag.data
-                case tag: NBTTagInt => tag.data
-                case tag: NBTTagLong => tag.data
-                case tag: NBTTagFloat => tag.data
+                case tag: NBTTagByte if tag.data == -1 => Unit
+                case tag: NBTTagByte => tag.data == 1
                 case tag: NBTTagDouble => tag.data
                 case tag: NBTTagString => tag.data
               }.toArray)
@@ -280,7 +294,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
           // Start running our worker thread.
           assert(!future.isDefined)
-          future = Some(Executor.pool.submit(this))
+          state match {
+            case State.Suspended | State.Sleeping | State.SynchronizedReturn =>
+              future = Some(Computer.Executor.pool.submit(this))
+            case _ => // Wasn't running before.
+          }
 
         } catch {
           case t: Throwable => {
@@ -288,6 +306,9 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             close()
           }
         }
+      }
+      else {
+        close()
       }
     })
 
@@ -311,13 +332,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
         if (state == State.SynchronizedCall || state == State.SynchronizedReturn) {
-          assert(
-            if (state == State.SynchronizedCall) lua.`type`(2) == LuaType.FUNCTION
-            else lua.`type`(2) == LuaType.TABLE)
+          assert(if (state == State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
           nbt.setByteArray("stack", persist(2))
         }
         // Save the kernel state (which is always at stack index one).
-        assert(lua.`type`(1) == LuaType.THREAD)
+        assert(lua.isThread(1))
         nbt.setByteArray("kernel", persist(1))
 
         val list = new NBTTagList
@@ -327,11 +346,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           val args = new NBTTagCompound
           args.setInteger("length", s.args.length)
           s.args.zipWithIndex.foreach {
-            case (arg: Byte, i) => args.setByte("arg" + i, arg)
-            case (arg: Short, i) => args.setShort("arg" + i, arg)
-            case (arg: Int, i) => args.setInteger("arg" + i, arg)
-            case (arg: Long, i) => args.setLong("arg" + i, arg)
-            case (arg: Float, i) => args.setFloat("arg" + i, arg)
+            case (Unit, i) => args.setByte("arg" + i, -1)
+            case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
             case (arg: Double, i) => args.setDouble("arg" + i, arg)
             case (arg: String, i) => args.setString("arg" + i, arg)
           }
@@ -357,11 +373,11 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
   private def persist(index: Int): Array[Byte] = {
     lua.getGlobal("persist") // ... obj persist?
-    if (lua.`type`(-1) == LuaType.FUNCTION) {
+    if (lua.isFunction(-1)) {
       // ... obj persist
       lua.pushValue(index) // ... obj persist obj
       lua.call(1, 1) // ... obj str?
-      if (lua.`type`(-1) == LuaType.STRING) {
+      if (lua.isString(-1)) {
         // ... obj str
         val result = lua.toByteArray(-1)
         lua.pop(1) // ... obj
@@ -374,7 +390,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
   private def unpersist(value: Array[Byte]): Boolean = {
     lua.getGlobal("unpersist") // ... unpersist?
-    if (lua.`type`(-1) == LuaType.FUNCTION) {
+    if (lua.isFunction(-1)) {
       // ... unpersist
       lua.pushByteArray(value) // ... unpersist str
       lua.call(1, 1) // ... obj
@@ -393,7 +409,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     // rightfully should have, so we sandbox it a bit in the following.
     LuaStateFactory.createState() match {
       case None =>
-        lua = null; return false
+        lua = null
+        return false
       case Some(value) => lua = value
     }
 
@@ -439,17 +456,15 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
       // Until we get to ingame screens we log to Java's stdout.
       lua.pushJavaFunction(ScalaFunction(lua => {
-        for (i <- 1 to lua.getTop) {
-          lua.`type`(i) match {
-            case LuaType.NIL => print("nil")
-            case LuaType.BOOLEAN => print(lua.toBoolean(i))
-            case LuaType.NUMBER => print(lua.toNumber(i))
-            case LuaType.STRING => print(lua.toString(i))
-            case LuaType.TABLE => print("table")
-            case LuaType.FUNCTION => print("function")
-            case LuaType.THREAD => print("thread")
-            case LuaType.LIGHTUSERDATA | LuaType.USERDATA => print("userdata")
-          }
+        for (i <- 1 to lua.getTop) lua.`type`(i) match {
+          case LuaType.NIL => print("nil")
+          case LuaType.BOOLEAN => print(lua.toBoolean(i))
+          case LuaType.NUMBER => print(lua.toNumber(i))
+          case LuaType.STRING => print(lua.toString(i))
+          case LuaType.TABLE => print("table")
+          case LuaType.FUNCTION => print("function")
+          case LuaType.THREAD => print("thread")
+          case LuaType.LIGHTUSERDATA | LuaType.USERDATA => print("userdata")
         }
         println()
         0
@@ -568,7 +583,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     }
     catch {
       case ex: Throwable => {
-        OpenComputers.log.warning("Failed initializing computer:\n" + ex.getStackTraceString)
+        OpenComputers.log.log(Level.WARNING, "Failed initializing computer.", ex)
         close()
       }
     }
@@ -606,10 +621,14 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       if (state == State.Stopped) return
       val oldState = state
       state = State.Running
+      future = None
       oldState
     } match {
       case State.SynchronizedReturn | State.SynchronizedReturnPaused => true
-      case _ => false
+      case State.Stopped | State.Paused | State.Suspended | State.Sleeping => false
+      case _ =>
+        OpenComputers.log.warning("Running computer from invalid state!")
+        return
     }
 
     try {
@@ -633,7 +652,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // Got a signal, inject it and call any handlers (if any).
         case signal => {
           lua.pushString(signal.name)
-          signal.args.foreach(lua.pushJavaObject)
+          signal.args.foreach {
+            case Unit => lua.pushNil()
+            case arg: Boolean => lua.pushBoolean(arg)
+            case arg: Double => lua.pushNumber(arg)
+            case arg: String => lua.pushString(arg)
+          }
           lua.resume(1, 1 + signal.args.length)
         }
       }
@@ -656,24 +680,26 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             lua.pop(results)
             if (signals.isEmpty) {
               state = State.Sleeping
-              future = Some(Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS))
+              assert(!future.isDefined)
+              future = Some(Computer.Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS))
             }
             else {
               state = State.Suspended
-              future = Some(Executor.pool.submit(this))
+              assert(!future.isDefined)
+              future = Some(Computer.Executor.pool.submit(this))
             }
           }
           else if (results == 1 && lua.isFunction(2)) {
             // If we get one function it's a wrapper for a synchronized call.
             state = State.SynchronizedCall
-            future = None
+            assert(!future.isDefined)
           }
           else {
             // Something else, just pop the results and try again.
             lua.pop(results)
             state = State.Suspended
-            if (signals.isEmpty) future = None
-            else future = Some(Executor.pool.submit(this))
+            assert(!future.isDefined)
+            if (!signals.isEmpty) future = Some(Computer.Executor.pool.submit(this))
           }
         }
 
@@ -737,25 +763,39 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
 }
 
-/** Singleton for requesting executors that run our Lua states. */
-private[computer] object Executor {
-  val pool = Executors.newScheduledThreadPool(Config.threads,
-    new ThreadFactory() {
-      private val threadNumber = new AtomicInteger(1)
+object Computer {
+  @ForgeSubscribe
+  def onChunkUnload(e: ChunkEvent.Unload) =
+    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
 
-      private val group = System.getSecurityManager match {
-        case null => Thread.currentThread().getThreadGroup
-        case s => s.getThreadGroup
-      }
+  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
+    tileEntities.
+      filter(_.isInstanceOf[TileEntityComputer]).
+      map(_.asInstanceOf[TileEntityComputer]).
+      foreach(_.turnOff())
+  }
 
-      def newThread(r: Runnable): Thread = {
-        val name = "OpenComputers-" + threadNumber.getAndIncrement
-        val thread = new Thread(group, r, name)
-        if (!thread.isDaemon)
-          thread.setDaemon(true)
-        if (thread.getPriority != Thread.MIN_PRIORITY)
-          thread.setPriority(Thread.MIN_PRIORITY)
-        thread
-      }
-    })
+  /** Singleton for requesting executors that run our Lua states. */
+  private object Executor {
+    val pool = Executors.newScheduledThreadPool(Config.threads,
+      new ThreadFactory() {
+        private val threadNumber = new AtomicInteger(1)
+
+        private val group = System.getSecurityManager match {
+          case null => Thread.currentThread().getThreadGroup
+          case s => s.getThreadGroup
+        }
+
+        def newThread(r: Runnable): Thread = {
+          val name = "OpenComputers-" + threadNumber.getAndIncrement
+          val thread = new Thread(group, r, name)
+          if (!thread.isDaemon)
+            thread.setDaemon(true)
+          if (thread.getPriority != Thread.MIN_PRIORITY)
+            thread.setPriority(Thread.MIN_PRIORITY)
+          thread
+        }
+      })
+  }
+
 }

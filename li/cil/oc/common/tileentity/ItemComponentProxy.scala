@@ -114,7 +114,6 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
       case Some(node) =>
-        println("Disconnecting item " + node.hashCode)
         node.network.remove(node)
     }
 
@@ -125,7 +124,6 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
       case Some(node) =>
-        println("Connecting item " + node.hashCode)
         network.connect(this, node)
     }
   }

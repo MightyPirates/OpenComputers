@@ -107,21 +107,18 @@ end
 
 event.listen("component_added", function(_, address)
   local id = #components + 1
-  -- TODO testing nativeprint("component_added " .. address .. " ~ " .. id)
   components[id] = {address = address, name = driver.componentType(address)}
   event.fire("component_installed", id)
 end)
 
 event.listen("component_removed", function(_, address)
   local id = component.id(address)
-  -- TODO testing nativeprint("component_removed " .. address .. " ~ " .. id)
   components[id] = nil
   event.fire("component_uninstalled", id)
 end)
 
 event.listen("component_changed", function(_, newAddress, oldAddress)
   local id = component.id(oldAddress)
-  -- TODO testing nativeprint("component_changed " .. oldAddress .. " -> " .. newAddress .. " ~ " .. id)
   components[id].address = newAddress
 end)
 
@@ -265,7 +262,9 @@ end
 
 --[[ Primitive command line. ]]
 local command = ""
+local isRunning = false
 local function commandLineKey(_, char, code)
+  if isRunning then return end -- ignore events while running a command
   local keys = driver.keyboard.keys
   local gpu = term.gpu()
   local x, y = term.getCursor()
@@ -282,7 +281,9 @@ local function commandLineKey(_, char, code)
       code, result = load(command, "=stdin") -- maybe it's a statement
     end
     if code then
+      isRunning = true
       local result = {pcall(code)}
+      isRunning = false
       if not result[1] or result[2] ~= nil then
         -- TODO handle multiple results?
         print(result[2])
@@ -300,6 +301,7 @@ local function commandLineKey(_, char, code)
   end
 end
 local function commandLineClipboard(_, value)
+  if isRunning then return end -- ignore events while running a command
   value = value:match("([^\r\n]+)")
   if value and value:len() > 0 then
     command = command .. value
@@ -317,7 +319,7 @@ event.listen("term_available", function()
 end)
 event.listen("term_unavailable", function()
   event.ignore("key_down", commandLineKey)
-  event.listen("clipboard", commandLineClipboard)
+  event.ignore("clipboard", commandLineClipboard)
 end)
 
 -- Serves as main event loop while keeping the cursor blinking. As soon as

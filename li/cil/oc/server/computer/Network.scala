@@ -7,9 +7,12 @@ import li.cil.oc.api.INetworkMessage
 import li.cil.oc.api.INetworkNode
 import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.ChunkEvent
 import scala.beans.BeanProperty
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -207,6 +210,25 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
 }
 
 object Network {
+  @ForgeSubscribe
+  def onChunkUnload(e: ChunkEvent.Unload) =
+    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
+
+  @ForgeSubscribe
+  def onChunkLoad(e: ChunkEvent.Load) =
+    onLoad(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
+
+  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
+    // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
+    tileEntities.
+      filter(_.isInstanceOf[INetworkNode]).
+      map(_.asInstanceOf[INetworkNode]).
+      foreach(t => t.network.remove(t))
+  }
+
+  private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
+    tileEntities.foreach(t => joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
+  }
 
   def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
     getNetworkNode(world, x, y, z) match {

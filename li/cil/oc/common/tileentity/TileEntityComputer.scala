@@ -32,9 +32,9 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
       // while loading a chunk (thus leading to "false" component_added signals).
       case Array() if message.name == "network.connect" && isRunning =>
         computer.signal("component_added", message.source.address); None
-      case Array() if message.name == "network.disconnect" =>
+      case Array() if message.name == "network.disconnect" && isRunning =>
         computer.signal("component_removed", message.source.address); None
-      case Array(oldAddress: Integer) if message.name == "network.reconnect" =>
+      case Array(oldAddress: Integer) if message.name == "network.reconnect" && isRunning =>
         computer.signal("component_changed", message.source.address, oldAddress); None
       case Array(name: String, args@_*) if message.name == "signal" =>
         computer.signal(name, args: _*); None
