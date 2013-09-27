@@ -1,6 +1,7 @@
 package li.cil.oc.common.util
 
 import com.google.common.collect.MapMaker
+import li.cil.oc.server.components.ItemComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.{JavaConversions, mutable}
@@ -13,12 +14,12 @@ import scala.collection.{JavaConversions, mutable}
 object ItemComponentCache {
   private val caches = mutable.Map.empty[Int, Cache[_]]
 
-  def get[T](item: ItemStack) = caches.get(item.itemID) match {
+  def get[T <: ItemComponent](item: ItemStack) = caches.get(item.itemID) match {
     case None => None
     case Some(cache) => cache.asInstanceOf[Cache[T]].get(item)
   }
 
-  def register[T](id: Int, constructor: (NBTTagCompound) => T): Unit =
+  def register[T <: ItemComponent](id: Int, constructor: (NBTTagCompound) => T): Unit =
     caches += id -> new Cache[T](id, constructor)
 
   private class Cache[T](val id: Int, val constructor: (NBTTagCompound) => T) {

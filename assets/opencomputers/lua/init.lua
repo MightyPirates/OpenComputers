@@ -125,6 +125,7 @@ end)
 
 --[[ Setup terminal API. ]]
 local idGpu, idScreen = 0, 0
+local screenWidth, screenHeight = 0, 0
 local boundGpu = nil
 local cursorX, cursorY = 1, 1
 
@@ -157,10 +158,22 @@ event.listen("component_uninstalled", function(_, id)
   end
 end)
 
+event.listen("screen_resized", function(_, address, w, h)
+  local id = component.id(address)
+  if id == idScreen then
+    screenWidth = w
+    screenHeight = h
+  end
+end)
+
 term = {}
 
 function term.gpu()
   return boundGpu
+end
+
+function term.screenSize()
+  return screenWidth, screenHeight
 end
 
 local function bindIfPossible()
@@ -169,10 +182,12 @@ local function bindIfPossible()
       local function gpu() return component.address(idGpu) end
       local function screen() return component.address(idScreen) end
       boundGpu = driver.gpu.bind(gpu, screen)
+      screenWidth, screenHeight = boundGpu.getResolution()
       event.fire("term_available")
     end
   elseif boundGpu then
     boundGpu = nil
+    screenWidth, screenHeight = 0, 0
     event.fire("term_unavailable")
   end
 end
@@ -208,18 +223,18 @@ end
 
 function term.write(value, wrap)
   value = tostring(value)
-  local gpu = term.gpu()
-  if not gpu or value:len() == 0 then return end
-  local w, h = gpu.getResolution()
-  if not w or not h or w < 1 or h < 1 then return end
+  local w, h = screenWidth, screenHeight
+  if value:len() == 0 or not boundGpu or w < 1 or h < 1 then
+    return
+  end
   local function checkCursor()
     if cursorX > w then
       cursorX = 1
       cursorY = cursorY + 1
     end
     if cursorY > h then
-      gpu.copy(1, 1, w, h, 0, -1)
-      gpu.fill(1, h, w, 1, " ")
+      boundGpu.copy(1, 1, w, h, 0, -1)
+      boundGpu.fill(1, h, w, 1, " ")
       cursorY = h
     end
   end
@@ -227,12 +242,12 @@ function term.write(value, wrap)
     while wrap and line:len() > w - cursorX + 1 do
       local partial = line:sub(1, w - cursorX + 1)
       line = line:sub(partial:len() + 1)
-      gpu.set(cursorX, cursorY, partial)
+      boundGpu.set(cursorX, cursorY, partial)
       cursorX = cursorX + partial:len()
       checkCursor()
     end
     if line:len() > 0 then
-      gpu.set(cursorX, cursorY, line)
+      boundGpu.set(cursorX, cursorY, line)
       cursorX = cursorX + line:len()
     end
     if nl:len() == 1 then
@@ -244,10 +259,8 @@ function term.write(value, wrap)
 end
 
 function term.clear()
-  local gpu = term.gpu()
-  if not gpu then return end
-  local w, h = gpu.getResolution()
-  gpu.fill(1, 1, w, h, " ")
+  if not boundGpu then return end
+  boundGpu.fill(1, 1, screenWidth, screenHeight, " ")
   cursorX, cursorY = 1, 1
 end
 
@@ -332,7 +345,7 @@ while true do
   if gpu then
     local x, y = term.getCursor()
     if blinkState then
-      term.gpu().set(x, y, string.char(9608)) -- Solid block.
+      term.gpu().set(x, y, string.char(0x2588)) -- Solid block.
     else
       term.gpu().set(x, y, " ")
     end

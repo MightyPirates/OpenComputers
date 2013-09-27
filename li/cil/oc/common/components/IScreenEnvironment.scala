@@ -50,11 +50,13 @@ trait IScreenEnvironment extends INetworkNode {
 
   }
 
-  def onScreenResolutionChange(w: Int, h: Int)
+  def onScreenResolutionChange(w: Int, h: Int) = if (network != null) {
+    network.sendToAll(this, "computer.signal", "screen_resized", this.address, w, h)
+  }
 
-  def onScreenSet(col: Int, row: Int, s: String)
+  def onScreenSet(col: Int, row: Int, s: String) {}
 
-  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
+  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {}
 
-  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
+  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {}
 }

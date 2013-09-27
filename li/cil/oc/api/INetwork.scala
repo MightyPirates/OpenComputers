@@ -122,9 +122,9 @@ trait INetwork {
    * <p/>
    * Messages should have a unique name to allow differentiating them when
    * handling them in a network node. For example, computers will try to parse
-   * messages named "signal" by converting the message data to a signal and
-   * inject that signal into the Lua VM, so no message not used for this purpose
-   * should be named "signal".
+   * messages named "computer.signal" by converting the message data to a
+   * signal and inject that signal into the Lua VM, so no message not used for
+   * this purpose should be named "computer.signal".
    * <p/>
    * Note that message handlers may also return results. In this case that
    * result will be returned from this function. In the case that there are
@@ -144,9 +144,9 @@ trait INetwork {
    * <p/>
    * Messages should have a unique name to allow differentiating them when
    * handling them in a network node. For example, computers will try to parse
-   * messages named "signal" by converting the message data to a signal and
-   * inject that signal into the Lua VM, so no message not used for this purpose
-   * should be named "signal".
+   * messages named "computer.signal" by converting the message data to a
+   * signal and inject that signal into the Lua VM, so no message not used for
+   * this purpose should be named "computer.signal".
    *
    * @param source the node that sends the message.
    * @param data   the message to send.

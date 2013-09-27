@@ -3,21 +3,13 @@ package li.cil.oc.server.components
 import li.cil.oc.api.{INetworkNode, INetworkMessage}
 import net.minecraft.nbt.NBTTagCompound
 
-class GraphicsCard(val nbt: NBTTagCompound) extends INetworkNode {
-  address = nbt.getInteger("address")
-
+class GraphicsCard(nbt: NBTTagCompound) extends ItemComponent(nbt) {
   val supportedResolutions = List(List(40, 24), List(80, 24))
 
   override def name = "gpu"
 
-  override def address_=(value: Int) =  {
-    super.address_=(value)
-    nbt.setInteger("address", address)
-  }
-
   override def receive(message: INetworkMessage) = {
-    // We don't need onConnect / onDisconnect / onAddressChange yet, so no need to call super.
-    // super.receive(message)
+    super.receive(message)
     message.data match {
       case Array(screen: Double, w: Double, h: Double) if message.name == "gpu.resolution=" =>
         if (supportedResolutions.contains((w.toInt, h.toInt)))

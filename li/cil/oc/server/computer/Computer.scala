@@ -43,7 +43,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
    * resume the computers main thread, if at all, and whether to accept new
    * signals or not.
    */
-  private var state = State.Stopped
+  private var state = Computer.State.Stopped
 
   /** The internal Lua state. Only set while the computer is running. */
   private[computer] var lua: LuaState = null
@@ -62,7 +62,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
    * means to communicate actively with the computer (passively only message
    * handlers can interact with the computer by returning some result).
    */
-  private val signals = new LinkedBlockingQueue[Signal](100)
+  private val signals = new LinkedBlockingQueue[Computer.Signal](100)
 
   // ----------------------------------------------------------------------- //
 
@@ -121,23 +121,23 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     }.toArray
     stateMonitor.synchronized(state match {
       // We don't push new signals when stopped or shutting down.
-      case State.Stopped | State.Stopping => false
+      case Computer.State.Stopped | Computer.State.Stopping => false
       // Currently sleeping. Cancel that and start immediately.
-      case State.Sleeping =>
+      case Computer.State.Sleeping =>
         val v = values // Map first, may error.
         future.get.cancel(true)
-        state = State.Suspended
-        signals.offer(new Signal(name, v))
+        state = Computer.State.Suspended
+        signals.offer(new Computer.Signal(name, v))
         future = Some(Computer.Executor.pool.submit(this))
         true
       // Basically running, but had nothing to do so we stopped. Resume.
-      case State.Suspended if !future.isDefined =>
-        signals.offer(new Signal(name, values))
+      case Computer.State.Suspended if !future.isDefined =>
+        signals.offer(new Computer.Signal(name, values))
         future = Some(Computer.Executor.pool.submit(this))
         true
       // Running or in synchronized call, just push the signal.
       case _ =>
-        signals.offer(new Signal(name, values))
+        signals.offer(new Computer.Signal(name, values))
         true
     })
   }
@@ -147,8 +147,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   // ----------------------------------------------------------------------- //
 
   override def start() = stateMonitor.synchronized(
-    state == State.Stopped && init() && {
-      state = State.Suspended
+    state == Computer.State.Stopped && init() && {
+      state = Computer.State.Suspended
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
@@ -165,8 +165,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     })
 
   override def stop() = saveMonitor.synchronized(stateMonitor.synchronized {
-    if (state != State.Stopped) {
-      if (state != State.Running) {
+    if (state != Computer.State.Stopped) {
+      if (state != Computer.State.Running) {
         // If the computer is not currently running we can simply close it,
         // and cancel any pending future - which may already be running and
         // waiting for the stateMonitor, so we do a hard abort.
@@ -178,26 +178,26 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // truly stopped, before switching back to stopped to allow starting
         // the computer again. The executor will check for this state and
         // call close.
-        state = State.Stopping
+        state = Computer.State.Stopping
       }
       true
     }
     else false
   })
 
-  override def isRunning = stateMonitor.synchronized(state != State.Stopped)
+  override def isRunning = stateMonitor.synchronized(state != Computer.State.Stopped)
 
   override def update() {
     stateMonitor.synchronized(state match {
-      case State.Stopped | State.Stopping => return
-      case State.SynchronizedCall => {
+      case Computer.State.Stopped | Computer.State.Stopping => return
+      case Computer.State.SynchronizedCall => {
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
         assert(lua.isFunction(2))
         try {
           lua.call(0, 1)
           lua.checkType(2, LuaType.TABLE)
-          state = State.SynchronizedReturn
+          state = Computer.State.SynchronizedReturn
           assert(!future.isDefined)
           future = Some(Computer.Executor.pool.submit(this))
         } catch {
@@ -212,26 +212,26 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           }
         }
       }
-      case State.Paused => {
-        state = State.Suspended
+      case Computer.State.Paused => {
+        state = Computer.State.Suspended
         assert(!future.isDefined)
         future = Some(Computer.Executor.pool.submit(this))
       }
-      case State.SynchronizedReturnPaused => {
-        state = State.SynchronizedReturn
+      case Computer.State.SynchronizedReturnPaused => {
+        state = Computer.State.SynchronizedReturn
         assert(!future.isDefined)
         future = Some(Computer.Executor.pool.submit(this))
       }
       case _ => /* Nothing special to do. */
     })
 
+    // Update world time for computer threads.
+    worldTime = owner.world.getWorldInfo.getWorldTotalTime
+
     // Remember when we started the computer for os.clock(). We do this in the
     // update because only then can we be sure the world is available.
     if (timeStarted == 0)
-      timeStarted = owner.world.getWorldInfo.getWorldTotalTime
-
-    // Update world time for computer threads.
-    worldTime = owner.world.getWorldInfo.getWorldTotalTime
+      timeStarted = worldTime
 
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
@@ -244,13 +244,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     saveMonitor.synchronized(this.synchronized {
       // Clear out what we currently have, if anything.
       stateMonitor.synchronized {
-        assert(state != State.Running) // Lock on 'this' should guarantee this.
+        assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
         stop()
       }
 
-      state = State(nbt.getInteger("state"))
+      state = Computer.State(nbt.getInteger("state"))
 
-      if (state != State.Stopped && init()) {
+      if (state != Computer.State.Stopped && init()) {
         // Unlimit memory use while unpersisting.
         val memory = lua.getTotalMemory
         lua.setTotalMemory(Integer.MAX_VALUE)
@@ -264,10 +264,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             // the save was corrupt (maybe someone modified the Lua files).
             throw new IllegalStateException("Could not restore kernel.")
           }
-          if (state == State.SynchronizedCall || state == State.SynchronizedReturn) {
+          if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn) {
             if (!unpersist(nbt.getByteArray("stack")) ||
-              (state == State.SynchronizedCall && !lua.isFunction(2)) ||
-              (state == State.SynchronizedReturn && !lua.isTable(2))) {
+              (state == Computer.State.SynchronizedCall && !lua.isFunction(2)) ||
+              (state == Computer.State.SynchronizedReturn && !lua.isTable(2))) {
               // Same as with the above, should not really happen normally, but
               // could for the same reasons.
               throw new IllegalStateException("Could not restore stack.")
@@ -282,7 +282,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             map(signal => {
             val argsTag = signal.getCompoundTag("args")
             val argsLength = argsTag.getInteger("length")
-            new Signal(signal.getString("name"),
+            new Computer.Signal(signal.getString("name"),
               (0 until argsLength).map("arg" + _).map(argsTag.getTag).map {
                 case tag: NBTTagByte if tag.data == -1 => Unit
                 case tag: NBTTagByte => tag.data == 1
@@ -300,7 +300,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
           // Start running our worker thread.
           assert(!future.isDefined)
           state match {
-            case State.Suspended | State.Sleeping | State.SynchronizedReturn =>
+            case Computer.State.Suspended | Computer.State.Sleeping | Computer.State.SynchronizedReturn =>
               future = Some(Computer.Executor.pool.submit(this))
             case _ => // Wasn't running before.
           }
@@ -320,12 +320,12 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   override def save(nbt: NBTTagCompound): Unit =
     saveMonitor.synchronized(this.synchronized {
       stateMonitor.synchronized {
-        assert(state != State.Running) // Lock on 'this' should guarantee this.
-        assert(state != State.Stopping) // Only set while executor is running.
+        assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
+        assert(state != Computer.State.Stopping) // Only set while executor is running.
       }
 
       nbt.setInteger("state", state.id)
-      if (state == State.Stopped) {
+      if (state == Computer.State.Stopped) {
         return
       }
 
@@ -336,8 +336,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         // Try persisting Lua, because that's what all of the rest depends on.
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
-        if (state == State.SynchronizedCall || state == State.SynchronizedReturn) {
-          assert(if (state == State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
+        if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn) {
+          assert(if (state == Computer.State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
           nbt.setByteArray("stack", persist(2))
         }
         // Save the kernel state (which is always at stack index one).
@@ -366,7 +366,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       catch {
         case t: Throwable => {
           t.printStackTrace()
-          nbt.setInteger("state", State.Stopped.id)
+          nbt.setInteger("state", Computer.State.Stopped.id)
         }
       }
       finally {
@@ -455,6 +455,13 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
         1
       }))
       lua.setField(-2, "romSize")
+
+      // Allow the computer to figure out its own id in the component network.
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        lua.pushInteger(owner.address)
+        1
+      }))
+      lua.setField(-2, "address")
 
       // Pop the os table.
       lua.pop(1)
@@ -596,8 +603,8 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
   }
 
   private def close(): Unit = stateMonitor.synchronized(
-    if (state != State.Stopped) {
-      state = State.Stopped
+    if (state != Computer.State.Stopped) {
+      state = Computer.State.Stopped
       lua.setTotalMemory(Integer.MAX_VALUE)
       lua.close()
       lua = null
@@ -616,21 +623,21 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     if (System.currentTimeMillis - lastUpdate > 200)
       stateMonitor.synchronized {
         state =
-          if (state == State.SynchronizedReturn) State.SynchronizedReturnPaused
-          else State.Paused
+          if (state == Computer.State.SynchronizedReturn) Computer.State.SynchronizedReturnPaused
+          else Computer.State.Paused
         future = None
         return
       }
 
     val callReturn = stateMonitor.synchronized {
-      if (state == State.Stopped) return
+      if (state == Computer.State.Stopped) return
       val oldState = state
-      state = State.Running
+      state = Computer.State.Running
       future = None
       oldState
     } match {
-      case State.SynchronizedReturn | State.SynchronizedReturnPaused => true
-      case State.Stopped | State.Paused | State.Suspended | State.Sleeping => false
+      case Computer.State.SynchronizedReturn | Computer.State.SynchronizedReturnPaused => true
+      case Computer.State.Stopped | Computer.State.Paused | Computer.State.Suspended | Computer.State.Sleeping => false
       case s =>
         OpenComputers.log.warning("Running computer from invalid state " + s.toString + "!")
         stateMonitor.synchronized {
@@ -678,7 +685,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       if (lua.status(1) == LuaState.YIELD) {
         // Lua state yielded normally, see what we have.
         stateMonitor.synchronized {
-          if (state == State.Stopping) {
+          if (state == Computer.State.Stopping) {
             // Someone called stop() in the meantime.
             close()
           }
@@ -688,25 +695,25 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
             val sleep = (lua.toNumber(2) * 1000).toLong
             lua.pop(results)
             if (signals.isEmpty) {
-              state = State.Sleeping
+              state = Computer.State.Sleeping
               assert(!future.isDefined)
               future = Some(Computer.Executor.pool.schedule(this, sleep, TimeUnit.MILLISECONDS))
             }
             else {
-              state = State.Suspended
+              state = Computer.State.Suspended
               assert(!future.isDefined)
               future = Some(Computer.Executor.pool.submit(this))
             }
           }
           else if (results == 1 && lua.isFunction(2)) {
             // If we get one function it's a wrapper for a synchronized call.
-            state = State.SynchronizedCall
+            state = Computer.State.SynchronizedCall
             assert(!future.isDefined)
           }
           else {
             // Something else, just pop the results and try again.
             lua.pop(results)
-            state = State.Suspended
+            state = Computer.State.Suspended
             assert(!future.isDefined)
             if (!signals.isEmpty) future = Some(Computer.Executor.pool.submit(this))
           }
@@ -735,6 +742,19 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
     // If we come here there was an error or we stopped, kill off the state.
     close()
+  }
+}
+
+object Computer {
+  @ForgeSubscribe
+  def onChunkUnload(e: ChunkEvent.Unload) =
+    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
+
+  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
+    tileEntities.
+      filter(_.isInstanceOf[TileEntityComputer]).
+      map(_.asInstanceOf[TileEntityComputer]).
+      foreach(_.turnOff())
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
@@ -768,20 +788,6 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
 
     /** The computer is paused and waiting for the game to resume. */
     val SynchronizedReturnPaused = Value("SynchronizedReturnPaused")
-  }
-
-}
-
-object Computer {
-  @ForgeSubscribe
-  def onChunkUnload(e: ChunkEvent.Unload) =
-    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
-
-  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
-    tileEntities.
-      filter(_.isInstanceOf[TileEntityComputer]).
-      map(_.asInstanceOf[TileEntityComputer]).
-      foreach(_.turnOff())
   }
 
   /** Singleton for requesting executors that run our Lua states. */

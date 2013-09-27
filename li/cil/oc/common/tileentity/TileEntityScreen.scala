@@ -32,7 +32,8 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
   // IScreenEnvironment
   // ----------------------------------------------------------------------- //
 
-  def onScreenResolutionChange(w: Int, h: Int) =
+  override def onScreenResolutionChange(w: Int, h: Int) = {
+    super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
       gui.foreach(_.setSize(w, h))
     }
@@ -40,8 +41,10 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
       markAsChanged()
       ServerPacketSender.sendScreenResolutionChange(this, w, h)
     }
+  }
 
-  def onScreenSet(col: Int, row: Int, s: String) =
+  override def onScreenSet(col: Int, row: Int, s: String) = {
+    super.onScreenSet(col, row, s)
     if (worldObj.isRemote) {
       gui.foreach(_.updateText())
     }
@@ -49,8 +52,10 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
       markAsChanged()
       ServerPacketSender.sendScreenSet(this, col, row, s)
     }
+  }
 
-  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) =
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
+    super.onScreenFill(col, row, w, h, c)
     if (worldObj.isRemote) {
       gui.foreach(_.updateText())
     }
@@ -58,8 +63,10 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
       markAsChanged()
       ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
     }
+  }
 
-  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
+    super.onScreenCopy(col, row, w, h, tx, ty)
     if (worldObj.isRemote) {
       gui.foreach(_.updateText())
     }
@@ -67,6 +74,7 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
       markAsChanged()
       ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
     }
+  }
 
   private def markAsChanged(): Unit =
     worldObj.updateTileEntityChunkAndDoNothing(

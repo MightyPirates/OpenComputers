@@ -4,13 +4,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.INetworkMessage
 import li.cil.oc.client.computer.{Computer => ClientComputer}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.server.components.RedstoneEnabled
 import li.cil.oc.server.computer.IComputerEnvironment
 import li.cil.oc.server.computer.{Computer => ServerComputer}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
 
-class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy {
+class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy with RedstoneEnabled {
   def this() = this(false)
 
   protected val computer =
@@ -36,7 +38,7 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
         computer.signal("component_removed", message.source.address); None
       case Array(oldAddress: Integer) if message.name == "network.reconnect" && isRunning =>
         computer.signal("component_changed", message.source.address, oldAddress); None
-      case Array(name: String, args@_*) if message.name == "signal" =>
+      case Array(name: String, args@_*) if message.name == "computer.signal" =>
         computer.signal(name, args: _*); None
       case _ => None
     }
@@ -99,6 +101,15 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
     if (worldObj.isRemote)
       ClientPacketSender.sendComputerStateRequest(this)
   }
+
+  // ----------------------------------------------------------------------- //
+  // RedstoneEnabled
+  // ----------------------------------------------------------------------- //
+
+  def input(side: ForgeDirection): Int = worldObj.isBlockProvidingPowerTo(
+    xCoord + side.offsetX, yCoord + side.offsetY, zCoord + side.offsetZ, side.getOpposite.ordinal)
+
+  // TODO output
 
   // ----------------------------------------------------------------------- //
   // Interfaces and updating

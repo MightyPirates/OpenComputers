@@ -12,15 +12,15 @@ class TileEntityKeyboard extends TileEntityRotatable with INetworkNode {
     super.receive(message)
     message.data match {
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "signal", "key_down", char, code)
+        network.sendToAll(this, "computer.signal", "key_down", char, code)
         message.cancel() // One keyboard is enough.
       }
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyUp" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "signal", "key_up", char, code)
+        network.sendToAll(this, "computer.signal", "key_up", char, code)
         message.cancel() // One keyboard is enough.
       }
       case Array(p: Player, value: String) if message.name == "keyboard.clipboard" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "signal", "clipboard", value)
+        network.sendToAll(this, "computer.signal", "clipboard", value)
         message.cancel()
       }
       case _ => // Ignore.
