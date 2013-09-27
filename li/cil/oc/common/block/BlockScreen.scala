@@ -28,13 +28,13 @@ class BlockScreen(val parent: BlockMulti) extends SubBlock {
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     worldSide match {
-      case f if f == parent.getFacing(world, x, y, z) => getIcon(ForgeDirection.SOUTH)
+      case f if f == parent.getFacing(world, x, y, z) => icon(ForgeDirection.SOUTH)
       case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top
       case _ => Icons.side
     }
   }
 
-  override def getIcon(side: ForgeDirection) =
+  override def icon(side: ForgeDirection) =
     side match {
       case ForgeDirection.SOUTH => Icons.front
       case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top

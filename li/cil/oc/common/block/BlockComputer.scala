@@ -32,7 +32,7 @@ class BlockComputer(val parent: BlockMulti) extends SubBlock {
     })
   }
 
-  override def getIcon(side: ForgeDirection) = getIcon(side, isOn = false)
+  override def icon(side: ForgeDirection) = getIcon(side, isOn = false)
 
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
     if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal)

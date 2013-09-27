@@ -112,7 +112,7 @@ local sandbox = {
     difftime = os.difftime,
     time = os.time,
     freeMemory = os.freeMemory,
-    totalMemory = os.totalMemory
+    totalMemory = function() return os.totalMemory() - os.romSize() end
   },
 
   string = {

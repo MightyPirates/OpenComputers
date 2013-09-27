@@ -45,7 +45,8 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   // SubBlock
   // ----------------------------------------------------------------------- //
 
-  val subBlocks = mutable.MutableList.empty[SubBlock]
+  val subBlocks = mutable.ArrayBuffer.empty[SubBlock]
+  subBlocks.sizeHint(16)
 
   def add(subBlock: SubBlock) = {
     val blockId = subBlocks.length
@@ -53,13 +54,13 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     blockId
   }
 
-  def subBlockId(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[SubBlock] =
     subBlock(world.getBlockMetadata(x, y, z)) match {
-      case Some(subBlock) if world.getBlockId(x, y, z) == this.blockID => subBlock.blockId
-      case _ => -1
+      case Some(subBlock) if world.getBlockId(x, y, z) == this.blockID => Some(subBlock)
+      case _ => None
     }
 
-  protected def subBlock(metadata: Int) =
+  def subBlock(metadata: Int) =
     metadata match {
       case blockId if blockId >= 0 && blockId < subBlocks.length => Some(subBlocks(blockId))
       case _ => None
@@ -100,7 +101,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   // ----------------------------------------------------------------------- //
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
@@ -113,7 +114,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   }
 
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => false
       case Some(subBlock) => subBlock.canConnectRedstone(
         world, x, y, z, toLocal(world, x, y, z, side match {
@@ -132,14 +133,14 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     }
 
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => super.getCollisionBoundingBoxFromPool(world, x, y, z)
       // TODO Rotate to world space if we have a TileEntityRotatable?
       case Some(subBlock) => subBlock.getCollisionBoundingBoxFromPool(world, x, y, z)
     }
 
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => super.getBlockTexture(world, x, y, z, side)
       case Some(subBlock) => subBlock.getBlockTextureFromSide(
         world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
@@ -151,14 +152,14 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   override def getIcon(side: Int, metadata: Int) =
     subBlock(metadata) match {
       case None => super.getIcon(side, metadata)
-      case Some(subBlock) => subBlock.getIcon(ForgeDirection.getOrientation(side)) match {
+      case Some(subBlock) => subBlock.icon(ForgeDirection.getOrientation(side)) match {
         case null => super.getIcon(side, metadata)
         case icon => icon
       }
     }
 
   override def getLightOpacity(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => 255
       case Some(subBlock) => subBlock.getLightOpacity(world, x, y, z)
     }
@@ -179,7 +180,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => super.getValidRotations(world, x, y, z)
       case Some(subBlock) => subBlock.getValidRotations(world, x, y, z)
     }
@@ -190,14 +191,14 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   }
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => 0
       case Some(subBlock) => subBlock.isProvidingStrongPower(
         world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side)))
     }
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => 0
       case Some(subBlock) => subBlock.isProvidingWeakPower(
         world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side)))
@@ -256,7 +257,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
       }
 
     // No rotating tool in hand or can't rotate: activate the block.
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => false
       case Some(subBlock) => subBlock.onBlockActivated(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
@@ -264,7 +265,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   }
 
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
@@ -275,13 +276,13 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
     }
 
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => subBlock.onBlockPlacedBy(world, x, y, z, player, item)
     }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
+    subBlock(world, x, y, z) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => subBlock.onNeighborBlockChange(world, x, y, z, blockId)
     }
@@ -292,7 +293,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   }
 
   override def removeBlockByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int) =
-    (subBlock(world.getBlockMetadata(x, y, z)) match {
+    (subBlock(world, x, y, z) match {
       case None => true
       case Some(subBlock) => subBlock.onBlockRemovedBy(world, x, y, z, player)
     }) && super.removeBlockByPlayer(world, player, x, y, z)

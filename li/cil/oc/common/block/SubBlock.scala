@@ -31,12 +31,12 @@ trait SubBlock {
 
   def createTileEntity(world: World, metadata: Int): TileEntity = null
 
-  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Icon = getIcon(localSide)
+  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Icon = icon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
 
-  def getIcon(side: ForgeDirection): Icon = null
+  def icon(side: ForgeDirection): Icon = null
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
 

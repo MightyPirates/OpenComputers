@@ -6,8 +6,7 @@ object Config {
   var blockId = 3650
   var blockSpecialId = 3651
 
-  var itemHDDId = 4600
-  var itemGPUId = 4601
+  var itemId = 4600
 
   var threads = 4
 
@@ -21,10 +20,8 @@ object Config {
     Config.blockSpecialId = config.getBlock("blockSpecial", Config.blockSpecialId,
       "The block ID used for special blocks.").getInt(Config.blockSpecialId)
 
-    Config.itemGPUId = config.getItem("gpu", Config.itemGPUId,
-      "The item ID used for graphics cards.").getInt(Config.itemGPUId)
-    Config.itemHDDId = config.getItem("hdd", Config.itemHDDId,
-      "The item ID used for hard disk drives.").getInt(Config.itemHDDId)
+    Config.itemId = config.getItem("item", Config.itemId,
+      "The item ID used for all items.").getInt(Config.itemId)
 
     Config.threads = config.get("config", "threads", Config.threads,
       "The overall number of threads to use to driver computers.").getInt(Config.threads)

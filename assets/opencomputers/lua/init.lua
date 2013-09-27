@@ -71,13 +71,11 @@ function event.fire(name, ...)
   local elapsed = {}
   for id, info in pairs(timers) do
     if info.after < os.clock() then
-      elapsed[id] = info
+      table.insert(elapsed, info)
+      timers[id] = nil
     end
   end
-  for id, _ in pairs(elapsed) do
-    timers[id] = nil
-  end
-  for _, info in pairs(elapsed) do
+  for _, info in ipairs(elapsed) do
     local result, message = xpcall(info.callback, event.error)
     if not result and message then
       error(message, 0)
@@ -86,7 +84,7 @@ function event.fire(name, ...)
 end
 
 --[[ Calls the specified function after the specified time. ]]
-function event.after(timeout, callback)
+function event.timed(timeout, callback)
   local id = #timers
   timers[id] = {after = os.clock() + timeout, callback = callback}
   return id

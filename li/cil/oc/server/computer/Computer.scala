@@ -737,7 +737,7 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
       // Top-level catch-anything, because otherwise those exceptions get
       // gobbled up by the executor unless we call the future's get().
       case t: Throwable =>
-        OpenComputers.log.warning("Faulty kernel implementation, it should never throw.")
+        OpenComputers.log.log(Level.WARNING, "Faulty kernel implementation, it should never throw.", t)
     }
 
     // If we come here there was an error or we stopped, kill off the state.

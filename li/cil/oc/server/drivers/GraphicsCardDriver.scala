@@ -9,7 +9,10 @@ import net.minecraft.item.ItemStack
 object GraphicsCardDriver extends IItemDriver {
   override def api = Option(getClass.getResourceAsStream("/assets/opencomputers/lua/gpu.lua"))
 
-  override def worksWith(item: ItemStack) = item.itemID == Items.gpu.itemID
+  override def worksWith(item: ItemStack) = item.itemID == Items.multi.itemID && (Items.multi.subItem(item) match {
+    case None => false
+    case Some(subItem) => subItem.itemId == Items.gpu.itemId
+  })
 
   override def componentType(item: ItemStack) = ComponentType.PCI
 
