@@ -232,7 +232,8 @@ return pcall(function()
     deadline = os.realTime() + 3
     local result = {coroutine.resume(init, table.unpack(data))}
     if result[1] then
-      -- Init should never return, so we have a system yield.
+      -- Init should never return, so we have a yield. The first yielded
+      -- value can only be set by system yields.
       result = result[2]
     else
       -- Some other error, go kill ourselves.

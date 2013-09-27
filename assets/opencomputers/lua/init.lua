@@ -19,6 +19,8 @@
       command that will be executed when pressing enter.
 ]]
 
+-------------------------------------------------------------------------------
+
 --[[ Distribute signals as events. ]]
 local listeners = {}
 local weakListeners = {}
@@ -36,6 +38,7 @@ end
 
 --[[ Event API table. ]]
 event = {}
+local timers = {}
 
 --[[ Register a new event listener for the specified event. ]]
 function event.listen(name, callback, weak)
@@ -53,12 +56,51 @@ end
 function event.fire(name, ...)
   if name then
     for callback, _ in pairs(listenersFor(name, false)) do
-      callback(name, ...)
+      local result, message = xpcall(callback, event.error, name, ...)
+      if not result and message then
+        error(message, 0)
+      end
     end
     for callback, _ in pairs(listenersFor(name, true)) do
-      callback(name, ...)
+      local result, message = xpcall(callback, event.error, name, ...)
+      if not result and message then
+        error(message, 0)
+      end
     end
   end
+  local elapsed = {}
+  for id, info in pairs(timers) do
+    if info.after < os.clock() then
+      elapsed[id] = info
+    end
+  end
+  for id, _ in pairs(elapsed) do
+    timers[id] = nil
+  end
+  for _, info in pairs(elapsed) do
+    local result, message = xpcall(info.callback, event.error)
+    if not result and message then
+      error(message, 0)
+    end
+  end
+end
+
+--[[ Calls the specified function after the specified time. ]]
+function event.after(timeout, callback)
+  local id = #timers
+  timers[id] = {after = os.clock() + timeout, callback = callback}
+  return id
+end
+
+function event.cancel(timerId)
+  checkArg(1, timerId, "number")
+  timers[timerId] = nil
+end
+
+--[[ Error handler for ALL event callbacks. If this returns a value,
+     the computer will crash. Otherwise it'll keep going. ]]
+function event.error(message)
+  return message
 end
 
 --[[ Suspends a thread for the specified amount of time. ]]
@@ -66,10 +108,17 @@ function coroutine.sleep(seconds)
   checkArg(1, seconds, "number")
   local target = os.clock() + seconds
   repeat
-    event.fire(os.signal(nil, target - os.clock()))
+    local closest = target
+    for _, info in pairs(timers) do
+      if info.after < closest then
+        closest = info.after
+      end
+    end
+    event.fire(os.signal(nil, closest - os.clock()))
   until os.clock() >= target
 end
 
+-------------------------------------------------------------------------------
 
 --[[ Keep track of connected components across address changes. ]]
 local components = {}
@@ -122,6 +171,7 @@ event.listen("component_changed", function(_, newAddress, oldAddress)
   components[id].address = newAddress
 end)
 
+-------------------------------------------------------------------------------
 
 --[[ Setup terminal API. ]]
 local idGpu, idScreen = 0, 0
@@ -166,16 +216,6 @@ event.listen("screen_resized", function(_, address, w, h)
   end
 end)
 
-term = {}
-
-function term.gpu()
-  return boundGpu
-end
-
-function term.screenSize()
-  return screenWidth, screenHeight
-end
-
 local function bindIfPossible()
   if idGpu > 0 and idScreen > 0 then
     if not boundGpu then
@@ -190,6 +230,16 @@ local function bindIfPossible()
     screenWidth, screenHeight = 0, 0
     event.fire("term_unavailable")
   end
+end
+
+term = {}
+
+function term.gpu()
+  return boundGpu
+end
+
+function term.screenSize()
+  return screenWidth, screenHeight
 end
 
 function term.gpuId(id)
@@ -272,6 +322,7 @@ write = function(...)
   end
 end
 
+-------------------------------------------------------------------------------
 
 --[[ Primitive command line. ]]
 local command = ""

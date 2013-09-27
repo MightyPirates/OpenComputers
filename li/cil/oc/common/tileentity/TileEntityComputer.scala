@@ -44,7 +44,10 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
     }
   }
 
-  override protected def onReconnect() = computer.signal("address_change", address)
+  override protected def onReconnect() = {
+    super.onReconnect()
+    computer.signal("address_change", address)
+  }
 
   // ----------------------------------------------------------------------- //
   // General
