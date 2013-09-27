@@ -195,6 +195,14 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
 
   def nodes = nodeMap.values.flatten.map(_.data)
 
+  def neighbors(node: INetworkNode) = nodeMap.get(node.address) match {
+    case None => throw new IllegalArgumentException("Node must be in this network.")
+    case Some(list) => list.find(_.data == node) match {
+      case None => throw new IllegalArgumentException("Node must be in this network.")
+      case Some(n) => n.edges.map(_.other(n).data)
+    }
+  }
+
   def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*) =
     nodeMap.get(target) match {
       case None => None

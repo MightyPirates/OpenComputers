@@ -118,6 +118,18 @@ trait INetwork {
   def nodes: Iterable[INetworkNode]
 
   /**
+   * The list of nodes the specified node is directly connected to.
+   * <p/>
+   * This can be used to verify arguments for components that should only work
+   * for other components that are directly connected to them, for example.
+   *
+   * @param node the node to get the neighbors for.
+   * @return a list of nodes the node is directly connect to.
+   * @throws IllegalArgumentException if the specified node is not in this network.
+   */
+  def neighbors(node: INetworkNode): Iterable[INetworkNode]
+
+  /**
    * Sends a message to a specific node.
    * <p/>
    * Messages should have a unique name to allow differentiating them when
