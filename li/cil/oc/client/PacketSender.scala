@@ -1,6 +1,6 @@
 package li.cil.oc.client
 
-import li.cil.oc.api.INetworkNode
+import li.cil.oc.api.network.Node
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityComputer
@@ -27,7 +27,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: TileEntity with INetworkNode](t: T, char: Char, code: Int) = {
+  def sendKeyDown[T <: TileEntity with Node](t: T, char: Char, code: Int) = {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
@@ -37,7 +37,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: TileEntity with INetworkNode](t: T, char: Char, code: Int) = {
+  def sendKeyUp[T <: TileEntity with Node](t: T, char: Char, code: Int) = {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
@@ -47,7 +47,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendClipboard[T <: TileEntity with INetworkNode](t: T, value: String) = if (!value.isEmpty) {
+  def sendClipboard[T <: TileEntity with Node](t: T, value: String) = if (!value.isEmpty) {
     val pb = new PacketBuilder(PacketType.Clipboard)
 
     pb.writeTileEntity(t)

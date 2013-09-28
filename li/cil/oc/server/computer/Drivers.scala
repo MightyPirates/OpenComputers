@@ -2,7 +2,7 @@ package li.cil.oc.server.computer
 
 import com.naef.jnlua.LuaRuntimeException
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.{IItemDriver, IBlockDriver}
+import li.cil.oc.api.driver.{Block, Item}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import scala.Some
@@ -25,10 +25,10 @@ import scala.compat.Platform._
  */
 private[oc] object Drivers {
   /** The list of registered block drivers. */
-  private val blocks = ArrayBuffer.empty[IBlockDriver]
+  private val blocks = ArrayBuffer.empty[Block]
 
   /** The list of registered item drivers. */
-  private val items = ArrayBuffer.empty[IItemDriver]
+  private val items = ArrayBuffer.empty[Item]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -41,7 +41,7 @@ private[oc] object Drivers {
    *
    * @param driver the driver for that block type.
    */
-  def add(driver: IBlockDriver) {
+  def add(driver: Block) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) blocks += driver
   }
@@ -54,7 +54,7 @@ private[oc] object Drivers {
    *
    * @param driver the driver for that item type.
    */
-  def add(driver: IItemDriver) {
+  def add(driver: Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) items += driver
   }

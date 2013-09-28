@@ -1,13 +1,13 @@
 package li.cil.oc.client.computer
 
-import li.cil.oc.common.computer.IComputer
+import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 
 /**
  * This is a dummy class for the client side. It does nothing, really, just
  * saves us a couple of side checks.
  */
-class Computer(owner: Any) extends IComputer {
+class Computer(owner: Any) extends component.Computer {
   override def start() = false
 
   override def stop() = false

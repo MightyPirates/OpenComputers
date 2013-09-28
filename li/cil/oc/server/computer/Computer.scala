@@ -5,7 +5,7 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import li.cil.oc.common.computer.IComputer
+import li.cil.oc.common.component
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
@@ -34,7 +34,7 @@ import scala.io.Source
  * See `Driver` to read more about component drivers and how they interact
  * with computers - and through them the components they interface.
  */
-class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable {
+class Computer(val owner: Environment) extends component.Computer with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
@@ -177,6 +177,10 @@ class Computer(val owner: IComputerEnvironment) extends IComputer with Runnable 
     // pause.
     lastUpdate = System.currentTimeMillis
 
+    // TODO This seems to be the "run time", not the elapsed ingame time. For example, when doing /time set 0 the game
+    // should jump to the next day, but this value does not jump. Is this just Forge or do we have to find some other
+    // way around this? CC seems to use getWorldTime, which is really odd, since that should be only within the range
+    // of a single day (0 to 24000), which it *is*... perhaps vanilla Minecraft (not re-compiled) behaves different?
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 

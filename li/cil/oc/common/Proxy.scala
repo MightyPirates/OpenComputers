@@ -4,9 +4,10 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
-import li.cil.oc.api.OpenComputersAPI
-import li.cil.oc.server.computer.{Computer, Network, Drivers}
-import li.cil.oc.server.drivers._
+import li.cil.oc.api.driver.API
+import li.cil.oc.server.computer.{Computer, Drivers}
+import li.cil.oc.server.driver
+import li.cil.oc.server.network.Network
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -23,8 +24,8 @@ class Proxy {
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
-    OpenComputersAPI.addDriver(GraphicsCardDriver)
-    OpenComputersAPI.addDriver(KeyboardDriver)
+    API.addDriver(driver.GraphicsCard)
+    API.addDriver(driver.Keyboard)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(Network)

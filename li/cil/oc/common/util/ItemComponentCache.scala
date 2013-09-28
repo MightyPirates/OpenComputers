@@ -2,7 +2,7 @@ package li.cil.oc.common.util
 
 import com.google.common.collect.MapMaker
 import li.cil.oc.Items
-import li.cil.oc.server.components.ItemComponent
+import li.cil.oc.server.component.ItemComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.{JavaConversions, mutable}

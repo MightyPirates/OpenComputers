@@ -15,7 +15,7 @@ import net.minecraftforge.common.RotationHelper
 
 /** The base class on which all our blocks are built. */
 trait SubBlock {
-  def parent: BlockMulti
+  def parent: Multi
 
   def unlocalizedName: String
 

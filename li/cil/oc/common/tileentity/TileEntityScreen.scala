@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.client.gui.GuiScreen
+import li.cil.oc.client.gui.Screen
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.components.IScreenEnvironment
+import li.cil.oc.common.component.ScreenEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 
-class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
-  var gui: Option[GuiScreen] = None
+class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
+  var gui: Option[Screen] = None
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)

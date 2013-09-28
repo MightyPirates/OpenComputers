@@ -1,18 +1,19 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.{INetworkNode, ComponentType}
-import li.cil.oc.common.computer.IComputer
+import li.cil.oc.api.network.Node
 import li.cil.oc.server.computer.Drivers
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
+import li.cil.oc.api.driver.Slot
+import li.cil.oc.common.component.Computer
 
-trait ItemComponentProxy extends IInventory with INetworkNode {
+trait ItemComponentProxy extends IInventory with Node {
   protected val inventory = new Array[ItemStack](8)
 
-  protected val computer: IComputer
+  protected val computer: Computer
 
   def world: World
 
@@ -130,10 +131,10 @@ trait ItemComponentProxy extends IInventory with INetworkNode {
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
     case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.componentType(item) == ComponentType.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.componentType(item) == ComponentType.PCI
-    case (4 | 5, Some(driver)) => driver.componentType(item) == ComponentType.RAM
-    case (6 | 7, Some(driver)) => driver.componentType(item) == ComponentType.HDD
+    case (0, Some(driver)) => driver.slot(item) == Slot.PSU
+    case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.PCI
+    case (4 | 5, Some(driver)) => driver.slot(item) == Slot.RAM
+    case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HDD
     case (_, Some(_)) => false // Invalid slot.
   }
 

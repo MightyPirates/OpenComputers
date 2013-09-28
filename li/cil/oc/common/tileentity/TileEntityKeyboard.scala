@@ -1,16 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.{Visibility, INetworkNode, INetworkMessage}
+import li.cil.oc.api.network.{Visibility, Node, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-class TileEntityKeyboard extends TileEntityRotatable with INetworkNode {
+class TileEntityKeyboard extends TileEntityRotatable with Node {
   override def name = "keyboard"
 
   override def visibility = Visibility.Network
 
-  override def receive(message: INetworkMessage) = {
+  override def receive(message: Message) = {
     super.receive(message)
     message.data match {
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>

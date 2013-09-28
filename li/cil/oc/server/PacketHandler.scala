@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.INetworkNode
+import li.cil.oc.api.network.Node
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.TileEntityComputer
@@ -66,19 +66,19 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onKeyDown(p: PacketParser) =
-    p.readTileEntity[INetworkNode]() match {
+    p.readTileEntity[Node]() match {
       case None => // Invalid packet.
       case Some(n) => n.network.sendToNeighbors(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt())
     }
 
   def onKeyUp(p: PacketParser) =
-    p.readTileEntity[INetworkNode]() match {
+    p.readTileEntity[Node]() match {
       case None => // Invalid packet.
       case Some(n) => n.network.sendToNeighbors(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt())
     }
 
   def onClipboard(p: PacketParser) =
-    p.readTileEntity[INetworkNode]() match {
+    p.readTileEntity[Node]() match {
       case None => // Invalid packet.
       case Some(n) => n.network.sendToNeighbors(n, "keyboard.clipboard", p.player, p.readUTF())
     }
