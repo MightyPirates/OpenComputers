@@ -68,18 +68,18 @@ class PacketHandler extends CommonPacketHandler {
   def onKeyDown(p: PacketParser) =
     p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
-      case Some(n) => n.network.sendToAll(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt())
+      case Some(n) => n.network.sendToNeighbors(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt())
     }
 
   def onKeyUp(p: PacketParser) =
     p.readTileEntity[INetworkNode]() match {
       case None => // Invalid packet.
-      case Some(n) => n.network.sendToAll(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt())
+      case Some(n) => n.network.sendToNeighbors(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt())
     }
 
   def onClipboard(p: PacketParser) =
-  p.readTileEntity[INetworkNode]() match {
-    case None => // Invalid packet.
-    case Some(n) => n.network.sendToAll(n, "keyboard.clipboard", p.player, p.readUTF())
-  }
+    p.readTileEntity[INetworkNode]() match {
+      case None => // Invalid packet.
+      case Some(n) => n.network.sendToNeighbors(n, "keyboard.clipboard", p.player, p.readUTF())
+    }
 }

@@ -36,6 +36,21 @@ trait INetworkNode {
   def name: String
 
   /**
+   * The visibility of this node.
+   * <p/>
+   * This is used by the network to control which system messages to deliver to
+   * which nodes. This value should not change over the lifetime of a node.
+   * Note that this has no effect on the real reachability of a node; it is
+   * only used to filter to which nodes to send connect, disconnect and
+   * reconnect messages. If addressed directly or when a broadcast is sent, the
+   * node will still receive that message. Therefore nodes should still verify
+   * themselves that they want to accept a message from the message's source.
+   *
+   * @return visibility of the node.
+   */
+  def visibility = Visibility.None
+
+  /**
    * The address of the node, so that it can be found in the network.
    * <p/>
    * This is used by the network manager when a node is added to a network to

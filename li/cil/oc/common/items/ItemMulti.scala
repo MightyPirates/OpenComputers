@@ -59,7 +59,7 @@ class ItemMulti(id: Int) extends Item(id) {
   override def getUnlocalizedName(item: ItemStack): String =
     subItem(item) match {
       case None => getUnlocalizedName
-      case Some(subItem) => subItem.unlocalizedName
+      case Some(subItem) => "oc.item." + subItem.unlocalizedName
     }
 
   override def getUnlocalizedName: String = "oc.item"

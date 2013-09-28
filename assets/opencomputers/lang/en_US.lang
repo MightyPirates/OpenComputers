@@ -1,3 +1,4 @@
 oc.block.Computer.name=Computer
 oc.block.Screen.name=Screen
 oc.container.computer=Computer
+oc.item.GraphicsCard.name=Graphics Card

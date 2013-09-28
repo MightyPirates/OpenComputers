@@ -112,7 +112,8 @@ local sandbox = {
     difftime = os.difftime,
     time = os.time,
     freeMemory = os.freeMemory,
-    totalMemory = function() return os.totalMemory() - os.romSize() end
+    totalMemory = function() return os.totalMemory() - os.romSize() end,
+    address = os.address
   },
 
   string = {
@@ -214,6 +215,16 @@ function sandbox.os.signal(name, timeout)
       return table.unpack(signal)
     end
   end
+end
+
+--[[ Shutdown the computer. ]]
+function sandbox.os.shutdown()
+  coroutine.yield(false)
+end
+
+--[[ Reboot the computer. ]]
+function sandbox.os.reboot()
+  coroutine.yield(true)
 end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the

@@ -1,6 +1,6 @@
 package li.cil.oc.common.components
 
-import li.cil.oc.api.{INetworkMessage, INetworkNode}
+import li.cil.oc.api.{Visibility, INetworkMessage, INetworkNode}
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -14,6 +14,8 @@ trait IScreenEnvironment extends INetworkNode {
   val screen = new Screen(this)
 
   override def name = "screen"
+
+  override def visibility = Visibility.Neighbors
 
   override def receive(message: INetworkMessage): Option[Array[Any]] = {
     super.receive(message)
@@ -51,7 +53,7 @@ trait IScreenEnvironment extends INetworkNode {
   }
 
   def onScreenResolutionChange(w: Int, h: Int) = if (network != null) {
-    network.sendToAll(this, "computer.signal", "screen_resized", this.address, w, h)
+    network.sendToAll(this, "computer.signal", "screen_resized", w, h)
   }
 
   def onScreenSet(col: Int, row: Int, s: String) {}

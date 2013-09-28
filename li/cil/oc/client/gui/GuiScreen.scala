@@ -29,16 +29,16 @@ class GuiScreen(val tileEntity: TileEntityScreen) extends MCGuiScreen {
   /** Must be called when the size of the underlying screen changes */
   def setSize(w: Double, h: Double) = {
     // Re-compute sizes and positions.
-    val totalMargin = (GuiScreen.margin + GuiScreen.innerMargin) * 2
+    val totalMargin = GuiScreen.margin + GuiScreen.innerMargin
     val bufferWidth = w * MonospaceFontRenderer.fontWidth
     val bufferHeight = h * MonospaceFontRenderer.fontHeight
-    val bufferScaleX = ((width - totalMargin) / bufferWidth) min 1
-    val bufferScaleY = ((height - totalMargin) / bufferHeight) min 1
+    val bufferScaleX = (width / (bufferWidth + totalMargin * 2.0)) min 1
+    val bufferScaleY = (height / (bufferHeight + totalMargin * 2.0)) min 1
     scale = bufferScaleX min bufferScaleY
-    innerWidth = (bufferWidth * scale + 1).ceil.toInt
-    innerHeight = (bufferHeight * scale + 1).ceil.toInt
-    x = (width - (innerWidth + totalMargin)) / 2
-    y = (height - (innerHeight + totalMargin)) / 2
+    innerWidth = (bufferWidth * scale).toInt
+    innerHeight = (bufferHeight * scale).toInt
+    x = (width - (innerWidth + totalMargin * 2)) / 2
+    y = (height - (innerHeight + totalMargin * 2)) / 2
 
     // Re-build display lists.
     GuiScreen.compileBackground(innerWidth, innerHeight)
@@ -114,43 +114,46 @@ object GuiScreen {
     GL11.glCallLists(buffer.get)
   }
 
-  private[gui] def compileBackground(innerWidth: Int, innerHeight: Int) =
+  private[gui] def compileBackground(bufferWidth: Int, bufferHeight: Int) =
     if (textureManager.isDefined) {
+      val innerWidth = innerMargin * 2 + bufferWidth
+      val innerHeight = innerMargin * 2 + bufferHeight
+
       GL11.glNewList(displayLists.get, GL11.GL_COMPILE)
 
       setTexture(borders)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(
-        0, 0, 7, 7,
+        0, 0, margin, margin,
         0, 0, 7, 7)
       drawBorder(
-        margin, 0, innerWidth, 7,
+        margin, 0, innerWidth, margin,
         7, 0, 8, 7)
       drawBorder(
-        margin + innerWidth, 0, 7, 7,
+        margin + innerWidth, 0, margin, margin,
         8, 0, 15, 7)
 
       // Middle area (left bar, screen background, right bar).
       drawBorder(
-        0, margin, 7, innerHeight,
+        0, margin, margin, innerHeight,
         0, 7, 7, 8)
       drawBorder(
         margin, margin, innerWidth, innerHeight,
         7, 7, 8, 8)
       drawBorder(
-        margin + innerWidth, margin, 7, innerHeight,
+        margin + innerWidth, margin, margin, innerHeight,
         8, 7, 15, 8)
 
       // Bottom border (left corner, middle bar, right corner).
       drawBorder(
-        0, margin + innerHeight, 7, 7,
+        0, margin + innerHeight, margin, margin,
         0, 8, 7, 15)
       drawBorder(
-        margin, margin + innerHeight, innerWidth, 7,
+        margin, margin + innerHeight, innerWidth, margin,
         7, 8, 8, 15)
       drawBorder(
-        margin + innerWidth, margin + innerHeight, 7, 7,
+        margin + innerWidth, margin + innerHeight, margin, margin,
         8, 8, 15, 15)
 
       GL11.glEndList()

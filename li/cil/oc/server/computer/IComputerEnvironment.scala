@@ -1,6 +1,6 @@
 package li.cil.oc.server.computer
 
-import li.cil.oc.api.INetworkNode
+import li.cil.oc.api.{Visibility, INetworkNode}
 import net.minecraft.world.World
 
 /**
@@ -9,6 +9,8 @@ import net.minecraft.world.World
  */
 trait IComputerEnvironment extends INetworkNode {
   override def name = "computer"
+
+  override def visibility = Visibility.Network
 
   def world: World
 

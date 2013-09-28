@@ -55,10 +55,7 @@ class BlockMulti(id: Int) extends Block(id, Material.iron) {
   }
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[SubBlock] =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
-      case Some(subBlock) if world.getBlockId(x, y, z) == this.blockID => Some(subBlock)
-      case _ => None
-    }
+    subBlock(world.getBlockMetadata(x, y, z))
 
   def subBlock(metadata: Int) =
     metadata match {

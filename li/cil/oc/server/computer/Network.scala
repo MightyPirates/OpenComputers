@@ -2,9 +2,7 @@ package li.cil.oc.server.computer
 
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.INetwork
-import li.cil.oc.api.INetworkMessage
-import li.cil.oc.api.INetworkNode
+import li.cil.oc.api.{Visibility, INetwork, INetworkMessage, INetworkNode}
 import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.{World, IBlockAccess}
@@ -34,7 +32,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
         node.address = 1
       node.address -> ArrayBuffer(new Network.Node(node))
     }))
-    Network.send(new Network.ConnectMessage(node), List(node))
+    send(new Network.ConnectMessage(node), List(node))
   }
 
   nodes.foreach(_.network = this)
@@ -69,13 +67,22 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
   private def add(oldNode: Network.Node, addedNode: INetworkNode) = {
     // Check if the other node is new or if we have to merge networks.
     val (newNode, sendQueue) = if (addedNode.network == null) {
-      val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[INetworkNode])]
-      sendQueue += ((new Network.ConnectMessage(addedNode), List(addedNode) ++ nodes))
-      nodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), List(addedNode))))
       val newNode = new Network.Node(addedNode)
       if (nodeMap.contains(addedNode.address) || addedNode.address < 1)
         addedNode.address = findId()
-      nodeMap.getOrElseUpdate(addedNode.address, new ArrayBuffer[Network.Node]) += newNode
+      // Store everything with an invalid address in slot zero.
+      val address = addedNode.address match {
+        case a if a > 0 => a
+        case _ => 0
+      }
+      // Create the message queue. The address check is purely for performance,
+      // since we can skip all that if the node is non-valid.
+      val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[INetworkNode])]
+      if (address > 0 && addedNode.visibility != Visibility.None) {
+        sendQueue += ((new Network.ConnectMessage(addedNode), List(addedNode) ++ nodes))
+        nodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), List(addedNode))))
+      }
+      nodeMap.getOrElseUpdate(address, new ArrayBuffer[Network.Node]) += newNode
       addedNode.network = this
       (newNode, sendQueue)
     }
@@ -88,7 +95,10 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
       otherNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), thisNodes)))
       thisNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), otherNodes)))
 
-      // Change addresses for conflicting nodes in other network.
+      // Change addresses for conflicting nodes in other network. We can queue
+      // these messages because we're storing references to the nodes, so they
+      // will send the change notification to the right node even if that node
+      // also changes its address.
       val reserved = mutable.Set(otherNetwork.nodeMap.keySet.toSeq: _*)
       otherNodes.filter(node => nodeMap.contains(node.address)).foreach(node => {
         val oldAddress = node.address
@@ -100,7 +110,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
         }
       })
 
-      // Add nodes from other network into this network.
+      // Add nodes from other network into this network, including invalid nodes.
       otherNetwork.nodeMap.values.flatten.foreach(node => {
         nodeMap.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
         node.data.network = this
@@ -114,7 +124,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     Network.Edge(oldNode, newNode)
 
     // Send all generated messages.
-    for ((message, nodes) <- sendQueue) Network.send(message, nodes)
+    for ((message, nodes) <- sendQueue) send(message, nodes)
 
     true
   }
@@ -148,10 +158,10 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
         // of which we'll re-use for this network. For all additional ones we
         // create new network instances.
         handleSplit(entry.remove(), nodes => {
-          nodes.foreach(n => Network.send(new Network.DisconnectMessage(n), List(node)))
-          Network.send(new Network.DisconnectMessage(node), nodes)
+          nodes.foreach(n => send(new Network.DisconnectMessage(n), List(node)))
+          send(new Network.DisconnectMessage(node), nodes)
         })
-        Network.send(new Network.DisconnectMessage(node), List(node))
+        send(new Network.DisconnectMessage(node), List(node))
         true
       }
     }
@@ -181,19 +191,24 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
       val nodesA = subNodes(indexA)
       for (indexB <- (indexA + 1) until subNodes.length) {
         val nodesB = subNodes(indexB)
-        nodesA.foreach(nodeA => Network.send(new Network.DisconnectMessage(nodeA), nodesB))
-        nodesB.foreach(nodeB => Network.send(new Network.DisconnectMessage(nodeB), nodesA))
+        nodesA.foreach(nodeA => send(new Network.DisconnectMessage(nodeA), nodesB))
+        nodesB.foreach(nodeB => send(new Network.DisconnectMessage(nodeB), nodesA))
       }
       messageCallback(nodesA)
     }
   }
 
   def node(address: Int) = nodeMap.get(address) match {
-    case None => None
-    case Some(list) => Some(list.last.data)
+    case Some(list) if address > 0 => list.map(_.data).filter(_.visibility != Visibility.None).lastOption
+    case _ => None
   }
 
-  def nodes = nodeMap.values.flatten.map(_.data)
+  def nodes(reference: INetworkNode) = {
+    val referenceNeighbors = neighbors(reference).toSet
+    nodes.filter(node => node.visibility == Visibility.Network || referenceNeighbors.contains(node))
+  }
+
+  def nodes = nodeMap.filter(_._1 > 0).values.flatten.map(_.data).filter(_.visibility != Visibility.None)
 
   def neighbors(node: INetworkNode) = nodeMap.get(node.address) match {
     case None => throw new IllegalArgumentException("Node must be in this network.")
@@ -203,14 +218,74 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     }
   }
 
-  def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*) =
+  def sendToAddress(source: INetworkNode, target: Int, name: String, data: Any*) =
     nodeMap.get(target) match {
       case None => None
-      case Some(list) => Network.send(new Network.Message(source, name, Array(data: _*)), list.map(_.data))
+      case Some(list) => send(new Network.Message(source, name, Array(data: _*)), list.map(_.data))
     }
 
+  def sendToNeighbors(source: INetworkNode, name: String, data: Any*) =
+    send(new Network.Message(source, name, Array(data: _*)), neighbors(source))
+
   def sendToAll(source: INetworkNode, name: String, data: Any*) =
-    Network.send(new Network.Message(source, name, Array(data: _*)), nodes)
+    send(new Network.Message(source, name, Array(data: _*)), nodes)
+
+  private def send(message: Network.Message, targets: Iterable[INetworkNode]) =
+    if (message.source.address > 0 && message.source.visibility != Visibility.None) {
+      def debug(target: INetworkNode) = {} // println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + ":" + message.source.name + " -> " + target.address + ":" + target.name + ")")
+      message match {
+        case _@(Network.ConnectMessage(_) | Network.ReconnectMessage(_, _)) =>
+          // Cannot be canceled but respects visibility.
+          message.source.visibility match {
+            case Visibility.Neighbors =>
+              val neighborSet = neighbors(message.source).toSet
+              val iterator = targets.filter(target => target == message.source || neighborSet.contains(target)).iterator
+              while (iterator.hasNext) try {
+                val target = iterator.next()
+                debug(target)
+                target.receive(message)
+              } catch {
+                case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+              }
+            case Visibility.Network =>
+              val iterator = targets.filter(_.address > 0).filter(_.visibility == Visibility.Network).iterator
+              while (iterator.hasNext) try {
+                val target = iterator.next()
+                debug(target)
+                target.receive(message)
+              } catch {
+                case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+              }
+          }
+          None
+        case _@Network.DisconnectMessage(_) =>
+          // Cannot be canceled but ignores visibility (because it'd be a pain to implement this otherwise).
+          val iterator = targets.filter(_.address > 0).iterator
+          while (iterator.hasNext) try {
+            val target = iterator.next()
+            debug(target)
+            target.receive(message)
+          } catch {
+            case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+          }
+          None
+        case _ =>
+          // Can be canceled but ignores visibility.
+          var result = None: Option[Array[Any]]
+          val iterator = targets.filter(_.address > 0).iterator
+          while (!message.isCanceled && iterator.hasNext) try {
+            val target = iterator.next()
+            debug(target)
+            target.receive(message) match {
+              case None => // Ignore.
+              case r => result = r
+            }
+          } catch {
+            case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+          }
+          result
+      }
+    } else None
 
   private def findId(reserved: collection.Set[Int] = collection.Set.empty[Int]) = Range(1, Int.MaxValue).find(
     address => !nodeMap.contains(address) && !reserved.contains(address)).get
@@ -322,26 +397,10 @@ object Network {
     def cancel() = isCanceled = true
   }
 
-  private class ConnectMessage(source: INetworkNode) extends Message(source, "network.connect")
+  private case class ConnectMessage(override val source: INetworkNode) extends Message(source, "network.connect")
 
-  private class DisconnectMessage(source: INetworkNode) extends Message(source, "network.disconnect")
+  private case class DisconnectMessage(override val source: INetworkNode) extends Message(source, "network.disconnect")
 
-  private class ReconnectMessage(source: INetworkNode, oldAddress: Int) extends Message(source, "network.reconnect", Array(oldAddress.asInstanceOf[Any]))
+  private case class ReconnectMessage(override val source: INetworkNode, oldAddress: Int) extends Message(source, "network.reconnect", Array(oldAddress.asInstanceOf[Any]))
 
-  private def send(message: Network.Message, nodes: Iterable[INetworkNode]) = {
-    //println("send(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + ":" + message.source.name + " -> [" + nodes.map(node => node.address + ":" + node.name).mkString(", ") + "])")
-    val iterator = nodes.iterator
-    var result = None: Option[Array[Any]]
-    while (!message.isCanceled && iterator.hasNext) {
-      try {
-        iterator.next().receive(message) match {
-          case None => // Ignore.
-          case r => result = r
-        }
-      } catch {
-        case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-      }
-    }
-    result
-  }
 }

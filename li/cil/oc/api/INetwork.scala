@@ -96,7 +96,10 @@ trait INetwork {
   def remove(node: INetworkNode): Boolean
 
   /**
-   * Get the network node with the specified address.
+   * Get the valid network node with the specified address.
+   * <p/>
+   * This does not include nodes with an address less or equal to zero or with
+   * a visibility of `Visibility.None`.
    * <p/>
    * If there are multiple nodes with the same address this will return the
    * node that most recently joined the network.
@@ -107,18 +110,35 @@ trait INetwork {
   def node(address: Int): Option[INetworkNode]
 
   /**
-   * The list of nodes in this network.
+   * The list of all valid nodes in this network.
    * <p/>
-   * This can be used to perform a delayed initialization of a node. For
-   * example, computers will use this when starting up to generate component
-   * added events for all nodes.
+   * This does not include nodes with an address less or equal to zero or with
+   * a visibility of `Visibility.None`.
    *
    * @return the list of nodes in this network.
    */
   def nodes: Iterable[INetworkNode]
 
   /**
-   * The list of nodes the specified node is directly connected to.
+   * The list of nodes in the network visible to the specified node.
+   * <p/>
+   * The same base filters as for `nodes` apply, with additional visibility
+   * checks applied, based on the specified node as a point of reference.
+   * <p/>
+   * This can be used to perform a delayed initialization of a node. For
+   * example, computers will use this when starting up to generate component
+   * added events for all nodes.
+   *
+   * @param reference the node to get the visible other nodes for.
+   * @return the nodes visible to the specified node.
+   */
+  def nodes(reference: INetworkNode): Iterable[INetworkNode]
+
+  /**
+   * The list of valid nodes the specified node is directly connected to.
+   * <p/>
+   * This does not include nodes with an address less or equal to zero or with
+   * a visibility of `Visibility.None`.
    * <p/>
    * This can be used to verify arguments for components that should only work
    * for other components that are directly connected to them, for example.
@@ -130,7 +150,11 @@ trait INetwork {
   def neighbors(node: INetworkNode): Iterable[INetworkNode]
 
   /**
-   * Sends a message to a specific node.
+   * Sends a message to a specific address, which may mean multiple nodes.
+   * <p/>
+   * If the target is less or equal to zero no message is sent. If a node with
+   * that address has a visibility of `Visibility.None` the message will not be
+   * delivered to that node.
    * <p/>
    * Messages should have a unique name to allow differentiating them when
    * handling them in a network node. For example, computers will try to parse
@@ -140,8 +164,9 @@ trait INetwork {
    * <p/>
    * Note that message handlers may also return results. In this case that
    * result will be returned from this function. In the case that there are
-   * more than one target node (shared addresses) the last result that was not
-   * `None` will be returned, or `None` if all were.
+   * more than one target node (shared addresses, should not happen, but may if
+   * a node implementation decides to ignore this rule) the last result that
+   * was not `None` will be returned, or `None` if all results were `None`.
    *
    * @param source the node that sends the message.
    * @param target the id of the node to send the message to.
@@ -149,10 +174,36 @@ trait INetwork {
    * @param data   the message to send.
    * @return the result of the message being handled, if any.
    */
-  def sendToNode(source: INetworkNode, target: Int, name: String, data: Any*): Option[Array[Any]]
+  def sendToAddress(source: INetworkNode, target: Int, name: String, data: Any*): Option[Array[Any]]
 
   /**
-   * Sends a message to all nodes in the network.
+   * Sends a message to all direct valid neighbors of the source node.
+   * <p/>
+   * This does not include nodes with an address less or equal to zero or with
+   * a visibility of `Visibility.None`.
+   * <p/>
+   * Messages should have a unique name to allow differentiating them when
+   * handling them in a network node. For example, computers will try to parse
+   * messages named "computer.signal" by converting the message data to a
+   * signal and inject that signal into the Lua VM, so no message not used for
+   * this purpose should be named "computer.signal".
+   *
+   * @param source the node that sends the message.
+   * @param name   the name of the message.
+   * @param data   the message to send.
+   * @see neighbors
+   */
+  def sendToNeighbors(source: INetworkNode, name: String, data: Any*)
+
+  /**
+   * Sends a message to all valid nodes in the network.
+   * <p/>
+   * This does not include nodes with an address less or equal to zero or with
+   * a visibility of `Visibility.None`.
+   * <p/>
+   * This ignores any further visibility checks, i.e. even if a node is not
+   * visible to the source node it will still receive the message, as long as
+   * it is a valid node.
    * <p/>
    * Messages should have a unique name to allow differentiating them when
    * handling them in a network node. For example, computers will try to parse

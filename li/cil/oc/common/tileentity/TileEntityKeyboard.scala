@@ -1,28 +1,27 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.{INetworkNode, INetworkMessage}
+import li.cil.oc.api.{Visibility, INetworkNode, INetworkMessage}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
 class TileEntityKeyboard extends TileEntityRotatable with INetworkNode {
   override def name = "keyboard"
 
+  override def visibility = Visibility.Network
+
   override def receive(message: INetworkMessage) = {
     super.receive(message)
     message.data match {
-      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "computer.signal", "key_down", char, code)
-        message.cancel() // One keyboard is enough.
-      }
-      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyUp" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "computer.signal", "key_up", char, code)
-        message.cancel() // One keyboard is enough.
-      }
-      case Array(p: Player, value: String) if message.name == "keyboard.clipboard" => if (isUseableByPlayer(p)) {
-        network.sendToAll(this, "computer.signal", "clipboard", value)
-        message.cancel()
-      }
+      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>
+        if (isUseableByPlayer(p))
+          network.sendToAll(this, "computer.signal", "key_down", char, code)
+      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyUp" =>
+        if (isUseableByPlayer(p))
+          network.sendToAll(this, "computer.signal", "key_up", char, code)
+      case Array(p: Player, value: String) if message.name == "keyboard.clipboard" =>
+        if (isUseableByPlayer(p))
+          network.sendToAll(this, "computer.signal", "clipboard", value)
       case _ => // Ignore.
     }
     None

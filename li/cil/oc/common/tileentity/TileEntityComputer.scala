@@ -30,16 +30,22 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def receive(message: INetworkMessage) = {
     super.receive(message)
     message.data match {
-      // The isRunning check is here to avoid network.connect messages being sent
-      // while loading a chunk (thus leading to "false" component_added signals).
-      case Array() if message.name == "network.connect" && isRunning =>
+      // The isRunning check is here to avoid component_* signals being
+      // generated while loading a chunk.
+      case Array() if message.name == "network.connect" && message.source.address != 0 && isRunning =>
         computer.signal("component_added", message.source.address); None
-      case Array() if message.name == "network.disconnect" && isRunning =>
+      case Array() if message.name == "network.disconnect" && message.source.address != 0 && isRunning =>
         computer.signal("component_removed", message.source.address); None
       case Array(oldAddress: Integer) if message.name == "network.reconnect" && isRunning =>
         computer.signal("component_changed", message.source.address, oldAddress); None
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        computer.signal(name, args: _*); None
+        computer.signal(name, List(message.source.address) ++ args: _*); None
+      case Array() if message.name == "computer.start" =>
+        Some(Array(turnOn().asInstanceOf[Any]))
+      case Array() if message.name == "computer.stop" =>
+        Some(Array(turnOff().asInstanceOf[Any]))
+      case Array() if message.name == "computer.running" =>
+        Some(Array(isOn.asInstanceOf[Any]))
       case _ => None
     }
   }
@@ -92,9 +98,9 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
       isRunning = computer.isRunning
       if (network != null)
         if (isRunning)
-          network.sendToAll(this, "computer.start")
+          network.sendToAll(this, "computer.started")
         else
-          network.sendToAll(this, "computer.stop")
+          network.sendToAll(this, "computer.stopped")
       ServerPacketSender.sendComputerState(this, isRunning)
     }
   }

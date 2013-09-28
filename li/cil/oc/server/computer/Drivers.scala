@@ -100,7 +100,7 @@ private[oc] object Drivers {
         case Some(code) =>
           val name = driver.getClass.getName
           try {
-            computer.lua.load(code, name, "t") // ... func
+            computer.lua.load(code, "=" + name, "t") // ... func
             code.close()
             computer.lua.call(0, 0) // ...
           }

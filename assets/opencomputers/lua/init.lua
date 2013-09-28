@@ -54,7 +54,10 @@ end
 
 --[[ Dispatch an event with the specified parameter. ]]
 function event.fire(name, ...)
+  -- We may have no arguments at all if the call is just used to drive the
+  -- timer check (for example if we had no signal in coroutine.sleep()).
   if name then
+    checkArg(1, name, "string")
     for callback, _ in pairs(listenersFor(name, false)) do
       local result, message = xpcall(callback, event.error, name, ...)
       if not result and message then
@@ -68,15 +71,18 @@ function event.fire(name, ...)
       end
     end
   end
+  -- Collect elapsed callbacks first, since calling them may in turn lead to
+  -- new timers being registered, which would add entries to the table we're
+  -- iterating, which is not supported.
   local elapsed = {}
   for id, info in pairs(timers) do
     if info.after < os.clock() then
-      table.insert(elapsed, info)
+      table.insert(elapsed, info.callback)
       timers[id] = nil
     end
   end
-  for _, info in ipairs(elapsed) do
-    local result, message = xpcall(info.callback, event.error)
+  for _, callback in ipairs(elapsed) do
+    local result, message = xpcall(callback, event.error)
     if not result and message then
       error(message, 0)
     end
@@ -160,34 +166,46 @@ end)
 
 event.listen("component_removed", function(_, address)
   local id = component.id(address)
-  components[id] = nil
-  event.fire("component_uninstalled", id)
+  if id then
+    components[id] = nil
+    event.fire("component_uninstalled", id)
+  end
 end)
 
 event.listen("component_changed", function(_, newAddress, oldAddress)
   local id = component.id(oldAddress)
-  components[id].address = newAddress
+  if oldAddress > 0 and not id then return end
+  if oldAddress > 0 and newAddress == 0 then -- ~0 -> 0
+    components[id] = nil
+    event.fire("component_uninstalled", id)
+  elseif oldAddress == 0 and newAddress > 0 then -- 0 -> ~0
+    id = #components + 1
+    components[id] = {address = newAddress, name = driver.componentType(newAddress)}
+    event.fire("component_installed", id)
+  elseif oldAddress > 0 and newAddress > 0 then -- ~0 -> ~0
+    components[id].address = newAddress
+  end
 end)
 
 -------------------------------------------------------------------------------
 
 --[[ Setup terminal API. ]]
-local idGpu, idScreen = 0, 0
+local gpuId, screenId = 0, 0
 local screenWidth, screenHeight = 0, 0
 local boundGpu = nil
 local cursorX, cursorY = 1, 1
 
 event.listen("component_installed", function(_, id)
   local type = component.type(id)
-  if type == "gpu" and idGpu < 1 then
+  if type == "gpu" and gpuId < 1 then
     term.gpuId(id)
-  elseif type == "screen" and idScreen < 1 then
+  elseif type == "screen" and screenId < 1 then
     term.screenId(id)
   end
 end)
 
 event.listen("component_uninstalled", function(_, id)
-  if idGpu == id then
+  if gpuId == id then
     term.gpuId(0)
     for id in component.ids() do
       if component.type(id) == "gpu" then
@@ -195,7 +213,7 @@ event.listen("component_uninstalled", function(_, id)
         return
       end
     end
-  elseif idScreen == id then
+  elseif screenId == id then
     term.screenId(0)
     for id in component.ids() do
       if component.type(id) == "screen" then
@@ -208,17 +226,17 @@ end)
 
 event.listen("screen_resized", function(_, address, w, h)
   local id = component.id(address)
-  if id == idScreen then
+  if id == screenId then
     screenWidth = w
     screenHeight = h
   end
 end)
 
 local function bindIfPossible()
-  if idGpu > 0 and idScreen > 0 then
+  if gpuId > 0 and screenId > 0 then
     if not boundGpu then
-      local function gpu() return component.address(idGpu) end
-      local function screen() return component.address(idScreen) end
+      local function gpu() return component.address(gpuId) end
+      local function screen() return component.address(screenId) end
       boundGpu = driver.gpu.bind(gpu, screen)
       screenWidth, screenHeight = boundGpu.getResolution()
       event.fire("term_available")
@@ -243,19 +261,19 @@ end
 function term.gpuId(id)
   if id then
     checkArg(1, id, "number")
-    idGpu = id
+    gpuId = id
     bindIfPossible()
   end
-  return idGpu
+  return gpuId
 end
 
 function term.screenId(id)
   if id then
     checkArg(1, id, "number")
-    idScreen = id
+    screenId = id
     bindIfPossible()
   end
-  return idScreen
+  return screenId
 end
 
 function term.getCursor()
@@ -312,10 +330,21 @@ function term.clear()
   cursorX, cursorY = 1, 1
 end
 
+function term.clearLine()
+  if not boundGpu then return end
+  boundGpu.fill(1, cursorY, screenWidth, 1, " ")
+  cursorX = 1
+end
+
 -- Set custom write function to replace the dummy.
 write = function(...)
   local args = {...}
+  local first = true
   for _, value in ipairs(args) do
+    if not first then
+      term.write(", ")
+    end
+    first = false
     term.write(value, true)
   end
 end
@@ -323,18 +352,49 @@ end
 -------------------------------------------------------------------------------
 
 --[[ Primitive command line. ]]
-local command = ""
+local keyboardId = 0
+local lastCommand, command = "", ""
 local isRunning = false
-local function commandLineKey(_, char, code)
+
+event.listen("component_installed", function(_, id)
+  local type = component.type(id)
+  if type == "keyboard" and keyboardId < 1 then
+    keyboardId = id
+  end
+end)
+
+event.listen("component_uninstalled", function(_, id)
+  if keyboardId == id then
+    keyboardId = 0
+    for id in component.ids() do
+      if component.type(id) == "keyboard" then
+        keyboardId = id
+        return
+      end
+    end
+  end
+end)
+
+-- Put this into the term table since other programs may want to use it, too.
+function term.keyboardId(id)
+  if id then
+    checkArg(1, id, "number")
+    keyboardId = id
+  end
+  return keyboardId
+end
+
+local function onKeyDown(_, address, char, code)
   if isRunning then return end -- ignore events while running a command
-  local keys = driver.keyboard.keys
-  local gpu = term.gpu()
+  if component.id(address) ~= keyboardId then return end
+  if not boundGpu then return end
   local x, y = term.getCursor()
+  local keys = driver.keyboard.keys
   if code == keys.back then
     if command:len() == 0 then return end
     command = command:sub(1, -2)
     term.setCursor(command:len() + 3, y) -- from leading "> "
-    gpu.set(x - 1, y, "  ") -- overwrite cursor blink
+    boundGpu.set(x - 1, y, "  ") -- overwrite cursor blink
   elseif code == keys.enter then
     if command:len() == 0 then return end
     print(" ") -- overwrite cursor blink
@@ -347,14 +407,19 @@ local function commandLineKey(_, char, code)
       local result = {pcall(code)}
       isRunning = false
       if not result[1] or result[2] ~= nil then
-        -- TODO handle multiple results?
-        print(result[2])
+        print(table.unpack(result, 2))
       end
     else
       print(result)
     end
+    lastCommand = command
     command = ""
     write("> ")
+  elseif code == keys.up then
+    command = lastCommand
+    term.clearLine()
+    term.write("> " .. command)
+    term.setCursor(command:len() + 3, y)
   elseif not keys.isControl(char) then
     -- Non-control character, add to command.
     char = string.char(char)
@@ -362,8 +427,10 @@ local function commandLineKey(_, char, code)
     term.write(char)
   end
 end
-local function commandLineClipboard(_, value)
+
+local function onClipboard(_, address, value)
   if isRunning then return end -- ignore events while running a command
+  if component.id(address) ~= keyboardId then return end
   value = value:match("([^\r\n]+)")
   if value and value:len() > 0 then
     command = command .. value
@@ -376,12 +443,12 @@ event.listen("term_available", function()
   term.clear()
   command = ""
   write("> ")
-  event.listen("key_down", commandLineKey)
-  event.listen("clipboard", commandLineClipboard)
+  event.listen("key_down", onKeyDown)
+  event.listen("clipboard", onClipboard)
 end)
 event.listen("term_unavailable", function()
-  event.ignore("key_down", commandLineKey)
-  event.ignore("clipboard", commandLineClipboard)
+  event.ignore("key_down", onKeyDown)
+  event.ignore("clipboard", onClipboard)
 end)
 
 -- Serves as main event loop while keeping the cursor blinking. As soon as
