@@ -1,15 +1,15 @@
 package li.cil.oc.server.component
 
-import com.naef.jnlua._
+import com.naef.jnlua.{LuaRuntimeException, LuaMemoryAllocationException, LuaType, LuaState}
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api.network.{Visibility, Node}
 import li.cil.oc.common.component
-import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver
-import li.cil.oc.util.ExtendedLuaState._
+import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
@@ -191,11 +191,11 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {
       // Resume from pauses based on signal underflow.
-      case Computer.State.Suspended if signals.nonEmpty => {
+      case Computer.State.Suspended if !signals.isEmpty => {
         assert(future.isEmpty)
         execute(Computer.State.Yielded)
       }
-      case Computer.State.Sleeping if lastUpdate >= sleepUntil || signals.nonEmpty => {
+      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
         assert(future.isEmpty)
         execute(Computer.State.Yielded)
       }
@@ -793,8 +793,8 @@ object Computer {
 
   private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
     tileEntities.
-      filter(_.isInstanceOf[TileEntityComputer]).
-      map(_.asInstanceOf[TileEntityComputer]).
+      filter(_.isInstanceOf[tileentity.Computer]).
+      map(_.asInstanceOf[tileentity.Computer]).
       foreach(_.turnOff())
   }
 

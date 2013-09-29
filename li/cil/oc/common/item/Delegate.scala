@@ -17,7 +17,7 @@ trait Delegate {
   // Item
   // ----------------------------------------------------------------------- //
 
-  def icon: Icon = null
+  def icon: Option[Icon] = None
 
   def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack = item
 

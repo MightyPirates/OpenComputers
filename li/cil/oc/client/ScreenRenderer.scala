@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
 import li.cil.oc.client.gui.MonospaceFontRenderer
-import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.tileentity.Screen
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
-    val tileEntity = t.asInstanceOf[TileEntityScreen]
+    val tileEntity = t.asInstanceOf[Screen]
 
     GL11.glPushAttrib(0xFFFFFF)
     GL11.glPushMatrix()

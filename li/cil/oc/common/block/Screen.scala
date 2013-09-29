@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -12,7 +12,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Screen(val parent: Delegator) extends Delegate {
-  GameRegistry.registerTileEntity(classOf[TileEntityScreen], "oc.screen")
+  GameRegistry.registerTileEntity(classOf[tileentity.Screen], "oc.screen")
 
   val unlocalizedName = "Screen"
 
@@ -29,17 +29,17 @@ class Screen(val parent: Delegator) extends Delegate {
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     worldSide match {
       case f if f == parent.getFacing(world, x, y, z) => icon(ForgeDirection.SOUTH)
-      case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top
-      case _ => Icons.side
+      case ForgeDirection.DOWN | ForgeDirection.UP => Some(Icons.top)
+      case _ => Some(Icons.side)
     }
   }
 
   override def icon(side: ForgeDirection) =
-    side match {
+    Some(side match {
       case ForgeDirection.SOUTH => Icons.front
       case ForgeDirection.DOWN | ForgeDirection.UP => Icons.top
       case _ => Icons.side
-    }
+    })
 
   override def registerIcons(iconRegister: IconRegister) = {
     Icons.front = iconRegister.registerIcon("opencomputers:screen_front")
@@ -53,7 +53,7 @@ class Screen(val parent: Delegator) extends Delegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = new TileEntityScreen
+  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Screen)
 
   // ----------------------------------------------------------------------- //
   // Interaction

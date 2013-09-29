@@ -1,12 +1,12 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.common.tileentity.TileEntityKeyboard
+import li.cil.oc.common.tileentity
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Keyboard(val parent: Delegator) extends Delegate {
-  GameRegistry.registerTileEntity(classOf[TileEntityKeyboard], "oc.keyboard")
+  GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], "oc.keyboard")
 
   val unlocalizedName = "Keyboard"
 
@@ -16,7 +16,7 @@ class Keyboard(val parent: Delegator) extends Delegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = new TileEntityKeyboard
+  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Keyboard)
 
   // ----------------------------------------------------------------------- //
   // Block rotation

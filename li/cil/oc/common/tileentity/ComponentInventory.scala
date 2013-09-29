@@ -1,19 +1,19 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Node
+import li.cil.oc.common.component
+import li.cil.oc.server.driver.Registry
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
-import li.cil.oc.api.driver.Slot
-import li.cil.oc.common.component.Computer
-import li.cil.oc.server.driver.Registry
 
-trait ItemComponentProxy extends IInventory with Node {
+trait ComponentInventory extends IInventory with Node {
   protected val inventory = new Array[ItemStack](8)
 
-  protected val computer: Computer
+  protected val computer: component.Computer
 
   def world: World
 

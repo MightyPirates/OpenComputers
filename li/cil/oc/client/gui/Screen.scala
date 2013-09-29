@@ -1,7 +1,7 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.PacketSender
-import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.{GuiScreen => MCGuiScreen}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
@@ -21,8 +21,8 @@ import org.lwjgl.opengl.GL11
  * called whenever the text actually changes, otherwise there will be no change
  * in the text displayed in the GUI.
  */
-class Screen(val tileEntity: TileEntityScreen) extends MCGuiScreen {
-  tileEntity.gui = Some(this)
+class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
+  tileEntity.guiScreen = Some(this)
 
   var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
 
@@ -71,7 +71,7 @@ class Screen(val tileEntity: TileEntityScreen) extends MCGuiScreen {
 
   override def onGuiClosed() = {
     super.onGuiClosed()
-    tileEntity.gui = None
+    tileEntity.guiScreen = None
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {

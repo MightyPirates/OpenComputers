@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
-abstract class TileEntityRotatable extends TileEntity {
+abstract class Rotatable extends TileEntity {
   // ----------------------------------------------------------------------- //
   // Lookup tables
   // ----------------------------------------------------------------------- //

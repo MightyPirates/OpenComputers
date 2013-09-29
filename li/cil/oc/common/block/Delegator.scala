@@ -6,7 +6,7 @@ import li.cil.oc.Config
 import li.cil.oc.CreativeTab
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.Node
-import li.cil.oc.common.tileentity.TileEntityRotatable
+import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
@@ -41,7 +41,7 @@ import scala.collection.mutable
 class Delegator(id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerBlock(this, classOf[ItemBlockMulti], "oc.block." + id)
+  GameRegistry.registerBlock(this, classOf[Item], "oc.block." + id)
 
   // ----------------------------------------------------------------------- //
   // SubBlock
@@ -71,27 +71,27 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
 
   def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: TileEntityRotatable => tileEntity.facing
+      case tileEntity: Rotatable => tileEntity.facing
       case _ => ForgeDirection.UNKNOWN
     }
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: TileEntityRotatable =>
+      case rotatable: Rotatable =>
         rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: TileEntityRotatable =>
+      case rotatable: Rotatable =>
         rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: TileEntityRotatable => rotatable.translate(value)
+      case rotatable: Rotatable => rotatable.translate(value)
       case _ => value
     }
 
@@ -128,7 +128,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
   override def createTileEntity(world: World, metadata: Int): TileEntity =
     subBlock(metadata) match {
       case None => null
-      case Some(subBlock) => subBlock.createTileEntity(world, metadata)
+      case Some(subBlock) => subBlock.createTileEntity(world, metadata).orNull
     }
 
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
@@ -143,8 +143,8 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       case None => super.getBlockTexture(world, x, y, z, side)
       case Some(subBlock) => subBlock.getBlockTextureFromSide(
         world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
-        case null => super.getBlockTexture(world, x, y, z, side)
-        case icon => icon
+        case None => super.getBlockTexture(world, x, y, z, side)
+        case Some(icon) => icon
       }
     }
 
@@ -152,8 +152,8 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
     subBlock(metadata) match {
       case None => super.getIcon(side, metadata)
       case Some(subBlock) => subBlock.icon(ForgeDirection.getOrientation(side)) match {
-        case null => super.getIcon(side, metadata)
-        case icon => icon
+        case None => super.getIcon(side, metadata)
+        case Some(icon) => icon
       }
     }
 
@@ -166,7 +166,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
   override def getRenderType = Config.blockRenderId
 
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
-    // Workaround for MC's untyped lists... I'm too tired to rage anymore.
+    // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
     (0 until subBlocks.length).
       foreach(id => add(list, new ItemStack(this, 1, id)))
@@ -225,7 +225,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
     val valid = getValidRotations(world, x, y, z)
     if (valid.length > 1 && canWrench)
       world.getBlockTileEntity(x, y, z) match {
-        case rotatable: TileEntityRotatable => {
+        case rotatable: Rotatable => {
           if (player.isSneaking) {
             // Rotate pitch. Get the valid pitch rotations.
             val validPitch = valid.collect {

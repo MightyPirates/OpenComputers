@@ -29,14 +29,14 @@ trait Delegate {
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  def createTileEntity(world: World, metadata: Int): TileEntity = null
+  def createTileEntity(world: World, metadata: Int): Option[TileEntity] = None
 
-  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Icon = icon(localSide)
+  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
 
-  def icon(side: ForgeDirection): Icon = null
+  def icon(side: ForgeDirection): Option[Icon] = None
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
 

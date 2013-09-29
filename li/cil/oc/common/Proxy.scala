@@ -3,14 +3,12 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
-import li.cil.oc._
-import li.cil.oc.api.Driver
-import li.cil.oc.api.Network
-import li.cil.oc.server.driver
-import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.network
-import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.api
 import li.cil.oc.server.component.Computer
+import li.cil.oc.server.driver
+import li.cil.oc.server.network
+import li.cil.oc.{OpenComputers, Items, Blocks, Config}
+import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -19,8 +17,8 @@ class Proxy {
     LanguageRegistry.instance.loadLocalization(
       "/assets/opencomputers/lang/en_US.lang", "en_US", false)
 
-    Driver.registry = Some(driver.Registry)
-    Network.network = Some(network.Network)
+    api.Driver.registry = Some(driver.Registry)
+    api.Network.network = Some(network.Network)
   }
 
   def init(e: FMLInitializationEvent): Unit = {
@@ -29,11 +27,11 @@ class Proxy {
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
-    Driver.add(driver.GraphicsCard)
-    Driver.add(driver.Keyboard)
-    Driver.add(driver.Memory)
-    Driver.add(driver.Redstone)
-    Driver.add(driver.Disk)
+    api.Driver.add(driver.Disk)
+    api.Driver.add(driver.GraphicsCard)
+    api.Driver.add(driver.Keyboard)
+    api.Driver.add(driver.Memory)
+    api.Driver.add(driver.Redstone)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)
@@ -43,6 +41,6 @@ class Proxy {
     // Lock the driver registry to avoid drivers being added after computers
     // may have already started up. This makes sure the driver API won't change
     // over the course of a game, since that could lead to weird effects.
-    Registry.locked = true
+    driver.Registry.locked = true
   }
 }

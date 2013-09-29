@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
-import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -12,7 +12,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class Computer(val parent: Delegator) extends Delegate {
-  GameRegistry.registerTileEntity(classOf[TileEntityComputer], "oc.computer")
+  GameRegistry.registerTileEntity(classOf[tileentity.Computer], "oc.computer")
 
   val unlocalizedName = "Computer"
 
@@ -27,7 +27,7 @@ class Computer(val parent: Delegator) extends Delegate {
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     getIcon(localSide, world.getBlockTileEntity(x, y, z) match {
-      case computer: TileEntityComputer => computer.isOn
+      case computer: tileentity.Computer => computer.isOn
       case _ => false
     })
   }
@@ -35,7 +35,7 @@ class Computer(val parent: Delegator) extends Delegate {
   override def icon(side: ForgeDirection) = getIcon(side, isOn = false)
 
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
-    if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal)
+    Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
     Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon("opencomputers:computer_top")
@@ -61,14 +61,14 @@ class Computer(val parent: Delegator) extends Delegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = new TileEntityComputer(world.isRemote)
+  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Computer(world.isRemote))
 
   // ----------------------------------------------------------------------- //
   // Destruction / Interaction
   // ----------------------------------------------------------------------- //
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOff()
+    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOff()
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
@@ -76,7 +76,7 @@ class Computer(val parent: Delegator) extends Delegate {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       // Start the computer if it isn't already running and open the GUI.
-      world.getBlockTileEntity(x, y, z).asInstanceOf[TileEntityComputer].turnOn()
+      world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOn()
       player.openGui(OpenComputers, GuiType.Computer.id, world, x, y, z)
       true
     }

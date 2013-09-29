@@ -1,6 +1,6 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.common.tileentity.TileEntityRotatable
+import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemBlock
@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 /** Used to represent multiblocks when in item form. */
-class ItemBlockMulti(id: Int) extends ItemBlock(id) {
+class Item(id: Int) extends ItemBlock(id) {
   setHasSubtypes(true)
 
   override def getMetadata(itemDamage: Int) = itemDamage
@@ -27,7 +27,7 @@ class ItemBlockMulti(id: Int) extends ItemBlock(id) {
     if (super.placeBlockAt(item, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.
       world.getBlockTileEntity(x, y, z) match {
-        case rotatable: TileEntityRotatable =>
+        case rotatable: Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player).invertRotation()
       }
       true

@@ -1,11 +1,11 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
-class Computer(playerInventory: InventoryPlayer, computer: TileEntityComputer) extends Player(playerInventory, computer) {
+class Computer(playerInventory: InventoryPlayer, computer: tileentity.Computer) extends Player(playerInventory, computer) {
   // PSU
   addSlotToContainer(new Slot(computer, 0, 58, 17) {
     override def isItemValid(item: ItemStack) = {

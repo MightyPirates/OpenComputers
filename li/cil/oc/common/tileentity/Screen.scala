@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.client.gui.Screen
+import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component.ScreenEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 
-class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
-  var gui: Option[Screen] = None
+class Screen extends Rotatable with ScreenEnvironment {
+  var guiScreen: Option[gui.Screen] = None
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
@@ -35,7 +35,7 @@ class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
   override def onScreenResolutionChange(w: Int, h: Int) = {
     super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
-      gui.foreach(_.setSize(w, h))
+      guiScreen.foreach(_.setSize(w, h))
     }
     else {
       markAsChanged()
@@ -46,7 +46,7 @@ class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
   override def onScreenSet(col: Int, row: Int, s: String) = {
     super.onScreenSet(col, row, s)
     if (worldObj.isRemote) {
-      gui.foreach(_.updateText())
+      guiScreen.foreach(_.updateText())
     }
     else {
       markAsChanged()
@@ -57,7 +57,7 @@ class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
   override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
     super.onScreenFill(col, row, w, h, c)
     if (worldObj.isRemote) {
-      gui.foreach(_.updateText())
+      guiScreen.foreach(_.updateText())
     }
     else {
       markAsChanged()
@@ -68,7 +68,7 @@ class TileEntityScreen extends TileEntityRotatable with ScreenEnvironment {
   override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
     super.onScreenCopy(col, row, w, h, tx, ty)
     if (worldObj.isRemote) {
-      gui.foreach(_.updateText())
+      guiScreen.foreach(_.updateText())
     }
     else {
       markAsChanged()

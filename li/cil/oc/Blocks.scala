@@ -14,7 +14,7 @@ object Blocks {
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
     blockSimple = new Delegator(Config.blockId)
-    blockSpecial = new SpecialMulti(Config.blockSpecialId)
+    blockSpecial = new SpecialDelegator(Config.blockSpecialId)
 
     computer = new Computer(blockSimple)
     screen = new Screen(blockSimple)

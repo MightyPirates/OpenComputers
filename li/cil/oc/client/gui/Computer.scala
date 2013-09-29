@@ -1,7 +1,7 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.common.container
-import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
@@ -10,7 +10,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
-class Computer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer) extends GuiContainer(new container.Computer(inventory, tileEntity)) {
+class Computer(inventory: InventoryPlayer, val tileEntity: tileentity.Computer) extends GuiContainer(new container.Computer(inventory, tileEntity)) {
   private val background = new ResourceLocation("opencomputers", "textures/gui/computer.png")
 
   private val iconPsu = new ResourceLocation("opencomputers", "textures/gui/icon_psu.png")

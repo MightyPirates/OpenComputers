@@ -1,4 +1,4 @@
-package li.cil.oc.client.computer
+package li.cil.oc.client.component
 
 import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound

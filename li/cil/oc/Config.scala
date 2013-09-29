@@ -19,15 +19,19 @@ object Config {
     val config = new net.minecraftforge.common.Configuration(file)
 
     Config.blockId = config.getBlock("block", Config.blockId,
-      "The block ID used for simple blocks.").getInt(Config.blockId)
+      "The block ID used for simple blocks.").
+      getInt(Config.blockId)
     Config.blockSpecialId = config.getBlock("blockSpecial", Config.blockSpecialId,
-      "The block ID used for special blocks.").getInt(Config.blockSpecialId)
+      "The block ID used for special blocks.").
+      getInt(Config.blockSpecialId)
 
     Config.itemId = config.getItem("item", Config.itemId,
-      "The item ID used for all items.").getInt(Config.itemId)
+      "The item ID used for all non-stackable items.").
+      getInt(Config.itemId)
 
     Config.threads = config.get("config", "threads", Config.threads,
-      "The overall number of threads to use to driver computers.").getInt(Config.threads)
+      "The overall number of threads to use to driver computers.").
+      getInt(Config.threads)
 
     if (config.hasChanged)
       config.save()

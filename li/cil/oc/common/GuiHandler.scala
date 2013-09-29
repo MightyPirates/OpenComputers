@@ -2,8 +2,8 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
 import li.cil.oc.client.gui
-import li.cil.oc.common.tileentity.TileEntityComputer
-import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.tileentity.Computer
+import li.cil.oc.common.tileentity.Screen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -15,16 +15,16 @@ object GuiType extends Enumeration {
 object GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: TileEntityComputer =>
+      case tileEntity: Computer =>
         new container.Computer(player.inventory, tileEntity)
       case _ => null
     }
 
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: TileEntityComputer if id == GuiType.Computer.id =>
+      case tileEntity: Computer if id == GuiType.Computer.id =>
         new gui.Computer(player.inventory, tileEntity)
-      case tileEntity: TileEntityScreen if id == GuiType.Screen.id =>
+      case tileEntity: Screen if id == GuiType.Screen.id =>
         new gui.Screen(tileEntity)
       case _ => null
     }

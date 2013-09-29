@@ -49,8 +49,8 @@ class Delegator(id: Int) extends Item(id) {
     subItem(damage) match {
       case None => super.getIconFromDamage(damage)
       case Some(subItem) => subItem.icon match {
-        case null => super.getIconFromDamage(damage)
-        case icon => icon
+        case None => super.getIconFromDamage(damage)
+        case Some(icon) => icon
       }
     }
 

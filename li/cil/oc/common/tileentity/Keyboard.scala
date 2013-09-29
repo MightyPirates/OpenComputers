@@ -5,7 +5,7 @@ import li.cil.oc.api.network.{Visibility, Node, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-class TileEntityKeyboard extends TileEntityRotatable with Node {
+class Keyboard extends Rotatable with Node {
   override def name = "keyboard"
 
   override def visibility = Visibility.Network

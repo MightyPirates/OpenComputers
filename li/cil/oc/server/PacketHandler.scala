@@ -4,9 +4,9 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.TileEntityComputer
-import li.cil.oc.common.tileentity.TileEntityRotatable
-import li.cil.oc.common.tileentity.TileEntityScreen
+import li.cil.oc.common.tileentity.Computer
+import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraftforge.common.DimensionManager
 
@@ -26,7 +26,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityScreen]() match {
+    p.readTileEntity[Screen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
@@ -39,7 +39,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityComputer]() match {
+    p.readTileEntity[Computer]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.ComputerStateResponse)
@@ -52,7 +52,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[TileEntityRotatable]() match {
+    p.readTileEntity[Rotatable]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.RotatableStateResponse)
