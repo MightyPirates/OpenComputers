@@ -3,7 +3,8 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
-import li.cil.oc.api.network.{Node, API}
+import li.cil.oc.api.Network
+import li.cil.oc.api.network.Node
 import li.cil.oc.common.tileentity.TileEntityRotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -102,7 +103,7 @@ class Multi(id: Int) extends Block(id, Material.iron) {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case node: Node => node.network.remove(node)
+          case node: Node => node.network.foreach(_.remove(node))
         }
         subBlock.breakBlock(world, x, y, z, blockId, metadata)
       }
@@ -266,7 +267,7 @@ class Multi(id: Int) extends Block(id, Material.iron) {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case _: Node => API.joinOrCreateNetwork(world, x, y, z)
+          case _: Node => Network.joinOrCreateNetwork(world, x, y, z)
         }
         subBlock.onBlockAdded(world, x, y, z)
       }

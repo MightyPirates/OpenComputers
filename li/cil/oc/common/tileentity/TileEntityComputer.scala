@@ -96,11 +96,10 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with com
     }
     if (isRunning != computer.isRunning) {
       isRunning = computer.isRunning
-      if (network != null)
-        if (isRunning)
-          network.sendToAll(this, "computer.started")
-        else
-          network.sendToAll(this, "computer.stopped")
+      if (isRunning)
+        network.foreach(_.sendToAll(this, "computer.started"))
+      else
+        network.foreach(_.sendToAll(this, "computer.stopped"))
       ServerPacketSender.sendComputerState(this, isRunning)
     }
   }

@@ -2,17 +2,57 @@
   The Disk API, provided by disk components.
 ]]
 
-mount = function() end
-umount = function() end
+driver.disk = {}
 
-listdir = function(dirname) end
-remove = _G.os.remove
-rename = _G.os.rename
-tmpname = function() end
+-- We track mounted disks in this table.
+local fstab = {}
 
-open = function(filename, mode) end
-read = function() end
-write = function(value) end
-flush = function(file) end
-close = function(file) end
-type = function(file) end
+function driver.disk.mount()
+end
+
+function driver.disk.umount()
+end
+
+function driver.disk.listdir(dirname)
+end
+
+function driver.disk.remove(path)
+end
+
+function driver.disk.rename(path)
+end
+
+function driver.disk.tmpname()
+end
+
+function driver.disk.open(filename, mode)
+end
+
+function driver.disk.read()
+end
+
+function driver.disk.write(value)
+end
+
+function driver.disk.flush(file)
+end
+
+function driver.disk.close(file)
+end
+
+function driver.disk.type(file)
+end
+
+-- Aliases for vanilla Lua.
+os.remove = driver.disk.remove
+os.rename = driver.disk.rename
+os.tmpname = driver.disk.tmpname
+
+io = {}
+io.flush = function() end -- does nothing
+-- TODO io.lines = function(filename) end
+io.open = driver.disk.open
+-- TODO io.popen = function(prog, mode) end
+io.read = driver.disk.read
+-- TODO io.tmpfile = function() end
+io.type = driver.disk.type

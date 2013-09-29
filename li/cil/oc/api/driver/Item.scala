@@ -2,6 +2,7 @@ package li.cil.oc.api.driver
 
 import li.cil.oc.api.network.Node
 import net.minecraft.item.ItemStack
+import li.cil.oc.api.Driver
 
 /**
  * Interface for item component drivers.
@@ -13,9 +14,9 @@ import net.minecraft.item.ItemStack
  * When trying to add an item to a computer the list of registered drivers is
  * queried using the drivers' `worksWith` functions. The first driver that
  * replies positively and whose check against the slot type is successful, i.e.
- * for which the `componentType` matches the slot, will be used as the
- * component's driver and the component will be added. If no driver is found
- * the item will be rejected and cannot be installed.
+ * for which the `slot` matches the slot it should be inserted into, will be
+ * used as the component's driver and the component will be added. If no driver
+ * is found the item will be rejected and cannot be installed.
  * <p/>
  * Note that it is possible to write one driver that supports as many different
  * items as you wish. I'd recommend writing one per device (type), though, to

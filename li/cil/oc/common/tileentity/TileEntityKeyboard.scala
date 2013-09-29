@@ -15,13 +15,13 @@ class TileEntityKeyboard extends TileEntityRotatable with Node {
     message.data match {
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))
-          network.sendToAll(this, "computer.signal", "key_down", char, code)
+          network.foreach(_.sendToAll(this, "computer.signal", "key_down", char, code))
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyUp" =>
         if (isUseableByPlayer(p))
-          network.sendToAll(this, "computer.signal", "key_up", char, code)
+          network.foreach(_.sendToAll(this, "computer.signal", "key_up", char, code))
       case Array(p: Player, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p))
-          network.sendToAll(this, "computer.signal", "clipboard", value)
+          network.foreach(_.sendToAll(this, "computer.signal", "clipboard", value))
       case _ => // Ignore.
     }
     None

@@ -2,13 +2,14 @@ package li.cil.oc.api.driver
 
 import li.cil.oc.api.network.Node
 import net.minecraft.world.World
+import li.cil.oc.api.Driver
 
 /**
  * Interface for block component drivers.
  * <p/>
  * This driver type is used for components that are blocks, i.e. that can be
  * placed in the world, but cannot be modified to or don't want to have their
- * `TileEntities` implement `INetworkNode`.
+ * `TileEntities` implement `network.Node`.
  * <p/>
  * A block driver is used by proxy blocks to check its neighbors and whether
  * those neighbors should be treated as components or not.

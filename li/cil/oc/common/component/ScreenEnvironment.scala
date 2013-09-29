@@ -52,9 +52,8 @@ trait ScreenEnvironment extends Node {
 
   }
 
-  def onScreenResolutionChange(w: Int, h: Int) = if (network != null) {
-    network.sendToAll(this, "computer.signal", "screen_resized", w, h)
-  }
+  def onScreenResolutionChange(w: Int, h: Int) =
+    network.foreach(_.sendToAll(this, "computer.signal", "screen_resized", w, h))
 
   def onScreenSet(col: Int, row: Int, s: String) {}
 

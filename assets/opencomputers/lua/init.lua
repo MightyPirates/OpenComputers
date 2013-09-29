@@ -235,9 +235,7 @@ end)
 local function bindIfPossible()
   if gpuId > 0 and screenId > 0 then
     if not boundGpu then
-      local function gpu() return component.address(gpuId) end
-      local function screen() return component.address(screenId) end
-      boundGpu = driver.gpu.bind(gpu, screen)
+      boundGpu = driver.gpu.bind(gpuId, screenId)
       screenWidth, screenHeight = boundGpu.getResolution()
       event.fire("term_available")
     end
@@ -340,12 +338,12 @@ end
 write = function(...)
   local args = {...}
   local first = true
-  for _, value in ipairs(args) do
+  for i = 1, #args do
     if not first then
       term.write(", ")
     end
     first = false
-    term.write(value, true)
+    term.write(args[i], true)
   end
 end
 

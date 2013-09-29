@@ -5,8 +5,10 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
+import li.cil.oc.api.network.Node
 import li.cil.oc.common.component
 import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.server.driver
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
@@ -47,7 +49,7 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
   private var state = Computer.State.Stopped
 
   /** The internal Lua state. Only set while the computer is running. */
-  private[computer] var lua: LuaState = null
+  private var lua: LuaState = null
 
   /**
    * The base memory consumption of the kernel. Used to permit a fixed base
@@ -151,7 +153,7 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       signal("")
 
       // Inject component added signals for all nodes in the network.
-      owner.network.nodes(owner).foreach(node => signal("component_added", node.address))
+      owner.network.foreach(_.nodes(owner).foreach(node => signal("component_added", node.address)))
 
       // All green, computer started successfully.
       true
@@ -220,27 +222,27 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
           // to the coroutine.yield() that triggered the call.
           lua.call(0, 1)
           lua.checkType(2, LuaType.TABLE)
+          // Nothing should have been able to trigger a future.
+          assert(future.isEmpty)
+          // If the call lead to stop() being called we stop right now,
+          // otherwise we return the result to our executor.
+          if (state == Computer.State.Stopping)
+            close()
+          else
+            execute(Computer.State.SynchronizedReturn)
         } catch {
           case _: LuaMemoryAllocationException =>
             // This can happen if we run out of memory while converting a Java
             // exception to a string (which we have to do to avoid keeping
             // userdata on the stack, which cannot be persisted).
             OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-            owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
+            owner.network.foreach(_.sendToAll(owner, "computer.crashed", "not enough memory"))
             close()
           case e: Throwable => {
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
             close()
           }
         }
-        // Nothing should have been able to trigger a future.
-        assert(future.isEmpty)
-        // If the call lead to stop() being called we stop right now,
-        // otherwise we return the result to our executor.
-        if (state == Computer.State.Stopping)
-          close()
-        else
-          execute(Computer.State.SynchronizedReturn)
       }
       case _ => // Nothing special to do, just avoid match errors.
     })
@@ -256,7 +258,6 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
 
     if (state != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
-      val memory = lua.getTotalMemory
       lua.setTotalMemory(Integer.MAX_VALUE)
       try {
         // Try unpersisting Lua, because that's what all of the rest depends
@@ -295,11 +296,12 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
             }.toArray)
         }).asJava)
 
+        kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
 
         // Clean up some after we're done and limit memory again.
         lua.gc(LuaState.GcAction.COLLECT, 0)
-        lua.setTotalMemory(memory)
+        lua.setTotalMemory(kernelMemory + 16 * 1024)
 
         // Start running our worker thread if we have to (for cases where it
         // would not be re-started automatically in update()). We start with a
@@ -363,6 +365,7 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       }
       nbt.setTag("signals", list)
 
+      nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
     }
     catch {
@@ -523,7 +526,8 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       }
 
       lua.pushJavaFunction(ScalaFunction(lua =>
-        owner.network.sendToAddress(owner, lua.checkInteger(1), lua.checkString(2), parseArguments(lua, 3): _*) match {
+        owner.network.fold(None: Option[Array[Any]])(_.
+          sendToAddress(owner, lua.checkInteger(1), lua.checkString(2), parseArguments(lua, 3): _*)) match {
           case Some(Array(results@_*)) =>
             results.foreach(pushResult(lua, _))
             results.length
@@ -532,18 +536,43 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       lua.setGlobal("sendToNode")
 
       lua.pushJavaFunction(ScalaFunction(lua => {
-        owner.network.sendToAll(owner, lua.checkString(1), parseArguments(lua, 2): _*)
+        owner.network.foreach(_.sendToAll(owner, lua.checkString(1), parseArguments(lua, 2): _*))
         0
       }))
       lua.setGlobal("sendToAll")
 
       lua.pushJavaFunction(ScalaFunction(lua => {
-        owner.network.node(lua.checkInteger(1)) match {
+        owner.network.fold(None: Option[Node])(_.node(lua.checkInteger(1))) match {
           case None => 0
           case Some(node) => lua.pushString(node.name); 1
         }
       }))
       lua.setGlobal("nodeName")
+
+      // Provide driver API code.
+      lua.pushJavaFunction(ScalaFunction(lua => {
+        val apis = driver.Registry.apis
+        lua.newTable(apis.length, 0)
+        for ((name, code) <- apis) {
+          lua.pushString(Source.fromInputStream(code).mkString)
+          code.close()
+          lua.setField(-2, name)
+        }
+        1
+      }))
+      lua.setGlobal("drivers")
+
+      // Loads the init script. This is loaded and then run by the kernel as a
+      // separate coroutine to sandbox it and enforce timeouts and sandbox user
+      // scripts.
+      lua.pushJavaFunction(new JavaFunction() {
+        def invoke(lua: LuaState): Int = {
+          lua.pushString(Source.fromInputStream(classOf[Computer].
+            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
+          1
+        }
+      })
+      lua.setGlobal("init")
 
       // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
@@ -554,30 +583,15 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
         "/assets/opencomputers/lua/boot.lua"), "=boot", "t")
       lua.call(0, 0)
 
-      // Install all driver callbacks into the state. This is done once in
-      // the beginning so that we can take the memory the callbacks use into
-      // account when computing the kernel's memory use.
-      Drivers.installOn(this)
-
-      // Loads the init script. This is run by the kernel as a separate
-      // coroutine to enforce timeouts and sandbox user scripts.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushString(Source.fromInputStream(classOf[Computer].
-            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
-          1
-        }
-      })
-      lua.setGlobal("init")
-
-      // Load the basic kernel which takes care of handling signals by managing
-      // the list of active processes. Whatever functionality we can we
-      // implement in Lua, so we also implement most of the kernel's
-      // functionality in Lua. Why? Because like this it's automatically
-      // persisted for us without having to write more additional NBT stuff.
+      // Load the basic kernel which sets up the sandbox, loads the init script
+      // and then runs it in a coroutine with a debug hook checking for
+      // timeouts.
       lua.load(classOf[Computer].getResourceAsStream(
         "/assets/opencomputers/lua/kernel.lua"), "=kernel", "t")
-      lua.newThread() // Leave it as the first value on the stack.
+      lua.newThread() // Left as the first value on the stack.
+      // Run to the first yield in kernel, to get a good idea of how much
+      // memory all the basic functionality we provide needs.
+      lua.pop(lua.resume(1, 0))
 
       // Run the garbage collector to get rid of stuff left behind after the
       // initialization phase to get a good estimate of the base memory usage
@@ -586,7 +600,7 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       // underlying system (which may change across releases).
       lua.gc(LuaState.GcAction.COLLECT, 0)
       kernelMemory = lua.getTotalMemory - lua.getFreeMemory
-      lua.setTotalMemory(kernelMemory + 64 * 1024)
+      lua.setTotalMemory(kernelMemory + 16 * 1024)
 
       // Clear any left-over signals from a previous run.
       signals.clear()
@@ -731,6 +745,8 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
           OpenComputers.log.warning("Kernel stopped unexpectedly.")
         }
         else {
+          // This can trigger another out of memory error if the original
+          // error was an out of memory error.
           OpenComputers.log.warning("Computer crashed.\n" + lua.toString(3)) // TODO remove this when we have a component that can display crash messages
           // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
           //owner.network.sendToAll(owner, "computer.crashed", lua.toString(3))
@@ -742,12 +758,16 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         close()
-      case e: LuaMemoryAllocationException => {
+      case e: LuaMemoryAllocationException =>
         OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
         // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
         //owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
         close()
-      }
+      case e: java.lang.Error if e.getMessage == "not enough memory" =>
+        OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
+        // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
+        //owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
+        close()
     }
 
     // State has inevitably changed, mark as changed to save again.

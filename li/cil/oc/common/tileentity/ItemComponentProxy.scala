@@ -1,7 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.Node
-import li.cil.oc.server.computer.Drivers
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -9,6 +8,7 @@ import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.common.component.Computer
+import li.cil.oc.server.driver.Registry
 
 trait ItemComponentProxy extends IInventory with Node {
   protected val inventory = new Array[ItemStack](8)
@@ -52,29 +52,29 @@ trait ItemComponentProxy extends IInventory with Node {
   // NetworkNode
   // ----------------------------------------------------------------------- //
 
-  override protected def onConnect() = {
+  override protected def onConnect() {
     super.onConnect()
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
         case None => // Ignore.
         case Some(node) =>
-          network.connect(this, node)
+          network.foreach(_.connect(this, node))
       }
     }
   }
 
-  override protected def onDisconnect() = {
+  override protected def onDisconnect() {
     super.onDisconnect()
     for (slot <- 0 until inventory.length) {
       itemNode(slot) match {
         case None => // Ignore.
         case Some(node) =>
-          node.network.remove(node)
+          node.network.foreach(_.remove(node))
       }
     }
   }
 
-  private def itemNode(slot: Int) = Drivers.driverFor(inventory(slot)) match {
+  private def itemNode(slot: Int) = Registry.driverFor(inventory(slot)) match {
     case None => None
     case Some(driver) => driver.node(inventory(slot))
   }
@@ -115,7 +115,7 @@ trait ItemComponentProxy extends IInventory with Node {
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
       case Some(node) =>
-        node.network.remove(node)
+        node.network.foreach(_.remove(node))
     }
 
     inventory(slot) = item
@@ -125,11 +125,11 @@ trait ItemComponentProxy extends IInventory with Node {
     if (!world.isRemote) itemNode(slot) match {
       case None => // Nothing to do.
       case Some(node) =>
-        network.connect(this, node)
+        network.foreach(_.connect(this, node))
     }
   }
 
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Drivers.driverFor(item)) match {
+  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
     case (_, None) => false // Invalid item.
     case (0, Some(driver)) => driver.slot(item) == Slot.PSU
     case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.PCI

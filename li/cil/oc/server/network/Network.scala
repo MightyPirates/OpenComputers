@@ -7,7 +7,7 @@ import _root_.net.minecraftforge.common.ForgeDirection
 import _root_.net.minecraftforge.event.ForgeSubscribe
 import _root_.net.minecraftforge.event.world.ChunkEvent
 import java.util.logging.Level
-import li.cil.oc.OpenComputers
+import li.cil.oc.{api, OpenComputers}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.{network => net}
 import scala.beans.BeanProperty
@@ -26,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
  * It keeps the list of nodes as a lookup table for fast id->node resolving.
  * Note that it is possible for multiple nodes to have the same ID, though.
  */
-class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends net.Network {
+class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.Node]]) extends api.Network {
   def this(node: net.Node) = {
     this(mutable.Map({
       if (node.address < 1)
@@ -36,7 +36,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     send(new Network.ConnectMessage(node), List(node))
   }
 
-  nodes.foreach(_.network = this)
+  nodes.foreach(_.network = Some(this))
 
   def connect(nodeA: net.Node, nodeB: net.Node) = {
     val containsA = nodeMap.get(nodeA.address).exists(_.exists(_.data == nodeA))
@@ -67,7 +67,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
 
   private def add(oldNode: Network.Node, addedNode: net.Node) = {
     // Check if the other node is new or if we have to merge networks.
-    val (newNode, sendQueue) = if (addedNode.network == null) {
+    val (newNode, sendQueue) = if (addedNode.network.isEmpty) {
       val newNode = new Network.Node(addedNode)
       if (nodeMap.contains(addedNode.address) || addedNode.address < 1)
         addedNode.address = findId()
@@ -84,14 +84,14 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
         nodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), List(addedNode))))
       }
       nodeMap.getOrElseUpdate(address, new ArrayBuffer[Network.Node]) += newNode
-      addedNode.network = this
+      addedNode.network = Some(this)
       (newNode, sendQueue)
     }
     else {
       // Queue any messages to avoid side effects from receivers.
       val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[net.Node])]
       val thisNodes = nodes.toBuffer
-      val otherNetwork = addedNode.network.asInstanceOf[Network]
+      val otherNetwork = addedNode.network.get.asInstanceOf[Network]
       val otherNodes = otherNetwork.nodes.toBuffer
       otherNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), thisNodes)))
       thisNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), otherNodes)))
@@ -114,7 +114,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
       // Add nodes from other network into this network, including invalid nodes.
       otherNetwork.nodeMap.values.flatten.foreach(node => {
         nodeMap.getOrElseUpdate(node.data.address, new ArrayBuffer[Network.Node]) += node
-        node.data.network = this
+        node.data.network = Some(this)
       })
 
       // Return the node object of the newly connected node for the next step.
@@ -152,7 +152,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     case Some(list) => list.find(_.data == node) match {
       case None => false
       case Some(entry) => {
-        node.network = null
+        node.network = None
 
         // Removing a node may result in a net split, leaving us with multiple
         // networks. The remove function returns all resulting networks, one
@@ -306,7 +306,7 @@ object Network {
     tileEntities.
       filter(_.isInstanceOf[net.Node]).
       map(_.asInstanceOf[net.Node]).
-      foreach(t => t.network.remove(t))
+      foreach(t => t.network.foreach(_.remove(t)))
   }
 
   private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
@@ -321,12 +321,12 @@ object Network {
           getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
             case None => // Ignore.
             case Some(neighborNode) =>
-              if (neighborNode != null && neighborNode.network != null) {
-                neighborNode.network.connect(neighborNode, node)
+              if (neighborNode.network.isDefined) {
+                neighborNode.network.foreach(_.connect(neighborNode, node))
               }
           }
         }
-        if (node.network == null) new Network(node)
+        if (node.network.isEmpty) new Network(node)
       }
     }
 

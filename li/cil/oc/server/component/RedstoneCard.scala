@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.Node
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
@@ -21,7 +22,9 @@ class RedstoneCard(nbt: NBTTagCompound) extends ItemComponent(nbt) {
     }
   }
 
-  private def input(target: Int, side: Int) = if (side >= 0 && side < 6) network.node(target) match {
+  private def tryGet(target: Int) = network.fold(None: Option[Node])(_.node(target))
+
+  private def input(target: Int, side: Int) = if (side >= 0 && side < 6) tryGet(target) match {
     case Some(r: RedstoneEnabled) => Some(Array(r.input(ForgeDirection.getOrientation(side)).asInstanceOf[Any]))
     case Some(t: TileEntity) =>
       val face = ForgeDirection.getOrientation(side.toInt)
@@ -31,7 +34,7 @@ class RedstoneCard(nbt: NBTTagCompound) extends ItemComponent(nbt) {
     case _ => None // Can't work with this node.
   } else None
 
-  private def output(target: Int, side: Int) = if (side >= 0 && side < 6) network.node(target) match {
+  private def output(target: Int, side: Int) = if (side >= 0 && side < 6) tryGet(target) match {
     case Some(r: RedstoneEnabled) => Some(Array(r.output(ForgeDirection.getOrientation(side)).asInstanceOf[Any]))
     case Some(t: TileEntity) =>
       val power = t.worldObj.isBlockProvidingPowerTo(t.xCoord, t.yCoord, t.zCoord, side.toInt)
@@ -39,7 +42,7 @@ class RedstoneCard(nbt: NBTTagCompound) extends ItemComponent(nbt) {
     case _ => None // Can't work with this node.
   } else None
 
-  private def output(target: Int, side: Int, value: Int) = if (side >= 0 && side < 6) network.node(target) match {
+  private def output(target: Int, side: Int, value: Int) = if (side >= 0 && side < 6) tryGet(target) match {
     case Some(r: RedstoneEnabled) => r.output(ForgeDirection.getOrientation(side)) = value
     case _ => // Can't work with this node.
   }

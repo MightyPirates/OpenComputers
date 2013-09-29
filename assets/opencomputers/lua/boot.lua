@@ -112,8 +112,3 @@ end
 sendToNode = wrap(sendToNode)
 sendToAll = wrap(sendToAll)
 nodeName = wrap(nodeName)
-
-driver = {}
-function driver.componentType(id)
-  return nodeName(id)
-end

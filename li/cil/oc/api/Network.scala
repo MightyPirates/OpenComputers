@@ -1,4 +1,7 @@
-package li.cil.oc.api.network
+package li.cil.oc.api
+
+import li.cil.oc.api.network.Node
+import net.minecraft.world.IBlockAccess
 
 /**
  * Interface for interacting with component networks.
@@ -12,15 +15,15 @@ package li.cil.oc.api.network
  * neighbors to see if a network already exists. If so, it should join that
  * network. If multiple different networks are adjacent it should join one and
  * then merge it with the other(s). If no networks exist, it should create a new
- * one. All this logic is provided by `NetworkAPI#joinOrCreateNetwork`.
+ * one. All this logic is provided by `Network.joinOrCreateNetwork`.
  * <p/>
  * Note that for network nodes implemented in <tt>TileEntities</tt> adding and
  * removal is automatically provided on chunk load and unload. When a block is
  * placed or broken you will have to implement this logic yourself (i.e. call
- * <tt>NetworkAPI.joinOrCreateNetwork</tt> in <tt>onBlockAdded</tt> and
- * <tt>getNetwork.remove</tt> in <tt>breakBlock</tt>.
+ * <tt>Network.joinOrCreateNetwork</tt> in <tt>onBlockAdded</tt> and
+ * <tt>Network.remove</tt> in <tt>breakBlock</tt>.
  * <p/>
- * All other kinds of nodes have to be managed manually. See `INetworkNode`.
+ * All other kinds of nodes have to be managed manually. See `Node`.
  * <p/>
  * There are a couple of system messages to be aware of. These are all sent by
  * the network manager itself:
@@ -38,7 +41,7 @@ package li.cil.oc.api.network
  * instances of your own network implementation; this will lead to
  * incompatibilities with the built-in network implementation (which can only
  * merge with other networks of its own type). Always use the methods provided
- * in <tt>NetworkAPI</tt> to create and join networks.
+ * in <tt>Network</tt> to create and join networks.
  */
 trait Network {
   /**
@@ -59,10 +62,6 @@ trait Network {
    * @return true if a new connection between the two nodes was added; false if
    *         the connection already existed.
    * @throws IllegalArgumentException if neither node is in this network.
-   * @throws IllegalStateException    if this is called while the network is
-   *                                  already updating, for example from
-   *                                  `INetworkNode#receive` (which may be
-   *                                  called during the update).
    */
   def connect(nodeA: Node, nodeB: Node): Boolean
 
@@ -215,4 +214,20 @@ trait Network {
    * @param data   the message to send.
    */
   def sendToAll(source: Node, name: String, data: Any*)
+}
+
+object Network {
+  /** Initialized in pre-init. */
+  private[oc] var network: Option[{def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int)}] = None
+
+  /**
+   * Tries to add a tile entity network node at the specified coordinates to adjacent networks.
+   *
+   * @param world the world the tile entity lives in.
+   * @param x     the X coordinate of the tile entity.
+   * @param y     the Y coordinate of the tile entity.
+   * @param z     the Z coordinate of the tile entity.
+   */
+  def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    network.foreach(_.joinOrCreateNetwork(world, x, y, z))
 }

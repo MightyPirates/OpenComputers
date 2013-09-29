@@ -5,7 +5,7 @@ import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
-import java.util.{Locale, Calendar}
+import java.util.{Formatter, Locale, Calendar}
 import scala.util.Random
 
 case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
@@ -217,13 +217,13 @@ private[computer] object LuaStateFactory {
       }))
       state.setField(-2, "char")
 
-      // TODO find
+      // TODO find (probably not necessary?)
 
-      // TODO format
+      // TODO format (probably not necessary?)
 
-      // TODO gmatch
+      // TODO gmatch (probably not necessary?)
 
-      // TODO gsub
+      // TODO gsub (probably not necessary?)
 
       state.pushJavaFunction(ScalaFunction(lua => {
         lua.pushInteger(lua.checkString(1).length)
@@ -237,7 +237,7 @@ private[computer] object LuaStateFactory {
       }))
       state.setField(-2, "lower")
 
-      // TODO match
+      // TODO match (probably not necessary?)
 
       state.pushJavaFunction(ScalaFunction(lua => {
         lua.pushString(lua.checkString(1).reverse)

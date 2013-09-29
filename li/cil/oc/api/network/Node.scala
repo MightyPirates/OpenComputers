@@ -1,6 +1,7 @@
 package li.cil.oc.api.network
 
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.api.Network
 
 /**
  * A single node in a `INetwork`.
@@ -83,7 +84,7 @@ trait Node {
    *
    * @return the network the node is in.
    */
-  var network: Network = null
+  var network: Option[Network] = None
 
   /**
    * Makes the node handle a message.

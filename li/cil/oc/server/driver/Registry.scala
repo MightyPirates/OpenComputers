@@ -1,13 +1,10 @@
-package li.cil.oc.server.computer
+package li.cil.oc.server.driver
 
-import com.naef.jnlua.LuaRuntimeException
-import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.{Block, Item}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import scala.Some
 import scala.collection.mutable.ArrayBuffer
-import scala.compat.Platform._
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -23,7 +20,7 @@ import scala.compat.Platform._
  * usually require a component of the type the driver wraps to be installed in
  * the computer, but may also provide context-free functions.
  */
-private[oc] object Drivers {
+private[oc] object Registry {
   /** The list of registered block drivers. */
   private val blocks = ArrayBuffer.empty[Block]
 
@@ -90,30 +87,11 @@ private[oc] object Drivers {
     else None
 
   /**
-   * Used by the computer to initialize its Lua state, injecting the APIs of
-   * all known drivers.
+   * Gets a list of all driver APIs.
+   *
+   * @return the apis of all known drivers.
    */
-  private[computer] def installOn(computer: Computer) =
-    (blocks ++ items).foreach(driver => {
-      driver.api match {
-        case None => // Nothing to do.
-        case Some(code) =>
-          val name = driver.getClass.getName
-          try {
-            computer.lua.load(code, "=" + name, "t") // ... func
-            code.close()
-            computer.lua.call(0, 0) // ...
-          }
-          catch {
-            case e: LuaRuntimeException =>
-              OpenComputers.log.warning(String.format(
-                "Initialization code of driver %s threw an error: %s",
-                name, e.getLuaStackTrace.mkString("", EOL, EOL)))
-            case e: Throwable =>
-              OpenComputers.log.warning(String.format(
-                "Initialization code of driver %s threw an error: %s",
-                name, e.getStackTraceString))
-          }
-      }
-    })
+  def apis = (blocks ++ items) map (driver => (driver.getClass.getSimpleName, driver.api)) collect {
+    case (name, Some(code)) => (name, code)
+  }
 }
