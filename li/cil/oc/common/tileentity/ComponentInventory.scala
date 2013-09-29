@@ -3,12 +3,14 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.component
+import li.cil.oc.common.item
 import li.cil.oc.server.driver.Registry
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
+import li.cil.oc.Items
 
 trait ComponentInventory extends IInventory with Node {
   protected val inventory = new Array[ItemStack](8)
@@ -16,6 +18,14 @@ trait ComponentInventory extends IInventory with Node {
   protected val computer: component.Computer
 
   def world: World
+
+  def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (Registry.driverFor(stack) match {
+    case Some(driver) if driver.slot(stack) == Slot.RAM => Items.multi.subItem(stack) match {
+      case Some(ram: item.Memory) => ram.kiloBytes * 1024
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
@@ -127,6 +137,8 @@ trait ComponentInventory extends IInventory with Node {
       case Some(node) =>
         network.foreach(_.connect(this, node))
     }
+
+    computer.recomputeMemory()
   }
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {

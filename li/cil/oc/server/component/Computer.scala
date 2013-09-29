@@ -133,6 +133,10 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
     }.toArray))
   })
 
+  def recomputeMemory() = if (lua != null) {
+    lua.setTotalMemory(kernelMemory + Config.baseMemory + owner.installedMemory)
+  }
+
   // ----------------------------------------------------------------------- //
   // IComputer
   // ----------------------------------------------------------------------- //
@@ -303,7 +307,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
         // Clean up some after we're done and limit memory again.
         lua.gc(LuaState.GcAction.COLLECT, 0)
-        lua.setTotalMemory(kernelMemory + 16 * 1024)
+        recomputeMemory()
 
         // Start running our worker thread if we have to (for cases where it
         // would not be re-started automatically in update()). We start with a
@@ -312,7 +316,6 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         state match {
           case Computer.State.Yielded | Computer.State.SynchronizedReturn =>
             future = Some(Computer.Executor.pool.schedule(this, 500, TimeUnit.MILLISECONDS))
-          case Computer.State.Sleeping => sleepUntil = Long.MinValue
           case _ => // Will be started by update() if necessary.
         }
       } catch {
@@ -334,7 +337,11 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
 
-    nbt.setInteger("state", state.id)
+    nbt.setInteger("state", (state match {
+      case Computer.State.Paused => Computer.State.Yielded
+      case Computer.State.SynchronizedReturnPaused => Computer.State.SynchronizedReturn
+      case other => other
+    }).id)
     if (state == Computer.State.Stopped) {
       return
     }
@@ -346,7 +353,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       // Try persisting Lua, because that's what all of the rest depends on.
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
-      if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn) {
+      if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn || state == Computer.State.SynchronizedReturnPaused) {
         assert(if (state == Computer.State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
         nbt.setByteArray("stack", persist(2))
       }
@@ -611,7 +618,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
       kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 2048
-      lua.setTotalMemory(kernelMemory + 16 * 1024)
+      recomputeMemory()
 
       // Clear any left-over signals from a previous run.
       signals.clear()
@@ -743,6 +750,9 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
           else
             execute(Computer.State.Yielded)
         }
+
+        // State has inevitably changed, mark as changed to save again.
+        owner.markAsChanged()
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
       else {
@@ -780,9 +790,6 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         //owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
         close()
     }
-
-    // State has inevitably changed, mark as changed to save again.
-    owner.markAsChanged()
   }
 }
 
@@ -808,6 +815,8 @@ object Computer {
     override def visibility = Visibility.Network
 
     def world: World
+
+    def installedMemory: Int
 
     /**
      * Called when the computer state changed, so it should be saved again.

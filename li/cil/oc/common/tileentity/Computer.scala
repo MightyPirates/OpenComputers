@@ -89,7 +89,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     nbt.setCompoundTag("computer", computerNbt)
   }
 
-  override def updateEntity() = {
+  override def updateEntity() = if (!worldObj.isRemote) {
     computer.update()
     if (hasChanged.get) {
       worldObj.updateTileEntityChunkAndDoNothing(xCoord, yCoord, zCoord, this)

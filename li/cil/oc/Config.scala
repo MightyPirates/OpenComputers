@@ -12,26 +12,30 @@ object Config {
   var itemId = 4600
 
   var threads = 4
+  var baseMemory = 0
 
   var blockRenderId = 0
 
   def load(file: File) = {
     val config = new net.minecraftforge.common.Configuration(file)
 
-    Config.blockId = config.getBlock("block", Config.blockId,
+    blockId = config.getBlock("block", blockId,
       "The block ID used for simple blocks.").
-      getInt(Config.blockId)
-    Config.blockSpecialId = config.getBlock("blockSpecial", Config.blockSpecialId,
+      getInt(blockId)
+    blockSpecialId = config.getBlock("blockSpecial", blockSpecialId,
       "The block ID used for special blocks.").
-      getInt(Config.blockSpecialId)
+      getInt(blockSpecialId)
 
-    Config.itemId = config.getItem("item", Config.itemId,
+    itemId = config.getItem("item", itemId,
       "The item ID used for all non-stackable items.").
-      getInt(Config.itemId)
+      getInt(itemId)
 
-    Config.threads = config.get("config", "threads", Config.threads,
+    threads = config.get("config", "threads", threads,
       "The overall number of threads to use to driver computers.").
-      getInt(Config.threads)
+      getInt(threads)
+    baseMemory = config.get("config", "baseMemory", baseMemory,
+      "The base amount of memory made available in computers even if they have no RAM installed.").
+      getInt(baseMemory)
 
     if (config.hasChanged)
       config.save()

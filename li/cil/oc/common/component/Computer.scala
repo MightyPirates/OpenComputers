@@ -9,24 +9,24 @@ import net.minecraft.nbt.NBTTagCompound
  * the client, which does nothing at all.
  */
 trait Computer {
-  /** Starts asynchronous execution of this computer if it isn't running. */
+  /** Starts asynchronous execution of this computer. */
   def start(): Boolean
 
-  /** Stops a computer, possibly asynchronously, possibly blocking. */
+  /** Stops a computer, possibly asynchronously. */
   def stop(): Boolean
 
-  /** Whether the computer is currently running. */
   def isRunning: Boolean
 
   /**
-   * Passively drives the computer and performs driver calls. If this is not
-   * called regularly the computer will pause. If a computer is currently
-   * trying to perform a driver call, this will perform that driver call in a
-   * synchronized manner.
+   * Passively drives the computer and performs synchronized calls. If this is
+   * not called regularly the computer will pause. If a computer is currently
+   * trying to perform a synchronized call, this will perform that call.
    */
   def update()
 
   def signal(name: String, args: Any*): Boolean
+
+  def recomputeMemory()
 
   // ----------------------------------------------------------------------- //
 

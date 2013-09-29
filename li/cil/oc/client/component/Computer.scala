@@ -18,6 +18,8 @@ class Computer(owner: Any) extends component.Computer {
 
   override def signal(name: String, args: Any*) = ???
 
+  def recomputeMemory() {}
+
   override def load(nbt: NBTTagCompound) {}
 
   override def save(nbt: NBTTagCompound) {}
