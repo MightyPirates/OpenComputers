@@ -1,4 +1,4 @@
-package li.cil.oc.common.util
+package li.cil.oc.util
 
 import com.google.common.collect.MapMaker
 import li.cil.oc.Items

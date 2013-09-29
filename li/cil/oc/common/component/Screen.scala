@@ -1,6 +1,6 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.common.util.TextBuffer
+import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: ScreenEnvironment) {

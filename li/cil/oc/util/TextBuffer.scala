@@ -1,4 +1,4 @@
-package li.cil.oc.common.util
+package li.cil.oc.util
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList

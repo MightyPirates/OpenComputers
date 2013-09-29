@@ -1,8 +1,8 @@
 package li.cil.oc
 
 import li.cil.oc.common.item
-import li.cil.oc.common.util.ItemComponentCache
 import li.cil.oc.server.component
+import li.cil.oc.util.ItemComponentCache
 
 object Items {
   var multi: item.Delegator = null
