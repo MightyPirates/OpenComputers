@@ -61,6 +61,12 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
       }
   }
 
+  protected override def mouseClicked(x: Int, y: Int, button: Int) {
+    super.mouseClicked(x, y, button)
+    if (button == 2)
+      PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+  }
+
   override def initGui() = {
     super.initGui()
     MonospaceFontRenderer.init(mc.renderEngine)
