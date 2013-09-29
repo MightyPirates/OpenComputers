@@ -415,8 +415,9 @@ local function onKeyDown(_, address, char, code)
     write("> ")
   elseif code == keys.up then
     command = lastCommand
-    term.clearLine()
-    term.write("> " .. command)
+    boundGpu.fill(3, cursorY, screenWidth, 1, " ")
+    cursorX = 3
+    term.write(command)
     term.setCursor(command:len() + 3, y)
   elseif not keys.isControl(char) then
     -- Non-control character, add to command.
@@ -440,6 +441,7 @@ end
 event.listen("term_available", function()
   term.clear()
   command = ""
+  print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
   write("> ")
   event.listen("key_down", onKeyDown)
   event.listen("clipboard", onClipboard)
