@@ -1,16 +1,14 @@
-package li.cil.oc.server.computer
+package li.cil.oc.util
 
 import com.naef.jnlua.NativeSupport.Loader
-import com.naef.jnlua.{JavaFunction, LuaState, NativeSupport}
+import com.naef.jnlua.{LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
-import java.util.{Formatter, Locale, Calendar}
+import java.util.{Locale, Calendar}
+import li.cil.oc.server.component.Computer
+import li.cil.oc.util.ExtendedLuaState._
 import scala.util.Random
-
-case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
-  override def invoke(state: LuaState) = f(state)
-}
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -19,7 +17,7 @@ case class ScalaFunction(f: (LuaState) => Int) extends JavaFunction {
  * library references once during initialization and can then re-use the
  * already loaded ones.
  */
-private[computer] object LuaStateFactory {
+object LuaStateFactory {
   // ----------------------------------------------------------------------- //
   // Initialization
   // ----------------------------------------------------------------------- //
@@ -132,43 +130,30 @@ private[computer] object LuaStateFactory {
       state.getGlobal("os")
 
       // Allow getting the real world time via os.realTime() for timeouts.
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushNumber(System.currentTimeMillis() / 1000.0)
         1
-      }))
+      })
       state.setField(-2, "realTime")
 
       // Date-time formatting using Java's formatting capabilities.
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         val calendar = Calendar.getInstance(Locale.ENGLISH)
         calendar.setTimeInMillis(lua.checkInteger(1))
         // TODO
         1
-      }))
+      })
       state.setField(-2, "date")
 
       // Custom os.difftime(). For most Lua implementations this would be the
       // same anyway, but just to be on the safe side.
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         val t2 = lua.checkNumber(1)
         val t1 = lua.checkNumber(2)
         lua.pushNumber(t2 - t1)
         1
-      }))
+      })
       state.setField(-2, "difftime")
-
-      // Allow the system to read how much memory it uses and has available.
-      state.pushJavaFunction(ScalaFunction(lua => {
-        lua.pushInteger(lua.getTotalMemory)
-        1
-      }))
-      state.setField(-2, "totalMemory")
-
-      state.pushJavaFunction(ScalaFunction(lua => {
-        lua.pushInteger(lua.getFreeMemory)
-        1
-      }))
-      state.setField(-2, "freeMemory")
 
       // Pop the os table.
       state.pop(1)
@@ -179,7 +164,7 @@ private[computer] object LuaStateFactory {
       // use the good old rand() from C. Which can be terrible, and isn't
       // necessarily thread-safe.
       val random = new Random
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.getTop match {
           case 0 => lua.pushNumber(random.nextDouble())
           case 1 => {
@@ -196,13 +181,13 @@ private[computer] object LuaStateFactory {
           case _ => throw new IllegalArgumentException("wrong number of arguments")
         }
         1
-      }))
+      })
       state.setField(-2, "random")
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         random.setSeed(lua.checkInteger(1))
         0
-      }))
+      })
       state.setField(-2, "randomseed")
 
       // Pop the math table.
@@ -211,10 +196,10 @@ private[computer] object LuaStateFactory {
       // Provide some better Unicode support.
       state.getGlobal("string")
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
         1
-      }))
+      })
       state.setField(-2, "char")
 
       // TODO find (probably not necessary?)
@@ -225,27 +210,27 @@ private[computer] object LuaStateFactory {
 
       // TODO gsub (probably not necessary?)
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushInteger(lua.checkString(1).length)
         1
-      }))
+      })
       state.setField(-2, "len")
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).toLowerCase)
         1
-      }))
+      })
       state.setField(-2, "lower")
 
       // TODO match (probably not necessary?)
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).reverse)
         1
-      }))
+      })
       state.setField(-2, "reverse")
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         val string = lua.checkString(1)
         val start = (lua.checkInteger(2) match {
           case i if i < 0 => string.length + i
@@ -260,13 +245,13 @@ private[computer] object LuaStateFactory {
         if (end <= start) lua.pushString("")
         else lua.pushString(string.substring(start, end))
         1
-      }))
+      })
       state.setField(-2, "sub")
 
-      state.pushJavaFunction(ScalaFunction(lua => {
+      state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).toUpperCase)
         1
-      }))
+      })
       state.setField(-2, "upper")
 
       // Pop the string table.

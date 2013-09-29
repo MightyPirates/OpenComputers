@@ -1,4 +1,8 @@
 oc.block.Computer.name=Computer
+oc.block.Keyboard.name=Keyboard
 oc.block.Screen.name=Screen
 oc.container.computer=Computer
 oc.item.GraphicsCard.name=Graphics Card
+oc.item.Memory16k.name=RAM (16k)
+oc.item.Memory32k.name=RAM (32k)
+oc.item.Memory64k.name=RAM (64k)

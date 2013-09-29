@@ -1,6 +1,7 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.registry.GameRegistry
+import java.util
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
 import li.cil.oc.api.Network
@@ -37,7 +38,7 @@ import scala.collection.mutable
  * - Component network logic for adding / removing blocks from the component
  * network when they are placed / removed.
  */
-class Multi(id: Int) extends Block(id, Material.iron) {
+class Delegator(id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
   GameRegistry.registerBlock(this, classOf[ItemBlockMulti], "oc.block." + id)
@@ -46,16 +47,16 @@ class Multi(id: Int) extends Block(id, Material.iron) {
   // SubBlock
   // ----------------------------------------------------------------------- //
 
-  val subBlocks = mutable.ArrayBuffer.empty[SubBlock]
+  val subBlocks = mutable.ArrayBuffer.empty[Delegate]
   subBlocks.sizeHint(16)
 
-  def add(subBlock: SubBlock) = {
+  def add(subBlock: Delegate) = {
     val blockId = subBlocks.length
     subBlocks += subBlock
     blockId
   }
 
-  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[SubBlock] =
+  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Delegate] =
     subBlock(world.getBlockMetadata(x, y, z))
 
   def subBlock(metadata: Int) =
@@ -164,9 +165,9 @@ class Multi(id: Int) extends Block(id, Material.iron) {
 
   override def getRenderType = Config.blockRenderId
 
-  override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: java.util.List[_]) = {
+  override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists... I'm too tired to rage anymore.
-    def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+    def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
     (0 until subBlocks.length).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }

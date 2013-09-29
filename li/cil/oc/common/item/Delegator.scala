@@ -11,7 +11,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import scala.collection.mutable
 
-class Multi(id: Int) extends Item(id) {
+class Delegator(id: Int) extends Item(id) {
   setMaxStackSize(1)
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
@@ -21,15 +21,15 @@ class Multi(id: Int) extends Item(id) {
   // SubItem
   // ----------------------------------------------------------------------- //
 
-  val subItems = mutable.ArrayBuffer.empty[SubItem]
+  val subItems = mutable.ArrayBuffer.empty[Delegate]
 
-  def add(subItem: SubItem) = {
+  def add(subItem: Delegate) = {
     val itemId = subItems.length
     subItems += subItem
     itemId
   }
 
-  def subItem(item: ItemStack): Option[SubItem] =
+  def subItem(item: ItemStack): Option[Delegate] =
     subItem(item.getItemDamage) match {
       case Some(subItem) if item.itemID == this.itemID => Some(subItem)
       case _ => None
@@ -66,8 +66,11 @@ class Multi(id: Int) extends Item(id) {
 
   override def getRarity(item: ItemStack) = EnumRarity.epic
 
-  override def getSubItems(par1: Int, par2CreativeTabs: CreativeTabs, par3List: util.List[_]) {
-    super.getSubItems(par1, par2CreativeTabs, par3List)
+  override def getSubItems(itemId: Int, tab: CreativeTabs, list: util.List[_]) {
+    // Workaround for MC's untyped lists...
+    def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+    (0 until subItems.length).
+      foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
   override def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack =

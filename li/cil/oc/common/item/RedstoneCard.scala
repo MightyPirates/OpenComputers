@@ -1,5 +1,5 @@
 package li.cil.oc.common.item
 
-class RedstoneCard(val parent: Multi) extends SubItem {
+class RedstoneCard(val parent: Delegator) extends Delegate {
   def unlocalizedName = "RedstoneCard"
 }

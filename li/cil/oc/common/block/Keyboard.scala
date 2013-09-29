@@ -5,7 +5,7 @@ import li.cil.oc.common.tileentity.TileEntityKeyboard
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Keyboard(val parent: Multi) extends SubBlock {
+class Keyboard(val parent: Delegator) extends Delegate {
   GameRegistry.registerTileEntity(classOf[TileEntityKeyboard], "oc.keyboard")
 
   val unlocalizedName = "Keyboard"

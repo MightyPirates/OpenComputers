@@ -14,8 +14,8 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.common.RotationHelper
 
 /** The base class on which all our blocks are built. */
-trait SubBlock {
-  def parent: Multi
+trait Delegate {
+  def parent: Delegator
 
   def unlocalizedName: String
 

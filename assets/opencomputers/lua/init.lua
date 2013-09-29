@@ -19,6 +19,15 @@
       command that will be executed when pressing enter.
 ]]
 
+local function checkArg(n, have, ...)
+  have = type(have)
+  for _, want in pairs({...}) do
+    if have == want then return end
+  end
+  error("bad argument #" .. n .. " (" .. table.concat({...}, " or ") ..
+        " expected, got " .. have .. ")", 3)
+end
+
 -------------------------------------------------------------------------------
 
 --[[ Distribute signals as events. ]]

@@ -6,7 +6,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 /** Used for sub blocks that need special rendering. */
-class SpecialMulti(id: Int) extends Multi(id) {
+class SpecialMulti(id: Int) extends Delegator(id) {
   override def getRenderType = Config.blockRenderId
 
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =

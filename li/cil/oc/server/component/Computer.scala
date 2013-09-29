@@ -1,14 +1,16 @@
-package li.cil.oc.server.computer
+package li.cil.oc.server.component
 
 import com.naef.jnlua._
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{Visibility, Node}
 import li.cil.oc.common.component
 import li.cil.oc.common.tileentity.TileEntityComputer
 import li.cil.oc.server.driver
+import li.cil.oc.util.ExtendedLuaState._
+import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
@@ -36,7 +38,7 @@ import scala.io.Source
  * See `Driver` to read more about component drivers and how they interact
  * with computers - and through them the components they interface.
  */
-class Computer(val owner: Environment) extends component.Computer with Runnable {
+class Computer(val owner: Computer.Environment) extends component.Computer with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
@@ -318,6 +320,10 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
           OpenComputers.log.log(Level.WARNING, "Could not restore computer.", e)
           close()
         }
+        case e: LuaRuntimeException => {
+          OpenComputers.log.warning("Could not restore computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+          close()
+        }
       }
     }
     // Init failed, or we were already stopped.
@@ -432,45 +438,53 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
 
       // Custom os.clock() implementation returning the time the computer has
       // been running, instead of the native library...
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         // World time is in ticks, and each second has 20 ticks. Since we
         // want os.clock() to return real seconds, though, we'll divide it
         // accordingly.
         lua.pushNumber((worldTime - timeStarted) / 20.0)
         1
-      }))
+      })
       lua.setField(-2, "clock")
 
       // Return ingame time for os.time().
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         // Game time is in ticks, so that each day has 24000 ticks, meaning
         // one hour is game time divided by one thousand. Also, Minecraft
         // starts days at 6 o'clock, so we add those six hours. Thus:
         // timestamp = (time + 6000) / 1000[h] * 60[m] * 60[s] * 1000[ms]
         lua.pushNumber((worldTime + 6000) * 60 * 60)
         1
-      }))
+      })
       lua.setField(-2, "time")
 
       // Allow the system to read how much memory it uses and has available.
-      lua.pushJavaFunction(ScalaFunction(lua => {
-        lua.pushInteger(kernelMemory)
+      lua.pushScalaFunction(lua => {
+        lua.pushInteger(lua.getTotalMemory - kernelMemory)
         1
-      }))
-      lua.setField(-2, "romSize")
+      })
+      lua.setField(-2, "totalMemory")
+
+      lua.pushScalaFunction(lua => {
+        // This is *very* unlikely, but still: avoid this getting larger than
+        // what we report as the total memory.
+        lua.pushInteger(lua.getFreeMemory min (lua.getTotalMemory - kernelMemory))
+        1
+      })
+      lua.setField(-2, "freeMemory")
 
       // Allow the computer to figure out its own id in the component network.
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         lua.pushInteger(owner.address)
         1
-      }))
+      })
       lua.setField(-2, "address")
 
       // Pop the os table.
       lua.pop(1)
 
       // Until we get to ingame screens we log to Java's stdout.
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         for (i <- 1 to lua.getTop) lua.`type`(i) match {
           case LuaType.NIL => print("nil")
           case LuaType.BOOLEAN => print(lua.toBoolean(i))
@@ -483,7 +497,7 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
         }
         println()
         0
-      }))
+      })
       lua.setGlobal("print")
 
       // Set up functions used to send network messages.
@@ -525,32 +539,32 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
         case _ => lua.pushNil()
       }
 
-      lua.pushJavaFunction(ScalaFunction(lua =>
+      lua.pushScalaFunction(lua =>
         owner.network.fold(None: Option[Array[Any]])(_.
           sendToAddress(owner, lua.checkInteger(1), lua.checkString(2), parseArguments(lua, 3): _*)) match {
           case Some(Array(results@_*)) =>
             results.foreach(pushResult(lua, _))
             results.length
           case _ => 0
-        }))
+        })
       lua.setGlobal("sendToNode")
 
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         owner.network.foreach(_.sendToAll(owner, lua.checkString(1), parseArguments(lua, 2): _*))
         0
-      }))
+      })
       lua.setGlobal("sendToAll")
 
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         owner.network.fold(None: Option[Node])(_.node(lua.checkInteger(1))) match {
           case None => 0
           case Some(node) => lua.pushString(node.name); 1
         }
-      }))
+      })
       lua.setGlobal("nodeName")
 
       // Provide driver API code.
-      lua.pushJavaFunction(ScalaFunction(lua => {
+      lua.pushScalaFunction(lua => {
         val apis = driver.Registry.apis
         lua.newTable(apis.length, 0)
         for ((name, code) <- apis) {
@@ -559,18 +573,16 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
           lua.setField(-2, name)
         }
         1
-      }))
+      })
       lua.setGlobal("drivers")
 
       // Loads the init script. This is loaded and then run by the kernel as a
       // separate coroutine to sandbox it and enforce timeouts and sandbox user
       // scripts.
-      lua.pushJavaFunction(new JavaFunction() {
-        def invoke(lua: LuaState): Int = {
-          lua.pushString(Source.fromInputStream(classOf[Computer].
-            getResourceAsStream("/assets/opencomputers/lua/init.lua")).mkString)
-          1
-        }
+      lua.pushScalaFunction(lua => {
+        lua.pushString(Source.fromInputStream(classOf[Computer].
+          getResourceAsStream(Config.scriptPath + "init.lua")).mkString)
+        1
       })
       lua.setGlobal("init")
 
@@ -579,15 +591,13 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       // available as globals. It also wraps the message sending functions
       // so that they yield a closure doing the actual call so that that
       // message call can be performed in a synchronized fashion.
-      lua.load(classOf[Computer].getResourceAsStream(
-        "/assets/opencomputers/lua/boot.lua"), "=boot", "t")
+      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "boot.lua"), "=boot", "t")
       lua.call(0, 0)
 
       // Load the basic kernel which sets up the sandbox, loads the init script
       // and then runs it in a coroutine with a debug hook checking for
       // timeouts.
-      lua.load(classOf[Computer].getResourceAsStream(
-        "/assets/opencomputers/lua/kernel.lua"), "=kernel", "t")
+      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
       // Run to the first yield in kernel, to get a good idea of how much
       // memory all the basic functionality we provide needs.
@@ -597,9 +607,10 @@ class Computer(val owner: Environment) extends component.Computer with Runnable 
       // initialization phase to get a good estimate of the base memory usage
       // the kernel has. We remember that size to grant user-space programs a
       // fixed base amount of memory, regardless of the memory need of the
-      // underlying system (which may change across releases).
+      // underlying system (which may change across releases). Add some buffer
+      // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = lua.getTotalMemory - lua.getFreeMemory
+      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 2048
       lua.setTotalMemory(kernelMemory + 16 * 1024)
 
       // Clear any left-over signals from a previous run.
@@ -785,6 +796,26 @@ object Computer {
       filter(_.isInstanceOf[TileEntityComputer]).
       map(_.asInstanceOf[TileEntityComputer]).
       foreach(_.turnOff())
+  }
+
+  /**
+   * This has to be implemented by owners of computer instances and allows the
+   * computers to access information about the world they live in.
+   */
+  trait Environment extends Node {
+    override def name = "computer"
+
+    override def visibility = Visibility.Network
+
+    def world: World
+
+    /**
+     * Called when the computer state changed, so it should be saved again.
+     *
+     * This is called asynchronously from the Computer's executor thread, so the
+     * computer's owner must make sure to handle this in a synchronized fashion.
+     */
+    def markAsChanged(): Unit
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */

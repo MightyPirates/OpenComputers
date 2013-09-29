@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Screen(val parent: Multi) extends SubBlock {
+class Screen(val parent: Delegator) extends Delegate {
   GameRegistry.registerTileEntity(classOf[TileEntityScreen], "oc.screen")
 
   val unlocalizedName = "Screen"

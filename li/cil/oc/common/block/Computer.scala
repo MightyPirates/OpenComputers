@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(val parent: Multi) extends SubBlock {
+class Computer(val parent: Delegator) extends Delegate {
   GameRegistry.registerTileEntity(classOf[TileEntityComputer], "oc.computer")
 
   val unlocalizedName = "Computer"

@@ -6,11 +6,11 @@ import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.Network
-import li.cil.oc.server.computer.Computer
 import li.cil.oc.server.driver
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.network
 import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.server.component.Computer
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -31,6 +31,9 @@ class Proxy {
 
     Driver.add(driver.GraphicsCard)
     Driver.add(driver.Keyboard)
+    Driver.add(driver.Memory)
+    Driver.add(driver.Redstone)
+    Driver.add(driver.Disk)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)

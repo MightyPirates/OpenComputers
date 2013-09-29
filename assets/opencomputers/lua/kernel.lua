@@ -90,7 +90,7 @@ local sandbox = {
     difftime = os.difftime,
     time = os.time,
     freeMemory = os.freeMemory,
-    totalMemory = function() return os.totalMemory() - os.romSize() end,
+    totalMemory = os.totalMemory,
     address = os.address
   },
 
@@ -120,7 +120,6 @@ local sandbox = {
     unpack = table.unpack
   }
 }
-sandbox.checkArg = checkArg
 sandbox._G = sandbox
 
 -- Note: 'write' will be replaced by init script.
@@ -188,9 +187,7 @@ function sandbox.coroutine.yield(...)
 end
 
 function sandbox.os.signal(name, timeout)
-  checkArg(1, name, "string", "nil")
-  checkArg(2, timeout, "number", "nil")
-  local waitUntil = os.clock() + (timeout or math.huge)
+  local waitUntil = os.clock() + (type(timeout) == "number" and timeout or math.huge)
   while os.clock() < waitUntil do
     local signal = {coroutine.yield(waitUntil - os.clock())}
     if signal and (name == signal[1] or name == nil) then

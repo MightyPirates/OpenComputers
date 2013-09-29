@@ -8,10 +8,7 @@ import net.minecraft.item.ItemStack
 object Disk extends driver.Item {
   override def api = null
 
-  override def worksWith(item: ItemStack) = item.itemID == Items.multi.itemID && (Items.multi.subItem(item) match {
-    case None => false
-    case Some(subItem) => subItem.itemId == Items.hdd.itemId
-  })
+  override def worksWith(item: ItemStack) = WorksWith(Items.hdd)(item)
 
   override def slot(item: ItemStack) = Slot.HDD
 

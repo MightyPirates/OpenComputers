@@ -4,20 +4,18 @@ import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.network.Message
 import li.cil.oc.client.computer.{Computer => ClientComputer}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.server.component.RedstoneEnabled
-import li.cil.oc.server.computer
-import li.cil.oc.server.computer.{Computer => ServerComputer}
+import li.cil.oc.server.component.{Computer, RedstoneEnabled}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with computer.Environment with ItemComponentProxy with RedstoneEnabled {
+class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with Computer.Environment with ItemComponentProxy with RedstoneEnabled {
   def this() = this(false)
 
   protected val computer =
     if (isClient) new ClientComputer(this)
-    else new ServerComputer(this)
+    else new Computer(this)
 
   private val hasChanged = new AtomicBoolean(true)
 

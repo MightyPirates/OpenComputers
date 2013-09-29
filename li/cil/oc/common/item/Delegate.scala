@@ -6,8 +6,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 
-trait SubItem {
-  def parent: Multi
+trait Delegate {
+  def parent: Delegator
 
   def unlocalizedName: String
 

@@ -17,7 +17,7 @@ class ItemBlockMulti(id: Int) extends ItemBlock(id) {
 
   override def getUnlocalizedName(item: ItemStack) =
     Block.blocksList(item.itemID) match {
-      case multiBlock: Multi => "oc.block." + multiBlock.getUnlocalizedName(item.getItemDamage)
+      case multiBlock: Delegator => "oc.block." + multiBlock.getUnlocalizedName(item.getItemDamage)
       case block => block.getUnlocalizedName
     }
 
