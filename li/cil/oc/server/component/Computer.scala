@@ -309,13 +309,13 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         lua.gc(LuaState.GcAction.COLLECT, 0)
         recomputeMemory()
 
-        // Start running our worker thread if we have to (for cases where it
-        // would not be re-started automatically in update()). We start with a
-        // slight delay, to allow the world to settle.
+        // Ensure the executor is started in the next update if necessary.
         assert(future.isEmpty)
         state match {
-          case Computer.State.Yielded | Computer.State.SynchronizedReturn =>
-            future = Some(Computer.Executor.pool.schedule(this, 500, TimeUnit.MILLISECONDS))
+          case Computer.State.Yielded =>
+            state = Computer.State.Paused
+          case Computer.State.SynchronizedReturn =>
+            state = Computer.State.SynchronizedReturnPaused
           case _ => // Will be started by update() if necessary.
         }
       } catch {
@@ -339,6 +339,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
     nbt.setInteger("state", (state match {
       case Computer.State.Paused => Computer.State.Yielded
+      case Computer.State.Sleeping => Computer.State.Yielded
       case Computer.State.SynchronizedReturnPaused => Computer.State.SynchronizedReturn
       case other => other
     }).id)
