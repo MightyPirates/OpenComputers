@@ -1,6 +1,7 @@
 package li.cil.oc.client
 
-import li.cil.oc.common.tileentity.TileEntityComputer
+import li.cil.oc.Config
+import li.cil.oc.common.tileentity.Computer
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
@@ -10,10 +11,10 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ComputerRenderer extends TileEntitySpecialRenderer {
-  private val frontOn = new ResourceLocation("opencomputers", "textures/blocks/computer_front_on.png")
+  private val frontOn = new ResourceLocation(Config.resourcePack, "textures/blocks/computer_front_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
-    val computer = tileEntity.asInstanceOf[TileEntityComputer]
+    val computer = tileEntity.asInstanceOf[Computer]
     if (computer.isOn) {
       GL11.glPushAttrib(0xFFFFFF)
       GL11.glPushMatrix()

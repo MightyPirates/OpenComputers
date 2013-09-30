@@ -2,7 +2,7 @@ package li.cil.oc.server
 
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.TileEntityRotatable
+import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
@@ -65,7 +65,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendRotatableRotate(t: TileEntityRotatable, pitch: ForgeDirection, yaw: ForgeDirection) = {
+  def sendRotatableRotate(t: Rotatable, pitch: ForgeDirection, yaw: ForgeDirection) = {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)

@@ -1,0 +1,10 @@
+oc.block.Computer.name=Computer
+oc.block.Keyboard.name=Tastatur
+oc.block.Screen.name=Bildschirm
+oc.container.computer=Computer
+oc.item.GraphicsCard.name=Grafikkarte
+oc.item.HardDiskDrive.name=Festplatte
+oc.item.Memory16k.name=RAM (16k)
+oc.item.Memory32k.name=RAM (32k)
+oc.item.Memory64k.name=RAM (64k)
+oc.item.RedstoneCard.name=Redstonekarte

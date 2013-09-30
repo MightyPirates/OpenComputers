@@ -1,15 +1,5 @@
 --[[ Low level boot logic. ]]
 
---[[ Argument checking for functions. ]]
-function checkArg(n, have, ...)
-  have = type(have)
-  for _, want in pairs({...}) do
-    if have == want then return end
-  end
-  error("bad argument #" .. n .. " (" .. table.concat({...}, " or ") ..
-        " expected, got " .. have .. ")", 3)
-end
-
 --[[ Permanent value tables.
 
      These tables must contain all java callbacks (i.e. C functions, since
@@ -17,17 +7,12 @@ end
      They are used when persisting/unpersisting the state so that the
      persistence library knows which values it doesn't have to serialize
      (since it cannot persist C functions).
-     These tables may change after loading a game, for example due to a new
-     mod being installed or an old one being removed. In that case, the
-     persistence library will throw an error while unpersisting, leading
-     to what will essentially be a computer crash; which is pretty much
-     the best way to tackle this, I think.
 --]]
 local perms, uperms = {}, {}
 
 --[[ Used by the Java side to persist the state when the world is saved. ]]
-function persist(kernel)
-  return eris.persist(perms, kernel)
+function persist(value)
+  return eris.persist(perms, value)
 end
 
 --[[ Used by the Java side unpersist the state when the world is loaded. ]]
@@ -112,8 +97,3 @@ end
 sendToNode = wrap(sendToNode)
 sendToAll = wrap(sendToAll)
 nodeName = wrap(nodeName)
-
-driver = {}
-function driver.componentType(id)
-  return nodeName(id)
-end

@@ -1,20 +1,6 @@
---[[ Basic functionality, drives userland and enforces timeouts.
-
-     This is called as the main coroutine by the computer. If this throws, the
-     computer crashes. If this returns, the computer is considered powered off.
---]]
-
---[[ Will be adjusted by the kernel when running, represents how long we can
-     continue running without yielding. Used in the debug hook that enforces
-     this timeout by throwing an error if it's exceeded. ]]
-local deadline = 0
-
---[[ The hook installed for process coroutines enforcing the timeout. ]]
-local function timeoutHook()
-  if os.realTime() > deadline then
-    error({timeout = debug.traceback(2)}, 0)
-  end
-end
+--[[ This is called as the main coroutine by the host. If this returns the
+     computer crashes. It should never ever return "normally", only when an
+     error occurred. Shutdown / reboot are signalled via special yields. ]]
 
 --[[ Set up the global environment we make available to userland programs. ]]
 local sandbox = {
@@ -39,16 +25,8 @@ local sandbox = {
   tonumber = tonumber,
   tostring = tostring,
 
-  -- We don't care what users do with metatables. The only raised concern was
-  -- about breaking an environment, which is pretty much void in Lua 5.2.
   getmetatable = getmetatable,
   setmetatable = setmetatable,
-
-  write = function() end,
-
-  checkArg = checkArg,
-  component = component,
-  driver = driver,
 
   bit32 = {
     arshift = bit32.arshift,
@@ -112,7 +90,8 @@ local sandbox = {
     difftime = os.difftime,
     time = os.time,
     freeMemory = os.freeMemory,
-    totalMemory = os.totalMemory
+    totalMemory = os.totalMemory,
+    address = os.address
   },
 
   string = {
@@ -141,113 +120,127 @@ local sandbox = {
     unpack = table.unpack
   }
 }
+sandbox._G = sandbox
+
+-- Note: 'write' will be replaced by init script.
+function sandbox.write(...) end
 function sandbox.print(...)
   sandbox.write(...)
   sandbox.write("\n")
 end
 
--- Make the sandbox its own globals table.
-sandbox._G = sandbox
-
--- Allow sandboxes to load code, but only in text form, and in the sandbox.
--- Note that we allow passing a custom environment, because if this is called
--- from inside the sandbox, env must already be in the sandbox.
-function sandbox.load(code, env)
-  return load(code, nil, "t", env or sandbox)
+function sandbox.load(code, source, env)
+  return load(code, source, "t", env or sandbox)
 end
 
 --[[ Install wrappers for coroutine management that reserves the first value
-     returned by yields for internal stuff. For now this is used for driver
-     calls, in which case the first function is the function performing the
-     actual driver call, but is called from the server thread, and for sleep
-     notifications, i.e. letting the host know we're in no hurry to be
-     called again any time soon. See os.sleep for more on the second.
+     returned by yields for internal stuff. Used for sleeping and message
+     calls (sendToNode and its ilk) that happen synchronized (Server thread).
 --]]
-function sandbox.coroutine.yield(...)
-  return coroutine.yield(nil, ...)
-end
-function sandbox.coroutine.resume(co, ...)
-  local function checkDeadline()
-    if os.realTime() > deadline then
-      error("too long without yielding", 0)
-    end
+local deadline = 0
+
+local function checkDeadline()
+  if os.realTime() > deadline then
+    error("too long without yielding", 0)
   end
-  local args = {...}
+end
+
+local function main(co)
+  local args = {}
   while true do
-    -- Don't reset counter when resuming, to avoid circumventing the timeout.
+    deadline = os.realTime() + 3
     if not debug.gethook(co) then
       debug.sethook(co, checkDeadline, "", 10000)
     end
-
-    -- Run the coroutine.
     local result = {coroutine.resume(co, table.unpack(args))}
-
-    -- Check if we're over the deadline since I'm pretty sure the counter of
-    -- coroutines is separate.
-    checkDeadline()
-
-    -- See what kind of yield we have.
     if result[1] then
-      -- Coroutine returned normally, if we yielded it may be a system yield.
-      if coroutine.status(co) ~= "dead" and result[2] then
-        -- Propagate system yields and repeat the retry.
-        args = coroutine.yield(table.unpack(result, 2))
-      else
-        -- Normal yield or coroutine returned, return result.
-        return result[1], table.unpack(result, 3)
-      end
+      args = {coroutine.yield(result[2])} -- system yielded value
     else
-      -- Error while executing coroutine.
+      error(result[2])
+    end
+  end
+end
+
+function sandbox.coroutine.resume(co, ...)
+  local args = {...}
+  while true do
+    if not debug.gethook(co) then -- don't reset counter
+      debug.sethook(co, checkDeadline, "", 10000)
+    end
+    local result = {coroutine.resume(co, table.unpack(args))}
+    checkDeadline()
+    if result[1] then
+      local isSystemYield = coroutine.status(co) ~= "dead" and result[2] ~= nil
+      if isSystemYield then
+        args = coroutine.yield(result[2])
+      else
+        return true, table.unpack(result, 3)
+      end
+    else -- error: result = (bool, string)
       return table.unpack(result)
     end
   end
 end
 
---[[ Pull a signal with an optional timeout. ]]
+function sandbox.coroutine.yield(...)
+  return coroutine.yield(nil, ...)
+end
+
 function sandbox.os.signal(name, timeout)
-  checkArg(1, name, "string", "nil")
-  checkArg(2, timeout, "number", "nil")
-  local deadline = os.clock() + (timeout or math.huge)
-  while os.clock() < deadline do
-    local signal = {coroutine.yield(deadline - os.clock())}
-    if signal and (signal[1] == name or name == nil) then
+  local waitUntil = os.clock() + (type(timeout) == "number" and timeout or math.huge)
+  while os.clock() < waitUntil do
+    local signal = {coroutine.yield(waitUntil - os.clock())}
+    if signal and (name == signal[1] or name == nil) then
       return table.unpack(signal)
     end
   end
 end
 
---[[ Suspends the computer for the specified amount of time. ]]
-function sandbox.os.sleep(seconds)
-  checkArg(1, seconds, "number")
-  local target = os.clock() + seconds
-  while os.clock() < target do
-    -- Yielding a number here will tell the host it can wait with running us
-    -- again for that long. Note that this is *not* a sleep! We may be resumed
-    -- way sooner, e.g. because of signals or a state load (after an unload).
-    -- That's why we put a loop around the thing.
-    coroutine.yield(seconds)
+function sandbox.os.shutdown()
+  coroutine.yield(false)
+end
+
+function sandbox.os.reboot()
+  coroutine.yield(true)
+end
+
+sandbox.driver = {}
+
+function sandbox.driver.componentType(id)
+  return nodeName(id)
+end
+
+do
+  local env = setmetatable({
+                sendToNode = sendToNode,
+                sendToAll = sendToAll
+              }, { __index = sandbox })
+  for name, code in pairs(drivers()) do
+    local driver, reason = load(code, "=" .. name, "t", env)
+    if not driver then
+      print("Failed loading driver '" .. name .. "': " .. reason)
+    else
+      local result, reason = pcall(driver)
+      if not result then
+        print("Failed initializing driver '" .. name .. "': " .. reason)
+      end
+    end
   end
 end
 
--- JNLua / Lua suck at reporting errors from coroutines, so we do it manually.
-return pcall(function()
-  -- Replace init script code with loaded, sandboxed and threaded script.
-  local init = (function()
-    local result, reason = load(init(), nil, "t", sandbox)
-    if not result then error(reason, 0) end
-    return coroutine.create(result)
-  end)()
-  local data = {}
-  while true do
-    deadline = os.realTime() + 3
-    local result = {coroutine.resume(init, table.unpack(data))}
-    if result[1] then
-      -- Init should never return, so we have a system yield.
-      result = result[2]
-    else
-      -- Some other error, go kill ourselves.
-      return table.unpack(result)
-    end
-    data = {coroutine.yield(result)}
+-- Load init script in sandboxed environment.
+local coinit
+do
+  local result, reason = load(init(), "=init", "t", sandbox)
+  if not result then
+    error(reason)
   end
-end)
+  coinit = coroutine.create(result)
+end
+
+-- Yield once to allow initializing up to here to get a memory baseline.
+coroutine.yield()
+
+-- JNLua converts the coroutine to a string immediately, so we can't get the
+-- traceback later. Because of that we have to do the error handling here.
+return pcall(main, coinit)
