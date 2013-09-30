@@ -1,9 +1,9 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.{Config, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -42,9 +42,9 @@ class Screen(val parent: Delegator) extends Delegate {
     })
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.front = iconRegister.registerIcon("opencomputers:screen_front")
-    Icons.side = iconRegister.registerIcon("opencomputers:screen_side")
-    Icons.top = iconRegister.registerIcon("opencomputers:screen_top")
+    Icons.front = iconRegister.registerIcon(Config.resourcePack + ":screen_front")
+    Icons.side = iconRegister.registerIcon(Config.resourcePack + ":screen_side")
+    Icons.top = iconRegister.registerIcon(Config.resourcePack + ":screen_top")
   }
 
   // ----------------------------------------------------------------------- //

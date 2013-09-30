@@ -13,11 +13,15 @@ trait Delegate {
 
   val itemId = parent.add(this)
 
+  private var _icon: Option[Icon] = None
+
   // ----------------------------------------------------------------------- //
   // Item
   // ----------------------------------------------------------------------- //
 
-  def icon: Option[Icon] = None
+  def icon: Option[Icon] = _icon
+
+  protected def icon_=(value: Icon) = _icon = Some(value)
 
   def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack = item
 

@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Config
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -11,12 +12,12 @@ import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Computer(inventory: InventoryPlayer, val tileEntity: tileentity.Computer) extends GuiContainer(new container.Computer(inventory, tileEntity)) {
-  private val background = new ResourceLocation("opencomputers", "textures/gui/computer.png")
+  private val background = new ResourceLocation(Config.resourcePack, "textures/gui/computer.png")
 
-  private val iconPsu = new ResourceLocation("opencomputers", "textures/gui/icon_psu.png")
-  private val iconPci = new ResourceLocation("opencomputers", "textures/gui/icon_pci.png")
-  private val iconRam = new ResourceLocation("opencomputers", "textures/gui/icon_ram.png")
-  private val iconHdd = new ResourceLocation("opencomputers", "textures/gui/icon_hdd.png")
+  private val iconPsu = new ResourceLocation(Config.resourcePack, "textures/gui/icon_psu.png")
+  private val iconPci = new ResourceLocation(Config.resourcePack, "textures/gui/icon_pci.png")
+  private val iconRam = new ResourceLocation(Config.resourcePack, "textures/gui/icon_ram.png")
+  private val iconHdd = new ResourceLocation(Config.resourcePack, "textures/gui/icon_hdd.png")
 
   private val icons = Array(iconPsu, iconPci, iconPci, iconPci, iconRam, iconRam, iconHdd, iconHdd)
 

@@ -1,9 +1,9 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.OpenComputers
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.{Config, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -38,19 +38,19 @@ class Computer(val parent: Delegator) extends Delegate {
     Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon("opencomputers:computer_top")
+    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_top")
     Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.on(ForgeDirection.UP.ordinal) = Icons.on(ForgeDirection.UP.ordinal)
 
-    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_back")
-    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_back_on")
+    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_back")
+    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_back_on")
 
-    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon("opencomputers:computer_front")
+    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_front")
     Icons.on(ForgeDirection.SOUTH.ordinal) = Icons.off(ForgeDirection.SOUTH.ordinal)
 
-    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon("opencomputers:computer_side")
-    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon("opencomputers:computer_side_on")
+    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_side")
+    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_side_on")
     Icons.off(ForgeDirection.EAST.ordinal) = Icons.off(ForgeDirection.WEST.ordinal)
     Icons.on(ForgeDirection.EAST.ordinal) = Icons.on(ForgeDirection.WEST.ordinal)
   }

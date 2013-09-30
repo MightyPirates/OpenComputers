@@ -3,8 +3,9 @@ package li.cil.oc
 import java.io.File
 
 object Config {
-  val scriptPath = "/assets/opencomputers/lua/"
-  val driverPath = "/assets/opencomputers/lua/drivers/"
+  val resourcePack = "opencomputers"
+  val scriptPath = "/assets/" + resourcePack + "/lua/"
+  val driverPath = "/assets/" + resourcePack + "/lua/drivers/"
 
   var blockId = 3650
   var blockSpecialId = 3651

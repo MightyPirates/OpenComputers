@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Config
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
@@ -8,9 +9,9 @@ import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  private val font = new ResourceLocation("opencomputers", "textures/font/chars.png")
+  private val font = new ResourceLocation(Config.resourcePack, "textures/font/chars.png")
 
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/opencomputers/textures/font/chars.txt")).mkString
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Config.resourcePack + "/textures/font/chars.txt")).mkString
 
   private var instance: Option[Renderer] = None
 

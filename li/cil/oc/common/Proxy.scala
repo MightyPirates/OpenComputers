@@ -3,19 +3,20 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
-import li.cil.oc.api
+import li.cil.oc._
 import li.cil.oc.server.component.Computer
 import li.cil.oc.server.driver
 import li.cil.oc.server.network
-import li.cil.oc.{OpenComputers, Items, Blocks, Config}
 import net.minecraftforge.common.MinecraftForge
+import scala.Some
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
     Config.load(e.getSuggestedConfigurationFile)
 
+    // Note: en_US is loaded automatically.
     LanguageRegistry.instance.loadLocalization(
-      "/assets/opencomputers/lang/en_US.lang", "en_US", false)
+      "/assets/" + Config.resourcePack + "/lang/de_DE.lang", "de_DE", false)
 
     api.Driver.registry = Some(driver.Registry)
     api.Network.network = Some(network.Network)

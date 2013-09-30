@@ -6,6 +6,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.{Locale, Calendar}
+import li.cil.oc.Config
 import li.cil.oc.server.component.Computer
 import li.cil.oc.util.ExtendedLuaState._
 import scala.util.Random
@@ -41,7 +42,7 @@ object LuaStateFactory {
       case name if name.startsWith("mac") => ".dylib"
       case _ => ""
     }
-    val libPath = "/assets/opencomputers/lib/"
+    val libPath = "/assets/" + Config.resourcePack + "/lib/"
 
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")

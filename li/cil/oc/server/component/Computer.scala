@@ -876,7 +876,7 @@ object Computer {
         }
 
         def newThread(r: Runnable): Thread = {
-          val name = "OpenComputers-" + threadNumber.getAndIncrement
+          val name = OpenComputers.getClass.getSimpleName + "-" + threadNumber.getAndIncrement
           val thread = new Thread(group, r, name)
           if (!thread.isDaemon)
             thread.setDaemon(true)
