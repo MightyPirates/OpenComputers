@@ -8,6 +8,7 @@ object Blocks {
   var computer: Computer = null
   var screen: Screen = null
   var keyboard: Keyboard = null
+  var powersupply: PowerSupply = null
 
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -19,5 +20,6 @@ object Blocks {
     computer = new Computer(blockSimple)
     screen = new Screen(blockSimple)
     keyboard = new Keyboard(blockSpecial)
+    powersupply = new PowerSupply(blockSimple)
   }
 }

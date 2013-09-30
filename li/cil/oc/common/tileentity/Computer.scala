@@ -92,7 +92,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
   override def updateEntity() = if (!worldObj.isRemote) {
     computer.update()
     if (hasChanged.get) {
-      worldObj.updateTileEntityChunkAndDoNothing(xCoord, yCoord, zCoord, this)
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
     }
     if (isRunning != computer.isRunning) {
       isRunning = computer.isRunning
