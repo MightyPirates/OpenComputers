@@ -105,6 +105,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
           case node: Node => node.network.foreach(_.remove(node))
+          case _ => // Nothing special to do.
         }
         subBlock.breakBlock(world, x, y, z, blockId, metadata)
       }
@@ -269,6 +270,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
           case _: Node => Network.joinOrCreateNetwork(world, x, y, z)
+          case _ => // Nothing special to do.
         }
         subBlock.onBlockAdded(world, x, y, z)
       }

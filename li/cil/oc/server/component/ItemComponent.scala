@@ -1,15 +1,20 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Visibility, Node}
-import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.api.Network
+import li.cil.oc.api.network.{Message, Visibility, Node}
 
-abstract class ItemComponent(val nbt: NBTTagCompound) extends Node {
-  address = nbt.getInteger("address")
-
+trait ItemComponent extends Node {
   override def visibility = Visibility.Neighbors
 
-  override def address_=(value: Int) = {
-    super.address_=(value)
-    nbt.setInteger("address", address)
+  override def receive(message: Message) = {
+    super.receive(message)
+    network match {
+      case None => None
+      case Some(net) =>
+        if (net.neighbors(this).exists(_ == message.source)) receiveFromNeighbor(net, message)
+        else None
+    }
   }
+
+  protected def receiveFromNeighbor(network: Network, message: Message): Option[Array[Any]] = None
 }

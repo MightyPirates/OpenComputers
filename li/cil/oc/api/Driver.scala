@@ -47,10 +47,16 @@ trait Driver {
 }
 
 object Driver {
+  def add(driver: Block) = instance.foreach(_.add(driver))
+
+  def add(driver: Item) = instance.foreach(_.add(driver))
+
+  // ----------------------------------------------------------------------- //
+
   /** Initialized in pre-init. */
-  private[oc] var registry: Option[{def add(driver: Block); def add(driver: Item)}] = None
+  private[oc] var instance: Option[ {
+    def add(driver: Block)
 
-  def add(driver: Block) = registry.foreach(_.add(driver))
-
-  def add(driver: Item) = registry.foreach(_.add(driver))
+    def add(driver: Item)
+  }] = None
 }

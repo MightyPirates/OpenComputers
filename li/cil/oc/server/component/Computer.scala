@@ -571,6 +571,10 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       })
       lua.setGlobal("nodeName")
 
+      // How long programs may run without yielding before we stop them.
+      lua.pushNumber(Config.timeout)
+      lua.setGlobal("timeout")
+
       // Provide driver API code.
       lua.pushScalaFunction(lua => {
         val apis = driver.Registry.apis

@@ -38,19 +38,19 @@ class Computer(val parent: Delegator) extends Delegate {
     Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_top")
+    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_top")
     Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.on(ForgeDirection.UP.ordinal) = Icons.on(ForgeDirection.UP.ordinal)
 
-    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_back")
-    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_back_on")
+    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_back")
+    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_back_on")
 
-    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_front")
+    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_front")
     Icons.on(ForgeDirection.SOUTH.ordinal) = Icons.off(ForgeDirection.SOUTH.ordinal)
 
-    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_side")
-    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourcePack + ":computer_side_on")
+    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_side")
+    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_side_on")
     Icons.off(ForgeDirection.EAST.ordinal) = Icons.off(ForgeDirection.WEST.ordinal)
     Icons.on(ForgeDirection.EAST.ordinal) = Icons.on(ForgeDirection.WEST.ordinal)
   }
@@ -89,7 +89,7 @@ class Computer(val parent: Delegator) extends Delegate {
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
 
-  /** Avoid creating new arrays at the cost of this possibly getting modified. */
+  /** Avoid creating new arrays. */
   private val validRotations = Array(
     ForgeDirection.SOUTH,
     ForgeDirection.WEST,

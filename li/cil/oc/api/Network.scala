@@ -66,6 +66,22 @@ trait Network {
   def connect(nodeA: Node, nodeB: Node): Boolean
 
   /**
+   * Changes the address of a node.
+   * <p/>
+   * If another node with the specified address already exists in the network
+   * it will be forced to change its address to an arbitrarily assigned, not
+   * taken one.
+   * <p/>
+   * This is mainly used to restore a nodes address after it was loaded from
+   * an old state (chunk load).
+   *
+   * @param node the node to change the address of.
+   * @param address the new address of the node.
+   * @return whether the node's address changed.
+   */
+  def reconnect(node: Node, address: Int): Boolean
+
+  /**
    * Removes a node connection in the network.
    * <p/>
    * Both nodes must be part of the same network.
@@ -217,9 +233,6 @@ trait Network {
 }
 
 object Network {
-  /** Initialized in pre-init. */
-  private[oc] var network: Option[{def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int)}] = None
-
   /**
    * Tries to add a tile entity network node at the specified coordinates to adjacent networks.
    *
@@ -229,5 +242,12 @@ object Network {
    * @param z     the Z coordinate of the tile entity.
    */
   def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    network.foreach(_.joinOrCreateNetwork(world, x, y, z))
+    instance.foreach(_.joinOrCreateNetwork(world, x, y, z))
+
+  // ----------------------------------------------------------------------- //
+
+  /** Initialized in pre-init. */
+  private[oc] var instance: Option[ {
+    def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int)
+  }] = None
 }

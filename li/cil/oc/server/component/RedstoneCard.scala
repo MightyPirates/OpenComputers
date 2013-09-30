@@ -1,25 +1,23 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
-class RedstoneCard(nbt: NBTTagCompound) extends ItemComponent(nbt) {
+class RedstoneCard extends ItemComponent {
   override def name = "redstone"
 
-  override def receive(message: Message): Option[Array[Any]] = {
-    super.receive(message)
-    message.data match {
-      case Array(target: Double, side: Double) if message.name == "redstone.input" =>
-        input(target.toInt, side.toInt)
-      case Array(target: Double, side: Double) if message.name == "redstone.output" =>
-        output(target.toInt, side.toInt)
-      case Array(target: Double, side: Double, value: Double) if message.name == "redstone.output=" =>
-        output(target.toInt, side.toInt, value.toInt); None
-      case _ => None // Ignore.
-    }
+  override protected def receiveFromNeighbor(network: Network, message: Message) = message.data match {
+    case Array(target: Double, side: Double) if message.name == "redstone.input" =>
+      input(target.toInt, side.toInt)
+    case Array(target: Double, side: Double) if message.name == "redstone.output" =>
+      output(target.toInt, side.toInt)
+    case Array(target: Double, side: Double, value: Double) if message.name == "redstone.output=" =>
+      output(target.toInt, side.toInt, value.toInt); None
+    case _ => None // Ignore.
   }
 
   private def tryGet(target: Int) = network.fold(None: Option[Node])(_.node(target))

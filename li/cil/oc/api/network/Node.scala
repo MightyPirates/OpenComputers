@@ -1,7 +1,7 @@
 package li.cil.oc.api.network
 
+import li.cil.oc.api.{Persistable, Network}
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.api.Network
 
 /**
  * A single node in a `INetwork`.
@@ -10,7 +10,7 @@ import li.cil.oc.api.Network
  * will try to generate a unique address and assign it to new nodes. A node must
  * never ever change its address while in a network (because the lookup-table in
  * the network manager would not be notified of this change). If you must change
- * the address, remove the node first, change the address and then add it again.
+ * the address, use `Network.reconnect`.
  * <p/>
  * Per default there are two kinds of nodes: tile entities and item components.
  * If a `TileEntity` implements this interface adding/removal from its
@@ -24,7 +24,7 @@ import li.cil.oc.api.Network
  * blocks may be interfaced with a proxy block if a `IBlockDriver` exists
  * that supports the block.
  */
-trait Node {
+trait Node extends Persistable {
   /**
    * The name of the node.
    * <p/>
@@ -66,11 +66,7 @@ trait Node {
    *
    * @return the id of this node.
    */
-  def address = _address
-
-  def address_=(value: Int) = _address = value
-
-  private var _address = 0
+  var address = 0
 
   /**
    * The network this node is currently in.
@@ -118,7 +114,13 @@ trait Node {
    *
    * @param nbt the tag to read from.
    */
-  def load(nbt: NBTTagCompound) = address = nbt.getInteger("address")
+  def load(nbt: NBTTagCompound) = {
+    val oldAddress = nbt.getInteger("address")
+    network match {
+      case None => address = oldAddress
+      case Some(net) => net.reconnect(this, oldAddress)
+    }
+  }
 
   /**
    * Stores the node's address in the specified NBT tag, to keep addresses the

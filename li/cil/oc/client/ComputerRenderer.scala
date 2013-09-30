@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ComputerRenderer extends TileEntitySpecialRenderer {
-  private val frontOn = new ResourceLocation(Config.resourcePack, "textures/blocks/computer_front_on.png")
+  private val frontOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/computer_front_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val computer = tileEntity.asInstanceOf[Computer]

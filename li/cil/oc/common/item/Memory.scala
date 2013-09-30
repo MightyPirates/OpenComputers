@@ -9,6 +9,6 @@ class Memory(val parent: Delegator, val kiloBytes: Int) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Config.resourcePack + ":ram" + kiloBytes)
+    icon = iconRegister.registerIcon(Config.resourceDomain + ":ram" + kiloBytes)
   }
 }

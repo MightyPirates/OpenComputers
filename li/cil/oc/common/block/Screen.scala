@@ -42,9 +42,9 @@ class Screen(val parent: Delegator) extends Delegate {
     })
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.front = iconRegister.registerIcon(Config.resourcePack + ":screen_front")
-    Icons.side = iconRegister.registerIcon(Config.resourcePack + ":screen_side")
-    Icons.top = iconRegister.registerIcon(Config.resourcePack + ":screen_top")
+    Icons.front = iconRegister.registerIcon(Config.resourceDomain + ":screen_front")
+    Icons.side = iconRegister.registerIcon(Config.resourceDomain + ":screen_side")
+    Icons.top = iconRegister.registerIcon(Config.resourceDomain + ":screen_top")
   }
 
   // ----------------------------------------------------------------------- //
@@ -73,7 +73,7 @@ class Screen(val parent: Delegator) extends Delegate {
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
 
-  /** Avoid creating new arrays at the cost of this possibly getting modified. */
+  /** Avoid creating new arrays. */
   private val validRotations = Array(
     ForgeDirection.DOWN,
     ForgeDirection.UP,
