@@ -36,7 +36,7 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
       GL11.glScalef(1, -1, 1)
 
-      setTexture(frontOn)
+      bindTexture(frontOn)
       val t = Tessellator.instance
       t.startDrawingQuads()
       t.addVertexWithUV(0, 1, 0, 0, 1)
@@ -49,6 +49,4 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
       GL11.glPopAttrib()
     }
   }
-
-  private def setTexture(resource: ResourceLocation) = bindTexture(resource)
 }

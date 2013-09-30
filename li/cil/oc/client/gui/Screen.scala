@@ -128,7 +128,7 @@ object Screen {
 
       GL11.glNewList(displayLists.get, GL11.GL_COMPILE)
 
-      setTexture(borders)
+      textureManager.get.bindTexture(borders)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(
@@ -189,7 +189,4 @@ object Screen {
     t.addVertexWithUV(x, y, 0, u1d, v1d)
     t.draw()
   }
-
-  private def setTexture(value: ResourceLocation) =
-    textureManager.get.bindTexture(value)
 }

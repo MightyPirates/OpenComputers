@@ -46,7 +46,7 @@ class Computer(inventory: InventoryPlayer, val tileEntity: tileentity.Computer) 
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) = {
     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F)
-    setTexture(background)
+    mc.renderEngine.bindTexture(background)
     drawTexturedModalRect(x, y, 0, 0, xSize, ySize)
   }
 
@@ -59,7 +59,7 @@ class Computer(inventory: InventoryPlayer, val tileEntity: tileentity.Computer) 
     GL11.glEnable(GL11.GL_BLEND)
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
     GL11.glColor4f(1, 1, 1, 0.25f)
-    setTexture(icon)
+    mc.renderEngine.bindTexture(icon)
     val t = Tessellator.instance
     t.startDrawingQuads()
     t.addVertexWithUV(slot.xDisplayPosition, slot.yDisplayPosition + 16, zLevel, 0, 1)
@@ -69,7 +69,4 @@ class Computer(inventory: InventoryPlayer, val tileEntity: tileentity.Computer) 
     t.draw()
     GL11.glPopAttrib()
   }
-
-  private def setTexture(value: ResourceLocation) =
-    mc.renderEngine.bindTexture(value)
 }
