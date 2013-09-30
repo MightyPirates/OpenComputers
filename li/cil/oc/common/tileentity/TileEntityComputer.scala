@@ -9,8 +9,12 @@ import li.cil.oc.server.computer.{Computer => ServerComputer}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import ic2.api.energy.tile.IEnergySink
+import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
+import ic2.api.energy.event.EnergyTileLoadEvent
+import net.minecraft.tileentity.TileEntity
 
-class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy {
+class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with IComputerEnvironment with ItemComponentProxy  {
   def this() = this(false)
 
   protected val computer =
@@ -78,7 +82,7 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def updateEntity() = {
     computer.update()
     if (hasChanged.get) {
-      worldObj.updateTileEntityChunkAndDoNothing(
+      worldObj.markTileEntityChunkModified(
         xCoord, yCoord, zCoord, this)
       if (isRunning != computer.isRunning) {
         isRunning = computer.isRunning
@@ -104,4 +108,6 @@ class TileEntityComputer(isClient: Boolean) extends TileEntityRotatable with ICo
   override def world = worldObj
 
   override def markAsChanged() = hasChanged.set(true)
+
+
 }

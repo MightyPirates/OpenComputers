@@ -49,5 +49,5 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  private def setTexture(resource: ResourceLocation) = func_110628_a(resource)
+  private def setTexture(resource: ResourceLocation) = bindTexture(resource)
 }

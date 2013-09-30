@@ -178,5 +178,5 @@ object GuiScreen {
   }
 
   private def setTexture(value: ResourceLocation) =
-    textureManager.get.func_110577_a(value)
+    textureManager.get.bindTexture(value)
 }

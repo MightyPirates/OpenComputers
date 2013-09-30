@@ -70,5 +70,5 @@ class GuiComputer(inventory: InventoryPlayer, val tileEntity: TileEntityComputer
   }
 
   private def setTexture(value: ResourceLocation) =
-    mc.renderEngine.func_110577_a(value)
+    mc.renderEngine.bindTexture(value)
 }

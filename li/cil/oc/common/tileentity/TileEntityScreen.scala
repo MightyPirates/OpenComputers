@@ -69,6 +69,6 @@ class TileEntityScreen extends TileEntityRotatable with IScreenEnvironment {
     }
 
   private def markAsChanged(): Unit =
-    worldObj.updateTileEntityChunkAndDoNothing(
+    worldObj.markTileEntityChunkModified(
       xCoord, yCoord, zCoord, this)
 }

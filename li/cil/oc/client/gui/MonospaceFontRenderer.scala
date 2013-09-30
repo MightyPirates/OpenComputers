@@ -88,5 +88,5 @@ object MonospaceFontRenderer {
     }
   }
 
-  private def setTexture(tm: TextureManager, resource: ResourceLocation) = tm.func_110577_a(resource)
+  private def setTexture(tm: TextureManager, resource: ResourceLocation) = tm.bindTexture(resource)
 }
