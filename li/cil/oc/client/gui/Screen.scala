@@ -100,7 +100,7 @@ object Screen {
 
   val innerMargin = 1
 
-  private val borders = new ResourceLocation(Config.resourcePack, "textures/gui/borders.png")
+  private val borders = new ResourceLocation(Config.resourceDomain, "textures/gui/borders.png")
 
   private var textureManager: Option[TextureManager] = None
 

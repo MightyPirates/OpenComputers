@@ -1,8 +1,6 @@
 package li.cil.oc
 
 import li.cil.oc.common.item
-import li.cil.oc.server.component
-import li.cil.oc.util.ItemComponentCache
 
 object Items {
   var multi: item.Delegator = null
@@ -25,9 +23,5 @@ object Items {
     ram16k = new item.Memory(multi, 16)
     ram32k = new item.Memory(multi, 32)
     ram64k = new item.Memory(multi, 64)
-
-    ItemComponentCache.register(gpu.itemId, nbt => new component.GraphicsCard(nbt))
-    ItemComponentCache.register(hdd.itemId, nbt => new component.Disk(nbt))
-    ItemComponentCache.register(rs.itemId, nbt => new component.RedstoneCard(nbt))
   }
 }

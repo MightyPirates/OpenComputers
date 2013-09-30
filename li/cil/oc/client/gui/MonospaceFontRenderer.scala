@@ -9,9 +9,9 @@ import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  private val font = new ResourceLocation(Config.resourcePack, "textures/font/chars.png")
+  private val font = new ResourceLocation(Config.resourceDomain, "textures/font/chars.png")
 
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Config.resourcePack + "/textures/font/chars.txt")).mkString
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Config.resourceDomain + "/textures/font/chars.txt")).mkString
 
   private var instance: Option[Renderer] = None
 

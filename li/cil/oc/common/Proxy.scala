@@ -6,6 +6,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.server.component.Computer
 import li.cil.oc.server.driver
+import li.cil.oc.server.fs
 import li.cil.oc.server.network
 import net.minecraftforge.common.MinecraftForge
 import scala.Some
@@ -16,10 +17,12 @@ class Proxy {
 
     // Note: en_US is loaded automatically.
     LanguageRegistry.instance.loadLocalization(
-      "/assets/" + Config.resourcePack + "/lang/de_DE.lang", "de_DE", false)
+      "/assets/" + Config.resourceDomain + "/lang/de_DE.lang", "de_DE", false)
 
-    api.Driver.registry = Some(driver.Registry)
-    api.Network.network = Some(network.Network)
+    api.Driver.instance = Some(driver.Registry)
+    api.FileSystem.instance = Some(fs.FileSystem)
+    api.Network.instance = Some(network.Network)
+    api.Persistable.instance = Some(item.Persistable)
   }
 
   def init(e: FMLInitializationEvent): Unit = {
@@ -36,6 +39,7 @@ class Proxy {
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)
+    MinecraftForge.EVENT_BUS.register(item.Persistable)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {

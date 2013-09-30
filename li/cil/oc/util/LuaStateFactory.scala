@@ -42,7 +42,7 @@ object LuaStateFactory {
       case name if name.startsWith("mac") => ".dylib"
       case _ => ""
     }
-    val libPath = "/assets/" + Config.resourcePack + "/lib/"
+    val libPath = "/assets/" + Config.resourceDomain + "/lib/"
 
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")

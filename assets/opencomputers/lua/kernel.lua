@@ -148,7 +148,7 @@ end
 local function main(co)
   local args = {}
   while true do
-    deadline = os.realTime() + 3
+    deadline = os.realTime() + timeout -- timeout global is set by host
     if not debug.gethook(co) then
       debug.sethook(co, checkDeadline, "", 10000)
     end

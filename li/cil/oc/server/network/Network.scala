@@ -7,9 +7,10 @@ import _root_.net.minecraftforge.common.ForgeDirection
 import _root_.net.minecraftforge.event.ForgeSubscribe
 import _root_.net.minecraftforge.event.world.ChunkEvent
 import java.util.logging.Level
-import li.cil.oc.{api, OpenComputers}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.{network => net}
+import li.cil.oc.server.network.Network.Node
+import li.cil.oc.{api, OpenComputers}
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -93,8 +94,8 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
       val thisNodes = nodes.toBuffer
       val otherNetwork = addedNode.network.get.asInstanceOf[Network]
       val otherNodes = otherNetwork.nodes.toBuffer
-      otherNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), thisNodes)))
-      thisNodes.foreach(node => sendQueue += ((new Network.ConnectMessage(node), otherNodes)))
+      otherNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), thisNodes)))
+      thisNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), otherNodes)))
 
       // Change addresses for conflicting nodes in other network. We can queue
       // these messages because we're storing references to the nodes, so they
@@ -107,7 +108,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
         if (node.address != oldAddress) {
           reserved += node.address
           // Prepend to notify old nodes of address changes first.
-          sendQueue.+=:((new Network.ReconnectMessage(node, oldAddress), otherNodes))
+          sendQueue.+=:((Network.ReconnectMessage(node, oldAddress), otherNodes))
         }
       })
 
@@ -128,6 +129,54 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     for ((message, nodes) <- sendQueue) send(message, nodes)
 
     true
+  }
+
+  def reconnect(node: net.Node, address: Int): Boolean = {
+    if (!nodeMap.get(node.address).exists(_.exists(_.data == node))) throw new IllegalArgumentException(
+      "The node must already be in this network.")
+
+    val oldAddress = node.address
+    if (address == oldAddress) false
+    else {
+      val otherMessage = if (address < 1) {
+        node.address = 0
+        None
+      }
+      else {
+        // Check if there's a simple collision, if so resolve it.
+        nodeMap.get(address) match {
+          case None =>
+            // No collision.
+            node.address = address
+            None
+          case Some(otherList) =>
+            if (otherList.size > 1)
+              return false // Already multiple nodes with that address...
+            else {
+              // Simple collision.
+              val other = otherList.head
+              otherList -= other
+
+              other.data.address = findId()
+              nodeMap.getOrElseUpdate(other.data.address, new mutable.ArrayBuffer[Node]) += other
+              Some((Network.ReconnectMessage(other.data, address), nodes))
+            }
+        }
+      }
+
+      val oldList = nodeMap(oldAddress)
+      val innerNode = oldList.remove(oldList.indexWhere(_.data == node))
+      if (oldList.isEmpty)
+        nodeMap -= oldAddress
+      nodeMap.getOrElseUpdate(node.address, new mutable.ArrayBuffer[Node]) += innerNode
+
+      otherMessage.foreach {
+        case (message, targets) => send(message, targets)
+      }
+      send(Network.ReconnectMessage(node, oldAddress), nodes)
+
+      true
+    }
   }
 
   def disconnect(nodeA: net.Node, nodeB: net.Node) = {
@@ -233,57 +282,38 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
 
   private def send(message: Network.Message, targets: Iterable[net.Node]) =
     if (message.source.address > 0 && message.source.visibility != Visibility.None) {
-      def debug(target: net.Node) = {} // println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + ":" + message.source.name + " -> " + target.address + ":" + target.name + ")")
+      def protectedSend(target: net.Node) = try {
+        //println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address + ":" + message.source.name + " -> " + target.address + ":" + target.name + ")")
+        target.receive(message)
+      } catch {
+        case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e); None
+      }
+
       message match {
         case _@(Network.ConnectMessage(_) | Network.ReconnectMessage(_, _)) =>
           // Cannot be canceled but respects visibility.
-          message.source.visibility match {
+          (message.source.visibility match {
             case Visibility.Neighbors =>
+              // Note: the neighbors() call already filters out invalid nodes.
               val neighborSet = neighbors(message.source).toSet
-              val iterator = targets.filter(target => target == message.source || neighborSet.contains(target)).iterator
-              while (iterator.hasNext) try {
-                val target = iterator.next()
-                debug(target)
-                target.receive(message)
-              } catch {
-                case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-              }
+              targets.filter(target => target == message.source || neighborSet.contains(target))
             case Visibility.Network =>
-              val iterator = targets.filter(_.address > 0).filter(_.visibility == Visibility.Network).iterator
-              while (iterator.hasNext) try {
-                val target = iterator.next()
-                debug(target)
-                target.receive(message)
-              } catch {
-                case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-              }
-          }
+              targets.filter(_.address > 0).filter(_.visibility == Visibility.Network)
+          }).foreach(protectedSend)
           None
         case _@Network.DisconnectMessage(_) =>
           // Cannot be canceled but ignores visibility (because it'd be a pain to implement this otherwise).
-          val iterator = targets.filter(_.address > 0).iterator
-          while (iterator.hasNext) try {
-            val target = iterator.next()
-            debug(target)
-            target.receive(message)
-          } catch {
-            case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-          }
+          targets.filter(_.address > 0).foreach(protectedSend)
           None
         case _ =>
           // Can be canceled but ignores visibility.
           var result = None: Option[Array[Any]]
           val iterator = targets.filter(_.address > 0).iterator
-          while (!message.isCanceled && iterator.hasNext) try {
-            val target = iterator.next()
-            debug(target)
-            target.receive(message) match {
+          while (!message.isCanceled && iterator.hasNext)
+            protectedSend(iterator.next()) match {
               case None => // Ignore.
               case r => result = r
             }
-          } catch {
-            case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
-          }
           result
       }
     } else None

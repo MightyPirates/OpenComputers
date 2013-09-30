@@ -29,6 +29,7 @@ class Item(id: Int) extends ItemBlock(id) {
       world.getBlockTileEntity(x, y, z) match {
         case rotatable: Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player).invertRotation()
+        case _ => // Ignore.
       }
       true
     }
