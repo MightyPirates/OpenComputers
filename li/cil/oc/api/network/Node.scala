@@ -1,16 +1,14 @@
 package li.cil.oc.api.network
 
 import li.cil.oc.api.{Persistable, Network}
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 
 /**
  * A single node in a `INetwork`.
  * <p/>
- * All nodes in a network <em>should</em> have a unique address; the network
- * will try to generate a unique address and assign it to new nodes. A node must
- * never ever change its address while in a network (because the lookup-table in
- * the network manager would not be notified of this change). If you must change
- * the address, use `Network.reconnect`.
+ * All nodes in a network <em>must</em> have a unique address; the network will
+ * generate a unique address and assign it to new nodes. A node must never ever
+ * change its address on its own accord.
  * <p/>
  * Per default there are two kinds of nodes: tile entities and item components.
  * If a `TileEntity` implements this interface adding/removal from its
@@ -20,8 +18,8 @@ import net.minecraft.nbt.NBTTagCompound
  * All other kinds of nodes you may come up with will also have to be handled
  * manually.
  * <p/>
- * Items have to be handled by a corresponding `IItemDriver`. Existing
- * blocks may be interfaced with a proxy block if a `IBlockDriver` exists
+ * Items have to be handled by a corresponding `ItemDriver`. Existing
+ * blocks may be interfaced with a proxy block if a `BlockDriver` exists
  * that supports the block.
  */
 trait Node extends Persistable {
@@ -55,28 +53,24 @@ trait Node extends Persistable {
    * The address of the node, so that it can be found in the network.
    * <p/>
    * This is used by the network manager when a node is added to a network to
-   * assign it a unique address in that network. Nodes should avoid using custom
-   * addresses since that could lead to multiple nodes with the same address in
-   * a network. Note that that in and by itself is supported however, it is just
-   * harder to work with.
-   * <p/>
-   * Some nodes may however wish to simply ignore this and always provide the
-   * same address (e.g. zero), when they are never expected to be used by other
-   * nodes (cables, for example).
+   * assign it a unique address, if it doesn't already have one. Nodes must not
+   * use custom addresses, only those assigned by the network. The only option
+   * they have is to *not* have an address, which can be useful for "dummy"
+   * nodes, such as cables. In that case they may ignore the address being set.
    *
    * @return the id of this node.
    */
-  var address = 0
+  var address: Option[String] = None
 
   /**
    * The network this node is currently in.
    * <p/>
-   * Note that valid nodes should never return `null` here. When created a node
+   * Note that valid nodes should never return `None` here. When created a node
    * should immediately be added to a network, after being removed from its
-   * network it should be considered invalid.
+   * network a node should be considered invalid.
    * <p/>
-   * This is used by the `NetworkAPI` and the network itself when merging with
-   * another network. You should never have to set this yourself.
+   * This will always be set automatically by the network manager. Do not
+   * change this value and do not return anything that it wasn't set to.
    *
    * @return the network the node is in.
    */
@@ -101,7 +95,6 @@ trait Node extends Persistable {
     if (message.source == this) message.name match {
       case "network.connect" => onConnect()
       case "network.disconnect" => onDisconnect()
-      case "network.reconnect" => onReconnect()
       case _ => // Ignore.
     }
     None
@@ -109,31 +102,44 @@ trait Node extends Persistable {
 
   /**
    * Reads a previously stored address value from the specified tag.
-   *
-   * This should be called when implementing class is loaded.
+   * <p/>
+   * This should be called when associated object is loaded. For items, this
+   * should be called when their container is loaded. For blocks this should
+   * be called when their tile entity is loaded.
    *
    * @param nbt the tag to read from.
    */
   def load(nbt: NBTTagCompound) = {
-    network match {
-      case None => address = nbt.getInteger("address")
-      case Some(net) => net.reconnect(this, nbt.getInteger("address"))
-    }
+    if (nbt.hasKey("address") && nbt.getTag("address").isInstanceOf[NBTTagString])
+      address = Option(nbt.getString("address"))
   }
 
   /**
    * Stores the node's address in the specified NBT tag, to keep addresses the
    * same across unloading/loading.
-   *
-   * This should be called when the implementing class is saved.
+   * <p/>
+   * This should be called when the implementing class is saved. For items,
+   * this should be called when their container is saved. For blocks this
+   * should be called when their tile entity is saved.
    *
    * @param nbt the tag to write to.
    */
-  def save(nbt: NBTTagCompound) = nbt.setInteger("address", address)
+  def save(nbt: NBTTagCompound) = {
+    address.foreach(nbt.setString("address", _))
+  }
 
+  /**
+   * Called when this node is added to a network.
+   * <p/>
+   * Use this for custom initialization logic.
+   */
   protected def onConnect() {}
 
+  /**
+   * Called when this node is removed from a network.
+   * <p/>
+   * Use this for custom tear-down logic. A node should be considered invalid
+   * and non-reusable after this has happened.
+   */
   protected def onDisconnect() {}
-
-  protected def onReconnect() {}
 }

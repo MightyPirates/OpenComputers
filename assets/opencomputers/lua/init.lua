@@ -37,7 +37,7 @@ local weakListeners = {}
 local function listenersFor(name, weak)
   checkArg(1, name, "string")
   if weak then
-    weakListeners[name] = weakListeners[name] or setmetatable({}, {__mode = "k"})
+    weakListeners[name] = weakListeners[name] or setmetatable({}, {__mode = "v"})
     return weakListeners[name]
   else
     listeners[name] = listeners[name] or {}
@@ -52,13 +52,21 @@ local timers = {}
 --[[ Register a new event listener for the specified event. ]]
 function event.listen(name, callback, weak)
   checkArg(2, callback, "function")
-  listenersFor(name, weak)[callback] = true
+  table.insert(listenersFor(name, weak), callback)
 end
 
 --[[ Remove an event listener. ]]
 function event.ignore(name, callback)
-  listenersFor(name, false)[callback] = nil
-  listenersFor(name, true)[callback] = nil
+  local function remove(list)
+    for k, v in ipairs(list) do
+      if v == callback then
+        table.remove(k)
+        return
+      end
+    end
+  end
+  remove(listenersFor(name, false))
+  remove(listenersFor(name, true))
 end
 
 --[[ Dispatch an event with the specified parameter. ]]
@@ -67,13 +75,13 @@ function event.fire(name, ...)
   -- timer check (for example if we had no signal in coroutine.sleep()).
   if name then
     checkArg(1, name, "string")
-    for callback, _ in pairs(listenersFor(name, false)) do
+    for _, callback in ipairs(listenersFor(name, false)) do
       local result, message = xpcall(callback, event.error, name, ...)
       if not result and message then
         error(message, 0)
       end
     end
-    for callback, _ in pairs(listenersFor(name, true)) do
+    for _, callback in ipairs(listenersFor(name, true)) do
       local result, message = xpcall(callback, event.error, name, ...)
       if not result and message then
         error(message, 0)
@@ -133,100 +141,64 @@ end
 
 -------------------------------------------------------------------------------
 
---[[ Keep track of connected components across address changes. ]]
+--[[ Keep track of connected components. ]]
 local components = {}
 component = {}
 
-function component.address(id)
-  local component = components[id]
+function component.type(address)
+  local component = components[address]
   if component then
-    return component.address
+    return component
   end
 end
 
-function component.type(id)
-  local component = components[id]
-  if component then
-    return component.name
-  end
-end
-
-function component.id(address)
-  for id, component in pairs(components) do
-    if component.address == address then
-      return id
-    end
-  end
-end
-
-function component.ids()
-  local id = nil
+function component.list()
+  local address = nil
   return function()
-    id = next(components, id)
-    return id
+    address = next(components, address)
+    return address
   end
 end
 
 event.listen("component_added", function(_, address)
-  local id = #components + 1
-  components[id] = {address = address, name = driver.componentType(address)}
-  event.fire("component_installed", id)
+  components[address] = driver.componentType(address)
 end)
 
 event.listen("component_removed", function(_, address)
-  local id = component.id(address)
-  if id then
-    components[id] = nil
-    event.fire("component_uninstalled", id)
-  end
-end)
-
-event.listen("component_changed", function(_, newAddress, oldAddress)
-  local id = component.id(oldAddress)
-  if oldAddress > 0 and not id then return end
-  if oldAddress > 0 and newAddress == 0 then -- ~0 -> 0
-    components[id] = nil
-    event.fire("component_uninstalled", id)
-  elseif oldAddress == 0 and newAddress > 0 then -- 0 -> ~0
-    id = #components + 1
-    components[id] = {address = newAddress, name = driver.componentType(newAddress)}
-    event.fire("component_installed", id)
-  elseif oldAddress > 0 and newAddress > 0 then -- ~0 -> ~0
-    components[id].address = newAddress
-  end
+  components[address] = nil
 end)
 
 -------------------------------------------------------------------------------
 
 --[[ Setup terminal API. ]]
-local gpuId, screenId = 0, 0
+local gpuAddress, screenAddress = false, false
 local screenWidth, screenHeight = 0, 0
 local boundGpu = nil
 local cursorX, cursorY = 1, 1
 
-event.listen("component_installed", function(_, id)
-  local type = component.type(id)
-  if type == "gpu" and gpuId < 1 then
-    term.gpuId(id)
-  elseif type == "screen" and screenId < 1 then
-    term.screenId(id)
+event.listen("component_added", function(_, address)
+  local type = component.type(address)
+  if type == "gpu" and not gpuAddress then
+    term.gpu(address)
+  elseif type == "screen" and not screenAddress then
+    term.screen(address)
   end
 end)
 
-event.listen("component_uninstalled", function(_, id)
-  if gpuId == id then
-    term.gpuId(0)
-    for id in component.ids() do
-      if component.type(id) == "gpu" then
-        term.gpuId(id)
+event.listen("component_removed", function(_, address)
+  if gpuAddress == address then
+    term.gpu(false)
+    for address in component.list() do
+      if component.type(address) == "gpu" then
+        term.gpu(address)
         return
       end
     end
-  elseif screenId == id then
-    term.screenId(0)
-    for id in component.ids() do
-      if component.type(id) == "screen" then
-        term.screenId(id)
+  elseif screenAddress == address then
+    term.screen(false)
+    for address in component.list() do
+      if component.type(address) == "screen" then
+        term.screen(address)
         return
       end
     end
@@ -234,17 +206,16 @@ event.listen("component_uninstalled", function(_, id)
 end)
 
 event.listen("screen_resized", function(_, address, w, h)
-  local id = component.id(address)
-  if id == screenId then
+  if address == screenAddress then
     screenWidth = w
     screenHeight = h
   end
 end)
 
 local function bindIfPossible()
-  if gpuId > 0 and screenId > 0 then
+  if gpuAddress and screenAddress then
     if not boundGpu then
-      boundGpu = driver.gpu.bind(gpuId, screenId)
+      boundGpu = driver.gpu.bind(gpuAddress, screenAddress)
       screenWidth, screenHeight = boundGpu.getResolution()
       event.fire("term_available")
     end
@@ -257,30 +228,26 @@ end
 
 term = {}
 
-function term.gpu()
-  return boundGpu
-end
-
 function term.screenSize()
   return screenWidth, screenHeight
 end
 
-function term.gpuId(id)
-  if id then
-    checkArg(1, id, "number")
-    gpuId = id
+function term.gpu(address)
+  if address ~= nil then
+    checkArg(1, address, "string", "boolean")
+    gpuAddress = address
     bindIfPossible()
   end
-  return gpuId
+  return gpuAddress
 end
 
-function term.screenId(id)
-  if id then
-    checkArg(1, id, "number")
-    screenId = id
+function term.screen(address)
+  if address ~= nil then
+    checkArg(1, address, "string", "boolean")
+    screenAddress = address
     bindIfPossible()
   end
-  return screenId
+  return screenAddress
 end
 
 function term.getCursor()
@@ -359,23 +326,23 @@ end
 -------------------------------------------------------------------------------
 
 --[[ Primitive command line. ]]
-local keyboardId = 0
+local keyboardAddress = false
 local lastCommand, command = "", ""
 local isRunning = false
 
-event.listen("component_installed", function(_, id)
-  local type = component.type(id)
-  if type == "keyboard" and keyboardId < 1 then
-    keyboardId = id
+event.listen("component_added", function(_, address)
+  local type = component.type(address)
+  if type == "keyboard" and not keyboardAddress then
+    term.keyboardAddress(address)
   end
 end)
 
-event.listen("component_uninstalled", function(_, id)
-  if keyboardId == id then
-    keyboardId = 0
-    for id in component.ids() do
-      if component.type(id) == "keyboard" then
-        keyboardId = id
+event.listen("component_uninstalled", function(_, address)
+  if keyboardAddress == address then
+    term.keyboardAddress(false)
+    for address in component.list() do
+      if component.type(address) == "keyboard" then
+        term.keyboardAddress(address)
         return
       end
     end
@@ -383,17 +350,17 @@ event.listen("component_uninstalled", function(_, id)
 end)
 
 -- Put this into the term table since other programs may want to use it, too.
-function term.keyboardId(id)
-  if id then
-    checkArg(1, id, "number")
-    keyboardId = id
+function term.keyboardAddress(address)
+  if address ~= nil then
+    checkArg(1, address, "string", "boolean")
+    keyboardAddress = address
   end
-  return keyboardId
+  return keyboardAddress
 end
 
 local function onKeyDown(_, address, char, code)
   if isRunning then return end -- ignore events while running a command
-  if component.id(address) ~= keyboardId then return end
+  if address ~= keyboardAddress then return end
   if not boundGpu then return end
   local x, y = term.getCursor()
   local keys = driver.keyboard.keys
@@ -438,7 +405,7 @@ end
 
 local function onClipboard(_, address, value)
   if isRunning then return end -- ignore events while running a command
-  if component.id(address) ~= keyboardId then return end
+  if address ~= keyboardAddress then return end
   value = value:match("([^\r\n]+)")
   if value and value:len() > 0 then
     command = command .. value
@@ -466,13 +433,12 @@ end)
 local blinkState = false
 while true do
   coroutine.sleep(0.5)
-  local gpu = term.gpu()
-  if gpu then
+  if boundGpu then
     local x, y = term.getCursor()
     if blinkState then
-      term.gpu().set(x, y, string.char(0x2588)) -- Solid block.
+      boundGpu.set(x, y, string.char(0x2588)) -- Solid block.
     else
-      term.gpu().set(x, y, " ")
+      boundGpu.set(x, y, " ")
     end
   end
   blinkState = not blinkState

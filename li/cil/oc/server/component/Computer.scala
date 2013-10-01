@@ -159,7 +159,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       signal("")
 
       // Inject component added signals for all nodes in the network.
-      owner.network.foreach(_.nodes(owner).foreach(node => signal("component_added", node.address)))
+      owner.network.foreach(_.nodes(owner).foreach(node => signal("component_added", node.address.get)))
 
       // All green, computer started successfully.
       true
@@ -242,12 +242,12 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
             // exception to a string (which we have to do to avoid keeping
             // userdata on the stack, which cannot be persisted).
             OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-            owner.network.foreach(_.sendToAll(owner, "computer.crashed", "not enough memory"))
+            //owner.network.foreach(_.sendToVisible(owner, "computer.crashed", "not enough memory"))
             close()
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
             OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
             // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
-            owner.network.foreach(_.sendToAll(owner, "computer.crashed", "not enough memory"))
+            //owner.network.foreach(_.sendToVisible(owner, "computer.crashed", "not enough memory"))
             close()
           case e: Throwable => {
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
@@ -488,7 +488,10 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
       // Allow the computer to figure out its own id in the component network.
       lua.pushScalaFunction(lua => {
-        lua.pushInteger(owner.address)
+        owner.address match {
+          case None => lua.pushNil()
+          case Some(address) => lua.pushString(address)
+        }
         1
       })
       lua.setField(-2, "address")
@@ -555,7 +558,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
       lua.pushScalaFunction(lua =>
         owner.network.fold(None: Option[Array[Any]])(_.
-          sendToAddress(owner, lua.checkInteger(1), lua.checkString(2), parseArguments(lua, 3): _*)) match {
+          sendToAddress(owner, lua.checkString(1), lua.checkString(2), parseArguments(lua, 3): _*)) match {
           case Some(Array(results@_*)) =>
             results.foreach(pushResult(lua, _))
             results.length
@@ -563,14 +566,14 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         })
       lua.setGlobal("sendToNode")
 
-      lua.pushScalaFunction(lua => {
-        owner.network.foreach(_.sendToAll(owner, lua.checkString(1), parseArguments(lua, 2): _*))
-        0
-      })
-      lua.setGlobal("sendToAll")
+//      lua.pushScalaFunction(lua => {
+//        owner.network.foreach(_.sendToVisible(owner, lua.checkString(1), parseArguments(lua, 2): _*))
+//        0
+//      })
+//      lua.setGlobal("sendToAll")
 
       lua.pushScalaFunction(lua => {
-        owner.network.fold(None: Option[Node])(_.node(lua.checkInteger(1))) match {
+        owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {
           case None => 0
           case Some(node) => lua.pushString(node.name); 1
         }

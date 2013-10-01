@@ -10,23 +10,18 @@ import scala.collection.mutable
 
 class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
 
-  private val handles = mutable.Map.empty[Int, mutable.Set[Long]]
+  private val handles = mutable.Map.empty[String, mutable.Set[Long]]
 
   override def name = "fs"
 
   override def receive(message: Message) = {
     message.data match {
-      case Array() if message.name == "network.disconnect" && handles.contains(message.source.address) =>
-        for (handle <- handles(message.source.address)) {
+      case Array() if message.name == "network.disconnect" && handles.contains(message.source.address.get) =>
+        for (handle <- handles(message.source.address.get)) {
           fileSystem.file(handle) match {
             case None => // Maybe file system was accessed from somewhere else.
             case Some(file) => file.close()
           }
-        }
-      case Array(oldAddress: Int) if message.name == "network.reconnect" =>
-        handles.remove(oldAddress) match {
-          case None => // Node held no handles.
-          case Some(set) => handles += message.source.address -> set
         }
       case _ => // Ignore.
     }
@@ -54,7 +49,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
         case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
           val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
           if (handle > 0) {
-            handles.getOrElseUpdate(message.source.address, mutable.Set.empty[Long]) += handle
+            handles.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Long]) += handle
           }
           Some(Array(handle.asInstanceOf[Any]))
 
@@ -62,7 +57,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
           fileSystem.file(handle.toLong) match {
             case None => // Ignore.
             case Some(file) =>
-              handles.get(message.source.address) match {
+              handles.get(message.source.address.get) match {
                 case None => // Not the owner of this handle.
                 case Some(set) => if (set.remove(handle.toLong)) file.close()
               }

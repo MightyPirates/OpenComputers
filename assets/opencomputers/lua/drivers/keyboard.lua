@@ -1,4 +1,3 @@
---[[ API for keyboards. ]]
 driver.keyboard = {}
 
 driver.keyboard.keys = {

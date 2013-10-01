@@ -32,14 +32,14 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     message.data match {
       // The isRunning check is here to avoid component_* signals being
       // generated while loading a chunk.
-      case Array() if message.name == "network.connect" && message.source.address != 0 && isRunning =>
-        computer.signal("component_added", message.source.address); None
-      case Array() if message.name == "network.disconnect" && message.source.address != 0 && isRunning =>
-        computer.signal("component_removed", message.source.address); None
+      case Array() if message.name == "network.connect" && isRunning =>
+        computer.signal("component_added", message.source.address.get); None
+      case Array() if message.name == "network.disconnect" && isRunning =>
+        computer.signal("component_removed", message.source.address.get); None
       case Array(oldAddress: Integer) if message.name == "network.reconnect" && isRunning =>
-        computer.signal("component_changed", message.source.address, oldAddress); None
+        computer.signal("component_changed", message.source.address.get, oldAddress); None
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        computer.signal(name, List(message.source.address) ++ args: _*); None
+        computer.signal(name, List(message.source.address.get) ++ args: _*); None
       case Array() if message.name == "computer.start" =>
         Some(Array(turnOn().asInstanceOf[Any]))
       case Array() if message.name == "computer.stop" =>
@@ -48,11 +48,6 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
         Some(Array(isOn.asInstanceOf[Any]))
       case _ => None
     }
-  }
-
-  override protected def onReconnect() = {
-    super.onReconnect()
-    computer.signal("address_change", address)
   }
 
   // ----------------------------------------------------------------------- //
@@ -97,9 +92,9 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     if (isRunning != computer.isRunning) {
       isRunning = computer.isRunning
       if (isRunning)
-        network.foreach(_.sendToAll(this, "computer.started"))
+        network.foreach(_.sendToVisible(this, "computer.started"))
       else
-        network.foreach(_.sendToAll(this, "computer.stopped"))
+        network.foreach(_.sendToVisible(this, "computer.stopped"))
       ServerPacketSender.sendComputerState(this, isRunning)
     }
   }

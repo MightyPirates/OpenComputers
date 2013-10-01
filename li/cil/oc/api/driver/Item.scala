@@ -75,6 +75,8 @@ trait Item extends Driver {
    * @return the tag to use for saving and loading.
    */
   def nbt(item: ItemStack) = {
+    if (!item.hasTagCompound)
+      item.setTagCompound(new NBTTagCompound())
     val nbt = item.getTagCompound
     if (!nbt.hasKey("oc.node")) {
       nbt.setCompoundTag("oc.node", new NBTTagCompound())

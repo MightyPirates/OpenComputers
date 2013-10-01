@@ -1,6 +1,5 @@
---[[ API for Redstone Cards. ]]
-
 driver.redstone = {}
+driver.rs = driver.redstone
 
 driver.redstone.sides = {"top", "bottom", "left", "right", "front", "back"}
 

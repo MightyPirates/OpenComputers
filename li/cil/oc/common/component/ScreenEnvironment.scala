@@ -15,7 +15,7 @@ trait ScreenEnvironment extends Node {
 
   override def name = "screen"
 
-  override def visibility = Visibility.Neighbors
+  override def visibility = Visibility.Network
 
   override def receive(message: Message): Option[Array[Any]] = {
     super.receive(message)
@@ -53,7 +53,7 @@ trait ScreenEnvironment extends Node {
   }
 
   def onScreenResolutionChange(w: Int, h: Int) =
-    network.foreach(_.sendToAll(this, "computer.signal", "screen_resized", w, h))
+    network.foreach(_.sendToVisible(this, "computer.signal", "screen_resized", w, h))
 
   def onScreenSet(col: Int, row: Int, s: String) {}
 
