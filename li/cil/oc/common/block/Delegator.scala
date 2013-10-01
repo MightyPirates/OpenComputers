@@ -113,6 +113,8 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
+  override def getDamageValue(world: World, x: Int, y: Int, z: Int) = world.getBlockMetadata(x, y, z)
+
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case None => false

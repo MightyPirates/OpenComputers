@@ -5,7 +5,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.network.Message
 import net.minecraft.nbt.NBTTagCompound
 
-class FileSystem(val fileSystem: api.FileSystem, val nbt: NBTTagCompound) extends ItemComponent {
+class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
   override def name = "disk"
 
   override protected def receiveFromNeighbor(network: Network, message: Message) = message.data match {
@@ -23,4 +23,18 @@ class FileSystem(val fileSystem: api.FileSystem, val nbt: NBTTagCompound) extend
 
   // TODO
   private def clean(path: String) = path
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+
+    fileSystem.load(nbt.getCompoundTag("fs"))
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+
+    val fsNbt = new NBTTagCompound()
+    fileSystem.save(fsNbt)
+    nbt.setCompoundTag("fs", fsNbt)
+  }
 }

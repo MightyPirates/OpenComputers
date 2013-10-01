@@ -31,7 +31,7 @@ object OpenComputers {
 
   @SidedProxy(
     clientSide = "li.cil.oc.client.Proxy",
-    serverSide = "li.cil.oc.server.Proxy")
+    serverSide = "li.cil.oc.common.Proxy")
   var proxy: Proxy = null
 
   @EventHandler
