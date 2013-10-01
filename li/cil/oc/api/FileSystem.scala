@@ -2,6 +2,8 @@ package li.cil.oc.api
 
 import li.cil.oc.api.fs.{Mode, File}
 import li.cil.oc.api.network.Node
+import scala.language.reflectiveCalls
+import li.cil.oc.api.detail.FileSystemAPI
 
 /**
  * Interface for disk driver compatible file systems.
@@ -121,7 +123,7 @@ trait FileSystem extends Persistable {
   def file(handle: Long): Option[File]
 }
 
-object FileSystem {
+object FileSystem extends FileSystemAPI {
   /**
    * Creates a new file system based on a JAR file containing a class.
    * <p/>
@@ -155,9 +157,5 @@ object FileSystem {
   // ----------------------------------------------------------------------- //
 
   /** Initialized in pre-init. */
-  private[oc] var instance: Option[ {
-    def fromClass(clazz: Class[_], domain: String, root: String): Option[FileSystem]
-
-    def asNode(fs: FileSystem): Option[Node]
-  }] = None
+  private[oc] var instance: Option[FileSystemAPI] = None
 }

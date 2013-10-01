@@ -2,6 +2,7 @@ package li.cil.oc.api
 
 import li.cil.oc.api.network.Node
 import net.minecraft.world.IBlockAccess
+import li.cil.oc.api.detail.NetworkAPI
 
 /**
  * Interface for interacting with component networks.
@@ -110,6 +111,8 @@ trait Network {
    */
   def remove(node: Node): Boolean
 
+  // ----------------------------------------------------------------------- //
+
   /**
    * Get the valid network node with the specified address.
    * <p/>
@@ -163,6 +166,8 @@ trait Network {
    * @throws IllegalArgumentException if the specified node is not in this network.
    */
   def neighbors(node: Node): Iterable[Node]
+
+  // ----------------------------------------------------------------------- //
 
   /**
    * Sends a message to a specific address, which may mean multiple nodes.
@@ -232,7 +237,7 @@ trait Network {
   def sendToAll(source: Node, name: String, data: Any*)
 }
 
-object Network {
+object Network extends NetworkAPI {
   /**
    * Tries to add a tile entity network node at the specified coordinates to adjacent networks.
    *
@@ -247,7 +252,5 @@ object Network {
   // ----------------------------------------------------------------------- //
 
   /** Initialized in pre-init. */
-  private[oc] var instance: Option[ {
-    def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int)
-  }] = None
+  private[oc] var instance: Option[NetworkAPI] = None
 }

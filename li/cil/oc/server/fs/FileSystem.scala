@@ -4,7 +4,7 @@ import java.util.zip.ZipFile
 import li.cil.oc.api
 import li.cil.oc.api.network.Node
 
-object FileSystem {
+object FileSystem extends api.detail.FileSystemAPI {
   def fromClass(clazz: Class[_], domain: String, root: String): Option[api.FileSystem] = {
     val codeSource = clazz.getProtectionDomain.getCodeSource
     if (codeSource == null) return None

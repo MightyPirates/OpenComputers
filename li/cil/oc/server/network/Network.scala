@@ -322,7 +322,7 @@ class Network private(private val nodeMap: mutable.Map[Int, ArrayBuffer[Network.
     address => !nodeMap.contains(address) && !reserved.contains(address)).get
 }
 
-object Network {
+object Network extends api.detail.NetworkAPI {
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =
     onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))

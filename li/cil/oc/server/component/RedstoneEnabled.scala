@@ -7,9 +7,13 @@ trait RedstoneEnabled {
 
   def input(side: ForgeDirection): Int
 
-  def output = new {
-    def apply(side: ForgeDirection) = _output(side.ordinal)
+  def output = _outputAccess
 
-    def update(side: ForgeDirection, value: Int) = _output(side.ordinal) = value
+  /** Avoid reflective access. */
+  class OutputAccess(val parent: RedstoneEnabled) {
+    def apply(side: ForgeDirection) = parent._output(side.ordinal)
+
+    def update(side: ForgeDirection, value: Int) = parent._output(side.ordinal) = value
   }
+  private val _outputAccess = new OutputAccess(this)
 }

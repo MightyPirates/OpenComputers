@@ -1,5 +1,6 @@
 package li.cil.oc.server.driver
 
+import li.cil.oc.api
 import li.cil.oc.api.driver.{Block, Item}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -20,7 +21,7 @@ import scala.collection.mutable.ArrayBuffer
  * usually require a component of the type the driver wraps to be installed in
  * the computer, but may also provide context-free functions.
  */
-private[oc] object Registry {
+private[oc] object Registry extends api.detail.DriverAPI {
   /** The list of registered block drivers. */
   private val blocks = ArrayBuffer.empty[Block]
 

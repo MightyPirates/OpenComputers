@@ -2,6 +2,7 @@ package li.cil.oc.api
 
 import java.io.InputStream
 import li.cil.oc.api.driver.{Item, Block}
+import li.cil.oc.api.detail.DriverAPI
 
 /**
  * This interface specifies the structure of a driver for a component.
@@ -46,17 +47,27 @@ trait Driver {
   def api: Option[InputStream] = None
 }
 
-object Driver {
+object Driver extends DriverAPI {
+  /**
+   * Registers a new block driver.
+   * <p/>
+   * This must be called in the init phase, *not* the pre- or post-init phases.
+   *
+   * @param driver the driver to register.
+   */
   def add(driver: Block) = instance.foreach(_.add(driver))
 
+  /**
+   * Registers a new item driver.
+   * <p/>
+   * This must be called in the init phase, *not* the pre- or post-init phases.
+   *
+   * @param driver the driver to register.
+   */
   def add(driver: Item) = instance.foreach(_.add(driver))
 
   // ----------------------------------------------------------------------- //
 
   /** Initialized in pre-init. */
-  private[oc] var instance: Option[ {
-    def add(driver: Block)
-
-    def add(driver: Item)
-  }] = None
+  private[oc] var instance: Option[DriverAPI] = None
 }
