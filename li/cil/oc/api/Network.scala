@@ -1,8 +1,8 @@
 package li.cil.oc.api
 
+import li.cil.oc.api.detail.NetworkAPI
 import li.cil.oc.api.network.Node
 import net.minecraft.world.IBlockAccess
-import li.cil.oc.api.detail.NetworkAPI
 
 /**
  * Interface for interacting with component networks.

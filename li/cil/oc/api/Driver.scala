@@ -1,8 +1,8 @@
 package li.cil.oc.api
 
 import java.io.InputStream
-import li.cil.oc.api.driver.{Item, Block}
 import li.cil.oc.api.detail.DriverAPI
+import li.cil.oc.api.driver.{Item, Block}
 
 /**
  * This interface specifies the structure of a driver for a component.

@@ -1,6 +1,6 @@
 package li.cil.oc.api.network
 
-import _root_.scala.beans.BeanProperty
+import scala.beans.BeanProperty
 
 /**
  * This type is used to deliver messages sent in a component network.

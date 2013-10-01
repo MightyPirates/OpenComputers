@@ -1,7 +1,7 @@
 package li.cil.oc.server.driver
 
-import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.component
 import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack

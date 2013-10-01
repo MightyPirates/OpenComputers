@@ -15,5 +15,6 @@ trait RedstoneEnabled {
 
     def update(side: ForgeDirection, value: Int) = parent._output(side.ordinal) = value
   }
+
   private val _outputAccess = new OutputAccess(this)
 }

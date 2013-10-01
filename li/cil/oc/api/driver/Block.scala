@@ -1,8 +1,8 @@
 package li.cil.oc.api.driver
 
+import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Node
 import net.minecraft.world.World
-import li.cil.oc.api.Driver
 
 /**
  * Interface for block component drivers.

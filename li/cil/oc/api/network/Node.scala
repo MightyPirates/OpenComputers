@@ -115,10 +115,9 @@ trait Node extends Persistable {
    * @param nbt the tag to read from.
    */
   def load(nbt: NBTTagCompound) = {
-    val oldAddress = nbt.getInteger("address")
     network match {
-      case None => address = oldAddress
-      case Some(net) => net.reconnect(this, oldAddress)
+      case None => address = nbt.getInteger("address")
+      case Some(net) => net.reconnect(this, nbt.getInteger("address"))
     }
   }
 

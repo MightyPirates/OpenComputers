@@ -4,6 +4,10 @@ package li.cil.oc.api.fs
  * Represents a handle to a file opened from a `FileSystem`.
  */
 trait File {
+  def position: Long
+
+  def length: Long
+
   /**
    * Closes the underlying handle.
    * <p/>
@@ -21,6 +25,8 @@ trait File {
    *                     error occurred or the file was already closed.
    */
   def read(into: Array[Byte]): Int
+
+  def seek(to: Long): Long
 
   /**
    * Tries to write all the data from the specified array into the file.

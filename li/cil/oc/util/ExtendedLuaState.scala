@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
-import scala.language.implicitConversions
 import com.naef.jnlua.{JavaFunction, LuaState}
+import scala.language.implicitConversions
 
 object ExtendedLuaState {
 

@@ -517,7 +517,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       def parseArgument(lua: LuaState, index: Int) = lua.`type`(index) match {
         case LuaType.BOOLEAN => lua.toBoolean(index)
         case LuaType.NUMBER => lua.toNumber(index)
-        case LuaType.STRING => lua.toString(index)
+        case LuaType.STRING => lua.toByteArray(index)
         case _ => Unit
       }
 
@@ -533,6 +533,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         case value: Float => lua.pushNumber(value)
         case value: Double => lua.pushNumber(value)
         case value: String => lua.pushString(value)
+        case value: Array[Byte] => lua.pushByteArray(value)
         case value: Array[_] => {
           lua.newTable()
           value.zipWithIndex.foreach {

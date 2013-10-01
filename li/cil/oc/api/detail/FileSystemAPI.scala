@@ -1,7 +1,7 @@
 package li.cil.oc.api.detail
 
-import li.cil.oc.api.network.Node
 import li.cil.oc.api.FileSystem
+import li.cil.oc.api.network.Node
 
 /** Avoids reflection structural types would induce. */
 trait FileSystemAPI {

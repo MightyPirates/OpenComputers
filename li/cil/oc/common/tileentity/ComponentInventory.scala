@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.component
@@ -10,7 +11,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
-import li.cil.oc.Items
 
 trait ComponentInventory extends IInventory with Node {
   protected val inventory = new Array[ItemStack](inventorySize)

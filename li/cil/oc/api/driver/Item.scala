@@ -1,8 +1,8 @@
 package li.cil.oc.api.driver
 
+import li.cil.oc.api.Driver
 import li.cil.oc.api.network.Node
 import net.minecraft.item.ItemStack
-import li.cil.oc.api.Driver
 import net.minecraft.nbt.NBTTagCompound
 
 /**

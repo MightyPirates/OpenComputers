@@ -7,7 +7,18 @@ import li.cil.oc.api.fs.{File, Mode}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
+// TODO we may want to read in the complete zip file (and keep a cache in the
+// factory) to avoid a ton of open real file handles.
 class ZipFileSystem(val zip: ZipFile, val root: String) extends api.FileSystem {
+
+  private val directories = mutable.Map.empty[ZipEntry, Array[String]]
+
+  private val handles = mutable.Map.empty[Long, ZipFile]
+
+  private val maxHandles = 32
+
+  // ----------------------------------------------------------------------- //
+
   def exists(path: String) = entry(path).isDefined
 
   def size(path: String) = entry(path).fold(0L)(_.getSize)
@@ -36,7 +47,7 @@ class ZipFileSystem(val zip: ZipFile, val root: String) extends api.FileSystem {
       val position = handleNbt.getLong("position")
       entry(name) match {
         case Some(entry) =>
-          val file = new ZipFile(this, handle, name, zip.getInputStream(entry))
+          val file = new ZipFile(this, handle, name, entry.getSize, zip.getInputStream(entry))
           val skipped = file.stream.skip(position)
           file.position = skipped // May be != position if the file changed since we saved.
           handles += handle -> file
@@ -58,11 +69,15 @@ class ZipFileSystem(val zip: ZipFile, val root: String) extends api.FileSystem {
     nbt.setTag("handles", handlesNbt)
   }
 
+  def close() {
+    for (handle <- handles.values) handle.close()
+    zip.close()
+    directories.clear()
+  }
+
   // ----------------------------------------------------------------------- //
 
-  private val directories = mutable.Map.empty[ZipEntry, Array[String]]
-
-  private def entry(path: String) = Option(zip.getEntry(root + path))
+  private def entry(path: String) = Option(zip.getEntry((root + path.replace("\\", "/")).replace("//", "/")))
 
   private def entries(path: ZipEntry) = directories.get(path).getOrElse {
     val pathName = root + path.getName
@@ -79,10 +94,17 @@ class ZipFileSystem(val zip: ZipFile, val root: String) extends api.FileSystem {
     children
   }
 
+  private def openHandle(entry: ZipEntry) = if (handles.size < maxHandles) {
+    val handle = Iterator.continually((Math.random() * Long.MaxValue).toLong + 1).filterNot(handles.contains).next()
+    handles += handle -> new ZipFile(this, handle, entry.getName, entry.getSize, zip.getInputStream(entry))
+    handle
+  } else 0L
+
   // ----------------------------------------------------------------------- //
 
-  private class ZipFile(val owner: ZipFileSystem, val handle: Long, val name: String, val stream: InputStream) extends File {
+  private class ZipFile(val owner: ZipFileSystem, val handle: Long, val name: String, val length: Long, val stream: InputStream) extends File {
     var isClosed = false
+
     var position = 0L
 
     def close() = if (!isClosed) {
@@ -98,16 +120,12 @@ class ZipFileSystem(val zip: ZipFile, val root: String) extends api.FileSystem {
       read
     }
 
+    def seek(to: Long) = {
+      stream.reset()
+      stream.skip(to)
+    }
+
     def write(value: Array[Byte]) = throw new IOException()
   }
 
-  private val handles = mutable.Map.empty[Long, ZipFile]
-
-  private val maxHandles = 32
-
-  private def openHandle(entry: ZipEntry) = if (handles.size < maxHandles) {
-    val handle = Iterator.continually((Math.random() * Long.MaxValue).toLong + 1).filterNot(handles.contains).next()
-    handles += handle -> new ZipFile(this, handle, entry.getName, zip.getInputStream(entry))
-    handle
-  } else 0L
 }

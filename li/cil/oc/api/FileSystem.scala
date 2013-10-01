@@ -1,9 +1,9 @@
 package li.cil.oc.api
 
+import li.cil.oc.api.detail.FileSystemAPI
 import li.cil.oc.api.fs.{Mode, File}
 import li.cil.oc.api.network.Node
 import scala.language.reflectiveCalls
-import li.cil.oc.api.detail.FileSystemAPI
 
 /**
  * Interface for disk driver compatible file systems.
@@ -74,6 +74,8 @@ trait FileSystem extends Persistable {
    */
   def list(path: String): Option[Array[String]]
 
+  // ----------------------------------------------------------------------- //
+
   /**
    * Deletes a file or folder.
    * <p/>
@@ -121,6 +123,21 @@ trait FileSystem extends Persistable {
    * @return the wrapper for that handle ID; None if the ID is invalid.
    */
   def file(handle: Long): Option[File]
+
+  /**
+   * Called when the file system is deconstructed.
+   * <p/>
+   * This should close any open real file handles (e.g. all open I/O streams)
+   * and clear any other internal state.
+   * <p/>
+   * When the filesystem is made available as a network node created via
+   * `FileSystem.asNode` this will be called whenever the node is disconnected
+   * from its network. If the node was used to represent an item (which will
+   * be the usual use-case, I imagine) this means the item was removed from
+   * its container (e.g. hard drive from a computer) or the container was
+   * unloaded.
+   */
+  def close()
 }
 
 object FileSystem extends FileSystemAPI {
