@@ -3,7 +3,6 @@ package li.cil.oc.server.component
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.Message
 import li.cil.oc.api.network.Node
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 

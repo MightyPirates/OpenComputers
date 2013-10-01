@@ -244,6 +244,11 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
             OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
             owner.network.foreach(_.sendToAll(owner, "computer.crashed", "not enough memory"))
             close()
+          case e: java.lang.Error if e.getMessage == "not enough memory" =>
+            OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
+            // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
+            owner.network.foreach(_.sendToAll(owner, "computer.crashed", "not enough memory"))
+            close()
           case e: Throwable => {
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
             close()

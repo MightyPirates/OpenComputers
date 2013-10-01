@@ -3,6 +3,7 @@ package li.cil.oc.api.driver
 import li.cil.oc.api.network.Node
 import net.minecraft.item.ItemStack
 import li.cil.oc.api.Driver
+import net.minecraft.nbt.NBTTagCompound
 
 /**
  * Interface for item component drivers.
@@ -54,9 +55,30 @@ trait Item extends Driver {
    * added to a computer, for example. Components that are not part of the
    * component network probably don't make much sense (can't think of any uses
    * at this time), but you may still opt to not implement this.
+   * <p/>
+   * This is expected to return a *new instance* each time it is called.
    *
    * @param item the item instance for which to get the node.
    * @return the network node for that item.
    */
   def node(item: ItemStack): Option[Node] = None
+
+  /**
+   * Get the tag compound based on the item stack to use for persisting the
+   * node associated with the specified item stack.
+   * <p/>
+   * This is only used if `node` is not `None`. This must always be a child
+   * tag of the items own tag compound, it will not be saved otherwise. Use
+   * this in the unlikely case that the default name collides with something.
+   *
+   * @param item the item to get the child tag to use for the `node`.
+   * @return the tag to use for saving and loading.
+   */
+  def nbt(item: ItemStack) = {
+    val nbt = item.getTagCompound
+    if (!nbt.hasKey("oc.node")) {
+      nbt.setCompoundTag("oc.node", new NBTTagCompound())
+    }
+    nbt.getCompoundTag("oc.node")
+  }
 }

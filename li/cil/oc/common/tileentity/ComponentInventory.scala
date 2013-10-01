@@ -13,11 +13,15 @@ import net.minecraft.world.World
 import li.cil.oc.Items
 
 trait ComponentInventory extends IInventory with Node {
-  protected val inventory = new Array[ItemStack](8)
+  protected val inventory = new Array[ItemStack](inventorySize)
+
+  protected val itemComponents = Array.fill[Option[Node]](inventorySize)(None)
 
   protected val computer: component.Computer
 
   def world: World
+
+  def inventorySize = 8
 
   def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (Registry.driverFor(stack) match {
     case Some(driver) if driver.slot(stack) == Slot.RAM => Items.multi.subItem(stack) match {
@@ -36,6 +40,10 @@ trait ComponentInventory extends IInventory with Node {
       if (slot >= 0 && slot < inventory.length) {
         inventory(slot) = ItemStack.loadItemStackFromNBT(
           slotNbt.getCompoundTag("item"))
+        itemComponents(slot) = Registry.driverFor(inventory(slot)) match {
+          case None => None
+          case Some(driver) => driver.node(inventory(slot))
+        }
       }
     }
   }
@@ -49,6 +57,14 @@ trait ComponentInventory extends IInventory with Node {
       case (stack, slot) => {
         val slotNbt = new NBTTagCompound
         slotNbt.setByte("slot", slot.toByte)
+
+        itemComponents(slot) match {
+          case None => // Nothing special to save.
+          case Some(node) =>
+            // We're guaranteed to have a driver for entries.
+            node.save(Registry.driverFor(stack).get.nbt(stack))
+        }
+
         val itemNbt = new NBTTagCompound
         stack.writeToNBT(itemNbt)
         slotNbt.setCompoundTag("item", itemNbt)
@@ -64,29 +80,14 @@ trait ComponentInventory extends IInventory with Node {
 
   override protected def onConnect() {
     super.onConnect()
-    for (slot <- 0 until inventory.length) {
-      itemNode(slot) match {
-        case None => // Ignore.
-        case Some(node) =>
-          network.foreach(_.connect(this, node))
-      }
-    }
+    for (node <- itemComponents.filter(_.isDefined).map(_.get))
+      network.foreach(_.connect(this, node))
   }
 
   override protected def onDisconnect() {
     super.onDisconnect()
-    for (slot <- 0 until inventory.length) {
-      itemNode(slot) match {
-        case None => // Ignore.
-        case Some(node) =>
-          node.network.foreach(_.remove(node))
-      }
-    }
-  }
-
-  private def itemNode(slot: Int) = Registry.driverFor(inventory(slot)) match {
-    case None => None
-    case Some(driver) => driver.node(inventory(slot))
+    for (node <- itemComponents.filter(_.isDefined).map(_.get))
+      node.network.foreach(_.remove(node))
   }
 
   // ----------------------------------------------------------------------- //
@@ -122,9 +123,10 @@ trait ComponentInventory extends IInventory with Node {
 
   def setInventorySlotContents(slot: Int, item: ItemStack) = {
     // Uninstall component previously in that slot.
-    if (!world.isRemote) itemNode(slot) match {
+    if (!world.isRemote) itemComponents(slot) match {
       case None => // Nothing to do.
       case Some(node) =>
+        itemComponents(slot) = None
         node.network.foreach(_.remove(node))
     }
 
@@ -132,10 +134,15 @@ trait ComponentInventory extends IInventory with Node {
     if (item != null && item.stackSize > getInventoryStackLimit)
       item.stackSize = getInventoryStackLimit
 
-    if (!world.isRemote) itemNode(slot) match {
-      case None => // Nothing to do.
-      case Some(node) =>
-        network.foreach(_.connect(this, node))
+    if (!world.isRemote) Registry.driverFor(inventory(slot)) match {
+      case None => // No driver.
+      case Some(driver) =>
+        driver.node(inventory(slot)) match {
+          case None => // No node.
+          case Some(node) =>
+            itemComponents(slot) = Some(node)
+            network.foreach(_.connect(this, node))
+        }
     }
 
     computer.recomputeMemory()
@@ -147,7 +154,7 @@ trait ComponentInventory extends IInventory with Node {
     case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.PCI
     case (4 | 5, Some(driver)) => driver.slot(item) == Slot.RAM
     case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HDD
-    case (_, Some(_)) => false // Invalid slot.
+    case _ => false // Invalid slot.
   }
 
   def isInvNameLocalized = false

@@ -16,13 +16,13 @@ class Proxy {
     Config.load(e.getSuggestedConfigurationFile)
 
     // Note: en_US is loaded automatically.
+    // TODO Are others as well?
     LanguageRegistry.instance.loadLocalization(
       "/assets/" + Config.resourceDomain + "/lang/de_DE.lang", "de_DE", false)
 
     api.Driver.instance = Some(driver.Registry)
     api.FileSystem.instance = Some(fs.FileSystem)
     api.Network.instance = Some(network.Network)
-    api.Persistable.instance = Some(item.Persistable)
   }
 
   def init(e: FMLInitializationEvent): Unit = {
@@ -39,7 +39,6 @@ class Proxy {
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)
-    MinecraftForge.EVENT_BUS.register(item.Persistable)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {

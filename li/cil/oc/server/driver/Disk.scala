@@ -12,5 +12,5 @@ object Disk extends driver.Item {
 
   override def slot(item: ItemStack) = Slot.HDD
 
-  override def node(item: ItemStack) = null
+  override def node(item: ItemStack) = None
 }

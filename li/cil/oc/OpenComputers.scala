@@ -12,7 +12,7 @@ import java.util.logging.Logger
 import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
-import scala.reflect.runtime.universe._
+import scala.reflect.runtime.{universe => ru}
 
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0", dependencies = "required-after:Forge@[9.10.0.804,)", modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
@@ -23,6 +23,11 @@ import scala.reflect.runtime.universe._
 object OpenComputers {
   /** Logger used all throughout this mod. */
   val log = Logger.getLogger("OpenComputers")
+
+  // Workaround for threading issues in Scala 2.10's runtime reflection: just
+  // initialize it once in the beginning. For more on this issue see
+  // http://docs.scala-lang.org/overviews/reflection/thread-safety.html
+  val mirror = ru.runtimeMirror(OpenComputers.getClass.getClassLoader)
 
   @SidedProxy(
     clientSide = "li.cil.oc.client.Proxy",
@@ -37,9 +42,4 @@ object OpenComputers {
 
   @EventHandler
   def postInit(e: FMLPostInitializationEvent) = proxy.postInit(e)
-
-  // Workaround for threading issues in Scala 2.10's runtime reflection: just
-  // initialize it once in the beginning. For more on this issue see
-  // http://docs.scala-lang.org/overviews/reflection/thread-safety.html
-  val dummyMirror = runtimeMirror(OpenComputers.getClass.getClassLoader)
 }
