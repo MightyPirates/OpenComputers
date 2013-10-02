@@ -331,7 +331,13 @@ function driver.fs.open(path, mode)
       bmode = "no"
     }, {
       __index = file,
-      __gc = file.close
+      __gc = function(f)
+        -- File.close does a syscall, which yields, and that's not possible in
+        -- the __gc metamethod. So we start a timer to do the yield.
+        event.timer(0, function()
+          file.close(f)
+        end)
+      end
     })
 end
 
@@ -346,21 +352,19 @@ function driver.fs.type(f)
   end
 end
 
---[[
 -- Aliases for vanilla Lua.
 os.remove = driver.fs.remove
 os.rename = driver.fs.rename
 os.tmpname = driver.fs.tmpname
 
 io = {}
-io.flush = function() end -- does nothing
+-- TODO io.flush = function() end
 -- TODO io.lines = function(filename) end
 io.open = driver.fs.open
 -- TODO io.popen = function(prog, mode) end
 io.read = driver.fs.read
 -- TODO io.tmpfile = function() end
 io.type = driver.fs.type
-]]
 
 function loadfile(file, env)
   local f, reason = driver.fs.open(file)

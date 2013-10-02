@@ -18,9 +18,9 @@ abstract class InputStreamFileSystem extends api.FileSystem {
       case Some(stream) =>
         handles += handle -> new Handle(this, handle, path, stream)
         handle
-      case _ => throw new FileNotFoundException(path)
+      case _ => throw new FileNotFoundException()
     }
-  } else throw new FileNotFoundException(path)
+  } else throw new FileNotFoundException()
 
   def file(handle: Int) = handles.get(handle): Option[api.fs.File]
 
@@ -60,7 +60,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
 
   protected def openInputStream(path: String, handle: Long): Option[InputStream]
 
-  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.File {
+  protected class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.File {
     var isClosed = false
     var position = 0L
 
@@ -84,7 +84,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
       stream.skip(to)
     }
 
-    def write(value: Array[Byte]) = throw new IOException()
+    def write(value: Array[Byte]) = throw new IOException("file is read-only")
   }
 
 }

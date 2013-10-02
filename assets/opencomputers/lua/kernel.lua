@@ -28,6 +28,8 @@ local sandbox = {
   getmetatable = getmetatable,
   setmetatable = setmetatable,
 
+  _VERSION = "Lua 5.2",
+
   bit32 = {
     arshift = bit32.arshift,
     band = bit32.band,
@@ -123,7 +125,7 @@ local sandbox = {
 }
 sandbox._G = sandbox
 
--- Note: 'write' will be replaced by init script.
+-- Note: 'write' will be replaced by init script/term API.
 function sandbox.write(...) end
 function sandbox.print(...)
   sandbox.write(...)
@@ -147,8 +149,15 @@ local function checkDeadline()
 end
 
 local function main()
-  sandbox.driver.fs.mount(os.romAddress(), "/rom")
-  local co = coroutine.create(sandbox.loadfile("/rom/init.lua"))
+  local function init()
+    sandbox.driver.fs.mount(os.romAddress(), "/rom")
+    local result, reason = sandbox.loadfile("/rom/init.lua")
+    if not result then
+      error(reason)
+    end
+    return coroutine.create(result)
+  end
+  local co = init()
   local args = {}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host

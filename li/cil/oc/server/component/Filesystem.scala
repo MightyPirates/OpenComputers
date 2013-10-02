@@ -112,12 +112,19 @@ class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
         case _ => None
       }
     } catch {
-      case e@(_: IOException | _: IllegalArgumentException) => Some(Array(Unit, e.getMessage))
+      case e@(_: IOException | _: IllegalArgumentException) if e.getMessage != null && !e.getMessage.isEmpty =>
+        Some(Array(Unit, e.getMessage))
+      case e: FileNotFoundException =>
+        Some(Array(Unit, "file not found"))
+      case _: IllegalArgumentException =>
+        Some(Array(Unit, "invalid argument"))
+      case e: IOException =>
+        Some(Array(Unit, e.toString))
     }
 
   private def clean(path: Array[Byte]) = {
     val result = com.google.common.io.Files.simplifyPath(new String(path, "UTF-8"))
-    if (result.startsWith("../")) throw new FileNotFoundException(result)
+    if (result.startsWith("../")) throw new FileNotFoundException()
     if (result == "/" || result == ".") ""
     else result
   }

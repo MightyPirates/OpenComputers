@@ -10,7 +10,8 @@ class ReadOnlyFileSystem(val root: io.File) extends InputStreamFileSystem {
 
   def isDirectory(path: String) = new io.File(root, path).isDirectory
 
-  def list(path: String) = Some(new io.File(root, path).list())
+  def list(path: String) = Some(new io.File(root, path).listFiles().
+    map(file => if (file.isDirectory) file.getName + "/" else file.getName))
 
   protected def openInputStream(path: String, handle: Long) = Some(new FileInputStream(new io.File(root, path)))
 }

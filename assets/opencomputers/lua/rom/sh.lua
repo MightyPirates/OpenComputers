@@ -39,8 +39,8 @@ local function onKeyDown(_, address, char, code)
     term.cursorBlink(true)
   elseif code == keys.up then
     command = lastCommand
-    gpu.fill(3, cursorY, screenWidth, 1, " ")
-    cursorX = 3
+    gpu.fill(3, y, screenWidth, 1, " ")
+    term.cursor(3, y)
     term.write(command)
     term.cursor(command:len() + 3, y)
   elseif not keys.isControl(char) then
