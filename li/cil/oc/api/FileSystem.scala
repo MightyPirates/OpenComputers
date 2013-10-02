@@ -1,17 +1,18 @@
 package li.cil.oc.api
 
 import li.cil.oc.api.detail.FileSystemAPI
-import li.cil.oc.api.fs.{Mode, File}
+import li.cil.oc.api.fs.{Mode, Handle}
 import li.cil.oc.api.network.Node
-import scala.language.reflectiveCalls
 
 /**
- * Interface for disk driver compatible file systems.
+ * Interface for file system driver compatible file systems.
  * <p/>
- * To get a network node wrapping a file system and using the default disk
- * driver, use `Filesystem.asNode`. To create a file system from a JAR file
- * (for example the one containing your mod) use `Filesystem.fromClass`,
- * providing a class from your mod as the first parameter.
+ * To create a file system from a JAR file or folder (in read-only mode; for
+ * example the one containing your mod) use `Filesystem.fromClass`, providing
+ * a class from your mod as the first parameter.
+ * <p/>
+ * To get a network node wrapping a file system and using the default file
+ * system driver, use `Filesystem.asNode`.
  * <p/>
  * Alternatively to using the factory methods for file systems in `Filesystem`
  * you are free to implement this interface yourself.
@@ -30,10 +31,10 @@ trait FileSystem extends Persistable {
   /**
    * Gets the size of a file or folder.
    * <p/>
-   * For files this should return actual length of the file, in bytes. For
+   * For files this should return the actual length of the file, in bytes. For
    * folders it is recommended to return some value larger than zero to
-   * simulate the node cost (and for writable file systems to avoid users
-   * spawning an infinite amount of folders).
+   * simulate the node cost (in particular for writable file systems to avoid
+   * users spawning an infinite amount of folders).
    * <p/>
    * If the path is invalid this should return zero. It should never throw.
    *
@@ -63,7 +64,7 @@ trait FileSystem extends Persistable {
    * <p/>
    * Sub-folders should be returned with a trailing slash, to indicate that
    * they are folders. This is primarily intended to avoid Lua programs having
-   * to check which of the entries are folders via calling `isFolder`, which
+   * to check which of the entries are folders via calling `isDirectory`, which
    * would be excruciatingly slow (since each call takes one game tick).
    * <p/>
    * If the folder is empty this should return an empty array.
@@ -90,6 +91,17 @@ trait FileSystem extends Persistable {
    */
   def remove(path: String): Boolean = false
 
+  /**
+   * Moves / renames a file or folder.
+   * <p/>
+   * This is only available for writable file systems. For read-only systems
+   * it should just always return false.
+   *
+   * @param from the name of the file or folder to move.
+   * @param to the location to move the file or folder to.
+   * @return true if the object was renamed; false otherwise.
+   * @throws FileNotFoundException if the source is not a file or folder.
+   */
   def rename(from: String, to: String): Boolean = false
 
   /**
@@ -122,7 +134,7 @@ trait FileSystem extends Persistable {
    * @param handle the ID of the handle to get the wrapper for.
    * @return the wrapper for that handle ID; None if the ID is invalid.
    */
-  def file(handle: Int): Option[File]
+  def file(handle: Int): Option[Handle]
 
   /**
    * Called when the file system is deconstructed.
@@ -142,10 +154,19 @@ trait FileSystem extends Persistable {
 
 object FileSystem extends FileSystemAPI {
   /**
-   * Creates a new file system based on a JAR file containing a class.
+   * Creates a new file system based on the location of a class.
    * <p/>
    * This can be used to wrap a folder in the assets folder of your mod's JAR.
    * The actual path is built like this: `"/assets/" + domain + "/" + root`.
+   * <p/>
+   * If the class is located in a JAR file, this will create a read-only file
+   * system based on that JAR file. If the class file is located in the native
+   * file system, this will create a read-only file system first trying from
+   * the actual location of the class file, and failing that by searching the
+   * class path (i.e. it'll look for a path constructed as described above).
+   * <p/>
+   * If the specified path cannot be located, the creation fails and this
+   * returns `None`.
    *
    * @param clazz the class whose containing JAR to wrap.
    * @param domain the mod domain, usually its name.
@@ -157,7 +178,7 @@ object FileSystem extends FileSystemAPI {
 
   /**
    * Creates a network node that makes the specified file system available via
-   * the common disk driver.
+   * the common file system driver.
    * <p/>
    * This can be useful for providing some data if you don't wish to implement
    * your own driver. Which will probably be most of the time. If you need

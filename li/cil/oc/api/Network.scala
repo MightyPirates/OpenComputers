@@ -37,11 +37,11 @@ import net.minecraft.world.IBlockAccess
  * nodes of the other network(s), when a network is split (all pairs).</li>
  * </ul>
  * <p/>
- * IMPORTANT: do <em>not</em> implement this interface yourself and create
+ * IMPORTANT: do *not* implement this interface yourself and create
  * instances of your own network implementation; this will lead to
  * incompatibilities with the built-in network implementation (which can only
  * merge with other networks of its own type). Always use the methods provided
- * in <tt>Network</tt> to create and join networks.
+ * in `Network` to create and join networks.
  */
 trait Network {
   /**

@@ -22,7 +22,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
     }
   } else throw new FileNotFoundException()
 
-  def file(handle: Int) = handles.get(handle): Option[api.fs.File]
+  def file(handle: Int) = handles.get(handle): Option[api.fs.Handle]
 
   def close() {
     for (handle <- handles.values)
@@ -60,7 +60,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
 
   protected def openInputStream(path: String, handle: Long): Option[InputStream]
 
-  protected class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.File {
+  protected class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.Handle {
     var isClosed = false
     var position = 0L
 
