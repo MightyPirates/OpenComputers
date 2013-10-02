@@ -31,7 +31,7 @@ class Proxy {
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
-    api.Driver.add(driver.Disk)
+    api.Driver.add(driver.FileSystem)
     api.Driver.add(driver.GraphicsCard)
     api.Driver.add(driver.Keyboard)
     api.Driver.add(driver.Memory)

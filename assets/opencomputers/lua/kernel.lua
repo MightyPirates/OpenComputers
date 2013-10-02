@@ -91,7 +91,8 @@ local sandbox = {
     time = os.time,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
-    address = os.address
+    address = os.address,
+    romAddress = os.romAddress
   },
 
   string = {

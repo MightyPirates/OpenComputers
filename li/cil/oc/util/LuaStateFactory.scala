@@ -231,6 +231,11 @@ object LuaStateFactory {
       })
       state.setField(-2, "reverse")
 
+      // Rename string.sub to string.bsub (for binary sub, to allow byte-wise
+      // operations on the string).
+      state.getField(-1, "sub")
+      state.setField(-2, "bsub")
+
       state.pushScalaFunction(lua => {
         val string = lua.checkString(1)
         val start = (lua.checkInteger(2) match {

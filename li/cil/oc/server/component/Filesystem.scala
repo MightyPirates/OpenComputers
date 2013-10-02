@@ -68,7 +68,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
             case None => None
             case Some(file) =>
               // Limit reading to chunks of 8KB to avoid crazy allocations.
-              val buffer = new Array[Byte](n.toInt min 8192)
+              val buffer = new Array[Byte](n.toInt min (8 * 1024))
               val read = file.read(buffer)
               if (read >= 0) {
                 val result = new Array[Byte](read)

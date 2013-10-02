@@ -3,8 +3,8 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Node
-import li.cil.oc.common.component
 import li.cil.oc.common.item
+import li.cil.oc.server.component
 import li.cil.oc.server.driver.Registry
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
@@ -17,7 +17,7 @@ trait ComponentInventory extends IInventory with Node {
 
   protected val itemComponents = Array.fill[Option[Node]](inventorySize)(None)
 
-  protected val computer: component.Computer
+  protected val computer: Option[component.Computer]
 
   def world: World
 
@@ -145,7 +145,7 @@ trait ComponentInventory extends IInventory with Node {
         }
     }
 
-    computer.recomputeMemory()
+    computer.foreach(_.recomputeMemory())
   }
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {

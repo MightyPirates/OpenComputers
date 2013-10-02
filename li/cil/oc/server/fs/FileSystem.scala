@@ -1,5 +1,6 @@
 package li.cil.oc.server.fs
 
+import java.io.File
 import java.util.zip.ZipFile
 import li.cil.oc.api
 import li.cil.oc.api.network.Node
@@ -11,14 +12,30 @@ object FileSystem extends api.detail.FileSystemAPI {
     if (codeSource == null) return None
     val file = new java.io.File(codeSource.getLocation.toURI)
     if (!file.exists || file.isDirectory) return None
-    val zip = new ZipFile(file)
     val path = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
-    val entry = zip.getEntry(path)
-    if (entry == null || !entry.isDirectory) {
-      zip.close()
-      return None
+    if (file.getName.endsWith(".class")) {
+      val fsp = new File(new File(file.getParent), path)
+      if (fsp.exists() && fsp.isDirectory)
+        Some(new ReadOnlyFileSystem(fsp))
+      else
+        System.getProperty("java.class.path").split(System.getProperty("path.separator")).
+          find(cp => {
+          val fsp = new File(new File(cp), path)
+          fsp.exists() && fsp.isDirectory
+        }) match {
+          case None => None
+          case Some(dir) => Some(new ReadOnlyFileSystem(new File(new File(dir), path)))
+        }
     }
-    Some(new ZipFileSystem(zip, path))
+    else {
+      val zip = new ZipFile(file)
+      val entry = zip.getEntry(path)
+      if (entry == null || !entry.isDirectory) {
+        zip.close()
+        return None
+      }
+      Some(new ZipFileSystem(zip, path))
+    }
   }
 
   def asNode(fileSystem: api.FileSystem): Option[Node] = Some(new component.FileSystem(fileSystem))

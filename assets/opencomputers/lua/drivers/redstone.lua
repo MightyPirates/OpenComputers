@@ -10,17 +10,18 @@ end
 driver.redstone.sides.up = driver.redstone.sides.top
 driver.redstone.sides.down = driver.redstone.sides.bottom
 
-local safeOsAddress = os.address
+-- Save this before there's a chance it gets changed by a user.
+local owner = os.address()
 
 function driver.redstone.analogInput(card, side)
-  sendToNode(card, safeOsAddress(), "redstone.input", side)
+  sendToNode(card, owner, "redstone.input", side)
 end
 
 function driver.redstone.analogOutput(card, side, value)
   if value then
-    sendToNode(card, safeOsAddress(), "redstone.output=", side, value)
+    sendToNode(card, owner, "redstone.output=", side, tonumber(value))
   else
-    return sendToNode(card, safeOsAddress(), "redstone.output", side)
+    return sendToNode(card, owner, "redstone.output", side)
   end
 end
 
@@ -28,7 +29,7 @@ function driver.redstone.input(card, side)
   return driver.redstone.analogInput(card, side) > 0
 end
 
-function output(card, side, value)
+function driver.redstone.output(card, side, value)
   if value then
     driver.redstone.analogOutput(side, value and 15 or 0)
   else

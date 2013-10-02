@@ -5,8 +5,9 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
+import li.cil.oc.api
+import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Visibility, Node}
-import li.cil.oc.common.component
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -38,7 +39,7 @@ import scala.io.Source
  * See `Driver` to read more about component drivers and how they interact
  * with computers - and through them the components they interface.
  */
-class Computer(val owner: Computer.Environment) extends component.Computer with Runnable {
+class Computer(val owner: Computer.Environment) extends Persistable with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
@@ -52,6 +53,9 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
   /** The internal Lua state. Only set while the computer is running. */
   private var lua: LuaState = null
+
+  /** The filesystem node holding the read-only memory of this computer. */
+  val rom = api.FileSystem.asNode(api.FileSystem.fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom").get).get
 
   /**
    * The base memory consumption of the kernel. Used to permit a fixed base
@@ -116,7 +120,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
   // IComputerContext
   // ----------------------------------------------------------------------- //
 
-  override def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
+  def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
     case Computer.State.Stopped | Computer.State.Stopping => false
     case _ => signals.offer(new Computer.Signal(name, args.map {
       case null | Unit => Unit
@@ -141,7 +145,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
   // IComputer
   // ----------------------------------------------------------------------- //
 
-  override def start() = stateMonitor.synchronized(
+  def start() = stateMonitor.synchronized(
     (state == Computer.State.Stopped) && init() && {
       // Initial state. Will be switched to State.Yielded in the next update()
       // due to the signals queue not being empty (
@@ -165,7 +169,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       true
     })
 
-  override def stop() = stateMonitor.synchronized(state match {
+  def stop() = stateMonitor.synchronized(state match {
     case Computer.State.Stopped => false // Nothing to do.
     case _ if future.isEmpty => close(); true // Not executing, kill it.
     case _ =>
@@ -178,9 +182,9 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       true
   })
 
-  override def isRunning = state != Computer.State.Stopped
+  def isRunning = state != Computer.State.Stopped
 
-  override def update() {
+  def update() {
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
     lastUpdate = System.currentTimeMillis
@@ -234,8 +238,10 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
           // otherwise we return the result to our executor.
           if (state == Computer.State.Stopping)
             close()
-          else
+          else {
+            assert(state == Computer.State.Running)
             execute(Computer.State.SynchronizedReturn)
+          }
         } catch {
           case _: LuaMemoryAllocationException =>
             // This can happen if we run out of memory while converting a Java
@@ -261,7 +267,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
+  def load(nbt: NBTTagCompound) {
     state = nbt.getInteger("state") match {
       case id if id >= 0 && id < Computer.State.maxId => Computer.State(id)
       case _ => Computer.State.Stopped
@@ -307,6 +313,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
             }.toArray)
         }).asJava)
 
+        rom.load(nbt.getCompoundTag("rom"))
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
 
@@ -338,7 +345,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
     else state = Computer.State.Stopped
   }
 
-  override def save(nbt: NBTTagCompound): Unit = this.synchronized {
+  def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
 
@@ -384,6 +391,9 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       }
       nbt.setTag("signals", list)
 
+      val romNbt = new NBTTagCompound()
+      rom.save(romNbt)
+      nbt.setCompoundTag("rom", romNbt)
       nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
     }
@@ -496,6 +506,16 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       })
       lua.setField(-2, "address")
 
+      // And it's ROM address.
+      lua.pushScalaFunction(lua => {
+        rom.address match {
+          case None => lua.pushNil()
+          case Some(address) => lua.pushString(address)
+        }
+        1
+      })
+      lua.setField(-2, "romAddress")
+
       // Pop the os table.
       lua.pop(1)
 
@@ -566,11 +586,11 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
         })
       lua.setGlobal("sendToNode")
 
-//      lua.pushScalaFunction(lua => {
-//        owner.network.foreach(_.sendToVisible(owner, lua.checkString(1), parseArguments(lua, 2): _*))
-//        0
-//      })
-//      lua.setGlobal("sendToAll")
+      //      lua.pushScalaFunction(lua => {
+      //        owner.network.foreach(_.sendToVisible(owner, lua.checkString(1), parseArguments(lua, 2): _*))
+      //        0
+      //      })
+      //      lua.setGlobal("sendToAll")
 
       lua.pushScalaFunction(lua => {
         owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {
@@ -637,6 +657,9 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
       // Clear any left-over signals from a previous run.
       signals.clear()
 
+      // Connect the ROM node to our owner.
+      owner.network.foreach(_.connect(owner, rom))
+
       return true
     }
     catch {
@@ -679,7 +702,7 @@ class Computer(val owner: Computer.Environment) extends component.Computer with 
 
       // See if the game appears to be paused, in which case we also pause.
       if (System.currentTimeMillis - lastUpdate > 200) {
-        state = state match {
+        state = oldState match {
           case Computer.State.SynchronizedReturn => Computer.State.SynchronizedReturnPaused
           case _ => Computer.State.Paused
         }
