@@ -19,10 +19,12 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   def this(node: api.network.Node) = {
     this()
     addNew(node)
-    send(Network.ConnectMessage(node), Iterable(node))
+    if (node.address.isDefined)
+      send(Network.ConnectMessage(node), Iterable(node))
   }
 
-  nodes.foreach(_.network = Some(this))
+  addressedNodes.values.foreach(_.data.network = Some(this))
+  unaddressedNodes.foreach(_.data.network = Some(this))
 
   def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
     val containsA = contains(nodeA)
@@ -43,6 +45,10 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       if (!oldNodeA.edges.exists(_.isBetween(oldNodeA, oldNodeB))) {
         assert(!oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
         Network.Edge(oldNodeA, oldNodeB)
+        if (oldNodeA.data.visibility == Visibility.Neighbors && oldNodeB.data.address.isDefined)
+          send(Network.ConnectMessage(oldNodeA.data), Iterable(oldNodeB.data))
+        if (oldNodeA.data.visibility == Visibility.Neighbors && oldNodeA.data.address.isDefined)
+          send(Network.ConnectMessage(oldNodeA.data), Iterable(oldNodeB.data))
         true
       }
       else false // That connection already exists.
@@ -65,9 +71,9 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       case None => false // That connection doesn't exists.
       case Some(edge) => {
         handleSplit(edge.remove())
-        if (edge.left.data.visibility == Visibility.Neighbors)
+        if (edge.left.data.visibility == Visibility.Neighbors && edge.right.data.address.isDefined)
           send(Network.DisconnectMessage(edge.left.data), Iterable(edge.right.data))
-        if (edge.right.data.visibility == Visibility.Neighbors)
+        if (edge.right.data.visibility == Visibility.Neighbors && edge.left.data.address.isDefined)
           send(Network.DisconnectMessage(edge.right.data), Iterable(edge.left.data))
         true
       }
@@ -89,9 +95,9 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
         case Visibility.None => Iterable.empty[api.network.Node]
         case Visibility.Neighbors => entry.edges.map(_.other(entry).data)
         case Visibility.Network => subGraphs.map {
-          case (addressed, unaddressed) => addressed.values.map(_.data)
+          case (addressed, _) => addressed.values.map(_.data)
         }.flatten
-      }).filter(_.visibility != Visibility.None)
+      })
       handleSplit(subGraphs)
       send(Network.DisconnectMessage(node), targets)
       true
@@ -103,14 +109,15 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     case _ => None
   }
 
-  def nodes = addressedNodes.values.map(_.data).filter(_.visibility != Visibility.None)
+  def nodes = addressedNodes.values.map(_.data)
 
   def nodes(reference: api.network.Node) = {
-    val referenceNeighbors = neighbors(reference).toSet + reference
-    nodes.filter(node => node.visibility == Visibility.Network || referenceNeighbors.contains(node))
+    val referenceNeighbors = neighbors(reference).toSet
+    nodes.filter(node => node != reference && (node.visibility == Visibility.Network ||
+      (node.visibility == Visibility.Neighbors && referenceNeighbors.contains(node))))
   }
 
-  def neighbors(node: api.network.Node) = (node.address match {
+  def neighbors(node: api.network.Node) = node.address match {
     case None =>
       unaddressedNodes.find(_.data == node) match {
         case None => throw new IllegalArgumentException("Node must be in this network.")
@@ -121,7 +128,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
         case None => throw new IllegalArgumentException("Node must be in this network.")
         case Some(n) => n.edges.map(_.other(n).data)
       }
-  }).filter(_.visibility != Visibility.None)
+  }
 
   def sendToAddress(source: api.network.Node, target: String, name: String, data: Any*) = {
     if (source.network.isEmpty || source.network.get != this)
@@ -138,7 +145,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
-      send(new Network.Message(source, name, Array(data: _*)), neighbors(source))
+      send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.visibility != Visibility.None))
   }
 
   def sendToVisible(source: api.network.Node, name: String, data: Any*) = {
@@ -171,49 +178,51 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   }
 
   private def add(oldNode: Network.Node, addedNode: api.network.Node) = {
-    // Check if the other node is new or if we have to merge networks.
+    // Queue any messages to avoid side effects from receivers.
     val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[api.network.Node])]
-    val (newNode) = if (addedNode.network.isEmpty) {
+    // Check if the other node is new or if we have to merge networks.
+    if (addedNode.network.isEmpty) {
       val newNode = addNew(addedNode)
+      Network.Edge(oldNode, newNode)
       if (addedNode.address.isDefined) addedNode.visibility match {
         case Visibility.None => // Nothing to do.
         case Visibility.Neighbors =>
           sendQueue += ((Network.ConnectMessage(addedNode), Iterable(addedNode) ++ neighbors(addedNode)))
           nodes(addedNode).foreach(node => sendQueue += ((new Network.ConnectMessage(node), Iterable(addedNode))))
         case Visibility.Network =>
-          sendQueue += ((Network.ConnectMessage(addedNode), nodes))
-          nodes(addedNode).foreach(node => if (node != addedNode)
-            sendQueue += ((new Network.ConnectMessage(node), Iterable(addedNode))))
+          // Explicitly send to the added node itself first.
+          sendQueue += ((Network.ConnectMessage(addedNode), Iterable(addedNode) ++ nodes.filter(_ != addedNode)))
+          nodes(addedNode).foreach(node => sendQueue += ((new Network.ConnectMessage(node), Iterable(addedNode))))
       }
-      newNode
     }
     else {
-      // Queue any messages to avoid side effects from receivers.
-      val thisNodes = nodes.toBuffer
       val otherNetwork = addedNode.network.get.asInstanceOf[Network]
-      val otherNodes = otherNetwork.nodes.toBuffer
-      otherNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), thisNodes)))
-      thisNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), otherNodes)))
 
-      // Add nodes from other network into this network.
-      otherNetwork.addressedNodes.values.foreach(node => {
-        addressedNodes += node.data.address.get -> node
-        node.data.network = Some(this)
-      })
+      if (addedNode.visibility == Visibility.Neighbors && oldNode.data.address.isDefined)
+        sendQueue += ((Network.ConnectMessage(addedNode), Iterable(oldNode.data)))
+      if (oldNode.data.visibility == Visibility.Neighbors && addedNode.address.isDefined)
+        sendQueue += ((Network.ConnectMessage(oldNode.data), Iterable(addedNode)))
+
+      val oldNodes = nodes
+      val newNodes = otherNetwork.nodes
+      val oldVisibleNodes = oldNodes.filter(_.visibility == Visibility.Network)
+      val newVisibleNodes = newNodes.filter(_.visibility == Visibility.Network)
+
+      newVisibleNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), oldNodes)))
+      oldVisibleNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), newNodes)))
+
+      addressedNodes ++= otherNetwork.addressedNodes
       unaddressedNodes ++= otherNetwork.unaddressedNodes
+      otherNetwork.addressedNodes.values.foreach(_.data.network = Some(this))
       otherNetwork.unaddressedNodes.foreach(_.data.network = Some(this))
 
-      // Return the node object of the newly connected node for the next step.
-      addedNode.address match {
+      val newNode = addedNode.address match {
         case None => unaddressedNodes.find(_.data == addedNode).get
         case Some(address) => addressedNodes(address)
       }
+      Network.Edge(oldNode, newNode)
     }
 
-    // Add the connection between the two nodes.
-    Network.Edge(oldNode, newNode)
-
-    // Send all generated messages.
     for ((message, nodes) <- sendQueue) send(message, nodes)
 
     true
@@ -221,14 +230,10 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 
   private def handleSplit(subGraphs: Seq[(mutable.Map[String, Network.Node], mutable.ArrayBuffer[Network.Node])]) =
     if (subGraphs.size > 1) {
-      val subNodes = subGraphs.map {
-        case (addressed, unaddressed) =>
-          (addressed.values ++ unaddressed).map(_.data).filter(_.visibility != Visibility.None)
+      val nodes = subGraphs.map {
+        case (addressed, _) => addressed.values.map(_.data)
       }
-      val visibleNodes = subGraphs.map {
-        case (addressed, unaddressed) =>
-          addressed.values.map(_.data).filter(_.visibility == Visibility.Network)
-      }
+      val visibleNodes = nodes.map(_.filter(_.visibility == Visibility.Network))
 
       addressedNodes.clear()
       unaddressedNodes.clear()
@@ -244,14 +249,14 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
           new Network(addressed, unaddressed)
       }
 
-      for (indexA <- 0 until visibleNodes.length) {
-        val nodesA = subNodes(indexA)
+      for (indexA <- 0 until subGraphs.length) {
+        val nodesA = nodes(indexA)
         val visibleNodesA = visibleNodes(indexA)
-        for (indexB <- (indexA + 1) until visibleNodes.length) {
-          val nodesB = subNodes(indexB)
+        for (indexB <- (indexA + 1) until subGraphs.length) {
+          val nodesB = nodes(indexB)
           val visibleNodesB = visibleNodes(indexB)
-          visibleNodesA.foreach(nodeA => send(new Network.DisconnectMessage(nodeA), nodesB))
-          visibleNodesB.foreach(nodeB => send(new Network.DisconnectMessage(nodeB), nodesA))
+          visibleNodesA.foreach(node => send(new Network.DisconnectMessage(node), nodesB))
+          visibleNodesB.foreach(node => send(new Network.DisconnectMessage(node), nodesA))
         }
       }
     }

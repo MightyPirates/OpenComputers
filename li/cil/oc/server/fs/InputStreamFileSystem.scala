@@ -7,13 +7,13 @@ import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
 abstract class InputStreamFileSystem extends api.FileSystem {
-  private val handles = mutable.Map.empty[Long, Handle]
+  private val handles = mutable.Map.empty[Int, Handle]
 
   protected def maxHandles = 32
 
   def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     if (handles.size >= maxHandles) throw new IOException("too many open files")
-    val handle = Iterator.continually((Math.random() * Long.MaxValue).toLong + 1).filterNot(handles.contains).next()
+    val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path, handle) match {
       case Some(stream) =>
         handles += handle -> new Handle(this, handle, path, stream)
@@ -22,7 +22,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
     }
   } else throw new FileNotFoundException(path)
 
-  def file(handle: Long) = Option(handles(handle): api.fs.File)
+  def file(handle: Int) = handles.get(handle): Option[api.fs.File]
 
   def close() {
     for (handle <- handles.values)
@@ -32,7 +32,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
   def load(nbt: NBTTagCompound) {
     val handlesNbt = nbt.getTagList("handles")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
-      val handle = handleNbt.getLong("handle")
+      val handle = handleNbt.getInteger("handle")
       val path = handleNbt.getString("path")
       val position = handleNbt.getLong("position")
       openInputStream(path, handle) match {
@@ -50,7 +50,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
     for (file <- handles.values) {
       assert(!file.isClosed)
       val handleNbt = new NBTTagCompound()
-      handleNbt.setLong("handle", file.handle)
+      handleNbt.setInteger("handle", file.handle)
       handleNbt.setString("path", file.path)
       handleNbt.setLong("position", file.position)
       handlesNbt.appendTag(handleNbt)
@@ -60,7 +60,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
 
   protected def openInputStream(path: String, handle: Long): Option[InputStream]
 
-  private class Handle(val owner: InputStreamFileSystem, val handle: Long, val path: String, val stream: InputStream) extends api.fs.File {
+  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.File {
     var isClosed = false
     var position = 0L
 

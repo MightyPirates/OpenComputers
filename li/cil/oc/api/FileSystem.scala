@@ -109,7 +109,7 @@ trait FileSystem extends Persistable {
    * @throws FileNotFoundException if the object is not a file, or the file
    *                               cannot be opened in the specified mode.
    */
-  def open(path: String, mode: Mode.Value): Long
+  def open(path: String, mode: Mode.Value): Int
 
   /**
    * Gets a wrapper for a file previously opened using `open`.
@@ -122,7 +122,7 @@ trait FileSystem extends Persistable {
    * @param handle the ID of the handle to get the wrapper for.
    * @return the wrapper for that handle ID; None if the ID is invalid.
    */
-  def file(handle: Long): Option[File]
+  def file(handle: Int): Option[File]
 
   /**
    * Called when the file system is deconstructed.

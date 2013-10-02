@@ -106,22 +106,20 @@ trait Network {
   def node(address: String): Option[Node]
 
   /**
-   * The list of all nodes in this network.
-   * <p/>
-   * This does *not* include nodes with a visibility of `Visibility.None`.
+   * The list of all addressed nodes in this network.
    *
    * @return the list of nodes in this network.
    */
   def nodes: Iterable[Node]
 
   /**
-   * The list of nodes in the network visible to the specified node.
+   * The list of addressed nodes in the network visible to the specified node.
    * <p/>
    * This does *not* include nodes with a visibility of `Visibility.None` or
    * a visibility of `Visibility.Neighbors` when there is no direct connection
-   * between that node and the reference node. This will always also contain
-   * the reference node itself, unless the reference node's visibility is
-   * `Visibility.None`.
+   * between that node and the reference node.
+   * <p/>
+   * This does *not* include the node itself.
    * <p/>
    * This can be useful when performing a delayed initialization of a node.
    * For example, computers will use this when starting up to generate
@@ -135,7 +133,9 @@ trait Network {
   /**
    * The list of nodes the specified node is directly connected to.
    * <p/>
-   * This does *not* include nodes with a visibility of `Visibility.None`.
+   * This *does* include nodes with a visibility of `Visibility.None`.
+   * <p/>
+   * This does *not* include the node itself.
    * <p/>
    * This can be used to verify arguments for components that should only work
    * for other components that are directly connected to them, for example.
@@ -149,12 +149,12 @@ trait Network {
   // ----------------------------------------------------------------------- //
 
   /**
-   * Sends a message to a specific address.
+   * Sends a message to the node with the specified address.
    * <p/>
    * If the target node with that address has a visibility of `Visibility.None`
-   * the message will not be delivered to that node. If the target node with
+   * the message will *not* be delivered to that node. If the target node with
    * that address has a visibility of `Visibility.Neighbors` and the source
-   * node is not directly connected to the target the message will not be
+   * node is not directly connected to the target the message will *not* be
    * delivered to that node.
    * <p/>
    * Messages should have a unique name to allow differentiating them when
@@ -179,9 +179,10 @@ trait Network {
   def sendToAddress(source: Node, target: String, name: String, data: Any*): Option[Array[Any]]
 
   /**
-   * Sends a message to all direct neighbors of the source node.
+   * Sends a message to all addressed, visible neighbors of the source node.
    * <p/>
-   * Targets are determined using `neighbors`.
+   * Targets are determined using `neighbors(source)` and additionally filtered
+   * for visibility (so that nodes with `Visibility.None` are ignored).
    * <p/>
    * Messages should have a unique name to allow differentiating them when
    * handling them in a network node. For example, computers will try to parse
@@ -198,7 +199,7 @@ trait Network {
   def sendToNeighbors(source: Node, name: String, data: Any*)
 
   /**
-   * Sends a message to all nodes in the network visible to the source node.
+   * Sends a message to all addressed nodes visible to the source node.
    * <p/>
    * Targets are determined using `nodes(source)`.
    * <p/>

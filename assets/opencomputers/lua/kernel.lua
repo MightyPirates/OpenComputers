@@ -146,7 +146,9 @@ local function checkDeadline()
   end
 end
 
-local function main(co)
+local function main()
+  sandbox.driver.fs.mount(os.romAddress(), "/rom")
+  local co = coroutine.create(sandbox.loadfile("/rom/init.lua"))
   local args = {}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
@@ -215,7 +217,7 @@ do
   local env = setmetatable({
                 sendToNode = sendToNode,
                 sendToAll = sendToAll
-              }, { __index = sandbox })
+              }, { __index = sandbox, __newindex = sandbox })
   for name, code in pairs(drivers()) do
     local driver, reason = load(code, "=" .. name, "t", env)
     if not driver then
@@ -229,19 +231,9 @@ do
   end
 end
 
--- Load init script in sandboxed environment.
-local coinit
-do
-  local result, reason = load(init(), "=init", "t", sandbox)
-  if not result then
-    error(reason)
-  end
-  coinit = coroutine.create(result)
-end
-
 -- Yield once to allow initializing up to here to get a memory baseline.
 coroutine.yield()
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return pcall(main, coinit)
+return pcall(main)

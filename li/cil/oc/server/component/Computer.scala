@@ -198,24 +198,19 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {
+      // Computer is rebooting.
+      case Computer.State.Rebooting => {
+        state = Computer.State.Stopped
+        owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
+        owner.network.foreach(_.sendToVisible(owner, "computer.started"))
+        start()
+      }
       // Resume from pauses based on signal underflow.
-      case Computer.State.Suspended if !signals.isEmpty => {
-        assert(future.isEmpty)
-        execute(Computer.State.Yielded)
-      }
-      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
-        assert(future.isEmpty)
-        execute(Computer.State.Yielded)
-      }
+      case Computer.State.Suspended if !signals.isEmpty => execute(Computer.State.Yielded)
+      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => execute(Computer.State.Yielded)
       // Resume in case we paused  because the game was paused.
-      case Computer.State.Paused => {
-        assert(future.isEmpty)
-        execute(Computer.State.Yielded)
-      }
-      case Computer.State.SynchronizedReturnPaused => {
-        assert(future.isEmpty)
-        execute(Computer.State.SynchronizedReturn)
-      }
+      case Computer.State.Paused => execute(Computer.State.Yielded)
+      case Computer.State.SynchronizedReturnPaused => execute(Computer.State.SynchronizedReturn)
       // Perform a synchronized call (message sending).
       case Computer.State.SynchronizedCall => {
         assert(future.isEmpty)
@@ -586,12 +581,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         })
       lua.setGlobal("sendToNode")
 
-      //      lua.pushScalaFunction(lua => {
-      //        owner.network.foreach(_.sendToVisible(owner, lua.checkString(1), parseArguments(lua, 2): _*))
-      //        0
-      //      })
-      //      lua.setGlobal("sendToAll")
-
       lua.pushScalaFunction(lua => {
         owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {
           case None => 0
@@ -777,7 +766,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           val reboot = lua.toBoolean(2)
           close()
           if (reboot)
-            start()
+            state = Computer.State.Rebooting
         }
         else {
           // Something else, just pop the results and try again.
@@ -898,6 +887,9 @@ object Computer {
 
     /** The computer is paused and waiting for the game to resume. */
     val SynchronizedReturnPaused = Value("SynchronizedReturnPaused")
+
+    /** Computer is currently rebooting. */
+    val Rebooting = Value("Rebooting")
   }
 
   /** Singleton for requesting executors that run our Lua states. */

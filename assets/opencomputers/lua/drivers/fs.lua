@@ -49,13 +49,12 @@ local function findFs(path)
   local node = mtab
   for i = 1, #parts do
     if not node.children[parts[i]] then
-      return node.fs, table.concat(parts, "/", i)
+      return node.fs, table.concat(parts, "/", i), node
     end
     node = node.children[parts[i]]
   end
-  return node.fs, ""
+  return node.fs, "", node
 end
-driver.fs.findFs = findFs
 
 function driver.fs.mount(fs, path)
   assert(type(fs) == "string",
@@ -94,10 +93,19 @@ function driver.fs.umount(fsOrPath)
 end
 
 function driver.fs.listdir(path)
-  local fs, subpath = findFs(path)
-  if fs then
-    return sendToNode(fs, "fs.list", subpath)
+  local fs, subpath, node = findFs(path)
+  local result = {}
+  for k, _ in pairs(node.children) do
+    table.insert(result, k .. "/")
   end
+  if fs then
+    local fsresult = {sendToNode(fs, "fs.list", subpath)}
+    for _, k in ipairs(fsresult) do
+      table.insert(result, k)
+    end
+  end
+  table.sort(result)
+  return table.unpack(result)
 end
 
 function driver.fs.remove(path)
@@ -119,16 +127,22 @@ function file.close(f)
   end
 end
 
-function file.seek(f, whence, offset)
+function file.flush(f)
   if not f.handle then
     return nil, "file is closed"
   end
-  whence = whence or "cur"
-  assert(whence == "set" or whence == "cur" or whence == "end",
-    "bad argument #1 (set, cur or end expected, got " .. tostring(whence) .. ")")
-  assert(type(offset) == "number",
-    "bad argument #2 (number expected, got " .. type(offset) .. ")")
-  sendToNode(f.fs, "fs.seek", f.handle, whence, offset)
+  if #(f.buffer or "") > 0 then
+    local result, reason = sendToNode(f.fs, "fs.write", f.buffer)
+    f.buffer = nil
+    if not result then
+      if reason then
+        return nil, reason
+      else
+        return nil, "invalid file"
+      end
+    end
+  end
+  return f
 end
 
 function file.read(f, ...)
@@ -231,22 +245,44 @@ function file.read(f, ...)
   return table.unpack(results)
 end
 
-function file.flush(f)
+function file.seek(f, whence, offset)
   if not f.handle then
     return nil, "file is closed"
   end
-  if #(f.buffer or "") > 0 then
-    local result, reason = sendToNode(f.fs, "fs.write", f.buffer)
-    f.buffer = nil
-    if not result then
-      if reason then
-        return nil, reason
-      else
-        return nil, "invalid file"
-      end
+  whence = whence or "cur"
+  assert(whence == "set" or whence == "cur" or whence == "end",
+    "bad argument #1 (set, cur or end expected, got " .. tostring(whence) .. ")")
+  offset = offset or 0
+  assert(type(offset) == "number",
+    "bad argument #2 (number expected, got " .. type(offset) .. ")")
+  assert(math.floor(offset) == offset,
+    "bad argument #2 (not an integer)")
+
+  if whence == "cur" and offset ~= 0 then
+    offset = offset - #(f.buffer or "")
+  end
+  local result, reason = sendToNode(f.fs, "fs.seek", f.handle, whence, offset)
+  if result then
+    if offset ~= 0 then
+      f.buffer = nil
+    elseif whence == "cur" then
+      result = result - #(f.buffer or "")
     end
   end
-  return f
+  return result, reason
+end
+
+function file.setvbuf(f, mode, size)
+  if not f.handle then
+    return nil, "file is closed"
+  end
+  assert(mode == "no" or mode == "full" or mode == "line",
+    "bad argument #1 (no, full or line expected, got " .. tostring(mode) .. ")")
+  assert(mode == "no" or type(size) == "number",
+    "bad argument #2 (number expected, got " .. type(size) .. ")")
+  f:flush()
+  f.bmode = mode
+  f.bsize = size
 end
 
 function file.write(f, ...)
@@ -274,23 +310,11 @@ function file.write(f, ...)
   return f
 end
 
-function file.setvbuf(f, mode, size)
-  if not f.handle then
-    return nil, "file is closed"
-  end
-  assert(mode == "no" or mode == "full" or mode == "line",
-    "bad argument #1 (no, full or line expected, got " .. tostring(mode) .. ")")
-  assert(mode == "no" or type(size) == "number",
-    "bad argument #2 (number expected, got " .. type(size) .. ")")
-  f:flush()
-  f.bmode = mode
-  f.bsize = size
-end
-
 function driver.fs.open(path, mode)
   assert(type(path) == "string",
     "bad argument #1 (string expected, got " .. type(path) .. ")")
-  assert(({r=true,rb=true,w=true,wb=true,a=true,ab=true})[mode],
+  mode = mode or "r"
+  assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
     "bad argument #2 (r[b], w[b] or a[b] expected, got " .. tostring(mode) .. ")")
   local fs, subpath = findFs(path)
   if not fs then
@@ -303,7 +327,7 @@ function driver.fs.open(path, mode)
   return setmetatable({
       fs = fs,
       handle = handle,
-      bsize = 0,
+      bsize = 8 * 1024,
       bmode = "no"
     }, {
       __index = file,
@@ -338,4 +362,24 @@ io.read = driver.fs.read
 io.type = driver.fs.type
 ]]
 
-driver.fs.mount(os.romAddress(), "/rom")
+function loadfile(file, env)
+  local f, reason = driver.fs.open(file)
+  if not f then
+    return nil, reason
+  end
+  local source, reason = f:read("*a")
+  f:close()
+  f = nil
+  if not source then
+    return nil, reason
+  end
+  return load(source, "=" .. file, env)
+end
+
+function dofile(file)
+  local f, reason = loadfile(file)
+  if not f then
+    return nil, reason
+  end
+  return f()
+end

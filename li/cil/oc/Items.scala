@@ -9,9 +9,9 @@ object Items {
   var hdd: item.Hdd = null
   var rs: item.RedstoneCard = null
 
-  var ram16k: item.Memory = null
   var ram32k: item.Memory = null
   var ram64k: item.Memory = null
+  var ram128k: item.Memory = null
 
   def init() {
     multi = new item.Delegator(Config.itemId)
@@ -20,8 +20,8 @@ object Items {
     hdd = new item.Hdd(multi)
     rs = new item.RedstoneCard(multi)
 
-    ram16k = new item.Memory(multi, 16)
     ram32k = new item.Memory(multi, 32)
     ram64k = new item.Memory(multi, 64)
+    ram128k = new item.Memory(multi, 128)
   }
 }
