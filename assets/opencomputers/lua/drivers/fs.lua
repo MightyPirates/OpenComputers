@@ -112,9 +112,15 @@ end
 
 function driver.fs.listdir(path)
   local node, rest = findNode(path)
+  if not node.fs and rest then
+    return nil, "no such file or directory"
+  end
   local result
   if node.fs then
     result = {sendToNode(node.fs, "fs.list", rest or "")}
+    if not result[1] then
+      return nil, result[2]
+    end
   else
     result = {}
   end
