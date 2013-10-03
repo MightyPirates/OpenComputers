@@ -3,16 +3,16 @@ package li.cil.oc.server.fs
 import java.io
 import java.io.File
 import java.util.zip.ZipFile
-import li.cil.oc.api
-import li.cil.oc.api.network.Node
 import li.cil.oc.server.component
+import li.cil.oc.{Config, api}
+import net.minecraftforge.common.DimensionManager
 
 class ReadWriteFileSystem(val root: io.File) extends OutputStreamFileSystem with FileOutputStreamFileSystem
 
 class ReadOnlyFileSystem(val root: io.File) extends InputStreamFileSystem with FileInputStreamFileSystem
 
 object FileSystem extends api.detail.FileSystemAPI {
-  def fromClass(clazz: Class[_], domain: String, root: String): Option[api.FileSystem] = {
+  override def fromClass(clazz: Class[_], domain: String, root: String): Option[api.FileSystem] = {
     val codeSource = clazz.getProtectionDomain.getCodeSource
     if (codeSource == null) return None
     val file = new java.io.File(codeSource.getLocation.toURI)
@@ -43,5 +43,13 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  def asNode(fileSystem: api.FileSystem): Option[Node] = Some(new component.FileSystem(fileSystem))
+  override def fromSaveDir(root: String) = {
+    val path = new File(DimensionManager.getCurrentSaveRootDirectory, Config.savePath + root)
+    path.mkdirs()
+    if (path.exists() && path.isDirectory)
+      Some(new ReadWriteFileSystem(path))
+    else None
+  }
+
+  override def asNode(fileSystem: api.FileSystem) = Some(new component.FileSystem(fileSystem))
 }

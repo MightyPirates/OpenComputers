@@ -136,6 +136,8 @@ function sandbox.load(code, source, env)
   return load(code, source, "t", env or sandbox)
 end
 
+-------------------------------------------------------------------------------
+
 --[[ Install wrappers for coroutine management that reserves the first value
      returned by yields for internal stuff. Used for sleeping and message
      calls (sendToNode and its ilk) that happen synchronized (Server thread).
@@ -148,7 +150,7 @@ local function checkDeadline()
   end
 end
 
-local function main()
+local function main(args)
   local function init()
     sandbox.driver.fs.mount(os.romAddress(), "/rom")
     local result, reason = sandbox.loadfile("/rom/init.lua")
@@ -158,7 +160,6 @@ local function main()
     return coroutine.create(result)
   end
   local co = init()
-  local args = {}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
     if not debug.gethook(co) then
@@ -198,6 +199,16 @@ function sandbox.coroutine.yield(...)
   return coroutine.yield(nil, ...)
 end
 
+-------------------------------------------------------------------------------
+
+function sandbox.os.shutdown()
+  coroutine.yield(false)
+end
+
+function sandbox.os.reboot()
+  coroutine.yield(true)
+end
+
 function sandbox.os.signal(name, timeout)
   local waitUntil = os.clock() + (type(timeout) == "number" and timeout or math.huge)
   while os.clock() < waitUntil do
@@ -208,13 +219,7 @@ function sandbox.os.signal(name, timeout)
   end
 end
 
-function sandbox.os.shutdown()
-  coroutine.yield(false)
-end
-
-function sandbox.os.reboot()
-  coroutine.yield(true)
-end
+-------------------------------------------------------------------------------
 
 sandbox.driver = {}
 
@@ -239,9 +244,9 @@ do
   end
 end
 
--- Yield once to allow initializing up to here to get a memory baseline.
-coroutine.yield()
+-------------------------------------------------------------------------------
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return pcall(main)
+-- Also, yield once to allow initializing up to here to get a memory baseline.
+return pcall(main, {coroutine.yield()})

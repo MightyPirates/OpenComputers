@@ -4,6 +4,7 @@ import java.io.File
 
 object Config {
   val resourceDomain = "opencomputers"
+  val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val driverPath = "/assets/" + resourceDomain + "/lua/drivers/"
 

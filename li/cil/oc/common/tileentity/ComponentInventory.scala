@@ -17,7 +17,7 @@ trait ComponentInventory extends IInventory with Node {
 
   protected val itemComponents = Array.fill[Option[Node]](inventorySize)(None)
 
-  protected val computer: Option[component.Computer]
+  protected val computer: component.Computer
 
   def world: World
 
@@ -134,18 +134,20 @@ trait ComponentInventory extends IInventory with Node {
     if (item != null && item.stackSize > getInventoryStackLimit)
       item.stackSize = getInventoryStackLimit
 
-    if (!world.isRemote) Registry.driverFor(inventory(slot)) match {
-      case None => // No driver.
-      case Some(driver) =>
-        driver.node(inventory(slot)) match {
-          case None => // No node.
-          case Some(node) =>
-            itemComponents(slot) = Some(node)
-            network.foreach(_.connect(this, node))
-        }
-    }
+    if (!world.isRemote) {
+      Registry.driverFor(inventory(slot)) match {
+        case None => // No driver.
+        case Some(driver) =>
+          driver.node(inventory(slot)) match {
+            case None => // No node.
+            case Some(node) =>
+              itemComponents(slot) = Some(node)
+              network.foreach(_.connect(this, node))
+          }
+      }
 
-    computer.foreach(_.recomputeMemory())
+      computer.recomputeMemory()
+    }
   }
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {

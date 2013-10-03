@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{Visibility, Node}
+import li.cil.oc.api.network.{Message, Visibility, Node}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -31,118 +31,60 @@ import scala.io.Source
  * <ul>
  * <li>Creating a new Lua state when started from a previously stopped state.</li>
  * <li>Updating the Lua state in a parallel thread so as not to block the game.</li>
- * <li>Synchronizing calls from the computer thread to the network.</li>
+ * <li>Synchronizing calls from the computer thread to other game components.</li>
  * <li>Saving the internal state of the computer across chunk saves/loads.</li>
  * <li>Closing the Lua state when stopping a previously running computer.</li>
  * </ul>
  * <p/>
- * See `Driver` to read more about component drivers and how they interact
- * with computers - and through them the components they interface.
+ * Computers are relatively useless without drivers. Drivers are a combination
+ * of Lua and Java/Scala code that allows the computer to interact with the
+ * game world, or more specifically: with other components, by sending messages
+ * across the component network the computer is connected to (see `Network`).
+ * <p/>
+ * Host code (Java/Scala) cannot directly call Lua code. It can only queue
+ * signals (events, messages, packets, whatever you want to call it) which will
+ * be passed to the Lua state one by one and processed there (see `signal`).
+ * <p/>
+ *
  */
 class Computer(val owner: Computer.Environment) extends Persistable with Runnable {
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
 
-  /**
-   * The current execution state of the computer. This is used to track how to
-   * resume the computers main thread, if at all, and whether to accept new
-   * signals or not.
-   */
   private var state = Computer.State.Stopped
 
-  /** The internal Lua state. Only set while the computer is running. */
-  private var lua: LuaState = null
+  private val stateMonitor = new Object() // To synchronize access to `state`.
 
-  /** The filesystem node holding the read-only memory of this computer. */
-  val rom = api.FileSystem.asNode(api.FileSystem.fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom").get).get
-
-  /**
-   * The base memory consumption of the kernel. Used to permit a fixed base
-   * memory for userland even if the amount of memory the kernel uses changes
-   * over time (i.e. with future releases of the mod). This is set when
-   * starting up the computer.
-   */
-  private var kernelMemory = 0
-
-  /**
-   * The queue of signals the Lua state should process. Signals are queued from
-   * the Java side and processed one by one in the Lua VM. They are the only
-   * means to communicate actively with the computer (passively only message
-   * handlers can interact with the computer by returning some result).
-   * <p/>
-   * The queue is intentionally pretty big, because we have to enqueue one
-   * signal for for each component in the network when the computer starts up.
-   */
-  private val signals = new LinkedBlockingQueue[Computer.Signal](256)
-
-  // ----------------------------------------------------------------------- //
-
-  /**
-   * The time (world time) when the computer was started. This is used for our
-   * custom implementation of os.clock(), which returns the amount of the time
-   * the computer has been running.
-   */
-  private var timeStarted = 0L
-
-  /**
-   * The last time (system time) the update function was called by the server
-   * thread. We use this to detect whether the game was paused, to also pause
-   * the executor thread for our Lua state.
-   */
-  private var lastUpdate = 0L
-
-  /**
-   * The current world time. This is used for our custom implementation of
-   * os.time(). This is updated by the server thread and read by the computer
-   * thread, to avoid computer threads directly accessing the world state.
-   */
-  private var worldTime = 0L
-
-  // ----------------------------------------------------------------------- //
-
-  /**
-   * This is used to keep track of the current executor of the Lua state, for
-   * example to wait for the computer to finish running a task.
-   */
   private var future: Option[Future[_]] = None
 
-  /**
-   * Timestamp until which to sleep, i.e. when we hit this time we will create
-   * a future to run the computer. Until then we have nothing to do.
-   */
-  private var sleepUntil = Long.MaxValue
+  private var lua: LuaState = null
 
-  /** This is used to synchronize access to the state field. */
-  private val stateMonitor = new Object()
+  private var kernelMemory = 0
+
+  private val signals = new LinkedBlockingQueue[Computer.Signal](256)
+
+  private val rom = api.FileSystem.
+    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom").
+    flatMap(api.FileSystem.asNode)
 
   // ----------------------------------------------------------------------- //
-  // IComputerContext
+
+  private var timeStarted = 0L // Game-world time for os.clock().
+
+  private var worldTime = 0L // Game-world time for os.time().
+
+  private var lastUpdate = 0L // Real-world time for pause detection.
+
+  private var sleepUntil = Long.MaxValue // Real-world time.
+
+  private var wasRunning = false // To signal stops synchronously.
+
   // ----------------------------------------------------------------------- //
 
-  def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
-    case Computer.State.Stopped | Computer.State.Stopping => false
-    case _ => signals.offer(new Computer.Signal(name, args.map {
-      case null | Unit => Unit
-      case arg: Boolean => arg
-      case arg: Byte => arg.toDouble
-      case arg: Char => arg.toDouble
-      case arg: Short => arg.toDouble
-      case arg: Int => arg.toDouble
-      case arg: Long => arg.toDouble
-      case arg: Float => arg.toDouble
-      case arg: Double => arg
-      case arg: String => arg
-      case _ => throw new IllegalArgumentException()
-    }.toArray))
-  })
-
-  def recomputeMemory() = if (lua != null) {
+  def recomputeMemory() = if (lua != null)
     lua.setTotalMemory(kernelMemory + Config.baseMemory + owner.installedMemory)
-  }
 
-  // ----------------------------------------------------------------------- //
-  // IComputer
   // ----------------------------------------------------------------------- //
 
   def start() = stateMonitor.synchronized(
@@ -157,15 +99,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
 
-      // Inject a dummy signal so that real ones don't get swallowed. This way
-      // we can just ignore the parameters the first time the kernel is run
-      // and all actual signals will be read using coroutine.yield().
-      signal("")
-
       // Inject component added signals for all nodes in the network.
       owner.network.foreach(_.nodes(owner).foreach(node => signal("component_added", node.address.get)))
 
       // All green, computer started successfully.
+      owner.network.foreach(_.sendToVisible(owner, "computer.started"))
       true
     })
 
@@ -182,7 +120,26 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       true
   })
 
-  def isRunning = state != Computer.State.Stopped
+  def isRunning = state != Computer.State.Stopped && lastUpdate != 0
+
+  // ----------------------------------------------------------------------- //
+
+  def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
+    case Computer.State.Stopped | Computer.State.Stopping => false
+    case _ => signals.offer(new Computer.Signal(name, args.map {
+      case null | Unit | None => Unit
+      case arg: Boolean => arg
+      case arg: Byte => arg.toDouble
+      case arg: Char => arg.toDouble
+      case arg: Short => arg.toDouble
+      case arg: Int => arg.toDouble
+      case arg: Long => arg.toDouble
+      case arg: Float => arg.toDouble
+      case arg: Double => arg
+      case arg: String => arg
+      case _ => throw new IllegalArgumentException()
+    }.toArray))
+  })
 
   def update() {
     // Update last time run to let our executor thread know it doesn't have to
@@ -195,6 +152,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // of a single day (0 to 24000), which it *is*... perhaps vanilla Minecraft (not re-compiled) behaves different?
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
+
+    // Signal stops to the network. This is used to close file handles, for example.
+    if (wasRunning && !isRunning)
+      owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
+    wasRunning = isRunning
 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {
@@ -308,7 +270,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             }.toArray)
         }).asJava)
 
-        rom.load(nbt.getCompoundTag("rom"))
+        rom.foreach(_.load(nbt.getCompoundTag("rom")))
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
 
@@ -387,7 +349,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       nbt.setTag("signals", list)
 
       val romNbt = new NBTTagCompound()
-      rom.save(romNbt)
+      rom.foreach(_.save(romNbt))
       nbt.setCompoundTag("rom", romNbt)
       nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
@@ -503,10 +465,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       // And it's ROM address.
       lua.pushScalaFunction(lua => {
-        rom.address match {
+        rom.foreach(_.address match {
           case None => lua.pushNil()
           case Some(address) => lua.pushString(address)
-        }
+        })
         1
       })
       lua.setField(-2, "romAddress")
@@ -647,7 +609,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       signals.clear()
 
       // Connect the ROM node to our owner.
-      owner.network.foreach(_.connect(owner, rom))
+      rom.foreach(rom => owner.network.foreach(_.connect(owner, rom)))
 
       return true
     }
@@ -820,6 +782,78 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 }
 
 object Computer {
+
+  trait Environment extends Node {
+    protected val computer: Computer
+
+    def world: World
+
+    def installedMemory: Int
+
+    /**
+     * Called when the computer state changed, so it should be saved again.
+     * <p/>
+     * This is called asynchronously from the Computer's executor thread, so the
+     * computer's owner must make sure to handle this in a synchronized fashion.
+     */
+    def markAsChanged(): Unit
+
+    // ----------------------------------------------------------------------- //
+
+    override def name = "computer"
+
+    override def visibility = Visibility.Network
+
+    override def receive(message: Message) = {
+      super.receive(message)
+      message.data match {
+        // The isRunning check is here to avoid component_* signals being
+        // generated while loading a chunk.
+        case Array() if message.name == "network.connect" && computer.isRunning =>
+          computer.signal("component_added", message.source.address.get); None
+        case Array() if message.name == "network.disconnect" && computer.isRunning =>
+          computer.signal("component_removed", message.source.address.get); None
+        case Array(oldAddress: Integer) if message.name == "network.reconnect" && computer.isRunning =>
+          computer.signal("component_changed", message.source.address.get, oldAddress); None
+
+        // Arbitrary signals, usually from other components.
+        case Array(name: String, args@_*) if message.name == "computer.signal" =>
+          computer.signal(name, List(message.source.address.get) ++ args: _*); None
+
+        // Remote control.
+        case Array() if message.name == "computer.start" =>
+          Some(Array(computer.start().asInstanceOf[Any]))
+        case Array() if message.name == "computer.stop" =>
+          Some(Array(computer.stop().asInstanceOf[Any]))
+        case Array() if message.name == "computer.running" =>
+          Some(Array(computer.isRunning.asInstanceOf[Any]))
+        case _ => None
+      }
+    }
+
+    override protected def onConnect() {
+      super.onConnect()
+      computer.rom.foreach(rom => network.foreach(_.connect(this, rom)))
+    }
+
+    override protected def onDisconnect() {
+      super.onDisconnect()
+      computer.rom.foreach(rom => rom.network.foreach(_.remove(rom)))
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      computer.load(nbt.getCompoundTag("computer"))
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      val computerNbt = new NBTTagCompound
+      computer.save(computerNbt)
+      nbt.setCompoundTag("computer", computerNbt)
+    }
+  }
+
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =
     onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
@@ -829,28 +863,6 @@ object Computer {
       filter(_.isInstanceOf[tileentity.Computer]).
       map(_.asInstanceOf[tileentity.Computer]).
       foreach(_.turnOff())
-  }
-
-  /**
-   * This has to be implemented by owners of computer instances and allows the
-   * computers to access information about the world they live in.
-   */
-  trait Environment extends Node {
-    override def name = "computer"
-
-    override def visibility = Visibility.Network
-
-    def world: World
-
-    def installedMemory: Int
-
-    /**
-     * Called when the computer state changed, so it should be saved again.
-     *
-     * This is called asynchronously from the Computer's executor thread, so the
-     * computer's owner must make sure to handle this in a synchronized fashion.
-     */
-    def markAsChanged(): Unit
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */

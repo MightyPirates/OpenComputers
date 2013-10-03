@@ -13,56 +13,19 @@ import net.minecraftforge.common.ForgeDirection
 class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with RedstoneEnabled {
   def this() = this(false)
 
-  protected val computer = if (isClient) None else Some(new component.Computer(this))
+  // ----------------------------------------------------------------------- //
 
-  private val hasChanged = new AtomicBoolean(true)
+  private val hasChanged = new AtomicBoolean(true) // For `markChanged`.
 
   private var isRunning = false
-
-  // ----------------------------------------------------------------------- //
-  // NetworkNode
-  // ----------------------------------------------------------------------- //
-
-  override def receive(message: Message) = {
-    super.receive(message)
-    message.data match {
-      // The isRunning check is here to avoid component_* signals being
-      // generated while loading a chunk.
-      case Array() if message.name == "network.connect" && isRunning =>
-        computer.foreach(_.signal("component_added", message.source.address.get)); None
-      case Array() if message.name == "network.disconnect" && isRunning =>
-        computer.foreach(_.signal("component_removed", message.source.address.get)); None
-      case Array(oldAddress: Integer) if message.name == "network.reconnect" && isRunning =>
-        computer.foreach(_.signal("component_changed", message.source.address.get, oldAddress)); None
-      case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        computer.foreach(_.signal(name, List(message.source.address.get) ++ args: _*)); None
-      case Array() if message.name == "computer.start" =>
-        Some(Array(turnOn().asInstanceOf[Any]))
-      case Array() if message.name == "computer.stop" =>
-        Some(Array(turnOff().asInstanceOf[Any]))
-      case Array() if message.name == "computer.running" =>
-        Some(Array(isOn.asInstanceOf[Any]))
-      case _ => None
-    }
-  }
-
-  override protected def onConnect() {
-    super.onConnect()
-    network.foreach(_.connect(this, computer.get.rom))
-  }
-
-  override protected def onDisconnect() {
-    super.onDisconnect()
-    computer.foreach(c => c.rom.network.foreach(_.remove(c.rom)))
-  }
 
   // ----------------------------------------------------------------------- //
   // General
   // ----------------------------------------------------------------------- //
 
-  def turnOn() = computer.foreach(_.start())
+  def turnOn() = computer.start()
 
-  def turnOff() = computer.foreach(_.stop())
+  def turnOff() = computer.stop()
 
   def isOn = isRunning
 
@@ -75,7 +38,6 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     load(nbt.getCompoundTag("data"))
-    computer.foreach(_.load(nbt.getCompoundTag("computer")))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
@@ -84,25 +46,15 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
     val dataNbt = new NBTTagCompound
     save(dataNbt)
     nbt.setCompoundTag("data", dataNbt)
-
-    val computerNbt = new NBTTagCompound
-    computer.foreach(_.save(computerNbt))
-    nbt.setCompoundTag("computer", computerNbt)
   }
 
   override def updateEntity() = if (!worldObj.isRemote) {
-    computer.get.update()
-    if (hasChanged.get) {
+    computer.update()
+    if (hasChanged.get)
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-    }
-    if (isRunning != computer.get.isRunning) {
-      isRunning = computer.get.isRunning
-      if (isRunning)
-        network.foreach(_.sendToVisible(this, "computer.started"))
-      else
-        network.foreach(_.sendToVisible(this, "computer.stopped"))
-      ServerPacketSender.sendComputerState(this, isRunning)
-    }
+    if (isRunning != computer.isRunning)
+      ServerPacketSender.sendComputerState(this, computer.isRunning)
+    isRunning = computer.isRunning
   }
 
   override def validate() = {
@@ -112,6 +64,24 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   }
 
   // ----------------------------------------------------------------------- //
+  // Computer.Environment
+  // ----------------------------------------------------------------------- //
+
+  override protected val computer = if (isClient) null else new component.Computer(this)
+
+  def world = worldObj
+
+  def markAsChanged() = hasChanged.set(true)
+
+  // ----------------------------------------------------------------------- //
+  // IInventory
+  // ----------------------------------------------------------------------- //
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
+      player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
+
+  // ----------------------------------------------------------------------- //
   // RedstoneEnabled
   // ----------------------------------------------------------------------- //
 
@@ -119,16 +89,4 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
     xCoord + side.offsetX, yCoord + side.offsetY, zCoord + side.offsetZ, side.getOpposite.ordinal)
 
   // TODO output
-
-  // ----------------------------------------------------------------------- //
-  // Interfaces and updating
-  // ----------------------------------------------------------------------- //
-
-  override def isUseableByPlayer(player: EntityPlayer) =
-    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
-      player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
-
-  override def world = worldObj
-
-  override def markAsChanged() = hasChanged.set(true)
 }

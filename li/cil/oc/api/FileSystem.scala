@@ -177,6 +177,24 @@ object FileSystem extends FileSystemAPI {
     instance.fold(None: Option[FileSystem])(_.fromClass(clazz, domain, root))
 
   /**
+   * Creates a new *writable* file system in the save folder.
+   * <p/>
+   * This will create a folder, if necessary, and create a writable virtual
+   * file system based in that folder. The actual path is based in a sub-
+   * folder of the save folder. The actual path is e.g. built like this:
+   * `"saves/" + WORLD_NAME + "/opencomputers/" + root`. Where the first
+   * part may differ, in particular for servers. But you get the idea.
+   * <p/>
+   * Usually the name will be the name of the node used to represent the
+   * file system.
+   *
+   * @param root the name of the file system.
+   * @return
+   */
+  def fromSaveDir(root: String) =
+    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root))
+
+  /**
    * Creates a network node that makes the specified file system available via
    * the common file system driver.
    * <p/>

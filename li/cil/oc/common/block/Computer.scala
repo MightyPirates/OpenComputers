@@ -68,7 +68,8 @@ class Computer(val parent: Delegator) extends Delegate {
   // ----------------------------------------------------------------------- //
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOff()
+    if (!world.isRemote)
+      world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOff()
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
@@ -76,7 +77,8 @@ class Computer(val parent: Delegator) extends Delegate {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       // Start the computer if it isn't already running and open the GUI.
-      world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOn()
+      if (!world.isRemote)
+        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOn()
       player.openGui(OpenComputers, GuiType.Computer.id, world, x, y, z)
       true
     }

@@ -1,7 +1,6 @@
 package li.cil.oc.server.driver
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.{Block, Item}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import scala.Some
@@ -23,10 +22,10 @@ import scala.collection.mutable.ArrayBuffer
  */
 private[oc] object Registry extends api.detail.DriverAPI {
   /** The list of registered block drivers. */
-  private val blocks = ArrayBuffer.empty[Block]
+  private val blocks = ArrayBuffer.empty[api.driver.Block]
 
   /** The list of registered item drivers. */
-  private val items = ArrayBuffer.empty[Item]
+  private val items = ArrayBuffer.empty[api.driver.Item]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -39,7 +38,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
    *
    * @param driver the driver for that block type.
    */
-  def add(driver: Block) {
+  def add(driver: api.driver.Block) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) blocks += driver
   }
@@ -52,7 +51,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
    *
    * @param driver the driver for that item type.
    */
-  def add(driver: Item) {
+  def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) items += driver
   }
