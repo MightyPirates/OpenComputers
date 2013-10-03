@@ -26,7 +26,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   addressedNodes.values.foreach(_.data.network = Some(this))
   unaddressedNodes.foreach(_.data.network = Some(this))
 
-  def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+  override def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
 
@@ -57,7 +57,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     else add(oldNodeB, nodeA)
   }
 
-  def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+  override def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
 
@@ -80,7 +80,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
   }
 
-  def remove(node: api.network.Node) = (node.address match {
+  override def remove(node: api.network.Node) = (node.address match {
     case None => unaddressedNodes.indexWhere(_.data == node) match {
       case -1 => None
       case index => Some(unaddressedNodes.remove(index))
@@ -104,12 +104,12 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
   }
 
-  def node(address: String) = addressedNodes.get(address) match {
+  override def node(address: String) = addressedNodes.get(address) match {
     case Some(node) => Some(node.data)
     case _ => None
   }
 
-  def nodes = addressedNodes.values.map(_.data)
+  override def nodes = addressedNodes.values.map(_.data)
 
   def nodes(reference: api.network.Node) = {
     val referenceNeighbors = neighbors(reference).toSet
@@ -117,7 +117,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       (node.visibility == Visibility.Neighbors && referenceNeighbors.contains(node))))
   }
 
-  def neighbors(node: api.network.Node) = node.address match {
+  override def neighbors(node: api.network.Node) = node.address match {
     case None =>
       unaddressedNodes.find(_.data == node) match {
         case None => throw new IllegalArgumentException("Node must be in this network.")
@@ -130,7 +130,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       }
   }
 
-  def sendToAddress(source: api.network.Node, target: String, name: String, data: Any*) = {
+  override def sendToAddress(source: api.network.Node, target: String, name: String, data: Any*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined) addressedNodes.get(target) match {
@@ -141,14 +141,14 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     } else None
   }
 
-  def sendToNeighbors(source: api.network.Node, name: String, data: Any*) = {
+  override def sendToNeighbors(source: api.network.Node, name: String, data: Any*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
       send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.visibility != Visibility.None))
   }
 
-  def sendToVisible(source: api.network.Node, name: String, data: Any*) = {
+  override def sendToVisible(source: api.network.Node, name: String, data: Any*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
@@ -287,6 +287,23 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 }
 
 object Network extends api.detail.NetworkAPI {
+  override def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
+    getNetworkNode(world, x, y, z) match {
+      case None => // Invalid block.
+      case Some(node) => {
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+            case None => // Ignore.
+            case Some(neighborNode) =>
+              if (neighborNode.network.isDefined) {
+                neighborNode.network.foreach(_.connect(neighborNode, node))
+              }
+          }
+        }
+        if (node.network.isEmpty) new Network(node)
+      }
+    }
+
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =
     onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
@@ -306,23 +323,6 @@ object Network extends api.detail.NetworkAPI {
   private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
     tileEntities.foreach(t => joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
   }
-
-  def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
-    getNetworkNode(world, x, y, z) match {
-      case None => // Invalid block.
-      case Some(node) => {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case None => // Ignore.
-            case Some(neighborNode) =>
-              if (neighborNode.network.isDefined) {
-                neighborNode.network.foreach(_.connect(neighborNode, node))
-              }
-          }
-        }
-        if (node.network.isEmpty) new Network(node)
-      }
-    }
 
   private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[TileEntity with api.network.Node] =
     Option(Block.blocksList(world.getBlockId(x, y, z))) match {
@@ -385,7 +385,7 @@ object Network extends api.detail.NetworkAPI {
                         @BeanProperty val data: Array[Any] = Array()) extends api.network.Message {
     var isCanceled = false
 
-    def cancel() = isCanceled = true
+    override def cancel() = isCanceled = true
   }
 
   private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "network.connect")

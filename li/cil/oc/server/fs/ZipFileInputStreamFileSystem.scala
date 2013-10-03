@@ -5,8 +5,7 @@ import scala.collection.mutable
 
 // TODO we may want to read in the complete zip file (and keep a cache in the
 // factory) to avoid a ton of open real file handles.
-class ZipFileSystem(val zip: ZipFile, val root: String) extends InputStreamFileSystem {
-
+class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends InputStreamFileSystem {
   private val directories = mutable.Map.empty[ZipEntry, Array[String]]
 
   def exists(path: String) = entry(path).isDefined
@@ -26,7 +25,7 @@ class ZipFileSystem(val zip: ZipFile, val root: String) extends InputStreamFileS
     directories.clear()
   }
 
-  protected def openInputStream(path: String, handle: Long) = entry(path).map(entry => zip.getInputStream(entry))
+  protected def openInputStream(path: String) = entry(path).map(entry => zip.getInputStream(entry))
 
   // ----------------------------------------------------------------------- //
 

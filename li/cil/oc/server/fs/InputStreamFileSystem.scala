@@ -9,12 +9,9 @@ import scala.collection.mutable
 abstract class InputStreamFileSystem extends api.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
-  protected def maxHandles = 32
-
   def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
-    if (handles.size >= maxHandles) throw new IOException("too many open files")
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
-    openInputStream(path, handle) match {
+    openInputStream(path) match {
       case Some(stream) =>
         handles += handle -> new Handle(this, handle, path, stream)
         handle
@@ -27,20 +24,21 @@ abstract class InputStreamFileSystem extends api.FileSystem {
   def close() {
     for (handle <- handles.values)
       handle.close()
+    handles.clear()
   }
 
   def load(nbt: NBTTagCompound) {
-    val handlesNbt = nbt.getTagList("handles")
+    val handlesNbt = nbt.getTagList("input")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
       val path = handleNbt.getString("path")
       val position = handleNbt.getLong("position")
-      openInputStream(path, handle) match {
+      openInputStream(path) match {
         case Some(stream) =>
-          val inputHandle = new Handle(this, handle, path, stream)
-          inputHandle.position = stream.skip(position) // May be != position if the file changed since we saved.
-          handles += handle -> inputHandle
-        case _ => // The source file seems to have changed since last time.
+          val fileHandle = new Handle(this, handle, path, stream)
+          fileHandle.position = stream.skip(position) // May be != position if the file changed since we saved.
+          handles += handle -> fileHandle
+        case _ => // The source file seems to have disappeared since last time.
       }
     })
   }
@@ -55,12 +53,12 @@ abstract class InputStreamFileSystem extends api.FileSystem {
       handleNbt.setLong("position", file.position)
       handlesNbt.appendTag(handleNbt)
     }
-    nbt.setTag("handles", handlesNbt)
+    nbt.setTag("input", handlesNbt)
   }
 
-  protected def openInputStream(path: String, handle: Long): Option[InputStream]
+  protected def openInputStream(path: String): Option[InputStream]
 
-  protected class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.Handle {
+  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.Handle {
     var isClosed = false
     var position = 0L
 
@@ -84,7 +82,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
       stream.skip(to)
     }
 
-    def write(value: Array[Byte]) = throw new IOException("file is read-only")
+    def write(value: Array[Byte]) = throw new IOException("handle is read-only")
   }
 
 }
