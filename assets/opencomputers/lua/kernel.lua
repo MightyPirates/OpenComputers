@@ -152,8 +152,8 @@ end
 
 local function main(args)
   local function init()
-    sandbox.driver.fs.mount(os.romAddress(), "/rom")
-    local result, reason = sandbox.loadfile("/rom/init.lua")
+    sandbox.driver.fs.mount(os.romAddress(), "/boot")
+    local result, reason = sandbox.loadfile("/boot/init.lua")
     if not result then
       error(reason)
     end

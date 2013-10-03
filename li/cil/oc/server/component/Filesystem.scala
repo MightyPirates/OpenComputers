@@ -39,7 +39,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           None
         case Array(path: Array[Byte]) if message.name == "fs.exists" =>
           Some(Array(fileSystem.exists(clean(path)).asInstanceOf[Any]))
-        case Array(path: Array[Byte]) if message.name == "fs.exists" =>
+        case Array(path: Array[Byte]) if message.name == "fs.size" =>
           Some(Array(fileSystem.size(clean(path)).asInstanceOf[Any]))
         case Array(path: Array[Byte]) if message.name == "fs.isDirectory" =>
           Some(Array(fileSystem.isDirectory(clean(path)).asInstanceOf[Any]))

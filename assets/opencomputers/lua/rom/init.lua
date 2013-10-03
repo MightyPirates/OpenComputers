@@ -1,7 +1,10 @@
-dofile("/rom/api/event.lua")
-dofile("/rom/api/component.lua")
-dofile("/rom/api/term.lua")
-dofile("/rom/sh.lua")
+dofile("/boot/api/event.lua")
+dofile("/boot/api/component.lua")
+dofile("/boot/api/filesystem.lua")
+dofile("/boot/api/term.lua")
+dofile("/boot/sh.lua")
+
+driver.fs.umount("/boot")
 
 event.fire(...)
 while true do

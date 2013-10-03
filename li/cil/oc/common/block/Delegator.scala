@@ -100,7 +100,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
   // ----------------------------------------------------------------------- //
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    subBlock(world, x, y, z) match {
+    subBlock(metadata) match {
       case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {

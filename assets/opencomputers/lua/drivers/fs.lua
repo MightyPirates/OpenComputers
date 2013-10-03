@@ -1,5 +1,7 @@
 driver.fs = {}
 
+-------------------------------------------------------------------------------
+
 local mtab = {children={}}
 
 local function segments(path)
@@ -31,30 +33,20 @@ end
 local function findNode(path, create)
   local parts = segments(path)
   local node = mtab
-  for _, part in ipairs(parts) do
-    if not node.children[part] then
+  for i = 1, #parts do
+    if not node.children[parts[i]] then
       if create then
-        node.children[part] = {children={}}
+        node.children[parts[i]] = {children={}, parent=node}
       else
-        return nil
+        return node, table.concat(parts, "/", i)
       end
     end
-    node = node.children[part]
+    node = node.children[parts[i]]
   end
   return node
 end
 
-local function findFs(path)
-  local parts = segments(path)
-  local node = mtab
-  for i = 1, #parts do
-    if not node.children[parts[i]] then
-      return node.fs, table.concat(parts, "/", i), node
-    end
-    node = node.children[parts[i]]
-  end
-  return node.fs, "", node
-end
+-------------------------------------------------------------------------------
 
 function driver.fs.mount(fs, path)
   assert(type(fs) == "string",
@@ -71,18 +63,29 @@ end
 function driver.fs.umount(fsOrPath)
   assert(type(fsOrPath) == "string",
     "bad argument #1 (string expected, got " .. type(fsOrPath) .. ")")
-  if type(fsOrPath) == "string" then
-    local node = findNode(fsOrPath)
-    if node and node.fs then
-      node.fs = nil
-      return true
+  local function removeEmptyNodes(node)
+    while node and node.parent and not node.fs and not next(node.children) do
+      for k, c in pairs(node.parent.children) do
+        if c == node then
+          node.parent.children[k] = nil
+          break
+        end
+      end
+      node = node.parent
     end
+  end
+  local node, rest = findNode(fsOrPath)
+  if not rest and node.fs then
+    node.fs = nil
+    removeEmptyNodes(node)
+    return true
   else
     local queue = {mtab}
     repeat
       local node = table.remove(queue)
       if node.fs == fsOrPath then
         node.fs = nil
+        removeEmptyNodes(node)
         return true
       end
       for _, child in ipairs(node.children) do
@@ -92,30 +95,63 @@ function driver.fs.umount(fsOrPath)
   end
 end
 
-function driver.fs.listdir(path)
-  local fs, subpath, node = findFs(path)
-  local result = {}
-  for k, _ in pairs(node.children) do
-    table.insert(result, k .. "/")
+-------------------------------------------------------------------------------
+
+function driver.fs.exists(path)
+  local node, rest = findNode(path)
+  if not rest then -- virtual directory
+    return true
   end
-  if fs then
-    local fsresult = {sendToNode(fs, "fs.list", subpath)}
-    for _, k in ipairs(fsresult) do
-      table.insert(result, k)
+  if node.fs then
+    return sendToNode(node.fs, "fs.exists", rest)
+  end
+end
+
+function driver.fs.size(path)
+  local node, rest = findNode(path)
+  if node.fs and rest then
+    return sendToNode(node.fs, "fs.size", rest)
+  end
+  return 0 -- no such file or directory or virtual directory
+end
+
+function driver.fs.listdir(path)
+  local node, rest = findNode(path)
+  local result
+  if node.fs then
+    result = {sendToNode(node.fs, "fs.list", rest or "")}
+  else
+    result = {}
+  end
+  if not rest then
+    for k, _ in pairs(node.children) do
+      table.insert(result, k .. "/")
     end
   end
   table.sort(result)
   return table.unpack(result)
 end
 
+-------------------------------------------------------------------------------
+
 function driver.fs.remove(path)
+  local node, rest = findNode(path)
+  if node.fs and rest then
+    return sendToNode(node.fs, "fs.remove", rest)
+  end
 end
 
 function driver.fs.rename(oldPath, newPath)
+  --[[ TODO moving between file systems will require actual data copying...
+  local node, rest = findNode(path)
+  local newNode, newRest = findNode(newPath)
+  if node.fs and rest and newNode and newRest then
+    return sendToNode(node.fs, "fs.rename", rest)
+  end
+  ]]
 end
 
-function driver.fs.tmpname()
-end
+-------------------------------------------------------------------------------
 
 local file = {}
 
@@ -306,10 +342,12 @@ function file.write(f, ...)
     end
     buffer = buffer .. arg
     ]]
-    sendToNode(f.fs, "fs.write", arg)
+    sendToNode(f.fs, "fs.write", f.handle, arg)
   end
   return f
 end
+
+-------------------------------------------------------------------------------
 
 function driver.fs.open(path, mode)
   assert(type(path) == "string",
@@ -317,24 +355,24 @@ function driver.fs.open(path, mode)
   mode = mode or "r"
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
     "bad argument #2 (r[b], w[b] or a[b] expected, got " .. tostring(mode) .. ")")
-  local fs, subpath = findFs(path)
-  if not fs then
+  local node, rest = findNode(path)
+  if not node.fs or not rest then -- files can only be in file systems
     return nil, "file not found"
   end
-  local handle, reason = sendToNode(fs, "fs.open", subpath, mode)
+  local handle, reason = sendToNode(node.fs, "fs.open", rest or "", mode)
   if not handle then
     return nil, reason
   end
   return setmetatable({
-      fs = fs,
+      fs = node.fs,
       handle = handle,
       bsize = 8 * 1024,
-      bmode = "no"
+      bmode = "full"
     }, {
       __index = file,
       __gc = function(f)
-        -- File.close does a syscall, which yields, and that's not possible in
-        -- the __gc metamethod. So we start a timer to do the yield.
+        -- file.close does a syscall, which yields, and that's not possible in
+        -- the __gc metamethod. So we start a timer to do the yield/cleanup.
         event.timer(0, function()
           file.close(f)
         end)
@@ -353,19 +391,7 @@ function driver.fs.type(f)
   end
 end
 
--- Aliases for vanilla Lua.
-os.remove = driver.fs.remove
-os.rename = driver.fs.rename
-os.tmpname = driver.fs.tmpname
-
-io = {}
--- TODO io.flush = function() end
--- TODO io.lines = function(filename) end
-io.open = driver.fs.open
--- TODO io.popen = function(prog, mode) end
-io.read = driver.fs.read
--- TODO io.tmpfile = function() end
-io.type = driver.fs.type
+-------------------------------------------------------------------------------
 
 function loadfile(file, env)
   local f, reason = driver.fs.open(file)

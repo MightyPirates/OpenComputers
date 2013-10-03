@@ -46,6 +46,7 @@ trait ComponentInventory extends IInventory with Node {
         }
       }
     }
+    computer.recomputeMemory()
   }
 
   override def save(nbt: NBTTagCompound) = {
