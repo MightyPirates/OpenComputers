@@ -136,6 +136,17 @@ function sandbox.load(code, source, env)
   return load(code, source, "t", env or sandbox)
 end
 
+function sandbox.checkArg(n, have, ...)
+  have = type(have)
+  for _, want in pairs({...}) do
+    if have == want then
+      return
+    end
+  end
+  local msg = "bad argument #" .. n .. " (" .. table.concat({...}, " or ") .. " expected, got " .. have .. ")"
+  error(debug.traceback(msg, 3), 2)
+end
+
 -------------------------------------------------------------------------------
 
 --[[ Install wrappers for coroutine management that reserves the first value

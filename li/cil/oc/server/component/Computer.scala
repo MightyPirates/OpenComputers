@@ -568,16 +568,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       })
       lua.setGlobal("drivers")
 
-      // Loads the init script. This is loaded and then run by the kernel as a
-      // separate coroutine to sandbox it and enforce timeouts and sandbox user
-      // scripts.
-      lua.pushScalaFunction(lua => {
-        lua.pushString(Source.fromInputStream(classOf[Computer].
-          getResourceAsStream(Config.scriptPath + "init.lua")).mkString)
-        1
-      })
-      lua.setGlobal("init")
-
       // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
       // available as globals. It also wraps the message sending functions

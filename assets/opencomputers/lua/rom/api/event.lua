@@ -1,14 +1,3 @@
-local function checkArg(n, have, ...)
-  have = type(have)
-  for _, want in pairs({...}) do
-    if have == want then return end
-  end
-  error("bad argument #" .. n .. " (" .. table.concat({...}, " or ") ..
-        " expected, got " .. have .. ")", 3)
-end
-
--------------------------------------------------------------------------------
-
 local listeners = {}
 local weakListeners = {}
 local timers = {}

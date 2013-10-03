@@ -1,7 +1,3 @@
-driver.fs = {}
-
--------------------------------------------------------------------------------
-
 local mtab = {children={}}
 
 local function segments(path)
@@ -31,6 +27,7 @@ local function segments(path)
 end
 
 local function findNode(path, create)
+  checkArg(1, path, "string")
   local parts = segments(path)
   local node = mtab
   for i = 1, #parts do
@@ -46,13 +43,24 @@ local function findNode(path, create)
   return node
 end
 
+local function removeEmptyNodes(node)
+  while node and node.parent and not node.fs and not next(node.children) do
+    for k, c in pairs(node.parent.children) do
+      if c == node then
+        node.parent.children[k] = nil
+        break
+      end
+    end
+    node = node.parent
+  end
+end
+
 -------------------------------------------------------------------------------
 
+driver.fs = {}
+
 function driver.fs.mount(fs, path)
-  assert(type(fs) == "string",
-    "bad argument #1 (string expected, got " .. type(fs) .. ")")
-  assert(type(path) == "string",
-    "bad argument #2 (string expected, got " .. type(path) .. ")")
+  checkArg(1, fs, "string")
   local node = findNode(path, true)
   if node.fs then
     return nil, "another filesystem is already mounted here"
@@ -61,19 +69,6 @@ function driver.fs.mount(fs, path)
 end
 
 function driver.fs.umount(fsOrPath)
-  assert(type(fsOrPath) == "string",
-    "bad argument #1 (string expected, got " .. type(fsOrPath) .. ")")
-  local function removeEmptyNodes(node)
-    while node and node.parent and not node.fs and not next(node.children) do
-      for k, c in pairs(node.parent.children) do
-        if c == node then
-          node.parent.children[k] = nil
-          break
-        end
-      end
-      node = node.parent
-    end
-  end
   local node, rest = findNode(fsOrPath)
   if not rest and node.fs then
     node.fs = nil
@@ -331,9 +326,7 @@ function file.write(f, ...)
     if type(arg) == "number" then
       args[n] = tostring(arg)
     end
-    if type(arg) ~= "string" then
-      error("bad argument #" .. n .. " (string or number expected, got " .. type(arg) .. ")")
-    end
+    checkArg(n, arg, "string")
   end
   for _, arg in ipairs(args) do
     --[[ TODO buffer
@@ -350,9 +343,8 @@ end
 -------------------------------------------------------------------------------
 
 function driver.fs.open(path, mode)
-  assert(type(path) == "string",
-    "bad argument #1 (string expected, got " .. type(path) .. ")")
   mode = mode or "r"
+  checkArg(2, mode, "string")
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
     "bad argument #2 (r[b], w[b] or a[b] expected, got " .. tostring(mode) .. ")")
   local node, rest = findNode(path)
@@ -400,7 +392,6 @@ function loadfile(file, env)
   end
   local source, reason = f:read("*a")
   f:close()
-  f = nil
   if not source then
     return nil, reason
   end
