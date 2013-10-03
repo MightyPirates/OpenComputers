@@ -133,8 +133,9 @@ function file.flush(f)
   end
   if #(f.buffer or "") > 0 then
     local result, reason = sendToNode(f.fs, "fs.write", f.buffer)
-    f.buffer = nil
-    if not result then
+    if result then
+      f.buffer = nil
+    else
       if reason then
         return nil, reason
       else

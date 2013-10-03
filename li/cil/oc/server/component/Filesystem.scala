@@ -2,48 +2,41 @@ package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
-
+class FileSystem(val fileSystem: api.FileSystem) extends Node {
   private val handles = mutable.Map.empty[String, mutable.Set[Int]]
 
-  override def name = "fs"
+  override def name = "filesystem"
+
+  override def visibility = Visibility.Neighbors
 
   override def receive(message: Message) = {
-    message.data match {
-      case Array() if message.name == "network.disconnect" && handles.contains(message.source.address.get) =>
-        for (handle <- handles(message.source.address.get)) {
-          fileSystem.file(handle) match {
-            case None => // Maybe file system was accessed from somewhere else.
-            case Some(file) => file.close()
-          }
-        }
-      // Actually only neighbor computers can have handles, but this way it's
-      // nice and separate from the actual fs functionality.
-      case Array() if message.name == "computer.stopped" =>
-        handles.get(message.source.address.get) match {
-          case None => // Computer had no open files.
-          case Some(set) =>
-            set.foreach(handle => fileSystem.file(handle) match {
-              case None => // Invalid handle... huh.
-              case Some(file) => file.close()
-            })
-            set.clear()
-        }
-        None
-      case _ => // Ignore.
-    }
     super.receive(message)
-  }
-
-  override protected def receiveFromNeighbor(network: Network, message: Message) =
     try {
       message.data match {
+        case Array() if message.name == "network.disconnect" && handles.contains(message.source.address.get) =>
+          for (handle <- handles(message.source.address.get)) {
+            fileSystem.file(handle) match {
+              case None => // Maybe file system was accessed from somewhere else.
+              case Some(file) => file.close()
+            }
+          }
+          None
+        case Array() if message.name == "computer.stopped" =>
+          handles.get(message.source.address.get) match {
+            case None => // Computer had no open files.
+            case Some(set) =>
+              set.foreach(handle => fileSystem.file(handle) match {
+                case None => // Invalid handle... huh.
+                case Some(file) => file.close()
+              })
+              set.clear()
+          }
+          None
         case Array(path: Array[Byte]) if message.name == "fs.exists" =>
           Some(Array(fileSystem.exists(clean(path)).asInstanceOf[Any]))
         case Array(path: Array[Byte]) if message.name == "fs.exists" =>
@@ -121,6 +114,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends ItemComponent {
       case e: IOException =>
         Some(Array(Unit, e.toString))
     }
+  }
 
   private def clean(path: Array[Byte]) = {
     val result = com.google.common.io.Files.simplifyPath(new String(path, "UTF-8"))

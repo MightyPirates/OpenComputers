@@ -1,22 +1,26 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.Network
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{Visibility, Message, Node}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
-class RedstoneCard extends ItemComponent {
+class RedstoneCard extends Node {
+
   override def name = "redstone"
 
-  override protected def receiveFromNeighbor(network: Network, message: Message) = message.data match {
-    case Array(target: Array[Byte], side: Double) if message.name == "redstone.input" =>
-      input(new String(target, "UTF-8"), side.toInt)
-    case Array(target: Array[Byte], side: Double) if message.name == "redstone.output" =>
-      output(new String(target, "UTF-8"), side.toInt)
-    case Array(target: Array[Byte], side: Double, value: Double) if message.name == "redstone.output=" =>
-      output(new String(target, "UTF-8"), side.toInt, value.toInt); None
-    case _ => None // Ignore.
+  override def visibility = Visibility.Neighbors
+
+  override def receive(message: Message) = {
+    super.receive(message)
+    message.data match {
+      case Array(target: Array[Byte], side: Double) if message.name == "redstone.input" =>
+        input(new String(target, "UTF-8"), side.toInt)
+      case Array(target: Array[Byte], side: Double) if message.name == "redstone.output" =>
+        output(new String(target, "UTF-8"), side.toInt)
+      case Array(target: Array[Byte], side: Double, value: Double) if message.name == "redstone.output=" =>
+        output(new String(target, "UTF-8"), side.toInt, value.toInt); None
+      case _ => None // Ignore.
+    }
   }
 
   private def tryGet(target: String) = network.fold(None: Option[Node])(_.node(target))

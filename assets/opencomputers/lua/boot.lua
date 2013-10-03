@@ -95,5 +95,4 @@ local function wrap(f)
 end
 
 sendToNode = wrap(sendToNode)
-sendToAll = wrap(sendToAll)
 nodeName = wrap(nodeName)

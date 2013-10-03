@@ -9,6 +9,9 @@ import net.minecraft.nbt.NBTTagCompound
 class Screen extends Rotatable with ScreenEnvironment {
   var guiScreen: Option[gui.Screen] = None
 
+  /** Read and reset to false from the tile entity renderer. */
+  var hasChanged = false
+
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     load(nbt.getCompoundTag("data"))
@@ -36,9 +39,10 @@ class Screen extends Rotatable with ScreenEnvironment {
     super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
       guiScreen.foreach(_.setSize(w, h))
+      hasChanged = true
     }
     else {
-      markAsChanged()
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenResolutionChange(this, w, h)
     }
   }
@@ -47,9 +51,10 @@ class Screen extends Rotatable with ScreenEnvironment {
     super.onScreenSet(col, row, s)
     if (worldObj.isRemote) {
       guiScreen.foreach(_.updateText())
+      hasChanged = true
     }
     else {
-      markAsChanged()
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenSet(this, col, row, s)
     }
   }
@@ -58,9 +63,10 @@ class Screen extends Rotatable with ScreenEnvironment {
     super.onScreenFill(col, row, w, h, c)
     if (worldObj.isRemote) {
       guiScreen.foreach(_.updateText())
+      hasChanged = true
     }
     else {
-      markAsChanged()
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
     }
   }
@@ -69,14 +75,11 @@ class Screen extends Rotatable with ScreenEnvironment {
     super.onScreenCopy(col, row, w, h, tx, ty)
     if (worldObj.isRemote) {
       guiScreen.foreach(_.updateText())
+      hasChanged = true
     }
     else {
-      markAsChanged()
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
     }
   }
-
-  private def markAsChanged(): Unit =
-    worldObj.markTileEntityChunkModified(
-      xCoord, yCoord, zCoord, this)
 }

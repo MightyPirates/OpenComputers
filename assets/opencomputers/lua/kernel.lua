@@ -225,7 +225,6 @@ end
 do
   local env = setmetatable({
                 sendToNode = sendToNode,
-                sendToAll = sendToAll
               }, { __index = sandbox, __newindex = sandbox })
   for name, code in pairs(drivers()) do
     local driver, reason = load(code, "=" .. name, "t", env)
