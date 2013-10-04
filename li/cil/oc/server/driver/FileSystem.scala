@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 object FileSystem extends Item {
   override def api = Option(getClass.getResourceAsStream(Config.driverPath + "fs.lua"))
 
-  override def worksWith(item: ItemStack) = WorksWith(Items.hdd)(item)
+  override def worksWith(item: ItemStack) = WorksWith(Items.hdd2, Items.hdd4, Items.hdd8)(item)
 
   override def slot(item: ItemStack) = Slot.HDD
 

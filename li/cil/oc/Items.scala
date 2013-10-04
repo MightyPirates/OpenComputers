@@ -12,7 +12,9 @@ object Items {
   var ram64k: item.Memory = null
   var ram128k: item.Memory = null
 
-  var hdd: item.Hdd = null
+  var hdd2: item.Hdd = null
+  var hdd4: item.Hdd = null
+  var hdd8: item.Hdd = null
 
   def init() {
     multi = new item.Delegator(Config.itemId)
@@ -24,6 +26,8 @@ object Items {
     ram64k = new item.Memory(multi, 64)
     ram128k = new item.Memory(multi, 128)
 
-    hdd = new item.Hdd(multi, 2 * 1024 * 1024)
+    hdd2 = new item.Hdd(multi, 2)
+    hdd4 = new item.Hdd(multi, 4)
+    hdd8 = new item.Hdd(multi, 8)
   }
 }
