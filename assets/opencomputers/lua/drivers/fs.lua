@@ -169,7 +169,7 @@ function file.flush(f)
     return nil, "file is closed"
   end
   if #(f.buffer or "") > 0 then
-    local result, reason = sendToNode(f.fs, "fs.write", f.buffer)
+    local result, reason = sendToNode(f.fs, "fs.write", f.handle, f.buffer)
     if result then
       f.buffer = nil
     else
@@ -291,10 +291,8 @@ function file.seek(f, whence, offset)
   assert(whence == "set" or whence == "cur" or whence == "end",
     "bad argument #1 (set, cur or end expected, got " .. tostring(whence) .. ")")
   offset = offset or 0
-  assert(type(offset) == "number",
-    "bad argument #2 (number expected, got " .. type(offset) .. ")")
-  assert(math.floor(offset) == offset,
-    "bad argument #2 (not an integer)")
+  checkArg(2, offset, "number")
+  assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
   if whence == "cur" and offset ~= 0 then
     offset = offset - #(f.buffer or "")
@@ -335,13 +333,47 @@ function file.write(f, ...)
     checkArg(n, arg, "string")
   end
   for _, arg in ipairs(args) do
-    --[[ TODO buffer
-    if #buffer + #arg > bsize then
-      flush()
+    local result, reason
+    if f.bmode == "full" or #(f.buffer or "") + #arg > f.bsize then
+      if #(f.buffer or "") + #arg > f.bsize then
+        result, reason = f:flush()
+        if result then
+          if #arg > f.bsize then
+            result, reason = sendToNode(f.fs, "fs.write", f.handle, arg)
+          else
+            f.buffer = arg
+          end
+        end
+      else
+        f.buffer = (f.buffer or "") .. arg
+      end
+    elseif f.bmode == "line" then
+      repeat
+        local l = (f.buffer or ""):find("\n", 1, true)
+        if l then
+          result, reason = f:flush()
+          if result then
+            result, reason = sendToNode(f.fs, "fs.write", f.handle, arg:bsub(1, l))
+            if result then
+              f.buffer = arg:bsub(l + 1)
+            end
+          end
+        else
+          f.buffer = f.buffer .. arg
+        end
+      until not l or not result
+    else
+      if #(f.buffer or "") > 0 then
+        result, reason = f:flush()
+        if not result then
+          return nil, reason
+        end
+      end
+      result, reason = sendToNode(f.fs, "fs.write", f.handle, arg)
     end
-    buffer = buffer .. arg
-    ]]
-    sendToNode(f.fs, "fs.write", f.handle, arg)
+    if not result then
+      return nil, reason
+    end
   end
   return f
 end
@@ -364,7 +396,7 @@ function driver.fs.open(path, mode)
   return setmetatable({
       fs = node.fs,
       handle = handle,
-      bsize = 8 * 1024,
+      bsize = math.min(8 * 1024, os.totalMemory() / 16),
       bmode = "full"
     }, {
       __index = file,
