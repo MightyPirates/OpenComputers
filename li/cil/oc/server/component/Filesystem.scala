@@ -4,11 +4,11 @@ import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.network.{Node, Visibility, Message}
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
 class FileSystem(val fileSystem: api.FileSystem) extends Node {
-  private val handles = mutable.Map.empty[String, mutable.Set[Int]]
+  private val owners = mutable.Map.empty[String, mutable.Set[Int]]
 
   override def name = "filesystem"
 
@@ -18,8 +18,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
     super.receive(message)
     try {
       message.data match {
-        case Array() if message.name == "network.disconnect" && handles.contains(message.source.address.get) =>
-          for (handle <- handles(message.source.address.get)) {
+        case Array() if message.name == "network.disconnect" && owners.contains(message.source.address.get) =>
+          for (handle <- owners(message.source.address.get)) {
             fileSystem.file(handle) match {
               case None => // Maybe file system was accessed from somewhere else.
               case Some(file) => file.close()
@@ -27,7 +27,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           }
           None
         case Array() if message.name == "computer.stopped" =>
-          handles.get(message.source.address.get) match {
+          owners.get(message.source.address.get) match {
             case None => // Computer had no open files.
             case Some(set) =>
               set.foreach(handle => fileSystem.file(handle) match {
@@ -55,7 +55,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
         case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
           val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
           if (handle > 0) {
-            handles.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
+            owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
           }
           Some(Array(handle.asInstanceOf[Any]))
 
@@ -63,7 +63,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           fileSystem.file(handle.toInt) match {
             case None => // Ignore.
             case Some(file) =>
-              handles.get(message.source.address.get) match {
+              owners.get(message.source.address.get) match {
                 case None => // Not the owner of this handle.
                 case Some(set) => if (set.remove(handle.toInt)) file.close()
               }
@@ -109,6 +109,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
         Some(Array(Unit, e.getMessage))
       case e: FileNotFoundException =>
         Some(Array(Unit, "file not found"))
+      case e: SecurityException =>
+        Some(Array(Unit, "access denied"))
       case _: IllegalArgumentException =>
         Some(Array(Unit, "invalid argument"))
       case e: IOException =>
@@ -131,11 +133,36 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
+    val ownersNbt = nbt.getTagList("owners")
+    (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
+      val address = ownerNbt.getString("address")
+      if (address != "") {
+        val handlesNbt = ownerNbt.getTagList("handles")
+        owners += address -> (0 until handlesNbt.tagCount).
+          map(handlesNbt.tagAt).
+          map(_.asInstanceOf[NBTTagInt].data).
+          to[mutable.Set]
+      }
+    })
+
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+
+    val ownersNbt = new NBTTagList()
+    for ((address, handles) <- owners) {
+      val ownerNbt = new NBTTagCompound()
+      ownerNbt.setString("address", address)
+      val handlesNbt = new NBTTagList()
+      for (handle <- handles) {
+        handlesNbt.appendTag(new NBTTagInt(null, handle))
+      }
+      ownerNbt.setTag("handles", handlesNbt)
+      ownersNbt.appendTag(ownerNbt)
+    }
+    nbt.setTag("owners", ownersNbt)
 
     val fsNbt = new NBTTagCompound()
     fileSystem.save(fsNbt)

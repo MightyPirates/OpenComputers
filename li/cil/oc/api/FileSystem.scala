@@ -29,12 +29,10 @@ trait FileSystem extends Persistable {
   def exists(path: String): Boolean
 
   /**
-   * Gets the size of a file or folder.
+   * Gets the size of a file.
    * <p/>
    * For files this should return the actual length of the file, in bytes. For
-   * folders it is recommended to return some value larger than zero to
-   * simulate the node cost (in particular for writable file systems to avoid
-   * users spawning an infinite amount of folders).
+   * folders this should return zero.
    * <p/>
    * If the path is invalid this should return zero. It should never throw.
    *
@@ -89,7 +87,11 @@ trait FileSystem extends Persistable {
    * @param path the path to the file or folder to delete.
    * @return true if something was deleted; false otherwise.
    */
-  def remove(path: String): Boolean = false
+  def remove(path: String): Boolean = {
+    def recurse(path: String): Boolean =
+      (!isDirectory(path) || list(path).get.forall(child => recurse(path + "/" + child))) && delete(path)
+    recurse(path)
+  }
 
   /**
    * Moves / renames a file or folder.
@@ -150,6 +152,20 @@ trait FileSystem extends Persistable {
    * unloaded.
    */
   def close()
+
+  /**
+   * Actual deletion implementation.
+   * <p/>
+   * This is called from the recursive `remove` function, and guarantees that
+   * the passed object is either a file or an empty directory.
+   * <p/>
+   * This is only available for writable file systems. For read-only systems
+   * it should just always return false.
+   *
+   * @param path the path to the object to delete.
+   * @return true if the object was successfully deleted; false otherwise.
+   */
+  protected def delete(path: String) = false
 }
 
 object FileSystem extends FileSystemAPI {
@@ -189,10 +205,11 @@ object FileSystem extends FileSystemAPI {
    * file system.
    *
    * @param root the name of the file system.
-   * @return
+   * @param capacity the amount of space in bytes to allow being used.
+   * @return a file system wrapping the specified folder.
    */
-  def fromSaveDir(root: String) =
-    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root))
+  def fromSaveDir(root: String, capacity: Int) =
+    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity))
 
   /**
    * Creates a network node that makes the specified file system available via

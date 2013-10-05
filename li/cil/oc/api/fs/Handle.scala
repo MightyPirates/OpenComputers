@@ -22,6 +22,9 @@ trait Handle {
   /**
    * Tries to read as much data from the file as fits into the specified
    * array.
+   * <p/>
+   * For files opened in write or append mode this should always throw an
+   * exception.
    *
    * @param into the buffer to read the data into.
    * @return the number of bytes read; -1 if there are no more bytes (EOF).
@@ -32,6 +35,9 @@ trait Handle {
 
   /**
    * Jump to the specified position in the file, if possible.
+   * <p/>
+   * For files opened in write or append mode this should always throw an
+   * exception.
    *
    * @param to the position in the file to jump to.
    * @return the resulting position in the file.
@@ -40,6 +46,8 @@ trait Handle {
 
   /**
    * Tries to write all the data from the specified array into the file.
+   * <p/>
+   * For files opened in read mode this should always throw an exception.
    *
    * @param value the data to write into the file.
    * @throws IOException if the file was opened in read-only mode, or another

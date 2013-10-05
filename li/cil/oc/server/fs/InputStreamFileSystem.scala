@@ -6,10 +6,10 @@ import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-abstract class InputStreamFileSystem extends api.FileSystem {
+trait InputStreamFileSystem extends api.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
-  def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
+  override def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {
       case Some(stream) =>
@@ -19,15 +19,15 @@ abstract class InputStreamFileSystem extends api.FileSystem {
     }
   } else throw new FileNotFoundException()
 
-  def file(handle: Int) = handles.get(handle): Option[api.fs.Handle]
+  override def file(handle: Int) = handles.get(handle): Option[api.fs.Handle]
 
-  def close() {
+  override def close() {
     for (handle <- handles.values)
       handle.close()
     handles.clear()
   }
 
-  def load(nbt: NBTTagCompound) {
+  override def load(nbt: NBTTagCompound) {
     val handlesNbt = nbt.getTagList("input")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
@@ -43,7 +43,7 @@ abstract class InputStreamFileSystem extends api.FileSystem {
     })
   }
 
-  def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) {
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {
       assert(!file.isClosed)

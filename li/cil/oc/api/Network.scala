@@ -193,10 +193,11 @@ trait Network {
    * @param source the node that sends the message.
    * @param name   the name of the message.
    * @param data   the message to send.
+   * @return the result of the message being handled, if any.
    * @throws IllegalArgumentException if the source node is not in this network.
    * @see `neighbors`
    */
-  def sendToNeighbors(source: Node, name: String, data: Any*)
+  def sendToNeighbors(source: Node, name: String, data: Any*): Option[Array[Any]]
 
   /**
    * Sends a message to all addressed nodes visible to the source node.
@@ -211,10 +212,11 @@ trait Network {
    *
    * @param source the node that sends the message.
    * @param data   the message to send.
+   * @return the result of the message being handled, if any.
    * @throws IllegalArgumentException if the source node is not in this network.
    * @see `nodes`
    */
-  def sendToVisible(source: Node, name: String, data: Any*)
+  def sendToVisible(source: Node, name: String, data: Any*): Option[Array[Any]]
 }
 
 object Network extends NetworkAPI {

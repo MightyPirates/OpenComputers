@@ -146,6 +146,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
       send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.visibility != Visibility.None))
+    else None
   }
 
   override def sendToVisible(source: api.network.Node, name: String, data: Any*) = {
@@ -153,6 +154,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
       send(new Network.Message(source, name, Array(data: _*)), nodes(source))
+    else None
   }
 
   private def contains(node: api.network.Node) = (node.address match {
