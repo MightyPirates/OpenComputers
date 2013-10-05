@@ -129,6 +129,7 @@ trait ComponentInventory extends IInventory with Node {
       case Some(node) =>
         itemComponents(slot) = None
         node.network.foreach(_.remove(node))
+        node.save(Registry.driverFor(inventory(slot)).get.nbt(inventory(slot)))
     }
 
     inventory(slot) = item

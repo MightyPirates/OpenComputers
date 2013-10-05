@@ -16,6 +16,7 @@ object Config {
   var threads = 4
   var timeout = 3.0
   var baseMemory = 0
+  var fileCost = 512
 
   var blockRenderId = 0
 

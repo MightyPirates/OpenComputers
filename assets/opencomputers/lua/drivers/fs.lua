@@ -346,6 +346,7 @@ function file.write(f, ...)
         end
       else
         f.buffer = (f.buffer or "") .. arg
+        result = f
       end
     elseif f.bmode == "line" then
       repeat

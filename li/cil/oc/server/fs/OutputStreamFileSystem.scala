@@ -6,7 +6,7 @@ import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-abstract class OutputStreamFileSystem extends InputStreamFileSystem {
+trait OutputStreamFileSystem extends InputStreamFileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
   override def open(path: String, mode: Mode.Value) = mode match {
