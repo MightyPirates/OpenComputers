@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.{PoweredNode, Node}
 import li.cil.oc.common.item
 import li.cil.oc.server.component
 import li.cil.oc.server.driver.Registry
@@ -12,7 +12,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
-trait ComponentInventory extends IInventory with Node {
+trait ComponentInventory extends IInventory with PoweredNode {
   protected val inventory = new Array[ItemStack](inventorySize)
 
   protected val itemComponents = Array.fill[Option[Node]](inventorySize)(None)

@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import net.minecraft.tileentity.TileEntity
-import li.cil.oc.api.network.{Visibility, Node}
+import li.cil.oc.api.network.{PoweredNode, Visibility, Node}
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import cpw.mods.fml.common.FMLCommonHandler
@@ -9,7 +9,6 @@ import ic2.api.energy.tile.IEnergySink
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import net.minecraft.world.World
 import net.minecraft.nbt.NBTTagCompound
-import buildcraft.api.power.PowerHandler.PerditionCalculator
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
 
@@ -20,7 +19,7 @@ import universalelectricity.core.electricity.ElectricityPack
  * Time: 20:37
  * To change this template use File | Settings | File Templates.
  */
-class PowerSupply extends Rotatable with Node with IEnergySink with IPowerReceptor with IElectrical{
+class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowerReceptor with IElectrical{
   var addedToEnet = false
   var powerHandler:PowerHandler  = null
   override def name = "powersupply"
@@ -149,7 +148,7 @@ class PowerSupply extends Rotatable with Node with IEnergySink with IPowerRecept
    */
   def getPowerReceiver(side: ForgeDirection): PowerHandler#PowerReceiver={
 
-    return getPowerProvider()      .getPowerReceiver
+    return getPowerProvider().getPowerReceiver
   }
   def getPowerProvider():PowerHandler=
   {
@@ -171,9 +170,7 @@ class PowerSupply extends Rotatable with Node with IEnergySink with IPowerRecept
    * @param workProvider
    */
   def doWork(workProvider: PowerHandler){
-    println("do work")
-    storedEnergy+=getPowerProvider().useEnergy(1,MAXENERGY-storedEnergy.toFloat,true)
-    println("stored: "+storedEnergy)
+
   }
 
   def getWorld: World=worldObj

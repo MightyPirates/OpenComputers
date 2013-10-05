@@ -9,7 +9,7 @@ object Blocks {
   var screen: Screen = null
   var keyboard: Keyboard = null
   var powersupply: PowerSupply = null
-
+  var powerdistributer: PowerDistributer = null
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
@@ -21,5 +21,6 @@ object Blocks {
     screen = new Screen(blockSimple)
     keyboard = new Keyboard(blockSpecial)
     powersupply = new PowerSupply(blockSimple)
+    powerdistributer = new PowerDistributer(blockSimple)
   }
 }
