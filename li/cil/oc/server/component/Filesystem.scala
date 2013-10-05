@@ -37,6 +37,14 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
               set.clear()
           }
           None
+        case Array() if message.name == "fs.spaceTotal" =>
+          val space = fileSystem.spaceTotal
+          if (space < 0)
+            Some(Array("unlimited"))
+          else
+            Some(Array(space.asInstanceOf[Any]))
+        case Array() if message.name == "fs.spaceUsed" =>
+          Some(Array(fileSystem.spaceUsed.asInstanceOf[Any]))
         case Array(path: Array[Byte]) if message.name == "fs.exists" =>
           Some(Array(fileSystem.exists(clean(path)).asInstanceOf[Any]))
         case Array(path: Array[Byte]) if message.name == "fs.size" =>

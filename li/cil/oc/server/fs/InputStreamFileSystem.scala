@@ -9,6 +9,8 @@ import scala.collection.mutable
 trait InputStreamFileSystem extends api.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
+  // ----------------------------------------------------------------------- //
+
   override def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {
@@ -26,6 +28,8 @@ trait InputStreamFileSystem extends api.FileSystem {
       handle.close()
     handles.clear()
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
     val handlesNbt = nbt.getTagList("input")
@@ -56,7 +60,11 @@ trait InputStreamFileSystem extends api.FileSystem {
     nbt.setTag("input", handlesNbt)
   }
 
+  // ----------------------------------------------------------------------- //
+
   protected def openInputStream(path: String): Option[InputStream]
+
+  // ----------------------------------------------------------------------- //
 
   private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.Handle {
     var isClosed = false
@@ -82,7 +90,7 @@ trait InputStreamFileSystem extends api.FileSystem {
       stream.skip(to)
     }
 
-    def write(value: Array[Byte]) = throw new IOException("handle is read-only")
+    def write(value: Array[Byte]) = throw new IOException("bad file descriptor")
   }
 
 }

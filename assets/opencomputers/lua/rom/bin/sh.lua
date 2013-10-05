@@ -25,17 +25,17 @@ local function onKeyDown(_, address, char, code)
     end
     if code then
       isRunning = true
-      local result = {pcall(code)}
+      local result = table.pack(pcall(code))
       isRunning = false
-      if not result[1] or #result > 1 then
-        print(table.unpack(result, 2))
+      if not result[1] or result.n > 1 then
+        print(table.unpack(result, 2, result.n))
       end
     else
       print(result)
     end
     lastCommand = command
     command = ""
-    write("> ")
+    term.write("> ")
     term.cursorBlink(true)
   elseif code == keys.up then
     command = lastCommand
@@ -64,7 +64,7 @@ event.listen("term_available", function()
   term.clear()
   command = ""
   print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
-  write("> ")
+  term.write("> ")
   event.listen("key_down", onKeyDown)
   event.listen("clipboard", onClipboard)
 end)

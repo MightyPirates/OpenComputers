@@ -60,12 +60,44 @@ end
 driver.fs = {}
 
 function driver.fs.mount(fs, path)
-  checkArg(1, fs, "string")
-  local node = findNode(path, true)
-  if node.fs then
-    return nil, "another filesystem is already mounted here"
+  if fs and path then
+    checkArg(1, fs, "string")
+    local node = findNode(path, true)
+    if node.fs then
+      return nil, "another filesystem is already mounted here"
+    end
+    node.fs = fs
+  else
+    local function path(node)
+      local result = "/"
+      while node and node.parent do
+        for name, child in pairs(node.parent.children) do
+          if child == node then
+            result = "/" .. name .. result
+            break
+          end
+        end
+        node = node.parent
+      end
+      return result
+    end
+    local queue = {mtab}
+    return function()
+      if #queue == 0 then
+        return nil
+      else
+        while true do
+          local node = table.remove(queue)
+          for _, child in pairs(node.children) do
+            table.insert(queue, child)
+          end
+          if node.fs then
+            return node.fs, path(node)
+          end
+        end
+      end
+    end
   end
-  node.fs = fs
 end
 
 function driver.fs.umount(fsOrPath)
@@ -76,17 +108,34 @@ function driver.fs.umount(fsOrPath)
     return true
   else
     local queue = {mtab}
-    repeat
-      local node = table.remove(queue)
-      if node.fs == fsOrPath then
+    for fs, path in driver.fs.mount() do
+      if fs == fsOrPath then
+        local node = findNode(path)
         node.fs = nil
         removeEmptyNodes(node)
         return true
       end
-      for _, child in ipairs(node.children) do
-        table.insert(queue, child)
-      end
-    until #queue == 0
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
+
+function driver.fs.spaceTotal(path)
+  local node, rest = findNode(path)
+  if node.fs then
+    return sendToNode(node.fs, "fs.spaceTotal")
+  else
+    return nil, "no such device"
+  end
+end
+
+function driver.fs.spaceUsed(path)
+  local node, rest = findNode(path)
+  if node.fs then
+    return sendToNode(node.fs, "fs.spaceUsed")
+  else
+    return nil, "no such device"
   end
 end
 
@@ -107,17 +156,17 @@ function driver.fs.size(path)
   if node.fs and rest then
     return sendToNode(node.fs, "fs.size", rest)
   end
-  return 0 -- no such file or directory or virtual directory
+  return 0 -- no such file or directory or it's a virtual directory
 end
 
-function driver.fs.listdir(path)
+function driver.fs.dir(path)
   local node, rest = findNode(path)
   if not node.fs and rest then
     return nil, "no such file or directory"
   end
   local result
   if node.fs then
-    result = {sendToNode(node.fs, "fs.list", rest or "")}
+    result = table.pack(sendToNode(node.fs, "fs.list", rest or ""))
     if not result[1] then
       return nil, result[2]
     end
@@ -143,114 +192,144 @@ function driver.fs.remove(path)
 end
 
 function driver.fs.rename(oldPath, newPath)
-  --[[ TODO moving between file systems will require actual data copying...
-  local node, rest = findNode(path)
+  local oldNode, oldRest = findNode(oldPath)
   local newNode, newRest = findNode(newPath)
-  if node.fs and rest and newNode and newRest then
-    return sendToNode(node.fs, "fs.rename", rest)
+  if oldNode.fs and oldRest and newNode.fs and newRest then
+    if oldNode.fs == newNode.fs then
+      return sendToNode(oldNode.fs, "fs.rename", oldRest, newRest)
+    else
+      local result, reason = driver.fs.copy(oldPath, newPath)
+      if result then
+        return driver.fs.remove(oldPath)
+      else
+        return nil, reason
+      end
+    end
   end
-  ]]
+end
+
+function driver.fs.copy(fromPath, toPath)
+  --[[ TODO ]]
+  return nil, "not implemented"
 end
 
 -------------------------------------------------------------------------------
 
 local file = {}
 
-function file.close(f)
-  if f.handle then
-    f:flush()
-    sendToNode(f.fs, "fs.close", f.handle)
-    f.handle = nil
+function file:close()
+  if self.handle then
+    self:flush()
+    sendToNode(self.fs, "fs.close", self.handle)
+    self.handle = nil
   end
 end
 
-function file.flush(f)
-  if not f.handle then
+function file:flush()
+  if not self.handle then
     return nil, "file is closed"
   end
-  if #(f.buffer or "") > 0 then
-    local result, reason = sendToNode(f.fs, "fs.write", f.handle, f.buffer)
+
+  if #self.buffer > 0 then
+    local result, reason =
+      sendToNode(self.fs, "fs.write", self.handle, self.buffer)
     if result then
-      f.buffer = nil
+      self.buffer = ""
     else
       if reason then
         return nil, reason
       else
-        return nil, "invalid file"
+        return nil, "bad file descriptor"
       end
     end
   end
-  return f
+
+  return self
 end
 
-function file.read(f, ...)
-  if not f.handle then
+function file:lines(...)
+  local args = table.pack(...)
+  return function()
+    local result = table.pack(self:read(table.unpack(args, 1, args.n)))
+    if not result[1] and result[2] then
+      error(result[2])
+    end
+    return table.unpack(result, 1, result.n)
+  end
+end
+
+function file:read(...)
+  if not self.handle then
     return nil, "file is closed"
   end
+
   local function readChunk()
-    local read, reason = sendToNode(f.fs, "fs.read", f.handle, f.bsize)
-    if read then
-      f.buffer = (f.buffer or "") .. read
-      return true
+    local result, reason =
+      sendToNode(self.fs, "fs.read", self.handle, self.bufferSize)
+    if result then
+      self.buffer = self.buffer .. result
+      return self
     else
       return nil, reason
     end
   end
+
   local function readBytes(n)
-    while #(f.buffer or "") < n do
-      local result, reason = readChunk()
-      if not result then
-        if reason then
-          return nil, reason
-        end
-        break
-      end
-    end
-    local result
-    if f.buffer then
-      if #f.buffer > format then
-        result = f.buffer:bsub(1, format)
-        f.buffer = f.buffer:bsub(format + 1)
-      else
-        result = f.buffer
-        f.buffer = nil
-      end
-    end
-    return result
-  end
-  local function readLine(chop)
-    while true do
-      local l = (f.buffer or ""):find("\n", 1, true)
-      if l then
-        local rl = l + (chop and -1 or 0)
-        local line = f.buffer:bsub(1, rl)
-        f.buffer = f.buffer:bsub(l + 1)
-        return line
-      else
+    local result = ""
+    repeat
+      if #self.buffer == 0 then
         local result, reason = readChunk()
         if not result then
           if reason then
             return nil, reason
-          else
-            local line = f.buffer
-            f.buffer = nil
-            return line
+          else -- eof
+            return result
+          end
+        end
+      end
+      local left = n - #result
+      result = result .. self.buffer:bsub(1, left)
+      self.buffer = self.buffer:bsub(left + 1)
+    until #result == n
+    return result
+  end
+
+  local function readLine(chop)
+    local start = 1
+    while true do
+      local l = self.buffer:find("\n", start, true)
+      if l then
+        local result = self.buffer:bsub(1, l + (chop and -1 or 0))
+        self.buffer = self.buffer:bsub(l + 1)
+        return result
+      else
+        start = #self.buffer
+        local result, reason = readChunk()
+        if not result then
+          if reason then
+            return nil, reason
+          else -- eof
+            local result = self.buffer
+            self.buffer = ""
+            return result
           end
         end
       end
     end
   end
+
   local function readAll()
     repeat
       local result, reason = readChunk()
       if not result and reason then
         return nil, reason
       end
-    until not result
-    local result = f.buffer or ""
-    f.buffer = nil
+    until not result -- eof
+    local result = self.buffer
+    self.buffer = ""
     return result
   end
+
   local function read(n, format)
     if type(format) == "number" then
       return readBytes(format)
@@ -260,6 +339,7 @@ function file.read(f, ...)
       end
       format = format:sub(2, 2)
       if format == "n" then
+        --[[ TODO ]]
         error("not implemented")
       elseif format == "l" then
         return readLine(true)
@@ -272,154 +352,184 @@ function file.read(f, ...)
       end
     end
   end
-  local results = {}
-  local formats = {...}
-  if #formats == 0 then
+
+  local result = {}
+  local formats = table.pack(...)
+  if formats.n == 0 then
     return readLine(true)
   end
-  for n, format in ipairs(formats) do
-    table.insert(results, read(n, format))
+  for i = 1, formats.n do
+    table.insert(result, read(i, formats[i]))
   end
-  return table.unpack(results)
+  return table.unpack(result)
 end
 
-function file.seek(f, whence, offset)
-  if not f.handle then
+function file:seek(whence, offset)
+  if not self.handle then
     return nil, "file is closed"
   end
-  whence = whence or "cur"
+
+  whence = tostring(whence or "cur")
   assert(whence == "set" or whence == "cur" or whence == "end",
-    "bad argument #1 (set, cur or end expected, got " .. tostring(whence) .. ")")
+    "bad argument #1 (set, cur or end expected, got " .. whence .. ")")
   offset = offset or 0
   checkArg(2, offset, "number")
   assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
   if whence == "cur" and offset ~= 0 then
-    offset = offset - #(f.buffer or "")
+    offset = offset - #(self.buffer or "")
   end
-  local result, reason = sendToNode(f.fs, "fs.seek", f.handle, whence, offset)
+  local result, reason =
+    sendToNode(self.fs, "fs.seek", self.handle, whence, offset)
   if result then
     if offset ~= 0 then
-      f.buffer = nil
+      self.buffer = ""
     elseif whence == "cur" then
-      result = result - #(f.buffer or "")
+      result = result - #self.buffer
     end
   end
   return result, reason
 end
 
-function file.setvbuf(f, mode, size)
-  if not f.handle then
+function file:setvbuf(mode, size)
+  if not self.handle then
     return nil, "file is closed"
   end
+
   assert(mode == "no" or mode == "full" or mode == "line",
     "bad argument #1 (no, full or line expected, got " .. tostring(mode) .. ")")
   assert(mode == "no" or type(size) == "number",
     "bad argument #2 (number expected, got " .. type(size) .. ")")
-  f:flush()
-  f.bmode = mode
-  f.bsize = size
+
+  self:flush()
+  self.bufferMode = mode
+  self.bufferSize = mode == "no" and 0 or size
 end
 
-function file.write(f, ...)
-  if not f.handle then
+function file:write(...)
+  if not self.handle then
     return nil, "file is closed"
   end
-  local args = {...}
-  for n, arg in ipairs(args) do
-    if type(arg) == "number" then
-      args[n] = tostring(arg)
+
+  local args = table.pack(...)
+  for i = 1, args.n do
+    if type(args[i]) == "number" then
+      args[i] = tostring(args[i])
     end
-    checkArg(n, arg, "string")
+    checkArg(i, args[i], "string")
   end
-  for _, arg in ipairs(args) do
+
+  for i = 1, args.n do
+    local arg = args[i]
     local result, reason
-    if f.bmode == "full" or #(f.buffer or "") + #arg > f.bsize then
-      if #(f.buffer or "") + #arg > f.bsize then
-        result, reason = f:flush()
-        if result then
-          if #arg > f.bsize then
-            result, reason = sendToNode(f.fs, "fs.write", f.handle, arg)
-          else
-            f.buffer = arg
-          end
-        end
-      else
-        f.buffer = (f.buffer or "") .. arg
-        result = f
+
+    if (self.bufferMode == "full" or self.bufferMode == "line") and
+        self.bufferSize - #self.buffer < #arg
+    then
+      result, reason = self:flush()
+      if not result then
+        return nil, reason
       end
-    elseif f.bmode == "line" then
+    end
+
+    if self.bufferMode == "full" then
+      if #arg > self.bufferSize then
+        result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
+      else
+        self.buffer = self.buffer .. arg
+        result = self
+      end
+
+    elseif self.bufferMode == "line" then
+      local l
       repeat
-        local l = (f.buffer or ""):find("\n", 1, true)
-        if l then
-          result, reason = f:flush()
-          if result then
-            result, reason = sendToNode(f.fs, "fs.write", f.handle, arg:bsub(1, l))
-            if result then
-              f.buffer = arg:bsub(l + 1)
-            end
-          end
-        else
-          f.buffer = f.buffer .. arg
+        local idx = self.buffer:find("\n", l or 1, true)
+        if idx then
+          l = idx
         end
-      until not l or not result
-    else
-      if #(f.buffer or "") > 0 then
-        result, reason = f:flush()
+      until not idx
+      if l then
+        result, reason = self:flush()
         if not result then
           return nil, reason
         end
+        result, reason =
+          sendToNode(self.fs, "fs.write", self.handle, arg:bsub(1, l))
+        if not result then
+          return nil, reason
+        end
+        arg = arg:bsub(l + 1)
       end
-      result, reason = sendToNode(f.fs, "fs.write", f.handle, arg)
+      if #arg > self.bufferSize then
+        result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
+      else
+        self.buffer = arg
+        result = self
+      end
+
+    else -- no
+      result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
     end
+
     if not result then
       return nil, reason
     end
   end
-  return f
+
+  return self
 end
 
 -------------------------------------------------------------------------------
 
 function driver.fs.open(path, mode)
-  mode = mode or "r"
+  mode = tostring(mode or "r")
   checkArg(2, mode, "string")
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
-    "bad argument #2 (r[b], w[b] or a[b] expected, got " .. tostring(mode) .. ")")
+    "bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
+
   local node, rest = findNode(path)
-  if not node.fs or not rest then -- files can only be in file systems
+  if not node.fs or not rest then
     return nil, "file not found"
   end
-  local handle, reason = sendToNode(node.fs, "fs.open", rest or "", mode)
+
+  local handle, reason = sendToNode(node.fs, "fs.open", rest, mode)
   if not handle then
     return nil, reason
   end
+
   return setmetatable({
       fs = node.fs,
       handle = handle,
-      bsize = math.min(8 * 1024, os.totalMemory() / 16),
-      bmode = "full"
+      buffer = "",
+      bufferSize = math.min(8 * 1024, os.totalMemory() / 16),
+      bufferMode = "full"
     }, {
       __index = file,
-      __gc = function(f)
+      __gc = function(self)
         -- file.close does a syscall, which yields, and that's not possible in
         -- the __gc metamethod. So we start a timer to do the yield/cleanup.
         event.timer(0, function()
-          file.close(f)
+          self:close()
         end)
       end
     })
 end
 
-function driver.fs.type(f)
-  local info = getFileInfo(f, true)
-  if not info then
-    return nil
-  elseif not info.handle then
-    return "closed file"
-  else
+function driver.fs.type(object)
+  if object == io.stdin or object == io.stdout then
     return "file"
   end
+  if type(object) == "table" then
+    local mt = getmetatable(object)
+    if mt and mt.__index == file then
+      if f.handle then
+        return "file"
+      else
+        return "closed file"
+      end
+    end
+  end
+  return nil
 end
 
 -------------------------------------------------------------------------------
@@ -444,3 +554,167 @@ function dofile(file)
   end
   return f()
 end
+
+-------------------------------------------------------------------------------
+
+io = {}
+
+io.stdin = {handle="stdin"}
+
+function io.stdin:close()
+  return nil, "cannot close standard file"
+end
+
+io.stdin.lines = file.lines
+
+function io.stdin:read(...)
+  -- TODO
+end
+
+io.stdout = {handle="stdout"}
+
+io.stdout.close = io.stdin.close
+
+function io.stdout:flush()
+  return self -- no-op
+end
+
+function io.stdout:write(...)
+  local args = table.pack(...)
+  for i = 1, args.n do
+    if type(args[i]) == "number" then
+      args[i] = tostring(args[i])
+    end
+    checkArg(i, args[i], "string")
+  end
+  if type(term) == "table" and type(term.write) == "function" then
+    for i = 1, args.n do
+      term.write(args[i])
+    end
+  end
+end
+
+io.stderr = io.stdout
+
+-------------------------------------------------------------------------------
+
+local function unavailable()
+  return nil, "bad file descriptor"
+end
+
+io.stdin.flush = unavailable
+io.stdin.seek = unavailable
+io.stdin.setvbuf = unavailable
+io.stdin.write = unavailable
+
+io.stdout.lines = unavailable
+io.stdout.read = unavailable
+io.stdout.seek = unavailable
+io.stdout.setvbuf = unavailable
+
+-------------------------------------------------------------------------------
+
+local input, output = io.stdin, io.stdout
+
+-------------------------------------------------------------------------------
+
+function io.close(file)
+  (file or io.output()):close()
+end
+
+function io.flush()
+  io.output():flush()
+end
+
+function io.input(file)
+  if file then
+    if type(file) == "string" then
+      local result, reason = io.open(file)
+      if not result then
+        error(reason)
+      end
+      input = result
+    elseif io.type(file) then
+      input = file
+    else
+      error("bad argument #1 (string or file expected, got " .. type(file) .. ")")
+    end
+  end
+  return input
+end
+
+function io.lines(filename, ...)
+  if filename then
+    local result, reason = io.open(filename)
+    if not result then
+      error(reason)
+    end
+    local args = table.pack(...)
+    return function()
+      local result = table.pack(file:read(table.unpack(args, 1, args.n)))
+      if not result[1] then
+        if result[2] then
+          error(result[2])
+        else -- eof
+          file:close()
+          return nil
+        end
+      end
+      return table.unpack(result, 1, result.n)
+    end
+  else
+    return io.input():lines()
+  end
+end
+
+io.open = driver.fs.open
+
+function io.output(file)
+  if file then
+    if type(file) == "string" then
+      local result, reason = io.open(file, "w")
+      if not result then
+        error(reason)
+      end
+      output = result
+    elseif io.type(file) then
+      output = file
+    else
+      error("bad argument #1 (string or file expected, got " .. type(file) .. ")")
+    end
+  end
+  return output
+end
+
+-- TODO io.popen = function(prog, mode) end
+
+function io.read(...)
+  return io.input():read(...)
+end
+
+-- TODO io.tmpfile = function() end
+
+io.type = driver.fs.type
+
+function io.write(...)
+  return io.output():write(...)
+end
+
+function print(...)
+  local args = table.pack(...)
+  for i = 1, args.n do
+    local arg = tostring(args[i])
+    if i > 1 then
+      arg = "\t" .. arg
+    end
+    io.stdout:write(arg)
+  end
+  io.stdout:write("\n")
+end
+
+-------------------------------------------------------------------------------
+
+os.remove = driver.fs.remove
+os.rename = driver.fs.rename
+
+-- TODO os.tmpname = function() end

@@ -7,7 +7,19 @@ import li.cil.oc.api.fs.Mode
 trait Capacity extends OutputStreamFileSystem {
   private var used = computeSize("/")
 
-  def capacity: Int
+  protected def capacity: Int
+
+  // ----------------------------------------------------------------------- //
+
+  override def spaceTotal = capacity
+
+  override def spaceUsed = used
+
+  // ----------------------------------------------------------------------- //
+
+  override def makeDirectories(path: String) = {
+    super.makeDirectories(path)
+  }
 
   override protected def delete(path: String) = {
     val freed = Config.fileCost + size(path)
@@ -17,6 +29,8 @@ trait Capacity extends OutputStreamFileSystem {
     }
     else false
   }
+
+  // ----------------------------------------------------------------------- //
 
   override protected abstract def openOutputStream(path: String, mode: Mode.Value): Option[io.OutputStream] = {
     val delta =
@@ -34,6 +48,8 @@ trait Capacity extends OutputStreamFileSystem {
         Some(new CountingOutputStream(this, stream))
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   private def computeSize(path: String): Long =
     Config.fileCost +

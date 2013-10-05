@@ -125,13 +125,6 @@ local sandbox = {
 }
 sandbox._G = sandbox
 
--- Note: 'write' will be replaced by init script/term API.
-function sandbox.write(...) end
-function sandbox.print(...)
-  sandbox.write(...)
-  sandbox.write("\n")
-end
-
 function sandbox.load(code, source, env)
   return load(code, source, "t", env or sandbox)
 end

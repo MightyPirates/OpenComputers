@@ -9,6 +9,8 @@ import scala.collection.mutable
 trait OutputStreamFileSystem extends InputStreamFileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
+  // ----------------------------------------------------------------------- //
+
   override def open(path: String, mode: Mode.Value) = mode match {
     case Mode.Read => super.open(path, mode)
     case _ => if (!isDirectory(path)) {
@@ -30,6 +32,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
       handle.close()
     handles.clear()
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
@@ -59,7 +63,11 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     nbt.setTag("output", handlesNbt)
   }
 
+  // ----------------------------------------------------------------------- //
+
   protected def openOutputStream(path: String, mode: Mode.Value): Option[OutputStream]
+
+  // ----------------------------------------------------------------------- //
 
   private class Handle(val owner: OutputStreamFileSystem, val handle: Int, val path: String, val stream: OutputStream) extends api.fs.Handle {
     var isClosed = false
@@ -72,9 +80,9 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
       stream.close()
     }
 
-    def read(into: Array[Byte]) = throw new IOException("handle is write-only")
+    def read(into: Array[Byte]) = throw new IOException("bad file descriptor")
 
-    def seek(to: Long) = throw new IOException("handle is write-only")
+    def seek(to: Long) = throw new IOException("bad file descriptor")
 
     def write(value: Array[Byte]) {
       stream.write(value)

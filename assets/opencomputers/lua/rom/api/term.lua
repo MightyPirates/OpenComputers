@@ -89,6 +89,7 @@ function term.write(value, wrap)
   if value:len() == 0 or not gpu or w < 1 or h < 1 then
     return
   end
+  value = value:gsub("\t", "  ")
   local function checkCursor()
     if cursorX > w then
       cursorX = 1
@@ -130,18 +131,6 @@ function term.clearLine()
   if not gpu then return end
   gpu.fill(1, cursorY, screenWidth, 1, " ")
   cursorX = 1
-end
-
-write = function(...)
-  local args = {...}
-  local first = true
-  for i = 1, #args do
-    if not first then
-      term.write(", ")
-    end
-    first = false
-    term.write(args[i], true)
-  end
 end
 
 -------------------------------------------------------------------------------
