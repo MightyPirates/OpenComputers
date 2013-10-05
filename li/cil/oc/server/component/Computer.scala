@@ -541,7 +541,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             results.length
           case _ => 0
         })
-      lua.setGlobal("sendToNode")
+      lua.setGlobal("sendToAddress")
 
       lua.pushScalaFunction(lua => {
         owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {

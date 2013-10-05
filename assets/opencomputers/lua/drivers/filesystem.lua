@@ -124,7 +124,7 @@ end
 function driver.fs.spaceTotal(path)
   local node, rest = findNode(path)
   if node.fs then
-    return sendToNode(node.fs, "fs.spaceTotal")
+    return send(node.fs, "fs.spaceTotal")
   else
     return nil, "no such device"
   end
@@ -133,7 +133,7 @@ end
 function driver.fs.spaceUsed(path)
   local node, rest = findNode(path)
   if node.fs then
-    return sendToNode(node.fs, "fs.spaceUsed")
+    return send(node.fs, "fs.spaceUsed")
   else
     return nil, "no such device"
   end
@@ -147,14 +147,14 @@ function driver.fs.exists(path)
     return true
   end
   if node.fs then
-    return sendToNode(node.fs, "fs.exists", rest)
+    return send(node.fs, "fs.exists", rest)
   end
 end
 
 function driver.fs.size(path)
   local node, rest = findNode(path)
   if node.fs and rest then
-    return sendToNode(node.fs, "fs.size", rest)
+    return send(node.fs, "fs.size", rest)
   end
   return 0 -- no such file or directory or it's a virtual directory
 end
@@ -166,7 +166,7 @@ function driver.fs.dir(path)
   end
   local result
   if node.fs then
-    result = table.pack(sendToNode(node.fs, "fs.list", rest or ""))
+    result = table.pack(send(node.fs, "fs.list", rest or ""))
     if not result[1] then
       return nil, result[2]
     end
@@ -187,7 +187,7 @@ end
 function driver.fs.remove(path)
   local node, rest = findNode(path)
   if node.fs and rest then
-    return sendToNode(node.fs, "fs.remove", rest)
+    return send(node.fs, "fs.remove", rest)
   end
 end
 
@@ -196,7 +196,7 @@ function driver.fs.rename(oldPath, newPath)
   local newNode, newRest = findNode(newPath)
   if oldNode.fs and oldRest and newNode.fs and newRest then
     if oldNode.fs == newNode.fs then
-      return sendToNode(oldNode.fs, "fs.rename", oldRest, newRest)
+      return send(oldNode.fs, "fs.rename", oldRest, newRest)
     else
       local result, reason = driver.fs.copy(oldPath, newPath)
       if result then
@@ -220,7 +220,7 @@ local file = {}
 function file:close()
   if self.handle then
     self:flush()
-    sendToNode(self.fs, "fs.close", self.handle)
+    send(self.fs, "fs.close", self.handle)
     self.handle = nil
   end
 end
@@ -232,7 +232,7 @@ function file:flush()
 
   if #self.buffer > 0 then
     local result, reason =
-      sendToNode(self.fs, "fs.write", self.handle, self.buffer)
+      send(self.fs, "fs.write", self.handle, self.buffer)
     if result then
       self.buffer = ""
     else
@@ -265,7 +265,7 @@ function file:read(...)
 
   local function readChunk()
     local result, reason =
-      sendToNode(self.fs, "fs.read", self.handle, self.bufferSize)
+      send(self.fs, "fs.read", self.handle, self.bufferSize)
     if result then
       self.buffer = self.buffer .. result
       return self
@@ -380,7 +380,7 @@ function file:seek(whence, offset)
     offset = offset - #(self.buffer or "")
   end
   local result, reason =
-    sendToNode(self.fs, "fs.seek", self.handle, whence, offset)
+    send(self.fs, "fs.seek", self.handle, whence, offset)
   if result then
     if offset ~= 0 then
       self.buffer = ""
@@ -434,7 +434,7 @@ function file:write(...)
 
     if self.bufferMode == "full" then
       if #arg > self.bufferSize then
-        result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
+        result, reason = send(self.fs, "fs.write", self.handle, arg)
       else
         self.buffer = self.buffer .. arg
         result = self
@@ -454,21 +454,21 @@ function file:write(...)
           return nil, reason
         end
         result, reason =
-          sendToNode(self.fs, "fs.write", self.handle, arg:bsub(1, l))
+          send(self.fs, "fs.write", self.handle, arg:bsub(1, l))
         if not result then
           return nil, reason
         end
         arg = arg:bsub(l + 1)
       end
       if #arg > self.bufferSize then
-        result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
+        result, reason = send(self.fs, "fs.write", self.handle, arg)
       else
         self.buffer = arg
         result = self
       end
 
     else -- no
-      result, reason = sendToNode(self.fs, "fs.write", self.handle, arg)
+      result, reason = send(self.fs, "fs.write", self.handle, arg)
     end
 
     if not result then
@@ -492,7 +492,7 @@ function driver.fs.open(path, mode)
     return nil, "file not found"
   end
 
-  local handle, reason = sendToNode(node.fs, "fs.open", rest, mode)
+  local handle, reason = send(node.fs, "fs.open", rest, mode)
   if not handle then
     return nil, reason
   end
@@ -534,25 +534,25 @@ end
 
 -------------------------------------------------------------------------------
 
-function loadfile(file, env)
-  local f, reason = driver.fs.open(file)
-  if not f then
+function loadfile(filename, env)
+  local file, reason = driver.fs.open(filename)
+  if not file then
     return nil, reason
   end
-  local source, reason = f:read("*a")
-  f:close()
+  local source, reason = file:read("*a")
+  file:close()
   if not source then
     return nil, reason
   end
-  return load(source, "=" .. file, env)
+  return load(source, "=" .. filename, env)
 end
 
-function dofile(file)
-  local f, reason = loadfile(file)
-  if not f then
+function dofile(filename)
+  local program, reason = loadfile(filename)
+  if not program then
     return nil, reason
   end
-  return f()
+  return program()
 end
 
 -------------------------------------------------------------------------------

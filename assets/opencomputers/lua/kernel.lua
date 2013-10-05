@@ -144,7 +144,7 @@ end
 
 --[[ Install wrappers for coroutine management that reserves the first value
      returned by yields for internal stuff. Used for sleeping and message
-     calls (sendToNode and its ilk) that happen synchronized (Server thread).
+     calls (sendToAddress) that happen synchronized (Server thread).
 --]]
 local deadline = 0
 
@@ -233,7 +233,7 @@ end
 
 do
   local env = setmetatable({
-                sendToNode = sendToNode,
+                send = sendToAddress,
               }, { __index = sandbox, __newindex = sandbox })
   for name, code in pairs(drivers()) do
     local driver, reason = load(code, "=" .. name, "t", env)

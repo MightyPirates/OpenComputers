@@ -7,7 +7,7 @@ import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 
 object FileSystem extends Item {
-  override def api = Option(getClass.getResourceAsStream(Config.driverPath + "fs.lua"))
+  override def api = Option(getClass.getResourceAsStream(Config.driverPath + "filesystem.lua"))
 
   override def worksWith(item: ItemStack) = WorksWith(Items.hdd2, Items.hdd4, Items.hdd8)(item)
 
