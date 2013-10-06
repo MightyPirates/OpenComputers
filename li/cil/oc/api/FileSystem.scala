@@ -16,8 +16,33 @@ import li.cil.oc.api.network.Node
  * <p/>
  * Alternatively to using the factory methods for file systems in `Filesystem`
  * you are free to implement this interface yourself.
+ * <p/>
+ * Note that all paths passed here are assumed to be absolute in the underlying
+ * file system implementation, meaning they do not contain any "." or "..", and
+ * are relative to the root of the file system.
  */
 trait FileSystem extends Persistable {
+  /**
+   * The total storage capacity of the file system, in bytes.
+   * <p/>
+   * For read-only systems this should return zero, for writable file systems
+   * that do not enforce a storage limit this should be a negative value.
+   *
+   * @return the total storage space of this file system.
+   */
+  def spaceTotal = 0L
+
+  /**
+   * The used storage capacity of the file system, in bytes.
+   * <p/>
+   * For read-only systems this should return zero.
+   *
+   * @return the used storage space of this file system.
+   */
+  def spaceUsed = 0L
+
+  // ----------------------------------------------------------------------- //
+
   /**
    * Tests if a file or directory exists at the specified path.
    * <p/>
@@ -74,6 +99,20 @@ trait FileSystem extends Persistable {
   def list(path: String): Option[Array[String]]
 
   // ----------------------------------------------------------------------- //
+
+  /**
+   * Create the specified directory, and if necessary any parent directories
+   * that do not yet exist.
+   * <p/>
+   * This is only available for writable file systems. For read-only systems
+   * it should just always return false.
+   *
+   * @param path the path to the directory to create.
+   * @return true if the directory was created; false otherwise.
+   */
+  def makeDirectories(path: String): Boolean =
+    !exists(path) && (makeDirectory(path) ||
+      (makeDirectories(path.split("/").dropRight(1).mkString("/")) && makeDirectory(path)))
 
   /**
    * Deletes a file or folder.
@@ -152,6 +191,23 @@ trait FileSystem extends Persistable {
    * unloaded.
    */
   def close()
+
+  // ----------------------------------------------------------------------- //
+
+  /**
+   * Actual directory creation implementation.
+   * <p/>
+   * This is called from the possibly recursive `makeDirectories` function, and
+   * guarantees that the parent directory of the directory to be created
+   * already exists. So this should always only create a single directory.
+   * <p/>
+   * This is only available for writable file systems. For read-only systems
+   * it should just always return false.
+   *
+   * @param path the path to the directory to create.
+   * @return true if the directory was created; false otherwise.
+   */
+  protected def makeDirectory(path: String) = false
 
   /**
    * Actual deletion implementation.

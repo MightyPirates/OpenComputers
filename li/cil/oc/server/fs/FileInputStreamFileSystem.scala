@@ -7,6 +7,8 @@ import li.cil.oc.api
 trait FileInputStreamFileSystem extends api.FileSystem with InputStreamFileSystem {
   protected val root: io.File
 
+  // ----------------------------------------------------------------------- //
+
   override def exists(path: String) = new io.File(root, path).exists()
 
   override def size(path: String) = new io.File(root, path) match {
@@ -22,6 +24,8 @@ trait FileInputStreamFileSystem extends api.FileSystem with InputStreamFileSyste
       map(file => if (file.isDirectory) file.getName + "/" else file.getName))
     case _ => throw new FileNotFoundException("no such file or directory")
   }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def openInputStream(path: String) =
     Some(new FileInputStream(new io.File(root, path)))

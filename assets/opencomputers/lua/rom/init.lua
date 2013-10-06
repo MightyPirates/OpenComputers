@@ -1,12 +1,12 @@
 dofile("/boot/api/event.lua")
 dofile("/boot/api/component.lua")
-dofile("/boot/api/filesystem.lua")
 dofile("/boot/api/term.lua")
-dofile("/boot/sh.lua")
+dofile("/boot/bin/automount.lua")
+dofile("/boot/bin/sh.lua")
 
 driver.fs.umount("/boot")
 
 event.fire(...)
 while true do
-  event.fire(os.signal())
+  coroutine.sleep()
 end

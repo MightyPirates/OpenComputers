@@ -6,15 +6,15 @@ local isRunning = false
 local function onKeyDown(_, address, char, code)
   if isRunning then return end -- ignore events while running a command
   if address ~= term.keyboard() then return end
-  local _, gpu = term.gpu()
-  if not gpu then return end
+  if not term.available() then return end
   local x, y = term.cursor()
+  local w, h = term.size()
   local keys = driver.keyboard.keys
   if code == keys.back then
     if command:len() == 0 then return end
     command = command:sub(1, -2)
     term.cursor(command:len() + 3, y) -- from leading "> "
-    gpu.set(x - 1, y, "  ") -- overwrite cursor blink
+    driver.gpu.set(term.gpu(), x - 1, y, "  ") -- overwrite cursor blink
   elseif code == keys.enter then
     if command:len() == 0 then return end
     term.cursorBlink(false)
@@ -25,21 +25,21 @@ local function onKeyDown(_, address, char, code)
     end
     if code then
       isRunning = true
-      local result = {pcall(code)}
+      local result = table.pack(pcall(code))
       isRunning = false
-      if not result[1] or #result > 1 then
-        print(table.unpack(result, 2))
+      if not result[1] or result.n > 1 then
+        print(table.unpack(result, 2, result.n))
       end
     else
       print(result)
     end
     lastCommand = command
     command = ""
-    write("> ")
+    term.write("> ")
     term.cursorBlink(true)
   elseif code == keys.up then
     command = lastCommand
-    gpu.fill(3, y, screenWidth, 1, " ")
+    driver.gpu.fill(term.gpu(), 3, y, w, 1, " ")
     term.cursor(3, y)
     term.write(command)
     term.cursor(command:len() + 3, y)
@@ -64,7 +64,7 @@ event.listen("term_available", function()
   term.clear()
   command = ""
   print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
-  write("> ")
+  term.write("> ")
   event.listen("key_down", onKeyDown)
   event.listen("clipboard", onClipboard)
 end)

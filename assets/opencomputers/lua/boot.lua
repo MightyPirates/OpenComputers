@@ -64,6 +64,7 @@ flattenAndStore("_ENV", _ENV)
 --]]
 -- OK, I admit this is a little crazy... here goes:
 local function wrap(f)
+  assert(f)
   -- This is the function that replaces the original API function. It is
   -- called from userland when it wants something from a driver.
   return function(...)
@@ -94,5 +95,5 @@ local function wrap(f)
   end
 end
 
-sendToNode = wrap(sendToNode)
+sendToAddress = wrap(sendToAddress)
 nodeName = wrap(nodeName)

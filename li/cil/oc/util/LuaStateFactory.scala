@@ -197,6 +197,14 @@ object LuaStateFactory {
       // Provide some better Unicode support.
       state.getGlobal("string")
 
+      // Rename stuff for binary functionality, to allow byte-wise operations
+      // operations on the string.
+      state.getField(-1, "sub")
+      state.setField(-2, "bsub")
+
+      state.getField(-1, "reverse")
+      state.setField(-2, "breverse")
+
       state.pushScalaFunction(lua => {
         lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
         1
@@ -230,11 +238,6 @@ object LuaStateFactory {
         1
       })
       state.setField(-2, "reverse")
-
-      // Rename string.sub to string.bsub (for binary sub, to allow byte-wise
-      // operations on the string).
-      state.getField(-1, "sub")
-      state.setField(-2, "bsub")
 
       state.pushScalaFunction(lua => {
         val string = lua.checkString(1)

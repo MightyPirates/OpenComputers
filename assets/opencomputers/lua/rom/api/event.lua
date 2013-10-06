@@ -55,7 +55,7 @@ function event.fire(name, ...)
   end
   local elapsed = {}
   for id, info in pairs(timers) do
-    if info.after < os.clock() then
+    if info.after < os.uptime() then
       table.insert(elapsed, info.callback)
       timers[id] = nil
     end
@@ -70,7 +70,7 @@ end
 
 function event.timer(timeout, callback)
   local id = #timers + 1
-  timers[id] = {after = os.clock() + timeout, callback = callback}
+  timers[id] = {after = os.uptime() + timeout, callback = callback}
   return id
 end
 
@@ -96,8 +96,9 @@ function event.error(message)
 end
 
 function coroutine.sleep(seconds)
+  seconds = seconds or math.huge
   checkArg(1, seconds, "number")
-  local target = os.clock() + seconds
+  local target = os.uptime() + seconds
   repeat
     local closest = target
     for _, info in pairs(timers) do
@@ -105,6 +106,6 @@ function coroutine.sleep(seconds)
         closest = info.after
       end
     end
-    event.fire(os.signal(nil, closest - os.clock()))
-  until os.clock() >= target
+    event.fire(os.signal(nil, closest - os.uptime()))
+  until os.uptime() >= target
 end

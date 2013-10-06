@@ -1,48 +1,52 @@
 driver.gpu = {}
 
-function driver.gpu.setResolution(gpu, screen, w, h)
-  sendToNode(gpu, "gpu.resolution=", screen, w, h)
-end
-
-function driver.gpu.getResolution(gpu, screen)
-  return sendToNode(gpu, "gpu.resolution", screen)
-end
-
-function driver.gpu.getResolutions(gpu, screen)
-  return sendToNode(gpu, "gpu.resolutions", screen)
-end
-
-function driver.gpu.set(gpu, screen, col, row, value)
-  sendToNode(gpu, "gpu.set", screen, col, row, value)
-end
-
-function driver.gpu.fill(gpu, screen, col, row, w, h, value)
-  sendToNode(gpu, "gpu.fill", screen, col, row, w, h, value:sub(1, 1))
-end
-
-function driver.gpu.copy(gpu, screen, col, row, w, h, tx, ty)
-  sendToNode(gpu, "gpu.copy", screen, col, row, w, h, tx, ty)
-end
-
 function driver.gpu.bind(gpu, screen)
-  return {
-    setResolution = function(w, h)
-     driver.gpu.setResolution(gpu, screen, w, h)
-    end,
-    getResolution = function()
-     return driver.gpu.getResolution(gpu, screen)
-    end,
-    getResolutions = function()
-     return driver.gpu.getResolutions(gpu, screen)
-    end,
-    set = function(col, row, value)
-      driver.gpu.set(gpu, screen, col, row, value)
-    end,
-    fill = function(col, ro, w, h, value)
-      driver.gpu.fill(gpu, screen, col, ro, w, h, value)
-    end,
-    copy = function(col, row, w, h, tx, ty)
-      driver.gpu.copy(gpu, screen, col, row, w, h, tx, ty)
-    end
-  }
+  checkArg(1, gpu, "string")
+  checkArg(2, screen, "string")
+  return send(gpu, "gpu.bind", screen)
+end
+
+function driver.gpu.resolution(gpu, w, h)
+  checkArg(1, gpu, "string")
+  if w and h then
+    checkArg(2, w, "number")
+    checkArg(3, h, "number")
+    return send(gpu, "gpu.resolution=", w, h)
+  else
+    return send(gpu, "gpu.resolution")
+  end
+end
+
+function driver.gpu.resolutions(gpu)
+  checkArg(1, gpu, "string")
+  return send(gpu, "gpu.resolutions")
+end
+
+function driver.gpu.set(gpu, col, row, value)
+  checkArg(1, gpu, "string")
+  checkArg(2, col, "number")
+  checkArg(3, row, "number")
+  checkArg(4, value, "string")
+  return send(gpu, "gpu.set", col, row, value)
+end
+
+function driver.gpu.fill(gpu, col, row, w, h, value)
+  checkArg(1, gpu, "string")
+  checkArg(2, col, "number")
+  checkArg(3, row, "number")
+  checkArg(4, w, "number")
+  checkArg(5, h, "number")
+  checkArg(6, value, "string")
+  return send(gpu, "gpu.fill", col, row, w, h, value:sub(1, 1))
+end
+
+function driver.gpu.copy(gpu, col, row, w, h, tx, ty)
+  checkArg(1, gpu, "string")
+  checkArg(2, col, "number")
+  checkArg(3, row, "number")
+  checkArg(4, w, "number")
+  checkArg(5, h, "number")
+  checkArg(6, tx, "number")
+  checkArg(7, ty, "number")
+  return send(gpu, "gpu.copy", col, row, w, h, tx, ty)
 end

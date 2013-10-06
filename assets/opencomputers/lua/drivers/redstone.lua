@@ -14,14 +14,14 @@ driver.redstone.sides.down = driver.redstone.sides.bottom
 local owner = os.address()
 
 function driver.redstone.analogInput(card, side)
-  sendToNode(card, owner, "redstone.input", side)
+  send(card, owner, "redstone.input", side)
 end
 
 function driver.redstone.analogOutput(card, side, value)
   if value then
-    sendToNode(card, owner, "redstone.output=", side, tonumber(value))
+    send(card, owner, "redstone.output=", side, tonumber(value))
   else
-    return sendToNode(card, owner, "redstone.output", side)
+    return send(card, owner, "redstone.output", side)
   end
 end
 

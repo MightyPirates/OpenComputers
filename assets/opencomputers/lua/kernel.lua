@@ -91,6 +91,7 @@ local sandbox = {
     date = os.date,
     difftime = os.difftime,
     time = os.time,
+    uptime = os.uptime,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     address = os.address,
@@ -98,6 +99,8 @@ local sandbox = {
   },
 
   string = {
+    breverse = string.breverse,
+    bsub = string.bsub,
     byte = string.byte,
     char = string.char,
     dump = string.dump,
@@ -125,33 +128,27 @@ local sandbox = {
 }
 sandbox._G = sandbox
 
--- Note: 'write' will be replaced by init script/term API.
-function sandbox.write(...) end
-function sandbox.print(...)
-  sandbox.write(...)
-  sandbox.write("\n")
-end
-
 function sandbox.load(code, source, env)
   return load(code, source, "t", env or sandbox)
 end
 
 function sandbox.checkArg(n, have, ...)
   have = type(have)
-  for _, want in pairs({...}) do
-    if have == want then
+  local want = table.pack(...)
+  for i = 1, want.n do
+    if have == want[i] then
       return
     end
   end
   local msg = "bad argument #" .. n .. " (" .. table.concat({...}, " or ") .. " expected, got " .. have .. ")"
-  error(debug.traceback(msg, 3), 2)
+  error(debug.traceback(msg, 2), 2)
 end
 
 -------------------------------------------------------------------------------
 
 --[[ Install wrappers for coroutine management that reserves the first value
      returned by yields for internal stuff. Used for sleeping and message
-     calls (sendToNode and its ilk) that happen synchronized (Server thread).
+     calls (sendToAddress) that happen synchronized (Server thread).
 --]]
 local deadline = 0
 
@@ -166,7 +163,7 @@ local function main(args)
     sandbox.driver.fs.mount(os.romAddress(), "/boot")
     local result, reason = sandbox.loadfile("/boot/init.lua")
     if not result then
-      error(reason)
+      error(reason, 0)
     end
     return coroutine.create(result)
   end
@@ -176,38 +173,50 @@ local function main(args)
     if not debug.gethook(co) then
       debug.sethook(co, checkDeadline, "", 10000)
     end
-    local result = {coroutine.resume(co, table.unpack(args))}
+    local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if result[1] then
-      args = {coroutine.yield(result[2])} -- system yielded value
+      args = table.pack(coroutine.yield(result[2])) -- system yielded value
     else
-      error(result[2])
+      error(result[2], 0)
     end
   end
 end
 
 function sandbox.coroutine.resume(co, ...)
-  local args = {...}
+  local args = table.pack(...)
   while true do
     if not debug.gethook(co) then -- don't reset counter
       debug.sethook(co, checkDeadline, "", 10000)
     end
-    local result = {coroutine.resume(co, table.unpack(args))}
+    local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     checkDeadline()
     if result[1] then
       local isSystemYield = coroutine.status(co) ~= "dead" and result[2] ~= nil
       if isSystemYield then
-        args = coroutine.yield(result[2])
+        args = table.pack(coroutine.yield(result[2]))
       else
-        return true, table.unpack(result, 3)
+        return true, table.unpack(result, 3, result.n)
       end
     else -- error: result = (bool, string)
-      return table.unpack(result)
+      return table.unpack(result, 1, result.n)
     end
   end
 end
 
 function sandbox.coroutine.yield(...)
   return coroutine.yield(nil, ...)
+end
+
+function sandbox.pcall(...)
+  local result = table.pack(pcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
+end
+
+function sandbox.xpcall(...)
+  local result = table.pack(xpcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
 end
 
 -------------------------------------------------------------------------------
@@ -221,13 +230,13 @@ function sandbox.os.reboot()
 end
 
 function sandbox.os.signal(name, timeout)
-  local waitUntil = os.clock() + (type(timeout) == "number" and timeout or math.huge)
-  while os.clock() < waitUntil do
-    local signal = {coroutine.yield(waitUntil - os.clock())}
-    if signal and (name == signal[1] or name == nil) then
-      return table.unpack(signal)
+  local waitUntil = os.uptime() + (type(timeout) == "number" and timeout or math.huge)
+  repeat
+    local signal = table.pack(coroutine.yield(waitUntil - os.uptime()))
+    if signal.n > 0 and (name == signal[1] or name == nil) then
+      return table.unpack(signal, 1, signal.n)
     end
-  end
+  until os.uptime() >= waitUntil
 end
 
 -------------------------------------------------------------------------------
@@ -239,9 +248,8 @@ function sandbox.driver.componentType(id)
 end
 
 do
-  local env = setmetatable({
-                sendToNode = sendToNode,
-              }, { __index = sandbox, __newindex = sandbox })
+  local env = setmetatable({ send = sendToAddress },
+                           { __index = sandbox, __newindex = sandbox })
   for name, code in pairs(drivers()) do
     local driver, reason = load(code, "=" .. name, "t", env)
     if not driver then
@@ -260,4 +268,4 @@ end
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
 -- Also, yield once to allow initializing up to here to get a memory baseline.
-return pcall(main, {coroutine.yield()})
+return pcall(main, table.pack(coroutine.yield()))

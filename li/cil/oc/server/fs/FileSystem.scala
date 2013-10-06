@@ -52,7 +52,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     extends InputStreamFileSystem
     with FileInputStreamFileSystem
 
-  private class ReadWriteFileSystem(protected val root: io.File, val capacity: Int)
+  private class ReadWriteFileSystem(protected val root: io.File, protected val capacity: Int)
     extends OutputStreamFileSystem
     with FileOutputStreamFileSystem
     with Capacity
