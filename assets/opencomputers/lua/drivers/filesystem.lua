@@ -220,8 +220,7 @@ local file = {}
 function file:close()
   if self.handle then
     self:flush()
-    send(self.fs, "fs.close", self.handle)
-    self.handle = nil
+    self.stream:close()
   end
 end
 
@@ -231,8 +230,7 @@ function file:flush()
   end
 
   if #self.buffer > 0 then
-    local result, reason =
-      send(self.fs, "fs.write", self.handle, self.buffer)
+    local result, reason = self.stream:write(self.buffer)
     if result then
       self.buffer = ""
     else
@@ -264,20 +262,28 @@ function file:read(...)
   end
 
   local function readChunk()
-    local result, reason =
-      send(self.fs, "fs.read", self.handle, self.bufferSize)
+    local result, reason = self.stream:read(self.bufferSize)
     if result then
       self.buffer = self.buffer .. result
       return self
-    else
+    else -- error or eof
       return nil, reason
     end
   end
 
-  local function readBytes(n)
+  local function readBytesOrChars(n)
+    local len, sub
+    if self.mode == "r" then
+      len = string.len
+      sub = string.sub
+    else
+      assert(self.mode == "rb")
+      len = rawlen
+      sub = string.bsub
+    end
     local result = ""
     repeat
-      if #self.buffer == 0 then
+      if len(self.buffer) == 0 then
         local result, reason = readChunk()
         if not result then
           if reason then
@@ -287,10 +293,10 @@ function file:read(...)
           end
         end
       end
-      local left = n - #result
-      result = result .. self.buffer:bsub(1, left)
-      self.buffer = self.buffer:bsub(left + 1)
-    until #result == n
+      local left = n - len(result)
+      result = result .. sub(self.buffer, 1, left)
+      self.buffer = sub(self.buffer, left + 1)
+    until len(result) == n
     return result
   end
 
@@ -332,7 +338,7 @@ function file:read(...)
 
   local function read(n, format)
     if type(format) == "number" then
-      return readBytes(format)
+      return readBytesOrChars(format)
     else
       if not type(format) == "string" or format:sub(1, 1) ~= "*" then
         error("bad argument #" .. n .. " (invalid option)")
@@ -379,8 +385,7 @@ function file:seek(whence, offset)
   if whence == "cur" and offset ~= 0 then
     offset = offset - #(self.buffer or "")
   end
-  local result, reason =
-    send(self.fs, "fs.seek", self.handle, whence, offset)
+  local result, reason = self.stream:seek(whence, offset)
   if result then
     if offset ~= 0 then
       self.buffer = ""
@@ -396,6 +401,9 @@ function file:setvbuf(mode, size)
     return nil, "file is closed"
   end
 
+  mode = mode or self.bufferMode
+  size = size or self.bufferSize
+
   assert(mode == "no" or mode == "full" or mode == "line",
     "bad argument #1 (no, full or line expected, got " .. tostring(mode) .. ")")
   assert(mode == "no" or type(size) == "number",
@@ -404,6 +412,8 @@ function file:setvbuf(mode, size)
   self:flush()
   self.bufferMode = mode
   self.bufferSize = mode == "no" and 0 or size
+
+  return self.bufferMode, self.bufferSize
 end
 
 function file:write(...)
@@ -434,7 +444,7 @@ function file:write(...)
 
     if self.bufferMode == "full" then
       if #arg > self.bufferSize then
-        result, reason = send(self.fs, "fs.write", self.handle, arg)
+        result, reason = self.stream:write(arg)
       else
         self.buffer = self.buffer .. arg
         result = self
@@ -453,22 +463,21 @@ function file:write(...)
         if not result then
           return nil, reason
         end
-        result, reason =
-          send(self.fs, "fs.write", self.handle, arg:bsub(1, l))
+        result, reason = self.stream:write(arg:bsub(1, l))
         if not result then
           return nil, reason
         end
         arg = arg:bsub(l + 1)
       end
       if #arg > self.bufferSize then
-        result, reason = send(self.fs, "fs.write", self.handle, arg)
+        result, reason = self.stream:write(arg)
       else
         self.buffer = arg
         result = self
       end
 
     else -- no
-      result, reason = send(self.fs, "fs.write", self.handle, arg)
+      result, reason = self.stream:write(arg)
     end
 
     if not result then
@@ -477,6 +486,56 @@ function file:write(...)
   end
 
   return self
+end
+
+-------------------------------------------------------------------------------
+
+function file.new(fs, handle, mode, stream, nogc)
+  local result = {
+    fs = fs,
+    handle = handle,
+    mode = mode,
+    buffer = "",
+    bufferSize = math.min(8 * 1024, os.totalMemory() / 16),
+    bufferMode = "full"
+  }
+  result.stream = setmetatable(stream, {__index = {file = result}})
+
+  local metatable = {
+    __index = file,
+    __metatable = "private"
+  }
+  if not nogc then
+    metatable.__gc = function(self)
+      -- file.close does a syscall, which yields, and that's not possible in
+      -- the __gc metamethod. So we start a timer to do the yield/cleanup.
+      event.timer(0, function()
+        self:close()
+      end)
+    end
+  end
+  return setmetatable(result, metatable)
+end
+
+-------------------------------------------------------------------------------
+
+local fileStream = {}
+
+function fileStream:close()
+  send(self.file.fs, "fs.close", self.file.handle)
+  self.file.handle = nil
+end
+
+function fileStream:read(n)
+  return send(self.file.fs, "fs.read", self.file.handle, n)
+end
+
+function fileStream:seek(whence, offset)
+  return send(self.file.fs, "fs.seek", self.file.handle, whence, offset)
+end
+
+function fileStream:write(str)
+  return send(self.file.fs, "fs.write", self.file.handle, str)
 end
 
 -------------------------------------------------------------------------------
@@ -497,28 +556,10 @@ function driver.fs.open(path, mode)
     return nil, reason
   end
 
-  return setmetatable({
-      fs = node.fs,
-      handle = handle,
-      buffer = "",
-      bufferSize = math.min(8 * 1024, os.totalMemory() / 16),
-      bufferMode = "full"
-    }, {
-      __index = file,
-      __gc = function(self)
-        -- file.close does a syscall, which yields, and that's not possible in
-        -- the __gc metamethod. So we start a timer to do the yield/cleanup.
-        event.timer(0, function()
-          self:close()
-        end)
-      end
-    })
+  return file.new(node.fs, handle, mode, fileStream)
 end
 
 function driver.fs.type(object)
-  if object == io.stdin or object == io.stdout then
-    return "file"
-  end
   if type(object) == "table" then
     local mt = getmetatable(object)
     if mt and mt.__index == file then
@@ -559,58 +600,50 @@ end
 
 io = {}
 
-io.stdin = {handle="stdin"}
+-------------------------------------------------------------------------------
 
-function io.stdin:close()
+local stdinStream = {}
+
+function stdinStream:close()
   return nil, "cannot close standard file"
 end
 
-io.stdin.lines = file.lines
-
-function io.stdin:read(...)
-  -- TODO
+function stdinStream:read(n)
+  
 end
 
-io.stdout = {handle="stdout"}
-
-io.stdout.close = io.stdin.close
-
-function io.stdout:flush()
-  return self -- no-op
-end
-
-function io.stdout:write(...)
-  local args = table.pack(...)
-  for i = 1, args.n do
-    if type(args[i]) == "number" then
-      args[i] = tostring(args[i])
-    end
-    checkArg(i, args[i], "string")
-  end
-  if type(term) == "table" and type(term.write) == "function" then
-    for i = 1, args.n do
-      term.write(args[i])
-    end
-  end
-end
-
-io.stderr = io.stdout
-
--------------------------------------------------------------------------------
-
-local function unavailable()
+function stdinStream:seek(whence, offset)
   return nil, "bad file descriptor"
 end
 
-io.stdin.flush = unavailable
-io.stdin.seek = unavailable
-io.stdin.setvbuf = unavailable
-io.stdin.write = unavailable
+function stdinStream:write(str)
+  return nil, "bad file descriptor"
+end
 
-io.stdout.lines = unavailable
-io.stdout.read = unavailable
-io.stdout.seek = unavailable
-io.stdout.setvbuf = unavailable
+local stdoutStream = {}
+
+function stdoutStream:close()
+  return nil, "cannot close standard file"
+end
+
+function stdoutStream:read(n)
+  return nil, "bad file descriptor"
+end
+
+function stdoutStream:seek(whence, offset)
+  return nil, "bad file descriptor"
+end
+
+function stdoutStream:write(str)
+  term.write(str)
+  return self
+end
+
+io.stdin = file.new(nil, "stdin", "r", stdinStream, true)
+io.stdout = file.new(nil, "stdout", "w", stdoutStream, true)
+io.stderr = io.stdout
+
+io.stdout:setvbuf("no")
 
 -------------------------------------------------------------------------------
 
@@ -619,11 +652,11 @@ local input, output = io.stdin, io.stdout
 -------------------------------------------------------------------------------
 
 function io.close(file)
-  (file or io.output()):close()
+  return (file or io.output()):close()
 end
 
 function io.flush()
-  io.output():flush()
+  return io.output():flush()
 end
 
 function io.input(file)

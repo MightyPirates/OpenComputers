@@ -1,6 +1,6 @@
 local gpu = nil
 local gpuAddress, screenAddress, keyboardAddress = false, false, false
-local screenWidth, screenHeight = 0, 0
+local width, height = 0, 0
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
 
@@ -8,12 +8,11 @@ local function bindIfPossible()
   if gpuAddress and screenAddress then
     if not gpu then
       gpu = driver.gpu.bind(gpuAddress, screenAddress)
-      screenWidth, screenHeight = gpu.getResolution()
+      width, height = gpu.getResolution()
       event.fire("term_available")
     end
   elseif gpu then
-    gpu = nil
-    screenWidth, screenHeight = 0, 0
+    gpu, width, height = nil, 0, 0
     event.fire("term_unavailable")
   end
 end
@@ -22,35 +21,22 @@ end
 
 term = {}
 
-function term.gpu(address)
-  if address ~= nil and ({boolean=true, string=true})[type(address)] then
-    gpuAddress = address
-    bindIfPossible()
+function term.clear()
+  if gpu then
+    gpu.fill(1, 1, width, height, " ")
   end
-  return gpuAddress, gpu
+  cursorX, cursorY = 1, 1
 end
 
-function term.screen(address)
-  if address ~= nil and ({boolean=true, string=true})[type(address)] then
-    screenAddress = address
-    bindIfPossible()
+function term.clearLine()
+  if gpu then
+    gpu.fill(1, cursorY, width, 1, " ")
   end
-  return screenAddress
-end
-
-function term.keyboard(address)
-  if address ~= nil and ({boolean=true, string=true})[type(address)] then
-    keyboardAddress = address
-  end
-  return keyboardAddress
-end
-
-function term.screenSize()
-  return screenWidth, screenHeight
+  cursorX = 1
 end
 
 function term.cursor(col, row)
-  if row and col then
+  if col and row then
     cursorX = math.max(col, 1)
     cursorY = math.max(row, 1)
   end
@@ -62,11 +48,9 @@ function term.cursorBlink(enabled)
     local function toggleBlink()
       cursorBlink.state = not cursorBlink.state
       if gpu then
-        if cursorBlink.state then
-          gpu.set(cursorX, cursorY, string.char(0x2588)) -- Solid block.
-        else
-          gpu.set(cursorX, cursorY, " ")
-        end
+         -- 0x2588 is a solid block.
+        local char = cursorBlink.state and string.char(0x2588) or " "
+        gpu.set(cursorX, cursorY, char)
       end
     end
     if enabled then
@@ -83,9 +67,36 @@ function term.cursorBlink(enabled)
   return cursorBlink ~= nil
 end
 
+function term.gpu(address)
+  if address ~= nil and ({boolean=true, string=true})[type(address)] then
+    gpuAddress = address
+    bindIfPossible()
+  end
+  return gpuAddress, gpu
+end
+
+function term.keyboard(address)
+  if address ~= nil and ({boolean=true, string=true})[type(address)] then
+    keyboardAddress = address
+  end
+  return keyboardAddress
+end
+
+function term.screen(address)
+  if address ~= nil and ({boolean=true, string=true})[type(address)] then
+    screenAddress = address
+    bindIfPossible()
+  end
+  return screenAddress
+end
+
+function term.size()
+  return width, height
+end
+
 function term.write(value, wrap)
   value = tostring(value)
-  local w, h = screenWidth, screenHeight
+  local w, h = width, height
   if value:len() == 0 or not gpu or w < 1 or h < 1 then
     return
   end
@@ -119,18 +130,6 @@ function term.write(value, wrap)
       checkCursor()
     end
   end
-end
-
-function term.clear()
-  if not gpu then return end
-  gpu.fill(1, 1, screenWidth, screenHeight, " ")
-  cursorX, cursorY = 1, 1
-end
-
-function term.clearLine()
-  if not gpu then return end
-  gpu.fill(1, cursorY, screenWidth, 1, " ")
-  cursorX = 1
 end
 
 -------------------------------------------------------------------------------
@@ -176,7 +175,7 @@ end)
 
 event.listen("screen_resized", function(_, address, w, h)
   if address == screenAddress then
-    screenWidth = w
-    screenHeight = h
+    width = w
+    height = h
   end
 end)

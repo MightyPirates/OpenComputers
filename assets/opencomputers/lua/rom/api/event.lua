@@ -96,6 +96,7 @@ function event.error(message)
 end
 
 function coroutine.sleep(seconds)
+  seconds = seconds or math.huge
   checkArg(1, seconds, "number")
   local target = os.clock() + seconds
   repeat

@@ -8,5 +8,5 @@ driver.fs.umount("/boot")
 
 event.fire(...)
 while true do
-  event.fire(os.signal())
+  coroutine.sleep()
 end

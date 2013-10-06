@@ -76,7 +76,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private var lastUpdate = 0L // Real-world time for pause detection.
 
-  private var sleepUntil = Long.MaxValue // Real-world time.
+  private var sleepUntil = Double.PositiveInfinity // Real-world time.
 
   private var wasRunning = false // To signal stops synchronously.
 
@@ -696,7 +696,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         // If we have a single number that's how long we may wait before
         // resuming the state again.
         else if (results == 1 && lua.isNumber(2)) {
-          val sleep = (lua.toNumber(2) * 1000).toLong
+          val sleep = lua.toNumber(2) * 1000
           lua.pop(results)
           // But only sleep if we don't have more signals to process.
           if (signals.isEmpty) {
