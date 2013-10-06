@@ -91,6 +91,7 @@ local sandbox = {
     date = os.date,
     difftime = os.difftime,
     time = os.time,
+    uptime = os.uptime,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     address = os.address,
@@ -138,7 +139,7 @@ function sandbox.checkArg(n, have, ...)
     end
   end
   local msg = "bad argument #" .. n .. " (" .. table.concat({...}, " or ") .. " expected, got " .. have .. ")"
-  error(debug.traceback(msg, 3), 2)
+  error(debug.traceback(msg, 2), 2)
 end
 
 -------------------------------------------------------------------------------
@@ -204,6 +205,18 @@ function sandbox.coroutine.yield(...)
   return coroutine.yield(nil, ...)
 end
 
+function sandbox.pcall(...)
+  local result = table.pack(pcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
+end
+
+function sandbox.xpcall(...)
+  local result = table.pack(xpcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
+end
+
 -------------------------------------------------------------------------------
 
 function sandbox.os.shutdown()
@@ -215,13 +228,13 @@ function sandbox.os.reboot()
 end
 
 function sandbox.os.signal(name, timeout)
-  local waitUntil = os.clock() + (type(timeout) == "number" and timeout or math.huge)
-  while os.clock() < waitUntil do
-    local signal = table.pack(coroutine.yield(waitUntil - os.clock()))
+  local waitUntil = os.uptime() + (type(timeout) == "number" and timeout or math.huge)
+  repeat
+    local signal = table.pack(coroutine.yield(waitUntil - os.uptime()))
     if signal.n > 0 and (name == signal[1] or name == nil) then
       return table.unpack(signal, 1, signal.n)
     end
-  end
+  until os.uptime() >= waitUntil
 end
 
 -------------------------------------------------------------------------------

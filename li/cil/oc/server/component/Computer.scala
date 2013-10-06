@@ -70,15 +70,21 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  private var timeStarted = 0L // Game-world time for os.clock().
+  private var timeStarted = 0L // Game-world time [ms] for os.uptime().
 
   private var worldTime = 0L // Game-world time for os.time().
 
-  private var lastUpdate = 0L // Real-world time for pause detection.
+  private var lastUpdate = 0L // Real-world time [ms] for pause detection.
 
-  private var sleepUntil = Double.PositiveInfinity // Real-world time.
+  private var cpuTime = 0L // Pseudo-real-world time [ns] for os.clock().
+
+  private var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
+
+  private var sleepUntil = Double.PositiveInfinity // Real-world time [ms].
 
   private var wasRunning = false // To signal stops synchronously.
+
+  private var message: Option[String] = None // For error messages.
 
   // ----------------------------------------------------------------------- //
 
@@ -154,9 +160,18 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
     // Signal stops to the network. This is used to close file handles, for example.
-    if (wasRunning && !isRunning)
+    if (wasRunning && !isRunning) {
       owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
+      owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill", 1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+    }
     wasRunning = isRunning
+
+    if (message.isDefined) owner.network.foreach(network => {
+      for ((line, row) <- message.get.lines.zipWithIndex) {
+        network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
+      }
+      message = None
+    })
 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {
@@ -204,16 +219,14 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             // This can happen if we run out of memory while converting a Java
             // exception to a string (which we have to do to avoid keeping
             // userdata on the stack, which cannot be persisted).
-            OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-            //owner.network.foreach(_.sendToVisible(owner, "computer.crashed", "not enough memory"))
+            message = Some("not enough memory")
             close()
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
-            OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-            // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
-            //owner.network.foreach(_.sendToVisible(owner, "computer.crashed", "not enough memory"))
+            message = Some("not enough memory")
             close()
           case e: Throwable => {
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
+            message = Some("protocol error")
             close()
           }
         }
@@ -273,6 +286,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         rom.foreach(_.load(nbt.getCompoundTag("rom")))
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
+        cpuTime = nbt.getLong("cpuTime")
+        if (nbt.hasKey("message"))
+          message = Some(nbt.getString("message"))
 
         // Clean up some after we're done and limit memory again.
         lua.gc(LuaState.GcAction.COLLECT, 0)
@@ -353,6 +369,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       nbt.setCompoundTag("rom", romNbt)
       nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
+      nbt.setLong("cpuTime", cpuTime)
+      if (message.isDefined)
+        nbt.setString("message", message.get)
     }
     catch {
       case e: Throwable => {
@@ -417,12 +436,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.getGlobal("os")
 
       // Custom os.clock() implementation returning the time the computer has
-      // been running, instead of the native library...
+      // been actively running, instead of the native library...
       lua.pushScalaFunction(lua => {
-        // World time is in ticks, and each second has 20 ticks. Since we
-        // want os.clock() to return real seconds, though, we'll divide it
-        // accordingly.
-        lua.pushNumber((worldTime - timeStarted) / 20.0)
+        lua.pushNumber((cpuTime + (System.nanoTime() - cpuStart)) * 10e-10)
         1
       })
       lua.setField(-2, "clock")
@@ -437,6 +453,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         1
       })
       lua.setField(-2, "time")
+
+      // The time the computer has been running, as opposed to the CPU time.
+      lua.pushScalaFunction(lua => {
+        // World time is in ticks, and each second has 20 ticks. Since we
+        // want os.uptime() to return real seconds, though, we'll divide it
+        // accordingly.
+        lua.pushNumber((worldTime - timeStarted) / 20.0)
+        1
+      })
+      lua.setField(-2, "uptime")
 
       // Allow the system to read how much memory it uses and has available.
       lua.pushScalaFunction(lua => {
@@ -592,7 +618,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // underlying system (which may change across releases). Add some buffer
       // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 2048
+      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 8 * 1024
       recomputeMemory()
 
       // Clear any left-over signals from a previous run.
@@ -621,12 +647,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       kernelMemory = 0
       signals.clear()
       timeStarted = 0
+      cpuTime = 0
+      cpuStart = 0
       future = None
       sleepUntil = Long.MaxValue
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
     })
+
+  // ----------------------------------------------------------------------- //
 
   private def execute(value: Computer.State.Value) {
     assert(future.isEmpty)
@@ -666,6 +696,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
     try {
       // Resume the Lua state and remember the number of results we get.
+      cpuStart = System.nanoTime()
       val results = if (callReturn) {
         // If we were doing a synchronized call, continue where we left off.
         assert(lua.getTop == 2)
@@ -685,6 +716,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           lua.resume(1, 1 + signal.args.length)
         }
       }
+      cpuTime += System.nanoTime() - cpuStart
 
       // Check if the kernel is still alive.
       stateMonitor.synchronized(if (lua.status(1) == LuaState.YIELD) {
@@ -746,9 +778,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         else {
           // This can trigger another out of memory error if the original
           // error was an out of memory error.
-          OpenComputers.log.warning("Computer crashed.\n" + lua.toString(3)) // TODO remove this when we have a component that can display crash messages
-          // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
-          //owner.network.sendToAll(owner, "computer.crashed", lua.toString(3))
+          message = Some(lua.toString(3))
         }
         close()
       })
@@ -756,16 +786,13 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        message = Some("kernel panic")
         close()
       case e: LuaMemoryAllocationException =>
-        OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-        // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
-        //owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
+        message = Some("not enough memory")
         close()
       case e: java.lang.Error if e.getMessage == "not enough memory" =>
-        OpenComputers.log.warning("Out of memory!") // TODO remove this when we have a component that can display crash messages
-        // TODO get this to the world as a computer.crashed message. problem: synchronizing it.
-        //owner.network.sendToAll(owner, "computer.crashed", "not enough memory")
+        message = Some("not enough memory")
         close()
     }
   }

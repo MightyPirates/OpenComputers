@@ -590,7 +590,7 @@ end
 function dofile(filename)
   local program, reason = loadfile(filename)
   if not program then
-    return nil, reason
+    return error(reason)
   end
   return program()
 end

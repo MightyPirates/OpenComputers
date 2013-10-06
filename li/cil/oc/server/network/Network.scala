@@ -26,6 +26,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   addressedNodes.values.foreach(_.data.network = Some(this))
   unaddressedNodes.foreach(_.data.network = Some(this))
 
+  // ----------------------------------------------------------------------- //
+
   override def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
@@ -104,6 +106,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def node(address: String) = addressedNodes.get(address) match {
     case Some(node) => Some(node.data)
     case _ => None
@@ -129,6 +133,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
         case Some(n) => n.edges.map(_.other(n).data)
       }
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def sendToAddress(source: api.network.Node, target: String, name: String, data: Any*) = {
     if (source.network.isEmpty || source.network.get != this)
@@ -156,6 +162,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       send(new Network.Message(source, name, Array(data: _*)), nodes(source))
     else None
   }
+
+  // ----------------------------------------------------------------------- //
 
   private def contains(node: api.network.Node) = (node.address match {
     case None => unaddressedNodes.find(_.data == node)
@@ -306,6 +314,18 @@ object Network extends api.detail.NetworkAPI {
       }
     }
 
+  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[TileEntity with api.network.Node] =
+    Option(Block.blocksList(world.getBlockId(x, y, z))) match {
+      case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
+        world.getBlockTileEntity(x, y, z) match {
+          case tileEntity: TileEntity with api.network.Node => Some(tileEntity)
+          case _ => None
+        }
+      case _ => None
+    }
+
+  // ----------------------------------------------------------------------- //
+
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =
     onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
@@ -326,15 +346,7 @@ object Network extends api.detail.NetworkAPI {
     tileEntities.foreach(t => joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
   }
 
-  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[TileEntity with api.network.Node] =
-    Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-      case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
-        world.getBlockTileEntity(x, y, z) match {
-          case tileEntity: TileEntity with api.network.Node => Some(tileEntity)
-          case _ => None
-        }
-      case _ => None
-    }
+  // ----------------------------------------------------------------------- //
 
   private class Node(val data: api.network.Node) {
     val edges = ArrayBuffer.empty[Edge]
@@ -381,6 +393,8 @@ object Network extends api.detail.NetworkAPI {
       }
     }) filter (_.nonEmpty) map (_.get)
   }
+
+  // ----------------------------------------------------------------------- //
 
   private class Message(@BeanProperty val source: api.network.Node,
                         @BeanProperty val name: String,
