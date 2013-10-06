@@ -289,7 +289,7 @@ function file:read(...)
           if reason then
             return nil, reason
           else -- eof
-            return result
+            return nil
           end
         end
       end
@@ -315,7 +315,7 @@ function file:read(...)
           if reason then
             return nil, reason
           else -- eof
-            local result = self.buffer
+            local result = #self.buffer > 0 and self.buffer or nil
             self.buffer = ""
             return result
           end

@@ -162,16 +162,22 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // Signal stops to the network. This is used to close file handles, for example.
     if (wasRunning && !isRunning) {
       owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
-      owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill", 1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+      // Clear any screens we use while we're at it.
+      owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
+        1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
     }
     wasRunning = isRunning
 
-    if (message.isDefined) owner.network.foreach(network => {
-      for ((line, row) <- message.get.lines.zipWithIndex) {
-        network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
-      }
+    // If there was an error message (i.e. the computer crashed) display it on
+    // any screens we used (stored in GPUs).
+    if (message.isDefined) {
+      owner.network.foreach(network => {
+        for ((line, row) <- message.get.lines.zipWithIndex) {
+          network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
+        }
+      })
       message = None
-    })
+    }
 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {

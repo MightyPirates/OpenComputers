@@ -99,6 +99,8 @@ local sandbox = {
   },
 
   string = {
+    breverse = string.breverse,
+    bsub = string.bsub,
     byte = string.byte,
     char = string.char,
     dump = string.dump,
