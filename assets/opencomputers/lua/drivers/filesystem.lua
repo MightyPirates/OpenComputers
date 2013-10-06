@@ -220,7 +220,7 @@ local file = {}
 function file:close()
   if self.handle then
     self:flush()
-    self.stream:close()
+    return self.stream:close()
   end
 end
 
@@ -503,7 +503,7 @@ function file.new(fs, handle, mode, stream, nogc)
 
   local metatable = {
     __index = file,
-    __metatable = "private"
+    __metatable = "file"
   }
   if not nogc then
     metatable.__gc = function(self)
@@ -561,9 +561,8 @@ end
 
 function driver.fs.type(object)
   if type(object) == "table" then
-    local mt = getmetatable(object)
-    if mt and mt.__index == file then
-      if f.handle then
+    if getmetatable(object) == "file" then
+      if object.handle then
         return "file"
       else
         return "closed file"
