@@ -56,8 +56,10 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
     val char = Keyboard.getEventCharacter
 
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
-      if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown)
-        PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+      if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown) {
+        if (Keyboard.getEventKeyState)
+          PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+      }
       else if (Keyboard.getEventKeyState) {
         PacketSender.sendKeyDown(tileEntity, char, code)
       }

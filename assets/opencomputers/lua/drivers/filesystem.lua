@@ -612,7 +612,7 @@ end
 
 function stdinStream:read(n)
   local result = term.read(stdinHistory)
-  if #stdinHistory > 10 then
+  while #stdinHistory > 10 do
     table.remove(stdinHistory, 1)
   end
   return result

@@ -783,7 +783,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }
         else {
           lua.setTotalMemory(Int.MaxValue)
-          message = Some(lua.toString(3))
+          val error = lua.toString(3)
+          if (error != null)
+            message = Some(error)
+          else
+            message = Some("unknown error")
         }
         close()
       })

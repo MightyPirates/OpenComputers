@@ -171,11 +171,22 @@ function term.read(history)
       driver.gpu.set(term.gpu(), w, y, char)
     end
   end
+  local function scrollEnd()
+    local w = term.size()
+    cursor = history[current]:len() + 1
+    scroll = math.max(0, cursor - (w - (start - 1)))
+    render()
+  end
   local function copyIfNecessary()
     if current ~= #history then
       history[#history] = history[current]
       current = #history
     end
+  end
+  local function updateCursor()
+    term.cursor(start - 1 + cursor - scroll, y)
+    term.cursorBlink(cursor <= history[current]:len() and
+                     history[current]:sub(cursor, cursor) or " ")
   end
   local function handleKeyPress(char, code)
     local w, h = term.size()
@@ -224,24 +235,18 @@ function term.read(history)
       end
     elseif code == keys["end"] then
       if cursor < history[current]:len() + 1 then
-        cursor = history[current]:len() + 1
-        scroll = math.max(0, cursor - (w - (start - 1)))
-        render()
+        scrollEnd()
       end
     elseif code == keys.up then
       if current > 1 then
         current = current - 1
-        cursor = history[current]:len() + 1
-        scroll = math.max(0, cursor - (w - (start - 1)))
-        render()
+        scrollEnd()
       end
       cancel = current == 1
     elseif code == keys.down then
       if current < #history then
         current = current + 1
-        cursor = history[current]:len() + 1
-        scroll = math.max(0, cursor - (w - (start - 1)))
-        render()
+        scrollEnd()
       end
       cancel = current == #history
     elseif code == keys.enter then
@@ -266,9 +271,7 @@ function term.read(history)
         scrollRight()
       end
     end
-    term.cursor(start - 1 + cursor - scroll, y)
-    term.cursorBlink(cursor <= history[current]:len() and
-                     history[current]:sub(cursor, cursor) or " ")
+    updateCursor()
     return cancel
   end
   local function onKeyDown(_, address, char, code)
@@ -295,19 +298,25 @@ function term.read(history)
       keyRepeat = event.cancel(keyRepeat)
     end
   end
-  --[[local function onClipboard(_, address, value)
-    if address ~= term.keyboard then
+  local function onClipboard(_, address, value)
+    if address ~= term.keyboard() then
       return
     end
-    if current ~= #history then
-      history[#history] = history[current]
-      current = #history
+    copyIfNecessary()
+    term.cursorBlink(false)
+    local l = value:find("\n", 1, true)
+    if l then
+      history[current] = history[current] .. value:sub(1, l - 1)
+      result = history[current] .. "\n"
+    else
+      history[current] = history[current] .. value
+      scrollEnd()
+      updateCursor()
     end
-    history[current] = history[current] .. value
-    done = done or value:find("\n", 1, true) >= 0
-  end]]
+  end
   event.listen("key_down", onKeyDown)
   event.listen("key_up", onKeyUp)
+  event.listen("clipboard", onClipboard)
   term.cursorBlink(true)
   while not result do
     coroutine.sleep()
@@ -317,6 +326,7 @@ function term.read(history)
   end
   event.ignore("key_down", onKeyDown)
   event.ignore("key_up", onKeyUp)
+  event.ignore("clipboard", onClipboard)
   term.cursorBlink(false)
   print()
   return result
