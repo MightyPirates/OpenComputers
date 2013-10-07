@@ -340,7 +340,7 @@ function file:read(...)
     if type(format) == "number" then
       return readBytesOrChars(format)
     else
-      if not type(format) == "string" or format:sub(1, 1) ~= "*" then
+      if type(format) ~= "string" or format:sub(1, 1) ~= "*" then
         error("bad argument #" .. n .. " (invalid option)")
       end
       format = format:sub(2, 2)
@@ -509,9 +509,11 @@ function file.new(fs, handle, mode, stream, nogc)
     metatable.__gc = function(self)
       -- file.close does a syscall, which yields, and that's not possible in
       -- the __gc metamethod. So we start a timer to do the yield/cleanup.
-      event.timer(0, function()
-        self:close()
-      end)
+      if type(event) == "table" and type(event.timer) == "function" then
+        event.timer(0, function()
+          self:close()
+        end)
+      end
     end
   end
   return setmetatable(result, metatable)
@@ -590,7 +592,7 @@ end
 function dofile(filename)
   local program, reason = loadfile(filename)
   if not program then
-    return error(reason)
+    return error(reason, 0)
   end
   return program()
 end
@@ -602,13 +604,18 @@ io = {}
 -------------------------------------------------------------------------------
 
 local stdinStream = {}
+local stdinHistory = {}
 
 function stdinStream:close()
   return nil, "cannot close standard file"
 end
 
 function stdinStream:read(n)
-  
+  local result = term.read(stdinHistory)
+  if #stdinHistory > 10 then
+    table.remove(stdinHistory, 1)
+  end
+  return result
 end
 
 function stdinStream:seek(whence, offset)
@@ -634,7 +641,7 @@ function stdoutStream:seek(whence, offset)
 end
 
 function stdoutStream:write(str)
-  term.write(str)
+  term.write(str, true)
   return self
 end
 

@@ -68,14 +68,14 @@ local function wrap(f)
   -- This is the function that replaces the original API function. It is
   -- called from userland when it wants something from a driver.
   return function(...)
-    local args = {...}
+    local args = table.pack(...)
     -- What it does, is that it yields a function. That function is called
     -- from the server thread, to ensure synchronicity with the world.
     local result = coroutine.yield(function()
       -- It runs the actual API function protected mode. We return this as
       -- a table because a) we need it like this on the outside anyway and
       -- b) only the first item in the global stack is persisted.
-      local result = {pcall(f, table.unpack(args))}
+      local result = table.pack(pcall(f, table.unpack(args, 1, args.n)))
       if not result[1] then
         -- We apply tostring to error messages immediately because JNLua
         -- pushes the original Java exceptions which cannot be persisted.
@@ -87,7 +87,7 @@ local function wrap(f)
     -- resume, so we get it via the yield. Thus: result = pcall(f, ...)
     if result[1] then
       -- API call was successful, return the results.
-      return select(2, table.unpack(result))
+      return select(2, table.unpack(result, 1, result.n))
     else
       -- API call failed, re-throw the error.
       error(result[2], 2)

@@ -19,6 +19,14 @@ local function rebind(gpu, screen)
   end
 end
 
+local function toggleBlink()
+  cursorBlink.state = not cursorBlink.state
+  if term.available() then
+    local char = cursorBlink.state and cursorBlink.solid or cursorBlink.alt
+    driver.gpu.set(term.gpu(), cursorX, cursorY, char)
+  end
+end
+
 -------------------------------------------------------------------------------
 
 term = {}
@@ -50,24 +58,36 @@ function term.cursor(col, row)
 end
 
 function term.cursorBlink(enabled)
-  if type(enabled) == "boolean" and enabled ~= (cursorBlink ~= nil) then
-    local function toggleBlink()
-      cursorBlink.state = not cursorBlink.state
-      if term.available() then
-         -- 0x2588 is a solid block.
-        local char = cursorBlink.state and string.char(0x2588) or " "
-        driver.gpu.set(term.gpu(), cursorX, cursorY, char)
-      end
-    end
-    if enabled then
+  local function start(alt)
+    if not cursorBlink then
       cursorBlink = event.interval(0.5, toggleBlink)
       cursorBlink.state = false
+      cursorBlink.solid = string.char(0x2588) -- 0x2588 is a solid block.
+    elseif cursorBlink.state then
+      toggleBlink()
+    end
+    cursorBlink.alt = alt
+  end
+  local function stop()
+    event.cancel(cursorBlink.id)
+    if cursorBlink.state then
+      toggleBlink()
+    end
+    cursorBlink = nil
+  end
+  if type(enabled) == "boolean" and enabled ~= (cursorBlink ~= nil) then
+    if enabled then
+      start(" ")
     else
-      event.cancel(cursorBlink.id)
-      if cursorBlink.state then
-        toggleBlink()
-      end
-      cursorBlink = nil
+      stop()
+    end
+  elseif type(enabled) == "string" and
+         (not cursorBlink or enabled:sub(1, 1) ~= cursorBlink.alt)
+  then
+    if enabled:len() > 0 then
+      start(enabled:sub(1, 1))
+    else
+      stop()
     end
   end
   return cursorBlink ~= nil
@@ -89,6 +109,217 @@ function term.keyboard(...)
     keyboardAddress = args[1]
   end
   return keyboardAddress
+end
+
+function term.read(history)
+  history = history or {}
+  table.insert(history, "")
+  local current = #history
+  local keys = driver.keyboard.keys
+  local start, y = term.cursor()
+  local cursor, scroll = 1, 0
+  local keyRepeat = nil
+  local result = nil
+  local function remove()
+    if term.available() then
+      local x = start - 1 + cursor - scroll
+      local w = term.size()
+      driver.gpu.copy(term.gpu(), x + 1, y, w - x, 1, -1, 0)
+      local cursor = cursor + (w - x)
+      local char = history[current]:sub(cursor, cursor)
+      if char:len() == 0 then
+        char = " "
+      end
+      driver.gpu.set(term.gpu(), w, y, char)
+    end
+  end
+  local function render()
+    if term.available() then
+      local w = term.size()
+      local str = history[current]:sub(1 + scroll, 1 + scroll + w - (start - 1))
+      str = str .. string.rep(" ", (w - (start - 1)) - str:len())
+      driver.gpu.set(term.gpu(), start, y, str)
+    end
+  end
+  local function update()
+    if term.available() then
+      local w = term.size()
+      local cursor = cursor - 1
+      local x = start - 1 + cursor - scroll
+      if cursor < history[current]:len() then
+        driver.gpu.copy(term.gpu(), x, y, w - x, 1, 1, 0)
+      end
+      driver.gpu.set(term.gpu(), x, y, history[current]:sub(cursor, cursor))
+    end
+  end
+  local function scrollLeft()
+    scroll = scroll - 1
+    if term.available() then
+      local w = term.size()
+    end
+  end
+  local function scrollRight()
+    scroll = scroll + 1
+    if term.available() then
+      local w = term.size()
+      driver.gpu.copy(term.gpu(), start + 1, y, w - start, 1, -1, 0)
+      local cursor = w - (start - 1) + scroll
+      local char = history[current]:sub(cursor, cursor)
+      if char:len() == 0 then
+        char = " "
+      end
+      driver.gpu.set(term.gpu(), w, y, char)
+    end
+  end
+  local function copyIfNecessary()
+    if current ~= #history then
+      history[#history] = history[current]
+      current = #history
+    end
+  end
+  local function handleKeyPress(char, code)
+    local w, h = term.size()
+    local cancel = false
+    term.cursorBlink(false)
+    if code == keys.back then
+      if cursor > 1 then
+        copyIfNecessary()
+        history[current] = history[current]:sub(1, cursor - 2) ..
+                           history[current]:sub(cursor)
+        cursor = cursor - 1
+        if cursor - scroll < 1 then
+          scrollLeft()
+        end
+        remove()
+      end
+      cancel = cursor == 1
+    elseif code == keys.delete then
+      if cursor <= history[#history]:len() then
+        copyIfNecessary()
+        history[current] = history[current]:sub(1, cursor - 1) ..
+                           history[current]:sub(cursor + 1)
+        remove()
+      end
+      cancel = cursor == history[current]:len() + 1
+    elseif code == keys.left then
+      if cursor > 1 then
+        cursor = cursor - 1
+        if cursor - scroll < 1 then
+          scrollLeft()
+        end
+      end
+      cancel = cursor == 1
+    elseif code == keys.right then
+      if cursor < history[current]:len() + 1 then
+        cursor = cursor + 1
+        if cursor - scroll > w - (start - 1) then
+          scrollRight()
+        end
+      end
+      cancel = cursor == history[current]:len() + 1
+    elseif code == keys.home then
+      if cursor > 1 then
+        cursor, scroll = 1, 0
+        render()
+      end
+    elseif code == keys["end"] then
+      if cursor < history[current]:len() + 1 then
+        cursor = history[current]:len() + 1
+        scroll = math.max(0, cursor - (w - (start - 1)))
+        render()
+      end
+    elseif code == keys.up then
+      if current > 1 then
+        current = current - 1
+        cursor = history[current]:len() + 1
+        scroll = math.max(0, cursor - (w - (start - 1)))
+        render()
+      end
+      cancel = current == 1
+    elseif code == keys.down then
+      if current < #history then
+        current = current + 1
+        cursor = history[current]:len() + 1
+        scroll = math.max(0, cursor - (w - (start - 1)))
+        render()
+      end
+      cancel = current == #history
+    elseif code == keys.enter then
+      if current ~= #history then -- bring entry to front
+        history[#history] = history[current]
+        table.remove(history, current)
+        current = #history
+      end
+      result = history[current] .. "\n"
+      if history[current]:len() == 0 then
+        table.remove(history, current)
+      end
+      return true
+    elseif not keys.isControl(char) then
+      copyIfNecessary()
+      history[current] = history[current]:sub(1, cursor - 1) ..
+                         string.char(char) ..
+                         history[current]:sub(cursor)
+      cursor = cursor + 1
+      update()
+      if cursor - scroll > w - (start - 1) then
+        scrollRight()
+      end
+    end
+    term.cursor(start - 1 + cursor - scroll, y)
+    term.cursorBlink(cursor <= history[current]:len() and
+                     history[current]:sub(cursor, cursor) or " ")
+    return cancel
+  end
+  local function onKeyDown(_, address, char, code)
+    if address ~= term.keyboard() then
+      return
+    end
+    if keyRepeat then
+      keyRepeat = event.cancel(keyRepeat)
+    end
+    if not handleKeyPress(char, code) then
+      local function onRepeatTimer()
+        if not handleKeyPress(char, code) then
+          keyRepeat = event.timer(0, onRepeatTimer)
+        end
+      end
+      keyRepeat = event.timer(0.4, onRepeatTimer)
+    end
+  end
+  local function onKeyUp(_, address, char, code)
+    if address ~= term.keyboard() then
+      return
+    end
+    if keyRepeat then
+      keyRepeat = event.cancel(keyRepeat)
+    end
+  end
+  --[[local function onClipboard(_, address, value)
+    if address ~= term.keyboard then
+      return
+    end
+    if current ~= #history then
+      history[#history] = history[current]
+      current = #history
+    end
+    history[current] = history[current] .. value
+    done = done or value:find("\n", 1, true) >= 0
+  end]]
+  event.listen("key_down", onKeyDown)
+  event.listen("key_up", onKeyUp)
+  term.cursorBlink(true)
+  while not result do
+    coroutine.sleep()
+  end
+  if keyRepeat then
+    event.cancel(keyRepeat)
+  end
+  event.ignore("key_down", onKeyDown)
+  event.ignore("key_up", onKeyUp)
+  term.cursorBlink(false)
+  print()
+  return result
 end
 
 function term.screen(...)

@@ -49,8 +49,12 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
   /** Must be called whenever the buffer of the underlying screen changes. */
   def updateText() = Screen.compileText(scale, tileEntity.screen.lines)
 
-  override def keyTyped(char: Char, code: Int) = {
-    super.keyTyped(char, code)
+  override def handleKeyboardInput() {
+    super.handleKeyboardInput()
+
+    val code = Keyboard.getEventKey
+    val char = Keyboard.getEventCharacter
+
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
       if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown)
         PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)

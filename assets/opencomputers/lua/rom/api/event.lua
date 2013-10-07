@@ -24,9 +24,9 @@ end
 
 function event.ignore(name, callback)
   local function remove(list)
-    for k, v in ipairs(list) do
-      if v == callback then
-        table.remove(list, k)
+    for i = 1, #list do
+      if list[i] == callback then
+        table.remove(list, i)
         return
       end
     end
@@ -69,7 +69,10 @@ function event.fire(name, ...)
 end
 
 function event.timer(timeout, callback)
-  local id = #timers + 1
+  local id
+  repeat
+    id = math.floor(math.random(1, 2147483647))
+  until not timers[id]
   timers[id] = {after = os.uptime() + timeout, callback = callback}
   return id
 end
@@ -107,5 +110,5 @@ function coroutine.sleep(seconds)
       end
     end
     event.fire(os.signal(nil, closest - os.uptime()))
-  until os.uptime() >= target
+  until os.uptime() >= (target == math.huge and 0 or target)
 end

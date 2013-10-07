@@ -172,7 +172,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // any screens we used (stored in GPUs).
     if (message.isDefined) {
       owner.network.foreach(network => {
-        for ((line, row) <- message.get.lines.zipWithIndex) {
+        for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
           network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
         }
       })
@@ -624,7 +624,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // underlying system (which may change across releases). Add some buffer
       // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 8 * 1024
+      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 24 * 1024
       recomputeMemory()
 
       // Clear any left-over signals from a previous run.
@@ -782,8 +782,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           OpenComputers.log.warning("Kernel stopped unexpectedly.")
         }
         else {
-          // This can trigger another out of memory error if the original
-          // error was an out of memory error.
+          lua.setTotalMemory(Int.MaxValue)
           message = Some(lua.toString(3))
         }
         close()

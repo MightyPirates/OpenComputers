@@ -134,14 +134,18 @@ end
 
 function sandbox.checkArg(n, have, ...)
   have = type(have)
-  local want = table.pack(...)
-  for i = 1, want.n do
-    if have == want[i] then
-      return
+  local function check(want, ...)
+    if not want then
+      return false
+    else
+      return have == want or check(...)
     end
   end
-  local msg = "bad argument #" .. n .. " (" .. table.concat({...}, " or ") .. " expected, got " .. have .. ")"
-  error(debug.traceback(msg, 2), 2)
+  if not check(...) then
+    local msg = string.format("bad argument #%d (%s expected, got %s)", n, table.concat({...}, " or "), have)
+    --error(debug.traceback(msg, 2), 2)
+    error(msg, 2)
+  end
 end
 
 -------------------------------------------------------------------------------
