@@ -5,11 +5,14 @@ import li.cil.oc.common.block._
 object Blocks {
   var blockSimple: Delegator = null
   var blockSpecial: Delegator = null
+
   var computer: Computer = null
   var screen: Screen = null
   var keyboard: Keyboard = null
-  var powersupply: PowerSupply = null
-  var powerdistributor: PowerDistributor = null
+
+  var powerSupply: PowerSupply = null
+  var powerDistributor: PowerDistributor = null
+
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
@@ -20,7 +23,8 @@ object Blocks {
     computer = new Computer(blockSimple)
     screen = new Screen(blockSimple)
     keyboard = new Keyboard(blockSpecial)
-    powersupply = new PowerSupply(blockSimple)
-    powerdistributor = new PowerDistributor(blockSimple)
+
+    powerSupply = new PowerSupply(blockSimple)
+    powerDistributor = new PowerDistributor(blockSimple)
   }
 }
