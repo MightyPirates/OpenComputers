@@ -183,7 +183,7 @@ function driver.filesystem.dir(path)
   end
   local result
   if node.fs then
-    result = table.pack(send(node.fs, "fs.list", rest or ""))
+    result = table.pack(send(node.fs, "fs.dir", rest or ""))
     if not result[1] then
       return nil, result[2]
     end
@@ -200,6 +200,13 @@ function driver.filesystem.dir(path)
 end
 
 -------------------------------------------------------------------------------
+
+function driver.filesystem.makeDirectory(path)
+  local node, rest = findNode(path)
+  if node.fs and rest then
+    return send(node.fs, "fs.makeDirectory", rest)
+  end
+end
 
 function driver.filesystem.remove(path)
   local node, rest = findNode(path)
@@ -246,16 +253,14 @@ function file:flush()
     return nil, "file is closed"
   end
 
-  if #self.buffer > 0 then
-    local result, reason = self.stream:write(self.buffer)
-    if result then
-      self.buffer = ""
+  local result, reason = self.stream:write(self.buffer)
+  if result then
+    self.buffer = ""
+  else
+    if reason then
+      return nil, reason
     else
-      if reason then
-        return nil, reason
-      else
-        return nil, "bad file descriptor"
-      end
+      return nil, "bad file descriptor"
     end
   end
 
@@ -426,7 +431,6 @@ function file:setvbuf(mode, size)
   assert(mode == "no" or type(size) == "number",
     "bad argument #2 (number expected, got " .. type(size) .. ")")
 
-  self:flush()
   self.bufferMode = mode
   self.bufferSize = mode == "no" and 0 or size
 

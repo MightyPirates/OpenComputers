@@ -37,35 +37,34 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
               set.clear()
           }
           None
+
         case Array() if message.name == "fs.spaceTotal" =>
           val space = fileSystem.spaceTotal
           if (space < 0)
-            Some(Array("unlimited"))
+            result("unlimited")
           else
-            Some(Array(space.asInstanceOf[Any]))
+            result(space)
         case Array() if message.name == "fs.spaceUsed" =>
-          Some(Array(fileSystem.spaceUsed.asInstanceOf[Any]))
+          result(fileSystem.spaceUsed)
+
         case Array(path: Array[Byte]) if message.name == "fs.exists" =>
-          Some(Array(fileSystem.exists(clean(path)).asInstanceOf[Any]))
+          result(fileSystem.exists(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.size" =>
-          Some(Array(fileSystem.size(clean(path)).asInstanceOf[Any]))
+          result(fileSystem.size(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.isDirectory" =>
-          Some(Array(fileSystem.isDirectory(clean(path)).asInstanceOf[Any]))
-        case Array(path: Array[Byte]) if message.name == "fs.list" =>
+          result(fileSystem.isDirectory(clean(path)))
+        case Array(path: Array[Byte]) if message.name == "fs.dir" =>
           fileSystem.list(clean(path)) match {
             case Some(list) => Some(list.map(_.asInstanceOf[Any]))
             case _ => None
           }
+
+        case Array(path: Array[Byte]) if message.name == "fs.makeDirectory" =>
+          result(fileSystem.makeDirectories(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.remove" =>
-          Some(Array(fileSystem.remove(clean(path)).asInstanceOf[Any]))
+          result(fileSystem.remove(clean(path)))
         case Array(from: Array[Byte], to: Array[Byte]) if message.name == "fs.rename" =>
-          Some(Array(fileSystem.rename(clean(from), clean(to)).asInstanceOf[Any]))
-        case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
-          val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
-          if (handle > 0) {
-            owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
-          }
-          Some(Array(handle.asInstanceOf[Any]))
+          result(fileSystem.rename(clean(from), clean(to)))
 
         case Array(handle: Double) if message.name == "fs.close" =>
           fileSystem.file(handle.toInt) match {
@@ -77,6 +76,13 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
               }
           }
           None
+        case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
+          val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
+          if (handle > 0) {
+            owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
+          }
+          result(handle)
+
         case Array(handle: Double, n: Double) if message.name == "fs.read" && n > 0 =>
           fileSystem.file(handle.toInt) match {
             case None => None
@@ -85,12 +91,18 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
               val buffer = new Array[Byte](n.toInt min (8 * 1024))
               val read = file.read(buffer)
               if (read >= 0) {
-                val result = new Array[Byte](read)
-                Array.copy(buffer, 0, result, 0, read)
-                Some(Array(result))
+                val bytes =
+                  if (read == buffer.length)
+                    buffer
+                  else {
+                    val bytes = new Array[Byte](read)
+                    Array.copy(buffer, 0, bytes, 0, read)
+                    bytes
+                  }
+                result(bytes)
               }
               else {
-                Some(Array(Unit))
+                result(Unit)
               }
           }
         case Array(handle: Double, whence: Array[Byte], offset: Double) if message.name == "fs.seek" =>
@@ -103,26 +115,26 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
                 case "end" => file.seek(file.length + offset.toInt)
                 case _ => throw new IllegalArgumentException("offset out of range")
               }
-              Some(Array(file.position.asInstanceOf[Any]))
+              result(file.position)
           }
         case Array(handle: Double, value: Array[Byte]) if message.name == "fs.write" =>
           fileSystem.file(handle.toInt) match {
             case None => None
-            case Some(file) => file.write(value); Some(Array(true.asInstanceOf[Any]))
+            case Some(file) => file.write(value); result(true)
           }
         case _ => None
       }
     } catch {
       case e@(_: IOException | _: IllegalArgumentException) if e.getMessage != null && !e.getMessage.isEmpty =>
-        Some(Array(Unit, e.getMessage))
+        result(Unit, e.getMessage)
       case e: FileNotFoundException =>
-        Some(Array(Unit, "file not found"))
+        result(Unit, "file not found")
       case e: SecurityException =>
-        Some(Array(Unit, "access denied"))
+        result(Unit, "access denied")
       case _: IllegalArgumentException =>
-        Some(Array(Unit, "invalid argument"))
+        result(Unit, "invalid argument")
       case e: IOException =>
-        Some(Array(Unit, e.toString))
+        result(Unit, e.toString)
     }
   }
 

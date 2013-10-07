@@ -2,6 +2,7 @@ package li.cil.oc.api.network
 
 import li.cil.oc.api.{Persistable, Network}
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import scala.math.ScalaNumber
 
 /**
  * A single node in a `INetwork`.
@@ -142,4 +143,18 @@ trait Node extends Persistable {
    * and non-reusable after this has happened.
    */
   protected def onDisconnect() {}
+
+  /**
+   * Handy function for returning a list of results.
+   *
+   * @param args the values to return.
+   * @return and array option as required by `receive`.
+   */
+  protected def result(args: Any*): Option[Array[Any]] = {
+    def unwrap(arg: Any): AnyRef = arg match {
+      case x: ScalaNumber => x.underlying
+      case x => x.asInstanceOf[AnyRef]
+    }
+    Some(Array(args map unwrap: _*))
+  }
 }

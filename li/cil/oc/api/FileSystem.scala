@@ -127,8 +127,8 @@ trait FileSystem extends Persistable {
    * @return true if something was deleted; false otherwise.
    */
   def remove(path: String): Boolean = {
-    def recurse(path: String): Boolean =
-      (!isDirectory(path) || list(path).get.forall(child => recurse(path + "/" + child))) && delete(path)
+    def recurse(parent: String): Boolean =
+      (!isDirectory(parent) || list(parent).get.forall(child => recurse(parent + "/" + child))) && delete(parent)
     recurse(path)
   }
 
@@ -264,7 +264,7 @@ object FileSystem extends FileSystemAPI {
    * @param capacity the amount of space in bytes to allow being used.
    * @return a file system wrapping the specified folder.
    */
-  def fromSaveDir(root: String, capacity: Int) =
+  def fromSaveDir(root: String, capacity: Long) =
     instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity))
 
   /**

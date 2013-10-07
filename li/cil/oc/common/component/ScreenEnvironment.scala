@@ -21,13 +21,13 @@ trait ScreenEnvironment extends PoweredNode {
     super.receive(message)
     message.data match {
       case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
-        Some(Array((screen.resolution = (w, h)): Any))
+        result(screen.resolution = (w, h))
       case Array() if message.name == "screen.resolution" => {
         val (w, h) = screen.resolution
-        Some(Array(w: Any, h: Any))
+        result(w, h)
       }
       case Array() if message.name == "screen.resolutions" =>
-        Some(Array(screen.supportedResolutions: _*))
+        result(screen.supportedResolutions: _*)
       case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
         screen.set(x, y, value); None
       case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>

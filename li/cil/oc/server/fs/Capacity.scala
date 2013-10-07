@@ -3,11 +3,12 @@ package li.cil.oc.server.fs
 import java.io
 import li.cil.oc.Config
 import li.cil.oc.api.fs.Mode
+import net.minecraft.nbt.NBTTagCompound
 
 trait Capacity extends OutputStreamFileSystem {
   private var used = computeSize("/")
 
-  protected def capacity: Int
+  protected def capacity: Long
 
   // ----------------------------------------------------------------------- //
 
@@ -28,6 +29,15 @@ trait Capacity extends OutputStreamFileSystem {
       true
     }
     else false
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
+
+    // For the tooltip.
+    nbt.setLong("used", used)
   }
 
   // ----------------------------------------------------------------------- //

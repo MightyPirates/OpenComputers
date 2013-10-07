@@ -21,11 +21,11 @@ class GraphicsCard extends Node {
       case Array(address: Array[Byte]) if message.name == "gpu.bind" =>
         network.fold(None: Option[Array[Any]])(network => {
           network.node(new String(address, "UTF-8")) match {
-            case None => Some(Array(Unit, "invalid address"))
+            case None => result(Unit, "invalid address")
             case Some(node: ScreenEnvironment) =>
               screen = node.address
-              Some(Array(true.asInstanceOf[Any]))
-            case _ => Some(Array(Unit, "not a screen"))
+              result(true)
+            case _ => result(Unit, "not a screen")
           }
         })
       case Array() if message.name == "network.disconnect" && message.source.address == screen => screen = None; None
@@ -33,11 +33,11 @@ class GraphicsCard extends Node {
         if (supportedResolutions.contains((w.toInt, h.toInt)))
           trySend("screen.resolution=", w.toInt, h.toInt)
         else
-          Some(Array(Unit, "unsupported resolution"))
+          result(Unit, "unsupported resolution")
       case Array() if message.name == "gpu.resolution" => trySend("screen.resolution")
       case Array() if message.name == "gpu.resolutions" => trySend("screen.resolutions") match {
         case Some(Array(resolutions@_*)) =>
-          Some(Array(supportedResolutions.intersect(resolutions): _*))
+          result(supportedResolutions.intersect(resolutions): _*)
         case _ => None
       }
       case Array(x: Double, y: Double, value: Array[Byte]) if message.name == "gpu.set" =>
@@ -47,7 +47,7 @@ class GraphicsCard extends Node {
         if (s.length == 1)
           trySend("screen.fill", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, s.charAt(0))
         else
-          Some(Array(Unit, "invalid fill value"))
+          result(Unit, "invalid fill value")
       case Array(x: Double, y: Double, w: Double, h: Double, tx: Double, ty: Double) if message.name == "gpu.copy" =>
         trySend("screen.copy", x.toInt - 1, y.toInt - 1, w.toInt, h.toInt, tx.toInt, ty.toInt)
       case _ => None
@@ -75,7 +75,7 @@ class GraphicsCard extends Node {
 
   private def trySend(name: String, data: Any*): Option[Array[Any]] =
     screen match {
-      case None => Some(Array(Unit, "no screen"))
+      case None => result(Unit, "no screen")
       case Some(screenAddress) => network.fold(None: Option[Array[Any]])(net => {
         net.sendToAddress(this, screenAddress, name, data: _*)
       })

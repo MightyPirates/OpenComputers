@@ -1,5 +1,10 @@
 fs = setmetatable({}, {__index=driver.filesystem})
 
+fs.delete = fs.remove
+fs.isFolder = fs.isDirectory
+fs.list = fs.dir
+fs.mkdir = fs.makeDirectory
+
 -------------------------------------------------------------------------------
 
 local function onComponentAdded(_, address)

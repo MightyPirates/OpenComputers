@@ -848,11 +848,11 @@ object Computer {
 
         // Remote control.
         case Array() if message.name == "computer.start" =>
-          Some(Array(computer.start().asInstanceOf[Any]))
+          result(computer.start())
         case Array() if message.name == "computer.stop" =>
-          Some(Array(computer.stop().asInstanceOf[Any]))
+          result(computer.stop())
         case Array() if message.name == "computer.running" =>
-          Some(Array(computer.isRunning.asInstanceOf[Any]))
+          result(computer.isRunning)
         case _ => None
       }
     }

@@ -259,7 +259,9 @@ do
     if not driver then
       print("Failed loading driver '" .. name .. "': " .. reason)
     else
-      local result, reason = pcall(driver)
+      local result, reason = xpcall(driver, function(msg)
+        return debug.traceback(msg, 2)
+      end)
       if not result then
         print("Failed initializing driver '" .. name .. "': " .. reason)
       end

@@ -45,6 +45,14 @@ class Delegator(id: Int) extends Item(id) {
   // Item
   // ----------------------------------------------------------------------- //
 
+  override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+    super.addInformation(item, player, tooltip, advanced)
+    subItem(item) match {
+      case Some(subItem) => subItem.addInformation(item, player, tooltip.asInstanceOf[util.List[String]], advanced)
+      case None => // Nothing to add.
+    }
+  }
+
   override def getIconFromDamage(damage: Int): Icon =
     subItem(damage) match {
       case None => super.getIconFromDamage(damage)
@@ -54,17 +62,7 @@ class Delegator(id: Int) extends Item(id) {
       }
     }
 
-  override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
-
-  override def getUnlocalizedName(item: ItemStack): String =
-    subItem(item) match {
-      case None => getUnlocalizedName
-      case Some(subItem) => "oc.item." + subItem.unlocalizedName
-    }
-
-  override def getUnlocalizedName: String = "oc.item"
-
-  override def getRarity(item: ItemStack) = EnumRarity.epic
+  override def getRarity(item: ItemStack) = EnumRarity.uncommon
 
   override def getShareTag = false
 
@@ -74,6 +72,16 @@ class Delegator(id: Int) extends Item(id) {
     (0 until subItems.length).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
+
+  override def getUnlocalizedName(item: ItemStack): String =
+    subItem(item) match {
+      case None => getUnlocalizedName
+      case Some(subItem) => "oc.item." + subItem.unlocalizedName
+    }
+
+  override def getUnlocalizedName: String = "oc.item"
+
+  override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
   override def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack =
     subItem(item) match {
