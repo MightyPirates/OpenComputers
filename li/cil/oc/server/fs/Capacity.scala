@@ -18,9 +18,12 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def makeDirectories(path: String) = {
-    super.makeDirectories(path)
-  }
+  override def makeDirectory(path: String) =
+    if (super.makeDirectory(path)) {
+      used += Config.fileCost
+      true
+    }
+    else false
 
   override protected def delete(path: String) = {
     val freed = Config.fileCost + size(path)

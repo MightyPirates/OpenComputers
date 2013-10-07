@@ -184,7 +184,7 @@ function driver.filesystem.dir(path)
   local result
   if node.fs then
     result = table.pack(send(node.fs, "fs.dir", rest or ""))
-    if not result[1] then
+    if not result[1] and result[2] then
       return nil, result[2]
     end
   else
@@ -206,6 +206,7 @@ function driver.filesystem.makeDirectory(path)
   if node.fs and rest then
     return send(node.fs, "fs.makeDirectory", rest)
   end
+  return nil, "cannot create a directory in a virtual directory"
 end
 
 function driver.filesystem.remove(path)
@@ -213,6 +214,7 @@ function driver.filesystem.remove(path)
   if node.fs and rest then
     return send(node.fs, "fs.remove", rest)
   end
+  return nil, "no such non-virtual directory"
 end
 
 function driver.filesystem.rename(oldPath, newPath)
@@ -230,11 +232,35 @@ function driver.filesystem.rename(oldPath, newPath)
       end
     end
   end
+  return nil, "trying to read from or write to virtual directory"
 end
 
 function driver.filesystem.copy(fromPath, toPath)
-  --[[ TODO ]]
-  return nil, "not implemented"
+  local input, reason = io.open(fromPath, "rb")
+  if not input then
+    error(reason)
+  end
+  local output, reason = io.open(toPath, "wb")
+  if not output then
+    input:close()
+    error(reason)
+  end
+  repeat
+    local buffer, reason = input:read(1024)
+    if not buffer and reason then
+      error(reason)
+    elseif buffer then
+      local result, reason = output:write(buffer)
+      if not result then
+        input:close()
+        output:close()
+        error(reason)
+      end
+    end
+  until not buffer
+  input:close()
+  output:close()
+  return true
 end
 
 -------------------------------------------------------------------------------
@@ -303,7 +329,7 @@ function file:read(...)
       len = rawlen
       sub = string.bsub
     end
-    local result = ""
+    local buffer = ""
     repeat
       if len(self.buffer) == 0 then
         local result, reason = readChunk()
@@ -311,15 +337,15 @@ function file:read(...)
           if reason then
             return nil, reason
           else -- eof
-            return nil
+            return #buffer > 0 and buffer or nil
           end
         end
       end
-      local left = n - len(result)
-      result = result .. sub(self.buffer, 1, left)
+      local left = n - len(buffer)
+      buffer = buffer .. sub(self.buffer, 1, left)
       self.buffer = sub(self.buffer, left + 1)
-    until len(result) == n
-    return result
+    until len(buffer) == n
+    return buffer
   end
 
   local function readLine(chop)
@@ -381,15 +407,20 @@ function file:read(...)
     end
   end
 
-  local result = {}
+  local results = {}
   local formats = table.pack(...)
   if formats.n == 0 then
     return readLine(true)
   end
   for i = 1, formats.n do
-    table.insert(result, read(i, formats[i]))
+    local result, reason = read(i, formats[i])
+    if result then
+      results[i] = result
+    elseif reason then
+      return nil, reason
+    end
   end
-  return table.unpack(result)
+  return table.unpack(results, 1, formats.n)
 end
 
 function file:seek(whence, offset)
@@ -414,8 +445,10 @@ function file:seek(whence, offset)
     elseif whence == "cur" then
       result = result - #self.buffer
     end
+    return result
+  else
+    return nil, reason
   end
-  return result, reason
 end
 
 function file:setvbuf(mode, size)
@@ -520,7 +553,7 @@ function file.new(fs, handle, mode, stream, nogc)
     bufferSize = math.min(8 * 1024, os.totalMemory() / 16),
     bufferMode = "full"
   }
-  result.stream = setmetatable(stream, {__index = {file = result}})
+  result.stream = setmetatable({file = result}, {__index=stream})
 
   local metatable = {
     __index = file,
