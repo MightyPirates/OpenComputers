@@ -20,7 +20,7 @@ local function segments(path)
         i = 1
       end
     else
-      i = i + i
+      i = i + 1
     end
   end
   return parts
@@ -57,9 +57,17 @@ end
 
 -------------------------------------------------------------------------------
 
-driver.fs = {}
+driver.filesystem = {}
 
-function driver.fs.mount(fs, path)
+function driver.filesystem.canonical(path)
+  return table.concat(segments(path), "/")
+end
+
+function driver.filesystem.concat(pathA, pathB)
+  return driver.filesystem.canonical(pathA .. "/" .. pathB)
+end
+
+function driver.filesystem.mount(fs, path)
   if fs and path then
     checkArg(1, fs, "string")
     local node = findNode(path, true)
@@ -100,7 +108,7 @@ function driver.fs.mount(fs, path)
   end
 end
 
-function driver.fs.umount(fsOrPath)
+function driver.filesystem.umount(fsOrPath)
   local node, rest = findNode(fsOrPath)
   if not rest and node.fs then
     node.fs = nil
@@ -108,7 +116,7 @@ function driver.fs.umount(fsOrPath)
     return true
   else
     local queue = {mtab}
-    for fs, path in driver.fs.mount() do
+    for fs, path in driver.filesystem.mount() do
       if fs == fsOrPath then
         local node = findNode(path)
         node.fs = nil
@@ -121,7 +129,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function driver.fs.spaceTotal(path)
+function driver.filesystem.spaceTotal(path)
   local node, rest = findNode(path)
   if node.fs then
     return send(node.fs, "fs.spaceTotal")
@@ -130,7 +138,7 @@ function driver.fs.spaceTotal(path)
   end
 end
 
-function driver.fs.spaceUsed(path)
+function driver.filesystem.spaceUsed(path)
   local node, rest = findNode(path)
   if node.fs then
     return send(node.fs, "fs.spaceUsed")
@@ -141,7 +149,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function driver.fs.exists(path)
+function driver.filesystem.exists(path)
   local node, rest = findNode(path)
   if not rest then -- virtual directory
     return true
@@ -151,7 +159,7 @@ function driver.fs.exists(path)
   end
 end
 
-function driver.fs.size(path)
+function driver.filesystem.size(path)
   local node, rest = findNode(path)
   if node.fs and rest then
     return send(node.fs, "fs.size", rest)
@@ -159,7 +167,16 @@ function driver.fs.size(path)
   return 0 -- no such file or directory or it's a virtual directory
 end
 
-function driver.fs.dir(path)
+function driver.filesystem.isDirectory(path)
+  local node, rest = findNode(path)
+  if node.fs and rest then
+    return send(node.fs, "fs.isDirectory", rest)
+  else
+    return not rest or rest:len() == 0
+  end
+end
+
+function driver.filesystem.dir(path)
   local node, rest = findNode(path)
   if not node.fs and rest then
     return nil, "no such file or directory"
@@ -184,23 +201,23 @@ end
 
 -------------------------------------------------------------------------------
 
-function driver.fs.remove(path)
+function driver.filesystem.remove(path)
   local node, rest = findNode(path)
   if node.fs and rest then
     return send(node.fs, "fs.remove", rest)
   end
 end
 
-function driver.fs.rename(oldPath, newPath)
+function driver.filesystem.rename(oldPath, newPath)
   local oldNode, oldRest = findNode(oldPath)
   local newNode, newRest = findNode(newPath)
   if oldNode.fs and oldRest and newNode.fs and newRest then
     if oldNode.fs == newNode.fs then
       return send(oldNode.fs, "fs.rename", oldRest, newRest)
     else
-      local result, reason = driver.fs.copy(oldPath, newPath)
+      local result, reason = driver.filesystem.copy(oldPath, newPath)
       if result then
-        return driver.fs.remove(oldPath)
+        return driver.filesystem.remove(oldPath)
       else
         return nil, reason
       end
@@ -208,7 +225,7 @@ function driver.fs.rename(oldPath, newPath)
   end
 end
 
-function driver.fs.copy(fromPath, toPath)
+function driver.filesystem.copy(fromPath, toPath)
   --[[ TODO ]]
   return nil, "not implemented"
 end
@@ -542,7 +559,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function driver.fs.open(path, mode)
+function driver.filesystem.open(path, mode)
   mode = tostring(mode or "r")
   checkArg(2, mode, "string")
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
@@ -561,7 +578,7 @@ function driver.fs.open(path, mode)
   return file.new(node.fs, handle, mode, fileStream)
 end
 
-function driver.fs.type(object)
+function driver.filesystem.type(object)
   if type(object) == "table" then
     if getmetatable(object) == "file" then
       if object.handle then
@@ -577,7 +594,7 @@ end
 -------------------------------------------------------------------------------
 
 function loadfile(filename, env)
-  local file, reason = driver.fs.open(filename)
+  local file, reason = driver.filesystem.open(filename)
   if not file then
     return nil, reason
   end
@@ -706,7 +723,7 @@ function io.lines(filename, ...)
   end
 end
 
-io.open = driver.fs.open
+io.open = driver.filesystem.open
 
 function io.output(file)
   if file then
@@ -733,7 +750,7 @@ end
 
 -- TODO io.tmpfile = function() end
 
-io.type = driver.fs.type
+io.type = driver.filesystem.type
 
 function io.write(...)
   return io.output():write(...)
@@ -753,7 +770,7 @@ end
 
 -------------------------------------------------------------------------------
 
-os.remove = driver.fs.remove
-os.rename = driver.fs.rename
+os.remove = driver.filesystem.remove
+os.rename = driver.filesystem.rename
 
 -- TODO os.tmpname = function() end

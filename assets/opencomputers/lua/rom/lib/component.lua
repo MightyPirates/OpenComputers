@@ -18,10 +18,20 @@ end
 
 -------------------------------------------------------------------------------
 
-event.listen("component_added", function(_, address)
+local function onComponentAdded(_, address)
   components[address] = driver.componentType(address)
-end)
+end
 
-event.listen("component_removed", function(_, address)
+local function onComponentRemoved(_, address)
   components[address] = nil
-end)
+end
+
+function component.install()
+  event.listen("component_added", onComponentAdded)
+  event.listen("component_removed", onComponentRemoved)
+end
+
+function component.uninstall()
+  event.ignore("component_added", onComponentAdded)
+  event.ignore("component_removed", onComponentRemoved)
+end

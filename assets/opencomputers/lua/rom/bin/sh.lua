@@ -1,7 +1,7 @@
-event.listen("term_available", function()
+local function onTermAvailable()
   term.clear()
   print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
-  while term.available() do
+  while term.isAvailable() do
     io.write("> ")
     local command = io.read()
     local code, result = load("return " .. command, "=stdin")
@@ -17,4 +17,6 @@ event.listen("term_available", function()
       print(result)
     end
   end
-end)
+end
+
+event.listen("term_available", onTermAvailable)

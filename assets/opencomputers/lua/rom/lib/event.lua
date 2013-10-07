@@ -17,22 +17,10 @@ end
 
 event = {}
 
-function event.listen(name, callback, weak)
-  checkArg(2, callback, "function")
-  table.insert(listenersFor(name, weak), callback)
-end
-
-function event.ignore(name, callback)
-  local function remove(list)
-    for i = 1, #list do
-      if list[i] == callback then
-        table.remove(list, i)
-        return
-      end
-    end
-  end
-  remove(listenersFor(name, false))
-  remove(listenersFor(name, true))
+--[[ Error handler for ALL event callbacks. If this returns a value,
+     the error will be rethrown, possibly leading to a computer crash. ]]
+function event.error(message)
+  return message
 end
 
 function event.fire(name, ...)
@@ -68,13 +56,35 @@ function event.fire(name, ...)
   end
 end
 
-function event.timer(timeout, callback)
-  local id
-  repeat
-    id = math.floor(math.random(1, 2147483647))
-  until not timers[id]
-  timers[id] = {after = os.uptime() + timeout, callback = callback}
-  return id
+function event.ignore(name, callback)
+  local function remove(list)
+    for i = 1, #list do
+      if list[i] == callback then
+        table.remove(list, i)
+        return
+      end
+    end
+  end
+  remove(listenersFor(name, false))
+  remove(listenersFor(name, true))
+end
+
+function event.listen(name, callback, weak)
+  checkArg(2, callback, "function")
+  local list = listenersFor(name, weak)
+  for i = 1, #list do
+    if list[i] == callback then
+      return
+    end
+  end
+  table.insert(list, callback)
+end
+
+-------------------------------------------------------------------------------
+
+function event.cancel(timerId)
+  checkArg(1, timerId, "number")
+  timers[timerId] = nil
 end
 
 function event.interval(timeout, callback)
@@ -87,16 +97,16 @@ function event.interval(timeout, callback)
   return interval
 end
 
-function event.cancel(timerId)
-  checkArg(1, timerId, "number")
-  timers[timerId] = nil
+function event.timer(timeout, callback)
+  local id
+  repeat
+    id = math.floor(math.random(1, 0x7FFFFFFF))
+  until not timers[id]
+  timers[id] = {after = os.uptime() + timeout, callback = callback}
+  return id
 end
 
---[[ Error handler for ALL event callbacks. If this returns a value,
-     the computer will crash. Otherwise it'll keep going. ]]
-function event.error(message)
-  return message
-end
+-------------------------------------------------------------------------------
 
 function coroutine.sleep(seconds)
   seconds = seconds or math.huge

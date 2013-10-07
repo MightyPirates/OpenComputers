@@ -21,7 +21,7 @@ end
 
 local function toggleBlink()
   cursorBlink.state = not cursorBlink.state
-  if term.available() then
+  if term.isAvailable() then
     local char = cursorBlink.state and cursorBlink.solid or cursorBlink.alt
     driver.gpu.set(term.gpu(), cursorX, cursorY, char)
   end
@@ -31,19 +31,19 @@ end
 
 term = {}
 
-function term.available()
+function term.isAvailable()
   return gpuAddress and screenAddress
 end
 
 function term.clear()
-  if term.available() then
+  if term.isAvailable() then
     driver.gpu.fill(term.gpu(), 1, 1, width, height, " ")
   end
   cursorX, cursorY = 1, 1
 end
 
 function term.clearLine()
-  if term.available() then
+  if term.isAvailable() then
     driver.gpu.fill(term.gpu(), 1, cursorY, width, 1, " ")
   end
   cursorX = 1
@@ -111,6 +111,21 @@ function term.keyboard(...)
   return keyboardAddress
 end
 
+function term.screen(...)
+  local args = table.pack(...)
+  if args.n > 0 then
+    checkArg(1, args[1], "string", "nil")
+    rebind(term.gpu(), args[1])
+  end
+  return screenAddress
+end
+
+function term.size()
+  return width, height
+end
+
+-------------------------------------------------------------------------------
+
 function term.read(history)
   history = history or {}
   table.insert(history, "")
@@ -121,7 +136,7 @@ function term.read(history)
   local keyRepeat = nil
   local result = nil
   local function remove()
-    if term.available() then
+    if term.isAvailable() then
       local x = start - 1 + cursor - scroll
       local w = term.size()
       driver.gpu.copy(term.gpu(), x + 1, y, w - x, 1, -1, 0)
@@ -134,7 +149,7 @@ function term.read(history)
     end
   end
   local function render()
-    if term.available() then
+    if term.isAvailable() then
       local w = term.size()
       local str = history[current]:sub(1 + scroll, 1 + scroll + w - (start - 1))
       str = str .. string.rep(" ", (w - (start - 1)) - str:len())
@@ -142,7 +157,7 @@ function term.read(history)
     end
   end
   local function update()
-    if term.available() then
+    if term.isAvailable() then
       local w = term.size()
       local cursor = cursor - 1
       local x = start - 1 + cursor - scroll
@@ -154,13 +169,13 @@ function term.read(history)
   end
   local function scrollLeft()
     scroll = scroll - 1
-    if term.available() then
+    if term.isAvailable() then
       local w = term.size()
     end
   end
   local function scrollRight()
     scroll = scroll + 1
-    if term.available() then
+    if term.isAvailable() then
       local w = term.size()
       driver.gpu.copy(term.gpu(), start + 1, y, w - start, 1, -1, 0)
       local cursor = w - (start - 1) + scroll
@@ -205,7 +220,7 @@ function term.read(history)
       end
       cancel = cursor == 1
     elseif code == keys.delete then
-      if cursor <= history[#history]:len() then
+      if cursor <= history[current]:len() then
         copyIfNecessary()
         history[current] = history[current]:sub(1, cursor - 1) ..
                            history[current]:sub(cursor + 1)
@@ -332,23 +347,10 @@ function term.read(history)
   return result
 end
 
-function term.screen(...)
-  local args = table.pack(...)
-  if args.n > 0 then
-    checkArg(1, args[1], "string", "nil")
-    rebind(term.gpu(), args[1])
-  end
-  return screenAddress
-end
-
-function term.size()
-  return width, height
-end
-
 function term.write(value, wrap)
   value = tostring(value)
   local w, h = width, height
-  if value:len() == 0 or not term.available() or w < 1 or h < 1 then
+  if value:len() == 0 or not term.isAvailable() or w < 1 or h < 1 then
     return
   end
   value = value:gsub("\t", "  ")
@@ -385,7 +387,7 @@ end
 
 -------------------------------------------------------------------------------
 
-event.listen("component_added", function(_, address)
+local function onComponentAdded(_, address)
   local type = component.type(address)
   if type == "gpu" and not term.gpu() then
     term.gpu(address)
@@ -394,9 +396,9 @@ event.listen("component_added", function(_, address)
   elseif type == "keyboard" and not term.keyboard() then
     term.keyboard(address)
   end
-end)
+end
 
-event.listen("component_removed", function(_, address)
+local function onComponentRemoved(_, address)
   if term.gpu() == address then
     term.gpu(nil)
     for address in component.list() do
@@ -422,11 +424,23 @@ event.listen("component_removed", function(_, address)
       end
     end
   end
-end)
+end
 
-event.listen("screen_resized", function(_, address, w, h)
+local function onScreenResized(_, address, w, h)
   if term.screen() == address then
     width = w
     height = h
   end
-end)
+end
+
+function term.install()
+  event.listen("component_added", onComponentAdded)
+  event.listen("component_removed", onComponentRemoved)
+  event.listen("screen_resized", onScreenResized)
+end
+
+function term.uninstall()
+  event.ignore("component_added", onComponentAdded)
+  event.ignore("component_removed", onComponentRemoved)
+  event.ignore("screen_resized", onScreenResized)
+end
