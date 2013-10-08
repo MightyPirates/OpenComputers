@@ -1,9 +1,24 @@
+local isAutorunEnabled = true
+
+-------------------------------------------------------------------------------
+
 fs = setmetatable({}, {__index=driver.filesystem})
 
 fs.delete = fs.remove
 fs.isFolder = fs.isDirectory
 fs.list = fs.dir
 fs.mkdir = fs.makeDirectory
+
+-------------------------------------------------------------------------------
+
+function fs.autorun(...)
+  local args = table.pack(...)
+  if args.n > 0 then
+    checkArg(1, args[1], "boolean")
+    isAutorunEnabled = args[1]
+  end
+  return isAutorunEnabled
+end
 
 -------------------------------------------------------------------------------
 
@@ -14,11 +29,13 @@ local function onComponentAdded(_, address)
       name = address:sub(1, name:len() + 1)
     until not fs.exists("/mnt/" .. name)
     fs.mount(address, "/mnt/" .. name)
-    local autorun = "/mnt/" .. name .. "/autorun"
-    if fs.exists(autorun .. ".lua") then
-      dofile(autorun .. ".lua")
-    elseif fs.exists(autorun) then
-      dofile(autorun)
+    if isAutorunEnabled then
+      local autorun = "/mnt/" .. name .. "/autorun"
+      if fs.exists(autorun .. ".lua") then
+        dofile(autorun .. ".lua")
+      elseif fs.exists(autorun) then
+        dofile(autorun)
+      end
     end
   end
 end

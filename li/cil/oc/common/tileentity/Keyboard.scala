@@ -10,8 +10,7 @@ class Keyboard extends Rotatable with Node {
 
   override def visibility = Visibility.Network
 
-  override def receive(message: Message) = {
-    super.receive(message)
+  override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))

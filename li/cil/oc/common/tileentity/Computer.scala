@@ -1,16 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
-import li.cil.oc.api.network.Message
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
-import li.cil.oc.server.component.RedstoneEnabled
+import li.cil.oc.server.component.Redstone
+import li.cil.oc.server.driver
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with RedstoneEnabled {
+class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -20,7 +20,13 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   private var isRunning = false
 
   // ----------------------------------------------------------------------- //
-  // General
+
+  override protected val computer = if (isClient) null else new component.Computer(this)
+
+  def world = worldObj
+
+  def markAsChanged() = hasChanged.set(true)
+
   // ----------------------------------------------------------------------- //
 
   def turnOn() = computer.start()
@@ -35,6 +41,8 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
     this
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     load(nbt.getCompoundTag("data"))
@@ -48,6 +56,8 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
     nbt.setCompoundTag("data", dataNbt)
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def updateEntity() = if (!worldObj.isRemote) {
     computer.update()
     if (hasChanged.get)
@@ -59,34 +69,49 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def validate() = {
     super.validate()
-    if (worldObj.isRemote)
+    if (worldObj.isRemote) {
       ClientPacketSender.sendComputerStateRequest(this)
+      ClientPacketSender.sendRedstoneStateRequest(this)
+    }
   }
 
-  // ----------------------------------------------------------------------- //
-  // Computer.Environment
-  // ----------------------------------------------------------------------- //
-
-  override protected val computer = if (isClient) null else new component.Computer(this)
-
-  def world = worldObj
-
-  def markAsChanged() = hasChanged.set(true)
-
-  // ----------------------------------------------------------------------- //
-  // IInventory
   // ----------------------------------------------------------------------- //
 
   override def isUseableByPlayer(player: EntityPlayer) =
     worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
       player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
 
-  // ----------------------------------------------------------------------- //
-  // RedstoneEnabled
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    if (!worldObj.isRemote) {
+      computer.recomputeMemory()
+      isOutputEnabled = hasRedstoneCard
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
-  def input(side: ForgeDirection): Int = worldObj.isBlockProvidingPowerTo(
-    xCoord + side.offsetX, yCoord + side.offsetY, zCoord + side.offsetZ, side.getOpposite.ordinal)
+  def canConnectRedstone(side: ForgeDirection) = isOutputEnabled
 
-  // TODO output
+  override def input(side: ForgeDirection) = {
+    val global = toGlobal(side)
+    worldObj.isBlockProvidingPowerTo(
+      xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, global.getOpposite.ordinal)
+  }
+
+  override protected def onRedstoneOutputChanged(side: ForgeDirection) = {
+    super.onRedstoneOutputChanged(side)
+    if (side == ForgeDirection.UNKNOWN) {
+      worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, getBlockType.blockID)
+    }
+    else {
+      val global = toGlobal(side)
+      worldObj.notifyBlockOfNeighborChange(xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, getBlockType.blockID)
+    }
+    if (!worldObj.isRemote) ServerPacketSender.sendRedstoneState(this)
+    else worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
+  }
+
+  private def hasRedstoneCard =
+    !inventory.isEmpty && inventory.exists(item => item != null && driver.Redstone.worksWith(item))
 }

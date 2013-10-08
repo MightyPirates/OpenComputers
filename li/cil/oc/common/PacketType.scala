@@ -35,4 +35,8 @@ object PacketType extends Enumeration {
   val KeyDown = Value("KeyDown")
   val KeyUp = Value("KeyUp")
   val Clipboard = Value("Clipboard")
+
+  /** Sent by redstone capable blocks (e.g. computers). */
+  val RedstoneStateRequest = Value("RedstoneStateRequest")
+  val RedstoneStateResponse = Value("RedstoneStateResponse")
 }

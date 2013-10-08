@@ -3,6 +3,7 @@ package li.cil.oc.server
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
@@ -65,12 +66,24 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendRotatableRotate(t: Rotatable, pitch: ForgeDirection, yaw: ForgeDirection) = {
+  def sendRotatableState(t: Rotatable) = {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)
-    pb.writeDirection(pitch)
-    pb.writeDirection(yaw)
+    pb.writeDirection(t.pitch)
+    pb.writeDirection(t.yaw)
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendRedstoneState(t: TileEntity with Redstone) = {
+    val pb = new PacketBuilder(PacketType.RedstoneStateResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isOutputEnabled)
+    for (d <- ForgeDirection.VALID_DIRECTIONS) {
+      pb.writeByte(t.output(d))
+    }
 
     pb.sendToAllPlayers()
   }

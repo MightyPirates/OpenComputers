@@ -8,6 +8,8 @@ import li.cil.oc.common.tileentity.Computer
 import li.cil.oc.common.tileentity.Rotatable
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.server.component.Redstone
+import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
 
 class PacketHandler extends CommonPacketHandler {
@@ -19,6 +21,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
       case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
+      case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
@@ -41,28 +44,19 @@ class PacketHandler extends CommonPacketHandler {
   def onComputerStateRequest(p: PacketParser) =
     p.readTileEntity[Computer]() match {
       case None => // Invalid packet.
-      case Some(t) => {
-        val pb = new PacketBuilder(PacketType.ComputerStateResponse)
-
-        pb.writeTileEntity(t)
-        pb.writeBoolean(t.isOn)
-
-        pb.sendToPlayer(p.player)
-      }
+      case Some(t) => PacketSender.sendComputerState(t, t.isOn)
     }
 
   def onRotatableStateRequest(p: PacketParser) =
     p.readTileEntity[Rotatable]() match {
       case None => // Invalid packet.
-      case Some(t) => {
-        val pb = new PacketBuilder(PacketType.RotatableStateResponse)
+      case Some(t) => PacketSender.sendRotatableState(t)
+    }
 
-        pb.writeTileEntity(t)
-        pb.writeDirection(t.pitch)
-        pb.writeDirection(t.yaw)
-
-        pb.sendToPlayer(p.player)
-      }
+  def onRedstoneStateRequest(p: PacketParser) =
+    p.readTileEntity[TileEntity with Redstone]() match {
+      case None => // Invalid packet.
+      case Some(t) => PacketSender.sendRedstoneState(t)
     }
 
   def onKeyDown(p: PacketParser) =

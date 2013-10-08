@@ -23,6 +23,8 @@ trait ComponentInventory extends IInventory with PoweredNode {
 
   def inventorySize = 8
 
+  // ----------------------------------------------------------------------- //
+
   def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (Registry.driverFor(stack) match {
     case Some(driver) if driver.slot(stack) == Slot.RAM => Items.multi.subItem(stack) match {
       case Some(ram: item.Memory) => ram.kiloBytes * 1024
@@ -30,6 +32,22 @@ trait ComponentInventory extends IInventory with PoweredNode {
     }
     case _ => 0
   }))
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def onConnect() {
+    super.onConnect()
+    for (node <- itemComponents.filter(_.isDefined).map(_.get))
+      network.foreach(_.connect(this, node))
+  }
+
+  override protected def onDisconnect() {
+    super.onDisconnect()
+    for (node <- itemComponents.filter(_.isDefined).map(_.get))
+      node.network.foreach(_.remove(node))
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
@@ -76,24 +94,6 @@ trait ComponentInventory extends IInventory with PoweredNode {
   }
 
   // ----------------------------------------------------------------------- //
-  // NetworkNode
-  // ----------------------------------------------------------------------- //
-
-  override protected def onConnect() {
-    super.onConnect()
-    for (node <- itemComponents.filter(_.isDefined).map(_.get))
-      network.foreach(_.connect(this, node))
-  }
-
-  override protected def onDisconnect() {
-    super.onDisconnect()
-    for (node <- itemComponents.filter(_.isDefined).map(_.get))
-      node.network.foreach(_.remove(node))
-  }
-
-  // ----------------------------------------------------------------------- //
-  // IInventory
-  // ----------------------------------------------------------------------- //
 
   def getInventoryStackLimit = 1
 
@@ -105,7 +105,7 @@ trait ComponentInventory extends IInventory with PoweredNode {
 
   def decrStackSize(slot: Int, amount: Int) = {
     val stack = getStackInSlot(slot)
-    if (stack == null)
+    val result = if (stack == null)
       null
     else if (stack.stackSize <= amount) {
       setInventorySlotContents(slot, null)
@@ -118,6 +118,8 @@ trait ComponentInventory extends IInventory with PoweredNode {
       }
       subStack
     }
+    onInventoryChanged()
+    result
   }
 
   def getStackInSlotOnClosing(slot: Int) = null
@@ -147,9 +149,9 @@ trait ComponentInventory extends IInventory with PoweredNode {
               network.foreach(_.connect(this, node))
           }
       }
-
-      computer.recomputeMemory()
     }
+
+    onInventoryChanged()
   }
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {

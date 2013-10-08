@@ -830,8 +830,7 @@ object Computer {
 
     override def visibility = Visibility.Network
 
-    override def receive(message: Message) = {
-      super.receive(message)
+    override def receive(message: Message) = super.receive(message).orElse {
       message.data match {
         // The isRunning check is here to avoid component_* signals being
         // generated while loading a chunk.

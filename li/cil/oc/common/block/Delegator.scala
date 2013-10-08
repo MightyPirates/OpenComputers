@@ -91,7 +91,7 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable => rotatable.translate(value)
+      case rotatable: Rotatable => rotatable.toLocal(value)
       case _ => value
     }
 
@@ -127,6 +127,8 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
           case 3 => ForgeDirection.WEST
         }))
     }
+
+  override def canProvidePower = true
 
   override def createTileEntity(world: World, metadata: Int): TileEntity =
     subBlock(metadata) match {
@@ -196,14 +198,14 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
     subBlock(world, x, y, z) match {
       case None => 0
       case Some(subBlock) => subBlock.isProvidingStrongPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side)))
+        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
     }
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case None => 0
       case Some(subBlock) => subBlock.isProvidingWeakPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side)))
+        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {

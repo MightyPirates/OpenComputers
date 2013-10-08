@@ -6,7 +6,10 @@ import li.cil.oc.common.tileentity.Computer
 import li.cil.oc.common.tileentity.Rotatable
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.server.component.Redstone
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.tileentity.TileEntity
+import net.minecraftforge.common.ForgeDirection
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -24,6 +27,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
+      case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
       case _ => // Invalid packet.
     }
 
@@ -98,5 +102,15 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.pitch = p.readDirection()
         t.yaw = p.readDirection()
+    }
+
+  def onRedstoneStateResponse(p: PacketParser) =
+    p.readTileEntity[TileEntity with Redstone]() match {
+      case None => // Invalid packet.
+      case Some(t) =>
+        t.isOutputEnabled = p.readBoolean()
+        for (d <- ForgeDirection.VALID_DIRECTIONS) {
+          t.output(d, p.readByte())
+        }
     }
 }

@@ -1,6 +1,6 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.{PoweredNode, Visibility, Node, Message}
+import li.cil.oc.api.network.{PoweredNode, Visibility, Message}
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -17,8 +17,7 @@ trait ScreenEnvironment extends PoweredNode {
 
   override def visibility = Visibility.Network
 
-  override def receive(message: Message): Option[Array[Any]] = {
-    super.receive(message)
+  override def receive(message: Message): Option[Array[Any]] = super.receive(message).orElse {
     message.data match {
       case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
         result(screen.resolution = (w, h))

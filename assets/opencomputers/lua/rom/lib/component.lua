@@ -8,11 +8,13 @@ function component.type(address)
   return components[address]
 end
 
-function component.list()
-  local address = nil
+function component.list(filter)
+  local address, ctype = nil
   return function()
-    address = next(components, address)
-    return address
+    repeat
+      address, ctype = next(components, address)
+    until not address or type(filter) ~= "string" or ctype:match(filter)
+    return address, ctype
   end
 end
 

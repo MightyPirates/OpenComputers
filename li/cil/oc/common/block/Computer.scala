@@ -67,6 +67,15 @@ class Computer(val parent: Delegator) extends Delegate {
   // Destruction / Interaction
   // ----------------------------------------------------------------------- //
 
+  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].canConnectRedstone(side)
+
+  override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    isProvidingWeakPower(world, x, y, z, side)
+
+  override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
+
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     if (!world.isRemote)
       world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOff()

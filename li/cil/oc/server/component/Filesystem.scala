@@ -14,8 +14,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
 
   override def visibility = Visibility.Neighbors
 
-  override def receive(message: Message) = {
-    super.receive(message)
+  override def receive(message: Message) = super.receive(message).orElse {
     try {
       message.data match {
         case Array() if message.name == "network.disconnect" && owners.contains(message.source.address.get) =>

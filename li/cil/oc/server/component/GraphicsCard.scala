@@ -15,8 +15,7 @@ class GraphicsCard extends Node {
 
   override def visibility = Visibility.Neighbors
 
-  override def receive(message: Message) = {
-    super.receive(message)
+  override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
       case Array(address: Array[Byte]) if message.name == "gpu.bind" =>
         network.fold(None: Option[Array[Any]])(network => {
