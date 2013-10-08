@@ -1,7 +1,6 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.server.component.Computer
@@ -28,8 +27,6 @@ class Proxy {
   def init(e: FMLInitializationEvent): Unit = {
     Blocks.init()
     Items.init()
-
-    NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     api.Driver.add(driver.FileSystem)
     api.Driver.add(driver.GraphicsCard)

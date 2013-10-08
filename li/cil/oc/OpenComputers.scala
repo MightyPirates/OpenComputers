@@ -29,7 +29,7 @@ object OpenComputers {
   // http://docs.scala-lang.org/overviews/reflection/thread-safety.html
   val mirror = ru.runtimeMirror(OpenComputers.getClass.getClassLoader)
 
-  @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.common.Proxy")
+  @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null
 
   @EventHandler
