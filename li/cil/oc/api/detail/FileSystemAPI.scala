@@ -7,7 +7,7 @@ import li.cil.oc.api.network.Node
 trait FileSystemAPI {
   def fromClass(clazz: Class[_], domain: String, root: String): Option[FileSystem]
 
-  def fromSaveDir(root: String, capacity: Long): Option[FileSystem]
+  def fromSaveDir(root: String, capacity: Long, buffered: Boolean): Option[FileSystem]
 
   def fromRam(capacity: Long): Option[FileSystem]
 

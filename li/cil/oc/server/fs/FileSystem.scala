@@ -38,11 +38,15 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  override def fromSaveDir(root: String, capacity: Long) = {
+  override def fromSaveDir(root: String, capacity: Long, buffered: Boolean) = {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Config.savePath + root)
     path.mkdirs()
-    if (path.exists() && path.isDirectory)
-      Some(new ReadWriteFileSystem(path, capacity))
+    if (path.exists() && path.isDirectory) {
+      if (buffered)
+        Some(new BufferedFileSystem(path, capacity))
+      else
+        Some(new ReadWriteFileSystem(path, capacity))
+    }
     else None
   }
 
@@ -62,5 +66,9 @@ object FileSystem extends api.detail.FileSystemAPI {
   private class RamFileSystem(protected val capacity: Long)
     extends VirtualFileSystem
     with Capacity
+
+  private class BufferedFileSystem(protected val fileRoot: io.File, capacity: Long)
+    extends RamFileSystem(capacity)
+    with Buffered
 
 }

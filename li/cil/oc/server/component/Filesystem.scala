@@ -84,7 +84,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
 
         case Array(handle: Double, n: Double) if message.name == "fs.read" && n > 0 =>
           fileSystem.file(handle.toInt) match {
-            case None => None
+            case None => throw new IOException("bad file descriptor")
             case Some(file) =>
               // Limit reading to chunks of 8KB to avoid crazy allocations.
               val buffer = new Array[Byte](n.toInt min (8 * 1024))
@@ -106,7 +106,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           }
         case Array(handle: Double, whence: Array[Byte], offset: Double) if message.name == "fs.seek" =>
           fileSystem.file(handle.toInt) match {
-            case None => None
+            case None => throw new IOException("bad file descriptor")
             case Some(file) =>
               new String(whence, "UTF-8") match {
                 case "cur" => file.seek(file.position + offset.toInt)
@@ -118,7 +118,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           }
         case Array(handle: Double, value: Array[Byte]) if message.name == "fs.write" =>
           fileSystem.file(handle.toInt) match {
-            case None => None
+            case None => throw new IOException("bad file descriptor")
             case Some(file) => file.write(value); result(true)
           }
         case _ => None

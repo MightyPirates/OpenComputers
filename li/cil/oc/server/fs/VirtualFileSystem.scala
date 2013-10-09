@@ -105,10 +105,14 @@ class VirtualFileSystem extends OutputStreamFileSystem {
     def get(path: Iterable[String]): Option[VirtualObject] = if (path.isEmpty) Some(this) else None
   }
 
+  // ----------------------------------------------------------------------- //
+
   private class VirtualFile extends VirtualObject {
-    var data = Array.empty[Byte]
+    val data = mutable.ArrayBuffer.empty[Byte]
 
     var stream: Option[VirtualFileOutputStream] = None
+
+    // ----------------------------------------------------------------------- //
 
     override def isDirectory(path: Iterable[String]) = false
 
@@ -122,28 +126,37 @@ class VirtualFileSystem extends OutputStreamFileSystem {
 
     override def canDelete = stream.isEmpty
 
+    // ----------------------------------------------------------------------- //
+
     override def openInputStream(path: Iterable[String]) =
       if (path.isEmpty) Some(new VirtualFileInputStream(this))
       else None
 
     override def openOutputStream(path: Iterable[String], mode: Mode.Value) =
       if (path.isEmpty) {
-        if (stream.isDefined) throw new io.FileNotFoundException()
-        if (mode == Mode.Write)
-          data = Array.empty[Byte]
-        stream = Some(new VirtualFileOutputStream(this))
-        stream
+        if (stream.isDefined) None
+        else {
+          if (mode == Mode.Write)
+            data.clear()
+          stream = Some(new VirtualFileOutputStream(this))
+          stream
+        }
       }
       else None
 
+    // ----------------------------------------------------------------------- //
+
     override def load(nbt: NBTTagCompound) {
-      data = nbt.getByteArray("data")
+      data.clear()
+      data ++= nbt.getByteArray("data")
     }
 
     override def save(nbt: NBTTagCompound) {
-      nbt.setByteArray("data", data)
+      nbt.setByteArray("data", data.toArray)
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   private class VirtualDirectory extends VirtualObject {
     val children = mutable.Map.empty[String, VirtualObject]
@@ -204,6 +217,8 @@ class VirtualFileSystem extends OutputStreamFileSystem {
 
     override def canDelete = children.isEmpty
 
+    // ----------------------------------------------------------------------- //
+
     override def openInputStream(path: Iterable[String]) =
       if (path.isEmpty) None
       else children.get(path.head) match {
@@ -222,6 +237,8 @@ class VirtualFileSystem extends OutputStreamFileSystem {
           child.openOutputStream(Array.empty[String], mode)
         case _ => None
       }
+
+    // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
       val childrenNbt = nbt.getTagList("children")
@@ -245,6 +262,8 @@ class VirtualFileSystem extends OutputStreamFileSystem {
       }
       nbt.setTag("children", childrenNbt)
     }
+
+    // ----------------------------------------------------------------------- //
 
     override def get(path: Iterable[String]) =
       super.get(path) orElse {
@@ -283,7 +302,7 @@ class VirtualFileSystem extends OutputStreamFileSystem {
         if (available == 0) -1
         else {
           val n = len min available
-          Array.copy(file.data, position, b, off, n)
+          file.data.view(position, file.data.length).copyToArray(b, off, n)
           position += n
           n
         }
@@ -304,27 +323,20 @@ class VirtualFileSystem extends OutputStreamFileSystem {
       else throw new io.IOException("file is closed")
   }
 
-  private class VirtualFileOutputStream(val file: VirtualFile) extends io.ByteArrayOutputStream {
+  private class VirtualFileOutputStream(val file: VirtualFile) extends io.OutputStream {
     private var isClosed = false
 
     override def close() = if (!isClosed) {
-      flush()
       isClosed = true
       file.stream = None
     }
 
-    override def flush() =
-      if (!isClosed) {
-        file.data ++= toByteArray
-        reset()
-      } else throw new io.IOException("file is closed")
-
     override def write(b: Array[Byte], off: Int, len: Int) =
-      if (!isClosed) super.write(b, off, len)
+      if (!isClosed) file.data ++= b.view(off, off + len)
       else throw new io.IOException("file is closed")
 
     override def write(b: Int) =
-      if (!isClosed) super.write(b)
+      if (!isClosed) file.data += b.toByte
       else throw new io.IOException("file is closed")
   }
 

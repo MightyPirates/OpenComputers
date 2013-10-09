@@ -259,13 +259,20 @@ object FileSystem extends FileSystemAPI {
    * <p/>
    * Usually the name will be the name of the node used to represent the
    * file system.
+   * <p/>
+   * Note that by default file systems are "buffered", meaning that any
+   * changes made to them are only saved to disk when the world is saved. This
+   * ensured that the file system contents do not go "out of sync" when the
+   * game crashes, but introduces additional memory overhead, since all files
+   * in the file system have to be kept in memory.
    *
    * @param root the name of the file system.
    * @param capacity the amount of space in bytes to allow being used.
+   * @param buffered whether data should only be written to disk when saving.
    * @return a file system wrapping the specified folder.
    */
-  def fromSaveDir(root: String, capacity: Long) =
-    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity))
+  def fromSaveDir(root: String, capacity: Long, buffered: Boolean = true) =
+    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity, buffered))
 
   /**
    * Creates a new *writable* file system that resides in memory.
