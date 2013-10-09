@@ -108,7 +108,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           fileSystem.file(handle.toInt) match {
             case None => None
             case Some(file) =>
-              if (offset.toInt != 0) new String(whence, "UTF-8") match {
+              new String(whence, "UTF-8") match {
                 case "cur" => file.seek(file.position + offset.toInt)
                 case "set" => file.seek(offset.toLong)
                 case "end" => file.seek(file.length + offset.toInt)

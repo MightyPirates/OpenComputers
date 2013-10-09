@@ -95,7 +95,8 @@ local sandbox = {
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     address = os.address,
-    romAddress = os.romAddress
+    romAddress = os.romAddress,
+    tmpAddress = os.tmpAddress
   },
 
   string = {
@@ -165,6 +166,7 @@ end
 local function main(args)
   local function init()
     sandbox.driver.filesystem.mount(os.romAddress(), "/")
+    sandbox.driver.filesystem.mount(os.tmpAddress(), "/tmp")
     local result, reason = sandbox.loadfile("/boot/init.lua")
     if not result then
       error(reason, 0)

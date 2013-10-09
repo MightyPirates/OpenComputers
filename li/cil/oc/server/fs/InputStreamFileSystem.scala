@@ -87,7 +87,8 @@ trait InputStreamFileSystem extends api.FileSystem {
 
     def seek(to: Long) = {
       stream.reset()
-      stream.skip(to)
+      position = stream.skip(to)
+      position
     }
 
     def write(value: Array[Byte]) = throw new IOException("bad file descriptor")

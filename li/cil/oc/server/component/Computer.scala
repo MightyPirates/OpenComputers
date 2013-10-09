@@ -68,6 +68,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom").
     flatMap(api.FileSystem.asNode)
 
+  private val tmp = api.FileSystem.
+    fromRam(512 * 1024).
+    flatMap(api.FileSystem.asNode)
+
   // ----------------------------------------------------------------------- //
 
   private var timeStarted = 0L // Game-world time [ms] for os.uptime().
@@ -159,12 +163,18 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
-    // Signal stops to the network. This is used to close file handles, for example.
-    if (wasRunning && !isRunning) {
+    def cleanup() {
+      rom.foreach(rom => rom.network.foreach(_.remove(rom)))
+      tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
       owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
       // Clear any screens we use while we're at it.
       owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
         1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+    }
+
+    // Signal stops to the network. This is used to close file handles, for example.
+    if (wasRunning && !isRunning) {
+      cleanup()
     }
     wasRunning = isRunning
 
@@ -184,8 +194,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // Computer is rebooting.
       case Computer.State.Rebooting => {
         state = Computer.State.Stopped
-        owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
-        owner.network.foreach(_.sendToVisible(owner, "computer.started"))
+        cleanup()
         start()
       }
       // Resume from pauses based on signal underflow.
@@ -290,6 +299,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }).asJava)
 
         rom.foreach(_.load(nbt.getCompoundTag("rom")))
+        tmp.foreach(_.load(nbt.getCompoundTag("tmp")))
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
         cpuTime = nbt.getLong("cpuTime")
@@ -373,6 +383,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       val romNbt = new NBTTagCompound()
       rom.foreach(_.save(romNbt))
       nbt.setCompoundTag("rom", romNbt)
+      val tmpNbt = new NBTTagCompound()
+      tmp.foreach(_.save(tmpNbt))
+      nbt.setCompoundTag("tmp", tmpNbt)
       nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
       nbt.setLong("cpuTime", cpuTime)
@@ -505,6 +518,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       })
       lua.setField(-2, "romAddress")
 
+      // And it's /tmp address...
+      lua.pushScalaFunction(lua => {
+        tmp.foreach(_.address match {
+          case None => lua.pushNil()
+          case Some(address) => lua.pushString(address)
+        })
+        1
+      })
+      lua.setField(-2, "tmpAddress")
+
       // Pop the os table.
       lua.pop(1)
 
@@ -630,8 +653,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // Clear any left-over signals from a previous run.
       signals.clear()
 
-      // Connect the ROM node to our owner.
+      // Connect the ROM and `/tmp` node to our owner.
       rom.foreach(rom => owner.network.foreach(_.connect(owner, rom)))
+      tmp.foreach(tmp => owner.network.foreach(_.connect(owner, tmp)))
 
       return true
     }
@@ -859,11 +883,13 @@ object Computer {
     override protected def onConnect() {
       super.onConnect()
       computer.rom.foreach(rom => network.foreach(_.connect(this, rom)))
+      computer.tmp.foreach(tmp => network.foreach(_.connect(this, tmp)))
     }
 
     override protected def onDisconnect() {
       super.onDisconnect()
       computer.rom.foreach(rom => rom.network.foreach(_.remove(rom)))
+      computer.tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
     }
 
     override def load(nbt: NBTTagCompound) {

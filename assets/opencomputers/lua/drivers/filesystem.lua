@@ -435,16 +435,14 @@ function file:seek(whence, offset)
   checkArg(2, offset, "number")
   assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
-  if whence == "cur" and offset ~= 0 then
-    offset = offset - #(self.buffer or "")
+  local result, reason
+  if whence == "cur" then
+    result, reason = self.stream:seek(whence, offset - #self.buffer)
+  else
+    result, reason = self.stream:seek(whence, offset)
   end
-  local result, reason = self.stream:seek(whence, offset)
   if result then
-    if offset ~= 0 then
-      self.buffer = ""
-    elseif whence == "cur" then
-      result = result - #self.buffer
-    end
+    self.buffer = ""
     return result
   else
     return nil, reason

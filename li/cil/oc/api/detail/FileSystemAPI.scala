@@ -9,5 +9,7 @@ trait FileSystemAPI {
 
   def fromSaveDir(root: String, capacity: Long): Option[FileSystem]
 
+  def fromRam(capacity: Long): Option[FileSystem]
+
   def asNode(fs: FileSystem): Option[Node]
 }

@@ -333,7 +333,7 @@ function term.read(history)
   event.listen("key_up", onKeyUp)
   event.listen("clipboard", onClipboard)
   term.cursorBlink(true)
-  while not result do
+  while term.isAvailable() and not result do
     coroutine.sleep()
   end
   if keyRepeat then

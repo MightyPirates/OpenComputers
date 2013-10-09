@@ -23,7 +23,10 @@ end
 -------------------------------------------------------------------------------
 
 local function onComponentAdded(_, address)
-  if component.type(address) == "filesystem" and address ~= os.romAddress() then
+  if component.type(address) == "filesystem" and
+     address ~= os.romAddress() and
+     address ~= os.tmpAddress()
+  then
     local name = address:sub(1, 3)
     repeat
       name = address:sub(1, name:len() + 1)

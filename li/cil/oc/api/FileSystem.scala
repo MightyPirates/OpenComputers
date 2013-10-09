@@ -268,6 +268,20 @@ object FileSystem extends FileSystemAPI {
     instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity))
 
   /**
+   * Creates a new *writable* file system that resides in memory.
+   * <p/>
+   * Any contents created and written on this file system will be lost when
+   * the node is removed from the network.
+   * <p/>
+   * This is used for computers' `/tmp` mount, for example.
+   *
+   * @param capacity the capacity of the file system.
+   * @return a file system residing in memory.
+   */
+  def fromRam(capacity: Long): Option[FileSystem] =
+    instance.fold(None: Option[FileSystem])(_.fromRam(capacity))
+
+  /**
    * Creates a network node that makes the specified file system available via
    * the common file system driver.
    * <p/>

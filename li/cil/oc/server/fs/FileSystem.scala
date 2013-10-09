@@ -46,6 +46,8 @@ object FileSystem extends api.detail.FileSystemAPI {
     else None
   }
 
+  override def fromRam(capacity: Long): Option[api.FileSystem] = Some(new RamFileSystem(capacity))
+
   override def asNode(fileSystem: api.FileSystem) = Some(new component.FileSystem(fileSystem))
 
   private class ReadOnlyFileSystem(protected val root: io.File)
@@ -55,6 +57,10 @@ object FileSystem extends api.detail.FileSystemAPI {
   private class ReadWriteFileSystem(protected val root: io.File, protected val capacity: Long)
     extends OutputStreamFileSystem
     with FileOutputStreamFileSystem
+    with Capacity
+
+  private class RamFileSystem(protected val capacity: Long)
+    extends VirtualFileSystem
     with Capacity
 
 }
