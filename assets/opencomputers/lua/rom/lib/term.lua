@@ -336,6 +336,9 @@ function term.read(history)
   while term.isAvailable() and not result do
     coroutine.sleep()
   end
+  if history[#history] == "" then
+    table.remove(history)
+  end
   if keyRepeat then
     event.cancel(keyRepeat)
   end

@@ -4,6 +4,9 @@ local function onTermAvailable()
   while term.isAvailable() do
     io.write("> ")
     local command = io.read()
+    if not command then
+      return -- eof
+    end
     local code, result = load("return " .. command, "=stdin")
     if not code then
       code, result = load(command, "=stdin") -- maybe it's a statement
