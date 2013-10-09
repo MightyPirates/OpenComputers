@@ -1,34 +1,62 @@
 package li.cil.oc.api.network
 
+import li.cil.oc.common.tileentity.PowerDistributor
+import scala.collection.mutable.ArrayBuffer
+
 
 trait PoweredNode extends Node {
-  var main: Node = null
+  var arrayBuffer = ArrayBuffer[PowerDistributor]()
   var demand = 2
 
   override def receive(message: Message): Option[Array[Any]] = {
-    val ret = super.receive(message)
     message.name match {
-      case "power.connect" => {
-        if (main != message.source) {
-          if (main != null)
-            network.foreach(_.sendToAddress(this, main.address.get, "power.disconnect"))
-          main = message.source
-          network.foreach(_.sendToAddress(this, message.source.address.get, "power.request", demand, 1))
+      case "network.connect" => {
+        message.source match {
+          case distributor: PowerDistributor => {
+            println("connect")
+            if (arrayBuffer.filter(p => p == distributor).isEmpty) {
+              arrayBuffer += distributor
+              distributor.connectNode(this, getDemand, getPriority)
+            }
+          }
+          case _ =>
         }
-
       }
       case "network.disconnect" => {
-        if (message.source == main) main = null
+        message.source match {
+          case distributor: PowerDistributor => {
+            println("connect")
+            if (arrayBuffer.contains(distributor)) {
+              arrayBuffer -= distributor
+              distributor.disconnectNode(this)
+            }
+          }
+          case _ =>
+        }
       }
-      case _ => // Ignore.
+      case _ =>
     }
-    ret
+    super.receive(message)
+  }
+
+  def removeBuffer(distributor: PowerDistributor) = {
+    distributor.disconnectNode(this)
+    arrayBuffer -= distributor
   }
 
   override protected def onDisconnect() {
-    println("sending disc")
-    network.foreach(_.sendToAddress(this, main.address.get, "power.disconnect"))
 
+    arrayBuffer.foreach(e => {
+      e.disconnectNode(this)
+    })
     super.onDisconnect()
+  }
+
+  def getDemand: Int = 2
+
+  def getPriority: Int = 1
+
+  def updateDemand(demand: Int) {
+    arrayBuffer.foreach(e => e.updateDemand(this, getDemand))
   }
 }
