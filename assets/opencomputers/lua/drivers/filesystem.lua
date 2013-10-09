@@ -129,6 +129,15 @@ end
 
 -------------------------------------------------------------------------------
 
+function driver.filesystem.label(fs, label)
+  if type(label) == "string" then
+    return send(fs, "fs.label=", label)
+  end
+  return send(fs, "fs.label")
+end
+
+-------------------------------------------------------------------------------
+
 function driver.filesystem.spaceTotal(path)
   local node, rest = findNode(path)
   if node.fs then

@@ -16,6 +16,8 @@ class Hdd(val parent: Delegator, val megaBytes: Int) extends Delegate {
       val nbt = item.getTagCompound
       if (nbt.hasKey("oc.node")) {
         val nodeNbt = nbt.getCompoundTag("oc.node")
+        if (nodeNbt.hasKey("label"))
+          tooltip.add(nodeNbt.getString("label"))
         if (nodeNbt.hasKey("address"))
           tooltip.add(nodeNbt.getString("address"))
         if (advanced && nodeNbt.hasKey("fs")) {

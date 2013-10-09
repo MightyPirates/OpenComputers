@@ -10,6 +10,8 @@ import scala.collection.mutable
 class FileSystem(val fileSystem: api.FileSystem) extends Node {
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
 
+  private var label = ""
+
   override def name = "filesystem"
 
   override def visibility = Visibility.Neighbors
@@ -36,6 +38,14 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
               set.clear()
           }
           None
+
+        case Array(label: Array[Byte]) if message.name == "fs.label=" =>
+          this.label = new String(label, "UTF-8").trim
+          if (this.label.length > 16)
+            this.label = this.label.substring(0, 16)
+          result(true)
+        case Array() if message.name == "fs.label" =>
+          result(label)
 
         case Array() if message.name == "fs.spaceTotal" =>
           val space = fileSystem.spaceTotal
@@ -163,6 +173,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           to[mutable.Set]
       }
     })
+    if (nbt.hasKey("label"))
+      label = nbt.getString("label")
 
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
@@ -182,6 +194,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
       ownersNbt.appendTag(ownerNbt)
     }
     nbt.setTag("owners", ownersNbt)
+    if (label != "")
+      nbt.setString("label", label)
 
     val fsNbt = new NBTTagCompound()
     fileSystem.save(fsNbt)
