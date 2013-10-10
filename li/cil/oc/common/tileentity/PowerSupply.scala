@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import net.minecraft.tileentity.TileEntity
-import li.cil.oc.api.network.{PoweredNode, Visibility, Node}
+import li.cil.oc.api.network.{PoweredNode, Visibility}
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import cpw.mods.fml.common.FMLCommonHandler
@@ -19,46 +19,48 @@ import universalelectricity.core.electricity.ElectricityPack
  * Time: 20:37
  * To change this template use File | Settings | File Templates.
  */
-class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowerReceptor with IElectrical{
+class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowerReceptor with IElectrical {
   var addedToEnet = false
-  var powerHandler:PowerHandler  = null
+  var powerHandler: PowerHandler = null
+
   override def name = "powersupply"
 
   override def visibility = Visibility.Network
 
-  override def onChunkUnload(){
+  override def onChunkUnload() {
     super.onChunkUnload()
-       onUnload()
+    onUnload()
   }
-  def onUnload(){
-    if(addedToEnet){
+
+  def onUnload() {
+    if (addedToEnet) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this))
       addedToEnet = false
     }
 
   }
 
-    override def updateEntity(){
-      super.updateEntity()
-      if(!addedToEnet) {
-        onLoaded()
-      }
-      if(!FMLCommonHandler.instance.getEffectiveSide.isClient)
-      {
-        storedEnergy+=getPowerProvider().useEnergy(1,(MAXENERGY-storedEnergy).toFloat/5.0f,true)*5;
-
-      }
+  override def updateEntity() {
+    super.updateEntity()
+    if (!addedToEnet) {
+      onLoaded()
     }
+    if (!FMLCommonHandler.instance.getEffectiveSide.isClient) {
+      main.addEnergy(getPowerProvider().useEnergy(1, main.getDemand.toFloat / 5.0f, true) * 5)
+
+    }
+  }
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     getPowerProvider().readFromNBT(nbt)
     storedEnergy = nbt.getDouble("storedEnergy")
   }
+
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
     getPowerProvider().writeToNBT(nbt)
-    nbt.setDouble("storedEnergy",storedEnergy)
+    nbt.setDouble("storedEnergy", storedEnergy)
 
   }
 
@@ -73,9 +75,8 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
     }
   }
 
-   var storedEnergy = 0.0;
-  var lastInjectedEnergy =0.0;
-  var MAXENERGY = 1000;
+
+  var lastInjectedEnergy = 0.0
   //IC2 stuff
   /**
    * Determine how much energy the sink accepts.
@@ -86,10 +87,10 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    *
    * @return max accepted input in eu
    */
-  override def demandedEnergyUnits: Double={
-    val needed = MAXENERGY-storedEnergy
-    if(needed>lastInjectedEnergy||needed>MAXENERGY/2)
-       return needed/2
+  override def demandedEnergyUnits: Double = {
+    val needed = main.getDemand
+    if (needed > lastInjectedEnergy || needed > main.MAXENERGY / 2)
+      return needed / 2
     0
   }
 
@@ -103,10 +104,9 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @param amount energy to be transferred
    * @return Energy not consumed (leftover)
    */
-  override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double ={
-    lastInjectedEnergy = amount*2;
-    storedEnergy+=amount*2;
-    0
+  override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
+    lastInjectedEnergy = amount * 2
+    main.addEnergy(amount*2)
   }
 
   /**
@@ -119,7 +119,7 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    *
    * @return max safe input in eu
    */
-  override def getMaxSafeInput: Int   =Integer.MAX_VALUE
+  override def getMaxSafeInput: Int = Integer.MAX_VALUE
 
   /**
    * Determine if this acceptor can accept current from an adjacent emitter in a direction.
@@ -146,21 +146,21 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @param side
    * @return
    */
-  def getPowerReceiver(side: ForgeDirection): PowerHandler#PowerReceiver={
+  def getPowerReceiver(side: ForgeDirection): PowerHandler#PowerReceiver = {
 
-    return getPowerProvider().getPowerReceiver
+    getPowerProvider().getPowerReceiver
   }
-  def getPowerProvider():PowerHandler=
-  {
-    if (powerHandler == null)
-    {
+
+  def getPowerProvider(): PowerHandler = {
+    if (powerHandler == null) {
       powerHandler = new PowerHandler(this, PowerHandler.Type.STORAGE);
       if (powerHandler != null) {
         powerHandler.configure(1.0F, 320.0F, 800.0F, 640.0F);
       }
     }
-    return powerHandler;
+    powerHandler;
   }
+
   /**
    * Call back from the PowerHandler that is called when the stored power exceeds the activation
    * power.
@@ -169,11 +169,11 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    *
    * @param workProvider
    */
-  def doWork(workProvider: PowerHandler){
+  def doWork(workProvider: PowerHandler) {
 
   }
 
-  def getWorld: World=worldObj
+  def getWorld: World = worldObj
 
 
   /** * UE*************************
@@ -188,15 +188,14 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @param doReceive If false, the charge will only be simulated.
    * @return Amount of energy that was accepted by the block.
    */
-  def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean): Float={
-    if (receive == null) return 0.0F;
+  def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean): Float = {
+    if (receive == null) return 0.0F
 
-    if (doReceive)
-    {
-      val energy = receive.getWatts() / 0.2F;
-      storedEnergy += energy;
+    if (doReceive) {
+      val energy = receive.getWatts() / 0.2F
+      main.addEnergy(energy)
     }
-    return receive.getWatts();
+    receive.getWatts()
   }
 
   /**
@@ -208,28 +207,28 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @param doProvide If false, the charge will only be simulated.
    * @return Amount of energy that was given out by the block.
    */
-  def provideElectricity(from: ForgeDirection, request: ElectricityPack, doProvide: Boolean): ElectricityPack =null
+  def provideElectricity(from: ForgeDirection, request: ElectricityPack, doProvide: Boolean): ElectricityPack = null
 
   /**
    * @return How much energy does this TileEntity want?
    */
-  def getRequest(direction: ForgeDirection): Float ={
-    val diff = Math.floor((MAXENERGY - storedEnergy) * 0.2F)
-    return diff.toFloat max 0
+  def getRequest(direction: ForgeDirection): Float = {
+    val diff = Math.floor(main.getDemand * 0.2F)
+    diff.toFloat max 0
   }
 
   /**
    * @return How much energy does this TileEntity want to provide?
    */
-  def getProvide(direction: ForgeDirection): Float   = 0.0F
+  def getProvide(direction: ForgeDirection): Float = 0.0F
 
   /**
    * Gets the voltage of this TileEntity.
    *
    * @return The amount of volts. E.g 120v or 240v
    */
-  def getVoltage: Float =120.0F
+  def getVoltage: Float = 120.0F
 
-  def canConnect(direction:ForgeDirection):Boolean = true
+  def canConnect(direction: ForgeDirection): Boolean = true
 
 }

@@ -1,12 +1,12 @@
 package li.cil.oc.api.network
 
 import li.cil.oc.common.tileentity.PowerDistributor
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 
 trait PoweredNode extends Node {
-  var arrayBuffer = ArrayBuffer[PowerDistributor]()
-  var demand = 2
+  var powerDistributors = mutable.Set[PowerDistributor]()
+
 
   override def receive(message: Message): Option[Array[Any]] = {
     message.name match {
@@ -14,9 +14,9 @@ trait PoweredNode extends Node {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")
-            if (arrayBuffer.filter(p => p == distributor).isEmpty) {
-              arrayBuffer += distributor
-              distributor.connectNode(this, getDemand, getPriority)
+            if (powerDistributors.contains(istributor)) {
+              powerDistributors += distributor
+              distributor.connectNode(this, _demand, _priority)
             }
           }
           case _ =>
@@ -26,8 +26,8 @@ trait PoweredNode extends Node {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")
-            if (arrayBuffer.contains(distributor)) {
-              arrayBuffer -= distributor
+            if (powerDistributors.contains(distributor)) {
+              powerDistributors -= distributor
               distributor.disconnectNode(this)
             }
           }
@@ -39,24 +39,34 @@ trait PoweredNode extends Node {
     super.receive(message)
   }
 
-  def removeBuffer(distributor: PowerDistributor) = {
-    distributor.disconnectNode(this)
-    arrayBuffer -= distributor
-  }
 
   override protected def onDisconnect() {
-
-    arrayBuffer.foreach(e => {
+    super.onDisconnect()
+    powerDistributors.foreach(e => {
       e.disconnectNode(this)
     })
-    super.onDisconnect()
+
   }
 
-  def getDemand: Int = 2
+  private var _demand = 0
 
-  def getPriority: Int = 1
+  def demand = _demand
 
-  def updateDemand(demand: Int) {
-    arrayBuffer.foreach(e => e.updateDemand(this, getDemand))
+  def demand_=(value: Int) = {
+
+    powerDistributors.foreach(e => e.updateDemand(this, value))
+    _demand = value
+  }
+
+  private var _priority = 0
+
+  def priority = _priority
+
+
+  def main: PowerDistributor = {
+    powerDistributors.filter(p => p.isActive).foreach(f => return f)
+
+
   }
 }
+

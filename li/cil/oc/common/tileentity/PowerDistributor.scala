@@ -1,15 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{PoweredNode, Message, Visibility}
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 
 class PowerDistributor extends Rotatable with PoweredNode {
 
   var isActive = true
-  var energyStorageList = ArrayBuffer[EnergyStorage]()
+  var energyStorageList = mutable.Set[EnergyStorage]()
   var energyDemand = 0
-  demand = 1
+  var storedEnergy = 0
+  var MAXENERGY = 2000
 
   override def name = "powerdistributor"
 
@@ -17,13 +18,13 @@ class PowerDistributor extends Rotatable with PoweredNode {
 
 
   override def receive(message: Message): Option[Array[Any]] = {
-
-    message.name match {
+    if (message.source != this)
+    {message.name match {
       case "network.connect" => {
         message.source match {
           case distributor: PowerDistributor =>
             //if other powerDistributor connected and is active set inactive
-            if (message.source != this && distributor.isActive) {
+            if (distributor.isActive) {
               isActive = false
 
               println("demand now (disabled) " + 0)
@@ -36,7 +37,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
           case distributor: PowerDistributor =>
             //received request from other distributor that is newly connected... set it to inactive
 
-            if (isActive && message.source != this) {
+            if (isActive ) {
               distributor.isActive = false
             }
           case _ =>
@@ -46,7 +47,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
         message.source match {
           case distributor: PowerDistributor =>
             println("distri disc recieved")
-            if (distributor.isActive && distributor != this) {
+            if (distributor.isActive ) {
               isActive = true
               network.foreach(_.sendToVisible(this, "power.find"))
 
@@ -57,6 +58,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
 
       }
       case _ => // Ignore.
+    }
     }
     super.receive(message)
 
@@ -78,7 +80,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
    * @param demand
    */
   def updateDemand(node: PoweredNode, demand: Int) {
-    energyStorageList.filter(n => n.node == node).foreach(n => {
+    energyStorageList.fi(n => n.node == node).foreach(n => {
       energyDemand -= n.amount
       energyDemand += demand
       n.amount = demand
@@ -109,22 +111,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
     super.onConnect()
   }
 
-  override protected def onDisconnect() {
-    println("disc distri other " + arrayBuffer.length)
-    super.onDisconnect()
-    energyStorageList.clone().foreach(e => {
 
-      e.node.removeBuffer(this)
-      if (energyStorageList.contains(e)) {
-
-        energyStorageList -= e
-        energyDemand -= e.amount
-      }
-
-    })
-    if (isActive)
-      println("demand now (close) " + energyDemand)
-  }
 
   override def updateEntity() {
     super.updateEntity()
@@ -133,7 +120,12 @@ class PowerDistributor extends Rotatable with PoweredNode {
     }
     //TODO remove energy
   }
-
+  def getDemand = {
+    MAXENERGY-storedEnergy max 0
+  }
+  def addEnergy(amount:Int){
+    storedEnergy+=amount
+  }
   class EnergyStorage(var node: PoweredNode, var amount: Int, var priority: Int) {
 
   }
