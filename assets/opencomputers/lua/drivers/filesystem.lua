@@ -185,6 +185,14 @@ function driver.filesystem.isDirectory(path)
   end
 end
 
+function driver.filesystem.lastModified(path)
+  local node, rest = findNode(path)
+  if node.fs and rest then
+    return send(node.fs, "fs.lastModified", rest)
+  end
+  return 0 -- no such file or directory or it's a virtual directory
+end
+
 function driver.filesystem.dir(path)
   local node, rest = findNode(path)
   if not node.fs and rest then

@@ -17,6 +17,8 @@ trait FileInputStreamFileSystem extends api.FileSystem with InputStreamFileSyste
 
   override def isDirectory(path: String) = new io.File(root, path).isDirectory
 
+  override def lastModified(path: String) = new io.File(root, path).lastModified
+
   override def list(path: String): Option[Array[String]] = new io.File(root, path) match {
     case file if file.exists() && file.isFile => Some(Array(file.getName))
     case directory if directory.exists() && directory.isDirectory => Some(directory.listFiles().

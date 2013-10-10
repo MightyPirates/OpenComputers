@@ -11,40 +11,87 @@ class VirtualFileSystem extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override def exists(path: String) =
-    root.exists(segments(path))
+    root.get(segments(path)).isDefined
 
   override def isDirectory(path: String) =
-    root.isDirectory(segments(path))
+    root.get(segments(path)) match {
+      case Some(obj) => obj.isDirectory
+      case _ => false
+    }
 
   override def size(path: String) =
-    root.size(segments(path))
+    root.get(segments(path)) match {
+      case Some(obj) => obj.size
+      case _ => 0L
+    }
+
+  override def lastModified(path: String) =
+    root.get(segments(path)) match {
+      case Some(obj) => obj.lastModified
+      case _ => 0L
+    }
 
   override def list(path: String) =
-    root.list(segments(path))
+    root.get(segments(path)) match {
+      case Some(obj: VirtualDirectory) => obj.list()
+      case _ => None
+    }
 
   override def rename(from: String, to: String) =
     if (from != "" && exists(from) && !exists(to)) {
-      root.get(segments(to).dropRight(1)) match {
+      val segmentsTo = segments(to)
+      root.get(segmentsTo.dropRight(1)) match {
         case Some(toParent: VirtualDirectory) =>
-          val fromParent = root.get(segments(from).dropRight(1)).get.asInstanceOf[VirtualDirectory]
-          val fromName = segments(from).last
-          val toName = segments(to).last
+          val toName = segmentsTo.last
+          val segmentsFrom = segments(from)
+          val fromParent = root.get(segmentsFrom.dropRight(1)).get.asInstanceOf[VirtualDirectory]
+          val fromName = segmentsFrom.last
           val obj = fromParent.children(fromName)
+
           fromParent.children -= fromName
+          fromParent.lastModified = System.currentTimeMillis()
+
           toParent.children += toName -> obj
+          toParent.lastModified = System.currentTimeMillis()
+
+          obj.lastModified = System.currentTimeMillis()
           true
         case _ => false
       }
     }
     else false
 
+  override def setLastModified(path: String, time: Long) =
+    root.get(segments(path)) match {
+      case Some(obj) if time >= 0 =>
+        obj.lastModified = time
+        true
+      case _ => false
+    }
+
   // ----------------------------------------------------------------------- //
 
-  override protected def makeDirectory(path: String) =
-    root.makeDirectory(segments(path))
+  override protected def makeDirectory(path: String) = {
+    val parts = segments(path)
+    if (parts.isEmpty) false
+    else {
+      root.get(parts.dropRight(1)) match {
+        case Some(parent: VirtualDirectory) => parent.makeDirectory(parts.last)
+        case _ => false
+      }
+    }
+  }
 
-  override protected def delete(path: String) =
-    root.delete(segments(path))
+  override protected def delete(path: String) = {
+    val parts = segments(path)
+    if (parts.isEmpty) false
+    else {
+      root.get(parts.dropRight(1)) match {
+        case Some(parent: VirtualDirectory) => parent.delete(parts.last)
+        case _ => false
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -56,10 +103,21 @@ class VirtualFileSystem extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override protected def openInputStream(path: String) =
-    root.openInputStream(segments(path))
+    root.get(segments(path)) match {
+      case Some(obj: VirtualFile) => obj.openInputStream()
+      case _ => None
+    }
 
-  override protected def openOutputStream(path: String, mode: Mode.Value) =
-    root.openOutputStream(segments(path), mode)
+  override protected def openOutputStream(path: String, mode: Mode.Value) = {
+    val parts = segments(path)
+    if (parts.isEmpty) None
+    else {
+      root.get(parts.dropRight(1)) match {
+        case Some(parent: VirtualDirectory) => parent.openOutputStream(parts.last, mode)
+        case _ => None
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -80,29 +138,25 @@ class VirtualFileSystem extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   private abstract class VirtualObject {
-    def exists(path: Iterable[String]) = path.isEmpty
+    def isDirectory: Boolean
 
-    def isDirectory(path: Iterable[String] = Iterable.empty[String]): Boolean
+    def size: Long
 
-    def size(path: Iterable[String]): Long
+    var lastModified = System.currentTimeMillis()
 
-    def list(path: Iterable[String]): Option[Array[String]]
+    def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey("lastModified"))
+        lastModified = nbt.getLong("lastModified")
+    }
 
-    def makeDirectory(path: Iterable[String]): Boolean
+    def save(nbt: NBTTagCompound) {
+      nbt.setLong("lastModified", lastModified)
+    }
 
-    def delete(path: Iterable[String]): Boolean
+    def get(path: Iterable[String]): Option[VirtualObject] =
+      if (path.isEmpty) Some(this) else None
 
     def canDelete: Boolean
-
-    def openInputStream(path: Iterable[String]): Option[io.InputStream]
-
-    def openOutputStream(path: Iterable[String], mode: Mode.Value): Option[io.OutputStream]
-
-    def load(nbt: NBTTagCompound)
-
-    def save(nbt: NBTTagCompound)
-
-    def get(path: Iterable[String]): Option[VirtualObject] = if (path.isEmpty) Some(this) else None
   }
 
   // ----------------------------------------------------------------------- //
@@ -112,48 +166,35 @@ class VirtualFileSystem extends OutputStreamFileSystem {
 
     var stream: Option[VirtualFileOutputStream] = None
 
-    // ----------------------------------------------------------------------- //
+    override def isDirectory = false
 
-    override def isDirectory(path: Iterable[String]) = false
+    override def size = data.length
 
-    override def size(path: Iterable[String]) = data.length
+    def openInputStream() = Some(new VirtualFileInputStream(this))
 
-    override def list(path: Iterable[String]) = None
-
-    override def makeDirectory(path: Iterable[String]) = false
-
-    override def delete(path: Iterable[String]) = false
-
-    override def canDelete = stream.isEmpty
-
-    // ----------------------------------------------------------------------- //
-
-    override def openInputStream(path: Iterable[String]) =
-      if (path.isEmpty) Some(new VirtualFileInputStream(this))
-      else None
-
-    override def openOutputStream(path: Iterable[String], mode: Mode.Value) =
-      if (path.isEmpty) {
-        if (stream.isDefined) None
-        else {
-          if (mode == Mode.Write)
-            data.clear()
-          stream = Some(new VirtualFileOutputStream(this))
-          stream
+    def openOutputStream(mode: Mode.Value) =
+      if (stream.isDefined) None
+      else {
+        if (mode == Mode.Write) {
+          data.clear()
+          lastModified = System.currentTimeMillis()
         }
+        stream = Some(new VirtualFileOutputStream(this))
+        stream
       }
-      else None
-
-    // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
       data.clear()
       data ++= nbt.getByteArray("data")
     }
 
     override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
       nbt.setByteArray("data", data.toArray)
     }
+
+    override def canDelete = stream.isEmpty
   }
 
   // ----------------------------------------------------------------------- //
@@ -161,86 +202,45 @@ class VirtualFileSystem extends OutputStreamFileSystem {
   private class VirtualDirectory extends VirtualObject {
     val children = mutable.Map.empty[String, VirtualObject]
 
-    override def exists(path: Iterable[String]) = super.exists(path) || (children.get(path.head) match {
-      case Some(child) => child.exists(path.drop(1))
-      case _ => false
-    })
+    override def isDirectory = true
 
-    override def isDirectory(path: Iterable[String]) = path.isEmpty || (children.get(path.head) match {
-      case Some(child) => child.isDirectory(path.drop(1))
-      case _ => false
-    })
+    override def size = 0
 
-    override def size(path: Iterable[String]) =
-      if (path.isEmpty) 0
-      else children.get(path.head) match {
-        case Some(child) => child.size(path.drop(1))
-        case _ => 0
+    def list() = Some(children.map {
+      case (childName, child) => if (child.isDirectory) childName + "/" else childName
+    }.toArray)
+
+    def makeDirectory(name: String) =
+      if (children.contains(name)) false
+      else {
+        children += name -> new VirtualDirectory
+        lastModified = System.currentTimeMillis()
+        true
       }
 
-    override def list(path: Iterable[String]) =
-      if (path.isEmpty) Some(children.map {
-        case (childName, child) => if (child.isDirectory()) childName + "/" else childName
-      }.toArray)
-      else children.get(path.head) match {
-        case Some(child) => child.list(path.drop(1))
-        case _ => None
-      }
-
-    override def makeDirectory(path: Iterable[String]) =
-      if (path.size == 1) {
-        val directory = path.head
-        if (children.contains(directory)) false
-        else {
-          children += directory -> new VirtualDirectory
+    def delete(name: String) = {
+      children.get(name) match {
+        case Some(child) if child.canDelete =>
+          children -= name
+          lastModified = System.currentTimeMillis()
           true
-        }
-      } else children.get(path.head) match {
-        case Some(child) => child.makeDirectory(path.drop(1))
         case _ => false
       }
+    }
 
-    override def delete(path: Iterable[String]) =
-      if (path.size == 1) {
-        val childName = path.head
-        children.get(childName) match {
-          case Some(child) if child.canDelete =>
-            children -= childName
-            true
-          case _ =>
-            false
-        }
-      } else children.get(path.head) match {
-        case Some(child) => child.delete(path.drop(1))
-        case _ => false
-      }
-
-    override def canDelete = children.isEmpty
-
-    // ----------------------------------------------------------------------- //
-
-    override def openInputStream(path: Iterable[String]) =
-      if (path.isEmpty) None
-      else children.get(path.head) match {
-        case Some(child) => child.openInputStream(path.drop(1))
-        case _ => None
-      }
-
-    override def openOutputStream(path: Iterable[String], mode: Mode.Value) =
-      if (path.isEmpty) None
-      else children.get(path.head) match {
-        case Some(child) => child.openOutputStream(path.drop(1), mode)
-        case None if path.size == 1 =>
-          val childName = path.head
+    def openOutputStream(name: String, mode: Mode.Value) =
+      children.get(name) match {
+        case Some(obj: VirtualFile) => obj.openOutputStream(mode)
+        case None =>
           val child = new VirtualFile
-          children += childName -> child
-          child.openOutputStream(Array.empty[String], mode)
+          children += name -> child
+          lastModified = System.currentTimeMillis()
+          child.openOutputStream(mode)
         case _ => None
       }
-
-    // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
       val childrenNbt = nbt.getTagList("children")
       (0 until childrenNbt.tagCount).map(childrenNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(childNbt => {
         val child =
@@ -252,18 +252,17 @@ class VirtualFileSystem extends OutputStreamFileSystem {
     }
 
     override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
       val childrenNbt = new NBTTagList()
       for ((childName, child) <- children) {
         val childNbt = new NBTTagCompound()
-        childNbt.setBoolean("isDirectory", child.isDirectory())
+        childNbt.setBoolean("isDirectory", child.isDirectory)
         childNbt.setString("name", childName)
         child.save(childNbt)
         childrenNbt.appendTag(childNbt)
       }
       nbt.setTag("children", childrenNbt)
     }
-
-    // ----------------------------------------------------------------------- //
 
     override def get(path: Iterable[String]) =
       super.get(path) orElse {
@@ -272,6 +271,8 @@ class VirtualFileSystem extends OutputStreamFileSystem {
           case _ => None
         }
       }
+
+    override def canDelete = children.isEmpty
   }
 
   // ----------------------------------------------------------------------- //
@@ -323,6 +324,8 @@ class VirtualFileSystem extends OutputStreamFileSystem {
       else throw new io.IOException("file is closed")
   }
 
+  // ----------------------------------------------------------------------- //
+
   private class VirtualFileOutputStream(val file: VirtualFile) extends io.OutputStream {
     private var isClosed = false
 
@@ -332,11 +335,17 @@ class VirtualFileSystem extends OutputStreamFileSystem {
     }
 
     override def write(b: Array[Byte], off: Int, len: Int) =
-      if (!isClosed) file.data ++= b.view(off, off + len)
+      if (!isClosed) {
+        file.data ++= b.view(off, off + len)
+        file.lastModified = System.currentTimeMillis()
+      }
       else throw new io.IOException("file is closed")
 
     override def write(b: Int) =
-      if (!isClosed) file.data += b.toByte
+      if (!isClosed) {
+        file.data += b.toByte
+        file.lastModified = System.currentTimeMillis()
+      }
       else throw new io.IOException("file is closed")
   }
 

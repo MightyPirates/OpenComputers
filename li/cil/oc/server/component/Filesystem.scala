@@ -62,6 +62,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
           result(fileSystem.size(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.isDirectory" =>
           result(fileSystem.isDirectory(clean(path)))
+        case Array(path: Array[Byte]) if message.name == "fs.lastModified" =>
+          result(fileSystem.lastModified(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.dir" =>
           fileSystem.list(clean(path)) match {
             case Some(list) => Some(list.map(_.asInstanceOf[Any]))

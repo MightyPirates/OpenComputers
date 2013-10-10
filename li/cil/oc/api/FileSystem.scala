@@ -79,6 +79,22 @@ trait FileSystem extends Persistable {
   def isDirectory(path: String): Boolean
 
   /**
+   * Gets the timestamp of the last time the file at the specified path was
+   * written to.
+   * <p/>
+   * For folders this should be the time they were created.
+   * <p/>
+   * If the path is invalid (i.e. there is neither a file nor a directory at
+   * the specified location) this should return zero. It should never throw.
+   * <p/>
+   * For read-only systems this may be zero for all queries.
+   *
+   * @param path the path to the object to get the last modified time of.
+   * @return the time the object was last modified.
+   */
+  def lastModified(path: String): Long = 0
+
+  /**
    * Gets a list of all items in the specified folder.
    * <p/>
    * This must return the actual object names in the specified parent folder,
@@ -144,6 +160,20 @@ trait FileSystem extends Persistable {
    * @throws FileNotFoundException if the source is not a file or folder.
    */
   def rename(from: String, to: String): Boolean = false
+
+  /**
+   * Sets the time a file or folder was supposedly last modified.
+   * <p/>
+   * This is not available to the Lua side via the file system driver. It is
+   * intended to be used when initializing a file system to a set of known
+   * modification times (for example, this is used when creating a virtual
+   * file system from a set of real files).
+   *
+   * @param path the path of the object for which to set the modification time.
+   * @param time the time the object was supposedly last modified.
+   * @return whether the modification time was adjusted.
+   */
+  def setLastModified(path: String, time: Long) = false
 
   /**
    * Opens a file for reading or writing.
