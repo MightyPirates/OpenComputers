@@ -93,7 +93,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // ----------------------------------------------------------------------- //
 
   def recomputeMemory() = if (lua != null)
-    lua.setTotalMemory(kernelMemory + Config.baseMemory + owner.installedMemory)
+    lua.setTotalMemory(kernelMemory + owner.installedMemory)
 
   // ----------------------------------------------------------------------- //
 
@@ -647,7 +647,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // underlying system (which may change across releases). Add some buffer
       // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 32 * 1024
+      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 36 * 1024 + Config.baseMemory
       recomputeMemory()
 
       // Clear any left-over signals from a previous run.

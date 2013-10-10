@@ -470,7 +470,7 @@ function file:setvbuf(mode, size)
     "bad argument #2 (number expected, got " .. type(size) .. ")")
 
   self.bufferMode = mode
-  self.bufferSize = mode == "no" and 0 or size
+  self.bufferSize = size
 
   return self.bufferMode, self.bufferSize
 end
@@ -492,16 +492,13 @@ function file:write(...)
     local arg = args[i]
     local result, reason
 
-    if (self.bufferMode == "full" or self.bufferMode == "line") and
-        self.bufferSize - #self.buffer < #arg
-    then
-      result, reason = self:flush()
-      if not result then
-        return nil, reason
-      end
-    end
-
     if self.bufferMode == "full" then
+      if self.bufferSize - #self.buffer < #arg then
+        result, reason = self:flush()
+        if not result then
+          return nil, reason
+        end
+      end
       if #arg > self.bufferSize then
         result, reason = self.stream:write(arg)
       else
@@ -512,16 +509,18 @@ function file:write(...)
     elseif self.bufferMode == "line" then
       local l
       repeat
-        local idx = self.buffer:find("\n", l or 1, true)
+        local idx = arg:find("\n", (l or 0) + 1, true)
         if idx then
           l = idx
         end
       until not idx
-      if l then
+      if l or #arg > self.bufferSize then
         result, reason = self:flush()
         if not result then
           return nil, reason
         end
+      end
+      if l then
         result, reason = self.stream:write(arg:bsub(1, l))
         if not result then
           return nil, reason
@@ -531,7 +530,7 @@ function file:write(...)
       if #arg > self.bufferSize then
         result, reason = self.stream:write(arg)
       else
-        self.buffer = arg
+        self.buffer = self.buffer .. arg
         result = self
       end
 
@@ -555,7 +554,7 @@ function file.new(fs, handle, mode, stream, nogc)
     handle = handle,
     mode = mode,
     buffer = "",
-    bufferSize = math.min(8 * 1024, os.totalMemory() / 16),
+    bufferSize = math.min(8 * 1024, os.totalMemory() / 8),
     bufferMode = "full"
   }
   result.stream = setmetatable({file = result}, {__index=stream})
@@ -800,6 +799,7 @@ end
 
 function print(...)
   local args = table.pack(...)
+  io.stdout:setvbuf("line")
   for i = 1, args.n do
     local arg = tostring(args[i])
     if i > 1 then
@@ -808,6 +808,8 @@ function print(...)
     io.stdout:write(arg)
   end
   io.stdout:write("\n")
+  io.stdout:setvbuf("no")
+  io.stdout:flush()
 end
 
 -------------------------------------------------------------------------------

@@ -25,7 +25,7 @@ end
 
 function event.fire(name, ...)
   -- We may have no arguments at all if the call is just used to drive the
-  -- timer check (for example if we had no signal in coroutine.sleep()).
+  -- timer check (for example if we had no signal in event.wait()).
   if name then
     checkArg(1, name, "string")
     for _, callback in ipairs(listenersFor(name, false)) do
@@ -106,19 +106,17 @@ function event.timer(timeout, callback)
   return id
 end
 
--------------------------------------------------------------------------------
-
-function coroutine.sleep(seconds)
-  seconds = seconds or math.huge
+function event.wait(seconds)
+  seconds = seconds or 0/0
   checkArg(1, seconds, "number")
-  local target = os.uptime() + seconds
+  local target = os.uptime() + (seconds == seconds and seconds or 0)
   repeat
-    local closest = target
+    local closest = seconds == seconds and target or math.huge
     for _, info in pairs(timers) do
       if info.after < closest then
         closest = info.after
       end
     end
     event.fire(os.signal(nil, closest - os.uptime()))
-  until os.uptime() >= (target == math.huge and 0 or target)
+  until os.uptime() >= target
 end

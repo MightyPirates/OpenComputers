@@ -20,11 +20,10 @@ object FileSystem extends Item {
       // if necessary. No one will know, right? Right!?
       val tag = nbt(item)
       val address =
-        if (tag.hasKey("address"))
-          tag.getString("address")
-        else
-          java.util.UUID.randomUUID().toString
-      oc.api.FileSystem.fromSaveDir(address, subItem.megaBytes * 1024 * 1024).flatMap(oc.api.FileSystem.asNode) match {
+        if (tag.hasKey("address")) tag.getString("address")
+        else java.util.UUID.randomUUID().toString
+      oc.api.FileSystem.fromSaveDir(address, subItem.megaBytes * 1024 * 1024, Config.filesBuffered).
+        flatMap(oc.api.FileSystem.asNode) match {
         case None => None
         case Some(node) =>
           node.address = Some(address)

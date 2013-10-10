@@ -7,11 +7,10 @@ end
 
 component.install()
 fs.install()
+gpu.install()
 term.install()
 
 dofile("/bin/sh.lua")
 
 event.fire(...)
-while true do
-  coroutine.sleep()
-end
+event.wait(math.huge)
