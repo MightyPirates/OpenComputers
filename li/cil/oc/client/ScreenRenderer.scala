@@ -11,9 +11,13 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{GLAllocation, OpenGlHelper}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.{GL14, GL11}
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
+
+  private val maxRenderDistanceSq = 6 * 6
+
+  private val fadeDistanceSq = 2 * 2
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
@@ -31,8 +35,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val player = Minecraft.getMinecraft.thePlayer
-    if (player.getDistanceSq(t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5) > 16)
-      return // TODO fade to alternative texture
+    val playerDistance = player.getDistanceSq(t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5).toFloat
+    if (playerDistance > maxRenderDistanceSq)
+      return
 
     tileEntity = t.asInstanceOf[Screen]
 
@@ -56,6 +61,12 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR)
     GL11.glDepthFunc(GL11.GL_LEQUAL)
 
+    if (playerDistance > fadeDistanceSq) {
+      val fade = 1f min ((playerDistance - fadeDistanceSq) / (maxRenderDistanceSq - fadeDistanceSq))
+      GL14.glBlendColor(0, 0, 0, 1 - fade)
+      //GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE_MINUS_CONSTANT_ALPHA​)
+      GL11.glBlendFunc(0x8003, 0x8004) // For some reason the compiler doesn't like the above.
+    }
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
     val list = cache.get(tileEntity, this)
     compile(list)
