@@ -22,7 +22,7 @@ object FileSystem extends Item {
       val address =
         if (tag.hasKey("address")) tag.getString("address")
         else java.util.UUID.randomUUID().toString
-      oc.api.FileSystem.fromSaveDir(address, subItem.megaBytes * 1024 * 1024, Config.filesBuffered).
+      oc.api.FileSystem.fromSaveDirectory(address, subItem.megaBytes * 1024 * 1024, Config.filesBuffered).
         flatMap(oc.api.FileSystem.asNode) match {
         case None => None
         case Some(node) =>

@@ -1,5 +1,6 @@
 package li.cil.oc.api
 
+import dan200.computer.api.{IWritableMount, IMount}
 import li.cil.oc.api.detail.FileSystemAPI
 import li.cil.oc.api.fs.{Mode, Handle}
 import li.cil.oc.api.network.Node
@@ -301,8 +302,8 @@ object FileSystem extends FileSystemAPI {
    * @param buffered whether data should only be written to disk when saving.
    * @return a file system wrapping the specified folder.
    */
-  def fromSaveDir(root: String, capacity: Long, buffered: Boolean = true) =
-    instance.fold(None: Option[FileSystem])(_.fromSaveDir(root, capacity, buffered))
+  def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean = true) =
+    instance.fold(None: Option[FileSystem])(_.fromSaveDirectory(root, capacity, buffered))
 
   /**
    * Creates a new *writable* file system that resides in memory.
@@ -315,8 +316,26 @@ object FileSystem extends FileSystemAPI {
    * @param capacity the capacity of the file system.
    * @return a file system residing in memory.
    */
-  def fromRam(capacity: Long): Option[FileSystem] =
-    instance.fold(None: Option[FileSystem])(_.fromRam(capacity))
+  def fromMemory(capacity: Long): Option[FileSystem] =
+    instance.fold(None: Option[FileSystem])(_.fromMemory(capacity))
+
+  /**
+   * Creates a new file system based on a read-only ComputerCraft mount.
+   *
+   * @param mount the mount to wrap with a file system.
+   * @return a file system wrapping the specified mount.
+   */
+  def fromComputerCraft(mount: IMount): Option[FileSystem] =
+    instance.fold(None: Option[FileSystem])(_.fromComputerCraft(mount))
+
+  /**
+   * Creates a new file system based on a read-write ComputerCraft mount.
+   *
+   * @param mount the mount to wrap with a file system.
+   * @return a file system wrapping the specified mount.
+   */
+  def fromComputerCraft(mount: IWritableMount): Option[FileSystem] =
+    instance.fold(None: Option[FileSystem])(_.fromComputerCraft(mount))
 
   /**
    * Creates a network node that makes the specified file system available via

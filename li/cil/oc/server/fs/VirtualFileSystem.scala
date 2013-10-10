@@ -5,7 +5,7 @@ import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class VirtualFileSystem extends OutputStreamFileSystem {
+trait VirtualFileSystem extends OutputStreamFileSystem {
   private val root = new VirtualDirectory
 
   // ----------------------------------------------------------------------- //

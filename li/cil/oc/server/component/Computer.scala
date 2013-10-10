@@ -69,7 +69,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     flatMap(api.FileSystem.asNode)
 
   private val tmp = api.FileSystem.
-    fromRam(512 * 1024).
+    fromMemory(512 * 1024).
     flatMap(api.FileSystem.asNode)
 
   // ----------------------------------------------------------------------- //

@@ -1,5 +1,6 @@
 package li.cil.oc.server.fs
 
+import dan200.computer.api.{IWritableMount, IMount}
 import java.io
 import java.util.zip.ZipFile
 import li.cil.oc.server.component
@@ -38,7 +39,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  override def fromSaveDir(root: String, capacity: Long, buffered: Boolean) = {
+  override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean) = {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Config.savePath + root)
     path.mkdirs()
     if (path.exists() && path.isDirectory) {
@@ -50,7 +51,11 @@ object FileSystem extends api.detail.FileSystemAPI {
     else None
   }
 
-  override def fromRam(capacity: Long): Option[api.FileSystem] = Some(new RamFileSystem(capacity))
+  override def fromMemory(capacity: Long): Option[api.FileSystem] = Some(new RamFileSystem(capacity))
+
+  def fromComputerCraft(mount: IMount) = Some(new ComputerCraftFileSystem(mount))
+
+  def fromComputerCraft(mount: IWritableMount) = Some(new ComputerCraftWritableFileSystem(mount))
 
   override def asNode(fileSystem: api.FileSystem) = Some(new component.FileSystem(fileSystem))
 
