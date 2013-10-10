@@ -30,10 +30,8 @@ trait Node extends Persistable {
    * This should be the type name of the component represented by the node,
    * since this is what is returned from `driver.componentType`. As such it
    * is to be expected that there be multiple nodes with the same name.
-   *
-   * @return the name of the node.
    */
-  def name: String
+  val name: String
 
   /**
    * The visibility of this node.
@@ -45,10 +43,29 @@ trait Node extends Persistable {
    * reconnect messages. If addressed directly or when a broadcast is sent, the
    * node will still receive that message. Therefore nodes should still verify
    * themselves that they want to accept a message from the message's source.
-   *
-   * @return visibility of the node.
    */
-  def visibility = Visibility.None
+  val visibility: Visibility.Value
+
+  /**
+   * The visibility of this node when it comes to computers.
+   * <p/>
+   * This is used to decide for which components to generate `component_added`
+   * and `component_removed` signals in computers when they are added and
+   * removed from the network, respectively.
+   * <p/>
+   * For example, a network card should be visible to the entire network so
+   * that it can receive messages from network cards in other computers, but
+   * other computers that the one it is plugged into should not treat them as
+   * components added to them, since that would be silly, meaning this field
+   * will be set to neighbors only for them.
+   * <p/>
+   * Another example would power distributors, which should also be visible
+   * to the entire network, but always be invisible to computers, so their
+   * value for this field will be `Visibility.None`.
+   */
+  lazy val computerVisibility: Visibility.Value = visibility
+
+  // ----------------------------------------------------------------------- //
 
   /**
    * The address of the node, so that it can be found in the network.
@@ -58,8 +75,6 @@ trait Node extends Persistable {
    * use custom addresses, only those assigned by the network. The only option
    * they have is to *not* have an address, which can be useful for "dummy"
    * nodes, such as cables. In that case they may ignore the address being set.
-   *
-   * @return the id of this node.
    */
   var address: Option[String] = None
 
@@ -72,8 +87,6 @@ trait Node extends Persistable {
    * <p/>
    * This will always be set automatically by the network manager. Do not
    * change this value and do not return anything that it wasn't set to.
-   *
-   * @return the network the node is in.
    */
   var network: Option[Network] = None
 
@@ -94,12 +107,14 @@ trait Node extends Persistable {
    */
   def receive(message: Message): Option[Array[Any]] = {
     if (message.source == this) message.name match {
-      case "network.connect" => onConnect()
-      case "network.disconnect" => onDisconnect()
+      case "system.connect" => onConnect()
+      case "system.disconnect" => onDisconnect()
       case _ => // Ignore.
     }
     None
   }
+
+  // ----------------------------------------------------------------------- //
 
   /**
    * Reads a previously stored address value from the specified tag.
@@ -129,6 +144,8 @@ trait Node extends Persistable {
     address.foreach(nbt.setString("address", _))
   }
 
+  // ----------------------------------------------------------------------- //
+
   /**
    * Called when this node is added to a network.
    * <p/>
@@ -143,6 +160,8 @@ trait Node extends Persistable {
    * and non-reusable after this has happened.
    */
   protected def onDisconnect() {}
+
+  // ----------------------------------------------------------------------- //
 
   /**
    * Handy function for returning a list of results.

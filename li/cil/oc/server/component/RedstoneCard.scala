@@ -4,10 +4,9 @@ import li.cil.oc.api.network.{Visibility, Message, Node}
 import net.minecraftforge.common.ForgeDirection
 
 class RedstoneCard extends Node {
+  override val name = "redstone"
 
-  override def name = "redstone"
-
-  override def visibility = Visibility.Neighbors
+  override val visibility = Visibility.Neighbors
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

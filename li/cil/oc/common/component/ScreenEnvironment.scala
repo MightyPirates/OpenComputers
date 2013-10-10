@@ -1,6 +1,6 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.{PoweredNode, Visibility, Message}
+import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.nbt.NBTTagCompound
 
 /**
@@ -10,12 +10,12 @@ import net.minecraft.nbt.NBTTagCompound
  * between server and client. These callbacks are only called on the server
  * side to trigger changes being sent to clients and saving the current state.
  */
-trait ScreenEnvironment extends PoweredNode {
+trait ScreenEnvironment extends Node {
   val screen = new Screen(this)
 
-  override def name = "screen"
+  override val name = "screen"
 
-  override def visibility = Visibility.Network
+  override val visibility = Visibility.Network
 
   override def receive(message: Message): Option[Array[Any]] = super.receive(message).orElse {
     message.data match {

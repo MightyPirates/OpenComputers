@@ -11,9 +11,9 @@ class GraphicsCard extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def name = "gpu"
+  override val name = "gpu"
 
-  override def visibility = Visibility.Neighbors
+  override val visibility = Visibility.Neighbors
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
@@ -27,7 +27,7 @@ class GraphicsCard extends Node {
             case _ => result(Unit, "not a screen")
           }
         })
-      case Array() if message.name == "network.disconnect" && message.source.address == screen => screen = None; None
+      case Array() if message.name == "system.disconnect" && message.source.address == screen => screen = None; None
       case Array(w: Double, h: Double) if message.name == "gpu.resolution=" =>
         if (supportedResolutions.contains((w.toInt, h.toInt)))
           trySend("screen.resolution=", w.toInt, h.toInt)

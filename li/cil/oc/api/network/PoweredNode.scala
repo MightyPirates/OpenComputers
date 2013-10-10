@@ -10,7 +10,7 @@ trait PoweredNode extends Node {
 
   override def receive(message: Message): Option[Array[Any]] = {
     message.name match {
-      case "network.connect" => {
+      case "system.connect" => {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")
@@ -22,7 +22,7 @@ trait PoweredNode extends Node {
           case _ =>
         }
       }
-      case "network.disconnect" => {
+      case "system.disconnect" => {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")

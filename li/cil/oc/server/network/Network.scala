@@ -404,8 +404,8 @@ object Network extends api.detail.NetworkAPI {
     override def cancel() = isCanceled = true
   }
 
-  private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "network.connect")
+  private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "system.connect")
 
-  private case class DisconnectMessage(override val source: api.network.Node) extends Message(source, "network.disconnect")
+  private case class DisconnectMessage(override val source: api.network.Node) extends Message(source, "system.disconnect")
 
 }

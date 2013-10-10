@@ -147,6 +147,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       case arg: Float => arg.toDouble
       case arg: Double => arg
       case arg: String => arg
+      case arg: Array[Byte] => arg
       case _ => throw new IllegalArgumentException()
     }.toArray))
   })
@@ -588,9 +589,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case _ => lua.pushNil()
       }
 
+      def send(target: String, name: String, args: Any*) =
+        owner.network.fold(None: Option[Array[Any]])(network => {
+          network.node(target) match {
+            case Some(node) if Computer.canSee(this, node) => network.sendToAddress(owner, target, name, args: _*)
+            case _ => Some(Array(Unit, "invalid address"))
+          }
+        })
+
       lua.pushScalaFunction(lua =>
-        owner.network.fold(None: Option[Array[Any]])(_.
-          sendToAddress(owner, lua.checkString(1), lua.checkString(2), parseArguments(lua, 3): _*)) match {
+        send(lua.checkString(1), lua.checkString(2), parseArguments(lua, 3): _*) match {
           case Some(Array(results@_*)) =>
             results.foreach(pushResult(lua, _))
             results.length
@@ -742,6 +750,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             case arg: Boolean => lua.pushBoolean(arg)
             case arg: Double => lua.pushNumber(arg)
             case arg: String => lua.pushString(arg)
+            case arg: Array[Byte] => lua.pushByteArray(arg)
           }
           lua.resume(1, 1 + signal.args.length)
         }
@@ -850,20 +859,18 @@ object Computer {
 
     // ----------------------------------------------------------------------- //
 
-    override def name = "computer"
+    override val name = "computer"
 
-    override def visibility = Visibility.Network
+    override val visibility = Visibility.Network
+
+    override lazy val computerVisibility = Visibility.None
 
     override def receive(message: Message) = super.receive(message).orElse {
       message.data match {
-        // The isRunning check is here to avoid component_* signals being
-        // generated while loading a chunk.
-        case Array() if message.name == "network.connect" && computer.isRunning =>
+        case Array() if message.name == "system.connect" && canSee(computer, message.source) =>
           computer.signal("component_added", message.source.address.get); None
-        case Array() if message.name == "network.disconnect" && computer.isRunning =>
+        case Array() if message.name == "system.disconnect" && canSee(computer, message.source) =>
           computer.signal("component_removed", message.source.address.get); None
-        case Array(oldAddress: Integer) if message.name == "network.reconnect" && computer.isRunning =>
-          computer.signal("component_changed", message.source.address.get, oldAddress); None
 
         // Arbitrary signals, usually from other components.
         case Array(name: String, args@_*) if message.name == "computer.signal" =>
@@ -904,6 +911,17 @@ object Computer {
       nbt.setCompoundTag("computer", computerNbt)
     }
   }
+
+  // The isRunning check is here to avoid component_* signals being
+  // generated while loading a chunk.
+  private def canSee(computer: Computer, node: Node) = computer.isRunning &&
+    (node.computerVisibility == Visibility.Network ||
+      (node.computerVisibility == Visibility.Neighbors &&
+        // This gives use false positives for neighbors for disconnects, but at
+        // that point it doesn't matter anymore anyway... the computer will
+        // just have to live with the fact that something got removed that was
+        // never added in the first place. It's kinda sucky, but whatever.
+        node.network.fold(true)(_.neighbors(node).exists(_ == computer.owner))))
 
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =

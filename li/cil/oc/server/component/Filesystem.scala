@@ -12,14 +12,14 @@ class FileSystem(val fileSystem: api.FileSystem) extends Node {
 
   private var label = ""
 
-  override def name = "filesystem"
+  override val name = "filesystem"
 
-  override def visibility = Visibility.Neighbors
+  override val visibility = Visibility.Neighbors
 
   override def receive(message: Message) = super.receive(message).orElse {
     try {
       message.data match {
-        case Array() if message.name == "network.disconnect" && owners.contains(message.source.address.get) =>
+        case Array() if message.name == "system.disconnect" && owners.contains(message.source.address.get) =>
           for (handle <- owners(message.source.address.get)) {
             fileSystem.file(handle) match {
               case None => // Maybe file system was accessed from somewhere else.

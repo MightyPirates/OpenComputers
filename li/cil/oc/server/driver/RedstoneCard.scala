@@ -6,7 +6,7 @@ import li.cil.oc.server.component
 import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 
-object Redstone extends driver.Item {
+object RedstoneCard extends driver.Item {
   override def api = Option(getClass.getResourceAsStream(Config.driverPath + "redstone.lua"))
 
   override def worksWith(item: ItemStack) = WorksWith(Items.rs)(item)
