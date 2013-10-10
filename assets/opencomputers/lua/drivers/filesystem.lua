@@ -797,7 +797,12 @@ function io.read(...)
   return io.input():read(...)
 end
 
--- TODO io.tmpfile = function() end
+function io.tmpfile()
+  local name = os.tmpname()
+  if name then
+    return io.open(name, "a")
+  end
+end
 
 io.type = driver.filesystem.type
 
@@ -825,4 +830,13 @@ end
 os.remove = driver.filesystem.remove
 os.rename = driver.filesystem.rename
 
--- TODO os.tmpname = function() end
+function os.tmpname()
+  if driver.filesystem.exists("tmp") then
+    for i = 1, 10 do
+      local name = "tmp/" .. math.random(1, 0x7FFFFFFF)
+      if not driver.filesystem.exists(name) then
+        return name
+      end
+    end
+  end
+end
