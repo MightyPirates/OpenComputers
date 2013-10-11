@@ -40,6 +40,8 @@ trait Delegate {
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
 
+  def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
+
   def getValidRotations(world: World, x: Int, y: Int, z: Int) =
     RotationHelper.getValidVanillaBlockRotations(Block.stone)
 

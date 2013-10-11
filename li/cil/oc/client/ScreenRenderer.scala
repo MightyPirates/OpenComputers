@@ -7,8 +7,8 @@ import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.client.gui.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.Screen
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{GLAllocation, OpenGlHelper}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.{GL14, GL11}
@@ -51,22 +51,20 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       return
 
     GL11.glPushAttrib(0xFFFFFF)
+
+    RenderUtil.disableLighting()
+    RenderUtil.makeItBlend()
+
     GL11.glPushMatrix()
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    GL11.glDepthMask(false)
-    GL11.glDisable(GL11.GL_LIGHTING)
-    GL11.glEnable(GL11.GL_BLEND)
-    GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR)
-    GL11.glDepthFunc(GL11.GL_LEQUAL)
-
     if (playerDistance > fadeDistanceSq) {
       val fade = 1f min ((playerDistance - fadeDistanceSq) / (maxRenderDistanceSq - fadeDistanceSq))
       GL14.glBlendColor(0, 0, 0, 1 - fade)
-      //GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE_MINUS_CONSTANT_ALPHA​)
-      GL11.glBlendFunc(0x8003, 0x8004) // For some reason the compiler doesn't like the above.
+      GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
     }
+
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
     val list = cache.get(tileEntity, this)
     compile(list)
@@ -107,8 +105,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     // Flip text upside down.
     GL11.glScalef(1, -1, 1)
-
-    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 200, 200)
 
     for ((line, i) <- tileEntity.screen.lines.zipWithIndex) {
       MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)

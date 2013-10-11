@@ -2,7 +2,6 @@ package li.cil.oc.client
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity.Computer
-import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
@@ -17,7 +16,12 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
     val computer = tileEntity.asInstanceOf[Computer]
     if (computer.isOn) {
       GL11.glPushAttrib(0xFFFFFF)
+
+      RenderUtil.disableLighting()
+      RenderUtil.makeItBlend()
+
       GL11.glPushMatrix()
+
       GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
       computer.yaw match {
@@ -26,12 +30,6 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
         case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
         case _ => // No yaw.
       }
-
-      GL11.glEnable(GL11.GL_BLEND)
-      GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR)
-      GL11.glDepthFunc(GL11.GL_LEQUAL)
-
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 200, 200)
 
       GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
       GL11.glScalef(1, -1, 1)

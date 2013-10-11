@@ -20,7 +20,7 @@ class Computer(val parent: Delegator) extends Delegate {
   // Rendering stuff
   // ----------------------------------------------------------------------- //
 
-  object Icons {
+  private object Icons {
     val on = Array.fill[Icon](6)(null)
     val off = Array.fill[Icon](6)(null)
   }
