@@ -8,22 +8,13 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-/**
- * Created with IntelliJ IDEA.
- * User: lordjoda
- * Date: 30.09.13
- * Time: 20:36
- * To change this template use File | Settings | File Templates.
- */
-class PowerSupply(val parent: Delegator) extends Delegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.PowerSupply], "oc.powersupply")
-  val unlocalizedName = "PowerSupply"
+class Adapter(val parent: Delegator) extends Delegate {
+  GameRegistry.registerTileEntity(classOf[tileentity.Adapter], "oc.adapter")
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.PowerSupply].onUnload()
-    super.breakBlock(world, x, y, z, blockId, metadata)
-  }
+  val unlocalizedName = "Adapter"
 
+  // ----------------------------------------------------------------------- //
+  // Rendering stuff
   // ----------------------------------------------------------------------- //
 
   private val icons = Array.fill[Icon](6)(null)
@@ -32,9 +23,9 @@ class PowerSupply(val parent: Delegator) extends Delegate {
 
   override def registerIcons(iconRegister: IconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":adapter_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":power_converter")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":adapter_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
@@ -46,5 +37,15 @@ class PowerSupply(val parent: Delegator) extends Delegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.PowerSupply)
+  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Adapter)
+
+  // ----------------------------------------------------------------------- //
+  // Block detection
+  // ----------------------------------------------------------------------- //
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case adapter: tileentity.Adapter => adapter.neighborChanged()
+      case _ => // Ignore.
+    }
 }

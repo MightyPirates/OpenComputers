@@ -93,17 +93,4 @@ class Computer(val parent: Delegator) extends Delegate {
     }
     else false
   }
-
-  // ----------------------------------------------------------------------- //
-  // Block rotation
-  // ----------------------------------------------------------------------- //
-
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
-
-  /** Avoid creating new arrays. */
-  private val validRotations = Array(
-    ForgeDirection.SOUTH,
-    ForgeDirection.WEST,
-    ForgeDirection.NORTH,
-    ForgeDirection.EAST)
 }

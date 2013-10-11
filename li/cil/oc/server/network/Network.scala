@@ -29,6 +29,9 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   // ----------------------------------------------------------------------- //
 
   override def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+    if (nodeA == nodeB) throw new IllegalArgumentException(
+      "Cannot connect a node to itself.")
+
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
 
@@ -195,7 +198,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       val newNode = addNew(addedNode)
       Network.Edge(oldNode, newNode)
       if (addedNode.address.isDefined) addedNode.visibility match {
-        case Visibility.None => // Nothing to do.
+        case Visibility.None =>
+          sendQueue += ((Network.ConnectMessage(addedNode), Iterable(addedNode)))
         case Visibility.Neighbors =>
           sendQueue += ((Network.ConnectMessage(addedNode), Iterable(addedNode) ++ neighbors(addedNode)))
           nodes(addedNode).foreach(node => sendQueue += ((new Network.ConnectMessage(node), Iterable(addedNode))))

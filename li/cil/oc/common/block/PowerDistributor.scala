@@ -38,16 +38,5 @@ class PowerDistributor(val parent: Delegator) extends Delegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.PowerDistributor)
-
-  // ----------------------------------------------------------------------- //
-
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
-
-  /** Avoid creating new arrays. */
-  private val validRotations = Array(
-    ForgeDirection.SOUTH,
-    ForgeDirection.WEST,
-    ForgeDirection.NORTH,
-    ForgeDirection.EAST)
 }
 

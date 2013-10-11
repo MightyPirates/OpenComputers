@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -11,7 +10,6 @@ import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.common.RotationHelper
 
 /** The base class on which all our blocks are built. */
 trait Delegate {
@@ -42,8 +40,7 @@ trait Delegate {
 
   def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
-  def getValidRotations(world: World, x: Int, y: Int, z: Int) =
-    RotationHelper.getValidVanillaBlockRotations(Block.stone)
+  def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
 
   def hasTileEntity = false
 
@@ -77,4 +74,12 @@ trait Delegate {
 
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.isBlockOpaqueCube(x, y, z)
+
+  // ----------------------------------------------------------------------- //
+
+  private val validRotations = Array(
+    ForgeDirection.SOUTH,
+    ForgeDirection.WEST,
+    ForgeDirection.NORTH,
+    ForgeDirection.EAST)
 }
