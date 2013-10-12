@@ -1,3 +1,4 @@
+oc.block.Adapter.name=Adapter
 oc.block.Computer.name=Computer
 oc.block.Keyboard.name=Keyboard
 oc.block.Screen.name=Screen
@@ -9,4 +10,5 @@ oc.item.HardDiskDrive8m.name=Hard Disk Drive (8MB)
 oc.item.Memory128k.name=RAM (128KB)
 oc.item.Memory32k.name=RAM (32KB)
 oc.item.Memory64k.name=RAM (64KB)
+oc.item.NetworkCard.name=Network Card
 oc.item.RedstoneCard.name=Redstone Card

@@ -113,5 +113,5 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   }
 
   private def hasRedstoneCard =
-    !inventory.isEmpty && inventory.exists(item => item != null && driver.Redstone.worksWith(item))
+    !inventory.isEmpty && inventory.exists(item => item != null && driver.RedstoneCard.worksWith(item))
 }

@@ -23,9 +23,9 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
   var addedToEnet = false
   var powerHandler: PowerHandler = null
 
-  override def name = "powersupply"
+  override val name = "powersupply"
 
-  override def visibility = Visibility.Network
+  override val visibility = Visibility.Network
 
   override def onChunkUnload() {
     super.onChunkUnload()

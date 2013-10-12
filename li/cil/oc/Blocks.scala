@@ -13,6 +13,8 @@ object Blocks {
   var powerSupply: PowerSupply = null
   var powerDistributor: PowerDistributor = null
 
+  var adapter: Adapter = null
+
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
@@ -26,5 +28,7 @@ object Blocks {
 
     powerSupply = new PowerSupply(blockSimple)
     powerDistributor = new PowerDistributor(blockSimple)
+
+    adapter = new Adapter(blockSimple)
   }
 }

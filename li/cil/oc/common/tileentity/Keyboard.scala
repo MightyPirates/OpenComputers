@@ -6,9 +6,9 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
 class Keyboard extends Rotatable with Node {
-  override def name = "keyboard"
+  override val name = "keyboard"
 
-  override def visibility = Visibility.Network
+  override val visibility = Visibility.Network
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

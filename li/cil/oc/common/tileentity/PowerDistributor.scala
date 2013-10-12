@@ -13,15 +13,15 @@ class PowerDistributor extends Rotatable with PoweredNode {
   var storedEnergy = 0
   var MAXENERGY = 2000
 
-  override def name = "powerdistributor"
+  override val name = "powerdistributor"
 
-  override def visibility = Visibility.Network
+  override val visibility = Visibility.Network
 
 
   override def receive(message: Message): Option[Array[Any]] = {
     if (message.source != this)
     {message.name match {
-      case "network.connect" => {
+      case "system.connect" => {
         message.source match {
           case distributor: PowerDistributor =>
             //if other powerDistributor connected and is active set inactive
@@ -44,7 +44,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
           case _ =>
         }
       }
-      case "network.disconnect" => {
+      case "system.disconnect" => {
         message.source match {
           case distributor: PowerDistributor =>
             println("distri disc recieved")

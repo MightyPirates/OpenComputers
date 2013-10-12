@@ -153,6 +153,12 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       }
     }
 
+  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case None => 0
+      case Some(subBlock) => subBlock.getLightValue(world, x, y, z)
+    }
+
   override def getIcon(side: Int, metadata: Int) =
     subBlock(metadata) match {
       case None => super.getIcon(side, metadata)

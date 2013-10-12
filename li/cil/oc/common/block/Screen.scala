@@ -73,7 +73,6 @@ class Screen(val parent: Delegator) extends Delegate {
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
 
-  /** Avoid creating new arrays. */
   private val validRotations = Array(
     ForgeDirection.DOWN,
     ForgeDirection.UP,
