@@ -2,6 +2,7 @@ package li.cil.oc.api.network
 
 import li.cil.oc.common.tileentity.PowerDistributor
 import scala.collection.mutable
+import li.cil.oc.api.network.Node
 
 
 trait PoweredNode extends Node {
@@ -14,7 +15,7 @@ trait PoweredNode extends Node {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")
-            if (powerDistributors.contains(istributor)) {
+            if (powerDistributors.contains(distributor)) {
               powerDistributors += distributor
               distributor.connectNode(this, _demand, _priority)
             }
@@ -64,7 +65,8 @@ trait PoweredNode extends Node {
 
 
   def main: PowerDistributor = {
-    powerDistributors.filter(p => p.isActive).foreach(f => return f)
+    null
+    //powerDistributors.filter(p => p.isActive).foreach(f => return f)
 
 
   }

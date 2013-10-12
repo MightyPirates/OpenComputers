@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{PoweredNode, Message, Visibility}
 import scala.collection.mutable
+import li.cil.oc.common.tileentity.Rotatable
 
 
 class PowerDistributor extends Rotatable with PoweredNode {
@@ -38,7 +39,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
             //received request from other distributor that is newly connected... set it to inactive
 
             if (isActive ) {
-              distributor.isActive = false
+              return Result
             }
           case _ =>
         }
@@ -80,7 +81,7 @@ class PowerDistributor extends Rotatable with PoweredNode {
    * @param demand
    */
   def updateDemand(node: PoweredNode, demand: Int) {
-    energyStorageList.fi(n => n.node == node).foreach(n => {
+    energyStorageList.filter(n => n.node == node).foreach(n => {
       energyDemand -= n.amount
       energyDemand += demand
       n.amount = demand

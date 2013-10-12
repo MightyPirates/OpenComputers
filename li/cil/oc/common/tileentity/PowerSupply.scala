@@ -46,7 +46,7 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
       onLoaded()
     }
     if (!FMLCommonHandler.instance.getEffectiveSide.isClient) {
-      main.addEnergy(getPowerProvider().useEnergy(1, main.getDemand.toFloat / 5.0f, true) * 5)
+      main.addEnergy((getPowerProvider().useEnergy(1, main.getDemand.toFloat / 5.0f, true) * 5).toInt)
 
     }
   }
@@ -54,13 +54,13 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     getPowerProvider().readFromNBT(nbt)
-    storedEnergy = nbt.getDouble("storedEnergy")
+
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
     getPowerProvider().writeToNBT(nbt)
-    nbt.setDouble("storedEnergy", storedEnergy)
+
 
   }
 
@@ -105,8 +105,9 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @return Energy not consumed (leftover)
    */
   override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
-    lastInjectedEnergy = amount * 2
-    main.addEnergy(amount*2)
+    lastInjectedEnergy = amount * 2.0
+    main.addEnergy((amount*2.0).toInt)
+    0
   }
 
   /**
@@ -193,7 +194,7 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
 
     if (doReceive) {
       val energy = receive.getWatts() / 0.2F
-      main.addEnergy(energy)
+      main.addEnergy(energy.toInt)
     }
     receive.getWatts()
   }
