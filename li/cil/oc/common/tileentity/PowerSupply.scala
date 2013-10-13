@@ -43,6 +43,7 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
 
   override def updateEntity() {
     super.updateEntity()
+    update()
     if (!addedToEnet) {
       onLoaded()
     }
@@ -93,7 +94,6 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
 
     val needed = powerDemand
     if (needed > lastInjectedEnergy || needed > (maxEnergy / 2.0)) {
-      println("demand " + (needed / 2))
       return needed / 2
     }
     0.0

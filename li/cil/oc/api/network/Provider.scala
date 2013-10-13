@@ -1,15 +1,33 @@
 package li.cil.oc.api.network
 
 import scala.collection.mutable
+import net.minecraft.nbt.NBTTagCompound
 
 
 trait Provider extends  Node{
 
   var isActive = false
+  var updateNodes = false
   var energyDemand =0.0
   var storedEnergy =0.0
-  var MAXENERGY :Double
+  var MAXENERGY :Double =2000.0
+
+
   var energyStorageList = mutable.Set[EnergyStorage]()
+
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
+    storedEnergy = nbt.getDouble("storedEnergy")
+
+  }
+
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
+    nbt.setDouble("storedEnergy",storedEnergy)
+
+
+  }
+
   override def receive(message: Message): Option[Array[Any]] = {
     if (message.source != this) {
       message.name match {
@@ -19,7 +37,6 @@ trait Provider extends  Node{
               //if other powerDistributor connected and is active set inactive
               if (distributor.isActive) {
                 isActive = false
-
                 println("demand now (disabled) " + 0)
               }
             case _ =>
@@ -40,9 +57,7 @@ trait Provider extends  Node{
             case distributor: Provider =>
               println("distri disc recieved")
               if (distributor.isActive) {
-
                 searchMain()
-
               }
             case _ =>
           }
@@ -55,10 +70,16 @@ trait Provider extends  Node{
 
   }
 
-  def connectNode(node: Receiver, amount: Int, priority: Int) {
-    if (energyStorageList.filter(x => x.node == node).isEmpty) {
-      energyStorageList += new EnergyStorage(node, amount, priority)
+  /**
+   * Connect a reciever to the provider
+   * @param receiver
+   * @param amount
+   */
+  def connectNode(receiver: Receiver, amount: Double) {
+    if (energyStorageList.filter(x => x.node == receiver).isEmpty) {
+      energyStorageList += new EnergyStorage(receiver, amount)
       energyDemand += amount
+      updateNodes = true
     }
 
     if (isActive)
@@ -67,11 +88,11 @@ trait Provider extends  Node{
 
   /**
    * Updates the demand of the node to the given value
-   * @param node
+   * @param receiver
    * @param demand
    */
-  def updateDemand(node: Receiver, demand: Int) {
-    energyStorageList.filter(n => n.node == node).foreach(n => {
+  def updateDemand(receiver: Receiver, demand: Double) {
+    energyStorageList.filter(n => n.node == receiver).foreach(n => {
       energyDemand -= n.amount
       energyDemand += demand
       n.amount = demand
@@ -80,15 +101,20 @@ trait Provider extends  Node{
       println("demand now (update)" + energyDemand)
   }
 
-  def disconnectNode(node: Receiver) {
+  def disconnectNode(receiver: Receiver) {
     energyStorageList.clone().foreach(e => {
-      if (e == null || node == null) {
+      if (e == null || receiver == null) {
         println("something null")
 
       }
-      else if (e.node == node) {
+      else if (e.node == receiver) {
         energyStorageList -= e
         energyDemand -= e.amount
+        if(isActive)
+        {
+          receiver.unConnect()
+          updateNodes = true
+        }
       }
 
     })
@@ -102,16 +128,33 @@ trait Provider extends  Node{
     super.onConnect()
   }
 
-
-   def update() {
-    //super.updateEntity()
+   private var hasEnergy = false
+   override def update() {
+    super.update()
+     //check if is main
     if (isActive) {
+      //if enough energy is available to supply all recievers
       if(storedEnergy>energyDemand){
         storedEnergy-=energyDemand
+        if(!hasEnergy)
+          updateNodes = true
+        hasEnergy = true
         println("energy level now "+storedEnergy)
       }
+      else{
+        if(hasEnergy)
+          updateNodes = true
+        hasEnergy = false
+      }
+      //if nodes must be updated send message to them
+      if(updateNodes){
+         if(hasEnergy)
+           energyStorageList.foreach(storage=>storage.node.connect())
+         else
+           energyStorageList.foreach(storage=>storage.node.unConnect())
+        updateNodes = false
+      }
     }
-    //TODO remove energy
   }
 
   def getDemand = {
@@ -133,13 +176,13 @@ trait Provider extends  Node{
       case _ => {
         println("no other")
         isActive = true
-
+        updateNodes = true
         println("demand now (new main) " + energyDemand)
       }
     })
   }
 
-  class EnergyStorage(var node: Receiver, var amount: Int) {
+  class EnergyStorage(var node: Receiver, var amount: Double) {
 
   }
 }
