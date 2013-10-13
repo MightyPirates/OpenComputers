@@ -3,13 +3,23 @@ driver.network = {}
 function driver.network.open(card, port)
   checkArg(1, card, "string")
   checkArg(2, port, "number")
+  return send(card, "network.open=", port)
+end
+
+function driver.network.isOpen(card, port)
+  checkArg(1, card, "string")
+  checkArg(2, port, "number")
   return send(card, "network.open", port)
 end
 
 function driver.network.close(card, port)
   checkArg(1, card, "string")
-  checkArg(2, port, "number")
-  return send(card, "network.close", port)
+  if port then
+    checkArg(2, port, "number")
+    return send(card, "network.close", port)
+  else
+    return send(card, "network.close")
+  end
 end
 
 function driver.network.send(card, target, port, ...)

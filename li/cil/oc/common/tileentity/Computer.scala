@@ -60,11 +60,17 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def updateEntity() = if (!worldObj.isRemote) {
     computer.update()
+
     if (hasChanged.get)
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
     if (isRunning != computer.isRunning)
       ServerPacketSender.sendComputerState(this, computer.isRunning)
     isRunning = computer.isRunning
+
+    for (component <- itemComponents) component match {
+      case Some(node) => node.update()
+      case _ => // Empty.
+    }
   }
 
   override def validate() = {
