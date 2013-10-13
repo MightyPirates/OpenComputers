@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.PoweredNode
+import li.cil.oc.api.network.Receiver
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component.ScreenEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen extends Rotatable with ScreenEnvironment with PoweredNode {
+class Screen extends Rotatable with ScreenEnvironment with Receiver {
   var guiScreen: Option[gui.Screen] = None
 
   /** Read and reset to false from the tile entity renderer. */

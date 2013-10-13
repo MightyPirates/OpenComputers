@@ -1,11 +1,11 @@
 package li.cil.oc.api.network
 
 import li.cil.oc.common.tileentity.PowerDistributor
+import li.cil.oc.api.network.{Visibility, Node, Message}
 import scala.collection.mutable
-import li.cil.oc.api.network.Node
 
 
-trait PoweredNode extends Node {
+trait Receiver extends Node {
   var powerDistributors = mutable.Set[PowerDistributor]()
 
 
@@ -15,9 +15,9 @@ trait PoweredNode extends Node {
         message.source match {
           case distributor: PowerDistributor => {
             println("connect")
-            if (powerDistributors.contains(distributor)) {
+            if (!powerDistributors.contains(distributor)) {
               powerDistributors += distributor
-              distributor.connectNode(this, _demand, _priority)
+              distributor.connectNode(this, _demand)
             }
           }
           case _ =>
@@ -59,16 +59,17 @@ trait PoweredNode extends Node {
     _demand = value
   }
 
-  private var _priority = 0
-
-  def priority = _priority
-
 
   def main: PowerDistributor = {
-    null
-    //powerDistributors.filter(p => p.isActive).foreach(f => return f)
+    powerDistributors.find(p => p.isActive) match {
+      case Some(p:PowerDistributor) => p
+      case _=> null
+    }
 
 
   }
+
+  def onPowerAvailable()
+  def onPowerLoss()
 }
 

@@ -1,7 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import net.minecraft.tileentity.TileEntity
-import li.cil.oc.api.network.{PoweredNode, Visibility}
+import li.cil.oc.api.network._
+
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import cpw.mods.fml.common.FMLCommonHandler
@@ -19,7 +20,7 @@ import universalelectricity.core.electricity.ElectricityPack
  * Time: 20:37
  * To change this template use File | Settings | File Templates.
  */
-class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowerReceptor with IElectrical {
+class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerReceptor with IElectrical {
   var addedToEnet = false
   var powerHandler: PowerHandler = null
 
@@ -46,7 +47,8 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
       onLoaded()
     }
     if (!FMLCommonHandler.instance.getEffectiveSide.isClient) {
-      main.addEnergy((getPowerProvider().useEnergy(1, main.getDemand.toFloat / 5.0f, true) * 5).toInt)
+
+      addEnergy((getPowerProvider().useEnergy(1, powerDemand.toFloat / 5.0f, true) * 5).toDouble)
 
     }
   }
@@ -88,10 +90,14 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @return max accepted input in eu
    */
   override def demandedEnergyUnits: Double = {
-    val needed = main.getDemand
-    if (needed > lastInjectedEnergy || needed > main.MAXENERGY / 2)
+
+    val needed = powerDemand
+    if (needed > lastInjectedEnergy || needed > (maxEnergy / 2.0)) {
+      println("demand " + (needed / 2))
       return needed / 2
-    0
+    }
+    0.0
+
   }
 
   /**
@@ -106,7 +112,7 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    */
   override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
     lastInjectedEnergy = amount * 2.0
-    main.addEnergy((amount*2.0).toInt)
+    addEnergy(amount * 2.0)
     0
   }
 
@@ -193,10 +199,10 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
     if (receive == null) return 0.0F
 
     if (doReceive) {
-      val energy = receive.getWatts() / 0.2F
-      main.addEnergy(energy.toInt)
+      val energy = receive.getWatts / 0.2F
+      addEnergy(energy.toDouble)
     }
-    receive.getWatts()
+    receive.getWatts
   }
 
   /**
@@ -214,7 +220,7 @@ class PowerSupply extends Rotatable with PoweredNode with IEnergySink with IPowe
    * @return How much energy does this TileEntity want?
    */
   def getRequest(direction: ForgeDirection): Float = {
-    val diff = Math.floor(main.getDemand * 0.2F)
+    val diff = Math.floor(powerDemand * 0.2F)
     diff.toFloat max 0
   }
 
