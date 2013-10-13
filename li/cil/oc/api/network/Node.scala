@@ -114,6 +114,20 @@ trait Node extends Persistable {
     None
   }
 
+  /**
+   * This is called once per tick, if the node is owned either by a computer
+   * (meaning it's an item component installed in a computer) or is managed by
+   * an adapter (meaning it was acquired via a block driver for a block whose
+   * tile entity is not a node).
+   * <p/>
+   * For nodes implemented directly in tile entities you should just call this
+   * from the tile entity's `updateEntity` function yourself, as necessary.
+   * <p/>
+   * When implementing an "inventory", i.e. something that holds item
+   * components, be sure to call `update` for the installed components' nodes.
+   */
+  def update() {}
+
   // ----------------------------------------------------------------------- //
 
   /**
