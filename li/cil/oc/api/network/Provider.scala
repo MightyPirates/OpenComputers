@@ -1,0 +1,188 @@
+package li.cil.oc.api.network
+
+import scala.collection.mutable
+import net.minecraft.nbt.NBTTagCompound
+
+
+trait Provider extends  Node{
+
+  var isActive = false
+  var updateNodes = false
+  var energyDemand =0.0
+  var storedEnergy =0.0
+  var MAXENERGY :Double =2000.0
+
+
+  var energyStorageList = mutable.Set[EnergyStorage]()
+
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
+    storedEnergy = nbt.getDouble("storedEnergy")
+
+  }
+
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
+    nbt.setDouble("storedEnergy",storedEnergy)
+
+
+  }
+
+  override def receive(message: Message): Option[Array[Any]] = {
+    if (message.source != this) {
+      message.name match {
+        case "system.connect" => {
+          message.source match {
+            case distributor: Provider =>
+              //if other powerDistributor connected and is active set inactive
+              if (distributor.isActive) {
+                isActive = false
+                println("demand now (disabled) " + 0)
+              }
+            case _ =>
+          }
+        }
+        case "power.find" => {
+          message.source match {
+            case distributor: Provider =>
+              if (isActive) {
+                message.cancel()
+                return result(this)
+              }
+            case _ =>
+          }
+        }
+        case "system.disconnect" => {
+          message.source match {
+            case distributor: Provider =>
+              println("distri disc recieved")
+              if (distributor.isActive) {
+                searchMain()
+              }
+            case _ =>
+          }
+
+        }
+        case _ => // Ignore.
+      }
+    }
+    super.receive(message)
+
+  }
+
+  /**
+   * Connect a reciever to the provider
+   * @param receiver
+   * @param amount
+   */
+  def connectNode(receiver: Receiver, amount: Double) {
+    if (energyStorageList.filter(x => x.node == receiver).isEmpty) {
+      energyStorageList += new EnergyStorage(receiver, amount)
+      energyDemand += amount
+      updateNodes = true
+    }
+
+    if (isActive)
+      println("demand now (connect)" + energyDemand)
+  }
+
+  /**
+   * Updates the demand of the node to the given value
+   * @param receiver
+   * @param demand
+   */
+  def updateDemand(receiver: Receiver, demand: Double) {
+    energyStorageList.filter(n => n.node == receiver).foreach(n => {
+      energyDemand -= n.amount
+      energyDemand += demand
+      n.amount = demand
+    })
+    if (isActive)
+      println("demand now (update)" + energyDemand)
+  }
+
+  def disconnectNode(receiver: Receiver) {
+    energyStorageList.clone().foreach(e => {
+      if (e == null || receiver == null) {
+        println("something null")
+
+      }
+      else if (e.node == receiver) {
+        energyStorageList -= e
+        energyDemand -= e.amount
+        if(isActive)
+        {
+          receiver.unConnect()
+          updateNodes = true
+        }
+      }
+
+    })
+    if (isActive)
+      println("demand now (disc) " + energyDemand)
+  }
+
+  override protected def onConnect() {
+    //check if other distributors already are in the network
+    searchMain()
+    super.onConnect()
+  }
+
+   private var hasEnergy = false
+   override def update() {
+    super.update()
+     //check if is main
+    if (isActive) {
+      //if enough energy is available to supply all recievers
+      if(storedEnergy>energyDemand){
+        storedEnergy-=energyDemand
+        if(!hasEnergy)
+          updateNodes = true
+        hasEnergy = true
+        println("energy level now "+storedEnergy)
+      }
+      else{
+        if(hasEnergy)
+          updateNodes = true
+        hasEnergy = false
+      }
+      //if nodes must be updated send message to them
+      if(updateNodes){
+         if(hasEnergy)
+           energyStorageList.foreach(storage=>storage.node.connect())
+         else
+           energyStorageList.foreach(storage=>storage.node.unConnect())
+        updateNodes = false
+      }
+    }
+  }
+
+  def getDemand = {
+    MAXENERGY - storedEnergy max 0.0
+  }
+
+  def addEnergy(amount: Double) {
+    storedEnergy += amount
+
+
+  }
+
+  def searchMain() {
+    network.foreach(_.sendToVisible(this, "power.find") match {
+      case Some(Array(powerDistributor: Provider)) => {
+        println("found other distri")
+        isActive = false
+      }
+      case _ => {
+        println("no other")
+        isActive = true
+        updateNodes = true
+        println("demand now (new main) " + energyDemand)
+      }
+    })
+  }
+
+  class EnergyStorage(var node: Receiver, var amount: Double) {
+
+  }
+}

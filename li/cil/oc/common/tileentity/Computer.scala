@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.PoweredNode
+import li.cil.oc.api.network.Receiver
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Redstone
@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone with PoweredNode {
+class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone with Receiver {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -65,7 +65,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def updateEntity() = if (!worldObj.isRemote) {
     computer.update()
-
+    update()
     if (hasChanged.get)
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
     if (isRunning != computer.isRunning)
