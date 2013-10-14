@@ -1,9 +1,9 @@
-package li.cil.oc.client
+package li.cil.oc.util
 
 import net.minecraft.client.renderer.OpenGlHelper
 import org.lwjgl.opengl.{ARBMultitexture, GLContext, GL11, GL13}
 
-object RenderUtil {
+object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
 
   def disableLighting() {

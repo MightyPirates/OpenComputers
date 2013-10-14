@@ -44,6 +44,7 @@ trait Item extends Driver {
    * driver supports may go. This will only be called if a previous call to
    * `worksWith` with the same item type returned true.
    *
+   * @param item the item to get the slot type for.
    * @return the component type of the specified item.
    */
   def slot(item: ItemStack): Slot.Value

@@ -95,13 +95,6 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def close() = {
-    super.close()
-    root.children.clear()
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override protected def openInputStream(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualFile) => obj.openInputStream()

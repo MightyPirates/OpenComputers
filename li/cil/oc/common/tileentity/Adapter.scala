@@ -6,6 +6,7 @@ import li.cil.oc.api.network.{Message, Visibility, Node}
 import li.cil.oc.server.driver
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
+import net.minecraft.nbt.NBTTagCompound
 
 class Adapter extends Rotatable with Node with IPeripheral {
   val name = "adapter"
@@ -69,6 +70,19 @@ class Adapter extends Rotatable with Node with IPeripheral {
         }
       }
     }
+  }
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    load(nbt.getCompoundTag("node"))
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+
+    val nodeNbt = new NBTTagCompound
+    save(nodeNbt)
+    nbt.setCompoundTag("node", nodeNbt)
   }
 
   // ----------------------------------------------------------------------- //

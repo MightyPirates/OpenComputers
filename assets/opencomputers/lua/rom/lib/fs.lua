@@ -23,7 +23,8 @@ end
 -------------------------------------------------------------------------------
 
 local function onComponentAdded(_, address)
-  if component.type(address) == "filesystem" and
+  local componentType = component.type(address)
+  if (componentType == "filesystem" or componentType == "disk_drive") and
      address ~= os.romAddress() and
      address ~= os.tmpAddress()
   then
@@ -44,7 +45,8 @@ local function onComponentAdded(_, address)
 end
 
 local function onComponentRemoved(_, address)
-  if component.type(address) == "filesystem" then
+  local componentType = component.type(address)
+  if componentType == "filesystem" or componentType == "disk_drive" then
     fs.umount(address)
   end
 end

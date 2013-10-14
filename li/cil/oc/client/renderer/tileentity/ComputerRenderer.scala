@@ -1,4 +1,4 @@
-package li.cil.oc.client
+package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity.Computer
@@ -8,6 +8,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
+import li.cil.oc.util.RenderState
 
 object ComputerRenderer extends TileEntitySpecialRenderer {
   private val frontOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/computer_front_on.png")
@@ -17,8 +18,8 @@ object ComputerRenderer extends TileEntitySpecialRenderer {
     if (computer.isOn) {
       GL11.glPushAttrib(0xFFFFFF)
 
-      RenderUtil.disableLighting()
-      RenderUtil.makeItBlend()
+      RenderState.disableLighting()
+      RenderState.makeItBlend()
 
       GL11.glPushMatrix()
 

@@ -11,11 +11,7 @@ object NetworkCard extends driver.Item {
 
   def worksWith(item: ItemStack) = WorksWith(Items.lan)(item)
 
-  def slot(item: ItemStack) = Slot.PCI
+  def slot(item: ItemStack) = Slot.Card
 
-  override def node(item: ItemStack) = {
-    val instance = new component.NetworkCard()
-    instance.load(nbt(item))
-    Some(instance)
-  }
+  override def node(item: ItemStack) = Some(new component.NetworkCard())
 }

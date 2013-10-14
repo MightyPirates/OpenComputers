@@ -14,6 +14,7 @@ object Blocks {
   var powerDistributor: PowerDistributor = null
 
   var adapter: Adapter = null
+  var diskDrive: DiskDrive = null
 
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -30,5 +31,6 @@ object Blocks {
     powerDistributor = new PowerDistributor(blockSimple)
 
     adapter = new Adapter(blockSimple)
+    diskDrive = new DiskDrive(blockSimple)
   }
 }

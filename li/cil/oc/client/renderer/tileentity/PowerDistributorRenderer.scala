@@ -1,4 +1,4 @@
-package li.cil.oc.client
+package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity
@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
+import li.cil.oc.util.RenderState
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
   private val sideOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/power_distributor_on.png")
@@ -16,8 +17,8 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
     if (distributor.isActive) {
       GL11.glPushAttrib(0xFFFFFF)
 
-      RenderUtil.disableLighting()
-      RenderUtil.makeItBlend()
+      RenderState.disableLighting()
+      RenderState.makeItBlend()
 
       GL11.glPushMatrix()
 

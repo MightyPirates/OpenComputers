@@ -209,10 +209,12 @@ trait FileSystem extends Persistable {
   def file(handle: Int): Option[Handle]
 
   /**
-   * Called when the file system is deconstructed.
+   * Called when the file system is close.
    * <p/>
-   * This should close any open real file handles (e.g. all open I/O streams)
-   * and clear any other internal state.
+   * This should close any open real file handles (e.g. all open I/O streams),
+   * but keep any internal state that may have to be persisted, for example
+   * for floppy disks (which are removed before they are saved so they don't
+   * save any open handles).
    * <p/>
    * When the filesystem is made available as a network node created via
    * `FileSystem.asNode` this will be called whenever the node is disconnected

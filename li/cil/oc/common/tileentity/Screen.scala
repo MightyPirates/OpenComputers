@@ -15,15 +15,15 @@ class Screen extends Rotatable with ScreenEnvironment with PoweredNode {
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("data"))
+    load(nbt.getCompoundTag("node"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
 
-    val dataNbt = new NBTTagCompound
-    save(dataNbt)
-    nbt.setCompoundTag("data", dataNbt)
+    val nodeNbt = new NBTTagCompound
+    save(nodeNbt)
+    nbt.setCompoundTag("node", nodeNbt)
   }
 
   override def validate() = {

@@ -4,7 +4,7 @@ import li.cil.oc.Config
 import net.minecraft.client.renderer.texture.IconRegister
 
 class NetworkCard(val parent: Delegator) extends Delegate {
-  def unlocalizedName = "NetworkCard"
+  val unlocalizedName = "NetworkCard"
 
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)

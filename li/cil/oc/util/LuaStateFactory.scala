@@ -99,7 +99,7 @@ object LuaStateFactory {
   // ----------------------------------------------------------------------- //
 
   def createState(): Option[LuaState] = {
-    val state = new LuaState(Integer.MAX_VALUE)
+    val state = new LuaState(Int.MaxValue)
     try {
       // Load all libraries.
       state.openLib(LuaState.Library.BASE)

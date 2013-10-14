@@ -109,9 +109,10 @@ end
 function event.wait(seconds)
   seconds = seconds or 0/0
   checkArg(1, seconds, "number")
-  local target = os.uptime() + (seconds == seconds and seconds or 0)
+  local function isNaN(n) return n ~= n end
+  local target = os.uptime() + (isNaN(seconds) and 0 or seconds)
   repeat
-    local closest = seconds == seconds and target or math.huge
+    local closest = isNaN(seconds) and math.huge or target
     for _, info in pairs(timers) do
       if info.after < closest then
         closest = info.after

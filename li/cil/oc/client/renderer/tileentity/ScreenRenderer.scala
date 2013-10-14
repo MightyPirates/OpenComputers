@@ -1,4 +1,4 @@
-package li.cil.oc.client
+package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListener}
 import cpw.mods.fml.common.{TickType, ITickHandler}
@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.{GL14, GL11}
+import li.cil.oc.util.RenderState
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
 
@@ -52,8 +53,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     GL11.glPushAttrib(0xFFFFFF)
 
-    RenderUtil.disableLighting()
-    RenderUtil.makeItBlend()
+    RenderState.disableLighting()
+    RenderState.makeItBlend()
 
     GL11.glPushMatrix()
 

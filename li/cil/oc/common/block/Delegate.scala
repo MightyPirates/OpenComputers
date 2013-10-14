@@ -13,9 +13,9 @@ import net.minecraftforge.common.ForgeDirection
 
 /** The base class on which all our blocks are built. */
 trait Delegate {
-  def parent: Delegator
+  val parent: Delegator
 
-  def unlocalizedName: String
+  val unlocalizedName: String
 
   val blockId = parent.add(this)
 

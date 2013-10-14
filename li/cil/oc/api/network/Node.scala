@@ -76,7 +76,7 @@ trait Node extends Persistable {
    * they have is to *not* have an address, which can be useful for "dummy"
    * nodes, such as cables. In that case they may ignore the address being set.
    */
-  var address: Option[String] = None
+  final var address: Option[String] = None
 
   /**
    * The network this node is currently in.
@@ -88,7 +88,7 @@ trait Node extends Persistable {
    * This will always be set automatically by the network manager. Do not
    * change this value and do not return anything that it wasn't set to.
    */
-  var network: Option[Network] = None
+  final var network: Option[Network] = None
 
   /**
    * Makes the node handle a message.
@@ -183,7 +183,7 @@ trait Node extends Persistable {
    * @param args the values to return.
    * @return and array option as required by `receive`.
    */
-  protected def result(args: Any*): Option[Array[Any]] = {
+  final protected def result(args: Any*): Option[Array[Any]] = {
     def unwrap(arg: Any): AnyRef = arg match {
       case x: ScalaNumber => x.underlying
       case x => x.asInstanceOf[AnyRef]

@@ -7,9 +7,9 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 
 trait Delegate {
-  def parent: Delegator
+  val parent: Delegator
 
-  def unlocalizedName: String
+  val unlocalizedName: String
 
   val itemId = parent.add(this)
 
@@ -23,7 +23,7 @@ trait Delegate {
 
   def icon: Option[Icon] = _icon
 
-  protected def icon_=(value: Icon) = _icon = Some(value)
+  protected def icon_=(value: Icon) = _icon = Option(value)
 
   def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack = item
 

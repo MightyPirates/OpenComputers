@@ -1,33 +1,23 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Items
-import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.{PoweredNode, Node}
-import li.cil.oc.common.item
-import li.cil.oc.server.component
+import li.cil.oc.api.driver
+import li.cil.oc.api.network.Node
 import li.cil.oc.server.driver.Registry
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
-trait ComponentInventory extends IInventory with PoweredNode {
-  protected val inventory = new Array[ItemStack](inventorySize)
-
-  protected val itemComponents = Array.fill[Option[Node]](inventorySize)(None)
-
-  protected val computer: component.Computer
+trait ComponentInventory extends Inventory with Node {
+  protected val components = Array.fill[Option[Node]](getSizeInventory)(None)
 
   def world: World
 
-  def inventorySize = 8
-
   // ----------------------------------------------------------------------- //
 
-  def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (Registry.driverFor(stack) match {
-    case Some(driver) if driver.slot(stack) == Slot.RAM => Items.multi.subItem(stack) match {
-      case Some(ram: item.Memory) => ram.kiloBytes * 1024
+  def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (stack match {
+    case Some(item) => Registry.driverFor(item) match {
+      case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
     case _ => 0
@@ -37,14 +27,16 @@ trait ComponentInventory extends IInventory with PoweredNode {
 
   override protected def onConnect() {
     super.onConnect()
-    for (node <- itemComponents.filter(_.isDefined).map(_.get))
-      network.foreach(_.connect(this, node))
+    components collect {
+      case Some(node) => network.foreach(_.connect(this, node))
+    }
   }
 
   override protected def onDisconnect() {
     super.onDisconnect()
-    for (node <- itemComponents.filter(_.isDefined).map(_.get))
-      node.network.foreach(_.remove(node))
+    components collect {
+      case Some(node) => node.network.foreach(_.remove(node))
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -56,32 +48,37 @@ trait ComponentInventory extends IInventory with PoweredNode {
       val slotNbt = list.tagAt(i).asInstanceOf[NBTTagCompound]
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < inventory.length) {
-        inventory(slot) = ItemStack.loadItemStackFromNBT(
-          slotNbt.getCompoundTag("item"))
-        itemComponents(slot) = Registry.driverFor(inventory(slot)) match {
-          case None => None
-          case Some(driver) => driver.node(inventory(slot))
+        val item = ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item"))
+        inventory(slot) = Some(item)
+        components(slot) = Registry.driverFor(item) match {
+          case Some(driver) =>
+            driver.node(item) match {
+              case Some(node) =>
+                node.load(driver.nbt(item))
+                Some(node)
+              case _ => None
+            }
+          case _ => None
         }
       }
     }
-    computer.recomputeMemory()
   }
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
     val list = new NBTTagList
-    inventory.zipWithIndex filter {
-      case (stack, slot) => stack != null
+    inventory.zipWithIndex collect {
+      case (Some(stack), slot) => (stack, slot)
     } foreach {
       case (stack, slot) => {
         val slotNbt = new NBTTagCompound
         slotNbt.setByte("slot", slot.toByte)
 
-        itemComponents(slot) match {
-          case None => // Nothing special to save.
+        components(slot) match {
           case Some(node) =>
             // We're guaranteed to have a driver for entries.
             node.save(Registry.driverFor(stack).get.nbt(stack))
+          case _ => // Nothing special to save.
         }
 
         val itemNbt = new NBTTagCompound
@@ -97,75 +94,27 @@ trait ComponentInventory extends IInventory with PoweredNode {
 
   def getInventoryStackLimit = 1
 
-  def getInvName = "oc.container.computer"
-
-  def getSizeInventory = inventory.length
-
-  def getStackInSlot(i: Int) = inventory(i)
-
-  def decrStackSize(slot: Int, amount: Int) = {
-    val stack = getStackInSlot(slot)
-    val result = if (stack == null)
-      null
-    else if (stack.stackSize <= amount) {
-      setInventorySlotContents(slot, null)
-      stack
-    }
-    else {
-      val subStack = stack.splitStack(amount)
-      if (stack.stackSize == 0) {
-        setInventorySlotContents(slot, null)
+  override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
+    Registry.driverFor(item) match {
+      case None => // No driver.
+      case Some(driver) => driver.node(item) match {
+        case None => // No node.
+        case Some(node) =>
+          components(slot) = Some(node)
+          node.load(driver.nbt(item))
+          network.foreach(_.connect(this, node))
       }
-      subStack
     }
-    onInventoryChanged()
-    result
   }
 
-  def getStackInSlotOnClosing(slot: Int) = null
-
-  def setInventorySlotContents(slot: Int, item: ItemStack) = {
+  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (!world.isRemote) {
     // Uninstall component previously in that slot.
-    if (!world.isRemote) itemComponents(slot) match {
-      case None => // Nothing to do.
+    components(slot) match {
       case Some(node) =>
-        itemComponents(slot) = None
+        components(slot) = None
         node.network.foreach(_.remove(node))
-        node.save(Registry.driverFor(inventory(slot)).get.nbt(inventory(slot)))
+        Registry.driverFor(item).foreach(driver => node.save(driver.nbt(item)))
+      case _ => // Nothing to do.
     }
-
-    inventory(slot) = item
-    if (item != null && item.stackSize > getInventoryStackLimit)
-      item.stackSize = getInventoryStackLimit
-
-    if (!world.isRemote) {
-      Registry.driverFor(inventory(slot)) match {
-        case None => // No driver.
-        case Some(driver) =>
-          driver.node(inventory(slot)) match {
-            case None => // No node.
-            case Some(node) =>
-              itemComponents(slot) = Some(node)
-              network.foreach(_.connect(this, node))
-          }
-      }
-    }
-
-    onInventoryChanged()
   }
-
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
-    case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.slot(item) == Slot.PSU
-    case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.PCI
-    case (4 | 5, Some(driver)) => driver.slot(item) == Slot.RAM
-    case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HDD
-    case _ => false // Invalid slot.
-  }
-
-  def isInvNameLocalized = false
-
-  def openChest() {}
-
-  def closeChest() {}
 }

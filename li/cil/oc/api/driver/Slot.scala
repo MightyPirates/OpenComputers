@@ -8,8 +8,18 @@ package li.cil.oc.api.driver
  * inside the computer, not next to it.
  */
 object Slot extends Enumeration {
-  val PSU = Value("PSU")
-  val RAM = Value("RAM")
-  val HDD = Value("HDD")
-  val PCI = Value("PCI")
+  /** Power generating components, such as generators. */
+  val Power = Value("Power")
+
+  /** Memory extension components. */
+  val Memory = Value("Memory")
+
+  /** Hard disk drives. */
+  val HardDiskDrive = Value("HardDiskDrive")
+
+  /** Extension cards such as graphics or redstone cards. */
+  val Card = Value("Card")
+
+  /** Floppy disks. */
+  val Disk = Value("Disk")
 }

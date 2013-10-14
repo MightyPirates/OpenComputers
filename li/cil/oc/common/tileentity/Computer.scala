@@ -1,16 +1,20 @@
 package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
+import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.network.PoweredNode
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Redstone
 import li.cil.oc.server.driver
+import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone {
+class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone with PoweredNode {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -45,15 +49,16 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("data"))
+    load(nbt.getCompoundTag("node"))
+    computer.recomputeMemory()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
 
-    val dataNbt = new NBTTagCompound
-    save(dataNbt)
-    nbt.setCompoundTag("data", dataNbt)
+    val nodeNbt = new NBTTagCompound
+    save(nodeNbt)
+    nbt.setCompoundTag("node", nodeNbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -67,7 +72,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
       ServerPacketSender.sendComputerState(this, computer.isRunning)
     isRunning = computer.isRunning
 
-    for (component <- itemComponents) component match {
+    for (component <- components) component match {
       case Some(node) => node.update()
       case _ => // Empty.
     }
@@ -82,6 +87,19 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   }
 
   // ----------------------------------------------------------------------- //
+
+  def getInvName = "oc.container.computer"
+
+  def getSizeInventory = 8
+
+  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
+    case (_, None) => false // Invalid item.
+    case (0, Some(driver)) => driver.slot(item) == Slot.Power
+    case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.Card
+    case (4 | 5, Some(driver)) => driver.slot(item) == Slot.Memory
+    case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
+    case _ => false // Invalid slot.
+  }
 
   override def isUseableByPlayer(player: EntityPlayer) =
     worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
@@ -118,6 +136,8 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
     else worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
   }
 
-  private def hasRedstoneCard =
-    !inventory.isEmpty && inventory.exists(item => item != null && driver.RedstoneCard.worksWith(item))
+  private def hasRedstoneCard = inventory.exists {
+    case Some(item) => driver.RedstoneCard.worksWith(item)
+    case _ => false
+  }
 }

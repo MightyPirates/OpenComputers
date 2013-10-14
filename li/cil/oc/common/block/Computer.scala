@@ -17,8 +17,6 @@ class Computer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Computer"
 
   // ----------------------------------------------------------------------- //
-  // Rendering stuff
-  // ----------------------------------------------------------------------- //
 
   private object Icons {
     val on = Array.fill[Icon](6)(null)
@@ -56,15 +54,11 @@ class Computer(val parent: Delegator) extends Delegate {
   }
 
   // ----------------------------------------------------------------------- //
-  // Tile entity
-  // ----------------------------------------------------------------------- //
 
   override def hasTileEntity = true
 
   override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Computer(world.isRemote))
 
-  // ----------------------------------------------------------------------- //
-  // Destruction / Interaction
   // ----------------------------------------------------------------------- //
 
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
@@ -77,8 +71,12 @@ class Computer(val parent: Delegator) extends Delegate {
     world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
-    if (!world.isRemote)
-      world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].turnOff()
+    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
+      case computer: tileentity.Computer =>
+        computer.turnOff()
+        computer.dropContent(world, x, y, z)
+      case _ => // Ignore.
+    }
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 

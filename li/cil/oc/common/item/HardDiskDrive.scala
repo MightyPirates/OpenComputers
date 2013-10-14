@@ -6,8 +6,8 @@ import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class Hdd(val parent: Delegator, val megaBytes: Int) extends Delegate {
-  def unlocalizedName = "HardDiskDrive" + megaBytes + "m"
+class HardDiskDrive(val parent: Delegator, val megaBytes: Int) extends Delegate {
+  val unlocalizedName = "HardDiskDrive" + megaBytes + "m"
 
   override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     super.addInformation(item, player, tooltip, advanced)

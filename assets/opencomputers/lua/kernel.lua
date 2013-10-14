@@ -180,7 +180,9 @@ local function main(args)
       debug.sethook(co, checkDeadline, "", 10000)
     end
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
-    if result[1] then
+    if coroutine.status(co) == "dead" then
+      error("computer stopped unexpectedly", 0)
+    elseif result[1] then
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
     else
       error(result[2], 0)

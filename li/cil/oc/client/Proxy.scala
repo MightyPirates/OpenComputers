@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
+import li.cil.oc.client.renderer.tileentity.{PowerDistributorRenderer, ScreenRenderer, ComputerRenderer}
 
 private[oc] class Proxy extends CommonProxy {
   override def init(e: FMLInitializationEvent) = {

@@ -11,11 +11,7 @@ object RedstoneCard extends driver.Item {
 
   override def worksWith(item: ItemStack) = WorksWith(Items.rs)(item)
 
-  override def slot(item: ItemStack) = Slot.PCI
+  override def slot(item: ItemStack) = Slot.Card
 
-  override def node(item: ItemStack) = {
-    val instance = new component.RedstoneCard()
-    instance.load(nbt(item))
-    Some(instance)
-  }
+  override def node(item: ItemStack) = Some(new component.RedstoneCard())
 }

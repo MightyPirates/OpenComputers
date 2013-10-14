@@ -28,15 +28,15 @@ class Keyboard extends Rotatable with Node {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("data"))
+    load(nbt.getCompoundTag("node"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
 
-    val dataNbt = new NBTTagCompound
-    save(dataNbt)
-    nbt.setCompoundTag("data", dataNbt)
+    val nodeNbt = new NBTTagCompound
+    save(nodeNbt)
+    nbt.setCompoundTag("node", nodeNbt)
   }
 
   def isUseableByPlayer(p: Player) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
