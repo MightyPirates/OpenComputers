@@ -6,10 +6,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.{Locale, Calendar}
-import li.cil.oc.Config
 import li.cil.oc.server.component.Computer
 import li.cil.oc.util.ExtendedLuaState._
+import li.cil.oc.{OpenComputers, Config}
+import org.lwjgl.LWJGLUtil
 import scala.util.Random
+import scala.util.control.Breaks._
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -23,24 +25,31 @@ object LuaStateFactory {
   // Initialization
   // ----------------------------------------------------------------------- //
 
+  /** Set to true in initialization code below if available. */
+  private var haveNativeLibrary = false
+
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
   // libraries compiled for that system. It also means we have to unpack the
   // shared libraries somewhere so that we can load them, because we cannot
   // load them directly from a JAR.
-  {
+  breakable {
     // See http://lopica.sourceforge.net/os.html
     val architecture = System.getProperty("os.arch").toLowerCase match {
       case "i386" | "x86" => "32"
       case "amd64" | "x86_64" => "64"
       case "ppc" | "powerpc" => "ppc"
-      case _ => ""
+      case _ =>
+        OpenComputers.log.warning("Unsupported architecture, you won't be able to host games with working computers.")
+        break()
     }
-    val extension = System.getProperty("os.name").toLowerCase match {
-      case name if name.startsWith("linux") => ".so"
-      case name if name.startsWith("windows") => ".dll"
-      case name if name.startsWith("mac") => ".dylib"
-      case _ => ""
+    val extension = LWJGLUtil.getPlatform match {
+      case LWJGLUtil.PLATFORM_LINUX => ".so"
+      case LWJGLUtil.PLATFORM_MACOSX => ".dylib"
+      case LWJGLUtil.PLATFORM_WINDOWS => ".dll"
+      case _ =>
+        OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
+        break()
     }
     val libPath = "/assets/" + Config.resourceDomain + "/lib/"
 
@@ -53,8 +62,10 @@ object LuaStateFactory {
     val library = "native." + architecture + extension
     val libraryUrl = classOf[Computer].getResource(libPath + library)
     if (libraryUrl == null) {
-      throw new NotImplementedError("Unsupported platform.")
+      OpenComputers.log.warning("Unsupported platform, you won't be able to host games with working computers.")
+      break()
     }
+
     // Found file with proper extension. Create a temporary file.
     val file = new File(tmpPath + library)
     // Try to delete an old instance of the library, in case we have an update
@@ -89,9 +100,17 @@ object LuaStateFactory {
     // just extracted.
     NativeSupport.getInstance().setLoader(new Loader {
       def load() {
-        System.load(libraryPath)
+        try {
+          System.load(libraryPath)
+        } catch {
+          case t: Throwable =>
+            haveNativeLibrary = false
+            throw t
+        }
       }
     })
+
+    haveNativeLibrary = true
   }
 
   // ----------------------------------------------------------------------- //
@@ -99,6 +118,8 @@ object LuaStateFactory {
   // ----------------------------------------------------------------------- //
 
   def createState(): Option[LuaState] = {
+    if (!haveNativeLibrary) return None
+
     val state = new LuaState(Int.MaxValue)
     try {
       // Load all libraries.
