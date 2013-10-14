@@ -3,15 +3,22 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network.PoweredNode
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component.ScreenEnvironment
+import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen extends Rotatable with ScreenEnvironment with PoweredNode {
+class Screen extends Rotatable with component.Screen.Environment with PoweredNode {
   var guiScreen: Option[gui.Screen] = None
 
-  /** Read and reset to false from the tile entity renderer. */
+  /**
+   * Read and reset to false from the tile entity renderer. This is used to
+   * keep rendering a little more efficient by compiling the displayed text
+   * into an OpenGL display list, and only re-compiling that list when the
+   * text/display has actually changed.
+   */
   var hasChanged = false
+
+  // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
@@ -32,8 +39,6 @@ class Screen extends Rotatable with ScreenEnvironment with PoweredNode {
       ClientPacketSender.sendScreenBufferRequest(this)
   }
 
-  // ----------------------------------------------------------------------- //
-  // IScreenEnvironment
   // ----------------------------------------------------------------------- //
 
   override def onScreenResolutionChange(w: Int, h: Int) = {

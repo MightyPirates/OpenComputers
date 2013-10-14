@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network.{Node, Visibility, Message}
-import li.cil.oc.common.component.ScreenEnvironment
+import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 
 class GraphicsCard extends Node {
@@ -21,7 +21,7 @@ class GraphicsCard extends Node {
         network.fold(None: Option[Array[Any]])(network => {
           network.node(new String(address, "UTF-8")) match {
             case None => result(Unit, "invalid address")
-            case Some(node: ScreenEnvironment) =>
+            case Some(node: component.Screen.Environment) =>
               screen = node.address
               result(true)
             case _ => result(Unit, "not a screen")

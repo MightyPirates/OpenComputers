@@ -33,7 +33,7 @@ function component.primary(componentType, ...)
     end
   else
     assert(component.isAvailable(componentType),
-      "no primary " .. componentType .. " available")
+      "no primary '" .. componentType .. "' available")
     return primaries[componentType]
   end
 end

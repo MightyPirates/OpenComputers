@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import scala.collection.mutable
 
 /**
  * This GUI shows the buffer of a single screen.
@@ -25,7 +26,9 @@ import org.lwjgl.opengl.GL11
 class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
   tileEntity.guiScreen = Some(this)
 
-  var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
+  private var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
+
+  private val pressedKeys = mutable.Map.empty[Int, Char]
 
   /** Must be called when the size of the underlying screen changes */
   def setSize(w: Double, h: Double) = {
@@ -53,18 +56,19 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
     super.handleKeyboardInput()
 
     val code = Keyboard.getEventKey
-    val char = Keyboard.getEventCharacter
-
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
       if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown) {
         if (Keyboard.getEventKeyState)
           PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
       }
       else if (Keyboard.getEventKeyState) {
+        val char = Keyboard.getEventCharacter
         PacketSender.sendKeyDown(tileEntity, char, code)
+        pressedKeys += code -> char
       }
-      else {
-        PacketSender.sendKeyUp(tileEntity, char, code)
+      else pressedKeys.remove(code) match {
+        case Some(char) => PacketSender.sendKeyUp(tileEntity, char, code)
+        case _ => // Wasn't pressed while viewing the screen.
       }
   }
 
@@ -85,6 +89,9 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
   override def onGuiClosed() = {
     super.onGuiClosed()
     tileEntity.guiScreen = None
+    for ((code, char) <- pressedKeys) {
+      PacketSender.sendKeyUp(tileEntity, char, code)
+    }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
