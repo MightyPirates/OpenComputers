@@ -31,7 +31,7 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
   private val pressedKeys = mutable.Map.empty[Int, Char]
 
   /** Must be called when the size of the underlying screen changes */
-  def setSize(w: Double, h: Double) = {
+  def changeSize(w: Double, h: Double) = {
     // Re-compute sizes and positions.
     val totalMargin = Screen.margin + Screen.innerMargin
     val bufferWidth = w * MonospaceFontRenderer.fontWidth
@@ -83,7 +83,7 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
     MonospaceFontRenderer.init(mc.renderEngine)
     Screen.init(mc.renderEngine)
     val (w, h) = tileEntity.screen.resolution
-    setSize(w, h)
+    changeSize(w, h)
   }
 
   override def onGuiClosed() = {

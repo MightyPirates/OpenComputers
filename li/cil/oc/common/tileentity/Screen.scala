@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.Receiver
+import li.cil.oc.api.power.Receiver
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
@@ -44,7 +44,7 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
   override def onScreenResolutionChange(w: Int, h: Int) = {
     super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
-      guiScreen.foreach(_.setSize(w, h))
+      guiScreen.foreach(_.changeSize(w, h))
       hasChanged = true
     }
     else {

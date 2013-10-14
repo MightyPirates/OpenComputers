@@ -1,34 +1,20 @@
-package li.cil.oc.api.network
+package li.cil.oc.api.power
 
-import scala.collection.mutable
+import li.cil.oc.api.network.{Message, Node}
 import net.minecraft.nbt.NBTTagCompound
+import scala.collection.mutable
 
-
-trait Provider extends  Node{
+trait Provider extends Node {
 
   var isActive = false
   var updateNodes = false
-  var energyDemand =0.0
-  var storedEnergy =0.0
-  var MAXENERGY :Double =2000.0
-
+  var energyDemand = 0.0
+  var storedEnergy = 0.0
+  var MAXENERGY: Double = 2000.0
 
   var energyStorageList = mutable.Set[EnergyStorage]()
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
-    storedEnergy = nbt.getDouble("storedEnergy")
-
-  }
-
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
-    nbt.setDouble("storedEnergy",storedEnergy)
-
-
-  }
-
-  override def receive(message: Message): Option[Array[Any]] = {
+  override def receive(message: Message): Option[Array[Any]] = super.receive(message) orElse {
     if (message.source != this) {
       message.name match {
         case "system.connect" => {
@@ -61,13 +47,27 @@ trait Provider extends  Node{
               }
             case _ =>
           }
-
         }
         case _ => // Ignore.
       }
     }
-    super.receive(message)
+    None
+  }
 
+  override protected def onConnect() {
+    //check if other distributors already are in the network
+    searchMain()
+    super.onConnect()
+  }
+
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
+    storedEnergy = nbt.getDouble("storedEnergy")
+  }
+
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
+    nbt.setDouble("storedEnergy", storedEnergy)
   }
 
   /**
@@ -76,7 +76,7 @@ trait Provider extends  Node{
    * @param amount
    */
   def connectNode(receiver: Receiver, amount: Double) {
-    if (energyStorageList.filter(x => x.node == receiver).isEmpty) {
+    if (!energyStorageList.exists(_.node == receiver)) {
       energyStorageList += new EnergyStorage(receiver, amount)
       energyDemand += amount
       updateNodes = true
@@ -110,9 +110,8 @@ trait Provider extends  Node{
       else if (e.node == receiver) {
         energyStorageList -= e
         energyDemand -= e.amount
-        if(isActive)
-        {
-          receiver.unConnect()
+        if (isActive) {
+          receiver.isReceivingPower = false
           updateNodes = true
         }
       }
@@ -122,36 +121,31 @@ trait Provider extends  Node{
       println("demand now (disc) " + energyDemand)
   }
 
-  override protected def onConnect() {
-    //check if other distributors already are in the network
-    searchMain()
-    super.onConnect()
-  }
+  private var hasEnergy = false
 
-   private var hasEnergy = false
-   override def update() {
+  override def update() {
     super.update()
-     //check if is main
+    //check if is main
     if (isActive) {
-      //if enough energy is available to supply all recievers
-      if(storedEnergy>energyDemand){
-        storedEnergy-=energyDemand
-        if(!hasEnergy)
+      //if enough energy is available to supply all receivers
+      if (storedEnergy > energyDemand) {
+        storedEnergy -= energyDemand
+        if (!hasEnergy)
           updateNodes = true
         hasEnergy = true
-        println("energy level now "+storedEnergy)
+        println("energy level now " + storedEnergy)
       }
-      else{
-        if(hasEnergy)
+      else {
+        if (hasEnergy)
           updateNodes = true
         hasEnergy = false
       }
       //if nodes must be updated send message to them
-      if(updateNodes){
-         if(hasEnergy)
-           energyStorageList.foreach(storage=>storage.node.connect())
-         else
-           energyStorageList.foreach(storage=>storage.node.unConnect())
+      if (updateNodes) {
+        if (hasEnergy)
+          energyStorageList.foreach(storage => storage.node.isReceivingPower = true)
+        else
+          energyStorageList.foreach(storage => storage.node.isReceivingPower = false)
         updateNodes = false
       }
     }
@@ -163,8 +157,6 @@ trait Provider extends  Node{
 
   def addEnergy(amount: Double) {
     storedEnergy += amount
-
-
   }
 
   def searchMain() {
@@ -182,7 +174,6 @@ trait Provider extends  Node{
     })
   }
 
-  class EnergyStorage(var node: Receiver, var amount: Double) {
+  class EnergyStorage(var node: Receiver, var amount: Double)
 
-  }
 }

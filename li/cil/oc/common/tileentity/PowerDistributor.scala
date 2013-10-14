@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network._
 import scala.collection.mutable
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.api.power.Provider
 
 class PowerDistributor  extends Rotatable with Provider {
 

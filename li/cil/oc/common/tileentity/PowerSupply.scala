@@ -12,6 +12,7 @@ import net.minecraft.world.World
 import net.minecraft.nbt.NBTTagCompound
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
+import li.cil.oc.api.power.Producer
 
 /**
  * Created with IntelliJ IDEA.
