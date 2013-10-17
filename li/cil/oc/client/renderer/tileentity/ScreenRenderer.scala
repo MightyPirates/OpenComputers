@@ -4,21 +4,21 @@ import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListen
 import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
+import li.cil.oc.Config
 import li.cil.oc.client.gui.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.Screen
+import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.{GL14, GL11}
-import li.cil.oc.util.RenderState
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
+  private val maxRenderDistanceSq = Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance
 
-  private val maxRenderDistanceSq = 6 * 6
-
-  private val fadeDistanceSq = 2 * 2
+  private val fadeDistanceSq = Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
@@ -28,7 +28,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     asInstanceOf[CacheBuilder[Screen, Int]].build[Screen, Int]()
 
   /** Used to pass the current screen along to call(). */
-  private var tileEntity: Screen = null
+  private var screen: Screen = null
 
   // ----------------------------------------------------------------------- //
   // Rendering
@@ -40,11 +40,14 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     if (playerDistance > maxRenderDistanceSq)
       return
 
-    tileEntity = t.asInstanceOf[Screen]
+    screen = t.asInstanceOf[Screen]
+
+    if (!screen.isOrigin)
+      return
 
     // Crude check whether screen text can be seen by the local player based
     // on the player's look direction -> angle relative to screen.
-    val screenFacing = tileEntity.facing.getOpposite
+    val screenFacing = screen.facing.getOpposite
     val screenFacingVec = t.worldObj.getWorldVec3Pool.
       getVecFromPool(screenFacing.offsetX, screenFacing.offsetY, screenFacing.offsetZ)
     val playerFacingVec = player.getLookVec
@@ -67,7 +70,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
-    val list = cache.get(tileEntity, this)
+    val list = cache.get(screen, this)
     compile(list)
     GL11.glCallList(list)
 
@@ -75,39 +78,50 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glPopAttrib()
   }
 
-  private def compile(list: Int) = if (tileEntity.hasChanged) {
-    tileEntity.hasChanged = false
+  private def compile(list: Int) = if (screen.hasChanged) {
+    screen.hasChanged = false
+    val (sx, sy) = (screen.width, screen.height)
+    val (tw, th) = (sx * 16f, sy * 16f)
 
     GL11.glNewList(list, GL11.GL_COMPILE)
 
-    tileEntity.yaw match {
+    screen.yaw match {
       case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
       case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
       case ForgeDirection.EAST => GL11.glRotatef(90, 0, 1, 0)
       case _ => // No yaw.
     }
-    tileEntity.pitch match {
+    screen.pitch match {
       case ForgeDirection.DOWN => GL11.glRotatef(90, 1, 0, 0)
       case ForgeDirection.UP => GL11.glRotatef(-90, 1, 0, 0)
       case _ => // No pitch.
     }
 
-    // Fit area to screen (top left = top left).
-    GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
-
-    // Scale to inner screen size and offset it.
-    GL11.glTranslatef(2.25f / 16f, -2.25f / 16f, 0)
-    GL11.glScalef(11.5f / 16f, 11.5f / 16f, 1)
-
-    // Scale based on actual buffer size.
-    val (w, h) = tileEntity.screen.resolution
-    val scale = 1f / ((w * MonospaceFontRenderer.fontWidth) max (h * MonospaceFontRenderer.fontHeight))
-    GL11.glScalef(scale, scale, 1)
+    // Fit area to screen (bottom left = bottom left).
+    GL11.glTranslatef(-0.5f, -0.5f, 0.5f)
+    GL11.glTranslatef(0, sy, 0)
 
     // Flip text upside down.
     GL11.glScalef(1, -1, 1)
 
-    for ((line, i) <- tileEntity.screen.lines.zipWithIndex) {
+    // Scale to multi-block size.
+    GL11.glScalef(sx, sy, 1)
+
+    // Scale to inner screen size and offset it.
+    GL11.glTranslatef(2.25f / tw, 2.25f / th, 0)
+    GL11.glScalef((tw - 4.5f) / tw, (th - 4.5f) / th, 1)
+
+    // Slightly offset the text so it doesn't clip into the screen.
+    GL11.glTranslatef(0, 0, 0.01f)
+
+    // Scale based on actual buffer size.
+    val (w, h) = screen.screen.resolution
+    val scaleX = sx.toFloat / (w * MonospaceFontRenderer.fontWidth)
+    val scaleY = sy.toFloat / (h * MonospaceFontRenderer.fontHeight)
+    val scale = scaleX min scaleY
+    GL11.glScalef(scale / sx.toFloat, scale / sy.toFloat, 1)
+
+    for ((line, i) <- screen.screen.lines.zipWithIndex) {
       MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
     }
 
@@ -120,7 +134,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   def call = {
     val list = GLAllocation.generateDisplayLists(1)
-    tileEntity.hasChanged = true // Force compilation.
+    screen.hasChanged = true // Force compilation.
     compile(list)
     list
   }

@@ -8,7 +8,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Adapter(val parent: Delegator) extends Delegate {
+class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.Adapter], "oc.adapter")
 
   val unlocalizedName = "Adapter"

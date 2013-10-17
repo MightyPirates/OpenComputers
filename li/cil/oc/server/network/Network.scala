@@ -301,8 +301,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 }
 
 object Network extends api.detail.NetworkAPI {
-  override def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int): Unit =
-    getNetworkNode(world, x, y, z) match {
+  override def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int): Unit =
+    if (!world.isRemote) getNetworkNode(world, x, y, z) match {
       case None => // Invalid block.
       case Some(node) => {
         for (side <- ForgeDirection.VALID_DIRECTIONS) {

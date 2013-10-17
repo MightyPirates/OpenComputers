@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(val parent: Delegator) extends Delegate {
+class Computer(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.Computer], "oc.computer")
 
   val unlocalizedName = "Computer"
@@ -70,15 +70,13 @@ class Computer(val parent: Delegator) extends Delegate {
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
+  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Computer =>
         computer.turnOff()
         computer.dropContent(world, x, y, z)
       case _ => // Ignore.
     }
-    super.breakBlock(world, x, y, z, blockId, metadata)
-  }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {

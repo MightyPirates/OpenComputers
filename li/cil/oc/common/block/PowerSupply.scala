@@ -8,14 +8,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-/**
- * Created with IntelliJ IDEA.
- * User: lordjoda
- * Date: 30.09.13
- * Time: 20:36
- * To change this template use File | Settings | File Templates.
- */
-class PowerSupply(val parent: Delegator) extends Delegate {
+class PowerSupply(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.PowerSupply], "oc.powersupply")
   val unlocalizedName = "PowerSupply"
 

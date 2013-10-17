@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.tileentity
 import net.minecraft.world.World
 
-class Keyboard(val parent: Delegator) extends Delegate {
+class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], "oc.keyboard")
 
   val unlocalizedName = "Keyboard"

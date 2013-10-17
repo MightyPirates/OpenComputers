@@ -23,8 +23,9 @@ import scala.collection.mutable
  * called whenever the text actually changes, otherwise there will be no change
  * in the text displayed in the GUI.
  */
-class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
-  tileEntity.guiScreen = Some(this)
+class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
+  val screen = tileEntity.origin
+  screen.guiScreen = Some(this)
 
   private var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
 
@@ -46,11 +47,11 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
 
     // Re-build display lists.
     Screen.compileBackground(innerWidth, innerHeight)
-    Screen.compileText(scale, tileEntity.screen.lines)
+    Screen.compileText(scale, screen.screen.lines)
   }
 
   /** Must be called whenever the buffer of the underlying screen changes. */
-  def updateText() = Screen.compileText(scale, tileEntity.screen.lines)
+  def updateText() = Screen.compileText(scale, screen.screen.lines)
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
@@ -59,15 +60,15 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
       if (code == Keyboard.KEY_INSERT && MCGuiScreen.isShiftKeyDown) {
         if (Keyboard.getEventKeyState)
-          PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+          PacketSender.sendClipboard(screen, MCGuiScreen.getClipboardString)
       }
       else if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
-        PacketSender.sendKeyDown(tileEntity, char, code)
+        PacketSender.sendKeyDown(screen, char, code)
         pressedKeys += code -> char
       }
       else pressedKeys.remove(code) match {
-        case Some(char) => PacketSender.sendKeyUp(tileEntity, char, code)
+        case Some(char) => PacketSender.sendKeyUp(screen, char, code)
         case _ => // Wasn't pressed while viewing the screen.
       }
   }
@@ -75,22 +76,22 @@ class Screen(val tileEntity: tileentity.Screen) extends MCGuiScreen {
   protected override def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
     if (button == 2)
-      PacketSender.sendClipboard(tileEntity, MCGuiScreen.getClipboardString)
+      PacketSender.sendClipboard(screen, MCGuiScreen.getClipboardString)
   }
 
   override def initGui() = {
     super.initGui()
     MonospaceFontRenderer.init(mc.renderEngine)
     Screen.init(mc.renderEngine)
-    val (w, h) = tileEntity.screen.resolution
+    val (w, h) = screen.screen.resolution
     changeSize(w, h)
   }
 
   override def onGuiClosed() = {
     super.onGuiClosed()
-    tileEntity.guiScreen = None
+    screen.guiScreen = None
     for ((code, char) <- pressedKeys) {
-      PacketSender.sendKeyUp(tileEntity, char, code)
+      PacketSender.sendKeyUp(screen, char, code)
     }
   }
 

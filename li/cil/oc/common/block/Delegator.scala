@@ -38,7 +38,7 @@ import scala.collection.mutable
  * - Component network logic for adding / removing blocks from the component
  * network when they are placed / removed.
  */
-class Delegator(id: Int) extends Block(id, Material.iron) {
+class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
   GameRegistry.registerBlock(this, classOf[Item], "oc.block." + id)
@@ -47,16 +47,16 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
   // SubBlock
   // ----------------------------------------------------------------------- //
 
-  val subBlocks = mutable.ArrayBuffer.empty[Delegate]
+  val subBlocks = mutable.ArrayBuffer.empty[Child]
   subBlocks.sizeHint(16)
 
-  def add(subBlock: Delegate) = {
+  def add(subBlock: Child) = {
     val blockId = subBlocks.length
     subBlocks += subBlock
     blockId
   }
 
-  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Delegate] =
+  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     subBlock(world.getBlockMetadata(x, y, z))
 
   def subBlock(metadata: Int) =
@@ -146,11 +146,12 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case None => super.getBlockTexture(world, x, y, z, side)
-      case Some(subBlock) => subBlock.getBlockTextureFromSide(
-        world, x, y, z, ForgeDirection.getOrientation(side), toLocal(world, x, y, z, ForgeDirection.getOrientation(side))) match {
-        case None => super.getBlockTexture(world, x, y, z, side)
-        case Some(icon) => icon
-      }
+      case Some(subBlock) =>
+        val orientation = ForgeDirection.getOrientation(side)
+        subBlock.getBlockTextureFromSide(world, x, y, z, orientation, toLocal(world, x, y, z, orientation)) match {
+          case None => super.getBlockTexture(world, x, y, z, side)
+          case Some(icon) => icon
+        }
     }
 
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) =
@@ -174,14 +175,14 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => subBlock.getLightOpacity(world, x, y, z)
     }
 
-  override def getRenderType = Config.blockRenderId
-
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
     (0 until subBlocks.length).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
+
+  override def getRenderType = Config.blockRenderId
 
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
@@ -292,6 +293,12 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => subBlock.onBlockPlacedBy(world, x, y, z, player, item)
     }
 
+  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) =
+    subBlock(world, x, y, z) match {
+      case None => // Invalid but avoid match error.
+      case Some(subBlock) => subBlock.onBlockPreDestroy(world, x, y, z, metadata)
+    }
+
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     subBlock(world, x, y, z) match {
       case None => // Invalid but avoid match error.
@@ -315,4 +322,30 @@ class Delegator(id: Int) extends Block(id, Material.iron) {
       setFacing(world, x, y, z, newFacing)
     else false
   }
+}
+
+class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
+
+class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
+  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
+    subBlock(world.getBlockMetadata(x, y, z)) match {
+      case None => false
+      case Some(subBlock) => subBlock.isBlockNormalCube(world, x, y, z)
+    }
+
+  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
+    subBlock(world.getBlockMetadata(x, y, z)) match {
+      case None => true
+      case Some(subBlock) => subBlock.isBlockSolid(world, x, y, z, ForgeDirection.getOrientation(side))
+    }
+
+  override def isOpaqueCube = false
+
+  override def renderAsNormalBlock = false
+
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
+    subBlock(world.getBlockMetadata(x, y, z)) match {
+      case None => super.shouldSideBeRendered(world, x, y, z, side)
+      case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, ForgeDirection.getOrientation(side))
+    }
 }

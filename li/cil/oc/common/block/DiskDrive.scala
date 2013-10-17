@@ -9,7 +9,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class DiskDrive(val parent: Delegator) extends Delegate {
+class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], "oc.disk_drive")
 
   val unlocalizedName = "DiskDrive"

@@ -8,7 +8,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
-class PowerDistributor(val parent: Delegator) extends Delegate {
+class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], "oc.powerdistributor")
 
   val unlocalizedName = "PowerDistributor"

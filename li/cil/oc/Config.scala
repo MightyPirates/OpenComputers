@@ -29,6 +29,11 @@ object Config {
   var threads = 4
   var timeout = 3.0
 
+  var maxScreenTextRenderDistance = 6
+  var screenTextFadeStartDistance = 2
+  var maxScreenWidth = 8
+  var maxScreenHeight = 6
+
   // ----------------------------------------------------------------------- //
 
   def load(file: File) = {

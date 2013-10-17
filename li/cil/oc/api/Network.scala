@@ -2,7 +2,7 @@ package li.cil.oc.api
 
 import li.cil.oc.api.detail.NetworkAPI
 import li.cil.oc.api.network.Node
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.World
 
 /**
  * Interface for interacting with component networks.
@@ -29,10 +29,10 @@ import net.minecraft.world.IBlockAccess
  * There are a couple of system messages to be aware of. These are all sent by
  * the network manager itself:
  * <ul>
- * <li>`network.connect` is generated when a node is added to the network,
+ * <li>`system.connect` is generated when a node is added to the network,
  * with the added node as the sender. This will also be sent to the nodes of
  * the other network, when a network merges with another one (both ways).</li>
- * <li>`network.disconnect` is generated when a node is removed from the
+ * <li>`system.disconnect` is generated when a node is removed from the
  * network, with the removed node as the sender. This will also be sent to the
  * nodes of the other network(s), when a network is split (all pairs).</li>
  * </ul>
@@ -229,7 +229,7 @@ object Network extends NetworkAPI {
    * @param y     the Y coordinate of the tile entity.
    * @param z     the Z coordinate of the tile entity.
    */
-  def joinOrCreateNetwork(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int) =
     instance.foreach(_.joinOrCreateNetwork(world, x, y, z))
 
   // ----------------------------------------------------------------------- //

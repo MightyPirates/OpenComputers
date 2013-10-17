@@ -131,6 +131,12 @@ abstract class Rotatable extends TileEntity {
 
   def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
 
+  // ----------------------------------------------------------------------- //
+
+  protected def onRotationChanged() {}
+
+  // ----------------------------------------------------------------------- //
+
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
@@ -150,6 +156,8 @@ abstract class Rotatable extends TileEntity {
       ClientPacketSender.sendRotatableStateRequest(this)
   }
 
+  // ----------------------------------------------------------------------- //
+
   /** Updates cached translation array and sends notification to clients. */
   private def updateTranslation() = {
     val newTranslation = translations(_pitch.ordinal)(_yaw.ordinal - 2)
@@ -159,6 +167,7 @@ abstract class Rotatable extends TileEntity {
       if (worldObj != null && !worldObj.isRemote) {
         ServerPacketSender.sendRotatableState(this)
       }
+      onRotationChanged()
     }
   }
 
@@ -176,6 +185,6 @@ abstract class Rotatable extends TileEntity {
     this
   }
 
-  def invert(t: Array[ForgeDirection]) =
+  private def invert(t: Array[ForgeDirection]) =
     (0 until t.length).map(i => ForgeDirection.getOrientation(t.indexOf(ForgeDirection.getOrientation(i))))
 }

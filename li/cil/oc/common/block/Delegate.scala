@@ -13,11 +13,7 @@ import net.minecraftforge.common.ForgeDirection
 
 /** The base class on which all our blocks are built. */
 trait Delegate {
-  val parent: Delegator
-
   val unlocalizedName: String
-
-  val blockId = parent.add(this)
 
   // ----------------------------------------------------------------------- //
   // Block
@@ -54,26 +50,13 @@ trait Delegate {
 
   def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {}
 
+  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) {}
+
   def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 
   def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
   def registerIcons(iconRegister: IconRegister) {}
-
-  // ----------------------------------------------------------------------- //
-  // BlockSpecialMulti
-  // ----------------------------------------------------------------------- //
-
-  // These are only called if the sub block is registered with a special multi-
-  // block, meaning it supports special rendering. Normal multiblocks will
-  // always be simple opaque blocks.
-
-  def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
-
-  def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
-
-  def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.isBlockOpaqueCube(x, y, z)
 
   // ----------------------------------------------------------------------- //
 
@@ -82,4 +65,25 @@ trait Delegate {
     ForgeDirection.WEST,
     ForgeDirection.NORTH,
     ForgeDirection.EAST)
+}
+
+trait SimpleDelegate extends Delegate {
+  val parent: SimpleDelegator
+
+  val blockId = parent.add(this)
+}
+
+trait SpecialDelegate extends Delegate {
+  val parent: SpecialDelegator
+
+  val blockId = parent.add(this)
+
+  // ----------------------------------------------------------------------- //
+
+  def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
+
+  def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+
+  def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.isBlockOpaqueCube(x, y, z)
 }

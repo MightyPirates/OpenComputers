@@ -1,11 +1,15 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Config
+import li.cil.oc.api.network.Message
 import li.cil.oc.api.power.Receiver
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
+import scala.collection.mutable
 
 class Screen extends Rotatable with component.Screen.Environment with Receiver {
   var guiScreen: Option[gui.Screen] = None
@@ -17,6 +21,38 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
    * text/display has actually changed.
    */
   var hasChanged = false
+
+  /**
+   * Check for multi-block screen option in next update. We do this in the
+   * update to avoid unnecessary checks on chunk unload.
+   */
+  private var shouldCheckForMultiBlock = true
+
+  var width, height = 1
+
+  var origin = this
+
+  val screens = mutable.Set(this)
+
+  // ----------------------------------------------------------------------- //
+
+  def isOrigin = origin == this
+
+  def localPosition = {
+    val (x, y, _) = project(this)
+    val (ox, oy, _) = project(origin)
+    ((ox - x).abs, (oy - y).abs)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def receive(message: Message) =
+    if (isOrigin) {
+      // Necessary to avoid infinite recursion.
+      super.receive(message)
+    } else {
+      origin.receive(message)
+    }
 
   // ----------------------------------------------------------------------- //
 
@@ -37,6 +73,82 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
     super.validate()
     if (worldObj.isRemote)
       ClientPacketSender.sendScreenBufferRequest(this)
+  }
+
+  override def invalidate() {
+    super.invalidate()
+    screens.clone().foreach(_.checkMultiBlock())
+  }
+
+  override def onRotationChanged() = screens.clone().foreach(_.checkMultiBlock())
+
+  // ----------------------------------------------------------------------- //
+
+  override def updateEntity() =
+    if (shouldCheckForMultiBlock) {
+      if (worldObj.isRemote) println("begin merge %d,%d,%d".format(xCoord, yCoord, zCoord))
+      while (tryMerge()) {}
+      screens.foreach(_.shouldCheckForMultiBlock = false)
+      val (tx, ty, tz) = unproject(width, height, 1)
+      worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord + tx, yCoord + ty, zCoord + tz)
+    }
+
+  def checkMultiBlock() {
+    shouldCheckForMultiBlock = true
+    width = 1
+    height = 1
+    origin = this
+    screens.clear()
+    screens += this
+  }
+
+  private def tryMerge() = {
+    val (x, y, z) = project(origin)
+    def tryMergeTowards(dx: Int, dy: Int) = {
+      val (nx, ny, nz) = unproject(x + dx, y + dy, z)
+      //println("neighbor: %d,%d,%d".format(nx, ny, nz))
+      worldObj.getBlockTileEntity(nx, ny, nz) match {
+        case s: Screen if s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
+          val (sx, sy, _) = project(s.origin)
+          //println("projected: %d,%d".format(sx, sy))
+          val canMergeAlongX = sy == y && s.height == height && s.width + width < Config.maxScreenWidth
+          val canMergeAlongY = sx == x && s.width == width && s.height + height < Config.maxScreenHeight
+          if (canMergeAlongX || canMergeAlongY) {
+            if (worldObj.isRemote) println("merging with %d,%d,%d".format(nx, ny, nz))
+            val (newOrigin) =
+              if (canMergeAlongX) {
+                if (sx < x) s.origin else origin
+              }
+              else {
+                if (sy < y) s.origin else origin
+              }
+            val (newWidth, newHeight) =
+              if (canMergeAlongX) (width + s.width, height)
+              else (width, height + s.height)
+            val newScreens = screens ++ s.screens
+            for (screen <- newScreens) {
+              screen.width = newWidth
+              screen.height = newHeight
+              screen.origin = newOrigin
+              screen.screens ++= newScreens // It's a set, so there won't be duplicates.
+            }
+            true
+          }
+          else false // Cannot merge.
+        case _ => false
+      }
+    }
+    tryMergeTowards(width, 0) || tryMergeTowards(0, height) || tryMergeTowards(-1, 0) || tryMergeTowards(0, -1)
+  }
+
+  private def project(t: Screen) = {
+    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.xCoord + f.offsetY * s.yCoord + f.offsetZ * s.zCoord
+    (dot(toGlobal(ForgeDirection.EAST), t), dot(toGlobal(ForgeDirection.UP), t), dot(toGlobal(ForgeDirection.SOUTH), t))
+  }
+
+  private def unproject(x: Int, y: Int, z: Int) = {
+    def dot(f: ForgeDirection) = f.offsetX * x + f.offsetY * y + f.offsetZ * z
+    (dot(toLocal(ForgeDirection.EAST)), dot(toLocal(ForgeDirection.UP)), dot(toLocal(ForgeDirection.SOUTH)))
   }
 
   // ----------------------------------------------------------------------- //

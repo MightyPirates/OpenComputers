@@ -4,9 +4,7 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.network.Node
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.Computer
-import li.cil.oc.common.tileentity.Rotatable
-import li.cil.oc.common.tileentity.Screen
+import li.cil.oc.common.tileentity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
@@ -29,7 +27,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
+    p.readTileEntity[tileentity.Screen]() match {
       case None => // Invalid packet.
       case Some(t) => {
         val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
@@ -42,13 +40,13 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[Computer]() match {
+    p.readTileEntity[tileentity.Computer]() match {
       case None => // Invalid packet.
       case Some(t) => PacketSender.sendComputerState(t, t.isOn)
     }
 
   def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[Rotatable]() match {
+    p.readTileEntity[tileentity.Rotatable]() match {
       case None => // Invalid packet.
       case Some(t) => PacketSender.sendRotatableState(t)
     }
@@ -62,18 +60,29 @@ class PacketHandler extends CommonPacketHandler {
   def onKeyDown(p: PacketParser) =
     p.readTileEntity[Node]() match {
       case None => // Invalid packet.
+      case Some(s: tileentity.Screen) =>
+        val char = p.readChar()
+        val code = p.readInt()
+        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, char, code)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt()))
     }
 
   def onKeyUp(p: PacketParser) =
     p.readTileEntity[Node]() match {
       case None => // Invalid packet.
+      case Some(s: tileentity.Screen) =>
+        val char = p.readChar()
+        val code = p.readInt()
+        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, char, code)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt()))
     }
 
   def onClipboard(p: PacketParser) =
     p.readTileEntity[Node]() match {
       case None => // Invalid packet.
+      case Some(s: tileentity.Screen) =>
+        val value = p.readUTF()
+        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.clipboard", p.player, value)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.clipboard", p.player, p.readUTF()))
     }
 }
