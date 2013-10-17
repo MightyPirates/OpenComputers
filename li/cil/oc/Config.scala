@@ -32,7 +32,7 @@ object Config {
   var timeout = 3.0
 
   var maxScreenTextRenderDistance = 10.0
-  var screenTextFadeStartDistance = 4.0
+  var screenTextFadeStartDistance = 8.0
 
   // ----------------------------------------------------------------------- //
 

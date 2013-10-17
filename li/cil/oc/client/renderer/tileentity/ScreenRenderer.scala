@@ -16,11 +16,11 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.{GLContext, GL14, GL11}
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
-  private val maxRenderDistanceSq = (Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance).toFloat
+  private val maxRenderDistanceSq = Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance
 
-  private val fadeDistanceSq = (Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance).toFloat
+  private val fadeDistanceSq = Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance
 
-  private val fadeRatio = 1f / (maxRenderDistanceSq - fadeDistanceSq)
+  private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 
   private val canFade = GLContext.getCapabilities.OpenGL14
 
@@ -43,9 +43,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     if (!screen.isOrigin)
       return
 
-    val player = Minecraft.getMinecraft.thePlayer
-    val playerDistance = player.getDistanceSq(t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5).toFloat
-    if (playerDistance > maxRenderDistanceSq)
+    val distance = playerDistanceSq()
+    if (distance > maxRenderDistanceSq)
       return
 
     // Crude check whether screen text can be seen by the local player based
@@ -63,9 +62,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    if (canFade && playerDistance > fadeDistanceSq) {
-      val fade = 1f min ((playerDistance - fadeDistanceSq) * fadeRatio)
-      GL14.glBlendColor(0, 0, 0, 1 - fade)
+    if (canFade && distance > fadeDistanceSq) {
+      val fade = 1.0 min ((distance - fadeDistanceSq) * fadeRatio)
+      GL14.glBlendColor(0, 0, 0, 1 - fade.toFloat)
       GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
     }
 
@@ -126,6 +125,45 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
 
     GL11.glEndList()
+  }
+
+  private def playerDistanceSq() = {
+    val player = Minecraft.getMinecraft.thePlayer
+    val rect = screen.getRenderBoundingBox
+
+    val px = player.posX
+    val py = player.posY
+    val pz = player.posZ
+
+    val ex = rect.maxX - rect.minX
+    val ey = rect.maxY - rect.minY
+    val ez = rect.maxZ - rect.minZ
+    val cx = rect.minX + ex * 0.5
+    val cy = rect.minY + ey * 0.5
+    val cz = rect.minZ + ez * 0.5
+    val dx = px - cx
+    val dy = py - cy
+    val dz = pz - cz
+
+    (if (dx < -ex) {
+      val d = dx + ex; d * d
+    }
+    else if (dx > ex) {
+      val d = dx - ex; d * d
+    }
+    else 0) + (if (dy < -ey) {
+      val d = dy + ey; d * d
+    }
+    else if (dy > ey) {
+      val d = dy - ey; d * d
+    }
+    else 0) + (if (dz < -ez) {
+      val d = dz + ez; d * d
+    }
+    else if (dz > ez) {
+      val d = dz - ez; d * d
+    }
+    else 0)
   }
 
   // ----------------------------------------------------------------------- //

@@ -161,7 +161,10 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
       val ox = xCoord + (if (sx < 0) 1 else 0)
       val oy = yCoord + (if (sy < 0) 1 else 0)
       val oz = zCoord + (if (sz < 0) 1 else 0)
-      AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
+                  b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
+      b
     }
 
   // ----------------------------------------------------------------------- //
