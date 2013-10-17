@@ -10,6 +10,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
+import net.minecraft.util.AxisAlignedBB
 
 class Screen extends Rotatable with component.Screen.Environment with Receiver {
   var guiScreen: Option[gui.Screen] = None
@@ -111,8 +112,8 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
         case s: Screen if s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           //println("projected: %d,%d".format(sx, sy))
-          val canMergeAlongX = sy == y && s.height == height && s.width + width < Config.maxScreenWidth
-          val canMergeAlongY = sx == x && s.width == width && s.height + height < Config.maxScreenHeight
+          val canMergeAlongX = sy == y && s.height == height && s.width + width <= Config.maxScreenWidth
+          val canMergeAlongY = sx == x && s.width == width && s.height + height <= Config.maxScreenHeight
           if (canMergeAlongX || canMergeAlongY) {
             if (worldObj.isRemote) println("merging with %d,%d,%d".format(nx, ny, nz))
             val (newOrigin) =
@@ -150,6 +151,18 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
     def dot(f: ForgeDirection) = f.offsetX * x + f.offsetY * y + f.offsetZ * z
     (dot(toLocal(ForgeDirection.EAST)), dot(toLocal(ForgeDirection.UP)), dot(toLocal(ForgeDirection.SOUTH)))
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getRenderBoundingBox =
+    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
+    else {
+      val (sx, sy, sz) = unproject(width, height, 1)
+      val ox = xCoord + (if (sx < 0) 1 else 0)
+      val oy = yCoord + (if (sy < 0) 1 else 0)
+      val oz = zCoord + (if (sz < 0) 1 else 0)
+      AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+    }
 
   // ----------------------------------------------------------------------- //
 

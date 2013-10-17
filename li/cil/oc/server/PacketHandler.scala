@@ -63,7 +63,8 @@ class PacketHandler extends CommonPacketHandler {
       case Some(s: tileentity.Screen) =>
         val char = p.readChar()
         val code = p.readInt()
-        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, char, code)))
+        val network = s.origin.network
+        s.screens.foreach(n => network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, char, code)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt()))
     }
 
@@ -73,7 +74,8 @@ class PacketHandler extends CommonPacketHandler {
       case Some(s: tileentity.Screen) =>
         val char = p.readChar()
         val code = p.readInt()
-        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, char, code)))
+        val network = s.origin.network
+        s.screens.foreach(n => network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, char, code)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt()))
     }
 
@@ -82,7 +84,8 @@ class PacketHandler extends CommonPacketHandler {
       case None => // Invalid packet.
       case Some(s: tileentity.Screen) =>
         val value = p.readUTF()
-        s.screens.foreach(n => n.network.foreach(_.sendToNeighbors(n, "keyboard.clipboard", p.player, value)))
+        val network = s.origin.network
+        s.screens.foreach(n => network.foreach(_.sendToNeighbors(n, "keyboard.clipboard", p.player, value)))
       case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.clipboard", p.player, p.readUTF()))
     }
 }

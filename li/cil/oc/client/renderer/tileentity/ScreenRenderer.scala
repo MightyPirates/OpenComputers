@@ -13,12 +13,16 @@ import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
-import org.lwjgl.opengl.{GL14, GL11}
+import org.lwjgl.opengl.{GLContext, GL14, GL11}
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
-  private val maxRenderDistanceSq = Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance
+  private val maxRenderDistanceSq = (Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance).toFloat
 
-  private val fadeDistanceSq = Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance
+  private val fadeDistanceSq = (Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance).toFloat
+
+  private val fadeRatio = 1f / (maxRenderDistanceSq - fadeDistanceSq)
+
+  private val canFade = GLContext.getCapabilities.OpenGL14
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
@@ -35,23 +39,19 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
   // ----------------------------------------------------------------------- //
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    screen = t.asInstanceOf[Screen]
+    if (!screen.isOrigin)
+      return
+
     val player = Minecraft.getMinecraft.thePlayer
     val playerDistance = player.getDistanceSq(t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5).toFloat
     if (playerDistance > maxRenderDistanceSq)
       return
 
-    screen = t.asInstanceOf[Screen]
-
-    if (!screen.isOrigin)
-      return
-
     // Crude check whether screen text can be seen by the local player based
-    // on the player's look direction -> angle relative to screen.
+    // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    val screenFacingVec = t.worldObj.getWorldVec3Pool.
-      getVecFromPool(screenFacing.offsetX, screenFacing.offsetY, screenFacing.offsetZ)
-    val playerFacingVec = player.getLookVec
-    if (playerFacingVec.dotProduct(screenFacingVec) <= 0)
+    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0)
       return
 
     GL11.glPushAttrib(0xFFFFFF)
@@ -63,8 +63,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    if (playerDistance > fadeDistanceSq) {
-      val fade = 1f min ((playerDistance - fadeDistanceSq) / (maxRenderDistanceSq - fadeDistanceSq))
+    if (canFade && playerDistance > fadeDistanceSq) {
+      val fade = 1f min ((playerDistance - fadeDistanceSq) * fadeRatio)
       GL14.glBlendColor(0, 0, 0, 1 - fade)
       GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
     }
