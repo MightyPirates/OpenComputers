@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{ComputerVisible, Message, Visibility, Node}
+import li.cil.oc.api.network.{Component, Message, Visibility, Node}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -589,7 +589,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       def send(target: String, name: String, args: Any*) =
         owner.network.fold(None: Option[Array[Any]])(network => {
           network.node(target) match {
-            case Some(node: ComputerVisible) if node.canBeSeenBy(this.owner) =>
+            case Some(node: Component) if node.canBeSeenBy(this.owner) =>
               network.sendToAddress(owner, target, name, args: _*)
             case _ => Some(Array(Unit, "invalid address"))
           }
@@ -865,13 +865,13 @@ object Computer {
       message.data match {
         case Array() if message.name == "system.disconnect" && computer.isRunning =>
           message.source match {
-            case node: ComputerVisible if node.canBeSeenBy(this) =>
+            case node: Component if node.canBeSeenBy(this) =>
               computer.signal("component_removed", message.source.address.get); None
             case _ => None
           }
         case Array() if message.name == "system.connect" && computer.isRunning =>
           message.source match {
-            case node: ComputerVisible if node.canBeSeenBy(this) =>
+            case node: Component if node.canBeSeenBy(this) =>
               computer.signal("component_added", message.source.address.get); None
             case _ => None
           }

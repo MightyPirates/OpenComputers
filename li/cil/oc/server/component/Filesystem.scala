@@ -3,11 +3,11 @@ package li.cil.oc.server.component
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.api.network.{ComputerVisible, Visibility, Message}
+import li.cil.oc.api.network.{Component, Visibility, Message}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.FileSystem) extends ComputerVisible {
+class FileSystem(val fileSystem: api.FileSystem) extends Component {
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
 
   private var label = ""
@@ -16,7 +16,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends ComputerVisible {
 
   override val visibility = Visibility.Neighbors
 
-  computerVisibility = visibility
+  componentVisibility = visibility
 
   override def receive(message: Message) = super.receive(message).orElse {
     try {

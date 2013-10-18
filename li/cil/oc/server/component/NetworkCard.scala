@@ -1,17 +1,17 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{ComputerVisible, Message, Visibility}
+import li.cil.oc.api.network.{Component, Message, Visibility}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class NetworkCard extends ComputerVisible {
+class NetworkCard extends Component {
   private val openPorts = mutable.Set.empty[Int]
 
   override val name = "network"
 
   override val visibility = Visibility.Network
 
-  computerVisibility = Visibility.Neighbors
+  componentVisibility = Visibility.Neighbors
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

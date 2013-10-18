@@ -1,14 +1,14 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{ComputerVisible, Message, Visibility}
+import li.cil.oc.api.network.{Component, Message, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
-class CommandBlock(entity: TileEntityCommandBlock) extends ComputerVisible {
+class CommandBlock(entity: TileEntityCommandBlock) extends Component {
   val name = "command_block"
 
   val visibility = Visibility.Network
 
-  computerVisibility = visibility
+  componentVisibility = visibility
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

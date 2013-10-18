@@ -123,7 +123,12 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
       xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, global.getOpposite.ordinal)
   }
 
-  override protected def onRedstoneOutputChanged(side: ForgeDirection) = {
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    computer.signal("redstone_changed", toLocal(side).ordinal())
+  }
+
+  override protected def onRedstoneOutputChanged(side: ForgeDirection) {
     super.onRedstoneOutputChanged(side)
     if (side == ForgeDirection.UNKNOWN) {
       worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, getBlockType.blockID)

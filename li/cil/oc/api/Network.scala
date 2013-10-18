@@ -5,26 +5,24 @@ import li.cil.oc.api.network.Node
 import net.minecraft.world.World
 
 /**
- * Interface for interacting with component networks.
+ * Interface for interacting with networks.
  * <p/>
  * Computers and components form ad-hoc "networks" when placed next to each
  * other. They allow computers to communicate with the components attached to
  * them, as well as components to send signals to computers they are attached to
  * (and even among each other).
  * <p/>
- * Whenever a networkable component is placed, it should first scan its
- * neighbors to see if a network already exists. If so, it should join that
- * network. If multiple different networks are adjacent it should join one and
- * then merge it with the other(s). If no networks exist, it should create a new
- * one. All this logic is provided by `Network.joinOrCreateNetwork`.
+ * The actual network is a bit more abstract than that, though. It consists of
+ * arbitrary `Node`s, that are generally used to interface some object with the
+ * network. For example, most tile entities in the mod are nodes.
  * <p/>
- * Note that for network nodes implemented in `TileEntities` adding and
- * removal is automatically provided on chunk load and unload. When a block is
- * placed or broken you will have to implement this logic yourself (i.e. call
- * `Network.joinOrCreateNetwork` in `onBlockAdded` and `Network.remove` in
- * `breakBlock`.
+ * `Component`s are specializations of `Node`s, that can be addressed by
+ * computers via a corresponding `Driver`.
  * <p/>
- * All other kinds of nodes have to be managed manually. See `Node`.
+ * See `Node` for more details on the behavior of single nodes, and in
+ * particular how block related nodes should be added.
+ * <p/>
+ * Another important concept of node networks is visibility, see `Visibility`.
  * <p/>
  * There are a couple of system messages to be aware of. These are all sent by
  * the network manager itself:

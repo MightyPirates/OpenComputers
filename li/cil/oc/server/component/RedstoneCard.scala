@@ -1,14 +1,14 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{ComputerVisible, Visibility, Message}
+import li.cil.oc.api.network.{Component, Visibility, Message}
 import net.minecraftforge.common.ForgeDirection
 
-class RedstoneCard extends ComputerVisible {
+class RedstoneCard extends Component {
   override val name = "redstone"
 
   override val visibility = Visibility.Neighbors
 
-  computerVisibility = visibility
+  componentVisibility = visibility
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

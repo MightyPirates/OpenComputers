@@ -1,10 +1,10 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{ComputerVisible, Visibility, Message}
+import li.cil.oc.api.network.{Component, Visibility, Message}
 import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 
-class GraphicsCard extends ComputerVisible {
+class GraphicsCard extends Component {
   val supportedResolutions = List(List(40, 24), List(80, 24))
 
   private var screen: Option[String] = None
@@ -13,7 +13,7 @@ class GraphicsCard extends ComputerVisible {
 
   override val visibility = Visibility.Neighbors
 
-  computerVisibility = visibility
+  componentVisibility = visibility
 
   // ----------------------------------------------------------------------- //
 

@@ -1,18 +1,18 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.{ComputerVisible, Message, Visibility}
+import li.cil.oc.api.network.{Component, Message, Visibility}
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Rotatable with ComputerVisible with ComponentInventory {
+class DiskDrive extends Rotatable with Component with ComponentInventory {
   val name = "disk_drive"
 
   val visibility = Visibility.Network
 
-  computerVisibility = visibility
+  componentVisibility = visibility
 
   def world = worldObj
 

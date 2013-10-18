@@ -89,4 +89,10 @@ class Computer(val parent: SimpleDelegator) extends SimpleDelegate {
     }
     else false
   }
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case computer: tileentity.Computer => computer.checkRedstoneInputChanged()
+      case _ => // Ignore.
+    }
 }

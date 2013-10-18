@@ -5,23 +5,34 @@ import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import scala.math.ScalaNumber
 
 /**
- * A single node in a `INetwork`.
+ * A single node in a `Network`.
  * <p/>
  * All nodes in a network <em>must</em> have a unique address; the network will
  * generate a unique address and assign it to new nodes. A node must never ever
  * change its address on its own accord.
  * <p/>
- * Per default there are two kinds of nodes: tile entities and item components.
- * If a `TileEntity` implements this interface adding/removal from its
- * network on load/unload will automatically be handled and you will only have
- * to ensure it is added/removed to/from a network when the corresponding block
- * is added/removed. Item components in containers have to be handled manually.
- * All other kinds of nodes you may come up with will also have to be handled
- * manually.
+ * Per default there are two kinds of nodes: tile entities and items.
+ * <p/>
+ * If a `TileEntity` extends this trait, it will automatically be added and
+ * removed from the network when its chunk is loaded and unloaded. What you
+ * will have to ensure is that it is added/removed to/from its network when
+ * the corresponding block is added/removed (e.g. placed or broken by the
+ * player). For adding a node representing a block to the network you should
+ * always use `Network.joinOrCreateNetwork`, which will take care of all the
+ * heavy lifting for you. For removing it, use `node.network.get.remove(node)`.
+ * <p/>
+ * Items will usually only have nodes when in containers, such as a computer or
+ * disk drive. Otherwise you'll have to connect/disconnect them manually as
+ * desired.
+ * <p/>
+ * All other kinds of nodes you may come up with will also have to be
+ * handled manually.
  * <p/>
  * Items have to be handled by a corresponding `ItemDriver`. Existing
- * blocks may be interfaced with a proxy block if a `BlockDriver` exists
+ * blocks may be interfaced with the adapter block if a `BlockDriver` exists
  * that supports the block.
+ *
+ * @see Component
  */
 trait Node extends Persistable {
   /**
