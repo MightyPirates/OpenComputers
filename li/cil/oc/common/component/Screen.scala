@@ -1,6 +1,6 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.{Message, Visibility, Node}
+import li.cil.oc.api.network.{ComputerVisible, Message, Visibility}
 import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
 
@@ -58,14 +58,14 @@ class Screen(val owner: Screen.Environment) {
 
 object Screen {
 
-  trait Environment extends Node {
+  trait Environment extends ComputerVisible {
     final val screen = new Screen(this)
-
-    // ----------------------------------------------------------------------- //
 
     override val name = "screen"
 
     override val visibility = Visibility.Network
+
+    // ----------------------------------------------------------------------- //
 
     override def receive(message: Message): Option[Array[Any]] = super.receive(message).orElse {
       message.data match {

@@ -129,18 +129,18 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
-    val rect = screen.getRenderBoundingBox
+    val bounds = screen.getRenderBoundingBox
 
     val px = player.posX
     val py = player.posY
     val pz = player.posZ
 
-    val ex = rect.maxX - rect.minX
-    val ey = rect.maxY - rect.minY
-    val ez = rect.maxZ - rect.minZ
-    val cx = rect.minX + ex * 0.5
-    val cy = rect.minY + ey * 0.5
-    val cz = rect.minZ + ez * 0.5
+    val ex = bounds.maxX - bounds.minX
+    val ey = bounds.maxY - bounds.minY
+    val ez = bounds.maxZ - bounds.minZ
+    val cx = bounds.minX + ex * 0.5
+    val cy = bounds.minY + ey * 0.5
+    val cz = bounds.minZ + ez * 0.5
     val dx = px - cx
     val dy = py - cy
     val dz = pz - cz

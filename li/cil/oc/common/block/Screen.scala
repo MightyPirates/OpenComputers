@@ -270,6 +270,8 @@ class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     Icons.fvt = iconRegister.registerIcon(Config.resourceDomain + ":screen/fvt")
   }
 
+  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
+
   // ----------------------------------------------------------------------- //
   // Tile entity
   // ----------------------------------------------------------------------- //

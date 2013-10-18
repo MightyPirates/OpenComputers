@@ -1,16 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
-import li.cil.oc.api.network.Message
+import li.cil.oc.api.network.{Visibility, Message}
 import li.cil.oc.api.power.Receiver
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.util.AxisAlignedBB
 
 class Screen extends Rotatable with component.Screen.Environment with Receiver {
   var guiScreen: Option[gui.Screen] = None
@@ -87,11 +87,54 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
 
   override def updateEntity() =
     if (shouldCheckForMultiBlock) {
-      if (worldObj.isRemote) println("begin merge %d,%d,%d".format(xCoord, yCoord, zCoord))
-      while (tryMerge()) {}
-      screens.foreach(_.shouldCheckForMultiBlock = false)
-      val (tx, ty, tz) = unproject(width, height, 1)
-      worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord + tx, yCoord + ty, zCoord + tz)
+      // Make sure we merge in a deterministic order, to avoid getting
+      // different results on server and client due to the update order
+      // differing between the two. This also saves us from having to save
+      // any multi-block specific state information.
+      // We use a very primitive hash for the coordinates, which should be
+      // good enough for... "normal" screen sizes.
+      val pending = mutable.SortedSet(this)(Ordering[Int].on[Screen](s => (((23 + s.xCoord * 31) + s.yCoord) * 31) + s.zCoord))
+      val queue = mutable.Queue(this)
+      while (queue.nonEmpty) {
+        val current = queue.dequeue()
+        val (x, y, z) = project(current)
+        def tryQueue(dx: Int, dy: Int) {
+          val (nx, ny, nz) = unproject(x + dx, y + dy, z)
+          worldObj.getBlockTileEntity(nx, ny, nz) match {
+            case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
+            case _ => // Ignore.
+          }
+        }
+        tryQueue(-1, 0)
+        tryQueue(1, 0)
+        tryQueue(0, -1)
+        tryQueue(0, 1)
+      }
+      // Perform actual merges.
+      while (pending.nonEmpty) {
+        val current = pending.firstKey
+        while (current.tryMerge()) {}
+        current.screens.foreach {
+          screen =>
+            screen.shouldCheckForMultiBlock = false
+            pending.remove(screen)
+            queue += screen
+        }
+        val bounds = current.origin.getRenderBoundingBox
+        worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+          bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
+      }
+      // Update visibility after everything is done, to avoid noise.
+      queue.foreach(screen =>
+        if (screen.isOrigin)
+          screen.computerVisibility = Visibility.Network
+        else {
+          screen.computerVisibility = Visibility.None
+          val s = screen.screen
+          val (w, h) = s.resolution
+          s.fill(0, 0, w, h, ' ')
+        }
+      )
     }
 
   def checkMultiBlock() {
@@ -107,15 +150,12 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
     val (x, y, z) = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(x + dx, y + dy, z)
-      //println("neighbor: %d,%d,%d".format(nx, ny, nz))
       worldObj.getBlockTileEntity(nx, ny, nz) match {
         case s: Screen if s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
-          //println("projected: %d,%d".format(sx, sy))
           val canMergeAlongX = sy == y && s.height == height && s.width + width <= Config.maxScreenWidth
           val canMergeAlongY = sx == x && s.width == width && s.height + height <= Config.maxScreenHeight
           if (canMergeAlongX || canMergeAlongY) {
-            if (worldObj.isRemote) println("merging with %d,%d,%d".format(nx, ny, nz))
             val (newOrigin) =
               if (canMergeAlongX) {
                 if (sx < x) s.origin else origin
@@ -163,9 +203,11 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
       val oz = zCoord + (if (sz < 0) 1 else 0)
       val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
       b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
-                  b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
+        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
       b
     }
+
+  override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
 
   // ----------------------------------------------------------------------- //
 

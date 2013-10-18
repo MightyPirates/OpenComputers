@@ -139,7 +139,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case None => super.getCollisionBoundingBoxFromPool(world, x, y, z)
-      // TODO Rotate to world space if we have a TileEntityRotatable?
+      // TODO Rotate to world space if we have a Rotatable?
       case Some(subBlock) => subBlock.getCollisionBoundingBoxFromPool(world, x, y, z)
     }
 

@@ -46,25 +46,6 @@ trait Node extends Persistable {
    */
   val visibility: Visibility.Value
 
-  /**
-   * The visibility of this node when it comes to computers.
-   * <p/>
-   * This is used to decide for which components to generate `component_added`
-   * and `component_removed` signals in computers when they are added and
-   * removed from the network, respectively.
-   * <p/>
-   * For example, a network card should be visible to the entire network so
-   * that it can receive messages from network cards in other computers, but
-   * other computers that the one it is plugged into should not treat them as
-   * components added to them, since that would be silly, meaning this field
-   * will be set to neighbors only for them.
-   * <p/>
-   * Another example would power distributors, which should also be visible
-   * to the entire network, but always be invisible to computers, so their
-   * value for this field will be `Visibility.None`.
-   */
-  lazy val computerVisibility: Visibility.Value = visibility
-
   // ----------------------------------------------------------------------- //
 
   /**

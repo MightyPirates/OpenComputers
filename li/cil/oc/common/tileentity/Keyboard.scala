@@ -1,14 +1,18 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.network.{Visibility, Node, Message}
+import li.cil.oc.api.network.{ComputerVisible, Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-class Keyboard extends Rotatable with Node {
+class Keyboard extends Rotatable with ComputerVisible {
   override val name = "keyboard"
 
   override val visibility = Visibility.Network
+
+  computerVisibility = visibility
+
+  override def canUpdate = false
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {

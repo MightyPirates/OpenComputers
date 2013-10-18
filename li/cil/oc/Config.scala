@@ -55,7 +55,26 @@ object Config {
 
     // ----------------------------------------------------------------------- //
 
-    config.getCategory("server").setComment("Server side settings, regarding gameplay and security.")
+    config.getCategory("client").setComment("Client side settings, presentation and performance related stuff.")
+
+    maxScreenTextRenderDistance = config.get("client", "maxScreenTextRenderDistance", maxScreenTextRenderDistance, "" +
+      "The maximum distance at which to render text on screens. Rendering text\n" +
+      "can be pretty expensive, so if you have a lot of screens you'll want\n" +
+      "to avoid huge numbers here. Note that this setting is client-sided, and\n" +
+      "only has an impact on render performance on clients.").
+      getDouble(maxScreenTextRenderDistance)
+
+    screenTextFadeStartDistance = config.get("client", "screenTextFadeStartDistance", screenTextFadeStartDistance, "" +
+      "The distance at which to start fading out the text on screens. This is\n" +
+      "purely cosmetic, to avoid text disappearing instantly when moving too far\n" +
+      "away from a screen. This should have no measurable impact on performance.\n" +
+      "Note that this needs OpenGL 1.4 to work, otherwise text will always just\n" +
+      "instantly disappear when moving away from the screen displaying it.").
+      getDouble(screenTextFadeStartDistance)
+
+    // ----------------------------------------------------------------------- //
+
+    config.getCategory("server").setComment("Server side settings, gameplay and security related stuff.")
 
     baseMemory = config.get("server", "baseMemory", baseMemory, "" +
       "The base amount of memory made available in computers even if they have no\n" +
@@ -66,7 +85,7 @@ object Config {
 
     fileCost = config.get("server", "fileCost", fileCost, "" +
       "The base 'cost' of a single file or directory on a limited file system,\n" +
-      "such as hard drivers. When computing the used space we add this cost to\n" +
+      "such as hard drives. When computing the used space we add this cost to\n" +
       "the real size of each file (and folders, which are zero sized otherwise).\n" +
       "This is to ensure that users cannot spam the file system with an infinite\n" +
       "number of files and/or folders. Note that the size returned via fs.size\n" +
@@ -95,8 +114,8 @@ object Config {
       "computer should run, for example because a signal should be processed or\n" +
       "some sleep timer expired it is queued for execution by a worker thread.\n" +
       "The higher the number of worker threads, the less likely it will be that\n" +
-      "computers block each other from running (leading to 'lag'), but the higher\n" +
-      "the system load may become.").
+      "computers block each other from running, but the higher the host system's\n" +
+      "load may become.").
       getInt(threads)
 
     timeout = config.get("server", "timeout", timeout, "" +
@@ -104,25 +123,6 @@ object Config {
       "forcibly aborted. This is used to avoid stupidly written or malicious\n" +
       "programs blocking other computers by locking down the executor threads.").
       getDouble(timeout)
-
-    // ----------------------------------------------------------------------- //
-
-    config.getCategory("client").setComment("Client side settings, regarding performance.")
-
-    maxScreenTextRenderDistance = config.get("client", "maxScreenTextRenderDistance", maxScreenTextRenderDistance, "" +
-      "The maximum distance at which to render text on screens. Rendering text\n" +
-      "can be pretty expensive, so if you have a lot of screen's you'll want\n" +
-      "to avoid huge numbers here. Note that this setting is client-sided, and\n" +
-      "only has an impact on render performance on clients.").
-      getDouble(maxScreenTextRenderDistance)
-
-    screenTextFadeStartDistance = config.get("client", "screenTextFadeStartDistance", screenTextFadeStartDistance, "" +
-      "The distance at which to start fading out the text on screens. This is\n" +
-      "purely cosmetic, to avoid text disappearing instantly when moving too far\n" +
-      "away from a screen. This should have no measurable impact on performance.\n" +
-      "Note that this needs OpenGL 1.4 to work, otherwise text will always just\n" +
-      "instantly disappear when moving away from the screen displaying it.").
-      getDouble(screenTextFadeStartDistance)
 
     // ----------------------------------------------------------------------- //
 

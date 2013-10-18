@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{Message, Visibility, Node}
+import li.cil.oc.api.network.{ComputerVisible, Message, Visibility, Node}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -108,9 +108,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
-
-      // Inject component added signals for all nodes in the network.
-      owner.network.foreach(_.nodes(owner).foreach(node => signal("component_added", node.address.get)))
 
       // All green, computer started successfully.
       owner.network.foreach(_.sendToVisible(owner, "computer.started"))
@@ -592,7 +589,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       def send(target: String, name: String, args: Any*) =
         owner.network.fold(None: Option[Array[Any]])(network => {
           network.node(target) match {
-            case Some(node) if Computer.canSee(this, node) => network.sendToAddress(owner, target, name, args: _*)
+            case Some(node: ComputerVisible) if node.canBeSeenBy(this.owner) =>
+              network.sendToAddress(owner, target, name, args: _*)
             case _ => Some(Array(Unit, "invalid address"))
           }
         })
@@ -863,18 +861,24 @@ object Computer {
 
     override val visibility = Visibility.Network
 
-    override lazy val computerVisibility = Visibility.None
-
     override def receive(message: Message) = super.receive(message).orElse {
       message.data match {
-        case Array() if message.name == "system.connect" && canSee(computer, message.source) =>
-          computer.signal("component_added", message.source.address.get); None
-        case Array() if message.name == "system.disconnect" && canSee(computer, message.source) =>
-          computer.signal("component_removed", message.source.address.get); None
+        case Array() if message.name == "system.disconnect" && computer.isRunning =>
+          message.source match {
+            case node: ComputerVisible if node.canBeSeenBy(this) =>
+              computer.signal("component_removed", message.source.address.get); None
+            case _ => None
+          }
+        case Array() if message.name == "system.connect" && computer.isRunning =>
+          message.source match {
+            case node: ComputerVisible if node.canBeSeenBy(this) =>
+              computer.signal("component_added", message.source.address.get); None
+            case _ => None
+          }
 
         // Arbitrary signals, usually from other components.
-        case Array(name: String, args@_*) if message.name == "computer.signal" =>
-          computer.signal(name, List(message.source.address.get) ++ args: _*); None
+        case Array(name: String, args@_*) if message.name == "computer.signal" && computer.isRunning =>
+          computer.signal(name, Seq(message.source.address.get) ++ args: _*); None
 
         // Remote control.
         case Array() if message.name == "computer.start" =>
@@ -911,17 +915,6 @@ object Computer {
       nbt.setCompoundTag("computer", computerNbt)
     }
   }
-
-  // The isRunning check is here to avoid component_* signals being
-  // generated while loading a chunk.
-  private def canSee(computer: Computer, node: Node) = computer.isRunning &&
-    (node.computerVisibility == Visibility.Network ||
-      (node.computerVisibility == Visibility.Neighbors &&
-        // This gives use false positives for neighbors for disconnects, but at
-        // that point it doesn't matter anymore anyway... the computer will
-        // just have to live with the fact that something got removed that was
-        // never added in the first place. It's kinda sucky, but whatever.
-        node.network.fold(true)(_.neighbors(node).exists(_ == computer.owner))))
 
   @ForgeSubscribe
   def onChunkUnload(e: ChunkEvent.Unload) =

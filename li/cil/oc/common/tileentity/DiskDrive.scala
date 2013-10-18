@@ -1,20 +1,24 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.{Message, Visibility, Node}
+import li.cil.oc.api.network.{ComputerVisible, Message, Visibility}
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Rotatable with Node with ComponentInventory {
+class DiskDrive extends Rotatable with ComputerVisible with ComponentInventory {
   val name = "disk_drive"
 
   val visibility = Visibility.Network
 
+  computerVisibility = visibility
+
   def world = worldObj
 
   // ----------------------------------------------------------------------- //
+
+  override def canUpdate = false
 
   override def receive(message: Message) = super.receive(message) orElse {
     components(0) match {
