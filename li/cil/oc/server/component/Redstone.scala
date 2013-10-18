@@ -61,7 +61,6 @@ trait Redstone extends Node {
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
       case Array(side: ForgeDirection) if message.name == "redstone.input" && side != ForgeDirection.UNKNOWN =>
-        checkRedstoneInputChanged()
         result(_input(side.ordinal()))
       case Array(side: ForgeDirection) if message.name == "redstone.output" && side != ForgeDirection.UNKNOWN =>
         result(output(side))

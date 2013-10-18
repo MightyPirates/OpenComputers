@@ -119,13 +119,13 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def input(side: ForgeDirection) = {
     val global = toGlobal(side)
-    worldObj.isBlockProvidingPowerTo(
-      xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, global.getOpposite.ordinal)
+    worldObj.getIndirectPowerLevelTo(
+      xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, global.ordinal())
   }
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    computer.signal("redstone_changed", toLocal(side).ordinal())
+    computer.signal("redstone_changed", side.ordinal())
   }
 
   override protected def onRedstoneOutputChanged(side: ForgeDirection) {
