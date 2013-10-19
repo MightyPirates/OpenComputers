@@ -60,13 +60,13 @@ trait Provider extends Node {
     super.onConnect()
   }
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override abstract def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
     storedEnergy = nbt.getDouble("storedEnergy")
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override abstract def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
     nbt.setDouble("storedEnergy", storedEnergy)
   }
 

@@ -1,4 +1,5 @@
 local components = {}
+local removing = {}
 local primaries = {}
 
 -------------------------------------------------------------------------------
@@ -66,16 +67,20 @@ local function onComponentAdded(_, address)
 end
 
 local function onComponentRemoved(_, address)
-  if not components[address] then
-    return false -- cancel this event, it is invalid
-  end
+  if removing[address] then return end
+  if not components[address] then return false end
   local componentType = component.type(address)
   components[address] = nil
+  -- Redispatch with component type, since we already removed.
+  removing[address] = true -- don't cancel this one!
+  event.fire("component_removed", address, componentType)
+  removing[address] = false
   if primaries[componentType] == address then
     component.primary(componentType, nil)
     address = component.list(componentType)()
     component.primary(componentType, address)
   end
+  return false -- cancel this one
 end
 
 function component.install()

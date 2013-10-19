@@ -36,8 +36,8 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
 
     // For the tooltip.
     nbt.setLong("used", used)

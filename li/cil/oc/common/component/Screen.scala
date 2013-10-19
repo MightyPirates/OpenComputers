@@ -1,10 +1,11 @@
 package li.cil.oc.common.component
 
+import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Component, Message, Visibility}
 import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen(val owner: Screen.Environment) {
+class Screen(val owner: Screen.Environment) extends Persistable {
   val supportedResolutions = List((40, 24), (80, 24))
 
   private val buffer = new TextBuffer(80, 24)
@@ -45,14 +46,14 @@ class Screen(val owner: Screen.Environment) {
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) = {
-    buffer.readFromNBT(nbt.getCompoundTag("buffer"))
+  override def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
+    buffer.readFromNBT(nbt)
   }
 
-  def save(nbt: NBTTagCompound) = {
-    val nbtBuffer = new NBTTagCompound
-    buffer.writeToNBT(nbtBuffer)
-    nbt.setCompoundTag("buffer", nbtBuffer)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
+    buffer.writeToNBT(nbt)
   }
 }
 
@@ -89,16 +90,17 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
-    override def load(nbt: NBTTagCompound) = {
-      super.load(nbt)
-      screen.load(nbt.getCompoundTag("screen"))
+    override abstract def readFromNBT(nbt: NBTTagCompound) = {
+      super.readFromNBT(nbt)
+
+      screen.readFromNBT(nbt.getCompoundTag("screen"))
     }
 
-    override def save(nbt: NBTTagCompound) = {
-      super.save(nbt)
+    override abstract def writeToNBT(nbt: NBTTagCompound) = {
+      super.writeToNBT(nbt)
 
       val screenNbt = new NBTTagCompound
-      screen.save(screenNbt)
+      screen.writeToNBT(screenNbt)
       nbt.setCompoundTag("screen", screenNbt)
     }
 

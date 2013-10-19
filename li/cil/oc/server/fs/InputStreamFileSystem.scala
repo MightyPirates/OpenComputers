@@ -31,7 +31,9 @@ trait InputStreamFileSystem extends api.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+
     val handlesNbt = nbt.getTagList("input")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
@@ -47,7 +49,9 @@ trait InputStreamFileSystem extends api.FileSystem {
     })
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {
       assert(!file.isClosed)

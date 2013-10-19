@@ -1,26 +1,18 @@
 package li.cil.oc.common.tileentity
 
-import net.minecraft.tileentity.TileEntity
-import li.cil.oc.api.network._
-
-import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
-import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
-import cpw.mods.fml.common.FMLCommonHandler
-import ic2.api.energy.tile.IEnergySink
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
-import net.minecraft.world.World
+import cpw.mods.fml.common.FMLCommonHandler
+import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
+import ic2.api.energy.tile.IEnergySink
+import li.cil.oc.api.network._
+import li.cil.oc.api.power.Producer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.world.World
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
-import li.cil.oc.api.power.Producer
 
-/**
- * Created with IntelliJ IDEA.
- * User: lordjoda
- * Date: 30.09.13
- * Time: 20:37
- * To change this template use File | Settings | File Templates.
- */
 class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerReceptor with IElectrical {
   var addedToEnet = false
   var powerHandler: PowerHandler = null
@@ -56,16 +48,16 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
   }
 
   override def readFromNBT(nbt: NBTTagCompound) = {
+    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
     getPowerProvider().readFromNBT(nbt)
 
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
+    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
     getPowerProvider().writeToNBT(nbt)
-
-
   }
 
   /**
@@ -78,7 +70,6 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
       addedToEnet = true
     }
   }
-
 
   var lastInjectedEnergy = 0.0
   //IC2 stuff
@@ -142,7 +133,6 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
 
   //*******************BUILDCRAFT**********************************//
 
-
   /**
    * Get the PowerReceiver for this side of the block. You can return the same PowerReceiver for
    * all sides or one for each side.
@@ -182,7 +172,6 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
   }
 
   def getWorld: World = worldObj
-
 
   /** * UE*************************
     *

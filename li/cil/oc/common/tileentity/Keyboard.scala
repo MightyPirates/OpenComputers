@@ -14,6 +14,16 @@ class Keyboard extends Rotatable with Component {
 
   override def canUpdate = false
 
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super[Rotatable].readFromNBT(nbt)
+    super.readFromNBT(nbt)
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super[Rotatable].writeToNBT(nbt)
+    super.writeToNBT(nbt)
+  }
+
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
       case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>
@@ -28,19 +38,6 @@ class Keyboard extends Rotatable with Component {
       case _ => // Ignore.
     }
     None
-  }
-
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("node"))
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-
-    val nodeNbt = new NBTTagCompound
-    save(nodeNbt)
-    nbt.setCompoundTag("node", nodeNbt)
   }
 
   def isUseableByPlayer(p: Player) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&

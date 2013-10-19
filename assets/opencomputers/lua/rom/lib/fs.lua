@@ -44,10 +44,9 @@ local function onComponentAdded(_, address)
   end
 end
 
-local function onComponentRemoved(_, address)
-  local componentType = component.type(address)
+local function onComponentRemoved(_, address, componentType)
   if componentType == "filesystem" or componentType == "disk_drive" then
-    fs.umount(address)
+    while fs.umount(address) do end -- remove *all* mounts
   end
 end
 

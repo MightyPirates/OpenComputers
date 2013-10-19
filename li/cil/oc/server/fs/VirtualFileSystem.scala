@@ -114,13 +114,13 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
+  override def readFromNBT(nbt: NBTTagCompound) = {
     root.load(nbt)
-    super.load(nbt) // Last to ensure streams can be re-opened.
+    super.readFromNBT(nbt) // Last to ensure streams can be re-opened.
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt) // First to allow flushing.
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt) // First to allow flushing.
     root.save(nbt)
   }
 

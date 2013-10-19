@@ -131,7 +131,8 @@ trait Node extends Persistable {
    *
    * @param nbt the tag to read from.
    */
-  def load(nbt: NBTTagCompound) = {
+  override abstract def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
     if (nbt.hasKey("address") && nbt.getTag("address").isInstanceOf[NBTTagString])
       address = Option(nbt.getString("address"))
   }
@@ -146,7 +147,8 @@ trait Node extends Persistable {
    *
    * @param nbt the tag to write to.
    */
-  def save(nbt: NBTTagCompound) = {
+  override abstract def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
     address.foreach(nbt.setString("address", _))
   }
 

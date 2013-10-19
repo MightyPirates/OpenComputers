@@ -77,8 +77,8 @@ class Adapter extends Rotatable with Node with IPeripheral {
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
+    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("node"))
 
     val addressesNbt = nbt.getTagList("addresses")
     (0 until (addressesNbt.tagCount min blocksAddresses.length)).
@@ -86,16 +86,13 @@ class Adapter extends Rotatable with Node with IPeripheral {
       map(_.asInstanceOf[NBTTagString].data).
       zipWithIndex.
       foreach {
-        case (a, i) => blocksAddresses(i) = a
-      }
+      case (a, i) => blocksAddresses(i) = a
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
+    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
-
-    val nodeNbt = new NBTTagCompound()
-    save(nodeNbt)
-    nbt.setCompoundTag("node", nodeNbt)
 
     val addressesNbt = new NBTTagList()
     for (i <- 0 until blocksAddresses.length) {

@@ -49,8 +49,8 @@ class NetworkCard extends Component {
     }
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
     if (nbt.hasKey("openPorts")) {
       val openPortsNbt = nbt.getTagList("openPorts")
       (0 until openPortsNbt.tagCount).
@@ -60,8 +60,8 @@ class NetworkCard extends Component {
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
     val openPortsNbt = new NBTTagList()
     for (port <- openPorts)
       openPortsNbt.appendTag(new NBTTagInt(null, port))

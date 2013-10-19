@@ -73,8 +73,8 @@ trait Redstone extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override abstract def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
 
     if (nbt.hasKey("redstone.input")) {
       val inputNbt = nbt.getTagList("redstone.input")
@@ -91,8 +91,8 @@ trait Redstone extends Node {
     }
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override abstract def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
 
     val inputNbt = new NBTTagList()
     for (i <- 0 until _input.length) {

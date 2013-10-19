@@ -65,13 +65,13 @@ trait Receiver extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override abstract def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
     buffer = nbt.getDouble("buffer")
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override abstract def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
     nbt.setDouble("buffer", buffer)
   }
 

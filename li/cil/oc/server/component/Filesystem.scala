@@ -163,8 +163,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
     fileSystem.close()
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
 
     val ownersNbt = nbt.getTagList("owners")
     (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
@@ -180,11 +180,11 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
     if (nbt.hasKey("label"))
       label = nbt.getString("label")
 
-    fileSystem.load(nbt.getCompoundTag("fs"))
+    fileSystem.readFromNBT(nbt.getCompoundTag("fs"))
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
 
     val ownersNbt = new NBTTagList()
     for ((address, handles) <- owners) {
@@ -202,7 +202,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
       nbt.setString("label", label)
 
     val fsNbt = new NBTTagCompound()
-    fileSystem.save(fsNbt)
+    fileSystem.writeToNBT(fsNbt)
     nbt.setCompoundTag("fs", fsNbt)
   }
 }

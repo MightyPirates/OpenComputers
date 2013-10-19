@@ -57,17 +57,14 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("node"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
-
-    val nodeNbt = new NBTTagCompound
-    save(nodeNbt)
-    nbt.setCompoundTag("node", nodeNbt)
   }
 
   override def validate() = {

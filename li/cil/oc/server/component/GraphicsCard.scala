@@ -60,14 +60,14 @@ class GraphicsCard extends Component {
     screen = None
   }
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
     if (nbt.hasKey("screen"))
       screen = Some(nbt.getString("screen"))
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
     if (screen.isDefined)
       nbt.setString("screen", screen.get)
   }

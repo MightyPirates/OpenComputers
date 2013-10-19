@@ -41,8 +41,9 @@ trait ComponentInventory extends Inventory with Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override abstract def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
+
     val list = nbt.getTagList("list")
     for (i <- 0 until list.tagCount) {
       val slotNbt = list.tagAt(i).asInstanceOf[NBTTagCompound]
@@ -54,7 +55,7 @@ trait ComponentInventory extends Inventory with Node {
           case Some(driver) =>
             driver.node(item) match {
               case Some(node) =>
-                node.load(driver.nbt(item))
+                node.readFromNBT(driver.nbt(item))
                 Some(node)
               case _ => None
             }
@@ -64,8 +65,9 @@ trait ComponentInventory extends Inventory with Node {
     }
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override abstract def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
+
     val list = new NBTTagList
     inventory.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
@@ -77,7 +79,7 @@ trait ComponentInventory extends Inventory with Node {
         components(slot) match {
           case Some(node) =>
             // We're guaranteed to have a driver for entries.
-            node.save(Registry.driverFor(stack).get.nbt(stack))
+            node.writeToNBT(Registry.driverFor(stack).get.nbt(stack))
           case _ => // Nothing special to save.
         }
 
@@ -101,7 +103,7 @@ trait ComponentInventory extends Inventory with Node {
         case None => // No node.
         case Some(node) =>
           components(slot) = Some(node)
-          node.load(driver.nbt(item))
+          node.readFromNBT(driver.nbt(item))
           network.foreach(_.connect(this, node))
       }
     }
@@ -113,7 +115,7 @@ trait ComponentInventory extends Inventory with Node {
       case Some(node) =>
         components(slot) = None
         node.network.foreach(_.remove(node))
-        Registry.driverFor(item).foreach(driver => node.save(driver.nbt(item)))
+        Registry.driverFor(item).foreach(driver => node.writeToNBT(driver.nbt(item)))
       case _ => // Nothing to do.
     }
   }

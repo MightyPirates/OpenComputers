@@ -250,7 +250,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) {
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
     state = nbt.getInteger("state") match {
       case id if id >= 0 && id < Computer.State.maxId => Computer.State(id)
       case _ => Computer.State.Stopped
@@ -296,8 +297,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             }.toArray)
         }).asJava)
 
-        rom.foreach(_.load(nbt.getCompoundTag("rom")))
-        tmp.foreach(_.load(nbt.getCompoundTag("tmp")))
+        rom.foreach(_.readFromNBT(nbt.getCompoundTag("rom")))
+        tmp.foreach(_.readFromNBT(nbt.getCompoundTag("tmp")))
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
         cpuTime = nbt.getLong("cpuTime")
@@ -332,7 +333,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     else state = Computer.State.Stopped
   }
 
-  def save(nbt: NBTTagCompound): Unit = this.synchronized {
+  override def writeToNBT(nbt: NBTTagCompound): Unit = this.synchronized {
+    super.writeToNBT(nbt)
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
 
@@ -379,10 +381,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       nbt.setTag("signals", list)
 
       val romNbt = new NBTTagCompound()
-      rom.foreach(_.save(romNbt))
+      rom.foreach(_.writeToNBT(romNbt))
       nbt.setCompoundTag("rom", romNbt)
       val tmpNbt = new NBTTagCompound()
-      tmp.foreach(_.save(tmpNbt))
+      tmp.foreach(_.writeToNBT(tmpNbt))
       nbt.setCompoundTag("tmp", tmpNbt)
       nbt.setInteger("kernelMemory", kernelMemory)
       nbt.setLong("timeStarted", timeStarted)
@@ -911,15 +913,15 @@ object Computer {
       computer.tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
     }
 
-    override def load(nbt: NBTTagCompound) {
-      super.load(nbt)
-      computer.load(nbt.getCompoundTag("computer"))
+    override abstract def readFromNBT(nbt: NBTTagCompound) {
+      super.readFromNBT(nbt)
+      computer.readFromNBT(nbt.getCompoundTag("computer"))
     }
 
-    override def save(nbt: NBTTagCompound) {
-      super.save(nbt)
+    override abstract def writeToNBT(nbt: NBTTagCompound) {
+      super.writeToNBT(nbt)
       val computerNbt = new NBTTagCompound
-      computer.save(computerNbt)
+      computer.writeToNBT(computerNbt)
       nbt.setCompoundTag("computer", computerNbt)
     }
   }

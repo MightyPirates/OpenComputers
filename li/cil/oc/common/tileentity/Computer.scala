@@ -47,18 +47,15 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
-    load(nbt.getCompoundTag("node"))
     computer.recomputeMemory()
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
-
-    val nodeNbt = new NBTTagCompound
-    save(nodeNbt)
-    nbt.setCompoundTag("node", nodeNbt)
   }
 
   // ----------------------------------------------------------------------- //
