@@ -9,10 +9,6 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   val unlocalizedName = "Keyboard"
 
-  // ----------------------------------------------------------------------- //
-  // Tile entity
-  // ----------------------------------------------------------------------- //
-
   override def hasTileEntity = true
 
   override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Keyboard)

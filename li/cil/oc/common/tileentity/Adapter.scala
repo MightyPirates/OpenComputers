@@ -4,9 +4,9 @@ import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.network.{Message, Visibility, Node}
 import li.cil.oc.server.driver
+import net.minecraft.nbt.{NBTTagString, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.nbt.NBTTagCompound
 
 class Adapter extends Rotatable with Node with IPeripheral {
   val name = "adapter"
@@ -14,6 +14,8 @@ class Adapter extends Rotatable with Node with IPeripheral {
   val visibility = Visibility.None
 
   private val blocks = Array.fill[Option[(Node, api.driver.Block)]](6)(None)
+
+  private val blocksAddresses = Array.fill[String](6)(java.util.UUID.randomUUID.toString)
 
   private val computers = mutable.ArrayBuffer.empty[IComputerAccess]
 
@@ -52,12 +54,14 @@ class Adapter extends Rotatable with Node with IPeripheral {
               // This is... odd.
               network.foreach(_.disconnect(this, node))
               val newNode = newDriver.node(worldObj, x, y, z)
+              newNode.address = Some(blocksAddresses(d.ordinal()))
               network.foreach(_.connect(this, newNode))
               blocks(d.ordinal()) = Some((newNode, newDriver))
             } // else: the more things change, the more they stay the same.
           case _ =>
             // A challenger appears.
             val node = newDriver.node(worldObj, x, y, z)
+            node.address = Some(blocksAddresses(d.ordinal()))
             network.foreach(_.connect(this, node))
             blocks(d.ordinal()) = Some((node, newDriver))
         }
@@ -75,14 +79,29 @@ class Adapter extends Rotatable with Node with IPeripheral {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     load(nbt.getCompoundTag("node"))
+
+    val addressesNbt = nbt.getTagList("addresses")
+    (0 until (addressesNbt.tagCount min blocksAddresses.length)).
+      map(addressesNbt.tagAt).
+      map(_.asInstanceOf[NBTTagString].data).
+      zipWithIndex.
+      foreach {
+        case (a, i) => blocksAddresses(i) = a
+      }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
 
-    val nodeNbt = new NBTTagCompound
+    val nodeNbt = new NBTTagCompound()
     save(nodeNbt)
     nbt.setCompoundTag("node", nodeNbt)
+
+    val addressesNbt = new NBTTagList()
+    for (i <- 0 until blocksAddresses.length) {
+      addressesNbt.appendTag(new NBTTagString(null, blocksAddresses(i)))
+    }
+    nbt.setTag("addresses", addressesNbt)
   }
 
   // ----------------------------------------------------------------------- //

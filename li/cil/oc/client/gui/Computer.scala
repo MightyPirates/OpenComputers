@@ -9,7 +9,7 @@ class Computer(playerInventory: InventoryPlayer, val computer: tileentity.Comput
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(
-      StatCollector.translateToLocal("oc.container.computer"),
+      StatCollector.translateToLocal("oc.container.Computer"),
       8, 6, 0x404040)
   }
 

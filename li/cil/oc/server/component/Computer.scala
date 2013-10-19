@@ -606,8 +606,13 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       lua.pushScalaFunction(lua => {
         owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {
-          case None => 0
-          case Some(node) => lua.pushString(node.name); 1
+          case Some(node: Component) if node.canBeSeenBy(this.owner) =>
+            lua.pushString(node.name)
+            1
+          case None =>
+            lua.pushNil()
+            lua.pushString("invalid address")
+            2
         }
       })
       lua.setGlobal("nodeName")
@@ -865,7 +870,10 @@ object Computer {
       message.data match {
         case Array() if message.name == "system.disconnect" && computer.isRunning =>
           message.source match {
-            case node: Component if node.canBeSeenBy(this) =>
+            case node: Component =>
+              // This is also generated for components that were never added,
+              // because the node has already been removed from the network at
+              // this point, so we cannot check for visibility anymore.
               computer.signal("component_removed", message.source.address.get); None
             case _ => None
           }

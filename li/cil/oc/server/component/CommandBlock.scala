@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Config
 import li.cil.oc.api.network.{Component, Message, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
@@ -19,7 +20,11 @@ class CommandBlock(entity: TileEntityCommandBlock) extends Component {
         entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
         result(true)
       case Array() if message.name == "command.run" =>
-        entity.setCommandSenderName(message.source.address.get)
+        val name = if (Config.commandUser != null && !Config.commandUser.trim.isEmpty)
+          Config.commandUser.trim
+        else
+          message.source.address.get
+        entity.setCommandSenderName(name)
         result(entity.executeCommandOnPowered(entity.worldObj) != 0)
       case _ => None
     }

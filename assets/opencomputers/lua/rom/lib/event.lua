@@ -2,14 +2,18 @@ local listeners = {}
 local weakListeners = {}
 local timers = {}
 
-local function listenersFor(name, weak)
+local function listenersFor(name, weak, create)
   checkArg(1, name, "string")
   if weak then
-    weakListeners[name] = weakListeners[name] or setmetatable({}, {__mode = "v"})
-    return weakListeners[name]
+    if not weakListeners[name] and create then
+      weakListeners[name] = weakListeners[name] or setmetatable({}, {__mode = "v"})
+    end
+    return weakListeners[name] or {}
   else
-    listeners[name] = listeners[name] or {}
-    return listeners[name]
+    if not listeners[name] and create then
+      listeners[name] = listeners[name] or {}
+    end
+    return listeners[name] or {}
   end
 end
 
@@ -28,16 +32,20 @@ function event.fire(name, ...)
   -- timer check (for example if we had no signal in event.wait()).
   if name then
     checkArg(1, name, "string")
-    for _, callback in ipairs(listenersFor(name, false)) do
-      local result, message = xpcall(callback, event.error, name, ...)
-      if not result and message then
-        error(message, 0)
-      end
+    local function copy(listA, listB)
+      local result = {}
+      for _, v in ipairs(listA) do table.insert(result, v) end
+      for _, v in ipairs(listB) do table.insert(result, v) end
+      return result
     end
-    for _, callback in ipairs(listenersFor(name, true)) do
+    -- Copy the listener lists because they may be changed by callbacks.
+    local listeners = copy(listenersFor(name, false), listenersFor(name, true))
+    for _, callback in ipairs(listeners) do
       local result, message = xpcall(callback, event.error, name, ...)
-      if not result and message then
+      if not result and message then -- only if handler returned something.
         error(message, 0)
+      elseif result and message == false then
+        break
       end
     end
   end
@@ -50,7 +58,7 @@ function event.fire(name, ...)
   end
   for _, callback in ipairs(elapsed) do
     local result, message = xpcall(callback, event.error)
-    if not result and message then
+    if not result and message then -- only if handler returned something.
       error(message, 0)
     end
   end
@@ -71,7 +79,7 @@ end
 
 function event.listen(name, callback, weak)
   checkArg(2, callback, "function")
-  local list = listenersFor(name, weak)
+  local list = listenersFor(name, weak, true)
   for i = 1, #list do
     if list[i] == callback then
       return

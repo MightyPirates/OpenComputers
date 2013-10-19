@@ -1,9 +1,10 @@
 oc.block.Adapter.name=Adapter
 oc.block.Computer.name=Computer
+oc.block.DiskDrive.name=Disk Drive
 oc.block.Keyboard.name=Keyboard
 oc.block.Screen.name=Screen
-oc.container.computer=Computer
-oc.container.disk_drive=Disk Drive
+oc.container.Computer=Computer
+oc.container.DiskDrive=Disk Drive
 oc.item.Disk.name=Floppy Disk
 oc.item.GraphicsCard.name=Graphics Card
 oc.item.HardDiskDrive2m.name=Hard Disk Drive (2MB)

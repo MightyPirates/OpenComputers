@@ -181,7 +181,7 @@ function driver.filesystem.isDirectory(path)
   if node.fs and rest then
     return send(node.fs, "fs.isDirectory", rest)
   else
-    return not rest or rest:len() == 0
+    return not rest or rest:ulen() == 0
   end
 end
 
@@ -339,12 +339,12 @@ function file:read(...)
   local function readBytesOrChars(n)
     local len, sub
     if self.mode == "r" then
-      len = string.len
-      sub = string.sub
+      len = string.ulen
+      sub = string.usub
     else
       assert(self.mode == "rb")
       len = rawlen
-      sub = string.bsub
+      sub = string.sub
     end
     local buffer = ""
     repeat
@@ -370,8 +370,8 @@ function file:read(...)
     while true do
       local l = self.buffer:find("\n", start, true)
       if l then
-        local result = self.buffer:bsub(1, l + (chop and -1 or 0))
-        self.buffer = self.buffer:bsub(l + 1)
+        local result = self.buffer:sub(1, l + (chop and -1 or 0))
+        self.buffer = self.buffer:sub(l + 1)
         return result
       else
         start = #self.buffer
@@ -405,10 +405,10 @@ function file:read(...)
     if type(format) == "number" then
       return readBytesOrChars(format)
     else
-      if type(format) ~= "string" or format:sub(1, 1) ~= "*" then
+      if type(format) ~= "string" or format:usub(1, 1) ~= "*" then
         error("bad argument #" .. n .. " (invalid option)")
       end
-      format = format:sub(2, 2)
+      format = format:usub(2, 2)
       if format == "n" then
         --[[ TODO ]]
         error("not implemented")
@@ -529,11 +529,11 @@ function file:write(...)
         end
       end
       if l then
-        result, reason = self.stream:write(arg:bsub(1, l))
+        result, reason = self.stream:write(arg:sub(1, l))
         if not result then
           return nil, reason
         end
-        arg = arg:bsub(l + 1)
+        arg = arg:sub(l + 1)
       end
       if #arg > self.bufferSize then
         result, reason = self.stream:write(arg)

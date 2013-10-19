@@ -24,6 +24,7 @@ object Config {
   // ----------------------------------------------------------------------- //
 
   var baseMemory = 0
+  var commandUser = "OpenComputers"
   var fileCost = 512
   var filesBuffered = true
   var maxScreenHeight = 6
@@ -82,6 +83,12 @@ object Config {
       "given means, that being RAM components. Just keep in mind that this is\n" +
       "global and applies to all computers!").
       getInt(baseMemory)
+
+    commandUser = config.get("server", "commandUser", commandUser, "" +
+      "The user name to specify when executing a command via a command block. If\n" +
+      "you leave this empty it will use the address of the network node that sent\n" +
+      "the execution request - which will usually be a computer.").
+      getString
 
     fileCost = config.get("server", "fileCost", fileCost, "" +
       "The base 'cost' of a single file or directory on a limited file system,\n" +

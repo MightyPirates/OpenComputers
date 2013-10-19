@@ -46,7 +46,7 @@ class DiskDrive extends Rotatable with Component with ComponentInventory {
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = "oc.container.disk_drive"
+  def getInvName = "oc.container.DiskDrive"
 
   def getSizeInventory = 1
 

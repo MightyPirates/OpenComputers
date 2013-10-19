@@ -100,8 +100,6 @@ local sandbox = {
   },
 
   string = {
-    breverse = string.breverse,
-    bsub = string.bsub,
     byte = string.byte,
     char = string.char,
     dump = string.dump,
@@ -115,7 +113,11 @@ local sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper
+    upper = string.upper,
+    uchar = string.uchar,
+    ulen = string.ulen,
+    ureverse = string.breverse,
+    usub = string.bsub
   },
 
   table = {
@@ -180,12 +182,12 @@ local function main(args)
       debug.sethook(co, checkDeadline, "", 10000)
     end
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
-    if coroutine.status(co) == "dead" then
+    if not result[1] then
+      error(result[2] or "unknown error", 0)
+    elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
-    elseif result[1] then
-      args = table.pack(coroutine.yield(result[2])) -- system yielded value
     else
-      error(result[2], 0)
+      args = table.pack(coroutine.yield(result[2])) -- system yielded value
     end
   end
 end
@@ -267,7 +269,8 @@ do
         return debug.traceback(msg, 2)
       end)
       if not result then
-        print("Failed initializing driver '" .. name .. "': " .. reason)
+        print("Failed initializing driver '" .. name .. "': " ..
+              (reason or "unknown error"))
       end
     end
   end

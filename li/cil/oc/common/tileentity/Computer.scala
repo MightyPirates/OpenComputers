@@ -88,7 +88,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = "oc.container.computer"
+  def getInvName = "oc.container.Computer"
 
   def getSizeInventory = 8
 

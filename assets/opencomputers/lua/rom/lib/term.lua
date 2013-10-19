@@ -47,7 +47,7 @@ function term.cursorBlink(enabled)
     if not cursorBlink then
       cursorBlink = event.interval(0.5, toggleBlink)
       cursorBlink.state = false
-      cursorBlink.solid = string.char(0x2588) -- 0x2588 is a solid block.
+      cursorBlink.solid = string.uchar(0x2588) -- 0x2588 is a solid block.
     elseif cursorBlink.state then
       toggleBlink()
     end
@@ -67,10 +67,10 @@ function term.cursorBlink(enabled)
       stop()
     end
   elseif type(enabled) == "string" and
-         (not cursorBlink or enabled:sub(1, 1) ~= cursorBlink.alt)
+         (not cursorBlink or enabled:usub(1, 1) ~= cursorBlink.alt)
   then
-    if enabled:len() > 0 then
-      start(enabled:sub(1, 1))
+    if enabled:ulen() > 0 then
+      start(enabled:usub(1, 1))
     else
       stop()
     end
@@ -85,63 +85,68 @@ function term.read(history)
   table.insert(history, "")
   local current = #history
   local keys = driver.keyboard.keys
-  local start, y = term.cursor()
+  local start = term.cursor()
   local cursor, scroll = 1, 0
   local keyRepeat = nil
   local result = nil
   local function remove()
     local x = start - 1 + cursor - scroll
+    local _, y = term.cursor()
     local w = gpu.resolution()
     gpu.copy(x + 1, y, w - x, 1, -1, 0)
     local cursor = cursor + (w - x)
-    local char = history[current]:sub(cursor, cursor)
-    if char:len() == 0 then
+    local char = history[current]:usub(cursor, cursor)
+    if char:ulen() == 0 then
       char = " "
     end
     gpu.set(w, y, char)
   end
   local function render()
+    local _, y = term.cursor()
     local w = gpu.resolution()
-    local str = history[current]:sub(1 + scroll, 1 + scroll + w - (start - 1))
-    str = str .. string.rep(" ", (w - (start - 1)) - str:len())
+    local str = history[current]:usub(1 + scroll, 1 + scroll + w - (start - 1))
+    str = str .. string.rep(" ", (w - (start - 1)) - str:ulen())
     gpu.set(start, y, str)
   end
   local function scrollEnd()
     local w = gpu.resolution()
-    cursor = history[current]:len() + 1
+    cursor = history[current]:ulen() + 1
     scroll = math.max(0, cursor - (w - (start - 1)))
     render()
   end
   local function scrollLeft()
     scroll = scroll - 1
+    local _, y = term.cursor()
     local w = gpu.resolution()
     gpu.copy(start, y, w - start - 1, 1, 1, 0)
     local cursor = w - (start - 1) + scroll
-    local char = history[current]:sub(cursor, cursor)
-    if char:len() == 0 then
+    local char = history[current]:usub(cursor, cursor)
+    if char:ulen() == 0 then
       char = " "
     end
     gpu.set(1, y, char)
   end
   local function scrollRight()
     scroll = scroll + 1
+    local _, y = term.cursor()
     local w = gpu.resolution()
     gpu.copy(start + 1, y, w - start, 1, -1, 0)
     local cursor = w - (start - 1) + scroll
-    local char = history[current]:sub(cursor, cursor)
-    if char:len() == 0 then
+    local char = history[current]:usub(cursor, cursor)
+    if char:ulen() == 0 then
       char = " "
     end
     gpu.set(w, y, char)
   end
   local function update()
+    local _, y = term.cursor()
     local w = gpu.resolution()
     local cursor = cursor - 1
     local x = start - 1 + cursor - scroll
-    if cursor < history[current]:len() then
+    if cursor < history[current]:ulen() then
       gpu.copy(x, y, w - x, 1, 1, 0)
     end
-    gpu.set(x, y, history[current]:sub(cursor, cursor))
+    gpu.set(x, y, history[current]:usub(cursor, cursor))
   end
   local function copyIfNecessary()
     if current ~= #history then
@@ -150,9 +155,10 @@ function term.read(history)
     end
   end
   local function updateCursor()
+    local _, y = term.cursor()
     term.cursor(start - 1 + cursor - scroll, y)
-    term.cursorBlink(cursor <= history[current]:len() and
-                     history[current]:sub(cursor, cursor) or " ")
+    term.cursorBlink(cursor <= history[current]:ulen() and
+                     history[current]:usub(cursor, cursor) or " ")
   end
   local function handleKeyPress(char, code)
     if not term.isAvailable() then return end
@@ -162,8 +168,8 @@ function term.read(history)
     if code == keys.back then
       if cursor > 1 then
         copyIfNecessary()
-        history[current] = history[current]:sub(1, cursor - 2) ..
-                           history[current]:sub(cursor)
+        history[current] = history[current]:usub(1, cursor - 2) ..
+                           history[current]:usub(cursor)
         cursor = cursor - 1
         if cursor - scroll < 1 then
           scrollLeft()
@@ -172,13 +178,13 @@ function term.read(history)
       end
       cancel = cursor == 1
     elseif code == keys.delete then
-      if cursor <= history[current]:len() then
+      if cursor <= history[current]:ulen() then
         copyIfNecessary()
-        history[current] = history[current]:sub(1, cursor - 1) ..
-                           history[current]:sub(cursor + 1)
+        history[current] = history[current]:usub(1, cursor - 1) ..
+                           history[current]:usub(cursor + 1)
         remove()
       end
-      cancel = cursor == history[current]:len() + 1
+      cancel = cursor == history[current]:ulen() + 1
     elseif code == keys.left then
       if cursor > 1 then
         cursor = cursor - 1
@@ -188,13 +194,13 @@ function term.read(history)
       end
       cancel = cursor == 1
     elseif code == keys.right then
-      if cursor < history[current]:len() + 1 then
+      if cursor < history[current]:ulen() + 1 then
         cursor = cursor + 1
         if cursor - scroll > w - (start - 1) then
           scrollRight()
         end
       end
-      cancel = cursor == history[current]:len() + 1
+      cancel = cursor == history[current]:ulen() + 1
     elseif code == keys.home then
       if cursor > 1 then
         cursor, scroll = 1, 0
@@ -202,7 +208,7 @@ function term.read(history)
       end
       cancel = true
     elseif code == keys["end"] then
-      if cursor < history[current]:len() + 1 then
+      if cursor < history[current]:ulen() + 1 then
         scrollEnd()
       end
       cancel = true
@@ -225,15 +231,15 @@ function term.read(history)
         current = #history
       end
       result = history[current] .. "\n"
-      if history[current]:len() == 0 then
+      if history[current]:ulen() == 0 then
         table.remove(history, current)
       end
       return true
     elseif not keys.isControl(char) then
       copyIfNecessary()
-      history[current] = history[current]:sub(1, cursor - 1) ..
-                         string.char(char) ..
-                         history[current]:sub(cursor)
+      history[current] = history[current]:usub(1, cursor - 1) ..
+                         string.uchar(char) ..
+                         history[current]:usub(cursor)
       cursor = cursor + 1
       update()
       if cursor - scroll > w - (start - 1) then
@@ -281,7 +287,7 @@ function term.read(history)
     term.cursorBlink(false)
     local l = value:find("\n", 1, true)
     if l then
-      history[current] = history[current] .. value:sub(1, l - 1)
+      history[current] = history[current] .. value:usub(1, l - 1)
       result = history[current] .. "\n"
     else
       history[current] = history[current] .. value
@@ -312,7 +318,7 @@ end
 
 function term.write(value, wrap)
   value = tostring(value)
-  if value:len() == 0 or not term.isAvailable() then
+  if value:ulen() == 0 or not term.isAvailable() then
     return
   end
   value = value:gsub("\t", "  ")
@@ -329,18 +335,18 @@ function term.write(value, wrap)
     end
   end
   for line, nl in value:gmatch("([^\r\n]*)([\r\n]?)") do
-    while wrap and line:len() > w - cursorX + 1 do
-      local partial = line:sub(1, w - cursorX + 1)
-      line = line:sub(partial:len() + 1)
+    while wrap and line:ulen() > w - cursorX + 1 do
+      local partial = line:usub(1, w - cursorX + 1)
+      line = line:usub(partial:ulen() + 1)
       gpu.set(cursorX, cursorY, partial)
-      cursorX = cursorX + partial:len()
+      cursorX = cursorX + partial:ulen()
       checkCursor()
     end
-    if line:len() > 0 then
+    if line:ulen() > 0 then
       gpu.set(cursorX, cursorY, line)
-      cursorX = cursorX + line:len()
+      cursorX = cursorX + line:ulen()
     end
-    if nl:len() == 1 then
+    if nl:ulen() == 1 then
       cursorX = 1
       cursorY = cursorY + 1
       checkCursor()

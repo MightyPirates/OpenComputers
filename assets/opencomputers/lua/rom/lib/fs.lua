@@ -28,9 +28,9 @@ local function onComponentAdded(_, address)
      address ~= os.romAddress() and
      address ~= os.tmpAddress()
   then
-    local name = address:sub(1, 3)
+    local name = address:usub(1, 3)
     repeat
-      name = address:sub(1, name:len() + 1)
+      name = address:usub(1, name:ulen() + 1)
     until not fs.exists("/mnt/" .. name)
     fs.mount(address, "/mnt/" .. name)
     if isAutorunEnabled then

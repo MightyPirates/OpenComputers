@@ -84,7 +84,7 @@ trait Component extends Node {
   def canBeSeenBy(other: Node) = componentVisibility match {
     case Visibility.None => false
     case Visibility.Network => true
-    case Visibility.Neighbors => network.exists(_.neighbors(other).exists(_ == this))
+    case Visibility.Neighbors => other.network.exists(_.neighbors(other).exists(_ == this))
   }
 
   // ----------------------------------------------------------------------- //

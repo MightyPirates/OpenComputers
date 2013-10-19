@@ -142,10 +142,6 @@ object LuaStateFactory {
       state.setGlobal("dofile")
       state.pushNil()
       state.setGlobal("loadfile")
-      state.pushNil()
-      state.setGlobal("module")
-      state.pushNil()
-      state.setGlobal("require")
 
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
@@ -218,20 +214,6 @@ object LuaStateFactory {
       // Provide some better Unicode support.
       state.getGlobal("string")
 
-      // Rename stuff for binary functionality, to allow byte-wise operations
-      // operations on the string.
-      state.getField(-1, "sub")
-      state.setField(-2, "bsub")
-
-      state.getField(-1, "reverse")
-      state.setField(-2, "breverse")
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
-        1
-      })
-      state.setField(-2, "char")
-
       // TODO find (probably not necessary?)
 
       // TODO format (probably not necessary?)
@@ -240,11 +222,7 @@ object LuaStateFactory {
 
       // TODO gsub (probably not necessary?)
 
-      state.pushScalaFunction(lua => {
-        lua.pushInteger(lua.checkString(1).length)
-        1
-      })
-      state.setField(-2, "len")
+      // TODO match (probably not necessary?)
 
       state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).toLowerCase)
@@ -252,13 +230,29 @@ object LuaStateFactory {
       })
       state.setField(-2, "lower")
 
-      // TODO match (probably not necessary?)
+      state.pushScalaFunction(lua => {
+        lua.pushString(lua.checkString(1).toUpperCase)
+        1
+      })
+      state.setField(-2, "upper")
+
+      state.pushScalaFunction(lua => {
+        lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+        1
+      })
+      state.setField(-2, "uchar")
+
+      state.pushScalaFunction(lua => {
+        lua.pushInteger(lua.checkString(1).length)
+        1
+      })
+      state.setField(-2, "ulen")
 
       state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).reverse)
         1
       })
-      state.setField(-2, "reverse")
+      state.setField(-2, "ureverse")
 
       state.pushScalaFunction(lua => {
         val string = lua.checkString(1)
@@ -276,13 +270,7 @@ object LuaStateFactory {
         else lua.pushString(string.substring(start, end))
         1
       })
-      state.setField(-2, "sub")
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(lua.checkString(1).toUpperCase)
-        1
-      })
-      state.setField(-2, "upper")
+      state.setField(-2, "usub")
 
       // Pop the string table.
       state.pop(1)
