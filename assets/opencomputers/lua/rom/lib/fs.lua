@@ -50,8 +50,7 @@ local function onComponentRemoved(_, address, componentType)
   end
 end
 
-function fs.install()
+return function()
   event.listen("component_added", onComponentAdded)
   event.listen("component_removed", onComponentRemoved)
-  fs.install = nil
 end

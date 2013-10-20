@@ -1,6 +1,6 @@
 local args = table.pack(...)
 if args.n == 0 then
-  print(shell.cwd())
+  print("Usage: cd <dirname>")
 else
   local result, reason = shell.cwd(shell.resolve(args[1]))
   if not result then

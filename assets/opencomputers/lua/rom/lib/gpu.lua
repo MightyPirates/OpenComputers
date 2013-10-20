@@ -56,9 +56,8 @@ local function onScreenResized(_, address, width, height)
   end
 end
 
-function gpu.install()
+return function()
   event.listen("component_available", onComponentAvailable)
   event.listen("component_unavailable", onComponentUnavailable)
   event.listen("screen_resized", onScreenResized)
-  gpu.install = nil
 end

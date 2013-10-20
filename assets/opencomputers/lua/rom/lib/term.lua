@@ -372,8 +372,7 @@ local function onComponentUnavailable(_, componentType)
   end
 end
 
-function term.install()
+return function()
   event.listen("component_available", onComponentAvailable)
   event.listen("component_unavailable", onComponentUnavailable)
-  term.install = nil
 end

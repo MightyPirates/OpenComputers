@@ -174,6 +174,6 @@ function shell.execute(program, ...)
   return table.unpack(result, 1, result.n)
 end
 
-function shell.install()
+return function()
   event.listen("term_available", onTermAvailable)
 end

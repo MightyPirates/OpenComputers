@@ -83,8 +83,7 @@ local function onComponentRemoved(_, address)
   return false -- cancel this one
 end
 
-function component.install()
+return function()
   event.listen("component_added", onComponentAdded)
   event.listen("component_removed", onComponentRemoved)
-  component.install = nil
 end

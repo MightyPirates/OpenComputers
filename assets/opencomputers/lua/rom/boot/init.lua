@@ -1,24 +1,17 @@
-local apis = {}
+local init = {}
 for api in driver.filesystem.dir("lib") do
   local path = "lib/" .. api
   if not driver.filesystem.isDirectory(path) then
-    dofile(path)
-    table.insert(apis, api)
+    local install = dofile(path)
+    if type(install) == "function" then
+      table.insert(init, install)
+    end
   end
 end
---[[
-for _, api in ipairs(apis) do
-  if _ENV[api] and type(_ENV[api].install) == "function" then
-    _ENV[api].install()
-  end
+for _, install in ipairs(init) do
+  install()
 end
-apis = nil
-]]
-component.install()
-fs.install()
-gpu.install()
-term.install()
-shell.install()
+init = nil
 
 event.fire(...)
 event.wait(math.huge)
