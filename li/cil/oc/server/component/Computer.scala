@@ -179,6 +179,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // If there was an error message (i.e. the computer crashed) display it on
     // any screens we used (stored in GPUs).
     if (message.isDefined) {
+      println(message.get)
       owner.network.foreach(network => {
         for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
           network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
@@ -660,7 +661,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // underlying system (which may change across releases). Add some buffer
       // to avoid the init script eating up all the rest immediately.
       lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 36 * 1024 + Config.baseMemory
+      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + 48 * 1024 + Config.baseMemory
       recomputeMemory()
 
       // Clear any left-over signals from a previous run.

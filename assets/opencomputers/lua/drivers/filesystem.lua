@@ -67,6 +67,11 @@ function driver.filesystem.concat(pathA, pathB)
   return driver.filesystem.canonical(pathA .. "/" .. pathB)
 end
 
+function driver.filesystem.name(path)
+  local parts = segments(path)
+  return parts[#parts]
+end
+
 function driver.filesystem.mount(fs, path)
   if fs and path then
     checkArg(1, fs, "string")
@@ -213,7 +218,11 @@ function driver.filesystem.dir(path)
     end
   end
   table.sort(result)
-  return table.unpack(result)
+  local i = 0
+  return function()
+    i = i + 1
+    return result[i]
+  end
 end
 
 -------------------------------------------------------------------------------
@@ -642,29 +651,6 @@ end
 
 -------------------------------------------------------------------------------
 
-function loadfile(filename, env)
-  local file, reason = driver.filesystem.open(filename)
-  if not file then
-    return nil, reason
-  end
-  local source, reason = file:read("*a")
-  file:close()
-  if not source then
-    return nil, reason
-  end
-  return load(source, "=" .. filename, env)
-end
-
-function dofile(filename)
-  local program, reason = loadfile(filename)
-  if not program then
-    return error(reason, 0)
-  end
-  return program()
-end
-
--------------------------------------------------------------------------------
-
 io = {}
 
 -------------------------------------------------------------------------------
@@ -839,4 +825,27 @@ function os.tmpname()
       end
     end
   end
+end
+
+-------------------------------------------------------------------------------
+
+function loadfile(filename, env)
+  local file, reason = io.open(filename)
+  if not file then
+    return nil, reason
+  end
+  local source, reason = file:read("*a")
+  file:close()
+  if not source then
+    return nil, reason
+  end
+  return load(source, "=" .. filename, env)
+end
+
+function dofile(filename)
+  local program, reason = loadfile(filename)
+  if not program then
+    return error(reason, 0)
+  end
+  return program()
 end

@@ -80,7 +80,7 @@ trait Buffered extends OutputStreamFileSystem {
         else {
           val childFile = new io.File(fileRoot, childPath)
           val time = lastModified(childPath)
-          if (time == 0 || FileUtils.isFileOlder(childFile, time)) {
+          if (time == 0 || !childFile.exists() || FileUtils.isFileOlder(childFile, time)) {
             FileUtils.deleteQuietly(childFile)
             childFile.createNewFile()
             val out = new io.FileOutputStream(childFile).getChannel

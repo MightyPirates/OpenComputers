@@ -60,10 +60,5 @@ function gpu.install()
   event.listen("component_available", onComponentAvailable)
   event.listen("component_unavailable", onComponentUnavailable)
   event.listen("screen_resized", onScreenResized)
-end
-
-function gpu.uninstall()
-  event.ignore("component_available", onComponentAvailable)
-  event.ignore("component_unavailable", onComponentUnavailable)
-  event.ignore("screen_resized", onScreenResized)
+  gpu.install = nil
 end

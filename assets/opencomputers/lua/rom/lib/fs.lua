@@ -53,9 +53,5 @@ end
 function fs.install()
   event.listen("component_added", onComponentAdded)
   event.listen("component_removed", onComponentRemoved)
-end
-
-function fs.uninstall()
-  event.ignore("component_added", onComponentAdded)
-  event.ignore("component_removed", onComponentRemoved)
+  fs.install = nil
 end

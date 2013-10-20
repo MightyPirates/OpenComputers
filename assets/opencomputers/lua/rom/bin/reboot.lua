@@ -1,0 +1,2 @@
+print("Rebooting...")
+os.reboot()

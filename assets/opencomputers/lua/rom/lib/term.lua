@@ -375,9 +375,5 @@ end
 function term.install()
   event.listen("component_available", onComponentAvailable)
   event.listen("component_unavailable", onComponentUnavailable)
-end
-
-function term.uninstall()
-  event.ignore("component_available", onComponentAvailable)
-  event.ignore("component_unavailable", onComponentUnavailable)
+  term.install = nil
 end

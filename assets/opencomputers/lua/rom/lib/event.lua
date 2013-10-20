@@ -64,17 +64,16 @@ function event.fire(name, ...)
   end
 end
 
-function event.ignore(name, callback)
-  local function remove(list)
-    for i = 1, #list do
-      if list[i] == callback then
-        table.remove(list, i)
-        return
-      end
+function event.ignore(name, callback, weak)
+  checkArg(2, callback, "function")
+  local list = listenersFor(name, weak)
+  for i = 1, #list do
+    if list[i] == callback then
+      table.remove(list, i)
+      return true
     end
   end
-  remove(listenersFor(name, false))
-  remove(listenersFor(name, true))
+  return false
 end
 
 function event.listen(name, callback, weak)
@@ -82,10 +81,11 @@ function event.listen(name, callback, weak)
   local list = listenersFor(name, weak, true)
   for i = 1, #list do
     if list[i] == callback then
-      return
+      return false
     end
   end
   table.insert(list, callback)
+  return true
 end
 
 -------------------------------------------------------------------------------
