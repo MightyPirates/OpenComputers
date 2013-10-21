@@ -1,5 +1,6 @@
 package li.cil.oc.server
 
+import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.Rotatable
@@ -9,6 +10,20 @@ import net.minecraftforge.common.ForgeDirection
 
 /** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
+  def sendScreenBufferState(t: TileEntity, w: Int, h: Int, text: String, player: Option[Player] = None) = {
+    val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(w)
+    pb.writeInt(h)
+    pb.writeUTF(text)
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
   def sendScreenResolutionChange(t: TileEntity, w: Int, h: Int) = {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
@@ -57,26 +72,32 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendComputerState(t: TileEntity, value: Boolean) = {
+  def sendComputerState(t: TileEntity, value: Boolean, player: Option[Player] = None) = {
     val pb = new PacketBuilder(PacketType.ComputerStateResponse)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(value)
 
-    pb.sendToAllPlayers()
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
   }
 
-  def sendRotatableState(t: Rotatable) = {
+  def sendRotatableState(t: Rotatable, player: Option[Player] = None) = {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)
     pb.writeDirection(t.pitch)
     pb.writeDirection(t.yaw)
 
-    pb.sendToAllPlayers()
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
   }
 
-  def sendRedstoneState(t: TileEntity with Redstone) = {
+  def sendRedstoneState(t: TileEntity with Redstone, player: Option[Player] = None) = {
     val pb = new PacketBuilder(PacketType.RedstoneStateResponse)
 
     pb.writeTileEntity(t)
@@ -85,6 +106,9 @@ object PacketSender {
       pb.writeByte(t.output(d))
     }
 
-    pb.sendToAllPlayers()
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
   }
 }

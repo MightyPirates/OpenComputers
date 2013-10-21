@@ -47,11 +47,11 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
 
     // Re-build display lists.
     Screen.compileBackground(innerWidth, innerHeight)
-    Screen.compileText(scale, screen.screen.lines)
+    Screen.compileText(scale, screen.instance.lines)
   }
 
   /** Must be called whenever the buffer of the underlying screen changes. */
-  def updateText() = Screen.compileText(scale, screen.screen.lines)
+  def updateText() = Screen.compileText(scale, screen.instance.lines)
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
@@ -83,7 +83,7 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
     super.initGui()
     MonospaceFontRenderer.init(mc.renderEngine)
     Screen.init(mc.renderEngine)
-    val (w, h) = screen.screen.resolution
+    val (w, h) = screen.instance.resolution
     changeSize(w, h)
   }
 

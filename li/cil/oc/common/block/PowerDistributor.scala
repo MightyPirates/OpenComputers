@@ -37,6 +37,6 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.PowerDistributor)
+  override def createTileEntity(world: World) = Some(new tileentity.PowerDistributor)
 }
 

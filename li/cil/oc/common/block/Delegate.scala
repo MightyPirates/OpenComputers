@@ -19,18 +19,21 @@ trait Delegate {
   // Block
   // ----------------------------------------------------------------------- //
 
-  def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) {}
+  def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  def createTileEntity(world: World, metadata: Int): Option[TileEntity] = None
+  def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
 
-  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
+  def createTileEntity(world: World): Option[TileEntity] = None
+
+  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int,
+                              worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
 
-  def icon(side: ForgeDirection): Option[Icon] = None
+  def getRenderColor = 0xFFFFFF
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
 
@@ -39,6 +42,8 @@ trait Delegate {
   def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
 
   def hasTileEntity = false
+
+  def icon(side: ForgeDirection): Option[Icon] = None
 
   def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
@@ -50,7 +55,7 @@ trait Delegate {
 
   def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {}
 
-  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) {}
+  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {}
 
   def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 

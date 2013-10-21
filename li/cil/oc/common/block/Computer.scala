@@ -57,7 +57,7 @@ class Computer(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Computer(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Computer(world.isRemote))
 
   // ----------------------------------------------------------------------- //
 
@@ -70,7 +70,7 @@ class Computer(val parent: SimpleDelegator) extends SimpleDelegate {
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
 
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) =
+  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Computer =>
         computer.turnOff()

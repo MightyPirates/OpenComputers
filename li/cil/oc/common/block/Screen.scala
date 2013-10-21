@@ -12,10 +12,37 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import sun.plugin.dom.exception.InvalidStateException
 
-class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.Screen], "oc.screen")
+class ScreenTier1(parent: SimpleDelegator) extends Screen(parent) {
+  val unlocalizedName = "ScreenBasic"
 
-  val unlocalizedName = "Screen"
+  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier1], "oc.screen0")
+
+  override def getRenderColor = 0x7F7F7F
+
+  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier1)
+}
+
+class ScreenTier2(parent: SimpleDelegator) extends Screen(parent) {
+  val unlocalizedName = "ScreenAdvanced"
+
+  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier2], "oc.screen1")
+
+  override def getRenderColor = 0xFFFF66
+
+  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier2)
+}
+
+class ScreenTier3(parent: SimpleDelegator) extends Screen(parent) {
+  val unlocalizedName = "ScreenProfessional"
+
+  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier3], "oc.screen2")
+
+  override def getRenderColor = 0x66FFFF
+
+  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier3)
+}
+
+abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
   // Rendering stuff
@@ -277,8 +304,6 @@ class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   // ----------------------------------------------------------------------- //
 
   override def hasTileEntity = true
-
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Screen)
 
   // ----------------------------------------------------------------------- //
   // Interaction

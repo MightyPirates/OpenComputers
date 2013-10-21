@@ -7,7 +7,7 @@ object Blocks {
   var blockSpecial: SpecialDelegator = null
 
   var computer: Computer = null
-  var screen: Screen = null
+  var screen1, screen2, screen3: Screen = null
   var keyboard: Keyboard = null
 
   var powerSupply: PowerSupply = null
@@ -24,7 +24,11 @@ object Blocks {
     blockSpecial = new SpecialDelegator(Config.blockSpecialId)
 
     computer = new Computer(blockSimple)
-    screen = new Screen(blockSimple)
+
+    screen1 = new ScreenTier1(blockSimple)
+    screen2 = new ScreenTier2(blockSimple)
+    screen3 = new ScreenTier3(blockSimple)
+
     keyboard = new Keyboard(blockSpecial)
 
     powerSupply = new PowerSupply(blockSimple)

@@ -12,7 +12,19 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class Screen extends Rotatable with component.Screen.Environment with Receiver {
+class ScreenTier1 extends Screen {
+  protected def resolutions = Config.screenResolutionsByTier(0)
+}
+
+class ScreenTier2 extends Screen {
+  protected def resolutions = Config.screenResolutionsByTier(1)
+}
+
+class ScreenTier3 extends Screen {
+  protected def resolutions = Config.screenResolutionsByTier(2)
+}
+
+abstract class Screen extends Rotatable with component.Screen.Environment with Receiver {
   var guiScreen: Option[gui.Screen] = None
 
   /**
@@ -28,6 +40,13 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
    * update to avoid unnecessary checks on chunk unload.
    */
   private var shouldCheckForMultiBlock = true
+
+  private val ordering = new Ordering[Screen] {
+    def compare(a: Screen, b: Screen) =
+      if (a.xCoord != b.xCoord) a.xCoord - b.xCoord
+      else if (a.yCoord != b.yCoord) a.yCoord - b.yCoord
+      else a.zCoord - b.zCoord
+  }
 
   var width, height = 1
 
@@ -90,7 +109,7 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
       // any multi-block specific state information.
       // We use a very primitive hash for the coordinates, which should be
       // good enough for... "normal" screen sizes.
-      val pending = mutable.SortedSet(this)(Ordering[Int].on[Screen](s => (((23 + s.xCoord * 31) + s.yCoord) * 31) + s.zCoord))
+      val pending = mutable.SortedSet(this)(ordering)
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
@@ -127,7 +146,7 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
           screen.componentVisibility = Visibility.Network
         else {
           screen.componentVisibility = Visibility.None
-          val s = screen.screen
+          val s = screen.instance
           val (w, h) = s.resolution
           s.fill(0, 0, w, h, ' ')
         }
@@ -148,7 +167,7 @@ class Screen extends Rotatable with component.Screen.Environment with Receiver {
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(x + dx, y + dy, z)
       worldObj.getBlockTileEntity(nx, ny, nz) match {
-        case s: Screen if s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
+        case s: Screen if s.resolutions == resolutions && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           val canMergeAlongX = sy == y && s.height == height && s.width + width <= Config.maxScreenWidth
           val canMergeAlongY = sx == x && s.width == width && s.height + height <= Config.maxScreenHeight

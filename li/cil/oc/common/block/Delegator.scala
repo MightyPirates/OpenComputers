@@ -101,23 +101,34 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     subBlock(metadata) match {
-      case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
           case node: Node => node.network.foreach(_.remove(node))
           case _ => // Nothing special to do.
         }
-        subBlock.breakBlock(world, x, y, z, blockId, metadata)
+        subBlock.breakBlock(world, x, y, z, blockId)
       }
+      case _ => // Invalid but avoid match error.
     }
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
+
+  override def getRenderColor(metadata: Int) =
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.getRenderColor
+      case _ => super.getRenderColor(metadata)
+    }
+
+  override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.colorMultiplier(world, x, y, z)
+      case _ => super.colorMultiplier(world, x, y, z)
+    }
 
   override def getDamageValue(world: World, x: Int, y: Int, z: Int) = world.getBlockMetadata(x, y, z)
 
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case None => false
       case Some(subBlock) => subBlock.canConnectRedstone(
         world, x, y, z, toLocal(world, x, y, z, side match {
           case -1 => ForgeDirection.UP
@@ -126,53 +137,54 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
           case 2 => ForgeDirection.SOUTH
           case 3 => ForgeDirection.WEST
         }))
+      case _ => false
     }
 
   override def canProvidePower = true
 
   override def createTileEntity(world: World, metadata: Int): TileEntity =
     subBlock(metadata) match {
-      case None => null
-      case Some(subBlock) => subBlock.createTileEntity(world, metadata).orNull
+      case Some(subBlock) => subBlock.createTileEntity(world).orNull
+      case _ => null
     }
 
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case None => super.getCollisionBoundingBoxFromPool(world, x, y, z)
       // TODO Rotate to world space if we have a Rotatable?
       case Some(subBlock) => subBlock.getCollisionBoundingBoxFromPool(world, x, y, z)
+      case _ => super.getCollisionBoundingBoxFromPool(world, x, y, z)
     }
 
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case None => super.getBlockTexture(world, x, y, z, side)
       case Some(subBlock) =>
         val orientation = ForgeDirection.getOrientation(side)
         subBlock.getBlockTextureFromSide(world, x, y, z, orientation, toLocal(world, x, y, z, orientation)) match {
-          case None => super.getBlockTexture(world, x, y, z, side)
           case Some(icon) => icon
+          case _ => super.getBlockTexture(world, x, y, z, side)
         }
+      case _ => super.getBlockTexture(world, x, y, z, side)
     }
 
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case None => 0
       case Some(subBlock) => subBlock.getLightValue(world, x, y, z)
+      case _ => 0
     }
 
   override def getIcon(side: Int, metadata: Int) =
     subBlock(metadata) match {
-      case None => super.getIcon(side, metadata)
       case Some(subBlock) => subBlock.icon(ForgeDirection.getOrientation(side)) match {
-        case None => super.getIcon(side, metadata)
         case Some(icon) => icon
+        case _ => super.getIcon(side, metadata)
       }
+      case _ => super.getIcon(side, metadata)
     }
 
   override def getLightOpacity(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case None => 255
       case Some(subBlock) => subBlock.getLightOpacity(world, x, y, z)
+      case _ => 255
     }
 
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
@@ -186,33 +198,33 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
-      case None => "oc.block"
       case Some(subBlock) => subBlock.unlocalizedName
+      case _ => "oc.block"
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case None => super.getValidRotations(world, x, y, z)
       case Some(subBlock) => subBlock.getValidRotations(world, x, y, z)
+      case _ => super.getValidRotations(world, x, y, z)
     }
 
   override def hasTileEntity(metadata: Int) = subBlock(metadata) match {
-    case None => false
     case Some(subBlock) => subBlock.hasTileEntity
+    case _ => false
   }
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case None => 0
       case Some(subBlock) => subBlock.isProvidingStrongPower(
         world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case _ => 0
     }
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case None => 0
       case Some(subBlock) => subBlock.isProvidingWeakPower(
         world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case _ => 0
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
@@ -269,15 +281,14 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
     // No rotating tool in hand or can't rotate: activate the block.
     subBlock(world, x, y, z) match {
-      case None => false
       case Some(subBlock) => subBlock.onBlockActivated(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
+      case _ => false
     }
   }
 
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case None => // Invalid but avoid match error.
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
           case _: Node => Network.joinOrCreateNetwork(world, x, y, z)
@@ -285,24 +296,25 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
         }
         subBlock.onBlockAdded(world, x, y, z)
       }
+      case _ => // Invalid but avoid match error.
     }
 
   override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) =
     subBlock(world, x, y, z) match {
-      case None => // Invalid but avoid match error.
       case Some(subBlock) => subBlock.onBlockPlacedBy(world, x, y, z, player, item)
+      case _ => // Invalid but avoid match error.
     }
 
   override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int, metadata: Int) =
     subBlock(world, x, y, z) match {
-      case None => // Invalid but avoid match error.
-      case Some(subBlock) => subBlock.onBlockPreDestroy(world, x, y, z, metadata)
+      case Some(subBlock) => subBlock.onBlockPreDestroy(world, x, y, z)
+      case _ => // Invalid but avoid match error.
     }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     subBlock(world, x, y, z) match {
-      case None => // Invalid but avoid match error.
       case Some(subBlock) => subBlock.onNeighborBlockChange(world, x, y, z, blockId)
+      case _ => // Invalid but avoid match error.
     }
 
   override def registerIcons(iconRegister: IconRegister) = {
@@ -312,8 +324,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def removeBlockByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int) =
     (subBlock(world, x, y, z) match {
-      case None => true
       case Some(subBlock) => subBlock.onBlockRemovedBy(world, x, y, z, player)
+      case _ => true
     }) && super.removeBlockByPlayer(world, player, x, y, z)
 
   override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) = {
@@ -329,14 +341,14 @@ class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
 class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
-      case None => false
       case Some(subBlock) => subBlock.isBlockNormalCube(world, x, y, z)
+      case _ => false
     }
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
-      case None => true
       case Some(subBlock) => subBlock.isBlockSolid(world, x, y, z, ForgeDirection.getOrientation(side))
+      case _ => true
     }
 
   override def isOpaqueCube = false
@@ -345,7 +357,7 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
-      case None => super.shouldSideBeRendered(world, x, y, z, side)
       case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, ForgeDirection.getOrientation(side))
+      case _ => super.shouldSideBeRendered(world, x, y, z, side)
     }
 }

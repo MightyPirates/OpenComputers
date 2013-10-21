@@ -4,9 +4,7 @@ import li.cil.oc.api.network.{Component, Visibility, Message}
 import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 
-class GraphicsCard extends Component {
-  val supportedResolutions = List(List(40, 24), List(80, 24))
-
+class GraphicsCard(val resolutions: List[(Int, Int)]) extends Component {
   private var screen: Option[String] = None
 
   override val name = "gpu"
@@ -31,14 +29,14 @@ class GraphicsCard extends Component {
         })
       case Array() if message.name == "system.disconnect" && message.source.address == screen => screen = None; None
       case Array(w: Double, h: Double) if message.name == "gpu.resolution=" =>
-        if (supportedResolutions.contains((w.toInt, h.toInt)))
+        if (resolutions.contains((w.toInt, h.toInt)))
           trySend("screen.resolution=", w.toInt, h.toInt)
         else
           result(Unit, "unsupported resolution")
       case Array() if message.name == "gpu.resolution" => trySend("screen.resolution")
       case Array() if message.name == "gpu.resolutions" => trySend("screen.resolutions") match {
         case Some(Array(resolutions@_*)) =>
-          result(supportedResolutions.intersect(resolutions): _*)
+          result(resolutions.intersect(resolutions): _*)
         case _ => None
       }
       case Array(x: Double, y: Double, value: Array[Byte]) if message.name == "gpu.set" =>

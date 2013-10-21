@@ -4,11 +4,10 @@ import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Component, Message, Visibility}
 import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.common.component
 
-class Screen(val owner: Screen.Environment) extends Persistable {
-  val supportedResolutions = List((40, 24), (80, 24))
-
-  private val buffer = new TextBuffer(80, 24)
+class Screen(val owner: Screen.Environment, val resolutions: List[(Int, Int)]) extends Persistable {
+  private val buffer = new TextBuffer(resolutions.head._1, resolutions.head._2)
 
   // ----------------------------------------------------------------------- //
 
@@ -19,7 +18,7 @@ class Screen(val owner: Screen.Environment) extends Persistable {
   def resolution = buffer.size
 
   def resolution_=(value: (Int, Int)) =
-    if (supportedResolutions.contains(value) && (buffer.size = value)) {
+    if (resolutions.contains(value) && (buffer.size = value)) {
       val (w, h) = value
       owner.onScreenResolutionChange(w, h)
       true
@@ -60,30 +59,32 @@ class Screen(val owner: Screen.Environment) extends Persistable {
 object Screen {
 
   trait Environment extends Component {
-    final val screen = new Screen(this)
+    final val instance = new component.Screen(this, resolutions)
 
     override val name = "screen"
 
     override val visibility = Visibility.Network
+
+    protected def resolutions: List[(Int, Int)]
 
     // ----------------------------------------------------------------------- //
 
     override def receive(message: Message): Option[Array[Any]] = super.receive(message).orElse {
       message.data match {
         case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
-          result(screen.resolution = (w, h))
+          result(instance.resolution = (w, h))
         case Array() if message.name == "screen.resolution" => {
-          val (w, h) = screen.resolution
+          val (w, h) = instance.resolution
           result(w, h)
         }
         case Array() if message.name == "screen.resolutions" =>
-          result(screen.supportedResolutions: _*)
+          result(instance.resolutions: _*)
         case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
-          screen.set(x, y, value); None
+          instance.set(x, y, value); None
         case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>
-          screen.fill(x, y, w, h, value); None
+          instance.fill(x, y, w, h, value); None
         case Array(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) if message.name == "screen.copy" =>
-          screen.copy(x, y, w, h, tx, ty); None
+          instance.copy(x, y, w, h, tx, ty); None
         case _ => None
       }
     }
@@ -93,14 +94,14 @@ object Screen {
     override abstract def readFromNBT(nbt: NBTTagCompound) = {
       super.readFromNBT(nbt)
 
-      screen.readFromNBT(nbt.getCompoundTag("screen"))
+      instance.readFromNBT(nbt.getCompoundTag("screen"))
     }
 
     override abstract def writeToNBT(nbt: NBTTagCompound) = {
       super.writeToNBT(nbt)
 
       val screenNbt = new NBTTagCompound
-      screen.writeToNBT(screenNbt)
+      instance.writeToNBT(screenNbt)
       nbt.setCompoundTag("screen", screenNbt)
     }
 

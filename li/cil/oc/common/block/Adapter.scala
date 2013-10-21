@@ -37,7 +37,7 @@ class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.Adapter)
+  override def createTileEntity(world: World) = Some(new tileentity.Adapter)
 
   // ----------------------------------------------------------------------- //
   // Block detection

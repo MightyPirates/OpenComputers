@@ -5,9 +5,12 @@ import li.cil.oc.common.item
 object Items {
   var multi: item.Delegator = null
 
-  var gpu: item.GraphicsCard = null
   var rs: item.RedstoneCard = null
   var lan: item.NetworkCard = null
+
+  var gpu1: item.GraphicsCard = null
+  var gpu2: item.GraphicsCard = null
+  var gpu3: item.GraphicsCard = null
 
   var ram1: item.Memory = null
   var ram2: item.Memory = null
@@ -21,9 +24,12 @@ object Items {
   def init() {
     multi = new item.Delegator(Config.itemId)
 
-    gpu = new item.GraphicsCard(multi)
     rs = new item.RedstoneCard(multi)
     lan = new item.NetworkCard(multi)
+
+    gpu1 = new item.GraphicsCard(multi, 0)
+    gpu2 = new item.GraphicsCard(multi, 1)
+    gpu3 = new item.GraphicsCard(multi, 2)
 
     ram1 = new item.Memory(multi, 32)
     ram2 = new item.Memory(multi, 64)

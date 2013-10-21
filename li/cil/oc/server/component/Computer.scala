@@ -560,6 +560,20 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       def parseArguments(lua: LuaState, start: Int) =
         for (index <- start to lua.getTop) yield parseArgument(lua, index)
 
+      def pushList(value: Iterator[(Any, Int)]) {
+        lua.newTable()
+        var count = 0
+        value.foreach {
+          case (entry, index) =>
+            pushResult(lua, entry)
+            lua.rawSet(-2, index + 1)
+            count = count + 1
+        }
+        lua.pushString("n")
+        lua.pushInteger(count)
+        lua.rawSet(-3)
+      }
+
       def pushResult(lua: LuaState, value: Any): Unit = value match {
         case value: Boolean => lua.pushBoolean(value)
         case value: Byte => lua.pushNumber(value)
@@ -570,15 +584,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case value: Double => lua.pushNumber(value)
         case value: String => lua.pushString(value)
         case value: Array[Byte] => lua.pushByteArray(value)
-        case value: Array[_] => {
-          lua.newTable()
-          value.zipWithIndex.foreach {
-            case (entry, index) =>
-              pushResult(lua, entry)
-              lua.rawSet(-2, index)
-          }
-        }
-        // TODO maps, tuples/seqs?
+        case value: Array[_] => pushList(value.zipWithIndex.iterator)
+        case value: Product => pushList(value.productIterator.zipWithIndex)
+        case value: Seq[_] => pushList(value.zipWithIndex.iterator)
+        // TODO maps?
         // TODO I fear they are, but check if the following are really necessary for Java interop.
         case value: java.lang.Byte => lua.pushNumber(value.byteValue)
         case value: java.lang.Short => lua.pushNumber(value.shortValue)

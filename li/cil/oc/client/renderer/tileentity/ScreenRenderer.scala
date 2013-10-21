@@ -114,13 +114,13 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glTranslatef(0, 0, 0.01f)
 
     // Scale based on actual buffer size.
-    val (w, h) = screen.screen.resolution
+    val (w, h) = screen.instance.resolution
     val scaleX = sx.toFloat / (w * MonospaceFontRenderer.fontWidth)
     val scaleY = sy.toFloat / (h * MonospaceFontRenderer.fontHeight)
     val scale = scaleX min scaleY
     GL11.glScalef(scale / sx.toFloat, scale / sy.toFloat, 1)
 
-    for ((line, i) <- screen.screen.lines.zipWithIndex) {
+    for ((line, i) <- screen.instance.lines.zipWithIndex) {
       MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
     }
 

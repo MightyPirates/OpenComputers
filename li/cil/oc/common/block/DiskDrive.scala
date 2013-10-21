@@ -34,16 +34,15 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.DiskDrive)
+  override def createTileEntity(world: World) = Some(new tileentity.DiskDrive)
 
   // ----------------------------------------------------------------------- //
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case drive: tileentity.DiskDrive => drive.dropContent(world, x, y, z)
       case _ => // Ignore.
     }
-    super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,

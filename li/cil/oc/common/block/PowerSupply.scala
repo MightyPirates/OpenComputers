@@ -12,9 +12,8 @@ class PowerSupply(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.PowerSupply], "oc.powersupply")
   val unlocalizedName = "PowerSupply"
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
     world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.PowerSupply].onUnload()
-    super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
   // ----------------------------------------------------------------------- //
@@ -39,5 +38,5 @@ class PowerSupply(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World, metadata: Int) = Some(new tileentity.PowerSupply)
+  override def createTileEntity(world: World) = Some(new tileentity.PowerSupply)
 }
