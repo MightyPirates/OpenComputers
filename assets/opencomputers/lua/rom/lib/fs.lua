@@ -34,12 +34,7 @@ local function onComponentAdded(_, address)
     until not fs.exists("/mnt/" .. name)
     fs.mount(address, "/mnt/" .. name)
     if isAutorunEnabled then
-      local autorun = "/mnt/" .. name .. "/autorun"
-      if fs.exists(autorun .. ".lua") then
-        dofile(autorun .. ".lua")
-      elseif fs.exists(autorun) then
-        dofile(autorun)
-      end
+      shell.execute("/mnt/" .. name .. "/autorun")
     end
   end
 end

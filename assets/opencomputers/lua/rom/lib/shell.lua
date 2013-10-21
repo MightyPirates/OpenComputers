@@ -1,5 +1,7 @@
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
+local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
+                 md="mkdir", cls="clear"}
 
 local function onTermAvailable()
   term.clear()
@@ -10,13 +12,7 @@ local function onTermAvailable()
     if not command then
       return -- eof
     end
-    local parts = command:gmatch("%S+")
-    command = parts()
-    local args = {}
-    for part in parts do
-      table.insert(args, part)
-    end
-    local result, reason = shell.execute(command, table.unpack(args))
+    local result, reason = os.execute(command)
     if not result then
       print(reason)
     end
@@ -28,12 +24,21 @@ local function findFile(name, path, ext)
   local function findIn(path)
     path = fs.concat(fs.concat(path, name), "..")
     name = fs.name(name)
-    if fs.isDirectory(path) then
-      if fs.exists(fs.concat(path, name)) then
+    local list = fs.list(path)
+    if list then
+      local files = {}
+      for file in list do
+        files[file] = true
+      end
+      if ext and name:usub(-(1 + ext:ulen())) == "." .. ext then
+        if files[name] then
+          return true, fs.concat(path, name)
+        end
+      elseif files[name] then
         return true, fs.concat(path, name)
       elseif ext then
         name = name .. "." .. ext
-        if fs.exists(fs.concat(path, name)) then
+        if files[name] then
           return true, fs.concat(path, name)
         end
       end
@@ -44,7 +49,7 @@ local function findFile(name, path, ext)
     local found, where = findIn("/")
     if found then return where end
   else
-    local found, where = findIn(cwd)
+    local found, where = findIn(shell.cwd())
     if found then return where end
     if path then
       for _, p in ipairs(path) do
@@ -56,13 +61,28 @@ local function findFile(name, path, ext)
   return false
 end
 
+-------------------------------------------------------------------------------
+
 shell = {}
 
-function shell.cwd(...)
+function shell.alias(alias, ...)
+  checkArg(1, alias, "string")
   local args = table.pack(...)
   if args.n > 0 then
-    checkArg(1, args[1], "string")
-    local path = fs.canonical(args[1]) .. "/"
+    checkArg(2, args[1], "string", "nil")
+    aliases[alias] = args[1]
+  end
+  return aliases[alias]
+end
+
+function shell.aliases()
+  return pairs(aliases)
+end
+
+function shell.cwd(path)
+  if path then
+    checkArg(1, path, "string")
+    local path = fs.canonical(path) .. "/"
     if fs.isDirectory(path) then
       cwd = path
     else
@@ -70,23 +90,6 @@ function shell.cwd(...)
     end
   end
   return cwd
-end
-
-function shell.resolve(path)
-  if path:usub(1, 1) == "/" then
-    return fs.canonical(path)
-  else
-    return fs.concat(shell.cwd(), path)
-  end
-end
-
-function shell.which(program)
-  local where = findFile(program, path, "lua")
-  if where then
-    return where
-  else
-    return nil, "program not found"
-  end
 end
 
 function shell.execute(program, ...)
@@ -145,6 +148,15 @@ function shell.execute(program, ...)
     timers[id] = true
     return id
   end
+  function pevent.interval(timeout, callback)
+    local interval = {}
+    local function onTimer()
+      interval.id = pevent.timer(timeout, onTimer)
+      callback()
+    end
+    interval.id = pevent.timer(timeout, onTimer)
+    return interval
+  end
   pevent = setmetatable(pevent, {__index = event, __metatable = {}})
   local env = setmetatable({event = pevent}, {__index = _ENV, __metatable = {}})
 
@@ -173,6 +185,50 @@ function shell.execute(program, ...)
 
   return table.unpack(result, 1, result.n)
 end
+
+function shell.resolve(path)
+  if path:usub(1, 1) == "/" then
+    return fs.canonical(path)
+  else
+    return fs.concat(shell.cwd(), path)
+  end
+end
+
+function shell.which(program)
+  local where = findFile(program, path, "lua")
+  if where then
+    return where
+  else
+    return nil, "program not found"
+  end
+end
+
+-------------------------------------------------------------------------------
+
+os.execute = function(command)
+  if not command then
+    return type(shell) == "table"
+  end
+  checkArg(1, command, "string")
+  local head, tail = nil, ""
+  repeat
+    local oldHead = head
+    head = command:match("^%S+")
+    tail = command:usub(head:ulen() + 1) .. tail
+    if head == oldHead then -- say no to infinite recursion, live longer
+      command = nil
+    else
+      command = shell.alias(head)
+    end
+  until command == nil
+  local args = {}
+  for part in tail:gmatch("%S+") do
+    table.insert(args, part)
+  end
+  return shell.execute(head, table.unpack(args))
+end
+
+-------------------------------------------------------------------------------
 
 return function()
   event.listen("term_available", onTermAvailable)

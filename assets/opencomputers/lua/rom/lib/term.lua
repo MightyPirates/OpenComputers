@@ -154,16 +154,19 @@ function term.read(history)
       current = #history
     end
   end
-  local function updateCursor()
+  local function updateCursor(blink)
     local _, y = term.cursor()
     term.cursor(start - 1 + cursor - scroll, y)
     term.cursorBlink(cursor <= history[current]:ulen() and
                      history[current]:usub(cursor, cursor) or " ")
+    if blink then
+      toggleBlink()
+    end
   end
   local function handleKeyPress(char, code)
     if not term.isAvailable() then return end
     local w, h = gpu.resolution()
-    local cancel = false
+    local cancel, blink = false, false
     term.cursorBlink(false)
     if code == keys.back then
       if cursor > 1 then
@@ -193,6 +196,7 @@ function term.read(history)
         end
       end
       cancel = cursor == 1
+      blink = true
     elseif code == keys.right then
       if cursor < history[current]:ulen() + 1 then
         cursor = cursor + 1
@@ -201,29 +205,34 @@ function term.read(history)
         end
       end
       cancel = cursor == history[current]:ulen() + 1
+      blink = true
     elseif code == keys.home then
       if cursor > 1 then
         cursor, scroll = 1, 0
         render()
       end
       cancel = true
+      blink = true
     elseif code == keys["end"] then
       if cursor < history[current]:ulen() + 1 then
         scrollEnd()
       end
       cancel = true
+      blink = true
     elseif code == keys.up then
       if current > 1 then
         current = current - 1
         scrollEnd()
       end
       cancel = current == 1
+      blink = true
     elseif code == keys.down then
       if current < #history then
         current = current + 1
         scrollEnd()
       end
       cancel = current == #history
+      blink = true
     elseif code == keys.enter then
       if current ~= #history then -- bring entry to front
         history[#history] = history[current]
@@ -246,7 +255,7 @@ function term.read(history)
         scrollRight()
       end
     end
-    updateCursor()
+    updateCursor(blink)
     return cancel
   end
   local function onKeyDown(_, address, char, code)
