@@ -4,4 +4,9 @@ if args.n < 1 then
   return
 end
 
-shell.alias(args[1], nil)
+local result = shell.alias(args[1], nil)
+if not result then
+  print("no such alias")
+else
+  print("alias removed: " .. args[1] .. " -> " .. result)
+end

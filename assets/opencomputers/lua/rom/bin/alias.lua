@@ -13,4 +13,5 @@ elseif args.n == 1 then
   end
 else
   shell.alias(args[1], args[2])
+  print("alias created: " .. args[1] .. " -> " .. args[2])
 end

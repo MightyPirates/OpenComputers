@@ -67,12 +67,13 @@ shell = {}
 
 function shell.alias(alias, ...)
   checkArg(1, alias, "string")
+  local result = aliases[alias]
   local args = table.pack(...)
   if args.n > 0 then
     checkArg(2, args[1], "string", "nil")
     aliases[alias] = args[1]
   end
-  return aliases[alias]
+  return result
 end
 
 function shell.aliases()
