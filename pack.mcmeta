@@ -7,6 +7,10 @@
      "en_US":{
         "name": "English",
         "region": "United States"
+     },
+     "de_DE":{
+        "name": "Deutsch",
+        "region": "Deutschland"
      }
   }
 }

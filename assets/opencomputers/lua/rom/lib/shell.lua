@@ -100,7 +100,8 @@ function shell.execute(program, ...)
   end
 
   -- Track listeners and timers registered by spawned programs so we can kill
-  -- them all when the coroutine dies.
+  -- them all when the coroutine dies. Note that this is only intended as a
+  -- convenience, and is easily circumvented (e.g. by using dofile or such).
   local listeners, weakListeners, timers = {}, {}, {}
   local pevent = {}
   function pevent.ignore(name, callback, weak)

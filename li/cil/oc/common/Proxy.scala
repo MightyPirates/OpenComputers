@@ -1,7 +1,6 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.registry.LanguageRegistry
 import li.cil.oc._
 import li.cil.oc.server.component.Computer
 import li.cil.oc.server.driver
@@ -13,11 +12,6 @@ import scala.Some
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
     Config.load(e.getSuggestedConfigurationFile)
-
-    // Note: en_US is loaded automatically.
-    // TODO Are others as well?
-    LanguageRegistry.instance.loadLocalization(
-      "/assets/" + Config.resourceDomain + "/lang/de_DE.lang", "de_DE", false)
 
     api.Driver.instance = Some(driver.Registry)
     api.FileSystem.instance = Some(fs.FileSystem)

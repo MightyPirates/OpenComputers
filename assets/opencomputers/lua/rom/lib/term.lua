@@ -270,7 +270,7 @@ function term.read(history)
     if not handleKeyPress(char, code) then
       local function onRepeatTimer()
         if not handleKeyPress(char, code) then
-          keyRepeat = event.timer(0, onRepeatTimer)
+          keyRepeat = event.timer(0.05, onRepeatTimer)
         end
       end
       keyRepeat = event.timer(0.4, onRepeatTimer)
