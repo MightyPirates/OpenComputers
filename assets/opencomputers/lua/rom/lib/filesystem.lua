@@ -2,7 +2,8 @@ local isAutorunEnabled = true
 
 -------------------------------------------------------------------------------
 
-fs = setmetatable({}, {__index=driver.filesystem})
+filesystem = setmetatable({}, {__index=driver.filesystem})
+fs = filesystem
 
 fs.delete = fs.remove
 fs.isFolder = fs.isDirectory

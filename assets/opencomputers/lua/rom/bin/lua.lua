@@ -7,10 +7,9 @@ while running and term.isAvailable() do
   if not command then
     return -- eof
   end
-  local code, result = load("return " .. command, "=stdin", env)
-  if not code then
-    code, result = load(command, "=stdin", env) -- maybe it's a statement
-  end
+  local statement, result = load(command, "=stdin", env)
+  local expression = load("return " .. command, "=stdin", env)
+  local code = expression or statement
   if code then
     local result = table.pack(pcall(code))
     if not result[1] or result.n > 1 then

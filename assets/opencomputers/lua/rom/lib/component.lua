@@ -60,6 +60,9 @@ local function onComponentAdded(_, address)
     return false -- cancel this event, it is invalid
   end
   local componentType = driver.componentType(address)
+  if not componentType then
+    return -- component was removed again before signal could be processed
+  end
   components[address] = componentType
   if not component.isAvailable(componentType) then
     component.primary(componentType, address)

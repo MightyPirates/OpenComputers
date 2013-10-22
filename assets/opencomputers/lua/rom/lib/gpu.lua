@@ -17,8 +17,8 @@ function gpu.resolution(w, h)
   return resolutionX, resolutionY
 end
 
-function gpu.resolutions()
-  return driver.gpu.resolutions(component.primary("gpu"))
+function gpu.maxResolution()
+  return driver.gpu.maxResolution(component.primary("gpu"))
 end
 
 function gpu.set(col, row, value)
@@ -40,6 +40,8 @@ local function onComponentAvailable(_, componentType)
      (componentType == "gpu" and component.isAvailable("screen"))
   then
     gpu.bind(component.primary("screen"))
+    local maxX, maxY = gpu.maxResolution()
+    gpu.resolution(maxX, maxY)
   end
 end
 

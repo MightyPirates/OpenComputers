@@ -127,6 +127,11 @@ local sandbox = {
     remove = table.remove,
     sort = table.sort,
     unpack = table.unpack
+  },
+
+  -- TODO evaluate whether this can be used to do evil things (TM)
+  debug = {
+    traceback = debug.traceback
   }
 }
 sandbox._G = sandbox
@@ -166,16 +171,54 @@ local function checkDeadline()
 end
 
 local function main(args)
-  local function init()
-    sandbox.driver.filesystem.mount(os.romAddress(), "/")
-    sandbox.driver.filesystem.mount(os.tmpAddress(), "/tmp")
-    local result, reason = sandbox.loadfile("/boot/init.lua")
-    if not result then
-      error(reason, 0)
+  local function bootstrap()
+    local fs = sandbox.driver.filesystem
+    fs.mount(os.romAddress(), "/")
+    fs.mount(os.tmpAddress(), "/tmp")
+
+    -- Custom dofile implementation since we don't have the baselib yet.
+    local function dofile(file)
+      local stream = fs.open(file)
+      if stream then
+        local buffer = ""
+        repeat
+          local data = stream:read(math.huge)
+          if data then
+            buffer = buffer .. data
+          end
+        until not data
+        stream:close()
+        stream = nil
+        local program = sandbox.load(buffer, "=" .. file)
+        buffer = nil
+        if program then
+          return program()
+        end
+      end
     end
-    return coroutine.create(result)
+
+    local init = {}
+    for api in fs.dir("lib") do
+      local path = fs.concat("lib", api)
+      if not fs.isDirectory(path) then
+        local install = dofile(path)
+        if type(install) == "function" then
+          table.insert(init, install)
+        end
+      end
+    end
+    for _, install in ipairs(init) do
+      install()
+    end
+    init = nil
+
+    return coroutine.create(function(...)
+      sandbox.event.fire(...) -- handle the first signal
+      sandbox.os.execute("/bin/sh")
+      coroutine.yield(false) -- this should never return, so we shut down
+    end)
   end
-  local co = init()
+  local co = bootstrap()
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
     if not debug.gethook(co) then
@@ -231,12 +274,8 @@ end
 
 -------------------------------------------------------------------------------
 
-function sandbox.os.shutdown()
-  coroutine.yield(false)
-end
-
-function sandbox.os.reboot()
-  coroutine.yield(true)
+function sandbox.os.shutdown(reboot)
+  coroutine.yield(reboot ~= nil and reboot ~= false)
 end
 
 function sandbox.os.signal(name, timeout)
@@ -253,8 +292,8 @@ end
 
 sandbox.driver = {}
 
-function sandbox.driver.componentType(id)
-  return nodeName(id)
+function sandbox.driver.componentType(address)
+  return nodeName(address)
 end
 
 do

@@ -17,7 +17,7 @@ object GraphicsCard extends driver.Item {
   override def node(item: ItemStack) =
     Items.multi.subItem(item) match {
       case Some(gpu: common.item.GraphicsCard) =>
-        Some(new component.GraphicsCard(gpu.resolutions))
+        Some(new component.GraphicsCard(gpu.maxResolution))
       case _ => throw new IllegalArgumentException()
     }
 }

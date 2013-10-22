@@ -7,8 +7,8 @@ end
 
 -------------------------------------------------------------------------------
 
-rs = {}
-redstone = rs
+redstone = {}
+rs = redstone
 
 function rs.analogInput(side)
   return driver.redstone.analogInput(component.primary("redstone"), stringToSide(side))

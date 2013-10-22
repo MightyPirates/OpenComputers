@@ -13,15 +13,15 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
 class ScreenTier1 extends Screen {
-  protected def resolutions = Config.screenResolutionsByTier(0)
+  protected def maxResolution = Config.screenResolutionsByTier(0)
 }
 
 class ScreenTier2 extends Screen {
-  protected def resolutions = Config.screenResolutionsByTier(1)
+  protected def maxResolution = Config.screenResolutionsByTier(1)
 }
 
 class ScreenTier3 extends Screen {
-  protected def resolutions = Config.screenResolutionsByTier(2)
+  protected def maxResolution = Config.screenResolutionsByTier(2)
 }
 
 abstract class Screen extends Rotatable with component.Screen.Environment with Receiver {
@@ -167,7 +167,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment with R
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(x + dx, y + dy, z)
       worldObj.getBlockTileEntity(nx, ny, nz) match {
-        case s: Screen if s.resolutions == resolutions && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
+        case s: Screen if s.maxResolution == maxResolution && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           val canMergeAlongX = sy == y && s.height == height && s.width + width <= Config.maxScreenWidth
           val canMergeAlongY = sx == x && s.width == width && s.height + height <= Config.maxScreenHeight

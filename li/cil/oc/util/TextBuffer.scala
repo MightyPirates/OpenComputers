@@ -13,6 +13,8 @@ import net.minecraft.nbt.NBTTagString
  * instead of set()ing everything).
  */
 class TextBuffer(var width: Int, var height: Int) {
+  def this(size: (Int, Int)) = this(size._1, size._2)
+
   var buffer = Array.fill(height, width)(' ')
 
   /** The current buffer size in columns by rows. */

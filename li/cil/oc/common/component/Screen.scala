@@ -2,12 +2,12 @@ package li.cil.oc.common.component
 
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Component, Message, Visibility}
+import li.cil.oc.common.component
 import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.common.component
 
-class Screen(val owner: Screen.Environment, val resolutions: List[(Int, Int)]) extends Persistable {
-  private val buffer = new TextBuffer(resolutions.head._1, resolutions.head._2)
+class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) extends Persistable {
+  private val buffer = new TextBuffer(maxResolution)
 
   // ----------------------------------------------------------------------- //
 
@@ -17,13 +17,15 @@ class Screen(val owner: Screen.Environment, val resolutions: List[(Int, Int)]) e
 
   def resolution = buffer.size
 
-  def resolution_=(value: (Int, Int)) =
-    if (resolutions.contains(value) && (buffer.size = value)) {
-      val (w, h) = value
+  def resolution_=(value: (Int, Int)) = {
+    val (w, h) = value
+    val (mw, mh) = maxResolution
+    if (w <= mw && h <= mh && (buffer.size = value)) {
       owner.onScreenResolutionChange(w, h)
       true
     }
     else false
+  }
 
   def set(col: Int, row: Int, s: String) = if (col < buffer.width && (col >= 0 || -col < s.length)) {
     // Make sure the string isn't longer than it needs to be, in particular to
@@ -59,13 +61,13 @@ class Screen(val owner: Screen.Environment, val resolutions: List[(Int, Int)]) e
 object Screen {
 
   trait Environment extends Component {
-    final val instance = new component.Screen(this, resolutions)
+    final val instance = new component.Screen(this, maxResolution)
 
     override val name = "screen"
 
     override val visibility = Visibility.Network
 
-    protected def resolutions: List[(Int, Int)]
+    protected def maxResolution: (Int, Int)
 
     // ----------------------------------------------------------------------- //
 
@@ -77,8 +79,9 @@ object Screen {
           val (w, h) = instance.resolution
           result(w, h)
         }
-        case Array() if message.name == "screen.resolutions" =>
-          result(instance.resolutions: _*)
+        case Array() if message.name == "screen.maxResolution" =>
+          val (w, h) = instance.maxResolution
+          result(w, h)
         case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
           instance.set(x, y, value); None
         case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>

@@ -3,22 +3,6 @@ local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
                  md="mkdir", cls="clear"}
 
-local function onTermAvailable()
-  term.clear()
-  print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
-  while term.isAvailable() do
-    io.write("> ")
-    local command = io.read()
-    if not command then
-      return -- eof
-    end
-    local result, reason = os.execute(command)
-    if not result then
-      print(reason)
-    end
-  end
-end
-
 local function findFile(name, path, ext)
   checkArg(1, name, "string")
   local function findIn(path)
@@ -167,9 +151,7 @@ function shell.execute(program, ...)
     return nil, reason
   end
 
-  event.ignore("term_available", onTermAvailable)
   local result = table.pack(pcall(program, ...))
-  event.listen("term_available", onTermAvailable)
 
   for name, list in pairs(listeners) do
     for listener in pairs(list) do
@@ -203,35 +185,4 @@ function shell.which(program)
   else
     return nil, "program not found"
   end
-end
-
--------------------------------------------------------------------------------
-
-os.execute = function(command)
-  if not command then
-    return type(shell) == "table"
-  end
-  checkArg(1, command, "string")
-  local head, tail = nil, ""
-  repeat
-    local oldHead = head
-    head = command:match("^%S+")
-    tail = command:usub(head:ulen() + 1) .. tail
-    if head == oldHead then -- say no to infinite recursion, live longer
-      command = nil
-    else
-      command = shell.alias(head)
-    end
-  until command == nil
-  local args = {}
-  for part in tail:gmatch("%S+") do
-    table.insert(args, part)
-  end
-  return shell.execute(head, table.unpack(args))
-end
-
--------------------------------------------------------------------------------
-
-return function()
-  event.listen("term_available", onTermAvailable)
 end

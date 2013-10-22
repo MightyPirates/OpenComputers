@@ -24,7 +24,7 @@ event = {}
 --[[ Error handler for ALL event callbacks. If this returns a value,
      the error will be rethrown, possibly leading to a computer crash. ]]
 function event.error(message)
-  return message
+  return debug.traceback(message)
 end
 
 function event.fire(name, ...)

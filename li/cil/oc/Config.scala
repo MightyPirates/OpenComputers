@@ -8,12 +8,7 @@ object Config {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val driverPath = "/assets/" + resourceDomain + "/lua/drivers/"
 
-  // Let's stick to "common" ratios of 4:3 and 16:9, pixel wise. Corrected
-  // for the font size that's 2.4:1 and 3.2:1.
-  val screenResolutionsByTier = Array(
-    List((40, 16)),
-    List((40, 16), (60, 25), (80, 25)),
-    List((40, 16), (60, 25), (80, 25), (120, 50), (160, 50)))
+  val screenResolutionsByTier = Array((40, 16), (80, 25), (160, 50))
 
   // ----------------------------------------------------------------------- //
 

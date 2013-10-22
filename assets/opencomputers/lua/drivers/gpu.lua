@@ -17,9 +17,9 @@ function driver.gpu.resolution(gpu, w, h)
   end
 end
 
-function driver.gpu.resolutions(gpu)
+function driver.gpu.maxResolution(gpu)
   checkArg(1, gpu, "string")
-  return send(gpu, "gpu.resolutions")
+  return send(gpu, "gpu.maxResolution")
 end
 
 function driver.gpu.set(gpu, col, row, value)
