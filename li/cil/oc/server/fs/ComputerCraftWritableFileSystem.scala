@@ -7,15 +7,15 @@ class ComputerCraftWritableFileSystem(override val mount: IWritableMount)
   extends ComputerCraftFileSystem(mount)
   with OutputStreamFileSystem {
 
-  override protected def makeDirectory(path: String) = try {
-    mount.makeDirectory(path)
+  override def delete(path: String) = try {
+    mount.delete(path)
     true
   } catch {
     case _: Throwable => false
   }
 
-  override protected def delete(path: String) = try {
-    mount.delete(path)
+  override def makeDirectory(path: String) = try {
+    mount.makeDirectory(path)
     true
   } catch {
     case _: Throwable => false

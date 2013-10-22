@@ -6,7 +6,7 @@ import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
 trait VirtualFileSystem extends OutputStreamFileSystem {
-  private val root = new VirtualDirectory
+  protected val root = new VirtualDirectory
 
   // ----------------------------------------------------------------------- //
 
@@ -36,6 +36,30 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       case Some(obj: VirtualDirectory) => obj.list()
       case _ => None
     }
+
+  // ----------------------------------------------------------------------- //
+
+  override def delete(path: String) = {
+    val parts = segments(path)
+    if (parts.isEmpty) false
+    else {
+      root.get(parts.dropRight(1)) match {
+        case Some(parent: VirtualDirectory) => parent.delete(parts.last)
+        case _ => false
+      }
+    }
+  }
+
+  override def makeDirectory(path: String) = {
+    val parts = segments(path)
+    if (parts.isEmpty) false
+    else {
+      root.get(parts.dropRight(1)) match {
+        case Some(parent: VirtualDirectory) => parent.makeDirectory(parts.last)
+        case _ => false
+      }
+    }
+  }
 
   override def rename(from: String, to: String) =
     if (from != "" && exists(from) && !exists(to)) {
@@ -71,30 +95,6 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def makeDirectory(path: String) = {
-    val parts = segments(path)
-    if (parts.isEmpty) false
-    else {
-      root.get(parts.dropRight(1)) match {
-        case Some(parent: VirtualDirectory) => parent.makeDirectory(parts.last)
-        case _ => false
-      }
-    }
-  }
-
-  override protected def delete(path: String) = {
-    val parts = segments(path)
-    if (parts.isEmpty) false
-    else {
-      root.get(parts.dropRight(1)) match {
-        case Some(parent: VirtualDirectory) => parent.delete(parts.last)
-        case _ => false
-      }
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override protected def openInputStream(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualFile) => obj.openInputStream()
@@ -126,11 +126,11 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  private def segments(path: String) = path.split("/").view.filter(_ != "")
+  protected def segments(path: String) = path.split("/").view.filter(_ != "")
 
   // ----------------------------------------------------------------------- //
 
-  private abstract class VirtualObject {
+  protected abstract class VirtualObject {
     def isDirectory: Boolean
 
     def size: Long
@@ -154,7 +154,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  private class VirtualFile extends VirtualObject {
+  protected class VirtualFile extends VirtualObject {
     val data = mutable.ArrayBuffer.empty[Byte]
 
     var stream: Option[VirtualFileOutputStream] = None
@@ -192,7 +192,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  private class VirtualDirectory extends VirtualObject {
+  protected class VirtualDirectory extends VirtualObject {
     val children = mutable.Map.empty[String, VirtualObject]
 
     override def isDirectory = true
@@ -270,7 +270,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  private class VirtualFileInputStream(val file: VirtualFile) extends io.InputStream {
+  protected class VirtualFileInputStream(val file: VirtualFile) extends io.InputStream {
     private var isClosed = false
 
     private var position = 0
@@ -319,7 +319,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  private class VirtualFileOutputStream(val file: VirtualFile) extends io.OutputStream {
+  protected class VirtualFileOutputStream(val file: VirtualFile) extends io.OutputStream {
     private var isClosed = false
 
     override def close() = if (!isClosed) {

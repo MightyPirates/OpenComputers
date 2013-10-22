@@ -71,9 +71,11 @@ object FileSystem extends api.detail.FileSystemAPI {
   private class RamFileSystem(protected val capacity: Long)
     extends VirtualFileSystem
     with Capacity
+    with Volatile
 
-  private class BufferedFileSystem(protected val fileRoot: io.File, capacity: Long)
-    extends RamFileSystem(capacity)
+  private class BufferedFileSystem(protected val fileRoot: io.File, protected val capacity: Long)
+    extends VirtualFileSystem
+    with Capacity
     with Buffered
 
 }

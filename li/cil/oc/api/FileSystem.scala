@@ -20,7 +20,10 @@ import li.cil.oc.api.network.Node
  * <p/>
  * Note that all paths passed here are assumed to be absolute in the underlying
  * file system implementation, meaning they do not contain any "." or "..", and
- * are relative to the root of the file system.
+ * are relative to the root of the file system. When wrapping a file system in
+ * a node with the provided factory function this is automatically ensured. If
+ * you call any of the functions of a file system directly it is your
+ * responsibility to ensure the path has been cleaned up.
  */
 trait FileSystem extends Persistable {
   /**
@@ -31,7 +34,7 @@ trait FileSystem extends Persistable {
    *
    * @return the total storage space of this file system.
    */
-  def spaceTotal = 0L
+  def spaceTotal: Long
 
   /**
    * The used storage capacity of the file system, in bytes.
@@ -40,7 +43,7 @@ trait FileSystem extends Persistable {
    *
    * @return the used storage space of this file system.
    */
-  def spaceUsed = 0L
+  def spaceUsed: Long
 
   // ----------------------------------------------------------------------- //
 
@@ -93,7 +96,7 @@ trait FileSystem extends Persistable {
    * @param path the path to the object to get the last modified time of.
    * @return the time the object was last modified.
    */
-  def lastModified(path: String): Long = 0
+  def lastModified(path: String): Long
 
   /**
    * Gets a list of all items in the specified folder.
@@ -118,8 +121,26 @@ trait FileSystem extends Persistable {
   // ----------------------------------------------------------------------- //
 
   /**
-   * Create the specified directory, and if necessary any parent directories
-   * that do not yet exist.
+   * Deletes a file or folder.
+   * <p/>
+   * This only has to support deleting single files and empty folders. If a
+   * directory is non-empty this may return false. If the target object does
+   * not exists it should return false.
+   * <p/>
+   * This is only available for writable file systems. For read-only systems
+   * it should just always return false.
+   *
+   * @param path the path to the object to delete.
+   * @return true if the object was successfully deleted; false otherwise.
+   */
+  def delete(path: String): Boolean
+
+  /**
+   * Create the specified directory.
+   * <p/>
+   * This should always only create a single directory. If the parent directory
+   * does not exists it should return false. If the target object already
+   * exists it should also return false.
    * <p/>
    * This is only available for writable file systems. For read-only systems
    * it should just always return false.
@@ -127,27 +148,7 @@ trait FileSystem extends Persistable {
    * @param path the path to the directory to create.
    * @return true if the directory was created; false otherwise.
    */
-  def makeDirectories(path: String): Boolean =
-    !exists(path) && (makeDirectory(path) ||
-      (makeDirectories(path.split("/").dropRight(1).mkString("/")) && makeDirectory(path)))
-
-  /**
-   * Deletes a file or folder.
-   * <p/>
-   * This is only available for writable file systems. For read-only systems
-   * it should just always return false.
-   * <p/>
-   * If the specified object is a folder, it and all its contents should be
-   * deleted recursively.
-   *
-   * @param path the path to the file or folder to delete.
-   * @return true if something was deleted; false otherwise.
-   */
-  def remove(path: String): Boolean = {
-    def recurse(parent: String): Boolean =
-      (!isDirectory(parent) || list(parent).get.forall(child => recurse(parent + "/" + child))) && delete(parent)
-    recurse(path)
-  }
+  def makeDirectory(path: String): Boolean
 
   /**
    * Moves / renames a file or folder.
@@ -160,7 +161,7 @@ trait FileSystem extends Persistable {
    * @return true if the object was renamed; false otherwise.
    * @throws FileNotFoundException if the source is not a file or folder.
    */
-  def rename(from: String, to: String): Boolean = false
+  def rename(from: String, to: String): Boolean
 
   /**
    * Sets the time a file or folder was supposedly last modified.
@@ -174,7 +175,9 @@ trait FileSystem extends Persistable {
    * @param time the time the object was supposedly last modified.
    * @return whether the modification time was adjusted.
    */
-  def setLastModified(path: String, time: Long) = false
+  def setLastModified(path: String, time: Long): Boolean
+
+  // ----------------------------------------------------------------------- //
 
   /**
    * Opens a file for reading or writing.
@@ -224,37 +227,6 @@ trait FileSystem extends Persistable {
    * unloaded.
    */
   def close()
-
-  // ----------------------------------------------------------------------- //
-
-  /**
-   * Actual directory creation implementation.
-   * <p/>
-   * This is called from the possibly recursive `makeDirectories` function, and
-   * guarantees that the parent directory of the directory to be created
-   * already exists. So this should always only create a single directory.
-   * <p/>
-   * This is only available for writable file systems. For read-only systems
-   * it should just always return false.
-   *
-   * @param path the path to the directory to create.
-   * @return true if the directory was created; false otherwise.
-   */
-  protected def makeDirectory(path: String) = false
-
-  /**
-   * Actual deletion implementation.
-   * <p/>
-   * This is called from the recursive `remove` function, and guarantees that
-   * the passed object is either a file or an empty directory.
-   * <p/>
-   * This is only available for writable file systems. For read-only systems
-   * it should just always return false.
-   *
-   * @param path the path to the object to delete.
-   * @return true if the object was successfully deleted; false otherwise.
-   */
-  protected def delete(path: String) = false
 }
 
 object FileSystem extends FileSystemAPI {

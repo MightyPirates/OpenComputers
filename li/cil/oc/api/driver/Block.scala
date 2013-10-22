@@ -49,6 +49,5 @@ trait Block extends Driver {
    * @param z     the Z coordinate of the block to get the node for.
    * @return the network node for the block at that location.
    */
-  def node(world: World, x: Int, y: Int, z: Int): Node =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[Node]
+  def node(world: World, x: Int, y: Int, z: Int): Node
 }

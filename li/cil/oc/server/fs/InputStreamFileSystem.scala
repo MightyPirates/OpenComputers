@@ -11,6 +11,16 @@ trait InputStreamFileSystem extends api.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  def delete(path: String) = false
+
+  def makeDirectory(path: String) = false
+
+  def rename(from: String, to: String) = false
+
+  def setLastModified(path: String, time: Long) = false
+
+  // ----------------------------------------------------------------------- //
+
   override def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {

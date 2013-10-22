@@ -8,6 +8,12 @@ trait FileInputStreamFileSystem extends api.FileSystem with InputStreamFileSyste
 
   // ----------------------------------------------------------------------- //
 
+  override def spaceTotal = 0
+
+  override def spaceUsed = 0
+
+  // ----------------------------------------------------------------------- //
+
   override def exists(path: String) = new io.File(root, path).exists()
 
   override def size(path: String) = new io.File(root, path) match {

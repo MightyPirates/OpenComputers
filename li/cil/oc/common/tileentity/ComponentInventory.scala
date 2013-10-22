@@ -113,6 +113,10 @@ trait ComponentInventory extends Inventory with Node {
     // Uninstall component previously in that slot.
     components(slot) match {
       case Some(node) =>
+        // Note to self: we have to remove the node from the network *before*
+        // saving, to allow file systems to close their handles before they
+        // are saved (otherwise hard drives would restore all handles after
+        // being installed into a different computer, even!)
         components(slot) = None
         node.network.foreach(_.remove(node))
         Registry.driverFor(item).foreach(driver => node.writeToNBT(driver.nbt(item)))

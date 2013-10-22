@@ -13,17 +13,17 @@ trait Buffered extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def rename(from: String, to: String) = {
-    if (super.rename(from, to)) {
-      deletions += from -> System.currentTimeMillis()
+  override def delete(path: String) = {
+    if (super.delete(path)) {
+      deletions += path -> System.currentTimeMillis()
       true
     }
     else false
   }
 
-  override protected def delete(path: String) = {
-    if (super.delete(path)) {
-      deletions += path -> System.currentTimeMillis()
+  override def rename(from: String, to: String) = {
+    if (super.rename(from, to)) {
+      deletions += from -> System.currentTimeMillis()
       true
     }
     else false
@@ -35,7 +35,7 @@ trait Buffered extends OutputStreamFileSystem {
     super.readFromNBT(nbt)
 
     def recurse(path: String, directory: io.File) {
-      makeDirectories(path)
+      makeDirectory(path)
       for (child <- directory.listFiles()) {
         val childPath = path + child.getName
         val childFile = new io.File(directory, child.getName)

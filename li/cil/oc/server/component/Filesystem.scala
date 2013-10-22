@@ -73,9 +73,13 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
           }
 
         case Array(path: Array[Byte]) if message.name == "fs.makeDirectory" =>
-          result(fileSystem.makeDirectories(clean(path)))
+          def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
+            (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
+          result(recurse(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.remove" =>
-          result(fileSystem.remove(clean(path)))
+          def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
+            fileSystem.list(parent).get.forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
+          result(recurse(clean(path)))
         case Array(from: Array[Byte], to: Array[Byte]) if message.name == "fs.rename" =>
           result(fileSystem.rename(clean(from), clean(to)))
 

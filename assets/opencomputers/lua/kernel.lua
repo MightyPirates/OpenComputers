@@ -116,8 +116,8 @@ local sandbox = {
     upper = string.upper,
     uchar = string.uchar,
     ulen = string.ulen,
-    ureverse = string.breverse,
-    usub = string.bsub
+    ureverse = string.ureverse,
+    usub = string.usub
   },
 
   table = {

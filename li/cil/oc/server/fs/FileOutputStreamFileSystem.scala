@@ -11,15 +11,13 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   // ----------------------------------------------------------------------- //
 
+  override def delete(path: String) = new io.File(root, path).delete()
+
+  override def makeDirectory(path: String) = new io.File(root, path).mkdir()
+
   override def rename(from: String, to: String) = new io.File(root, from).renameTo(new io.File(root, to))
 
   override def setLastModified(path: String, time: Long) = new io.File(root, path).setLastModified(time)
-
-  // ----------------------------------------------------------------------- //
-
-  override protected def makeDirectory(path: String) = new io.File(root, path).mkdir()
-
-  override protected def delete(path: String) = new io.File(root, path).delete()
 
   // ----------------------------------------------------------------------- //
 

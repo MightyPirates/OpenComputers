@@ -8,6 +8,21 @@ import scala.collection.mutable
 class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends InputStreamFileSystem {
   private val directories = mutable.Map.empty[ZipEntry, Array[String]]
 
+  private val totalSize = {
+    var size = 0L
+    val enum = zip.entries()
+    while (enum.hasMoreElements) size += enum.nextElement.getSize
+    size
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def spaceTotal = totalSize
+
+  def spaceUsed = spaceTotal
+
+  // ----------------------------------------------------------------------- //
+
   override def exists(path: String) = entry(path).isDefined
 
   override def size(path: String) = entry(path) match {
@@ -16,6 +31,11 @@ class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends I
   }
 
   override def isDirectory(path: String) = entry(path).exists(_.isDirectory)
+
+  def lastModified(path: String) = entry(path) match {
+    case Some(file) => file.getTime
+    case _ => 0L
+  }
 
   override def list(path: String) = entry(path) match {
     case Some(entry) if entry.isDirectory => Some(entries(entry))
@@ -27,6 +47,8 @@ class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends I
     zip.close()
     directories.clear()
   }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def openInputStream(path: String) = entry(path).map(entry => zip.getInputStream(entry))
 
