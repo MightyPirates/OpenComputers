@@ -37,7 +37,7 @@ function driver.gpu.fill(gpu, col, row, w, h, value)
   checkArg(4, w, "number")
   checkArg(5, h, "number")
   checkArg(6, value, "string")
-  return send(gpu, "gpu.fill", col, row, w, h, value:sub(1, 1))
+  return send(gpu, "gpu.fill", col, row, w, h, value:usub(1, 1))
 end
 
 function driver.gpu.copy(gpu, col, row, w, h, tx, ty)

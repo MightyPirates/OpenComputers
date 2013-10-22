@@ -103,22 +103,36 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Flip text upside down.
     GL11.glScalef(1, -1, 1)
 
-    // Scale to multi-block size.
-    GL11.glScalef(sx, sy, 1)
+    // Offset from border.
+    GL11.glTranslatef(sx * 2.25f / tw, sy * 2.25f / th, 0)
 
-    // Scale to inner screen size and offset it.
-    GL11.glTranslatef(2.25f / tw, 2.25f / th, 0)
-    GL11.glScalef((tw - 4.5f) / tw, (th - 4.5f) / th, 1)
+    // Inner size (minus borders).
+    val isx = sx - (4.5f / 16)
+    val isy = sy - (4.5f / 16)
+
+    // Scale based on actual buffer size.
+    val (resX, resY) = screen.instance.resolution
+    val sizeX = resX * MonospaceFontRenderer.fontWidth
+    val sizeY = resY * MonospaceFontRenderer.fontHeight
+    val scaleX = isx / sizeX
+    val scaleY = isy / sizeY
+    if (true) {
+      if (scaleX > scaleY) {
+        GL11.glTranslatef(sizeX * 0.5f * (scaleX - scaleY), 0, 0)
+        GL11.glScalef(scaleY, scaleY, 1)
+      }
+      else {
+        GL11.glTranslatef(0, sizeY * 0.5f * (scaleY - scaleX), 0)
+        GL11.glScalef(scaleX, scaleX, 1)
+      }
+    }
+    else {
+      // Stretch to fit.
+      GL11.glScalef(scaleX, scaleY, 1)
+    }
 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
-
-    // Scale based on actual buffer size.
-    val (w, h) = screen.instance.resolution
-    val scaleX = sx.toFloat / (w * MonospaceFontRenderer.fontWidth)
-    val scaleY = sy.toFloat / (h * MonospaceFontRenderer.fontHeight)
-    val scale = scaleX min scaleY
-    GL11.glScalef(scale / sx.toFloat, scale / sy.toFloat, 1)
 
     for ((line, i) <- screen.instance.lines.zipWithIndex) {
       MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
@@ -146,22 +160,28 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     val dz = pz - cz
 
     (if (dx < -ex) {
-      val d = dx + ex; d * d
+      val d = dx + ex
+      d * d
     }
     else if (dx > ex) {
-      val d = dx - ex; d * d
+      val d = dx - ex
+      d * d
     }
     else 0) + (if (dy < -ey) {
-      val d = dy + ey; d * d
+      val d = dy + ey
+      d * d
     }
     else if (dy > ey) {
-      val d = dy - ey; d * d
+      val d = dy - ey
+      d * d
     }
     else 0) + (if (dz < -ez) {
-      val d = dz + ez; d * d
+      val d = dz + ez
+      d * d
     }
     else if (dz > ez) {
-      val d = dz - ez; d * d
+      val d = dz - ez
+      d * d
     }
     else 0)
   }
