@@ -1,14 +1,6 @@
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
 
-local function toggleBlink()
-  cursorBlink.state = not cursorBlink.state
-  if term.isAvailable() then
-    local char = cursorBlink.state and cursorBlink.solid or cursorBlink.alt
-    gpu.set(cursorX, cursorY, char)
-  end
-end
-
 -------------------------------------------------------------------------------
 
 term = {}
@@ -43,6 +35,13 @@ function term.cursor(col, row)
 end
 
 function term.cursorBlink(enabled)
+  local function toggleBlink()
+    cursorBlink.state = not cursorBlink.state
+    if term.isAvailable() then
+      local char = cursorBlink.state and cursorBlink.solid or cursorBlink.alt
+      gpu.set(cursorX, cursorY, char)
+    end
+  end
   local function start(alt)
     if not cursorBlink then
       cursorBlink = event.interval(0.5, toggleBlink)
@@ -74,6 +73,8 @@ function term.cursorBlink(enabled)
     else
       stop()
     end
+  elseif enabled and cursorBlink then
+    toggleBlink()
   end
   return cursorBlink ~= nil
 end
@@ -84,11 +85,11 @@ function term.read(history)
   history = history or {}
   table.insert(history, "")
   local current = #history
-  local keys = driver.keyboard.keys
   local start = term.cursor()
   local cursor, scroll = 1, 0
   local keyRepeat = nil
   local result = nil
+  local forceReturn = false -- for eof where result is nil
   local function remove()
     local x = start - 1 + cursor - scroll
     local _, y = term.cursor()
@@ -160,7 +161,7 @@ function term.read(history)
     term.cursorBlink(cursor <= history[current]:ulen() and
                      history[current]:usub(cursor, cursor) or " ")
     if blink then
-      toggleBlink()
+      term.cursorBlink(true)
     end
   end
   local function handleKeyPress(char, code)
@@ -168,7 +169,7 @@ function term.read(history)
     local w, h = gpu.resolution()
     local cancel, blink = false, false
     term.cursorBlink(false)
-    if code == keys.back then
+    if code == keyboard.keys.back then
       if cursor > 1 then
         copyIfNecessary()
         history[current] = history[current]:usub(1, cursor - 2) ..
@@ -180,7 +181,7 @@ function term.read(history)
         remove()
       end
       cancel = cursor == 1
-    elseif code == keys.delete then
+    elseif code == keyboard.keys.delete then
       if cursor <= history[current]:ulen() then
         copyIfNecessary()
         history[current] = history[current]:usub(1, cursor - 1) ..
@@ -188,7 +189,7 @@ function term.read(history)
         remove()
       end
       cancel = cursor == history[current]:ulen() + 1
-    elseif code == keys.left then
+    elseif code == keyboard.keys.left then
       if cursor > 1 then
         cursor = cursor - 1
         if cursor - scroll < 1 then
@@ -197,7 +198,7 @@ function term.read(history)
       end
       cancel = cursor == 1
       blink = true
-    elseif code == keys.right then
+    elseif code == keyboard.keys.right then
       if cursor < history[current]:ulen() + 1 then
         cursor = cursor + 1
         if cursor - scroll > w - (start - 1) then
@@ -206,34 +207,34 @@ function term.read(history)
       end
       cancel = cursor == history[current]:ulen() + 1
       blink = true
-    elseif code == keys.home then
+    elseif code == keyboard.keys.home then
       if cursor > 1 then
         cursor, scroll = 1, 0
         render()
       end
       cancel = true
       blink = true
-    elseif code == keys["end"] then
+    elseif code == keyboard.keys["end"] then
       if cursor < history[current]:ulen() + 1 then
         scrollEnd()
       end
       cancel = true
       blink = true
-    elseif code == keys.up then
+    elseif code == keyboard.keys.up then
       if current > 1 then
         current = current - 1
         scrollEnd()
       end
       cancel = current == 1
       blink = true
-    elseif code == keys.down then
+    elseif code == keyboard.keys.down then
       if current < #history then
         current = current + 1
         scrollEnd()
       end
       cancel = current == #history
       blink = true
-    elseif code == keys.enter then
+    elseif code == keyboard.keys.enter then
       if current ~= #history then -- bring entry to front
         history[#history] = history[current]
         table.remove(history, current)
@@ -244,7 +245,18 @@ function term.read(history)
         table.remove(history, current)
       end
       return true
-    elseif not keys.isControl(char) then
+    elseif keyboard.isControlDown() then
+      if code == keyboard.keys.d then
+        if history[current] == "" then
+          forceReturn = true
+          return true
+        end
+      elseif code == keyboard.keys.c then
+        history[current] = ""
+        forceReturn = true
+        return true
+      end
+    elseif not keyboard.isControl(char) then
       copyIfNecessary()
       history[current] = history[current]:usub(1, cursor - 1) ..
                          string.uchar(char) ..
@@ -259,9 +271,7 @@ function term.read(history)
     return cancel
   end
   local function onKeyDown(_, address, char, code)
-    if not component.isAvailable("keyboard") or
-       address ~= component.primary("keyboard")
-    then
+    if not component.isPrimary(address) then
       return
     end
     if keyRepeat then
@@ -277,19 +287,12 @@ function term.read(history)
     end
   end
   local function onKeyUp(_, address, char, code)
-    if not component.isAvailable("keyboard") or
-       address ~= component.primary("keyboard")
-    then
-      return
-    end
-    if keyRepeat then
+    if component.isPrimary(address) and keyRepeat then
       keyRepeat = event.cancel(keyRepeat)
     end
   end
   local function onClipboard(_, address, value)
-    if not component.isAvailable("keyboard") or
-       address ~= component.primary("keyboard")
-    then
+    if not component.isPrimary(address) then
       return
     end
     copyIfNecessary()
@@ -308,7 +311,7 @@ function term.read(history)
   event.listen("key_up", onKeyUp)
   event.listen("clipboard", onClipboard)
   term.cursorBlink(true)
-  while term.isAvailable() and not result do
+  while term.isAvailable() and not result and not forceReturn do
     event.wait()
   end
   if history[#history] == "" then

@@ -1,10 +1,10 @@
-local args = table.pack(...)
-if args.n == 0 then
+local args = shell.parse(...)
+if #args == 0 then
   print("Usage: mkdir <dirname1> [<dirname2> [...]]")
   return
 end
 
-for i = 1, args.n do
+for i = 1, #args do
   local path = shell.resolve(args[i])
   local result, reason = fs.makeDirectory(path)
   if not result then

@@ -1,5 +1,5 @@
-local args = table.pack(...)
-if args.n < 1 then
+local args = shell.parse(...)
+if #args < 1 then
   print("Usage: unalias <name>")
   return
 end

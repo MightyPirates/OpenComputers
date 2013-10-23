@@ -20,6 +20,14 @@ function component.list(filter)
   end
 end
 
+function component.isPrimary(address)
+  local componentType = component.type(address)
+  if componentType then
+    return primaries[componentType] == address
+  end
+  return false
+end
+
 function component.primary(componentType, ...)
   checkArg(1, componentType, "string")
   local args = table.pack(...)

@@ -1,10 +1,10 @@
-local args = table.pack(...)
+local args = shell.parse(...)
 
 if args.n == 0 then
   for name, value in shell.aliases() do
     print(name, value)
   end
-elseif args.n == 1 then
+elseif #args == 1 then
   local value = shell.alias(args[1])
   if value then
     print(value)

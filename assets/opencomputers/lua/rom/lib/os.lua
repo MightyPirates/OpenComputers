@@ -25,6 +25,8 @@ os.remove = driver.filesystem.remove
 
 os.rename = driver.filesystem.rename
 
+os.sleep = event.wait
+
 function os.tmpname()
   if driver.filesystem.exists("tmp") then
     for i = 1, 10 do

@@ -1,5 +1,5 @@
-local args = table.pack(...)
-if args.n < 2 then
+local args = shell.parse(...)
+if #args < 2 then
   print("Usage: mv <from> <to>")
   return
 end

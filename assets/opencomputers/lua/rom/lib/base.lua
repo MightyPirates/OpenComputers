@@ -6,7 +6,7 @@ function dofile(filename)
   return program()
 end
 
-function loadfile(filename, env)
+function loadfile(filename, mode, env)
   local file, reason = io.open(filename)
   if not file then
     return nil, reason
@@ -16,7 +16,7 @@ function loadfile(filename, env)
   if not source then
     return nil, reason
   end
-  return load(source, "=" .. filename, env)
+  return load(source, "=" .. filename, mode, env)
 end
 
 function print(...)

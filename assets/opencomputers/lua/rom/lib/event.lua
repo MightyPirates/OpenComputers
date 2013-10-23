@@ -95,13 +95,13 @@ function event.cancel(timerId)
   timers[timerId] = nil
 end
 
-function event.interval(timeout, callback)
+function event.interval(frequency, callback)
   local interval = {}
   local function onTimer()
-    interval.id = event.timer(timeout, onTimer)
+    interval.id = event.timer(frequency, onTimer)
     callback()
   end
-  interval.id = event.timer(timeout, onTimer)
+  interval.id = event.timer(frequency, onTimer)
   return interval
 end
 

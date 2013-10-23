@@ -146,7 +146,7 @@ function shell.execute(program, ...)
   pevent = setmetatable(pevent, {__index = event, __metatable = {}})
   local env = setmetatable({event = pevent}, {__index = _ENV, __metatable = {}})
 
-  program, reason = loadfile(where, env)
+  program, reason = loadfile(where, "t", env)
   if not program then
     return nil, reason
   end
@@ -168,6 +168,23 @@ function shell.execute(program, ...)
   end
 
   return table.unpack(result, 1, result.n)
+end
+
+function shell.parse(...)
+  local params = table.pack(...)
+  local args = {}
+  local options = {}
+  for i = 1, params.n do
+    local param = params[i]
+    if param:usub(1, 1) == "-" then
+      for j = 2, param:ulen() do
+        options[param:usub(j, j)] = true
+      end
+    else
+      table.insert(args, param)
+    end
+  end
+  return args, options
 end
 
 function shell.resolve(path)

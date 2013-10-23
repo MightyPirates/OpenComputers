@@ -1,3 +1,9 @@
+local args = table.pack(...)
+if args.n > 0 then
+  os.execute(table.concat(args, " ", 1, args.n))
+  return
+end
+
 local function trim(s) -- from http://lua-users.org/wiki/StringTrim
   local from = s:match"^%s*()"
   return from > #s and "" or s:match(".*%S", from)

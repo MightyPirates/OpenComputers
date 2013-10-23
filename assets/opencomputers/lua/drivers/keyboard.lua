@@ -135,6 +135,6 @@ for k, v in pairs(driver.keyboard.keys) do
   driver.keyboard.keys[v] = k
 end
 
-function driver.keyboard.keys.isControl(char)
+function driver.keyboard.isControl(char)
   return type(char) == "number" and (char < 0x20 or (char >= 0x7F and char <= 0x9F))
 end

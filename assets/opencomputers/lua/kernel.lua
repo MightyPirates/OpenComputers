@@ -47,11 +47,8 @@ local sandbox = {
 
   coroutine = {
     create = coroutine.create,
-    resume = coroutine.resume,
     running = coroutine.running,
-    status = coroutine.status,
-    wrap = coroutine.wrap,
-    yield = coroutine.yield
+    status = coroutine.status
   },
 
   math = {
@@ -136,8 +133,9 @@ local sandbox = {
 }
 sandbox._G = sandbox
 
-function sandbox.load(code, source, env)
-  return load(code, source, "t", env or sandbox)
+function sandbox.load(ld, source, mode, env)
+  assert((mode or "t") == "t", "unsupported mode")
+  return load(ld, source, "t", env or sandbox)
 end
 
 function sandbox.checkArg(n, have, ...)
@@ -151,7 +149,7 @@ function sandbox.checkArg(n, have, ...)
   end
   if not check(...) then
     local msg = string.format("bad argument #%d (%s expected, got %s)", n, table.concat({...}, " or "), have)
-    --error(debug.traceback(msg, 2), 2)
+    --error(debug.traceback(msg, 2), 0)
     error(msg, 2)
   end
 end
@@ -169,6 +167,100 @@ local function checkDeadline()
     error("too long without yielding", 0)
   end
 end
+
+function sandbox.coroutine.resume(co, ...)
+  local args = table.pack(...)
+  while true do
+    if not debug.gethook(co) then -- don't reset counter
+      debug.sethook(co, checkDeadline, "", 10000)
+    end
+    local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
+    checkDeadline()
+    if result[1] then
+      local isSystemYield = coroutine.status(co) ~= "dead" and result[2] ~= nil
+      if isSystemYield then
+        args = table.pack(coroutine.yield(result[2]))
+      else
+        return true, table.unpack(result, 3, result.n)
+      end
+    else -- error: result = (bool, string)
+      return table.unpack(result, 1, result.n)
+    end
+  end
+end
+
+function sandbox.coroutine.yield(...)
+  return coroutine.yield(nil, ...)
+end
+
+function sandbox.coroutine.wrap(f) -- for sandbox's coroutine.resume
+  local co = sandbox.coroutine.create(f)
+  return function(...)
+    local result = table.pack(sandbox.coroutine.resume(co, ...))
+    if result[1] then
+      return table.unpack(result, 2, result.n)
+    else
+      error(result[2], 0)
+    end
+  end
+end
+
+function sandbox.pcall(...)
+  local result = table.pack(pcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
+end
+
+function sandbox.xpcall(...)
+  local result = table.pack(xpcall(...))
+  checkDeadline()
+  return table.unpack(result, 1, result.n)
+end
+
+-------------------------------------------------------------------------------
+
+function sandbox.os.shutdown(reboot)
+  coroutine.yield(reboot ~= nil and reboot ~= false)
+end
+
+function sandbox.os.signal(name, timeout)
+  local waitUntil = os.uptime() + (type(timeout) == "number" and timeout or math.huge)
+  repeat
+    local signal = table.pack(coroutine.yield(waitUntil - os.uptime()))
+    if signal.n > 0 and (name == signal[1] or name == nil) then
+      return table.unpack(signal, 1, signal.n)
+    end
+  until os.uptime() >= waitUntil
+end
+
+-------------------------------------------------------------------------------
+
+sandbox.driver = {}
+
+function sandbox.driver.componentType(address)
+  return nodeName(address)
+end
+
+do
+  local env = setmetatable({ send = sendToAddress },
+                           { __index = sandbox, __newindex = sandbox })
+  for name, code in pairs(drivers()) do
+    local driver, reason = load(code, "=" .. name, "t", env)
+    if not driver then
+      print("Failed loading driver '" .. name .. "': " .. reason)
+    else
+      local result, reason = xpcall(driver, function(msg)
+        return debug.traceback(msg, 2)
+      end)
+      if not result then
+        print("Failed initializing driver '" .. name .. "': " ..
+              (reason or "unknown error"))
+      end
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
 
 local function main(args)
   local function bootstrap()
@@ -234,88 +326,6 @@ local function main(args)
     end
   end
 end
-
-function sandbox.coroutine.resume(co, ...)
-  local args = table.pack(...)
-  while true do
-    if not debug.gethook(co) then -- don't reset counter
-      debug.sethook(co, checkDeadline, "", 10000)
-    end
-    local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
-    checkDeadline()
-    if result[1] then
-      local isSystemYield = coroutine.status(co) ~= "dead" and result[2] ~= nil
-      if isSystemYield then
-        args = table.pack(coroutine.yield(result[2]))
-      else
-        return true, table.unpack(result, 3, result.n)
-      end
-    else -- error: result = (bool, string)
-      return table.unpack(result, 1, result.n)
-    end
-  end
-end
-
-function sandbox.coroutine.yield(...)
-  return coroutine.yield(nil, ...)
-end
-
-function sandbox.pcall(...)
-  local result = table.pack(pcall(...))
-  checkDeadline()
-  return table.unpack(result, 1, result.n)
-end
-
-function sandbox.xpcall(...)
-  local result = table.pack(xpcall(...))
-  checkDeadline()
-  return table.unpack(result, 1, result.n)
-end
-
--------------------------------------------------------------------------------
-
-function sandbox.os.shutdown(reboot)
-  coroutine.yield(reboot ~= nil and reboot ~= false)
-end
-
-function sandbox.os.signal(name, timeout)
-  local waitUntil = os.uptime() + (type(timeout) == "number" and timeout or math.huge)
-  repeat
-    local signal = table.pack(coroutine.yield(waitUntil - os.uptime()))
-    if signal.n > 0 and (name == signal[1] or name == nil) then
-      return table.unpack(signal, 1, signal.n)
-    end
-  until os.uptime() >= waitUntil
-end
-
--------------------------------------------------------------------------------
-
-sandbox.driver = {}
-
-function sandbox.driver.componentType(address)
-  return nodeName(address)
-end
-
-do
-  local env = setmetatable({ send = sendToAddress },
-                           { __index = sandbox, __newindex = sandbox })
-  for name, code in pairs(drivers()) do
-    local driver, reason = load(code, "=" .. name, "t", env)
-    if not driver then
-      print("Failed loading driver '" .. name .. "': " .. reason)
-    else
-      local result, reason = xpcall(driver, function(msg)
-        return debug.traceback(msg, 2)
-      end)
-      if not result then
-        print("Failed initializing driver '" .. name .. "': " ..
-              (reason or "unknown error"))
-      end
-    end
-  end
-end
-
--------------------------------------------------------------------------------
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
