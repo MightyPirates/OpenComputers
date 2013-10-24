@@ -1,12 +1,9 @@
 driver.redstone = {}
 
--- Save this before there's a chance it gets changed by a user.
-local owner = os.address()
-
 function driver.redstone.analogInput(card, side)
   checkArg(1, card, "string")
   checkArg(2, side, "number")
-  return send(card, "redstone.input", owner, side)
+  return send(card, "redstone.input", side)
 end
 
 function driver.redstone.analogOutput(card, side, value)
@@ -14,9 +11,9 @@ function driver.redstone.analogOutput(card, side, value)
   checkArg(2, side, "number")
   checkArg(3, value, "number", "nil")
   if value then
-    return send(card, "redstone.output=", owner, side, value)
+    return send(card, "redstone.output=", side, value)
   else
-    return send(card, "redstone.output", owner, side)
+    return send(card, "redstone.output", side)
   end
 end
 
