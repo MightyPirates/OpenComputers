@@ -1,2 +1,2 @@
-print("Shutting down...")
+term.clear()
 os.shutdown()

@@ -33,7 +33,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment with R
    * into an OpenGL display list, and only re-compiling that list when the
    * text/display has actually changed.
    */
-  var hasChanged = false
+  var hasChanged = true
 
   /**
    * Check for multi-block screen option in next update. We do this in the
@@ -133,6 +133,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment with R
         current.screens.foreach {
           screen =>
             screen.shouldCheckForMultiBlock = false
+            screen.hasChanged = true
             pending.remove(screen)
             queue += screen
         }

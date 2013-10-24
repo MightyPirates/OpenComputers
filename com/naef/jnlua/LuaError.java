@@ -54,7 +54,12 @@ class LuaError {
 			sb.append(message);
 		}
 		if (cause != null) {
-			sb.append(cause);
+			if (cause.getMessage() != null) {
+				sb.append(cause.getMessage());
+			}
+			else {
+				sb.append(cause);
+			}
 		}
 		return sb.toString();
 	}

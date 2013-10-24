@@ -92,8 +92,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  def recomputeMemory() = if (lua != null)
+  def recomputeMemory() = if (lua != null) {
+    lua.gc(LuaState.GcAction.COLLECT, 0)
     lua.setTotalMemory(kernelMemory + owner.installedMemory)
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -165,9 +167,21 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       rom.foreach(rom => rom.network.foreach(_.remove(rom)))
       tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
       owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
-      // Clear any screens we use while we're at it.
-      owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
-        1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+
+      // If there was an error message (i.e. the computer crashed) display it on
+      // any screens we used (stored in GPUs).
+      if (message.isDefined) {
+        println(message.get) // TODO remove this at some point (add a tool that can read these error messages?)
+
+        // Clear any screens we use before displaying the error message on them.
+        owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
+          1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+        owner.network.foreach(network => {
+          for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
+            network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
+          }
+        })
+      }
     }
 
     // Signal stops to the network. This is used to close file handles, for example.
@@ -175,18 +189,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       cleanup()
     }
     wasRunning = isRunning
-
-    // If there was an error message (i.e. the computer crashed) display it on
-    // any screens we used (stored in GPUs).
-    if (message.isDefined) {
-      println(message.get)
-      owner.network.foreach(network => {
-        for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
-          network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
-        }
-      })
-      message = None
-    }
 
     // Check if we should switch states.
     stateMonitor.synchronized(state match {
@@ -306,8 +308,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         if (nbt.hasKey("message"))
           message = Some(nbt.getString("message"))
 
-        // Clean up some after we're done and limit memory again.
-        lua.gc(LuaState.GcAction.COLLECT, 0)
+        // Limit memory again.
         recomputeMemory()
 
         // Ensure the executor is started in the next update if necessary.
@@ -350,7 +351,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     }
 
     // Unlimit memory while persisting.
-    val memory = lua.getTotalMemory
     lua.setTotalMemory(Integer.MAX_VALUE)
     try {
       // Try persisting Lua, because that's what all of the rest depends on.
@@ -400,9 +400,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       }
     }
     finally {
-      // Clean up some after we're done and limit memory again.
-      lua.gc(LuaState.GcAction.COLLECT, 0)
-      lua.setTotalMemory(memory)
+      // Limit memory again.
+      recomputeMemory()
     }
   }
 
@@ -437,6 +436,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // ----------------------------------------------------------------------- //
 
   private def init(): Boolean = {
+    // Reset error state.
+    message = None
+
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
@@ -748,6 +750,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     assert(lua.isThread(1))
 
     try {
+      // Help out the GC a little. The emergency GC has a few limitations that
+      // will make it free less memory than doing a full step manually.
+      lua.gc(LuaState.GcAction.COLLECT, 0)
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
       val results = if (callReturn) {

@@ -312,7 +312,7 @@ function term.read(history)
   event.listen("clipboard", onClipboard)
   term.cursorBlink(true)
   while term.isAvailable() and not result and not forceReturn do
-    event.wait()
+    os.sleep()
   end
   if history[#history] == "" then
     table.remove(history)

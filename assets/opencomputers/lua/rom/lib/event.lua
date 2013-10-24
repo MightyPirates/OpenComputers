@@ -21,10 +21,15 @@ end
 
 event = {}
 
---[[ Error handler for ALL event callbacks. If this returns a value,
-     the error will be rethrown, possibly leading to a computer crash. ]]
+--[[ Error handler for ALL event callbacks. If this doesn't return `true`,
+     the error will be printed and the computer will shut down. ]]
 function event.error(message)
-  return debug.traceback(message)
+  local log = io.open("tmp/event.log", "a")
+  if log then
+    log:write(message .. "\n")
+    log:close()
+  end
+  return true
 end
 
 function event.fire(name, ...)
@@ -41,9 +46,11 @@ function event.fire(name, ...)
     -- Copy the listener lists because they may be changed by callbacks.
     local listeners = copy(listenersFor(name, false), listenersFor(name, true))
     for _, callback in ipairs(listeners) do
-      local result, message = xpcall(callback, event.error, name, ...)
-      if not result and message then -- only if handler returned something.
-        error(message, 0)
+      local result, message = pcall(callback, name, ...)
+      if not result then
+        if not event.error or not event.error(message) then
+          os.shutdown()
+        end
       elseif result and message == false then
         break
       end
@@ -57,9 +64,9 @@ function event.fire(name, ...)
     end
   end
   for _, callback in ipairs(elapsed) do
-    local result, message = xpcall(callback, event.error)
-    if not result and message then -- only if handler returned something.
-      error(message, 0)
+    local result, message = pcall(callback)
+    if not result and not (event.error and event.error(message)) then
+      os.shutdown()
     end
   end
 end
@@ -114,9 +121,10 @@ function event.timer(timeout, callback)
   return id
 end
 
-function event.wait(seconds)
-  seconds = seconds or 0/0
-  checkArg(1, seconds, "number")
+function event.wait(filter, seconds)
+  checkArg(1, filter, "string", "nil")
+  seconds = seconds or (filter and math.huge or 0/0)
+  checkArg(2, seconds, "number")
   local function isNaN(n) return n ~= n end
   local target = os.uptime() + (isNaN(seconds) and 0 or seconds)
   repeat
@@ -126,6 +134,10 @@ function event.wait(seconds)
         closest = info.after
       end
     end
-    event.fire(os.signal(nil, closest - os.uptime()))
+    local signal = table.pack(os.signal(nil, closest - os.uptime()))
+    event.fire(table.unpack(signal, 1, signal.n))
+    if filter and type(signal[1]) == "string" and signal[1]:match(filter) then
+      return table.unpack(signal, 1, signal.n)
+    end
   until os.uptime() >= target
 end

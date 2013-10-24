@@ -1,7 +1,7 @@
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
-                 md="mkdir", cls="clear"}
+                 md="mkdir", cls="clear", more="less"}
 
 local function findFile(name, path, ext)
   checkArg(1, name, "string")
@@ -46,6 +46,93 @@ local function findFile(name, path, ext)
 end
 
 -------------------------------------------------------------------------------
+-- We pseudo-sandbox programs we start via the shell. Pseudo because it's
+-- really just a matter of convenience: listeners and timers get automatically
+-- cleaned up when the program exits/crashes. This can be easily circumvented
+-- by getting the parent environment via `getmetatable(_ENV).__index`. But if
+-- you do that you will probably know what you're doing.
+function newEnvironment()
+  local listeners, timers, e = {[false]={}, [true]={}}, {}, {}
+  local env = setmetatable(e, {__index=_ENV})
+
+  e._G = e
+  e.event = {}
+  function e.event.ignore(name, callback, weak)
+    weak = weak or false
+    if listeners[weak][name] and listeners[weak][name][callback] then
+      listeners[weak][name][callback] = nil
+      return event.ignore(name, callback, weak)
+    end
+    return false
+  end
+  function e.event.listen(name, callback, weak)
+    weak = weak or false
+    if event.listen(name, callback, weak) then
+      listeners[weak][name] = listeners[weak][name] or {}
+      listeners[weak][name][callback] = true
+      return true
+    end
+    return false
+  end
+  function e.event.cancel(timerId)
+    if timers[timerId] then
+      timers[timerId] = nil
+      return event.cancel(timerId)
+    end
+    return false
+  end
+  function e.event.timer(timeout, callback)
+    local id
+    local function onTimer()
+      timers[id] = nil
+      callback()
+    end
+    id = event.timer(timeout, onTimer)
+    timers[id] = true
+    return id
+  end
+  function e.event.interval(frequency, callback)
+    local interval = {}
+    local function onTimer()
+      interval.id = env.event.timer(frequency, onTimer)
+      callback()
+    end
+    interval.id = env.event.timer(frequency, onTimer)
+    return interval
+  end
+  setmetatable(e.event, {__index=event, __newindex=event})
+
+  function e.load(ld, source, mode, environment)
+    return load(ld, source, mode, environment or env)
+  end
+  function e.loadfile(filename, mode, environment)
+    return loadfile(filename, mode, environment or env)
+  end
+  function e.dofile(filename)
+    local program, reason = env.loadfile(filename)
+    if not program then
+      return env.error(reason, 0)
+    end
+    return program()
+  end
+
+  function cleanup()
+    for weak, list in pairs(listeners) do
+      for name, callbacks in pairs(list) do
+        for callback in pairs(callbacks) do
+          event.ignore(name, callback, weak)
+        end
+      end
+    end
+    for id in pairs(timers) do
+      event.cancel(id)
+    end
+  end
+
+  return env, cleanup
+end
+
+-------------------------------------------------------------------------------
 
 shell = {}
 
@@ -82,91 +169,13 @@ function shell.execute(program, ...)
   if not where then
     return nil, "program not found"
   end
-
-  -- Track listeners and timers registered by spawned programs so we can kill
-  -- them all when the coroutine dies. Note that this is only intended as a
-  -- convenience, and is easily circumvented (e.g. by using dofile or such).
-  local listeners, weakListeners, timers = {}, {}, {}
-  local pevent = {}
-  function pevent.ignore(name, callback, weak)
-    local list
-    if weak then
-      if weakListeners[name] and weakListeners[name][callback] then
-        list = weakListeners
-      end
-    elseif listeners[name] and listeners[name][callback] then
-      list = listeners
-    end
-    if list then
-      event.ignore(name, callback)
-      list[name][callback] = nil
-      return true
-    end
-    return false
-  end
-  function pevent.listen(name, callback, weak)
-    if event.listen(name, callback, weak) then
-      if weak then
-        weakListeners[name] = weakListeners[name] or {}
-        weakListeners[name][callback] = true
-      else
-        listeners[name] = listeners[name] or {}
-        listeners[name][callback] = nil
-      end
-      return true
-    end
-    return false
-  end
-  function pevent.cancel(timerId)
-    if timers[timerId] then
-      timers[timerId] = nil
-      return event.cancel(timerId)
-    end
-    return false
-  end
-  function pevent.timer(timeout, callback)
-    local id
-    local function onTimer()
-      timers[id] = nil
-      callback()
-    end
-    id = event.timer(timeout, onTimer)
-    timers[id] = true
-    return id
-  end
-  function pevent.interval(timeout, callback)
-    local interval = {}
-    local function onTimer()
-      interval.id = pevent.timer(timeout, onTimer)
-      callback()
-    end
-    interval.id = pevent.timer(timeout, onTimer)
-    return interval
-  end
-  pevent = setmetatable(pevent, {__index = event, __metatable = {}})
-  local env = setmetatable({event = pevent}, {__index = _ENV, __metatable = {}})
-
+  local env, cleanup = newEnvironment()
   program, reason = loadfile(where, "t", env)
   if not program then
     return nil, reason
   end
-
   local result = table.pack(pcall(program, ...))
-
-  for name, list in pairs(listeners) do
-    for listener in pairs(list) do
-      event.ignore(name, listener, false)
-    end
-  end
-  for name, list in pairs(weakListeners) do
-    for listener in pairs(list) do
-      event.ignore(name, listener, true)
-    end
-  end
-  for id in pairs(timers) do
-    event.cancel(id)
-  end
-
+  cleanup()
   return table.unpack(result, 1, result.n)
 end
 
@@ -185,6 +194,19 @@ function shell.parse(...)
     end
   end
   return args, options
+end
+
+function shell.path(...)
+  local result = table.concat(path, ":")
+  local args = table.pack(...)
+  if args.n > 0 then
+    checkArg(1, args[1], "string")
+    path = {}
+    for segment in string:gmatch(args[1], "[^:]") do
+      table.insert(path, string.trim(segment))
+    end
+  end
+  return result
 end
 
 function shell.resolve(path)

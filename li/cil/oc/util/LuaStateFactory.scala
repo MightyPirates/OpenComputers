@@ -163,16 +163,6 @@ object LuaStateFactory {
       })
       state.setField(-2, "date")
 
-      // Custom os.difftime(). For most Lua implementations this would be the
-      // same anyway, but just to be on the safe side.
-      state.pushScalaFunction(lua => {
-        val t2 = lua.checkNumber(1)
-        val t1 = lua.checkNumber(2)
-        lua.pushNumber(t2 - t1)
-        1
-      })
-      state.setField(-2, "difftime")
-
       // Pop the os table.
       state.pop(1)
 

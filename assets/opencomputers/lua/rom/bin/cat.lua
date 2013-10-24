@@ -5,7 +5,7 @@ if #args == 0 then
 end
 
 for i = 1, #args do
-  local file, reason = io.open(shell.resolve(args[i]), "r")
+  local file, reason = io.open(shell.resolve(args[i]))
   if not file then
     print(reason)
     return

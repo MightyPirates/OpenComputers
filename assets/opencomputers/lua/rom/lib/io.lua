@@ -255,7 +255,7 @@ function file.new(mode, stream, nogc)
     mode = mode,
     stream = stream,
     buffer = "",
-    bufferSize = math.min(8 * 1024, os.totalMemory() / 8),
+    bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
     bufferMode = "full"
   }
 
