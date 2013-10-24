@@ -267,11 +267,10 @@ function file.new(mode, stream, nogc)
     metatable.__gc = function(self)
       -- file.close does a syscall, which yields, and that's not possible in
       -- the __gc metamethod. So we start a timer to do the yield/cleanup.
-      if type(event) == "table" and type(event.timer) == "function" then
-        event.timer(0, function()
-          self:close()
-        end)
-      end
+      local stream = self.stream -- only keep the stream as an upvalue
+      event.timer(0, function()
+        stream:close()
+      end)
     end
   end
   return setmetatable(result, metatable)
