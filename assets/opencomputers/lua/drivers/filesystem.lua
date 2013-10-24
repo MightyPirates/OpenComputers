@@ -60,7 +60,12 @@ end
 driver.filesystem = {}
 
 function driver.filesystem.canonical(path)
-  return table.concat(segments(path), "/")
+  local result = table.concat(segments(path), "/")
+  if path:usub(1, 1) == "/" then
+    return "/" .. result
+  else
+    return result
+  end
 end
 
 function driver.filesystem.concat(pathA, pathB)
@@ -339,5 +344,22 @@ function driver.filesystem.open(path, mode)
     return nil, reason
   end
 
-  return setmetatable({fs = node.fs, handle = handle}, {__index = fileStream})
+  local stream = {fs = node.fs, handle = handle}
+
+  -- stream:close does a syscall, which yields, and that's not possible in
+  -- the __gc metamethod. So we start a timer to do the yield/cleanup.
+  local function cleanup(self)
+    if not self.handle then return end
+    -- save non-gc'ed values as upvalues
+    local fs = self.fs
+    local handle = self.handle
+    local function close()
+      send(fs, "fs.close", handle)
+    end
+    event.timer(0, close)
+  end
+  local metatable = {__index = fileStream,
+                     __gc = cleanup,
+                     __metatable = "filestream"}
+  return setmetatable(stream, metatable)
 end

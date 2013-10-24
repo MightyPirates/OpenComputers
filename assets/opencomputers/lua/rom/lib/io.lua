@@ -258,21 +258,10 @@ function file.new(mode, stream, nogc)
     bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
     bufferMode = "full"
   }
-
   local metatable = {
     __index = file,
     __metatable = "file"
   }
-  if not nogc then
-    metatable.__gc = function(self)
-      -- file.close does a syscall, which yields, and that's not possible in
-      -- the __gc metamethod. So we start a timer to do the yield/cleanup.
-      local stream = self.stream -- only keep the stream as an upvalue
-      event.timer(0, function()
-        stream:close()
-      end)
-    end
-  end
   return setmetatable(result, metatable)
 end
 

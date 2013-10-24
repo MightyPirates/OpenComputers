@@ -21,15 +21,14 @@ end
 
 event = {}
 
---[[ Error handler for ALL event callbacks. If this doesn't return `true`,
-     the error will be printed and the computer will shut down. ]]
+--[[ Error handler for ALL event callbacks. If this throws an error or is not,
+     set the computer will immediately shut down. ]]
 function event.error(message)
   local log = io.open("tmp/event.log", "a")
   if log then
     log:write(message .. "\n")
     log:close()
   end
-  return true
 end
 
 function event.fire(name, ...)
@@ -48,7 +47,7 @@ function event.fire(name, ...)
     for _, callback in ipairs(listeners) do
       local result, message = pcall(callback, name, ...)
       if not result then
-        if not event.error or not event.error(message) then
+        if not (event.error and pcall(event.error, message)) then
           os.shutdown()
         end
       elseif result and message == false then
@@ -65,7 +64,7 @@ function event.fire(name, ...)
   end
   for _, callback in ipairs(elapsed) do
     local result, message = pcall(callback)
-    if not result and not (event.error and event.error(message)) then
+    if not result and not (event.error and pcall(event.error, message)) then
       os.shutdown()
     end
   end

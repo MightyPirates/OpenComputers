@@ -1,9 +1,9 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
-import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.network.{Component, Visibility, Message}
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
@@ -94,11 +94,15 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
           }
           None
         case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
-          val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
-          if (handle > 0) {
-            owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
+          if (owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]).size >= Config.maxHandles)
+            result(Unit, "too many open handles")
+          else {
+            val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
+            if (handle > 0) {
+              owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
+            }
+            result(handle)
           }
-          result(handle)
 
         case Array(handle: Double, n: Double) if message.name == "fs.read" && n > 0 =>
           fileSystem.file(handle.toInt) match {

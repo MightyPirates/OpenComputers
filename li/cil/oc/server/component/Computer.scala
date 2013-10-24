@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import com.naef.jnlua.{LuaRuntimeException, LuaMemoryAllocationException, LuaType, LuaState}
+import com.naef.jnlua._
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
@@ -240,11 +240,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
             message = Some("not enough memory")
             close()
-          case e: Throwable => {
+          case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
             message = Some("protocol error")
             close()
-          }
         }
       }
       case _ => // Nothing special to do, just avoid match errors.
@@ -394,10 +393,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         nbt.setString("message", message.get)
     }
     catch {
-      case e: Throwable => {
+      case e: Throwable =>
         e.printStackTrace()
         nbt.setInteger("state", Computer.State.Stopped.id)
-      }
     }
     finally {
       // Limit memory again.
@@ -648,6 +646,21 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       })
       lua.setGlobal("drivers")
 
+      // List of installed GPUs - this is used during boot to allow giving some
+      // feedback on the process, since booting can take some time. It feels a
+      // bit like cheating, but it's really the only way to communicate with
+      // our components at this low level.
+      val gpus = owner.network.fold(Iterable.empty[String])(_.neighbors(owner).filter(_.name == "gpu").map(_.address.get)).toArray
+      lua.pushScalaFunction(lua => {
+        lua.newTable(gpus.length, 0)
+        for (i <- 0 until gpus.length) {
+          lua.pushString(gpus(i))
+          lua.rawSet(-2, i + 1)
+        }
+        1
+      })
+      lua.setGlobal("gpus")
+
       // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
       // available as globals. It also wraps the message sending functions
@@ -850,11 +863,21 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         message = Some("kernel panic")
         close()
+      case e: LuaGcMetamethodException =>
+        if (e.getMessage != null)
+          message = Some("kernel panic:\n" + e.getMessage)
+        else
+          message = Some("kernel panic:\nerror in garbage collection metamethod")
+        close()
       case e: LuaMemoryAllocationException =>
         message = Some("not enough memory")
         close()
       case e: java.lang.Error if e.getMessage == "not enough memory" =>
         message = Some("not enough memory")
+        close()
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
+        message = Some("kernel panic")
         close()
     }
   }

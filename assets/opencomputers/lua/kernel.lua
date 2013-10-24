@@ -271,12 +271,39 @@ end
 
 local function main(args)
   local function bootstrap()
+    -- Prepare low-level print logic to give boot progress feedback.
+    local gpus = gpus()
+    for i = 1, #gpus do
+      local gpu = gpus[i]
+      gpus[i] = nil
+      local w, h = sandbox.driver.gpu.resolution(gpu)
+      if w then
+        if sandbox.driver.gpu.fill(gpu, 1, 1, w, h, " ") then
+          gpus[i] = {gpu, w, h}
+        end
+      end
+    end
+    local l = 0
+    local function print(s)
+      l = l + 1
+      for _, gpu in pairs(gpus) do
+        if l > gpu[3] then
+          sandbox.driver.gpu.copy(gpu[1], 1, 1, gpu[2], gpu[3], 0, -1)
+          sandbox.driver.gpu.fill(gpu[1], 1, gpu[3], gpu[2], 1, " ")
+        end
+        sandbox.driver.gpu.set(gpu[1], 1, math.min(l, gpu[3]), s)
+      end
+    end
+    print("Booting...")
+
+    print("Mounting ROM and temporary file system.")
     local fs = sandbox.driver.filesystem
     fs.mount(os.romAddress(), "/")
     fs.mount(os.tmpAddress(), "/tmp")
 
     -- Custom dofile implementation since we don't have the baselib yet.
     local function dofile(file)
+      print("  " .. file)
       local stream, reason = fs.open(file)
       if not stream then
         error(reason)
@@ -301,6 +328,7 @@ local function main(args)
       end
     end
 
+    print("Loading libraries.")
     local init = {}
     for api in fs.dir("lib") do
       local path = fs.concat("lib", api)
@@ -311,11 +339,14 @@ local function main(args)
         end
       end
     end
+
+    print("Initializing libraries.")
     for _, install in ipairs(init) do
       install()
     end
     init = nil
 
+    print("Starting shell.")
     return coroutine.create(function(...)
       sandbox.event.fire(...) -- handle the first signal
       while true do

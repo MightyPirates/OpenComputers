@@ -8,7 +8,7 @@ object Config {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val driverPath = "/assets/" + resourceDomain + "/lua/drivers/"
 
-  val screenResolutionsByTier = Array((40, 16), (80, 25), (160, 50))
+  val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
 
   // ----------------------------------------------------------------------- //
 
@@ -29,6 +29,7 @@ object Config {
   var commandUser = "OpenComputers"
   var fileCost = 512
   var filesBuffered = true
+  var maxHandles = 16
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var threads = 4
@@ -99,7 +100,7 @@ object Config {
       "This is to ensure that users cannot spam the file system with an infinite\n" +
       "number of files and/or folders. Note that the size returned via fs.size\n" +
       "will always be the real file size, however.").
-      getInt(fileCost)
+      getInt(fileCost) max 0
 
     filesBuffered = config.get("server", "filesBuffered", filesBuffered, "" +
       "Whether persistent file systems such as disk drivers should be 'buffered',\n" +
@@ -110,13 +111,22 @@ object Config {
       "in memory (loaded as in when the hard drive is in a computer).").
       getBoolean(filesBuffered)
 
+    maxHandles = config.get("server", "maxHandles", maxHandles, "" +
+      "The maximum number of file handles any single computer may have open at a\n" +
+      "time. Note that this is *per filesystem*. Also note that this is only\n" +
+      "enforced by the filesystem node - if an addon decides to be fancy it may\n" +
+      "well ignore this. Since file systems are usually 'virtual' this will\n" +
+      "usually not have any real impact on performance/not be noticeable on the\n" +
+      "host operating system.")
+      .getInt(maxHandles)
+
     maxScreenHeight = config.get("server", "maxScreenHeight", maxScreenHeight, "" +
       "The maximum height of multi-block screens, in blocks.")
-      .getInt(maxScreenHeight)
+      .getInt(maxScreenHeight) max 1
 
     maxScreenWidth = config.get("server", "maxScreenWidth", maxScreenWidth, "" +
       "The maximum width of multi-block screens, in blocks.")
-      .getInt(maxScreenWidth)
+      .getInt(maxScreenWidth) max 1
 
     threads = config.get("server", "threads", threads, "" +
       "The overall number of threads to use to drive computers. Whenever a\n" +
@@ -125,7 +135,7 @@ object Config {
       "The higher the number of worker threads, the less likely it will be that\n" +
       "computers block each other from running, but the higher the host system's\n" +
       "load may become.").
-      getInt(threads)
+      getInt(threads) max 1
 
     timeout = config.get("server", "timeout", timeout, "" +
       "The time in seconds a program may run without yielding before it is\n" +

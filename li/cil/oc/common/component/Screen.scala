@@ -83,11 +83,11 @@ object Screen {
           val (w, h) = instance.maxResolution
           result(w, h)
         case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
-          instance.set(x, y, value); None
+          instance.set(x, y, value); result(true)
         case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>
-          instance.fill(x, y, w, h, value); None
+          instance.fill(x, y, w, h, value); result(true)
         case Array(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) if message.name == "screen.copy" =>
-          instance.copy(x, y, w, h, tx, ty); None
+          instance.copy(x, y, w, h, tx, ty); result(true)
         case _ => None
       }
     }

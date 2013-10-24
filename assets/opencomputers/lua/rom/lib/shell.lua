@@ -202,8 +202,12 @@ function shell.path(...)
   if args.n > 0 then
     checkArg(1, args[1], "string")
     path = {}
-    for segment in string:gmatch(args[1], "[^:]") do
-      table.insert(path, string.trim(segment))
+    for p in string:gmatch(args[1], "[^:]") do
+      p = fs.canonical(string.trim(p))
+      if p:usub(1, 1) ~= "/" then
+        p = "/" .. p
+      end
+      table.insert(path, p)
     end
   end
   return result
