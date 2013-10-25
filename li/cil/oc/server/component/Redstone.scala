@@ -64,7 +64,7 @@ trait Redstone extends Node {
         result(_input(side.ordinal()))
       case Array(side: ForgeDirection) if message.name == "redstone.output" && side != ForgeDirection.UNKNOWN =>
         result(output(side))
-      case Array(side: ForgeDirection, value: Int) if message.name == "redstone.output=" && side != ForgeDirection.UNKNOWN =>
+      case Array(side: ForgeDirection, value: Integer) if message.name == "redstone.output=" && side != ForgeDirection.UNKNOWN =>
         output(side, value)
         result(true)
       case _ => None

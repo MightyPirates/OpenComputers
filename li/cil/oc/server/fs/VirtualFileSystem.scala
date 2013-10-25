@@ -34,7 +34,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
   override def list(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualDirectory) => obj.list()
-      case _ => None
+      case _ => null
     }
 
   // ----------------------------------------------------------------------- //
@@ -101,7 +101,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       case _ => None
     }
 
-  override protected def openOutputStream(path: String, mode: Mode.Value) = {
+  override protected def openOutputStream(path: String, mode: Mode) = {
     val parts = segments(path)
     if (parts.isEmpty) None
     else {
@@ -165,7 +165,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     def openInputStream() = Some(new VirtualFileInputStream(this))
 
-    def openOutputStream(mode: Mode.Value) =
+    def openOutputStream(mode: Mode) =
       if (stream.isDefined) None
       else {
         if (mode == Mode.Write) {
@@ -199,9 +199,9 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def size = 0
 
-    def list() = Some(children.map {
+    def list() = children.map {
       case (childName, child) => if (child.isDirectory) childName + "/" else childName
-    }.toArray)
+    }.toArray
 
     def makeDirectory(name: String) =
       if (children.contains(name)) false
@@ -221,7 +221,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       }
     }
 
-    def openOutputStream(name: String, mode: Mode.Value) =
+    def openOutputStream(name: String, mode: Mode) =
       children.get(name) match {
         case Some(obj: VirtualFile) => obj.openOutputStream(mode)
         case None =>

@@ -30,7 +30,7 @@ class Adapter extends Rotatable with Node with IPeripheral {
 
   override def receive(message: Message) = super.receive(message) orElse {
     message.data match {
-      case Array(port: Int, answerPort: Double, data: AnyRef) if message.name == "network.message" =>
+      case Array(port: Integer, answerPort: java.lang.Double, data: AnyRef) if message.name == "network.message" =>
         for ((computer, ports) <- openPorts) if (ports.contains(port)) {
           computer.queueEvent("modem_message", Array(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt), data))
         }
@@ -135,7 +135,7 @@ class Adapter extends Rotatable with Node with IPeripheral {
     case "transmit" =>
       val sendPort = parsePort(arguments, 0)
       val answerPort = parsePort(arguments, 1)
-      network.foreach(_.sendToVisible(this, "network.message", sendPort, answerPort, arguments(2)))
+      network.foreach(_.sendToVisible(this, "network.message", Int.box(sendPort), Int.box(answerPort), arguments(2)))
       null
     case "isWireless" => Array(Boolean.box(false))
     case _ => null

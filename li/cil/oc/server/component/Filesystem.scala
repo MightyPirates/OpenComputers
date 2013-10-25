@@ -7,7 +7,7 @@ import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.FileSystem) extends Component {
+class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
 
   private var label = ""
@@ -23,7 +23,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
       message.data match {
         case Array() if message.name == "system.disconnect" && owners.contains(message.source.address.get) =>
           for (handle <- owners(message.source.address.get)) {
-            fileSystem.file(handle) match {
+            Option(fileSystem.file(handle)) match {
               case None => // Maybe file system was accessed from somewhere else.
               case Some(file) => file.close()
             }
@@ -33,7 +33,7 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
           owners.get(message.source.address.get) match {
             case None => // Computer had no open files.
             case Some(set) =>
-              set.foreach(handle => fileSystem.file(handle) match {
+              set.foreach(handle => Option(fileSystem.file(handle)) match {
                 case None => // Invalid handle... huh.
                 case Some(file) => file.close()
               })
@@ -67,8 +67,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
         case Array(path: Array[Byte]) if message.name == "fs.lastModified" =>
           result(fileSystem.lastModified(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.dir" =>
-          fileSystem.list(clean(path)) match {
-            case Some(list) => Some(list.map(_.asInstanceOf[Any]))
+          Option(fileSystem.list(clean(path))) match {
+            case Some(list) => Some(list.map(_.asInstanceOf[AnyRef]))
             case _ => None
           }
 
@@ -78,13 +78,13 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
           result(recurse(clean(path)))
         case Array(path: Array[Byte]) if message.name == "fs.remove" =>
           def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
-            fileSystem.list(parent).get.forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
+            fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
           result(recurse(clean(path)))
         case Array(from: Array[Byte], to: Array[Byte]) if message.name == "fs.rename" =>
           result(fileSystem.rename(clean(from), clean(to)))
 
-        case Array(handle: Double) if message.name == "fs.close" =>
-          fileSystem.file(handle.toInt) match {
+        case Array(handle: java.lang.Double) if message.name == "fs.close" =>
+          Option(fileSystem.file(handle.toInt)) match {
             case None => // Ignore.
             case Some(file) =>
               owners.get(message.source.address.get) match {
@@ -104,8 +104,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
             result(handle)
           }
 
-        case Array(handle: Double, n: Double) if message.name == "fs.read" && n > 0 =>
-          fileSystem.file(handle.toInt) match {
+        case Array(handle: java.lang.Double, n: java.lang.Double) if message.name == "fs.read" && n > 0 =>
+          Option(fileSystem.file(handle.toInt)) match {
             case None => throw new IOException("bad file descriptor")
             case Some(file) =>
               // Limit reading to chunks of 8KB to avoid crazy allocations.
@@ -126,8 +126,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
                 result(Unit)
               }
           }
-        case Array(handle: Double, whence: Array[Byte], offset: Double) if message.name == "fs.seek" =>
-          fileSystem.file(handle.toInt) match {
+        case Array(handle: java.lang.Double, whence: Array[Byte], offset: java.lang.Double) if message.name == "fs.seek" =>
+          Option(fileSystem.file(handle.toInt)) match {
             case None => throw new IOException("bad file descriptor")
             case Some(file) =>
               new String(whence, "UTF-8") match {
@@ -138,8 +138,8 @@ class FileSystem(val fileSystem: api.FileSystem) extends Component {
               }
               result(file.position)
           }
-        case Array(handle: Double, value: Array[Byte]) if message.name == "fs.write" =>
-          fileSystem.file(handle.toInt) match {
+        case Array(handle: java.lang.Double, value: Array[Byte]) if message.name == "fs.write" =>
+          Option(fileSystem.file(handle.toInt)) match {
             case None => throw new IOException("bad file descriptor")
             case Some(file) => file.write(value); result(true)
           }

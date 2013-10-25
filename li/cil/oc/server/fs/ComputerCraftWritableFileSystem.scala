@@ -21,10 +21,11 @@ class ComputerCraftWritableFileSystem(override val mount: IWritableMount)
     case _: Throwable => false
   }
 
-  override protected def openOutputStream(path: String, mode: Mode.Value) = try {
+  override protected def openOutputStream(path: String, mode: Mode) = try {
     Some(mode match {
       case Mode.Append => mount.openForAppend(path)
       case Mode.Write => mount.openForWrite(path)
+      case _ => throw new IllegalArgumentException()
     })
   } catch {
     case _: Throwable => None

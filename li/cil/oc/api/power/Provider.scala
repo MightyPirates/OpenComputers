@@ -14,7 +14,7 @@ trait Provider extends Node {
 
   var energyStorageList = mutable.Set[EnergyStorage]()
 
-  override def receive(message: Message): Option[Array[Any]] = super.receive(message) orElse {
+  override def receive(message: Message): Option[Array[AnyRef]] = super.receive(message) orElse {
     if (message.source != this) {
       message.name match {
         case "system.connect" => {

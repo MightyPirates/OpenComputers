@@ -55,7 +55,7 @@ trait Node extends Persistable {
    * node will still receive that message. Therefore nodes should still verify
    * themselves that they want to accept a message from the message's source.
    */
-  val visibility: Visibility.Value
+  val visibility: Visibility
 
   // ----------------------------------------------------------------------- //
 
@@ -97,7 +97,7 @@ trait Node extends Persistable {
    * @param message the message to handle.
    * @return the result of the message being handled, if any.
    */
-  def receive(message: Message): Option[Array[Any]] = {
+  def receive(message: Message): Option[Array[AnyRef]] = {
     if (message.source == this) message.name match {
       case "system.connect" => onConnect()
       case "system.disconnect" => onDisconnect()
@@ -177,7 +177,7 @@ trait Node extends Persistable {
    * @param args the values to return.
    * @return and array option as required by `receive`.
    */
-  final protected def result(args: Any*): Option[Array[Any]] = {
+  final protected def result(args: Any*): Option[Array[AnyRef]] = {
     def unwrap(arg: Any): AnyRef = arg match {
       case x: ScalaNumber => x.underlying
       case x => x.asInstanceOf[AnyRef]

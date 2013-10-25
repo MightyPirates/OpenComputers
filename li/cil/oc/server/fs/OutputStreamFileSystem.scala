@@ -11,7 +11,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode.Value) = mode match {
+  override def open(path: String, mode: Mode) = mode match {
     case Mode.Read => super.open(path, mode)
     case _ => if (!isDirectory(path)) {
       val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
@@ -24,7 +24,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     } else throw new FileNotFoundException()
   }
 
-  override def file(handle: Int) = super.file(handle).orElse(handles.get(handle))
+  override def file(handle: Int) = Option(super.file(handle)).orElse(handles.get(handle)).orNull
 
   override def close() {
     super.close()
@@ -67,7 +67,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def openOutputStream(path: String, mode: Mode.Value): Option[OutputStream]
+  protected def openOutputStream(path: String, mode: Mode): Option[OutputStream]
 
   // ----------------------------------------------------------------------- //
 

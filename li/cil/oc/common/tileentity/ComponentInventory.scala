@@ -54,10 +54,10 @@ trait ComponentInventory extends Inventory with Node {
         components(slot) = Registry.driverFor(item) match {
           case Some(driver) =>
             driver.node(item) match {
-              case Some(node) =>
+              case null => None
+              case node =>
                 node.readFromNBT(driver.nbt(item))
                 Some(node)
-              case _ => None
             }
           case _ => None
         }
@@ -100,8 +100,8 @@ trait ComponentInventory extends Inventory with Node {
     Registry.driverFor(item) match {
       case None => // No driver.
       case Some(driver) => driver.node(item) match {
-        case None => // No node.
-        case Some(node) =>
+        case null => // No node.
+        case node =>
           components(slot) = Some(node)
           node.readFromNBT(driver.nbt(item))
           network.foreach(_.connect(this, node))

@@ -174,7 +174,7 @@ trait Network {
    * @return the result of the message being handled, if any.
    * @throws IllegalArgumentException if the source node is not in this network.
    */
-  def sendToAddress(source: Node, target: String, name: String, data: Any*): Option[Array[Any]]
+  def sendToAddress(source: Node, target: String, name: String, data: AnyRef*): Option[Array[AnyRef]]
 
   /**
    * Sends a message to all addressed, visible neighbors of the source node.
@@ -195,7 +195,7 @@ trait Network {
    * @throws IllegalArgumentException if the source node is not in this network.
    * @see `neighbors`
    */
-  def sendToNeighbors(source: Node, name: String, data: Any*): Option[Array[Any]]
+  def sendToNeighbors(source: Node, name: String, data: AnyRef*): Option[Array[AnyRef]]
 
   /**
    * Sends a message to all addressed nodes visible to the source node.
@@ -214,7 +214,7 @@ trait Network {
    * @throws IllegalArgumentException if the source node is not in this network.
    * @see `nodes`
    */
-  def sendToVisible(source: Node, name: String, data: Any*): Option[Array[Any]]
+  def sendToVisible(source: Node, name: String, data: AnyRef*): Option[Array[AnyRef]]
 }
 
 object Network extends NetworkAPI {

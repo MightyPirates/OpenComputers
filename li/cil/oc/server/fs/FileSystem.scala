@@ -8,24 +8,24 @@ import li.cil.oc.{Config, api}
 import net.minecraftforge.common.DimensionManager
 
 object FileSystem extends api.detail.FileSystemAPI {
-  override def fromClass(clazz: Class[_], domain: String, root: String): Option[api.FileSystem] = {
+  override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val codeSource = clazz.getProtectionDomain.getCodeSource
-    if (codeSource == null) return None
+    if (codeSource == null) return null
     val file = new io.File(codeSource.getLocation.toURI)
-    if (!file.exists || file.isDirectory) return None
+    if (!file.exists || file.isDirectory) return null
     val path = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
     if (file.getName.endsWith(".class"))
       new io.File(new io.File(file.getParent), path) match {
         case fsp if fsp.exists() && fsp.isDirectory =>
-          Some(new ReadOnlyFileSystem(fsp))
+          new ReadOnlyFileSystem(fsp)
         case _ =>
           System.getProperty("java.class.path").split(System.getProperty("path.separator")).
             find(cp => {
             val fsp = new io.File(new io.File(cp), path)
             fsp.exists() && fsp.isDirectory
           }) match {
-            case None => None
-            case Some(dir) => Some(new ReadOnlyFileSystem(new io.File(new io.File(dir), path)))
+            case None => null
+            case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), path))
           }
       }
     else {
@@ -33,9 +33,9 @@ object FileSystem extends api.detail.FileSystemAPI {
       val entry = zip.getEntry(path)
       if (entry == null || !entry.isDirectory) {
         zip.close()
-        return None
+        return null
       }
-      Some(new ZipFileInputStreamFileSystem(zip, path))
+      new ZipFileInputStreamFileSystem(zip, path)
     }
   }
 
@@ -44,20 +44,20 @@ object FileSystem extends api.detail.FileSystemAPI {
     path.mkdirs()
     if (path.exists() && path.isDirectory) {
       if (buffered)
-        Some(new BufferedFileSystem(path, capacity))
+        new BufferedFileSystem(path, capacity)
       else
-        Some(new ReadWriteFileSystem(path, capacity))
+        new ReadWriteFileSystem(path, capacity)
     }
-    else None
+    else null
   }
 
-  override def fromMemory(capacity: Long): Option[api.FileSystem] = Some(new RamFileSystem(capacity))
+  def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
-  def fromComputerCraft(mount: IMount) = Some(new ComputerCraftFileSystem(mount))
+  def fromComputerCraft(mount: IMount) = new ComputerCraftFileSystem(mount)
 
-  def fromComputerCraft(mount: IWritableMount) = Some(new ComputerCraftWritableFileSystem(mount))
+  def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
-  override def asNode(fileSystem: api.FileSystem) = Some(new component.FileSystem(fileSystem))
+  override def asNode(fileSystem: api.fs.FileSystem) = new component.FileSystem(fileSystem)
 
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem

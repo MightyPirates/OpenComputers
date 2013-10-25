@@ -64,13 +64,13 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private val signals = new LinkedBlockingQueue[Computer.Signal](256)
 
-  private val rom = api.FileSystem.
-    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom").
-    flatMap(api.FileSystem.asNode)
+  private val rom = Option(api.FileSystem.
+    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom")).
+    flatMap(fs => Option(api.FileSystem.asNode(fs)))
 
-  private val tmp = api.FileSystem.
-    fromMemory(512 * 1024).
-    flatMap(api.FileSystem.asNode)
+  private val tmp = Option(api.FileSystem.
+    fromMemory(512 * 1024)).
+    flatMap(fs => Option(api.FileSystem.asNode(fs)))
 
   // ----------------------------------------------------------------------- //
 
@@ -175,10 +175,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
         // Clear any screens we use before displaying the error message on them.
         owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
-          1.0, 1.0, Double.PositiveInfinity, Double.PositiveInfinity, " ".getBytes("UTF-8")))
+          Double.box(1.0), Double.box(1.0), Double.box(Double.PositiveInfinity), Double.box(Double.PositiveInfinity), " ".getBytes("UTF-8")))
         owner.network.foreach(network => {
           for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
-            network.sendToNeighbors(owner, "gpu.set", 1.0, 1.0 + row, line.getBytes("UTF-8"))
+            network.sendToNeighbors(owner, "gpu.set", Double.box(1.0), Double.box(1.0 + row), line.getBytes("UTF-8"))
           }
         })
       }
@@ -253,7 +253,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
     state = nbt.getInteger("state") match {
       case id if id >= 0 && id < Computer.State.maxId => Computer.State(id)
       case _ => Computer.State.Stopped
@@ -335,7 +334,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   }
 
   override def writeToNBT(nbt: NBTTagCompound): Unit = this.synchronized {
-    super.writeToNBT(nbt)
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
 
@@ -550,9 +548,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.setGlobal("print")
 
       // Set up functions used to send network messages.
-      def parseArgument(lua: LuaState, index: Int) = lua.`type`(index) match {
-        case LuaType.BOOLEAN => lua.toBoolean(index)
-        case LuaType.NUMBER => lua.toNumber(index)
+      def parseArgument(lua: LuaState, index: Int): AnyRef = lua.`type`(index) match {
+        case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
+        case LuaType.NUMBER => Double.box(lua.toNumber(index))
         case LuaType.STRING => lua.toByteArray(index)
         case _ => Unit
       }
@@ -598,8 +596,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case _ => lua.pushNil()
       }
 
-      def send(target: String, name: String, args: Any*) =
-        owner.network.fold(None: Option[Array[Any]])(network => {
+      def send(target: String, name: String, args: AnyRef*) =
+        owner.network.fold(None: Option[Array[AnyRef]])(network => {
           network.node(target) match {
             case Some(node: Component) if node.canBeSeenBy(this.owner) =>
               network.sendToAddress(owner, target, name, args: _*)

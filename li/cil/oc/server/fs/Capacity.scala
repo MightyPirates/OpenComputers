@@ -45,7 +45,7 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override protected abstract def openOutputStream(path: String, mode: Mode.Value): Option[io.OutputStream] = {
+  override protected abstract def openOutputStream(path: String, mode: Mode): Option[io.OutputStream] = {
     val delta =
       if (exists(path))
         if (mode == Mode.Write)
@@ -68,7 +68,7 @@ trait Capacity extends OutputStreamFileSystem {
     Config.fileCost +
       size(path) +
       (if (isDirectory(path))
-        list(path).get.foldLeft(0L)((acc, child) => acc + computeSize(path + child))
+        list(path).foldLeft(0L)((acc, child) => acc + computeSize(path + child))
       else 0)
 
   private class CountingOutputStream(val owner: Capacity, val inner: io.OutputStream) extends io.OutputStream {

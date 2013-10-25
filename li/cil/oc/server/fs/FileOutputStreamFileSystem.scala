@@ -21,6 +21,6 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openOutputStream(path: String, mode: Mode.Value): Option[io.OutputStream] =
+  override protected def openOutputStream(path: String, mode: Mode): Option[io.OutputStream] =
     Some(new FileOutputStream(new io.File(root, path), mode == Mode.Append))
 }

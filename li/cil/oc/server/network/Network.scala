@@ -9,7 +9,6 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.ChunkEvent
-import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -139,7 +138,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 
   // ----------------------------------------------------------------------- //
 
-  override def sendToAddress(source: api.network.Node, target: String, name: String, data: Any*) = {
+  override def sendToAddress(source: api.network.Node, target: String, name: String, data: AnyRef*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined) addressedNodes.get(target) match {
@@ -150,7 +149,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     } else None
   }
 
-  override def sendToNeighbors(source: api.network.Node, name: String, data: Any*) = {
+  override def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
@@ -158,7 +157,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     else None
   }
 
-  override def sendToVisible(source: api.network.Node, name: String, data: Any*) = {
+  override def sendToVisible(source: api.network.Node, name: String, data: AnyRef*) = {
     if (source.network.isEmpty || source.network.get != this)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
@@ -288,7 +287,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
         targets.foreach(protectedSend)
         None
       case _ =>
-        var result = None: Option[Array[Any]]
+        var result = None: Option[Array[AnyRef]]
         val iterator = targets.iterator
         while (!message.isCanceled && iterator.hasNext)
           protectedSend(iterator.next()) match {
@@ -400,9 +399,9 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  private class Message(@BeanProperty val source: api.network.Node,
-                        @BeanProperty val name: String,
-                        @BeanProperty val data: Array[Any] = Array()) extends api.network.Message {
+  private class Message(val source: api.network.Node,
+                        val name: String,
+                        val data: Array[AnyRef] = Array()) extends api.network.Message {
     var isCanceled = false
 
     override def cancel() = isCanceled = true

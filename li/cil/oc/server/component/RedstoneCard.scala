@@ -12,15 +12,15 @@ class RedstoneCard extends Component {
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
-      case Array(side: Double) if message.name == "redstone.input" =>
+      case Array(side: java.lang.Double) if message.name == "redstone.input" =>
         network.get.sendToAddress(this, message.source.address.get,
           "redstone.input", ForgeDirection.getOrientation(side.toInt))
-      case Array(side: Double) if message.name == "redstone.output" =>
+      case Array(side: java.lang.Double) if message.name == "redstone.output" =>
         network.get.sendToAddress(this, message.source.address.get,
           "redstone.output", ForgeDirection.getOrientation(side.toInt))
-      case Array(side: Double, value: Double) if message.name == "redstone.output=" =>
+      case Array(side: java.lang.Double, value: java.lang.Double) if message.name == "redstone.output=" =>
         network.get.sendToAddress(this, message.source.address.get,
-          "redstone.output=", ForgeDirection.getOrientation(side.toInt), value.toInt)
+          "redstone.output=", ForgeDirection.getOrientation(side.toInt), Int.box(value.toInt))
       case _ => None // Ignore.
     }
   }

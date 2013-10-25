@@ -48,12 +48,10 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
     buffer.readFromNBT(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
     buffer.writeToNBT(nbt)
   }
 }
@@ -71,9 +69,9 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
-    override def receive(message: Message): Option[Array[Any]] = super.receive(message).orElse {
+    override def receive(message: Message) = super.receive(message).orElse {
       message.data match {
-        case Array(w: Int, h: Int) if message.name == "screen.resolution=" =>
+        case Array(w: Integer, h: Integer) if message.name == "screen.resolution=" =>
           result(instance.resolution = (w, h))
         case Array() if message.name == "screen.resolution" => {
           val (w, h) = instance.resolution
@@ -82,11 +80,11 @@ object Screen {
         case Array() if message.name == "screen.maxResolution" =>
           val (w, h) = instance.maxResolution
           result(w, h)
-        case Array(x: Int, y: Int, value: String) if message.name == "screen.set" =>
+        case Array(x: Integer, y: Integer, value: String) if message.name == "screen.set" =>
           instance.set(x, y, value); result(true)
-        case Array(x: Int, y: Int, w: Int, h: Int, value: Char) if message.name == "screen.fill" =>
+        case Array(x: Integer, y: Integer, w: Integer, h: Integer, value: Character) if message.name == "screen.fill" =>
           instance.fill(x, y, w, h, value); result(true)
-        case Array(x: Int, y: Int, w: Int, h: Int, tx: Int, ty: Int) if message.name == "screen.copy" =>
+        case Array(x: Integer, y: Integer, w: Integer, h: Integer, tx: Integer, ty: Integer) if message.name == "screen.copy" =>
           instance.copy(x, y, w, h, tx, ty); result(true)
         case _ => None
       }
@@ -111,7 +109,7 @@ object Screen {
     // ----------------------------------------------------------------------- //
 
     def onScreenResolutionChange(w: Int, h: Int) =
-      network.foreach(_.sendToVisible(this, "computer.signal", "screen_resized", w, h))
+      network.foreach(_.sendToVisible(this, "computer.signal", "screen_resized", Int.box(w), Int.box(h)))
 
     def onScreenSet(col: Int, row: Int, s: String) {}
 

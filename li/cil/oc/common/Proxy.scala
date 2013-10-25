@@ -13,8 +13,8 @@ class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
     Config.load(e.getSuggestedConfigurationFile)
 
-    api.Driver.instance = Some(driver.Registry)
-    api.FileSystem.instance = Some(fs.FileSystem)
+    api.Driver.instance = driver.Registry
+    api.FileSystem.instance = fs.FileSystem
     api.Network.instance = Some(network.Network)
   }
 

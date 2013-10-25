@@ -6,7 +6,7 @@ import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-trait InputStreamFileSystem extends api.FileSystem {
+trait InputStreamFileSystem extends api.fs.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
 
   // ----------------------------------------------------------------------- //
@@ -21,7 +21,7 @@ trait InputStreamFileSystem extends api.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode.Value) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
+  override def open(path: String, mode: Mode) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {
       case Some(stream) =>
@@ -31,7 +31,7 @@ trait InputStreamFileSystem extends api.FileSystem {
     }
   } else throw new FileNotFoundException()
 
-  override def file(handle: Int) = handles.get(handle): Option[api.fs.Handle]
+  override def file(handle: Int) = handles.get(handle).orNull
 
   override def close() {
     for (handle <- handles.values)

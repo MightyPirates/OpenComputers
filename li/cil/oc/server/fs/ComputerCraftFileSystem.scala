@@ -18,7 +18,7 @@ class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
   override def list(path: String) = {
     val result = new java.util.ArrayList[String]
     mount.list(path, result)
-    Some(result.toArray.asInstanceOf[Array[String]])
+    result.toArray.asInstanceOf[Array[String]]
   }
 
   override def size(path: String) = mount.getSize(path)

@@ -34,8 +34,8 @@ trait Component extends Node {
    */
   def componentVisibility = visibility_
 
-  def componentVisibility_=(value: Visibility.Value) = {
-    if (value > visibility) {
+  def componentVisibility_=(value: Visibility) = {
+    if (value.ordinal() > visibility.ordinal()) {
       throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
         "' node with visibility '" + visibility + "'. It will be limited to the node's visibility.")
     }
@@ -100,11 +100,11 @@ trait Component extends Node {
   override abstract def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (nbt.hasKey("componentVisibility"))
-      visibility_ = Visibility(nbt.getInteger("componentVisibility"))
+      visibility_ = Visibility.values()(nbt.getInteger("componentVisibility"))
   }
 
   override abstract def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setInteger("componentVisibility", visibility_.id)
+    nbt.setInteger("componentVisibility", visibility_.ordinal())
   }
 }

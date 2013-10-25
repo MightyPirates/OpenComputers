@@ -38,8 +38,8 @@ class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends I
   }
 
   override def list(path: String) = entry(path) match {
-    case Some(entry) if entry.isDirectory => Some(entries(entry))
-    case _ => None
+    case Some(entry) if entry.isDirectory => entries(entry)
+    case _ => null
   }
 
   override def close() {

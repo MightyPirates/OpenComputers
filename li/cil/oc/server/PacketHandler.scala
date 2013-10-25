@@ -54,22 +54,22 @@ class PacketHandler extends CommonPacketHandler {
   def onKeyDown(p: PacketParser) =
     p.readTileEntity[Node]() match {
       case Some(s: tileentity.Screen) =>
-        val char = p.readChar()
-        val code = p.readInt()
+        val char = Char.box(p.readChar())
+        val code = Int.box(p.readInt())
         val network = s.origin.network
         s.screens.foreach(n => network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, char, code)))
-      case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, p.readChar(), p.readInt()))
+      case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt())))
       case _ => // Invalid packet.
     }
 
   def onKeyUp(p: PacketParser) =
     p.readTileEntity[Node]() match {
       case Some(s: tileentity.Screen) =>
-        val char = p.readChar()
-        val code = p.readInt()
+        val char = Char.box(p.readChar())
+        val code = Int.box(p.readInt())
         val network = s.origin.network
         s.screens.foreach(n => network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, char, code)))
-      case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, p.readChar(), p.readInt()))
+      case Some(n) => n.network.foreach(_.sendToNeighbors(n, "keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt())))
       case _ => // Invalid packet.
     }
 

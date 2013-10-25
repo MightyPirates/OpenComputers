@@ -73,7 +73,7 @@ trait Buffered extends OutputStreamFileSystem {
     def recurse(path: String) {
       val directory = new io.File(fileRoot, path)
       directory.mkdirs()
-      for (child <- list(path).get) {
+      for (child <- list(path)) {
         val childPath = path + child
         if (isDirectory(childPath))
           recurse(childPath)

@@ -20,28 +20,28 @@ class NetworkCard extends Component {
           openPorts.clear()
         None
 
-      case Array(port: Double) if message.name == "network.open=" =>
+      case Array(port: java.lang.Double) if message.name == "network.open=" =>
         if (isPortValid(port.toInt)) result(openPorts.add(port.toInt))
         else result(Unit, "invalid port number")
-      case Array(port: Double) if message.name == "network.open" =>
+      case Array(port: java.lang.Double) if message.name == "network.open" =>
         if (isPortValid(port.toInt)) result(openPorts.contains(port.toInt))
         else result(Unit, "invalid port number")
-      case Array(port: Double) if message.name == "network.close" =>
+      case Array(port: java.lang.Double) if message.name == "network.close" =>
         if (isPortValid(port.toInt)) result(openPorts.remove(port.toInt))
         else result(Unit, "invalid port number")
       case Array() if message.name == "network.close" =>
         openPorts.clear()
         result(true)
-      case Array(address: Array[Byte], port: Double, args@_*) if message.name == "network.send" =>
+      case Array(address: Array[Byte], port: java.lang.Double, args@_*) if message.name == "network.send" =>
         if (isPortValid(port.toInt))
-          network.get.sendToAddress(this, new String(address, "UTF-8"), "network.message", Seq(port.toInt) ++ args: _*)
+          network.get.sendToAddress(this, new String(address, "UTF-8"), "network.message", Seq(Int.box(port.toInt)) ++ args: _*)
         None
-      case Array(port: Double, args@_*) if message.name == "network.broadcast" => None
+      case Array(port: java.lang.Double, args@_*) if message.name == "network.broadcast" => None
         if (isPortValid(port.toInt))
-          network.get.sendToVisible(this, "network.message", Seq(port.toInt) ++ args: _*)
+          network.get.sendToVisible(this, "network.message", Seq(Int.box(port.toInt)) ++ args: _*)
         None
 
-      case Array(port: Int, args@_*) if message.name == "network.message" =>
+      case Array(port: Integer, args@_*) if message.name == "network.message" =>
         if (openPorts.contains(port))
           network.get.sendToNeighbors(this, "computer.signal", Seq("network_message", message.source.address.get, port) ++ args: _*)
         None

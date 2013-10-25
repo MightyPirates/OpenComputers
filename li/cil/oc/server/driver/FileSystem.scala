@@ -1,14 +1,14 @@
 package li.cil.oc.server.driver
 
 import li.cil.oc
-import li.cil.oc.api.driver.{Item, Slot}
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.common.item.{Disk, HardDiskDrive}
 import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object FileSystem extends Item {
-  override def api = Option(getClass.getResourceAsStream(Config.driverPath + "filesystem.lua"))
+  override def api = getClass.getResourceAsStream(Config.driverPath + "filesystem.lua")
 
   override def worksWith(item: ItemStack) = WorksWith(Items.hdd1, Items.hdd2, Items.hdd3, Items.disk)(item)
 
@@ -21,7 +21,7 @@ object FileSystem extends Item {
   override def node(item: ItemStack) = Items.multi.subItem(item) match {
     case Some(hdd: HardDiskDrive) => createNode(item, hdd.megaBytes * 1024 * 1024)
     case Some(disk: Disk) => createNode(item, 512 * 1024)
-    case _ => None
+    case _ => null
   }
 
   private def createNode(item: ItemStack, capacity: Int) = {
@@ -29,12 +29,12 @@ object FileSystem extends Item {
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(nbt(item))
-    oc.api.FileSystem.fromSaveDirectory(address, capacity, Config.filesBuffered).
-      flatMap(oc.api.FileSystem.asNode) match {
+    Option(oc.api.FileSystem.fromSaveDirectory(address, capacity, Config.filesBuffered)).
+      flatMap(fs => Option(oc.api.FileSystem.asNode(fs))) match {
       case Some(node) =>
         node.address = Some(address)
-        Some(node)
-      case None => None
+        node
+      case None => null
     }
   }
 

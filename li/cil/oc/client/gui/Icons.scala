@@ -8,7 +8,7 @@ import net.minecraftforge.event.ForgeSubscribe
 import scala.collection.mutable
 
 object Icons {
-  val bySlotType = mutable.Map.empty[Slot.Value, Icon]
+  val bySlotType = mutable.Map.empty[Slot, Icon]
 
   @ForgeSubscribe
   def onItemIconRegister(e: TextureStitchEvent.Pre) {

@@ -91,7 +91,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
    *
    * @return the apis of all known drivers.
    */
-  def apis = (blocks ++ items) map (driver => (driver.getClass.getSimpleName, driver.api)) collect {
+  def apis = (blocks ++ items) map (driver => (driver.getClass.getSimpleName, Option(driver.api))) collect {
     case (name, Some(code)) => (name, code)
   }
 }

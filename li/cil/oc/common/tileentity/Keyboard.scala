@@ -26,10 +26,10 @@ class Keyboard extends Rotatable with Component {
 
   override def receive(message: Message) = super.receive(message).orElse {
     message.data match {
-      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyDown" =>
+      case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))
           network.foreach(_.sendToVisible(this, "computer.signal", "key_down", char, code))
-      case Array(p: Player, char: Char, code: Int) if message.name == "keyboard.keyUp" =>
+      case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
         if (isUseableByPlayer(p))
           network.foreach(_.sendToVisible(this, "computer.signal", "key_up", char, code))
       case Array(p: Player, value: String) if message.name == "keyboard.clipboard" =>

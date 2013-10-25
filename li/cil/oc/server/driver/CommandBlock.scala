@@ -8,7 +8,7 @@ import net.minecraft.tileentity.TileEntityCommandBlock
 import net.minecraft.world.World
 
 object CommandBlock extends driver.Block {
-  override def api = Option(getClass.getResourceAsStream(Config.driverPath + "command_block.lua"))
+  override def api = getClass.getResourceAsStream(Config.driverPath + "command_block.lua")
 
   def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getBlockId(x, y, z) == Block.commandBlock.blockID
