@@ -69,7 +69,7 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
-    override def receive(message: Message) = super.receive(message).orElse {
+    override def receive(message: Message) = Option(super.receive(message)).orElse {
       message.data match {
         case Array(w: Integer, h: Integer) if message.name == "screen.resolution=" =>
           result(instance.resolution = (w, h))
@@ -88,7 +88,7 @@ object Screen {
           instance.copy(x, y, w, h, tx, ty); result(true)
         case _ => None
       }
-    }
+    }.orNull
 
     // ----------------------------------------------------------------------- //
 

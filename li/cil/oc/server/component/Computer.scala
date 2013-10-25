@@ -597,17 +597,17 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       }
 
       def send(target: String, name: String, args: AnyRef*) =
-        owner.network.fold(None: Option[Array[AnyRef]])(network => {
-          network.node(target) match {
+        owner.network.fold(null: Array[AnyRef])(network => {
+          Option(network.node(target)) match {
             case Some(node: Component) if node.canBeSeenBy(this.owner) =>
               network.sendToAddress(owner, target, name, args: _*)
-            case _ => Some(Array(Unit, "invalid address"))
+            case _ => Array(Unit, "invalid address")
           }
         })
 
       lua.pushScalaFunction(lua =>
         send(lua.checkString(1), lua.checkString(2), parseArguments(lua, 3): _*) match {
-          case Some(Array(results@_*)) =>
+          case Array(results@_*) =>
             results.foreach(pushResult(lua, _))
             results.length
           case _ => 0
@@ -615,7 +615,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.setGlobal("sendToAddress")
 
       lua.pushScalaFunction(lua => {
-        owner.network.fold(None: Option[Node])(_.node(lua.checkString(1))) match {
+        Option(owner.network.fold(null: Node)(_.node(lua.checkString(1)))) match {
           case Some(node: Component) if node.canBeSeenBy(this.owner) =>
             lua.pushString(node.name)
             1
@@ -904,7 +904,7 @@ object Computer {
 
     override val visibility = Visibility.Network
 
-    override def receive(message: Message) = super.receive(message).orElse {
+    override def receive(message: Message) = Option(super.receive(message)).orElse {
       message.data match {
         case Array() if message.name == "system.disconnect" && computer.isRunning =>
           message.source match {
@@ -935,7 +935,7 @@ object Computer {
           result(computer.isRunning)
         case _ => None
       }
-    }
+    }.orNull
 
     override protected def onConnect() {
       super.onConnect()

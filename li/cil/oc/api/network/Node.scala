@@ -97,13 +97,13 @@ trait Node extends Persistable {
    * @param message the message to handle.
    * @return the result of the message being handled, if any.
    */
-  def receive(message: Message): Option[Array[AnyRef]] = {
+  def receive(message: Message): Array[AnyRef] = {
     if (message.source == this) message.name match {
       case "system.connect" => onConnect()
       case "system.disconnect" => onDisconnect()
       case _ => // Ignore.
     }
-    None
+    null
   }
 
   /**

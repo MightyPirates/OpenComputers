@@ -15,11 +15,11 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends Component {
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array(address: Array[Byte]) if message.name == "gpu.bind" =>
         network.fold(None: Option[Array[AnyRef]])(network => {
-          network.node(new String(address, "UTF-8")) match {
+          Option(network.node(new String(address, "UTF-8"))) match {
             case None => result(Unit, "invalid address")
             case Some(node: component.Screen.Environment) =>
               screen = node.address
@@ -53,7 +53,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends Component {
         trySend("screen.copy", Int.box(x.toInt - 1), Int.box(y.toInt - 1), Int.box(w.toInt), Int.box(h.toInt), Int.box(tx.toInt), Int.box(ty.toInt))
       case _ => None
     }
-  }
+  }.orNull
 
   override protected def onDisconnect() = {
     super.onDisconnect()
@@ -78,7 +78,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends Component {
     screen match {
       case None => result(Unit, "no screen")
       case Some(screenAddress) => network.fold(None: Option[Array[AnyRef]])(net => {
-        net.sendToAddress(this, screenAddress, name, data: _*)
+        Option(net.sendToAddress(this, screenAddress, name, data: _*))
       })
     }
 }

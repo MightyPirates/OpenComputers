@@ -13,7 +13,7 @@ class NetworkCard extends Component {
 
   componentVisibility = Visibility.Neighbors
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array() if message.name == "computer.stopped" =>
         if (network.get.neighbors(message.source).exists(_ == this))
@@ -47,7 +47,7 @@ class NetworkCard extends Component {
         None
       case _ => None // Ignore.
     }
-  }
+  }.orNull
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)

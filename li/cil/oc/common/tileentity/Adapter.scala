@@ -28,7 +28,7 @@ class Adapter extends Rotatable with Node with IPeripheral {
     }
   }
 
-  override def receive(message: Message) = super.receive(message) orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array(port: Integer, answerPort: java.lang.Double, data: AnyRef) if message.name == "network.message" =>
         for ((computer, ports) <- openPorts) if (ports.contains(port)) {
@@ -37,7 +37,7 @@ class Adapter extends Rotatable with Node with IPeripheral {
       case _ => // Ignore.
     }
     None
-  }
+  }.orNull
 
   override protected def onConnect() {
     super.onConnect()

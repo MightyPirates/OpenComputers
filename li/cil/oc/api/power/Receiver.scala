@@ -31,7 +31,7 @@ trait Receiver extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) = super.receive(message) orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.name match {
       case "system.connect" => {
         message.source match {
@@ -56,7 +56,7 @@ trait Receiver extends Node {
       case _ =>
     }
     None
-  }
+  }.orNull
 
   override protected def onDisconnect() {
     super.onDisconnect()

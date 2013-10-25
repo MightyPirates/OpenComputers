@@ -89,11 +89,11 @@ trait Component extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) = super.receive(message) orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     if (message.name == "computer.started" && canBeSeenBy(message.source))
-      network.get.sendToAddress(this, message.source.address.get, "computer.signal", "component_added")
+      Some(network.get.sendToAddress(this, message.source.address.get, "computer.signal", "component_added"))
     else None
-  }
+  }.orNull
 
   // ----------------------------------------------------------------------- //
 

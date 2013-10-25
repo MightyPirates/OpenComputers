@@ -10,18 +10,18 @@ class RedstoneCard extends Component {
 
   componentVisibility = visibility
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array(side: java.lang.Double) if message.name == "redstone.input" =>
-        network.get.sendToAddress(this, message.source.address.get,
-          "redstone.input", ForgeDirection.getOrientation(side.toInt))
+        Option(network.get.sendToAddress(this, message.source.address.get,
+          "redstone.input", ForgeDirection.getOrientation(side.toInt)))
       case Array(side: java.lang.Double) if message.name == "redstone.output" =>
-        network.get.sendToAddress(this, message.source.address.get,
-          "redstone.output", ForgeDirection.getOrientation(side.toInt))
+        Option(network.get.sendToAddress(this, message.source.address.get,
+          "redstone.output", ForgeDirection.getOrientation(side.toInt)))
       case Array(side: java.lang.Double, value: java.lang.Double) if message.name == "redstone.output=" =>
-        network.get.sendToAddress(this, message.source.address.get,
-          "redstone.output=", ForgeDirection.getOrientation(side.toInt), Int.box(value.toInt))
+        Option(network.get.sendToAddress(this, message.source.address.get,
+          "redstone.output=", ForgeDirection.getOrientation(side.toInt), Int.box(value.toInt)))
       case _ => None // Ignore.
     }
-  }
+  }.orNull
 }

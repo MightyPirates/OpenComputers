@@ -2,7 +2,6 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Config
 import li.cil.oc.api.network.{Component, Message, Visibility}
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityCommandBlock
 
 class CommandBlock(entity: TileEntityCommandBlock) extends Component {
@@ -12,7 +11,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends Component {
 
   componentVisibility = visibility
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array() if message.name == "command.value" =>
         result(entity.getCommand)
@@ -29,5 +28,5 @@ class CommandBlock(entity: TileEntityCommandBlock) extends Component {
         result(entity.executeCommandOnPowered(entity.worldObj) != 0)
       case _ => None
     }
-  }
+  }.get
 }

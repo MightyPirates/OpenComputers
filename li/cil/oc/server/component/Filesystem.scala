@@ -18,7 +18,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
 
   componentVisibility = visibility
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     try {
       message.data match {
         case Array() if message.name == "system.disconnect" && owners.contains(message.source.address.get) =>
@@ -157,7 +157,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
       case e: IOException =>
         result(Unit, e.toString)
     }
-  }
+  }.orNull
 
   private def clean(path: Array[Byte]) = {
     val result = com.google.common.io.Files.simplifyPath(new String(path, "UTF-8"))

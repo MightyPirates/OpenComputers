@@ -14,7 +14,7 @@ trait Provider extends Node {
 
   var energyStorageList = mutable.Set[EnergyStorage]()
 
-  override def receive(message: Message): Option[Array[AnyRef]] = super.receive(message) orElse {
+  override def receive(message: Message): Array[AnyRef] = Option(super.receive(message)).orElse {
     if (message.source != this) {
       message.name match {
         case "system.connect" => {
@@ -33,7 +33,7 @@ trait Provider extends Node {
             case distributor: Provider =>
               if (isActive) {
                 message.cancel()
-                return result(this)
+                return Array(this)
               }
             case _ =>
           }
@@ -52,7 +52,7 @@ trait Provider extends Node {
       }
     }
     None
-  }
+  }.orNull
 
   override protected def onConnect() {
     //check if other distributors already are in the network
@@ -161,7 +161,7 @@ trait Provider extends Node {
 
   def searchMain() {
     network.foreach(_.sendToVisible(this, "power.find") match {
-      case Some(Array(powerDistributor: Provider)) => {
+      case Array(powerDistributor: Provider) => {
         println("found other distri")
         isActive = false
       }

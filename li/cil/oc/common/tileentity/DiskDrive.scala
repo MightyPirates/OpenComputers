@@ -20,14 +20,13 @@ class DiskDrive extends Rotatable with Component with ComponentInventory {
 
   override def canUpdate = false
 
-  override def receive(message: Message) = super.receive(message) orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     components(0) match {
-      case Some(node) if node.address.isDefined =>
-        node.receive(message)
+      case Some(node) if node.address.isDefined => Option(node.receive(message))
       case _ if message.name.startsWith("fs.") => result(Unit, "no disk")
       case _ => None
     }
-  }
+  }.orNull
 
   // ----------------------------------------------------------------------- //
 

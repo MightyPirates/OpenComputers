@@ -111,8 +111,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
   // ----------------------------------------------------------------------- //
 
   override def node(address: String) = addressedNodes.get(address) match {
-    case Some(node) => Some(node.data)
-    case _ => None
+    case Some(node) => node.data
+    case _ => null
   }
 
   override def nodes = addressedNodes.values.map(_.data)
@@ -145,8 +145,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       case Some(node) if node.data.visibility == Visibility.Network ||
         (node.data.visibility == Visibility.Neighbors && neighbors(node.data).exists(_ == source)) =>
         send(new Network.Message(source, name, Array(data: _*)), Iterable(node.data))
-      case _ => None
-    } else None
+      case _ => null
+    } else null
   }
 
   override def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*) = {
@@ -154,7 +154,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
       send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.visibility != Visibility.None))
-    else None
+    else null
   }
 
   override def sendToVisible(source: api.network.Node, name: String, data: AnyRef*) = {
@@ -162,7 +162,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address.isDefined)
       send(new Network.Message(source, name, Array(data: _*)), nodes(source))
-    else None
+    else null
   }
 
   // ----------------------------------------------------------------------- //
@@ -279,19 +279,21 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       //println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address.get + ":" + message.source.name + " -> " + target.address.get + ":" + target.name + ")")
       target.receive(message)
     } catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in message handler", e); None
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+        null
     }
 
     message match {
       case _@(Network.ConnectMessage(_) | Network.DisconnectMessage(_)) =>
         targets.foreach(protectedSend)
-        None
+        null
       case _ =>
-        var result = None: Option[Array[AnyRef]]
+        var result = null: Array[AnyRef]
         val iterator = targets.iterator
         while (!message.isCanceled && iterator.hasNext)
           protectedSend(iterator.next()) match {
-            case None => // Ignore.
+            case null => // Ignore.
             case r => result = r
           }
         result

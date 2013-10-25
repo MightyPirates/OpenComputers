@@ -24,7 +24,7 @@ class Keyboard extends Rotatable with Component {
     super.writeToNBT(nbt)
   }
 
-  override def receive(message: Message) = super.receive(message).orElse {
+  override def receive(message: Message) = Option(super.receive(message)).orElse {
     message.data match {
       case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))
@@ -38,7 +38,7 @@ class Keyboard extends Rotatable with Component {
       case _ => // Ignore.
     }
     None
-  }
+  }.orNull
 
   def isUseableByPlayer(p: Player) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
     p.asInstanceOf[EntityPlayer].getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
