@@ -7,7 +7,6 @@ import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
 import net.minecraftforge.common.MinecraftForge
-import scala.Some
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -15,7 +14,7 @@ class Proxy {
 
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
-    api.Network.instance = Some(network.Network)
+    api.Network.instance = network.Network
   }
 
   def init(e: FMLInitializationEvent): Unit = {
@@ -24,7 +23,6 @@ class Proxy {
 
     api.Driver.add(driver.FileSystem)
     api.Driver.add(driver.GraphicsCard)
-    api.Driver.add(driver.Keyboard)
     api.Driver.add(driver.Memory)
     api.Driver.add(driver.NetworkCard)
     api.Driver.add(driver.RedstoneCard)

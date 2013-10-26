@@ -2,6 +2,8 @@ package li.cil.oc.server.network
 
 import java.util.logging.Level
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.environment.Environment
+import li.cil.oc.server.network
 import li.cil.oc.{api, OpenComputers}
 import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
@@ -10,26 +12,33 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.ChunkEvent
 import scala.collection.JavaConverters._
+import scala.collection.convert.WrapAsJava._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class Network private(private val addressedNodes: mutable.Map[String, Network.Node] = mutable.Map.empty,
-                      private val unaddressedNodes: mutable.ArrayBuffer[Network.Node] = mutable.ArrayBuffer.empty) extends api.Network {
-  def this(node: api.network.Node) = {
+                      private val unaddressedNodes: mutable.ArrayBuffer[Network.Node] = mutable.ArrayBuffer.empty) extends api.network.Network {
+  def this(node: Node) = {
     this()
     addNew(node)
-    if (node.address.isDefined)
+    if (node.address != null)
       send(Network.ConnectMessage(node), Iterable(node))
   }
 
-  addressedNodes.values.foreach(_.data.network = Some(this))
-  unaddressedNodes.foreach(_.data.network = Some(this))
+  addressedNodes.values.foreach(_.data.network = this)
+  unaddressedNodes.foreach(_.data.network = this)
 
   // ----------------------------------------------------------------------- //
 
-  override def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+  def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot connect a node to itself.")
+
+    if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+      "Unsupported node implementation. Don't implement the interface yourself!")
+    if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+      "Unsupported node implementation. Don't implement the interface yourself!")
 
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
@@ -49,19 +58,27 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       if (!oldNodeA.edges.exists(_.isBetween(oldNodeA, oldNodeB))) {
         assert(!oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
         Network.Edge(oldNodeA, oldNodeB)
-        if (oldNodeA.data.visibility == Visibility.Neighbors && oldNodeB.data.address.isDefined)
+        if (oldNodeA.data.reachability == Visibility.Neighbors && oldNodeB.data.address != null)
           send(Network.ConnectMessage(oldNodeA.data), Iterable(oldNodeB.data))
-        if (oldNodeA.data.visibility == Visibility.Neighbors && oldNodeA.data.address.isDefined)
+        if (oldNodeA.data.reachability == Visibility.Neighbors && oldNodeA.data.address != null)
           send(Network.ConnectMessage(oldNodeA.data), Iterable(oldNodeB.data))
         true
       }
       else false // That connection already exists.
     }
-    else if (containsA) add(oldNodeA, nodeB)
-    else add(oldNodeB, nodeA)
+    else if (containsA) add(oldNodeA, nodeB.asInstanceOf[network.Node])
+    else add(oldNodeB, nodeA.asInstanceOf[network.Node])
   }
 
-  override def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+  def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+    if (nodeA == nodeB) throw new IllegalArgumentException(
+      "Cannot disconnect a node from itself.")
+
+    if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+      "Unsupported node implementation. Don't implement the interface yourself!")
+    if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+      "Unsupported node implementation. Don't implement the interface yourself!")
+
     val containsA = contains(nodeA)
     val containsB = contains(nodeB)
 
@@ -72,30 +89,29 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     def oldNodeB = node(nodeB)
 
     oldNodeA.edges.find(_.isBetween(oldNodeA, oldNodeB)) match {
-      case None => false // That connection doesn't exists.
       case Some(edge) => {
         handleSplit(edge.remove())
-        if (edge.left.data.visibility == Visibility.Neighbors && edge.right.data.address.isDefined)
+        if (edge.left.data.reachability == Visibility.Neighbors && edge.right.data.address != null)
           send(Network.DisconnectMessage(edge.left.data), Iterable(edge.right.data))
-        if (edge.right.data.visibility == Visibility.Neighbors && edge.left.data.address.isDefined)
+        if (edge.right.data.reachability == Visibility.Neighbors && edge.left.data.address != null)
           send(Network.DisconnectMessage(edge.right.data), Iterable(edge.left.data))
         true
       }
+      case _ => false // That connection doesn't exists.
     }
   }
 
-  override def remove(node: api.network.Node) = (node.address match {
-    case None => unaddressedNodes.indexWhere(_.data == node) match {
+  def remove(node: api.network.Node) = (Option(node.address) match {
+    case Some(address) => addressedNodes.remove(address)
+    case _ => unaddressedNodes.indexWhere(_.data == node) match {
       case -1 => None
       case index => Some(unaddressedNodes.remove(index))
     }
-    case Some(address) => addressedNodes.remove(address)
   }) match {
-    case None => false
     case Some(entry) => {
-      node.network = None
+      node.asInstanceOf[Node].network = null
       val subGraphs = entry.remove()
-      val targets = Iterable(node) ++ (entry.data.visibility match {
+      val targets = Iterable(node) ++ (entry.data.reachability match {
         case Visibility.None => Iterable.empty[api.network.Node]
         case Visibility.Neighbors => entry.edges.map(_.other(entry).data)
         case Visibility.Network => subGraphs.map {
@@ -106,97 +122,98 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       send(Network.DisconnectMessage(node), targets)
       true
     }
+    case _ => false
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def node(address: String) = addressedNodes.get(address) match {
+  def node(address: String) = addressedNodes.get(address) match {
     case Some(node) => node.data
     case _ => null
   }
 
-  override def nodes = addressedNodes.values.map(_.data)
+  def nodes = addressedNodes.values.map(_.data.asInstanceOf[api.network.Node]).asJava
 
   def nodes(reference: api.network.Node) = {
-    val referenceNeighbors = neighbors(reference).toSet
-    nodes.filter(node => node != reference && (node.visibility == Visibility.Network ||
-      (node.visibility == Visibility.Neighbors && referenceNeighbors.contains(node))))
+    val referenceNeighbors = neighbors(reference).toSet.asJava
+    nodes.filter(node => node != reference && (node.reachability == Visibility.Network ||
+      (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node)))).asJava
   }
 
-  override def neighbors(node: api.network.Node) = node.address match {
-    case None =>
-      unaddressedNodes.find(_.data == node) match {
-        case None => throw new IllegalArgumentException("Node must be in this network.")
-        case Some(n) => n.edges.map(_.other(n).data)
-      }
+  def neighbors(node: api.network.Node) = Option(node.address) match {
     case Some(address) =>
       addressedNodes.get(address) match {
-        case None => throw new IllegalArgumentException("Node must be in this network.")
         case Some(n) => n.edges.map(_.other(n).data)
+        case _ => throw new IllegalArgumentException("Node must be in this network.")
+      }
+    case None =>
+      unaddressedNodes.find(_.data == node) match {
+        case Some(n) => n.edges.map(_.other(n).data)
+        case _ => throw new IllegalArgumentException("Node must be in this network.")
       }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def sendToAddress(source: api.network.Node, target: String, name: String, data: AnyRef*) = {
-    if (source.network.isEmpty || source.network.get != this)
+  def sendToAddress(source: api.network.Node, target: String, name: String, data: AnyRef*) = {
+    if (source.network == null || source.network != this)
       throw new IllegalArgumentException("Source node must be in this network.")
-    if (source.address.isDefined) addressedNodes.get(target) match {
-      case Some(node) if node.data.visibility == Visibility.Network ||
-        (node.data.visibility == Visibility.Neighbors && neighbors(node.data).exists(_ == source)) =>
+    if (source.address != null) addressedNodes.get(target) match {
+      case Some(node) if node.data.reachability == Visibility.Network ||
+        (node.data.reachability == Visibility.Neighbors && neighbors(node.data).exists(_ == source)) =>
         send(new Network.Message(source, name, Array(data: _*)), Iterable(node.data))
       case _ => null
     } else null
   }
 
-  override def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*) = {
-    if (source.network.isEmpty || source.network.get != this)
+  def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*) = {
+    if (source.network == null || source.network != this)
       throw new IllegalArgumentException("Source node must be in this network.")
-    if (source.address.isDefined)
-      send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.visibility != Visibility.None))
+    if (source.address != null)
+      send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.reachability != Visibility.None))
     else null
   }
 
-  override def sendToVisible(source: api.network.Node, name: String, data: AnyRef*) = {
-    if (source.network.isEmpty || source.network.get != this)
+  def sendToVisible(source: api.network.Node, name: String, data: AnyRef*) = {
+    if (source.network == null || source.network != this)
       throw new IllegalArgumentException("Source node must be in this network.")
-    if (source.address.isDefined)
+    if (source.address != null)
       send(new Network.Message(source, name, Array(data: _*)), nodes(source))
     else null
   }
 
   // ----------------------------------------------------------------------- //
 
-  private def contains(node: api.network.Node) = (node.address match {
-    case None => unaddressedNodes.find(_.data == node)
+  private def contains(node: api.network.Node) = (Option(node.address) match {
     case Some(address) => addressedNodes.get(address)
+    case None => unaddressedNodes.find(_.data == node)
   }).exists(_.data == node)
 
-  private def node(node: api.network.Node) = (node.address match {
-    case None => unaddressedNodes.find(_.data == node)
+  private def node(node: api.network.Node) = (Option(node.address) match {
     case Some(address) => addressedNodes.get(address)
+    case None => unaddressedNodes.find(_.data == node)
   }).get
 
-  private def addNew(node: api.network.Node) = {
+  private def addNew(node: network.Node) = {
     val newNode = new Network.Node(node)
-    if (node.address.isEmpty)
-      node.address = Some(java.util.UUID.randomUUID().toString)
-    if (node.address.isDefined)
-      addressedNodes += node.address.get -> newNode
+    if (node.address == null)
+      node.address = java.util.UUID.randomUUID().toString
+    if (node.address != null)
+      addressedNodes += node.address -> newNode
     else
       unaddressedNodes += newNode
-    node.network = Some(this)
+    node.network = this
     newNode
   }
 
-  private def add(oldNode: Network.Node, addedNode: api.network.Node) = {
+  private def add(oldNode: Network.Node, addedNode: network.Node) = {
     // Queue any messages to avoid side effects from receivers.
     val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[api.network.Node])]
     // Check if the other node is new or if we have to merge networks.
-    if (addedNode.network.isEmpty) {
+    if (addedNode.network == null) {
       val newNode = addNew(addedNode)
       Network.Edge(oldNode, newNode)
-      if (addedNode.address.isDefined) addedNode.visibility match {
+      if (addedNode.address != null) addedNode.reachability match {
         case Visibility.None =>
           sendQueue += ((Network.ConnectMessage(addedNode), Iterable(addedNode)))
         case Visibility.Neighbors =>
@@ -209,27 +226,27 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       }
     }
     else {
-      val otherNetwork = addedNode.network.get.asInstanceOf[Network]
+      val otherNetwork = addedNode.network.asInstanceOf[Network]
 
-      if (addedNode.visibility == Visibility.Neighbors && oldNode.data.address.isDefined)
+      if (addedNode.reachability == Visibility.Neighbors && oldNode.data.address != null)
         sendQueue += ((Network.ConnectMessage(addedNode), Iterable(oldNode.data)))
-      if (oldNode.data.visibility == Visibility.Neighbors && addedNode.address.isDefined)
+      if (oldNode.data.reachability == Visibility.Neighbors && addedNode.address != null)
         sendQueue += ((Network.ConnectMessage(oldNode.data), Iterable(addedNode)))
 
       val oldNodes = nodes
       val newNodes = otherNetwork.nodes
-      val oldVisibleNodes = oldNodes.filter(_.visibility == Visibility.Network)
-      val newVisibleNodes = newNodes.filter(_.visibility == Visibility.Network)
+      val oldVisibleNodes = oldNodes.filter(_.reachability == Visibility.Network)
+      val newVisibleNodes = newNodes.filter(_.reachability == Visibility.Network)
 
       newVisibleNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), oldNodes)))
       oldVisibleNodes.foreach(node => sendQueue += ((Network.ConnectMessage(node), newNodes)))
 
       addressedNodes ++= otherNetwork.addressedNodes
       unaddressedNodes ++= otherNetwork.unaddressedNodes
-      otherNetwork.addressedNodes.values.foreach(_.data.network = Some(this))
-      otherNetwork.unaddressedNodes.foreach(_.data.network = Some(this))
+      otherNetwork.addressedNodes.values.foreach(_.data.network = this)
+      otherNetwork.unaddressedNodes.foreach(_.data.network = this)
 
-      val newNode = addedNode.address match {
+      val newNode = Option(addedNode.address) match {
         case None => unaddressedNodes.find(_.data == addedNode).get
         case Some(address) => addressedNodes(address)
       }
@@ -246,7 +263,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       val nodes = subGraphs.map {
         case (addressed, _) => addressed.values.map(_.data)
       }
-      val visibleNodes = nodes.map(_.filter(_.visibility == Visibility.Network))
+      val visibleNodes = nodes.map(_.filter(_.reachability == Visibility.Network))
 
       addressedNodes.clear()
       unaddressedNodes.clear()
@@ -304,30 +321,40 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 object Network extends api.detail.NetworkAPI {
   override def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int): Unit =
     if (!world.isRemote) getNetworkNode(world, x, y, z) match {
-      case None => // Invalid block.
       case Some(node) => {
         for (side <- ForgeDirection.VALID_DIRECTIONS) {
           getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case None => // Ignore.
             case Some(neighborNode) =>
-              if (neighborNode.network.isDefined) {
-                neighborNode.network.foreach(_.connect(neighborNode, node))
+              if (neighborNode.network != null) {
+                neighborNode.network.connect(neighborNode, node)
               }
+            case _ => // Ignore.
           }
         }
-        if (node.network.isEmpty) new Network(node)
+        if (node.network == null) new Network(node)
       }
+      case _ => // Invalid block.
     }
 
-  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[TileEntity with api.network.Node] =
+  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int): Option[network.Node] =
     Option(Block.blocksList(world.getBlockId(x, y, z))) match {
       case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
         world.getBlockTileEntity(x, y, z) match {
-          case tileEntity: TileEntity with api.network.Node => Some(tileEntity)
+          case host: Environment => Some(host.node.asInstanceOf[network.Node])
           case _ => None
         }
       case _ => None
     }
+
+  // ----------------------------------------------------------------------- //
+
+  def createNode(host: Environment, name: String, reachability: api.network.Visibility) = new network.Node(host, name, reachability)
+
+  def createComponent(node: api.network.Node) = new network.Component(node.host, node.name, node.reachability)
+
+  def createConsumer(node: api.network.Node) = ???
+
+  def createProducer(node: api.network.Node) = ???
 
   // ----------------------------------------------------------------------- //
 
@@ -342,9 +369,9 @@ object Network extends api.detail.NetworkAPI {
   private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
     // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
     tileEntities.
-      filter(_.isInstanceOf[api.network.Node]).
-      map(_.asInstanceOf[api.network.Node]).
-      foreach(t => t.network.foreach(_.remove(t)))
+      filter(_.isInstanceOf[Environment]).
+      map(_.asInstanceOf[Environment]).
+      foreach(t => t.node.network.remove(t.node))
   }
 
   private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
@@ -353,7 +380,7 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  private class Node(val data: api.network.Node) {
+  private class Node(val data: network.Node) {
     val edges = ArrayBuffer.empty[Edge]
 
     def remove() = {
@@ -388,9 +415,9 @@ object Network extends api.detail.NetworkAPI {
         while (queue.nonEmpty) {
           val node = queue.dequeue()
           seen += node
-          node.data.address match {
-            case None => unaddressed += node
+          Option(node.data.address) match {
             case Some(address) => addressed += address -> node
+            case _ => unaddressed += node
           }
           queue ++= node.edges.map(_.other(node)).filter(n => !seen.contains(n) && !queue.contains(n))
         }
@@ -406,7 +433,61 @@ object Network extends api.detail.NetworkAPI {
                         val data: Array[AnyRef] = Array()) extends api.network.Message {
     var isCanceled = false
 
-    override def cancel() = isCanceled = true
+    def cancel() = isCanceled = true
+
+    def checkBoolean(index: Int): Boolean = {
+      checkCount(index, "boolean")
+      data(index) match {
+        case value: java.lang.Boolean => value
+        case value => throw typeError(index, value, "boolean")
+      }
+    }
+
+    def checkDouble(index: Int): Double = {
+      checkCount(index, "number")
+      data(index) match {
+        case value: java.lang.Double => value
+        case value => throw typeError(index, value, "number")
+      }
+    }
+
+    def checkInteger(index: Int): Int = {
+      checkCount(index, "number")
+      data(index) match {
+        case value: java.lang.Double => value.intValue
+        case value => throw typeError(index, value, "number")
+      }
+    }
+
+    def checkByteArray(index: Int): Array[Byte] = {
+      checkCount(index, "string")
+      data(index) match {
+        case value: Array[Byte] => value
+        case value => throw typeError(index, value, "string")
+      }
+    }
+
+    def checkString(index: Int) =
+      new String(checkByteArray(index), "UTF-8")
+
+    private def checkCount(count: Int, name: String) =
+      if (data.length <= count) throw new IllegalArgumentException(
+        "bad arguments #%d (%s expected, got no value)".
+          format(count + 1, name))
+
+    private def typeError(index: Int, have: AnyRef, want: String) =
+      new IllegalArgumentException(
+        "bad argument #%d (%s expected, got %have)".
+          format(index + 1, want, typeName(have)))
+
+    private def typeName(value: AnyRef): String = value match {
+      case null => "nil"
+      case _: java.lang.Boolean => "boolean"
+      case _: java.lang.Double => "double"
+      case _: java.lang.String => "string"
+      case _: Array[Byte] => "string"
+      case _ => value.getClass.getSimpleName
+    }
   }
 
   private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "system.connect")

@@ -3,9 +3,10 @@ package li.cil.oc.common.tileentity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraft.world.World
 
-trait Inventory extends IInventory {
+trait Inventory extends IInventory with Persistable {
   protected val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
 
   def getStackInSlot(i: Int) = inventory(i).orNull
@@ -58,6 +59,37 @@ trait Inventory extends IInventory {
         case _ => // Nothing.
       }
     }
+  }
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    val inventoryNbt = nbt.getTagList("oc.inventory.list")
+    for (i <- 0 until inventoryNbt.tagCount) {
+      val slotNbt = inventoryNbt.tagAt(i).asInstanceOf[NBTTagCompound]
+      val slot = slotNbt.getByte("slot")
+      if (slot >= 0 && slot < inventory.length) {
+        val item = ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item"))
+        inventory(slot) = Some(item)
+      }
+    }
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    val inventoryNbt = new NBTTagList()
+    inventory.zipWithIndex collect {
+      case (Some(stack), slot) => (stack, slot)
+    } foreach {
+      case (stack, slot) => {
+        val slotNbt = new NBTTagCompound()
+        slotNbt.setByte("slot", slot.toByte)
+        val itemNbt = new NBTTagCompound()
+        stack.writeToNBT(itemNbt)
+        slotNbt.setCompoundTag("item", itemNbt)
+        inventoryNbt.appendTag(slotNbt)
+      }
+    }
+    nbt.setTag("oc.inventory.list", inventoryNbt)
   }
 
   protected def onItemAdded(slot: Int, item: ItemStack) {}

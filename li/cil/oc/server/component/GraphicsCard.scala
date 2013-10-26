@@ -1,84 +1,117 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Component, Visibility, Message}
-import li.cil.oc.common.component
+import li.cil.oc.api
+import li.cil.oc.api.network._
+import li.cil.oc.api.network.environment.LuaCallback
 import net.minecraft.nbt.NBTTagCompound
+import scala.Some
 
-class GraphicsCard(val maxResolution: (Int, Int)) extends Component {
+class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
+  val node = api.Network.createComponent(api.Network.createNode(this, "gpu", Visibility.Neighbors))
+
   private var screen: Option[String] = None
-
-  override val name = "gpu"
-
-  override val visibility = Visibility.Neighbors
-
-  componentVisibility = visibility
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
-    message.data match {
-      case Array(address: Array[Byte]) if message.name == "gpu.bind" =>
-        network.fold(None: Option[Array[AnyRef]])(network => {
-          Option(network.node(new String(address, "UTF-8"))) match {
-            case None => result(Unit, "invalid address")
-            case Some(node: component.Screen.Environment) =>
-              screen = node.address
-              result(true)
-            case _ => result(Unit, "not a screen")
-          }
-        })
-      case Array() if message.name == "system.disconnect" && message.source.address == screen => screen = None; None
-      case Array(w: java.lang.Double, h: java.lang.Double) if message.name == "gpu.resolution=" =>
-        val (mw, mh) = maxResolution
-        if (w.toInt <= mw && h.toInt <= mh)
-          trySend("screen.resolution=", Int.box(w.toInt), Int.box(h.toInt))
-        else
-          result(Unit, "unsupported resolution")
-      case Array() if message.name == "gpu.resolution" => trySend("screen.resolution")
-      case Array() if message.name == "gpu.maxResolution" => trySend("screen.maxResolution") match {
-        case Some(Array(w: Integer, h: Integer)) =>
-          val (mw, mh) = maxResolution
-          result(w.toInt min mw, h.toInt min mh)
-        case _ => None
-      }
-      case Array(x: java.lang.Double, y: java.lang.Double, value: Array[Byte]) if message.name == "gpu.set" =>
-        trySend("screen.set", Int.box(x.toInt - 1), Int.box(y.toInt - 1), new String(value, "UTF-8"))
-      case Array(x: java.lang.Double, y: java.lang.Double, w: java.lang.Double, h: java.lang.Double, value: Array[Byte]) if message.name == "gpu.fill" =>
-        val s = new String(value, "UTF-8")
-        if (s.length == 1)
-          trySend("screen.fill", Int.box(x.toInt - 1), Int.box(y.toInt - 1), Int.box(w.toInt), Int.box(h.toInt), Char.box(s.charAt(0)))
-        else
-          result(Unit, "invalid fill value")
-      case Array(x: java.lang.Double, y: java.lang.Double, w: java.lang.Double, h: java.lang.Double, tx: java.lang.Double, ty: java.lang.Double) if message.name == "gpu.copy" =>
-        trySend("screen.copy", Int.box(x.toInt - 1), Int.box(y.toInt - 1), Int.box(w.toInt), Int.box(h.toInt), Int.box(tx.toInt), Int.box(ty.toInt))
-      case _ => None
+  @LuaCallback("bind")
+  def bind(message: Message): Array[Object] = {
+    val address = message.checkString(0)
+    node.network.node(address) match {
+      case null => Array(Unit, "invalid address")
+      case value if value.name() == "screen" =>
+        screen = Option(address)
+        result(true)
+      case _ => Array(Unit, "not a screen")
     }
-  }.orNull
+  }
 
-  override protected def onDisconnect() = {
-    super.onDisconnect()
+  @LuaCallback("getResolution")
+  def getResolution(message: Message): Array[Object] = trySend("screen.resolution")
+
+  @LuaCallback("setResolution")
+  def setResolution(message: Message): Array[Object] = {
+    val w = message.checkInteger(0)
+    val h = message.checkInteger(1)
+    val (mw, mh) = maxResolution
+    if (w <= mw && h <= mh)
+      trySend("screen.resolution=", w, h)
+    else
+      Array(Unit, "unsupported resolution")
+  }
+
+  @LuaCallback("maxResolution")
+  def maxResolution(message: Message): Array[Object] =
+    trySend("screen.resolution") match {
+      case Array(w: Integer, h: Integer) =>
+        val (mw, mh) = maxResolution
+        result(mw min w, mh min h)
+      case _ => null
+    }
+
+  @LuaCallback("set")
+  def set(message: Message): Array[Object] = {
+    val x = message.checkInteger(0)
+    val y = message.checkInteger(1)
+    val value = message.checkString(2)
+    trySend("screen.set", x - 1, y - 1, value)
+  }
+
+  @LuaCallback("fill")
+  def fill(message: Message): Array[Object] = {
+    val x = message.checkInteger(0)
+    val y = message.checkInteger(1)
+    val w = message.checkInteger(2)
+    val h = message.checkInteger(3)
+    val value = message.checkString(4)
+    if (value.length == 1)
+      trySend("screen.fill", x - 1, y - 1, w, h, value.charAt(0))
+    else
+      Array(Unit, "invalid fill value")
+  }
+
+  @LuaCallback("copy")
+  def copy(message: Message): Array[Object] = {
+    val x = message.checkInteger(0)
+    val y = message.checkInteger(1)
+    val w = message.checkInteger(2)
+    val h = message.checkInteger(3)
+    val tx = message.checkInteger(4)
+    val ty = message.checkInteger(5)
+    trySend("screen.copy", x - 1, y - 1, w, h, tx, ty)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onMessage(message: Message) = {
+    if (message.name == "system.disconnect" && message.source.address == screen.orNull) {
+      screen = None
+    }
+    null
+  }
+
+  override def onDisconnect() {
     screen = None
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
-    if (nbt.hasKey("screen"))
-      screen = Some(nbt.getString("screen"))
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    if (nbt.hasKey("oc.gpu.screen"))
+      screen = Some(nbt.getString("oc.gpu.screen"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
     if (screen.isDefined)
-      nbt.setString("screen", screen.get)
+      nbt.setString("oc.gpu.screen", screen.get)
   }
 
   // ----------------------------------------------------------------------- //
 
-  private def trySend(name: String, data: AnyRef*): Option[Array[AnyRef]] =
+  private def trySend(name: String, data: Any*): Array[Object] =
     screen match {
-      case None => result(Unit, "no screen")
-      case Some(screenAddress) => network.fold(None: Option[Array[AnyRef]])(net => {
-        Option(net.sendToAddress(this, screenAddress, name, data: _*))
-      })
+      case Some(address) => node.network.sendToAddress(node, address, name, data.map(_.asInstanceOf[Object]): _*)
+      case None => Array(Unit, "no screen")
     }
 }

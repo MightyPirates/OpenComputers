@@ -1,10 +1,11 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Message, Node}
+import li.cil.oc.api.network.Message
+import li.cil.oc.common.tileentity
 import net.minecraft.nbt.{NBTTagByte, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 
-trait Redstone extends Node {
+trait Redstone extends tileentity.Environment with tileentity.Persistable {
   private val _input = Array.fill[Byte](6)(-1)
 
   private val _output = Array.fill[Byte](6)(0)
@@ -43,8 +44,7 @@ trait Redstone extends Node {
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
-    super.update()
+  def update() {
     if (_shouldUpdateInput) {
       _shouldUpdateInput = false
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
@@ -58,53 +58,52 @@ trait Redstone extends Node {
     }
   }
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
+  override def onMessage(message: Message) =
     message.data match {
       case Array(side: ForgeDirection) if message.name == "redstone.input" && side != ForgeDirection.UNKNOWN =>
-        result(_input(side.ordinal()))
+        Array(Int.box(_input(side.ordinal())))
       case Array(side: ForgeDirection) if message.name == "redstone.output" && side != ForgeDirection.UNKNOWN =>
-        result(output(side))
+        Array(Int.box(output(side)))
       case Array(side: ForgeDirection, value: Integer) if message.name == "redstone.output=" && side != ForgeDirection.UNKNOWN =>
         output(side, value)
-        result(true)
-      case _ => None
+        Array(Boolean.box(true))
+      case _ => super.onMessage(message)
     }
-  }.orNull
 
   // ----------------------------------------------------------------------- //
 
-  override abstract def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
 
-    if (nbt.hasKey("redstone.input")) {
-      val inputNbt = nbt.getTagList("redstone.input")
+    if (nbt.hasKey("oc.rs.input")) {
+      val inputNbt = nbt.getTagList("oc.rs.input")
       for (i <- 0 until (_input.length min inputNbt.tagCount)) {
         _input(i) = inputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
       }
     }
 
-    if (nbt.hasKey("redstone.output")) {
-      val outputNbt = nbt.getTagList("redstone.output")
+    if (nbt.hasKey("oc.rs.output")) {
+      val outputNbt = nbt.getTagList("oc.rs.output")
       for (i <- 0 until (_output.length min outputNbt.tagCount)) {
         _output(i) = outputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
       }
     }
   }
 
-  override abstract def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
 
     val inputNbt = new NBTTagList()
     for (i <- 0 until _input.length) {
       inputNbt.appendTag(new NBTTagByte(null, _input(i)))
     }
-    nbt.setTag("redstone.input", inputNbt)
+    nbt.setTag("oc.rs.input", inputNbt)
 
     val outputNbt = new NBTTagList()
     for (i <- 0 until _output.length) {
       outputNbt.appendTag(new NBTTagByte(null, _output(i)))
     }
-    nbt.setTag("redstone.output", outputNbt)
+    nbt.setTag("oc.rs.output", outputNbt)
   }
 
   // ----------------------------------------------------------------------- //

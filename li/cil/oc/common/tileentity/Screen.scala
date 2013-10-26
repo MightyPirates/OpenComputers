@@ -24,7 +24,7 @@ class ScreenTier3 extends Screen {
   protected def maxResolution = Config.screenResolutionsByTier(2)
 }
 
-abstract class Screen extends Rotatable with component.Screen.Environment with Receiver {
+abstract class Screen extends Rotatable with component.Screen.Environment {
   var guiScreen: Option[gui.Screen] = None
 
   /**
@@ -66,24 +66,14 @@ abstract class Screen extends Rotatable with component.Screen.Environment with R
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) =
-    if (isOrigin) {
-      // Necessary to avoid infinite recursion.
-      super.receive(message)
-    } else {
-      origin.receive(message)
-    }
-
-  // ----------------------------------------------------------------------- //
-
   override def readFromNBT(nbt: NBTTagCompound) {
-    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
+    load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
+    save(nbt)
   }
 
   override def validate() = {
@@ -144,9 +134,9 @@ abstract class Screen extends Rotatable with component.Screen.Environment with R
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
         if (screen.isOrigin)
-          screen.componentVisibility = Visibility.Network
+          screen.node.visibility(Visibility.Network)
         else {
-          screen.componentVisibility = Visibility.None
+          screen.node.visibility(Visibility.None)
           val s = screen.instance
           val (w, h) = s.resolution
           s.fill(0, 0, w, h, ' ')

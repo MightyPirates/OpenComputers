@@ -3,7 +3,7 @@ package li.cil.oc.api.detail;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.fs.FileSystem;
-import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.environment.ManagedEnvironment;
 
 public interface FileSystemAPI {
     FileSystem fromClass(Class<?> clazz, String domain, String root);
@@ -16,5 +16,5 @@ public interface FileSystemAPI {
 
     FileSystem fromComputerCraft(IWritableMount mount);
 
-    Node asNode(FileSystem fs);
+    ManagedEnvironment asManagedEnvironment(FileSystem fs);
 }

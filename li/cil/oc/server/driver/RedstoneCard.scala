@@ -6,11 +6,9 @@ import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 
 object RedstoneCard extends Item {
-  override def api = getClass.getResourceAsStream(Config.driverPath + "redstone.lua")
-
   override def worksWith(item: ItemStack) = WorksWith(Items.rs)(item)
 
-  override def slot(item: ItemStack) = Slot.Card
+  override def createEnvironment(item: ItemStack) = new component.RedstoneCard()
 
-  override def node(item: ItemStack) = new component.RedstoneCard()
+  override def slot(item: ItemStack) = Slot.Card
 }

@@ -21,7 +21,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
+  def open(path: String, mode: Mode) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {
       case Some(stream) =>
@@ -31,9 +31,9 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     }
   } else throw new FileNotFoundException()
 
-  override def file(handle: Int) = handles.get(handle).orNull
+  def file(handle: Int): api.fs.Handle = handles.get(handle).orNull
 
-  override def close() {
+  def close() {
     for (handle <- handles.values)
       handle.close()
     handles.clear()
@@ -41,7 +41,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
+  def load(nbt: NBTTagCompound) {
     val handlesNbt = nbt.getTagList("input")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
@@ -57,7 +57,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     })
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  def save(nbt: NBTTagCompound) {
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {
       assert(!file.isClosed)

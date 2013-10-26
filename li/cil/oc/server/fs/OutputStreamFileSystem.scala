@@ -24,7 +24,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     } else throw new FileNotFoundException()
   }
 
-  override def file(handle: Int) = Option(super.file(handle)).orElse(handles.get(handle)).orNull
+  override def file(handle: Int): api.fs.Handle = Option(super.file(handle)).orElse(handles.get(handle)).orNull
 
   override def close() {
     super.close()
@@ -35,8 +35,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
 
     val handlesNbt = nbt.getTagList("output")
     (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
@@ -51,8 +51,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     })
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
 
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {

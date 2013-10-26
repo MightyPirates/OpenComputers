@@ -6,11 +6,9 @@ import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 
 object NetworkCard extends Item {
-  override def api = getClass.getResourceAsStream(Config.driverPath + "network.lua")
-
   def worksWith(item: ItemStack) = WorksWith(Items.lan)(item)
 
-  def slot(item: ItemStack) = Slot.Card
+  override def createEnvironment(item: ItemStack) = new component.NetworkCard()
 
-  override def node(item: ItemStack) = new component.NetworkCard()
+  def slot(item: ItemStack) = Slot.Card
 }

@@ -85,13 +85,4 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case Some(driver) => Some(driver)
     }
     else None
-
-  /**
-   * Gets a list of all driver APIs.
-   *
-   * @return the apis of all known drivers.
-   */
-  def apis = (blocks ++ items) map (driver => (driver.getClass.getSimpleName, Option(driver.api))) collect {
-    case (name, Some(code)) => (name, code)
-  }
 }

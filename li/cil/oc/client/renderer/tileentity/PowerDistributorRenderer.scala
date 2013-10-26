@@ -14,7 +14,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
-    if (distributor.isActive) {
+    if (false /*distributor.isActive*/) {
       GL11.glPushAttrib(0xFFFFFF)
 
       RenderState.disableLighting()

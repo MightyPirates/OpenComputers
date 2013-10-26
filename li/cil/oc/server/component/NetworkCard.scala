@@ -1,58 +1,78 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Component, Message, Visibility}
+import li.cil.oc.api
+import li.cil.oc.api.network._
+import li.cil.oc.api.network.environment.LuaCallback
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NetworkCard extends Component {
+class NetworkCard extends ManagedComponent {
+  val node = api.Network.createComponent(api.Network.createNode(this, "network", Visibility.Network))
+  node.visibility(Visibility.Neighbors)
+
   private val openPorts = mutable.Set.empty[Int]
 
-  override val name = "network"
+  // ----------------------------------------------------------------------- //
 
-  override val visibility = Visibility.Network
+  @LuaCallback("open")
+  def open(message: Message): Array[Object] = {
+    val port = checkPort(message.checkInteger(0))
+    result(openPorts.add(port))
+  }
 
-  componentVisibility = Visibility.Neighbors
+  @LuaCallback("close")
+  def close(message: Message): Array[Object] = {
+    if (message.data.length == 0) {
+      openPorts.clear()
+      result(true)
+    }
+    else {
+      val port = checkPort(message.checkInteger(0))
+      result(openPorts.remove(port))
+    }
+  }
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
+  @LuaCallback("isOpen")
+  def isOpen(message: Message): Array[Object] = {
+    val port = checkPort(message.checkInteger(0))
+    result(openPorts.contains(port))
+  }
+
+  @LuaCallback("send")
+  def send(message: Message): Array[Object] = {
+    val address = message.checkString(0)
+    val port = checkPort(message.checkInteger(1))
+    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ message.data.drop(2): _*)
+    result(true)
+  }
+
+  @LuaCallback("broadcast")
+  def broadcast(message: Message): Array[Object] = {
+    val port = checkPort(message.checkInteger(0))
+    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ message.data.drop(1): _*)
+    result(true)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onMessage(message: Message) = {
     message.data match {
       case Array() if message.name == "computer.stopped" =>
-        if (network.get.neighbors(message.source).exists(_ == this))
-          openPorts.clear()
-        None
-
-      case Array(port: java.lang.Double) if message.name == "network.open=" =>
-        if (isPortValid(port.toInt)) result(openPorts.add(port.toInt))
-        else result(Unit, "invalid port number")
-      case Array(port: java.lang.Double) if message.name == "network.open" =>
-        if (isPortValid(port.toInt)) result(openPorts.contains(port.toInt))
-        else result(Unit, "invalid port number")
-      case Array(port: java.lang.Double) if message.name == "network.close" =>
-        if (isPortValid(port.toInt)) result(openPorts.remove(port.toInt))
-        else result(Unit, "invalid port number")
-      case Array() if message.name == "network.close" =>
-        openPorts.clear()
-        result(true)
-      case Array(address: Array[Byte], port: java.lang.Double, args@_*) if message.name == "network.send" =>
-        if (isPortValid(port.toInt))
-          network.get.sendToAddress(this, new String(address, "UTF-8"), "network.message", Seq(Int.box(port.toInt)) ++ args: _*)
-        None
-      case Array(port: java.lang.Double, args@_*) if message.name == "network.broadcast" => None
-        if (isPortValid(port.toInt))
-          network.get.sendToVisible(this, "network.message", Seq(Int.box(port.toInt)) ++ args: _*)
-        None
-
+        if (node.network.neighbors(message.source).exists(_ == this)) openPorts.clear()
       case Array(port: Integer, args@_*) if message.name == "network.message" =>
         if (openPorts.contains(port))
-          network.get.sendToNeighbors(this, "computer.signal", Seq("network_message", message.source.address.get, port) ++ args: _*)
-        None
-      case _ => None // Ignore.
+          node.network.sendToNeighbors(node, "computer.signal", Seq("network_message", message.source.address, port) ++ args: _*)
+      case _ =>
     }
-  }.orNull
+    null
+  }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    if (nbt.hasKey("openPorts")) {
-      val openPortsNbt = nbt.getTagList("openPorts")
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound) {
+    if (nbt.hasKey("oc.net.openPorts")) {
+      val openPortsNbt = nbt.getTagList("oc.net.openPorts")
       (0 until openPortsNbt.tagCount).
         map(openPortsNbt.tagAt).
         map(_.asInstanceOf[NBTTagInt]).
@@ -60,13 +80,16 @@ class NetworkCard extends Component {
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) {
     val openPortsNbt = new NBTTagList()
     for (port <- openPorts)
       openPortsNbt.appendTag(new NBTTagInt(null, port))
-    nbt.setTag("openPorts", openPortsNbt)
+    nbt.setTag("oc.net.openPorts", openPortsNbt)
   }
 
-  private def isPortValid(port: Int) = port >= 1 && port <= 0xFFFF
+  // ----------------------------------------------------------------------- //
+
+  private def checkPort(port: Int) =
+    if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
+    else port
 }

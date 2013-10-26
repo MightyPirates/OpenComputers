@@ -17,9 +17,9 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
   var addedToEnet = false
   var powerHandler: PowerHandler = null
 
-  override val name = "powersupply"
+//  override val name = "powersupply"
 
-  override val visibility = Visibility.Network
+//  override val visibility = Visibility.Network
 
   override def onChunkUnload() {
     super.onChunkUnload()
@@ -36,27 +36,27 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
 
   override def updateEntity() {
     super.updateEntity()
-    update()
+//    update()
     if (!addedToEnet) {
       onLoaded()
     }
     if (!FMLCommonHandler.instance.getEffectiveSide.isClient) {
 
-      addEnergy((getPowerProvider().useEnergy(1, powerDemand.toFloat / 5.0f, true) * 5).toDouble)
+//      addEnergy((getPowerProvider().useEnergy(1, powerDemand.toFloat / 5.0f, true) * 5).toDouble)
 
     }
   }
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super[Rotatable].readFromNBT(nbt)
-    super.readFromNBT(nbt)
+//    super.load(nbt)
     getPowerProvider().readFromNBT(nbt)
 
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super[Rotatable].writeToNBT(nbt)
-    super.writeToNBT(nbt)
+//    super.save(nbt)
     getPowerProvider().writeToNBT(nbt)
   }
 
@@ -83,11 +83,11 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
    * @return max accepted input in eu
    */
   override def demandedEnergyUnits: Double = {
-
-    val needed = powerDemand
-    if (needed > lastInjectedEnergy || needed > (maxEnergy / 2.0)) {
-      return needed / 2
-    }
+//
+//    val needed = powerDemand
+//    if (needed > lastInjectedEnergy || needed > (maxEnergy / 2.0)) {
+//      return needed / 2
+//    }
     0.0
 
   }
@@ -104,7 +104,7 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
    */
   override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double): Double = {
     lastInjectedEnergy = amount * 2.0
-    addEnergy(amount * 2.0)
+//    addEnergy(amount * 2.0)
     0
   }
 
@@ -190,7 +190,7 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
 
     if (doReceive) {
       val energy = receive.getWatts / 0.2F
-      addEnergy(energy.toDouble)
+//      addEnergy(energy.toDouble)
     }
     receive.getWatts
   }
@@ -210,8 +210,9 @@ class PowerSupply extends Rotatable with Producer with IEnergySink with IPowerRe
    * @return How much energy does this TileEntity want?
    */
   def getRequest(direction: ForgeDirection): Float = {
-    val diff = Math.floor(powerDemand * 0.2F)
-    diff.toFloat max 0
+//    val diff = Math.floor(powerDemand * 0.2F)
+//    diff.toFloat max 0
+    0
   }
 
   /**

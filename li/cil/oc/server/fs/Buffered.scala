@@ -31,8 +31,8 @@ trait Buffered extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
 
     def recurse(path: String, directory: io.File) {
       makeDirectory(path)
@@ -60,8 +60,8 @@ trait Buffered extends OutputStreamFileSystem {
     recurse("", fileRoot)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
 
     for ((path, time) <- deletions) {
       val file = new io.File(fileRoot, path)

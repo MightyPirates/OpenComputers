@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.environment.ManagedEnvironment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -37,18 +37,6 @@ public interface Item extends Driver {
     boolean worksWith(ItemStack item);
 
     /**
-     * The slot type of the specified item this driver supports.
-     * <p/>
-     * This is used to determine into which slot of a computer the components this
-     * driver supports may go. This will only be called if a previous call to
-     * `worksWith` with the same item type returned true.
-     *
-     * @param item the item to get the slot type for.
-     * @return the component type of the specified item.
-     */
-    Slot slot(ItemStack item);
-
-    /**
      * Gets a reference to the network node interfacing the specified item.
      * <p/>
      * This is used to connect the component to the component network when it is
@@ -61,7 +49,19 @@ public interface Item extends Driver {
      * @param item the item instance for which to get the node.
      * @return the network node for that item.
      */
-    Node node(ItemStack item);
+    ManagedEnvironment createEnvironment(ItemStack item);
+
+    /**
+     * The slot type of the specified item this driver supports.
+     * <p/>
+     * This is used to determine into which slot of a computer the components this
+     * driver supports may go. This will only be called if a previous call to
+     * `worksWith` with the same item type returned true.
+     *
+     * @param item the item to get the slot type for.
+     * @return the component type of the specified item.
+     */
+    Slot slot(ItemStack item);
 
     /**
      * Get the tag compound based on the item stack to use for persisting the

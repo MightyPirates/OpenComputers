@@ -10,28 +10,28 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def exists(path: String) =
+  def exists(path: String) =
     root.get(segments(path)).isDefined
 
-  override def isDirectory(path: String) =
+  def isDirectory(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.isDirectory
       case _ => false
     }
 
-  override def size(path: String) =
+  def size(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.size
       case _ => 0L
     }
 
-  override def lastModified(path: String) =
+  def lastModified(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.lastModified
       case _ => 0L
     }
 
-  override def list(path: String) =
+  def list(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualDirectory) => obj.list()
       case _ => null
@@ -95,13 +95,13 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openInputStream(path: String) =
+  protected def openInputStream(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualFile) => obj.openInputStream()
       case _ => None
     }
 
-  override protected def openOutputStream(path: String, mode: Mode) = {
+  protected def openOutputStream(path: String, mode: Mode) = {
     val parts = segments(path)
     if (parts.isEmpty) None
     else {
@@ -114,13 +114,13 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) = {
     root.load(nbt)
-    super.readFromNBT(nbt) // Last to ensure streams can be re-opened.
+    super.load(nbt) // Last to ensure streams can be re-opened.
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt) // First to allow flushing.
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt) // First to allow flushing.
     root.save(nbt)
   }
 
@@ -130,7 +130,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected abstract class VirtualObject {
+  protected trait VirtualObject {
     def isDirectory: Boolean
 
     def size: Long
@@ -159,9 +159,9 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     var stream: Option[VirtualFileOutputStream] = None
 
-    override def isDirectory = false
+    def isDirectory = false
 
-    override def size = data.length
+    def size = data.length
 
     def openInputStream() = Some(new VirtualFileInputStream(this))
 
@@ -195,9 +195,9 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
   protected class VirtualDirectory extends VirtualObject {
     val children = mutable.Map.empty[String, VirtualObject]
 
-    override def isDirectory = true
+    def isDirectory = true
 
-    override def size = 0
+    def size = 0
 
     def list() = children.map {
       case (childName, child) => if (child.isDirectory) childName + "/" else childName

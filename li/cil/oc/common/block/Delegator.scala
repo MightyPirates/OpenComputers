@@ -6,6 +6,7 @@ import li.cil.oc.Config
 import li.cil.oc.CreativeTab
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.environment.Environment
 import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -103,7 +104,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(metadata) match {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case node: Node => node.network.foreach(_.remove(node))
+          case environment: Environment =>
+            environment.node.network.remove(environment.node)
           case _ => // Nothing special to do.
         }
         subBlock.breakBlock(world, x, y, z, blockId)

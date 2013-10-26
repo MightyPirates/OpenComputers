@@ -91,7 +91,7 @@ object Config {
       "The user name to specify when executing a command via a command block. If\n" +
       "you leave this empty it will use the address of the network node that sent\n" +
       "the execution request - which will usually be a computer.").
-      getString
+      getString.trim
 
     fileCost = config.get("server", "fileCost", fileCost, "" +
       "The base 'cost' of a single file or directory on a limited file system,\n" +

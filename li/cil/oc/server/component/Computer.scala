@@ -1,15 +1,16 @@
 package li.cil.oc.server.component
 
 import com.naef.jnlua._
+import java.io.{FileNotFoundException, IOException}
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{Component, Message, Visibility, Node}
+import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.{Component, Message, Visibility}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.driver
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Config}
@@ -20,9 +21,8 @@ import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.ChunkEvent
 import scala.Array.canBuildFrom
 import scala.Some
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.io.Source
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -62,15 +62,17 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private var kernelMemory = 0
 
-  private val signals = new LinkedBlockingQueue[Computer.Signal](256)
+  private val components = mutable.Map.empty[String, String]
+
+  private val signals = new mutable.Queue[Computer.Signal]
 
   private val rom = Option(api.FileSystem.
     fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom")).
-    flatMap(fs => Option(api.FileSystem.asNode(fs)))
+    flatMap(fs => Option(api.FileSystem.asManagedEnvironment(fs)))
 
   private val tmp = Option(api.FileSystem.
     fromMemory(512 * 1024)).
-    flatMap(fs => Option(api.FileSystem.asNode(fs)))
+    flatMap(fs => Option(api.FileSystem.asManagedEnvironment(fs)))
 
   // ----------------------------------------------------------------------- //
 
@@ -100,7 +102,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // ----------------------------------------------------------------------- //
 
   def start() = stateMonitor.synchronized(
-    (state == Computer.State.Stopped) && init() && {
+    (owner.node.network != null && state == Computer.State.Stopped) && init() && {
       // Initial state. Will be switched to State.Yielded in the next update()
       // due to the signals queue not being empty (
       state = Computer.State.Suspended
@@ -112,7 +114,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       owner.markAsChanged()
 
       // All green, computer started successfully.
-      owner.network.foreach(_.sendToVisible(owner, "computer.started"))
+      owner.node.network.sendToVisible(owner.node, "computer.started")
       true
     })
 
@@ -135,21 +137,38 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
     case Computer.State.Stopped | Computer.State.Stopping => false
-    case _ => signals.offer(new Computer.Signal(name, args.map {
-      case null | Unit | None => Unit
-      case arg: Boolean => arg
-      case arg: Byte => arg.toDouble
-      case arg: Char => arg.toDouble
-      case arg: Short => arg.toDouble
-      case arg: Int => arg.toDouble
-      case arg: Long => arg.toDouble
-      case arg: Float => arg.toDouble
-      case arg: Double => arg
-      case arg: String => arg
-      case arg: Array[Byte] => arg
-      case _ => throw new IllegalArgumentException()
-    }.toArray))
+    case _ if signals.size >= 256 => false
+    case _ =>
+      signals.enqueue(new Computer.Signal(name, args.map {
+        case null | Unit | None => Unit
+        case arg: Boolean => arg
+        case arg: Byte => arg.toDouble
+        case arg: Char => arg.toDouble
+        case arg: Short => arg.toDouble
+        case arg: Int => arg.toDouble
+        case arg: Long => arg.toDouble
+        case arg: Float => arg.toDouble
+        case arg: Double => arg
+        case arg: String => arg
+        case arg: Array[Byte] => arg
+        case _ => throw new IllegalArgumentException()
+      }.toArray))
+      true
   })
+
+  def addComponent(address: String, name: String) {
+    if (!components.contains(address)) {
+      components += address -> name
+      signal("component_added", address)
+    }
+  }
+
+  def removeComponent(address: String) {
+    if (components.contains(address)) {
+      components -= address
+      signal("component_removed", address)
+    }
+  }
 
   def update() {
     // Update last time run to let our executor thread know it doesn't have to
@@ -164,9 +183,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
     def cleanup() {
-      rom.foreach(rom => rom.network.foreach(_.remove(rom)))
-      tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
-      owner.network.foreach(_.sendToVisible(owner, "computer.stopped"))
+      rom.foreach(rom => rom.node.network.remove(rom.node))
+      tmp.foreach(tmp => tmp.node.network.remove(tmp.node))
+      owner.node.network.sendToVisible(owner.node, "computer.stopped")
 
       // If there was an error message (i.e. the computer crashed) display it on
       // any screens we used (stored in GPUs).
@@ -174,13 +193,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         println(message.get) // TODO remove this at some point (add a tool that can read these error messages?)
 
         // Clear any screens we use before displaying the error message on them.
-        owner.network.foreach(_.sendToNeighbors(owner, "gpu.fill",
-          Double.box(1.0), Double.box(1.0), Double.box(Double.PositiveInfinity), Double.box(Double.PositiveInfinity), " ".getBytes("UTF-8")))
-        owner.network.foreach(network => {
-          for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
-            network.sendToNeighbors(owner, "gpu.set", Double.box(1.0), Double.box(1.0 + row), line.getBytes("UTF-8"))
-          }
-        })
+        // TODO this is fugly, think of some other way, e.g. listen to stopped/crashed in gpu or sth.
+        owner.node.network.sendToNeighbors(owner.node, "gpu.fill",
+          Double.box(1.0), Double.box(1.0), Double.box(Double.PositiveInfinity), Double.box(Double.PositiveInfinity), " ".getBytes("UTF-8"))
+        for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
+          owner.node.network.sendToNeighbors(owner.node, "gpu.set", Double.box(1.0), Double.box(1.0 + row), line.getBytes("UTF-8"))
+        }
       }
     }
 
@@ -252,8 +270,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    state = nbt.getInteger("state") match {
+  def load(nbt: NBTTagCompound) {
+    val computerNbt = nbt.getCompoundTag("oc.computer")
+
+    state = computerNbt.getInteger("state") match {
       case id if id >= 0 && id < Computer.State.maxId => Computer.State(id)
       case _ => Computer.State.Stopped
     }
@@ -261,18 +281,19 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     if (state != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
+
       try {
         // Try unpersisting Lua, because that's what all of the rest depends
         // on. First, clear the stack, meaning the current kernel.
         lua.setTop(0)
 
-        if (!nbt.hasKey("kernel") || !unpersist(nbt.getByteArray("kernel")) || !lua.isThread(1)) {
+        if (!computerNbt.hasKey("kernel") || !unpersist(computerNbt.getByteArray("kernel")) || !lua.isThread(1)) {
           // This shouldn't really happen, but there's a chance it does if
           // the save was corrupt (maybe someone modified the Lua files).
           throw new IllegalStateException("Invalid kernel.")
         }
         if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn) {
-          if (!nbt.hasKey("stack") || !unpersist(nbt.getByteArray("stack")) ||
+          if (!computerNbt.hasKey("stack") || !unpersist(computerNbt.getByteArray("stack")) ||
             (state == Computer.State.SynchronizedCall && !lua.isFunction(2)) ||
             (state == Computer.State.SynchronizedReturn && !lua.isTable(2))) {
             // Same as with the above, should not really happen normally, but
@@ -281,10 +302,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           }
         }
 
-        assert(signals.size == 0)
-        val signalsNbt = nbt.getTagList("signals")
-        signals.addAll((0 until signalsNbt.tagCount()).
-          map(signalsNbt.tagAt(_).asInstanceOf[NBTTagCompound]).
+        val componentsNbt = computerNbt.getTagList("components")
+        components ++= (0 until componentsNbt.tagCount).
+          map(componentsNbt.tagAt).
+          map(_.asInstanceOf[NBTTagCompound]).
+          map(c => c.getString("address") -> c.getString("name"))
+
+        val signalsNbt = computerNbt.getTagList("signals")
+        signals ++= (0 until signalsNbt.tagCount).
+          map(signalsNbt.tagAt).
+          map(_.asInstanceOf[NBTTagCompound]).
           map(signalNbt => {
           val argsNbt = signalNbt.getCompoundTag("args")
           val argsLength = argsNbt.getInteger("length")
@@ -294,17 +321,19 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
               case tag: NBTTagByte => tag.data == 1
               case tag: NBTTagDouble => tag.data
               case tag: NBTTagString => tag.data
-              case _ => throw new IllegalStateException("Invalid signal.")
+              case tag: NBTTagByteArray => tag.byteArray
+              case _ => Unit
             }.toArray)
-        }).asJava)
+        })
 
-        rom.foreach(_.readFromNBT(nbt.getCompoundTag("rom")))
-        tmp.foreach(_.readFromNBT(nbt.getCompoundTag("tmp")))
-        kernelMemory = nbt.getInteger("kernelMemory")
-        timeStarted = nbt.getLong("timeStarted")
-        cpuTime = nbt.getLong("cpuTime")
-        if (nbt.hasKey("message"))
-          message = Some(nbt.getString("message"))
+        rom.foreach(_.load(computerNbt.getCompoundTag("rom")))
+        tmp.foreach(_.load(computerNbt.getCompoundTag("tmp")))
+        kernelMemory = computerNbt.getInteger("kernelMemory")
+        timeStarted = computerNbt.getLong("timeStarted")
+        cpuTime = computerNbt.getLong("cpuTime")
+        if (computerNbt.hasKey("message")) {
+          message = Some(computerNbt.getString("message"))
+        }
 
         // Limit memory again.
         recomputeMemory()
@@ -319,12 +348,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           case _ => // Will be started by update() if necessary.
         }
       } catch {
-        case e: IllegalStateException => {
-          OpenComputers.log.log(Level.WARNING, "Could not restore computer.", e)
-          close()
-        }
         case e: LuaRuntimeException => {
-          OpenComputers.log.warning("Could not restore computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+          OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
           close()
         }
       }
@@ -333,72 +358,85 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     else state = Computer.State.Stopped
   }
 
-  override def writeToNBT(nbt: NBTTagCompound): Unit = this.synchronized {
+  def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
 
-    nbt.setInteger("state", (state match {
+    val computerNbt = new NBTTagCompound()
+
+    computerNbt.setInteger("state", (state match {
       case Computer.State.Paused => Computer.State.Yielded
-      case Computer.State.Sleeping => Computer.State.Yielded
       case Computer.State.SynchronizedReturnPaused => Computer.State.SynchronizedReturn
+      case Computer.State.Sleeping => Computer.State.Yielded
       case other => other
     }).id)
-    if (state == Computer.State.Stopped) {
-      return
-    }
+    if (state != Computer.State.Stopped) {
+      // Unlimit memory while persisting.
+      lua.setTotalMemory(Integer.MAX_VALUE)
 
-    // Unlimit memory while persisting.
-    lua.setTotalMemory(Integer.MAX_VALUE)
-    try {
-      // Try persisting Lua, because that's what all of the rest depends on.
-      // While in a driver call we have one object on the global stack: either
-      // the function to call the driver with, or the result of the call.
-      if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn || state == Computer.State.SynchronizedReturnPaused) {
-        assert(if (state == Computer.State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
-        nbt.setByteArray("stack", persist(2))
-      }
-      // Save the kernel state (which is always at stack index one).
-      assert(lua.isThread(1))
-      nbt.setByteArray("kernel", persist(1))
-
-      val list = new NBTTagList
-      for (s <- signals.iterator) {
-        val signal = new NBTTagCompound
-        signal.setString("name", s.name)
-        val args = new NBTTagCompound
-        args.setInteger("length", s.args.length)
-        s.args.zipWithIndex.foreach {
-          case (Unit, i) => args.setByte("arg" + i, -1)
-          case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
-          case (arg: Double, i) => args.setDouble("arg" + i, arg)
-          case (arg: String, i) => args.setString("arg" + i, arg)
+      try {
+        // Try persisting Lua, because that's what all of the rest depends on.
+        // Save the kernel state (which is always at stack index one).
+        assert(lua.isThread(1))
+        computerNbt.setByteArray("kernel", persist(1))
+        // While in a driver call we have one object on the global stack: either
+        // the function to call the driver with, or the result of the call.
+        if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn || state == Computer.State.SynchronizedReturnPaused) {
+          assert(if (state == Computer.State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
+          computerNbt.setByteArray("stack", persist(2))
         }
-        signal.setCompoundTag("args", args)
-        list.appendTag(signal)
-      }
-      nbt.setTag("signals", list)
 
-      val romNbt = new NBTTagCompound()
-      rom.foreach(_.writeToNBT(romNbt))
-      nbt.setCompoundTag("rom", romNbt)
-      val tmpNbt = new NBTTagCompound()
-      tmp.foreach(_.writeToNBT(tmpNbt))
-      nbt.setCompoundTag("tmp", tmpNbt)
-      nbt.setInteger("kernelMemory", kernelMemory)
-      nbt.setLong("timeStarted", timeStarted)
-      nbt.setLong("cpuTime", cpuTime)
-      if (message.isDefined)
-        nbt.setString("message", message.get)
-    }
-    catch {
-      case e: Throwable =>
-        e.printStackTrace()
-        nbt.setInteger("state", Computer.State.Stopped.id)
-    }
-    finally {
+        val componentsNbt = new NBTTagList()
+        for ((address, name) <- components) {
+          val componentNbt = new NBTTagCompound()
+          componentNbt.setString("address", address)
+          componentNbt.setString("name", name)
+          componentsNbt.appendTag(componentNbt)
+        }
+        computerNbt.setTag("components", componentsNbt)
+
+        val signalsNbt = new NBTTagList()
+        for (s <- signals.iterator) {
+          val signalNbt = new NBTTagCompound()
+          signalNbt.setString("name", s.name)
+          val args = new NBTTagCompound()
+          args.setInteger("length", s.args.length)
+          s.args.zipWithIndex.foreach {
+            case (Unit, i) => args.setByte("arg" + i, -1)
+            case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
+            case (arg: Double, i) => args.setDouble("arg" + i, arg)
+            case (arg: String, i) => args.setString("arg" + i, arg)
+            case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
+          }
+          signalNbt.setCompoundTag("args", args)
+          signalsNbt.appendTag(signalNbt)
+        }
+        computerNbt.setTag("signals", signalsNbt)
+
+        val romNbt = new NBTTagCompound()
+        rom.foreach(_.save(romNbt))
+        computerNbt.setCompoundTag("rom", romNbt)
+
+        val tmpNbt = new NBTTagCompound()
+        tmp.foreach(_.save(tmpNbt))
+        computerNbt.setCompoundTag("tmp", tmpNbt)
+
+        computerNbt.setInteger("kernelMemory", kernelMemory)
+        computerNbt.setLong("timeStarted", timeStarted)
+        computerNbt.setLong("cpuTime", cpuTime)
+        message.foreach(computerNbt.setString("message", _))
+      } catch {
+        case e: LuaRuntimeException => {
+          OpenComputers.log.warning("Could not persist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+          computerNbt.setInteger("state", Computer.State.Stopped.id)
+        }
+      }
+
       // Limit memory again.
       recomputeMemory()
     }
+
+    nbt.setCompoundTag("oc.computer", computerNbt)
   }
 
   private def persist(index: Int): Array[Byte] = {
@@ -424,9 +462,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // ... unpersist
       lua.pushByteArray(value) // ... unpersist str
       lua.call(1, 1) // ... obj
-      return true
+      true
     } // ... :(
-    false
+    else false
   }
 
   // ----------------------------------------------------------------------- //
@@ -499,7 +537,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       // Allow the computer to figure out its own id in the component network.
       lua.pushScalaFunction(lua => {
-        owner.address match {
+        Option(owner.node.address) match {
           case None => lua.pushNil()
           case Some(address) => lua.pushString(address)
         }
@@ -509,7 +547,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       // And it's ROM address.
       lua.pushScalaFunction(lua => {
-        rom.foreach(_.address match {
+        rom.foreach(rom => Option(rom.node.address) match {
           case None => lua.pushNil()
           case Some(address) => lua.pushString(address)
         })
@@ -519,7 +557,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       // And it's /tmp address...
       lua.pushScalaFunction(lua => {
-        tmp.foreach(_.address match {
+        tmp.foreach(tmp => Option(tmp.node.address) match {
           case None => lua.pushNil()
           case Some(address) => lua.pushString(address)
         })
@@ -547,7 +585,39 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       })
       lua.setGlobal("print")
 
-      // Set up functions used to send network messages.
+      // How long programs may run without yielding before we stop them.
+      lua.pushNumber(Config.timeout)
+      lua.setGlobal("timeout")
+
+      lua.pushScalaFunction(lua => components.synchronized {
+        val filter = if (lua.isString(1)) Option(lua.toString(1)) else None
+        lua.newTable(0, components.size)
+        for ((address, name) <- components) {
+          if (filter.isEmpty || name.matches(filter.get)) {
+            lua.pushString(address)
+            lua.pushString(name)
+            lua.rawSet(-2)
+          }
+        }
+        1
+      })
+      lua.setGlobal("componentList")
+
+      lua.pushScalaFunction(lua => components.synchronized {
+        components.get(lua.checkString(1)) match {
+          case Some(name: String) =>
+            lua.pushString(name)
+            1
+          case _ =>
+            lua.pushNil()
+            lua.pushString("no such component")
+            2
+        }
+      })
+      lua.setGlobal("componentType")
+
+
+      // Set up functions used to send component.invoke network messages.
       def parseArgument(lua: LuaState, index: Int): AnyRef = lua.`type`(index) match {
         case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
         case LuaType.NUMBER => Double.box(lua.toNumber(index))
@@ -587,77 +657,83 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case value: Seq[_] => pushList(value.zipWithIndex.iterator)
         // TODO maps?
         // TODO I fear they are, but check if the following are really necessary for Java interop.
+        case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
         case value: java.lang.Byte => lua.pushNumber(value.byteValue)
         case value: java.lang.Short => lua.pushNumber(value.shortValue)
         case value: java.lang.Integer => lua.pushNumber(value.intValue)
         case value: java.lang.Long => lua.pushNumber(value.longValue)
         case value: java.lang.Float => lua.pushNumber(value.floatValue)
         case value: java.lang.Double => lua.pushNumber(value.doubleValue)
-        case _ => lua.pushNil()
+        case _ =>
+          OpenComputers.log.warning("A component callback tried to return an unsupported value of type " + value.getClass.getName + ".")
+          lua.pushNil()
       }
 
-      def send(target: String, name: String, args: AnyRef*) =
-        owner.network.fold(null: Array[AnyRef])(network => {
-          Option(network.node(target)) match {
-            case Some(node: Component) if node.canBeSeenBy(this.owner) =>
-              network.sendToAddress(owner, target, name, args: _*)
-            case _ => Array(Unit, "invalid address")
-          }
-        })
-
-      lua.pushScalaFunction(lua =>
-        send(lua.checkString(1), lua.checkString(2), parseArguments(lua, 3): _*) match {
-          case Array(results@_*) =>
-            results.foreach(pushResult(lua, _))
-            results.length
-          case _ => 0
-        })
-      lua.setGlobal("sendToAddress")
-
       lua.pushScalaFunction(lua => {
-        Option(owner.network.fold(null: Node)(_.node(lua.checkString(1)))) match {
-          case Some(node: Component) if node.canBeSeenBy(this.owner) =>
-            lua.pushString(node.name)
-            1
-          case None =>
-            lua.pushNil()
-            lua.pushString("invalid address")
+        val address = lua.checkString(1)
+        val method = lua.checkString(2)
+        val args = parseArguments(lua, 3)
+        try {
+          (Option(owner.node.network.node(address)) match {
+            case Some(node: Component) if node.canBeSeenBy(owner.node) =>
+              owner.node.network.sendToAddress(owner.node, address, "component.invoke", Seq(method) ++ args: _*)
+            case _ => throw new Exception("no such component")
+          }) match {
+            case Array(results@_*) =>
+              lua.pushBoolean(true)
+              results.foreach(pushResult(lua, _))
+              1 + results.length
+            case _ =>
+              lua.pushBoolean(true)
+              1
+          }
+        } catch {
+          case e: Throwable if e.getMessage != null && !e.getMessage.isEmpty =>
+            lua.pushBoolean(false)
+            lua.pushString(e.getMessage)
+            2
+          case _: FileNotFoundException =>
+            lua.pushBoolean(false)
+            lua.pushString("file not found")
+            2
+          case _: SecurityException =>
+            lua.pushBoolean(false)
+            lua.pushString("access denied")
+            2
+          case _: IOException =>
+            lua.pushBoolean(false)
+            lua.pushString("i/o error")
+            2
+          case _: NoSuchMethodException =>
+            lua.pushBoolean(false)
+            lua.pushString("no such method")
+            2
+          case _: IllegalArgumentException =>
+            lua.pushBoolean(false)
+            lua.pushString("bad argument")
+            2
+          case _: Throwable =>
+            lua.pushBoolean(false)
+            lua.pushString("unknown error")
             2
         }
       })
-      lua.setGlobal("nodeName")
-
-      // How long programs may run without yielding before we stop them.
-      lua.pushNumber(Config.timeout)
-      lua.setGlobal("timeout")
-
-      // Provide driver API code.
-      lua.pushScalaFunction(lua => {
-        val apis = driver.Registry.apis
-        lua.newTable(apis.length, 0)
-        for ((name, code) <- apis) {
-          lua.pushString(Source.fromInputStream(code).mkString)
-          code.close()
-          lua.setField(-2, name)
-        }
-        1
-      })
-      lua.setGlobal("drivers")
+      lua.setGlobal("componentCall")
 
       // List of installed GPUs - this is used during boot to allow giving some
       // feedback on the process, since booting can take some time. It feels a
       // bit like cheating, but it's really the only way to communicate with
       // our components at this low level.
-      val gpus = owner.network.fold(Iterable.empty[String])(_.neighbors(owner).filter(_.name == "gpu").map(_.address.get)).toArray
-      lua.pushScalaFunction(lua => {
-        lua.newTable(gpus.length, 0)
-        for (i <- 0 until gpus.length) {
-          lua.pushString(gpus(i))
-          lua.rawSet(-2, i + 1)
-        }
-        1
-      })
-      lua.setGlobal("gpus")
+      //      val gpus = owner.network.fold(Iterable.empty[String])(_.neighbors(owner).filter(_.name == "gpu").map(_.address.get)).toArray
+      //      lua.pushScalaFunction(lua => {
+      //        lua.newTable(gpus.length, 0)
+      //        for (i <- 0 until gpus.length) {
+      //          lua.pushString(gpus(i))
+      //          lua.rawSet(-2, i + 1)
+      //        }
+      //        1
+      //      })
+      //      lua.setGlobal("gpus")
 
       // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
@@ -690,8 +766,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       signals.clear()
 
       // Connect the ROM and `/tmp` node to our owner.
-      rom.foreach(rom => owner.network.foreach(_.connect(owner, rom)))
-      tmp.foreach(tmp => owner.network.foreach(_.connect(owner, tmp)))
+      if (owner.node.network != null) {
+        rom.foreach(rom => owner.node.network.connect(owner.node, rom.node))
+        tmp.foreach(tmp => owner.node.network.connect(owner.node, tmp.node))
+      }
 
       return true
     }
@@ -772,7 +850,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         assert(lua.isTable(2))
         lua.resume(1, 1)
       }
-      else Option(signals.poll()) match {
+      else stateMonitor.synchronized(signals.dequeueFirst(_ => true)) match {
         case None => lua.resume(1, 0)
         case Some(signal) => {
           lua.pushString(signal.name)
@@ -883,8 +961,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
 object Computer {
 
-  trait Environment extends Node {
-    protected val computer: Computer
+  trait Environment extends tileentity.Environment with tileentity.Persistable {
+    val node = api.Network.createComponent(api.Network.createNode(this, "computer", Visibility.Network))
+
+    node.visibility(Visibility.Neighbors)
+
+    protected val instance: Computer
 
     def world: World
 
@@ -900,65 +982,66 @@ object Computer {
 
     // ----------------------------------------------------------------------- //
 
-    override val name = "computer"
+    @LuaCallback("start")
+    def start(message: Message): Array[Object] =
+      Array(Boolean.box(instance.start()))
 
-    override val visibility = Visibility.Network
+    @LuaCallback("stop")
+    def stop(message: Message): Array[Object] =
+      Array(Boolean.box(instance.stop()))
 
-    override def receive(message: Message) = Option(super.receive(message)).orElse {
-      message.data match {
-        case Array() if message.name == "system.disconnect" && computer.isRunning =>
-          message.source match {
-            case node: Component =>
-              // This is also generated for components that were never added,
-              // because the node has already been removed from the network at
-              // this point, so we cannot check for visibility anymore.
-              computer.signal("component_removed", message.source.address.get); None
-            case _ => None
-          }
-        case Array() if message.name == "system.connect" && computer.isRunning =>
-          message.source match {
-            case node: Component if node.canBeSeenBy(this) =>
-              computer.signal("component_added", message.source.address.get); None
-            case _ => None
-          }
+    @LuaCallback("isRunning")
+    def isRunning(message: Message): Array[Object] =
+      Array(Boolean.box(instance.isRunning))
 
-        // Arbitrary signals, usually from other components.
-        case Array(name: String, args@_*) if message.name == "computer.signal" && computer.isRunning =>
-          computer.signal(name, Seq(message.source.address.get) ++ args: _*); None
+    // ----------------------------------------------------------------------- //
 
-        // Remote control.
-        case Array() if message.name == "computer.start" =>
-          result(computer.start())
-        case Array() if message.name == "computer.stop" =>
-          result(computer.stop())
-        case Array() if message.name == "computer.running" =>
-          result(computer.isRunning)
-        case _ => None
+    override def onMessage(message: Message) = {
+      if (instance.isRunning) {
+        message.source match {
+          case node: Component if node.canBeSeenBy(node) =>
+            message.name match {
+              case "system.connect" =>
+                instance.addComponent(message.source.address, message.source.name)
+              case "system.disconnect" =>
+                instance.removeComponent(message.source.address)
+            }
+          case _ =>
+        }
+        message.data match {
+          // Arbitrary signals, usually from other components.
+          case Array(name: String, args@_*) if message.name == "computer.signal" =>
+            instance.signal(name, Seq(message.source.address) ++ args: _*)
+          case _ =>
+        }
       }
-    }.orNull
+      super.onMessage(message)
+    }
 
-    override protected def onConnect() {
+    override def onConnect() {
       super.onConnect()
-      computer.rom.foreach(rom => network.foreach(_.connect(this, rom)))
-      computer.tmp.foreach(tmp => network.foreach(_.connect(this, tmp)))
+      instance.rom.foreach(rom => node.network.connect(node, rom.node))
+      instance.tmp.foreach(tmp => node.network.connect(node, tmp.node))
     }
 
-    override protected def onDisconnect() {
+    override def onDisconnect() {
       super.onDisconnect()
-      computer.rom.foreach(rom => rom.network.foreach(_.remove(rom)))
-      computer.tmp.foreach(tmp => tmp.network.foreach(_.remove(tmp)))
+      instance.rom.foreach(rom => rom.node.network.remove(rom.node))
+      instance.tmp.foreach(tmp => tmp.node.network.remove(tmp.node))
     }
 
-    override abstract def readFromNBT(nbt: NBTTagCompound) {
-      super.readFromNBT(nbt)
-      computer.readFromNBT(nbt.getCompoundTag("computer"))
+    // ----------------------------------------------------------------------- //
+
+    override def load(nbt: NBTTagCompound) {
+      super.load(nbt)
+      node.load(nbt)
+      instance.load(nbt)
     }
 
-    override abstract def writeToNBT(nbt: NBTTagCompound) {
-      super.writeToNBT(nbt)
-      val computerNbt = new NBTTagCompound
-      computer.writeToNBT(computerNbt)
-      nbt.setCompoundTag("computer", computerNbt)
+    override def save(nbt: NBTTagCompound) {
+      super.save(nbt)
+      node.save(nbt)
+      instance.save(nbt)
     }
   }
 

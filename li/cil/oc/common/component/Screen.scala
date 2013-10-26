@@ -1,8 +1,9 @@
 package li.cil.oc.common.component
 
+import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{Component, Message, Visibility}
-import li.cil.oc.common.component
+import li.cil.oc.api.network.{Message, Visibility}
+import li.cil.oc.common.{tileentity, component}
 import li.cil.oc.util.TextBuffer
 import net.minecraft.nbt.NBTTagCompound
 
@@ -47,69 +48,72 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    buffer.readFromNBT(nbt)
+  override def load(nbt: NBTTagCompound) = {
+    buffer.readFromNBT(nbt.getCompoundTag("oc.screen"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    buffer.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) = {
+    val screenNbt = new NBTTagCompound
+    buffer.writeToNBT(screenNbt)
+    nbt.setCompoundTag("oc.screen", screenNbt)
   }
 }
 
 object Screen {
 
-  trait Environment extends Component {
+  trait Environment extends tileentity.Environment with tileentity.Persistable {
+    val node = api.Network.createComponent(api.Network.createNode(this, "screen", Visibility.Network))
+
     final val instance = new component.Screen(this, maxResolution)
-
-    override val name = "screen"
-
-    override val visibility = Visibility.Network
 
     protected def maxResolution: (Int, Int)
 
     // ----------------------------------------------------------------------- //
 
-    override def receive(message: Message) = Option(super.receive(message)).orElse {
+    override def onMessage(message: Message) = {
       message.data match {
         case Array(w: Integer, h: Integer) if message.name == "screen.resolution=" =>
-          result(instance.resolution = (w, h))
+          Array(Boolean.box(instance.resolution = (w, h)))
         case Array() if message.name == "screen.resolution" => {
           val (w, h) = instance.resolution
-          result(w, h)
+          Array(Int.box(w), Int.box(h))
         }
         case Array() if message.name == "screen.maxResolution" =>
           val (w, h) = instance.maxResolution
-          result(w, h)
+          Array(Int.box(w), Int.box(h))
         case Array(x: Integer, y: Integer, value: String) if message.name == "screen.set" =>
-          instance.set(x, y, value); result(true)
+          instance.set(x, y, value)
+          Array(Boolean.box(true))
         case Array(x: Integer, y: Integer, w: Integer, h: Integer, value: Character) if message.name == "screen.fill" =>
-          instance.fill(x, y, w, h, value); result(true)
+          instance.fill(x, y, w, h, value)
+          Array(Boolean.box(true))
         case Array(x: Integer, y: Integer, w: Integer, h: Integer, tx: Integer, ty: Integer) if message.name == "screen.copy" =>
-          instance.copy(x, y, w, h, tx, ty); result(true)
-        case _ => None
+          instance.copy(x, y, w, h, tx, ty)
+          Array(Boolean.box(true))
+        case _ => super.onMessage(message)
       }
-    }.orNull
-
-    // ----------------------------------------------------------------------- //
-
-    override abstract def readFromNBT(nbt: NBTTagCompound) = {
-      super.readFromNBT(nbt)
-
-      instance.readFromNBT(nbt.getCompoundTag("screen"))
-    }
-
-    override abstract def writeToNBT(nbt: NBTTagCompound) = {
-      super.writeToNBT(nbt)
-
-      val screenNbt = new NBTTagCompound
-      instance.writeToNBT(screenNbt)
-      nbt.setCompoundTag("screen", screenNbt)
     }
 
     // ----------------------------------------------------------------------- //
 
-    def onScreenResolutionChange(w: Int, h: Int) =
-      network.foreach(_.sendToVisible(this, "computer.signal", "screen_resized", Int.box(w), Int.box(h)))
+    override def load(nbt: NBTTagCompound) = {
+      super.load(nbt)
+      if (node != null) node.load(nbt)
+      instance.load(nbt)
+    }
+
+    override def save(nbt: NBTTagCompound) = {
+      super.save(nbt)
+      if (node != null) node.save(nbt)
+      instance.save(nbt)
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    def onScreenResolutionChange(w: Int, h: Int) {
+      if (node != null && node.network != null)
+        node.network.sendToVisible(node, "computer.signal", "screen_resized", Int.box(w), Int.box(h))
+    }
 
     def onScreenSet(col: Int, row: Int, s: String) {}
 

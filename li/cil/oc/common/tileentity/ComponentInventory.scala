@@ -1,15 +1,14 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network.environment.ManagedEnvironment
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
 import net.minecraft.world.World
 
-trait ComponentInventory extends Inventory with Node {
-  protected val components = Array.fill[Option[Node]](getSizeInventory)(None)
+trait ComponentInventory extends Inventory with Environment with Persistable {
+  protected val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
 
   def world: World
 
@@ -25,71 +24,53 @@ trait ComponentInventory extends Inventory with Node {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onConnect() {
+  override def onConnect() {
     super.onConnect()
     components collect {
-      case Some(node) => network.foreach(_.connect(this, node))
+      case Some(environment) => node.network.connect(node, environment.node)
     }
   }
 
-  override protected def onDisconnect() {
+  override def onDisconnect() {
     super.onDisconnect()
     components collect {
-      case Some(node) => node.network.foreach(_.remove(node))
+      case Some(environment) => environment.node.network.remove(environment.node)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override abstract def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
-
-    val list = nbt.getTagList("list")
-    for (i <- 0 until list.tagCount) {
-      val slotNbt = list.tagAt(i).asInstanceOf[NBTTagCompound]
-      val slot = slotNbt.getByte("slot")
-      if (slot >= 0 && slot < inventory.length) {
-        val item = ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item"))
-        inventory(slot) = Some(item)
-        components(slot) = Registry.driverFor(item) match {
-          case Some(driver) =>
-            driver.node(item) match {
-              case null => None
-              case node =>
-                node.readFromNBT(driver.nbt(item))
-                Some(node)
-            }
-          case _ => None
-        }
-      }
-    }
-  }
-
-  override abstract def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
-
-    val list = new NBTTagList
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt) // Load items before we can read their tags.
     inventory.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
     } foreach {
-      case (stack, slot) => {
-        val slotNbt = new NBTTagCompound
-        slotNbt.setByte("slot", slot.toByte)
-
-        components(slot) match {
-          case Some(node) =>
-            // We're guaranteed to have a driver for entries.
-            node.writeToNBT(Registry.driverFor(stack).get.nbt(stack))
-          case _ => // Nothing special to save.
+      case (stack, slot) =>
+        components(slot) = Registry.driverFor(stack) match {
+          case Some(driver) =>
+            Option(driver.createEnvironment(stack)) match {
+              case Some(environment) =>
+                environment.load(driver.nbt(stack))
+                Some(environment)
+              case _ => None
+            }
+          case _ => None
         }
+    }
+  }
 
-        val itemNbt = new NBTTagCompound
-        stack.writeToNBT(itemNbt)
-        slotNbt.setCompoundTag("item", itemNbt)
-        list.appendTag(slotNbt)
+  override def save(nbt: NBTTagCompound) = {
+    inventory.zipWithIndex collect {
+      case (Some(stack), slot) => (stack, slot)
+    } foreach {
+      case (stack, slot) => components(slot) match {
+        case Some(environment) =>
+          // We're guaranteed to have a driver for entries.
+          environment.save(Registry.driverFor(stack).get.nbt(stack))
+        case _ => // Nothing special to save.
       }
     }
-    nbt.setTag("list", list)
+    super.save(nbt) // Save items after updating their tags.
   }
 
   // ----------------------------------------------------------------------- //
@@ -98,28 +79,28 @@ trait ComponentInventory extends Inventory with Node {
 
   override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
     Registry.driverFor(item) match {
-      case None => // No driver.
-      case Some(driver) => driver.node(item) match {
-        case null => // No node.
-        case node =>
-          components(slot) = Some(node)
-          node.readFromNBT(driver.nbt(item))
-          network.foreach(_.connect(this, node))
+      case Some(driver) => Option(driver.createEnvironment(item)) match {
+        case Some(environment) =>
+          components(slot) = Some(environment)
+          environment.load(driver.nbt(item))
+          node.network.connect(node, environment.node)
+        case _ => // No environment (e.g. RAM).
       }
+      case _ => // No driver.
     }
   }
 
   override protected def onItemRemoved(slot: Int, item: ItemStack) = if (!world.isRemote) {
     // Uninstall component previously in that slot.
     components(slot) match {
-      case Some(node) =>
+      case Some(environment) =>
         // Note to self: we have to remove the node from the network *before*
         // saving, to allow file systems to close their handles before they
         // are saved (otherwise hard drives would restore all handles after
         // being installed into a different computer, even!)
         components(slot) = None
-        node.network.foreach(_.remove(node))
-        Registry.driverFor(item).foreach(driver => node.writeToNBT(driver.nbt(item)))
+        environment.node.network.remove(environment.node)
+        Registry.driverFor(item).foreach(driver => environment.save(driver.nbt(item)))
       case _ => // Nothing to do.
     }
   }

@@ -39,4 +39,14 @@ public interface Message {
      * and reconnect messages). This function will do nothing in that case.
      */
     void cancel();
+
+    boolean checkBoolean(int index);
+
+    double checkDouble(int index);
+
+    int checkInteger(int index);
+
+    byte[] checkByteArray(int index);
+
+    String checkString(int index);
 }

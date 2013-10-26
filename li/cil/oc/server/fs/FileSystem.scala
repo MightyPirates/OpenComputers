@@ -57,7 +57,7 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
-  override def asNode(fileSystem: api.fs.FileSystem) = new component.FileSystem(fileSystem)
+  override def asManagedEnvironment(fileSystem: api.fs.FileSystem) = new component.FileSystem(fileSystem)
 
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem

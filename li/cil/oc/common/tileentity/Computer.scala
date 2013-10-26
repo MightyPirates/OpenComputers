@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.power.Receiver
+import li.cil.oc.api.network.Message
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Redstone
@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone with Receiver {
+class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -25,7 +25,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   // ----------------------------------------------------------------------- //
 
-  override protected val computer = if (isClient) null else new component.Computer(this)
+  override protected val instance = if (isClient) null else new component.Computer(this)
 
   def world = worldObj
 
@@ -33,9 +33,9 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   // ----------------------------------------------------------------------- //
 
-  def turnOn() = computer.start()
+  def turnOn() = instance.start()
 
-  def turnOff() = computer.stop()
+  def turnOff() = instance.stop()
 
   def isOn = isRunning
 
@@ -48,29 +48,35 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
-    computer.recomputeMemory()
+    load(nbt)
+    instance.recomputeMemory()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
+    save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
+//
+//  override def save(nbt: NBTTagCompound) {}
+//
+//  override def load(nbt: NBTTagCompound) {}
+
+  override def onMessage(message: Message) = null
 
   override def updateEntity() = if (!worldObj.isRemote) {
-    computer.update()
+    instance.update()
     update()
     if (hasChanged.get)
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-    if (isRunning != computer.isRunning)
-      ServerPacketSender.sendComputerState(this, computer.isRunning)
-    isRunning = computer.isRunning
+    if (isRunning != instance.isRunning)
+      ServerPacketSender.sendComputerState(this, instance.isRunning)
+    isRunning = instance.isRunning
 
     for (component <- components) component match {
-      case Some(node) => node.update()
+      case Some(environment) => environment.update()
       case _ => // Empty.
     }
   }
@@ -105,7 +111,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   override def onInventoryChanged() {
     super.onInventoryChanged()
     if (!worldObj.isRemote) {
-      computer.recomputeMemory()
+      instance.recomputeMemory()
       isOutputEnabled = hasRedstoneCard
     }
   }
@@ -122,7 +128,7 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    computer.signal("redstone_changed", side.ordinal())
+    instance.signal("redstone_changed", side.ordinal())
   }
 
   override protected def onRedstoneOutputChanged(side: ForgeDirection) {

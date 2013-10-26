@@ -2,178 +2,202 @@ package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.api.network.{Component, Visibility, Message}
+import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.{Visibility, Message}
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
+class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
+  val node = api.Network.createComponent(api.Network.createNode(this, "filesystem", Visibility.Neighbors))
+
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
 
   private var label = ""
 
-  override val name = "filesystem"
+  // ----------------------------------------------------------------------- //
 
-  override val visibility = Visibility.Neighbors
+  @LuaCallback("getLabel")
+  def getLabel(message: Message): Array[Object] = Array(label)
 
-  componentVisibility = visibility
-
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
-    try {
-      message.data match {
-        case Array() if message.name == "system.disconnect" && owners.contains(message.source.address.get) =>
-          for (handle <- owners(message.source.address.get)) {
-            Option(fileSystem.file(handle)) match {
-              case None => // Maybe file system was accessed from somewhere else.
-              case Some(file) => file.close()
-            }
-          }
-          None
-        case Array() if message.name == "computer.stopped" =>
-          owners.get(message.source.address.get) match {
-            case None => // Computer had no open files.
-            case Some(set) =>
-              set.foreach(handle => Option(fileSystem.file(handle)) match {
-                case None => // Invalid handle... huh.
-                case Some(file) => file.close()
-              })
-              set.clear()
-          }
-          None
-
-        case Array(label: Array[Byte]) if message.name == "fs.label=" =>
-          this.label = new String(label, "UTF-8").trim
-          if (this.label.length > 16)
-            this.label = this.label.substring(0, 16)
-          result(true)
-        case Array() if message.name == "fs.label" =>
-          result(label)
-
-        case Array() if message.name == "fs.spaceTotal" =>
-          val space = fileSystem.spaceTotal
-          if (space < 0)
-            result("unlimited")
-          else
-            result(space)
-        case Array() if message.name == "fs.spaceUsed" =>
-          result(fileSystem.spaceUsed)
-
-        case Array(path: Array[Byte]) if message.name == "fs.exists" =>
-          result(fileSystem.exists(clean(path)))
-        case Array(path: Array[Byte]) if message.name == "fs.size" =>
-          result(fileSystem.size(clean(path)))
-        case Array(path: Array[Byte]) if message.name == "fs.isDirectory" =>
-          result(fileSystem.isDirectory(clean(path)))
-        case Array(path: Array[Byte]) if message.name == "fs.lastModified" =>
-          result(fileSystem.lastModified(clean(path)))
-        case Array(path: Array[Byte]) if message.name == "fs.dir" =>
-          Option(fileSystem.list(clean(path))) match {
-            case Some(list) => Some(list.map(_.asInstanceOf[AnyRef]))
-            case _ => None
-          }
-
-        case Array(path: Array[Byte]) if message.name == "fs.makeDirectory" =>
-          def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
-            (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
-          result(recurse(clean(path)))
-        case Array(path: Array[Byte]) if message.name == "fs.remove" =>
-          def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
-            fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
-          result(recurse(clean(path)))
-        case Array(from: Array[Byte], to: Array[Byte]) if message.name == "fs.rename" =>
-          result(fileSystem.rename(clean(from), clean(to)))
-
-        case Array(handle: java.lang.Double) if message.name == "fs.close" =>
-          Option(fileSystem.file(handle.toInt)) match {
-            case None => // Ignore.
-            case Some(file) =>
-              owners.get(message.source.address.get) match {
-                case None => // Not the owner of this handle.
-                case Some(set) => if (set.remove(handle.toInt)) file.close()
-              }
-          }
-          None
-        case Array(path: Array[Byte], mode: Array[Byte]) if message.name == "fs.open" =>
-          if (owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]).size >= Config.maxHandles)
-            result(Unit, "too many open handles")
-          else {
-            val handle = fileSystem.open(clean(path), Mode.parse(new String(mode, "UTF-8")))
-            if (handle > 0) {
-              owners.getOrElseUpdate(message.source.address.get, mutable.Set.empty[Int]) += handle
-            }
-            result(handle)
-          }
-
-        case Array(handle: java.lang.Double, n: java.lang.Double) if message.name == "fs.read" && n > 0 =>
-          Option(fileSystem.file(handle.toInt)) match {
-            case None => throw new IOException("bad file descriptor")
-            case Some(file) =>
-              // Limit reading to chunks of 8KB to avoid crazy allocations.
-              val buffer = new Array[Byte](n.toInt min (8 * 1024))
-              val read = file.read(buffer)
-              if (read >= 0) {
-                val bytes =
-                  if (read == buffer.length)
-                    buffer
-                  else {
-                    val bytes = new Array[Byte](read)
-                    Array.copy(buffer, 0, bytes, 0, read)
-                    bytes
-                  }
-                result(bytes)
-              }
-              else {
-                result(Unit)
-              }
-          }
-        case Array(handle: java.lang.Double, whence: Array[Byte], offset: java.lang.Double) if message.name == "fs.seek" =>
-          Option(fileSystem.file(handle.toInt)) match {
-            case None => throw new IOException("bad file descriptor")
-            case Some(file) =>
-              new String(whence, "UTF-8") match {
-                case "cur" => file.seek(file.position + offset.toInt)
-                case "set" => file.seek(offset.toLong)
-                case "end" => file.seek(file.length + offset.toInt)
-                case _ => throw new IllegalArgumentException("offset out of range")
-              }
-              result(file.position)
-          }
-        case Array(handle: java.lang.Double, value: Array[Byte]) if message.name == "fs.write" =>
-          Option(fileSystem.file(handle.toInt)) match {
-            case None => throw new IOException("bad file descriptor")
-            case Some(file) => file.write(value); result(true)
-          }
-        case _ => None
-      }
-    } catch {
-      case e@(_: IOException | _: IllegalArgumentException) if e.getMessage != null && !e.getMessage.isEmpty =>
-        result(Unit, e.getMessage)
-      case e: FileNotFoundException =>
-        result(Unit, "file not found")
-      case e: SecurityException =>
-        result(Unit, "access denied")
-      case _: IllegalArgumentException =>
-        result(Unit, "invalid argument")
-      case e: IOException =>
-        result(Unit, e.toString)
-    }
-  }.orNull
-
-  private def clean(path: Array[Byte]) = {
-    val result = com.google.common.io.Files.simplifyPath(new String(path, "UTF-8"))
-    if (result.startsWith("../")) throw new FileNotFoundException()
-    if (result == "/" || result == ".") ""
-    else result
+  @LuaCallback("setLabel")
+  def setLabel(message: Message): Array[Object] = {
+    label = message.checkString(0)
+    if (label.length > 16)
+      label = label.substring(0, 16)
+    result(true)
   }
 
-  override protected def onDisconnect() {
-    super.onDisconnect()
+  @LuaCallback("spaceTotal")
+  def spaceTotal(message: Message): Array[Object] = {
+    val space = fileSystem.spaceTotal
+    if (space < 0)
+      Array("unlimited")
+    else
+      result(space)
+  }
+
+  @LuaCallback("spaceUsed")
+  def spaceUsed(message: Message): Array[Object] =
+    result(fileSystem.spaceUsed)
+
+  @LuaCallback("exists")
+  def exists(message: Message): Array[Object] =
+    result(fileSystem.exists(clean(message.checkString(0))))
+
+  @LuaCallback("size")
+  def size(message: Message): Array[Object] =
+    result(fileSystem.size(clean(message.checkString(0))))
+
+  @LuaCallback("isDirectory")
+  def isDirectory(message: Message): Array[Object] =
+    result(fileSystem.isDirectory(clean(message.checkString(0))))
+
+  @LuaCallback("lastModified")
+  def lastModified(message: Message): Array[Object] =
+    result(fileSystem.lastModified(clean(message.checkString(0))))
+
+  @LuaCallback("list")
+  def list(message: Message): Array[Object] =
+    Option(fileSystem.list(clean(message.checkString(0)))) match {
+      case Some(list) => list.map(_.asInstanceOf[AnyRef])
+      case _ => null
+    }
+
+  @LuaCallback("makeDirectory")
+  def makeDirectory(message: Message): Array[Object] = {
+    def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
+      (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
+    result(recurse(clean(message.checkString(0))))
+  }
+
+  @LuaCallback("remove")
+  def remove(message: Message): Array[Object] = {
+    def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
+      fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
+    result(recurse(clean(message.checkString(0))))
+  }
+
+  @LuaCallback("rename")
+  def rename(message: Message): Array[Object] =
+    result(fileSystem.rename(clean(message.checkString(0)), clean(message.checkString(1))))
+
+  @LuaCallback("close")
+  def close(message: Message): Array[Object] = {
+    val handle = message.checkInteger(0)
+    Option(fileSystem.file(handle)) match {
+      case Some(file) =>
+        owners.get(message.source.address) match {
+          case Some(set) => if (set.remove(handle)) file.close()
+          case _ => // Not the owner of this handle.
+        }
+      case _ => Array(Unit, "bad file descriptor")
+    }
+    null
+  }
+
+  @LuaCallback("open")
+  def open(message: Message): Array[Object] =
+    if (owners.get(message.source.address).fold(false)(_.size >= Config.maxHandles))
+      result(Unit, "too many open handles")
+    else {
+      val path = message.checkString(0)
+      val mode = message.checkString(1)
+      val handle = fileSystem.open(clean(path), Mode.parse(mode))
+      if (handle > 0) {
+        owners.getOrElseUpdate(message.source.address, mutable.Set.empty[Int]) += handle
+      }
+      result(handle)
+    }
+
+  @LuaCallback("read")
+  def read(message: Message): Array[Object] = {
+    val handle = message.checkInteger(0)
+    val n = message.checkInteger(1)
+    Option(fileSystem.file(handle)) match {
+      case None => throw new IOException("bad file descriptor")
+      case Some(file) =>
+        // Limit reading to chunks of 8KB to avoid crazy allocations.
+        val buffer = new Array[Byte](n min (8 * 1024))
+        val read = file.read(buffer)
+        if (read >= 0) {
+          val bytes =
+            if (read == buffer.length)
+              buffer
+            else {
+              val bytes = new Array[Byte](read)
+              Array.copy(buffer, 0, bytes, 0, read)
+              bytes
+            }
+          result(bytes)
+        }
+        else {
+          result(Unit)
+        }
+    }
+  }
+
+  @LuaCallback("seek")
+  def seek(message: Message): Array[Object] = {
+    val handle = message.checkInteger(0)
+    val whence = message.checkString(1)
+    val offset = message.checkInteger(2)
+    Option(fileSystem.file(handle)) match {
+      case Some(file) =>
+        whence match {
+          case "cur" => file.seek(file.position + offset)
+          case "set" => file.seek(offset.toLong)
+          case "end" => file.seek(file.length + offset)
+          case _ => throw new IllegalArgumentException("invalid mode")
+        }
+        result(file.position)
+      case _ => throw new IOException("bad file descriptor")
+    }
+  }
+
+  @LuaCallback("write")
+  def write(message: Message): Array[Object] = {
+    val handle = message.checkInteger(0)
+    val value = message.checkByteArray(1)
+    Option(fileSystem.file(handle)) match {
+      case Some(file) => file.write(value); result(true)
+      case _ => throw new IOException("bad file descriptor")
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onMessage(message: Message) = {
+    message.data match {
+      case Array() if message.name == "system.disconnect" && owners.contains(message.source.address) =>
+        for (handle <- owners(message.source.address)) {
+          Option(fileSystem.file(handle)) match {
+            case Some(file) => file.close()
+            case _ => // Maybe file system was accessed from somewhere else.
+          }
+        }
+      case Array() if message.name == "computer.stopped" =>
+        owners.get(message.source.address) match {
+          case Some(set) =>
+            set.foreach(handle => Option(fileSystem.file(handle)) match {
+              case Some(file) => file.close()
+              case _ => // Invalid handle... huh.
+            })
+            set.clear()
+          case _ => // Computer had no open files.
+        }
+      case _ =>
+    }
+    null
+  }
+
+  override def onDisconnect() {
     fileSystem.close()
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
+  // ----------------------------------------------------------------------- //
 
+  override def load(nbt: NBTTagCompound) {
     val ownersNbt = nbt.getTagList("owners")
     (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
       val address = ownerNbt.getString("address")
@@ -188,12 +212,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
     if (nbt.hasKey("label"))
       label = nbt.getString("label")
 
-    fileSystem.readFromNBT(nbt.getCompoundTag("fs"))
+    fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-
+  override def save(nbt: NBTTagCompound) {
     val ownersNbt = new NBTTagList()
     for ((address, handles) <- owners) {
       val ownerNbt = new NBTTagCompound()
@@ -210,7 +232,16 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends Component {
       nbt.setString("label", label)
 
     val fsNbt = new NBTTagCompound()
-    fileSystem.writeToNBT(fsNbt)
+    fileSystem.save(fsNbt)
     nbt.setCompoundTag("fs", fsNbt)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  private def clean(path: String) = {
+    val result = com.google.common.io.Files.simplifyPath(path)
+    if (result.startsWith("../")) throw new FileNotFoundException()
+    if (result == "/" || result == ".") ""
+    else result
   }
 }

@@ -3,7 +3,7 @@ package li.cil.oc.api;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
-import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.environment.ManagedEnvironment;
 
 final public class FileSystem {
     /**
@@ -55,7 +55,8 @@ final public class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(String root, long capacity, boolean buffered) {
-        if (instance != null) return instance.fromSaveDirectory(root, capacity, buffered);
+        if (instance != null)
+            return instance.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
 
@@ -114,8 +115,8 @@ final public class FileSystem {
      * @param fileSystem the file system to wrap.
      * @return the network node wrapping the file system.
      */
-    public static Node asNode(li.cil.oc.api.fs.FileSystem fileSystem) {
-        if (instance != null) return instance.asNode(fileSystem);
+    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem) {
+        if (instance != null) return instance.asManagedEnvironment(fileSystem);
         return null;
     }
 

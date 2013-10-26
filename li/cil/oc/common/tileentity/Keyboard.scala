@@ -1,44 +1,39 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.network.{Component, Visibility, Message}
+import li.cil.oc.api
+import li.cil.oc.api.network.{Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
-class Keyboard extends Rotatable with Component {
-  override val name = "keyboard"
-
-  override val visibility = Visibility.Network
-
-  componentVisibility = visibility
-
-  override def canUpdate = false
+class Keyboard extends Rotatable with Environment {
+  val node = api.Network.createComponent(api.Network.createNode(this, "keyboard", Visibility.Network))
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    super[Rotatable].readFromNBT(nbt)
     super.readFromNBT(nbt)
+    node.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    super[Rotatable].writeToNBT(nbt)
     super.writeToNBT(nbt)
+    node.save(nbt)
   }
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
+  override def onMessage(message: Message) = {
     message.data match {
       case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))
-          network.foreach(_.sendToVisible(this, "computer.signal", "key_down", char, code))
+          node.network.sendToVisible(node, "computer.signal", "key_down", char, code)
       case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
         if (isUseableByPlayer(p))
-          network.foreach(_.sendToVisible(this, "computer.signal", "key_up", char, code))
+          node.network.sendToVisible(node, "computer.signal", "key_up", char, code)
       case Array(p: Player, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p))
-          network.foreach(_.sendToVisible(this, "computer.signal", "clipboard", value))
-      case _ => // Ignore.
+          node.network.sendToVisible(node, "computer.signal", "clipboard", value)
+      case _ =>
     }
-    None
-  }.orNull
+    super.onMessage(message)
+  }
 
   def isUseableByPlayer(p: Player) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
     p.asInstanceOf[EntityPlayer].getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64

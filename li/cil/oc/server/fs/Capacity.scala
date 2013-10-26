@@ -36,16 +36,16 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
 
     // For the tooltip.
-    nbt.setLong("used", used)
+    nbt.setLong("oc.capacity.used", used)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override protected abstract def openOutputStream(path: String, mode: Mode): Option[io.OutputStream] = {
+  override abstract protected def openOutputStream(path: String, mode: Mode): Option[io.OutputStream] = {
     val delta =
       if (exists(path))
         if (mode == Mode.Write)

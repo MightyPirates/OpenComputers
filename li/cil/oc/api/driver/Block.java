@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.environment.ManagedEnvironment;
 import net.minecraft.world.World;
 
 /**
@@ -48,5 +48,5 @@ public interface Block extends Driver {
      * @param z     the Z coordinate of the block to get the node for.
      * @return the network node for the block at that location.
      */
-    Node node(World world, int x, int y, int z);
+    ManagedEnvironment createEnvironment(World world, int x, int y, int z);
 }

@@ -1,27 +1,32 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Component, Visibility, Message}
+import li.cil.oc.api
+import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.{Visibility, Message}
 import net.minecraftforge.common.ForgeDirection
 
-class RedstoneCard extends Component {
-  override val name = "redstone"
+class RedstoneCard extends ManagedComponent {
+  val node = api.Network.createComponent(api.Network.createNode(this, "redstone", Visibility.Neighbors))
 
-  override val visibility = Visibility.Neighbors
+  @LuaCallback("getInput")
+  def getInput(message: Message): Array[Object] = {
+    val side = message.checkInteger(0)
+    node.network.sendToAddress(node, message.source.address,
+      "redstone.input", ForgeDirection.getOrientation(side))
+  }
 
-  componentVisibility = visibility
+  @LuaCallback("getOutput")
+  def getOutput(message: Message): Array[Object] = {
+    val side = message.checkInteger(0)
+    node.network.sendToAddress(node, message.source.address,
+      "redstone.output", ForgeDirection.getOrientation(side))
+  }
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
-    message.data match {
-      case Array(side: java.lang.Double) if message.name == "redstone.input" =>
-        Option(network.get.sendToAddress(this, message.source.address.get,
-          "redstone.input", ForgeDirection.getOrientation(side.toInt)))
-      case Array(side: java.lang.Double) if message.name == "redstone.output" =>
-        Option(network.get.sendToAddress(this, message.source.address.get,
-          "redstone.output", ForgeDirection.getOrientation(side.toInt)))
-      case Array(side: java.lang.Double, value: java.lang.Double) if message.name == "redstone.output=" =>
-        Option(network.get.sendToAddress(this, message.source.address.get,
-          "redstone.output=", ForgeDirection.getOrientation(side.toInt), Int.box(value.toInt)))
-      case _ => None // Ignore.
-    }
-  }.orNull
+  @LuaCallback("setOutput")
+  def setOutput(message: Message): Array[Object] = {
+    val side = message.checkInteger(0)
+    val value = message.checkInteger(1)
+    node.network.sendToAddress(node, message.source.address,
+      "redstone.output=", ForgeDirection.getOrientation(side.toInt), Int.box(value))
+  }
 }

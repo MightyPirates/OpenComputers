@@ -1,32 +1,34 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Config
-import li.cil.oc.api.network.{Component, Message, Visibility}
+import li.cil.oc.api
+import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.{Message, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
-class CommandBlock(entity: TileEntityCommandBlock) extends Component {
-  val name = "command_block"
+class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
+  val node = api.Network.createComponent(api.Network.createNode(this, "command_block", Visibility.Network))
 
-  val visibility = Visibility.Network
+  // ----------------------------------------------------------------------- //
 
-  componentVisibility = visibility
+  @LuaCallback("getValue")
+  def getValue(message: Message): Array[Object] = Array(entity.getCommand)
 
-  override def receive(message: Message) = Option(super.receive(message)).orElse {
-    message.data match {
-      case Array() if message.name == "command.value" =>
-        result(entity.getCommand)
-      case Array(value: Array[Byte]) if message.name == "command.value=" =>
-        entity.setCommand(new String(value, "UTF-8"))
-        entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
-        result(true)
-      case Array() if message.name == "command.run" =>
-        val name = if (Config.commandUser != null && !Config.commandUser.trim.isEmpty)
-          Config.commandUser.trim
-        else
-          message.source.address.get
-        entity.setCommandSenderName(name)
-        result(entity.executeCommandOnPowered(entity.worldObj) != 0)
-      case _ => None
-    }
-  }.get
+  @LuaCallback("setValue")
+  def setValue(message: Message): Array[Object] = {
+    val value = message.checkString(0)
+    entity.setCommand(value)
+    entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
+    result(true)
+  }
+
+  @LuaCallback("run")
+  def run(message: Message): Array[Object] = {
+    val name = if (Config.commandUser != null && !Config.commandUser.isEmpty)
+      Config.commandUser
+    else
+      message.source.address
+    entity.setCommandSenderName(name)
+    result(entity.executeCommandOnPowered(entity.worldObj) != 0)
+  }
 }
