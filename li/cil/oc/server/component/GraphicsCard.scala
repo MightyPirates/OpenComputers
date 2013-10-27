@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
@@ -14,8 +14,8 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("bind")
-  def bind(message: Message): Array[Object] = {
-    val address = message.checkString(1)
+  def bind(context: Context, args: Arguments): Array[Object] = {
+    val address = args.checkString(1)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
       case value if value.name() == "screen" =>
@@ -26,12 +26,12 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback(value = "getResolution", asynchronous = true)
-  def getResolution(message: Message): Array[Object] = trySend("screen.resolution")
+  def getResolution(context: Context, args: Arguments): Array[Object] = trySend("screen.resolution")
 
   @LuaCallback("setResolution")
-  def setResolution(message: Message): Array[Object] = {
-    val w = message.checkInteger(1)
-    val h = message.checkInteger(2)
+  def setResolution(context: Context, args: Arguments): Array[Object] = {
+    val w = args.checkInteger(1)
+    val h = args.checkInteger(2)
     val (mw, mh) = maxResolution
     if (w <= mw && h <= mh)
       trySend("screen.resolution=", w, h)
@@ -40,7 +40,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback(value = "maxResolution", asynchronous = true)
-  def maxResolution(message: Message): Array[Object] =
+  def maxResolution(context: Context, args: Arguments): Array[Object] =
     trySend("screen.resolution") match {
       case Array(w: Integer, h: Integer) =>
         val (mw, mh) = maxResolution
@@ -49,20 +49,20 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     }
 
   @LuaCallback("set")
-  def set(message: Message): Array[Object] = {
-    val x = message.checkInteger(1)
-    val y = message.checkInteger(2)
-    val value = message.checkString(3)
+  def set(context: Context, args: Arguments): Array[Object] = {
+    val x = args.checkInteger(1)
+    val y = args.checkInteger(2)
+    val value = args.checkString(3)
     trySend("screen.set", x - 1, y - 1, value)
   }
 
   @LuaCallback("fill")
-  def fill(message: Message): Array[Object] = {
-    val x = message.checkInteger(1)
-    val y = message.checkInteger(2)
-    val w = message.checkInteger(3)
-    val h = message.checkInteger(4)
-    val value = message.checkString(5)
+  def fill(context: Context, args: Arguments): Array[Object] = {
+    val x = args.checkInteger(1)
+    val y = args.checkInteger(2)
+    val w = args.checkInteger(3)
+    val h = args.checkInteger(4)
+    val value = args.checkString(5)
     if (value.length == 1)
       trySend("screen.fill", x - 1, y - 1, w, h, value.charAt(0))
     else
@@ -70,13 +70,13 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback("copy")
-  def copy(message: Message): Array[Object] = {
-    val x = message.checkInteger(1)
-    val y = message.checkInteger(2)
-    val w = message.checkInteger(3)
-    val h = message.checkInteger(4)
-    val tx = message.checkInteger(5)
-    val ty = message.checkInteger(6)
+  def copy(context: Context, args: Arguments): Array[Object] = {
+    val x = args.checkInteger(1)
+    val y = args.checkInteger(2)
+    val w = args.checkInteger(3)
+    val h = args.checkInteger(4)
+    val tx = args.checkInteger(5)
+    val ty = args.checkInteger(6)
     trySend("screen.copy", x - 1, y - 1, w, h, tx, ty)
   }
 

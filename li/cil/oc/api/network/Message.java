@@ -33,20 +33,10 @@ public interface Message {
      * <p/>
      * This can be used to stop further distributing messages when either
      * serving a message to a specific address and there are multiple nodes
-     * with that address, or when serving a broadcast message. (`sendToAll`).
+     * with that address, or when serving a broadcast message.
      * <p/>
-     * Note that system messages cannot be canceled (i.e. connect, disconnect
-     * and reconnect messages). This function will do nothing in that case.
+     * Note that system messages cannot be canceled (i.e. connect and disconnect
+     * messages). This function will do nothing in that case.
      */
     void cancel();
-
-    boolean checkBoolean(int index);
-
-    double checkDouble(int index);
-
-    int checkInteger(int index);
-
-    byte[] checkByteArray(int index);
-
-    String checkString(int index);
 }

@@ -17,7 +17,7 @@ import net.minecraft.world.World;
  * blocks as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular.
  */
-public interface Block extends Driver {
+public interface Block {
     /**
      * Used to determine the block types this driver handles.
      * <p/>

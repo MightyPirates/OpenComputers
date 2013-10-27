@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.Message
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Redstone

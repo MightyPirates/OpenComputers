@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -16,41 +16,41 @@ class NetworkCard extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("open")
-  def open(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(1))
+  def open(context: Context, args: Arguments): Array[Object] = {
+    val port = checkPort(args.checkInteger(1))
     result(openPorts.add(port))
   }
 
   @LuaCallback("close")
-  def close(message: Message): Array[Object] = {
-    if (message.data.length < 2) {
+  def close(context: Context, args: Arguments): Array[Object] = {
+    if (args.count == 0) {
       openPorts.clear()
       result(true)
     }
     else {
-      val port = checkPort(message.checkInteger(1))
+      val port = checkPort(args.checkInteger(1))
       result(openPorts.remove(port))
     }
   }
 
   @LuaCallback("isOpen")
-  def isOpen(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(1))
+  def isOpen(context: Context, args: Arguments): Array[Object] = {
+    val port = checkPort(args.checkInteger(1))
     result(openPorts.contains(port))
   }
 
   @LuaCallback("send")
-  def send(message: Message): Array[Object] = {
-    val address = message.checkString(1)
-    val port = checkPort(message.checkInteger(2))
-    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ message.data.drop(3): _*)
+  def send(context: Context, args: Arguments): Array[Object] = {
+    val address = args.checkString(1)
+    val port = checkPort(args.checkInteger(2))
+    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ args.drop(2): _*)
     result(true)
   }
 
   @LuaCallback("broadcast")
-  def broadcast(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(1))
-    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ message.data.drop(2): _*)
+  def broadcast(context: Context, args: Arguments): Array[Object] = {
+    val port = checkPort(args.checkInteger(1))
+    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ args.drop(1): _*)
     result(true)
   }
 

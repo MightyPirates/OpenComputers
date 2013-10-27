@@ -125,8 +125,5 @@ final public class FileSystem {
     private FileSystem() {
     }
 
-    /**
-     * Initialized in pre-init.
-     */
     public static FileSystemAPI instance = null;
 }

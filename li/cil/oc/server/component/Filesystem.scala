@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
 import li.cil.oc.api.network.{Visibility, Message}
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
@@ -18,18 +18,18 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("getLabel")
-  def getLabel(message: Message): Array[Object] = Array(label)
+  def getLabel(context: Context, args: Arguments): Array[Object] = Array(label)
 
   @LuaCallback("setLabel")
-  def setLabel(message: Message): Array[Object] = {
-    label = message.checkString(1)
+  def setLabel(context: Context, args: Arguments): Array[Object] = {
+    label = args.checkString(1)
     if (label.length > 16)
       label = label.substring(0, 16)
     result(true)
   }
 
   @LuaCallback("spaceTotal")
-  def spaceTotal(message: Message): Array[Object] = {
+  def spaceTotal(context: Context, args: Arguments): Array[Object] = {
     val space = fileSystem.spaceTotal
     if (space < 0)
       Array("unlimited")
@@ -38,56 +38,56 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   }
 
   @LuaCallback("spaceUsed")
-  def spaceUsed(message: Message): Array[Object] =
+  def spaceUsed(context: Context, args: Arguments): Array[Object] =
     result(fileSystem.spaceUsed)
 
   @LuaCallback("exists")
-  def exists(message: Message): Array[Object] =
-    result(fileSystem.exists(clean(message.checkString(1))))
+  def exists(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.exists(clean(args.checkString(1))))
 
   @LuaCallback("size")
-  def size(message: Message): Array[Object] =
-    result(fileSystem.size(clean(message.checkString(1))))
+  def size(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.size(clean(args.checkString(1))))
 
   @LuaCallback("isDirectory")
-  def isDirectory(message: Message): Array[Object] =
-    result(fileSystem.isDirectory(clean(message.checkString(1))))
+  def isDirectory(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.isDirectory(clean(args.checkString(1))))
 
   @LuaCallback("lastModified")
-  def lastModified(message: Message): Array[Object] =
-    result(fileSystem.lastModified(clean(message.checkString(1))))
+  def lastModified(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.lastModified(clean(args.checkString(1))))
 
   @LuaCallback("list")
-  def list(message: Message): Array[Object] =
-    Option(fileSystem.list(clean(message.checkString(1)))) match {
+  def list(context: Context, args: Arguments): Array[Object] =
+    Option(fileSystem.list(clean(args.checkString(1)))) match {
       case Some(list) => Array(list)
       case _ => null
     }
 
   @LuaCallback("makeDirectory")
-  def makeDirectory(message: Message): Array[Object] = {
+  def makeDirectory(context: Context, args: Arguments): Array[Object] = {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
-    result(recurse(clean(message.checkString(1))))
+    result(recurse(clean(args.checkString(1))))
   }
 
   @LuaCallback("remove")
-  def remove(message: Message): Array[Object] = {
+  def remove(context: Context, args: Arguments): Array[Object] = {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
-    result(recurse(clean(message.checkString(1))))
+    result(recurse(clean(args.checkString(1))))
   }
 
   @LuaCallback("rename")
-  def rename(message: Message): Array[Object] =
-    result(fileSystem.rename(clean(message.checkString(1)), clean(message.checkString(2))))
+  def rename(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.rename(clean(args.checkString(1)), clean(args.checkString(2))))
 
   @LuaCallback("close")
-  def close(message: Message): Array[Object] = {
-    val handle = message.checkInteger(1)
+  def close(context: Context, args: Arguments): Array[Object] = {
+    val handle = args.checkInteger(1)
     Option(fileSystem.file(handle)) match {
       case Some(file) =>
-        owners.get(message.source.address) match {
+        owners.get(context.address) match {
           case Some(set) => if (set.remove(handle)) file.close()
           case _ => // Not the owner of this handle.
         }
@@ -97,23 +97,23 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   }
 
   @LuaCallback("open")
-  def open(message: Message): Array[Object] =
-    if (owners.get(message.source.address).fold(false)(_.size >= Config.maxHandles))
+  def open(context: Context, args: Arguments): Array[Object] =
+    if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
       result(Unit, "too many open handles")
     else {
-      val path = message.checkString(1)
-      val mode = if (message.data.length > 2) message.checkString(2) else "r"
+      val path = args.checkString(1)
+      val mode = if (args.count > 1) args.checkString(2) else "r"
       val handle = fileSystem.open(clean(path), Mode.parse(mode))
       if (handle > 0) {
-        owners.getOrElseUpdate(message.source.address, mutable.Set.empty[Int]) += handle
+        owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
       }
       result(handle)
     }
 
   @LuaCallback("read")
-  def read(message: Message): Array[Object] = {
-    val handle = message.checkInteger(1)
-    val n = message.checkInteger(2)
+  def read(context: Context, args: Arguments): Array[Object] = {
+    val handle = args.checkInteger(1)
+    val n = args.checkInteger(2)
     Option(fileSystem.file(handle)) match {
       case None => throw new IOException("bad file descriptor")
       case Some(file) =>
@@ -138,15 +138,15 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   }
 
   @LuaCallback("seek")
-  def seek(message: Message): Array[Object] = {
-    val handle = message.checkInteger(1)
-    val whence = message.checkString(2)
-    val offset = message.checkInteger(3)
+  def seek(context: Context, args: Arguments): Array[Object] = {
+    val handle = args.checkInteger(1)
+    val whence = args.checkString(2)
+    val offset = args.checkInteger(3)
     Option(fileSystem.file(handle)) match {
       case Some(file) =>
         whence match {
           case "cur" => file.seek(file.position + offset)
-          case "set" => file.seek(offset.toLong)
+          case "set" => file.seek(offset)
           case "end" => file.seek(file.length + offset)
           case _ => throw new IllegalArgumentException("invalid mode")
         }
@@ -156,9 +156,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   }
 
   @LuaCallback("write")
-  def write(message: Message): Array[Object] = {
-    val handle = message.checkInteger(1)
-    val value = message.checkByteArray(2)
+  def write(context: Context, args: Arguments): Array[Object] = {
+    val handle = args.checkInteger(1)
+    val value = args.checkByteArray(2)
     Option(fileSystem.file(handle)) match {
       case Some(file) => file.write(value); result(true)
       case _ => throw new IOException("bad file descriptor")

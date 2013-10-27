@@ -22,7 +22,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * items as you wish. I'd recommend writing one per device (type), though, to
  * keep things modular.
  */
-public interface Item extends Driver {
+public interface Item {
     /**
      * Used to determine the item types this driver handles.
      * <p/>
@@ -65,13 +65,15 @@ public interface Item extends Driver {
 
     /**
      * Get the tag compound based on the item stack to use for persisting the
-     * node associated with the specified item stack.
+     * environment and node associated with the specified item stack.
      * <p/>
-     * This is only used if `node` is not `None`. This must always be a child
-     * tag of the items own tag compound, it will not be saved otherwise. Use
-     * this in the unlikely case that the default name collides with something.
+     * This is only used if the item has an environment. This must always be a
+     * child tag of the items own tag compound, it will not be saved otherwise.
+     * Use this in the unlikely case that the default name collides with
+     * something. The built-in components use a child tag-compound with the name
+     * "oc.node".
      *
-     * @param item the item to get the child tag to use for the `node`.
+     * @param item the item to get the child tag from.
      * @return the tag to use for saving and loading.
      */
     NBTTagCompound nbt(ItemStack item);

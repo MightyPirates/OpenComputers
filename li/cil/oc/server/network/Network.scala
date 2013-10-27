@@ -493,60 +493,6 @@ object Network extends api.detail.NetworkAPI {
     var isCanceled = false
 
     def cancel() = isCanceled = true
-
-    def checkBoolean(index: Int): Boolean = {
-      checkCount(index, "boolean")
-      data(index) match {
-        case value: java.lang.Boolean => value
-        case value => throw typeError(index, value, "boolean")
-      }
-    }
-
-    def checkDouble(index: Int): Double = {
-      checkCount(index, "number")
-      data(index) match {
-        case value: java.lang.Double => value
-        case value => throw typeError(index, value, "number")
-      }
-    }
-
-    def checkInteger(index: Int): Int = {
-      checkCount(index, "number")
-      data(index) match {
-        case value: java.lang.Double => value.intValue
-        case value => throw typeError(index, value, "number")
-      }
-    }
-
-    def checkByteArray(index: Int): Array[Byte] = {
-      checkCount(index, "string")
-      data(index) match {
-        case value: Array[Byte] => value
-        case value => throw typeError(index, value, "string")
-      }
-    }
-
-    def checkString(index: Int) =
-      new String(checkByteArray(index), "UTF-8")
-
-    private def checkCount(count: Int, name: String) =
-      if (data.length <= count) throw new IllegalArgumentException(
-        "bad arguments #%d (%s expected, got no value)".
-          format(count, name))
-
-    private def typeError(index: Int, have: AnyRef, want: String) =
-      new IllegalArgumentException(
-        "bad argument #%d (%s expected, got %s)".
-          format(index, want, typeName(have)))
-
-    private def typeName(value: AnyRef): String = value match {
-      case null => "nil"
-      case _: java.lang.Boolean => "boolean"
-      case _: java.lang.Double => "double"
-      case _: java.lang.String => "string"
-      case _: Array[Byte] => "string"
-      case _ => value.getClass.getSimpleName
-    }
   }
 
   private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "system.connect")

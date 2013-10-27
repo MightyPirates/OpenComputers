@@ -4,11 +4,22 @@ import li.cil.oc.api.detail.DriverAPI;
 import li.cil.oc.api.driver.Block;
 import li.cil.oc.api.driver.Item;
 
+/**
+ * This API allows registering new drivers with the mod.
+ * <p/>
+ * Drivers are used to make items and third-party blocks available in the mod's
+ * component network, and optionally to Lua programs.
+ *
+ * @see Network
+ * @see Block
+ * @see Item
+ */
 final public class Driver {
     /**
      * Registers a new block driver.
      * <p/>
-     * This must be called in the init phase, *not* the pre- or post-init phases.
+     * This must be called in the init phase, <em>not</em> the pre- or post-init
+     * phases.
      *
      * @param driver the driver to register.
      */
@@ -19,7 +30,8 @@ final public class Driver {
     /**
      * Registers a new item driver.
      * <p/>
-     * This must be called in the init phase, *not* the pre- or post-init phases.
+     * This must be called in the init phase, <em>not</em> the pre- or post-init
+     * phases.
      *
      * @param driver the driver to register.
      */
@@ -32,8 +44,5 @@ final public class Driver {
     private Driver() {
     }
 
-    /**
-     * Initialized in pre-init.
-     */
     public static DriverAPI instance = null;
 }

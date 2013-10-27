@@ -50,8 +50,5 @@ final public class Network {
     private Network() {
     }
 
-    /**
-     * Initialized in pre-init.
-     */
     public static NetworkAPI instance = null;
 }

@@ -11,6 +11,15 @@ import java.lang.annotation.Target;
  * <p/>
  * Any method exposed like this can be enumerated and called from a computer
  * that can see the node of the environment.
+ * <p/>
+ * Note that methods annotated with this interface must have the following
+ * signature:
+ * <pre>
+ *     Object[] f(Computer computer, Arguments arguments);
+ * </pre>
+ *
+ * @see Context
+ * @see Arguments
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

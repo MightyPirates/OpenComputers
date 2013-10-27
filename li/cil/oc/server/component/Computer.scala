@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.environment.LuaCallback
+import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
 import li.cil.oc.api.network.{Component, Message, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -144,17 +144,19 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     case _ =>
       signals.enqueue(new Computer.Signal(name, args.map {
         case null | Unit | None => Unit
-        case arg: Boolean => arg
-        case arg: Byte => arg.toDouble
-        case arg: Char => arg.toDouble
-        case arg: Short => arg.toDouble
-        case arg: Int => arg.toDouble
-        case arg: Long => arg.toDouble
-        case arg: Float => arg.toDouble
-        case arg: Double => arg
-        case arg: String => arg
+        case arg: java.lang.Boolean => arg
+        case arg: java.lang.Byte => arg.toDouble
+        case arg: java.lang.Character => arg.toDouble
+        case arg: java.lang.Short => arg.toDouble
+        case arg: java.lang.Integer => arg.toDouble
+        case arg: java.lang.Long => arg.toDouble
+        case arg: java.lang.Float => arg.toDouble
+        case arg: java.lang.Double => arg
+        case arg: java.lang.String => arg
         case arg: Array[Byte] => arg
-        case _ => throw new IllegalArgumentException()
+        case arg =>
+          OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+          Unit
       }.toArray))
       true
   })
@@ -1015,7 +1017,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
 object Computer {
 
-  trait Environment extends tileentity.Environment with tileentity.Persistable {
+  trait Environment extends tileentity.Environment with tileentity.Persistable with Context {
     val node = api.Network.createComponent(api.Network.createNode(this, "computer", Visibility.Network))
 
     node.visibility(Visibility.Neighbors)
@@ -1036,16 +1038,22 @@ object Computer {
 
     // ----------------------------------------------------------------------- //
 
+    def address = node.address
+
+    def signal(name: String, args: AnyRef*) = instance.signal(name, args: _*)
+
+    // ----------------------------------------------------------------------- //
+
     @LuaCallback("start")
-    def start(message: Message): Array[Object] =
+    def start(context: Context, args: Arguments): Array[Object] =
       Array(Boolean.box(instance.start()))
 
     @LuaCallback("stop")
-    def stop(message: Message): Array[Object] =
+    def stop(context: Context, args: Arguments): Array[Object] =
       Array(Boolean.box(instance.stop()))
 
     @LuaCallback("isRunning")
-    def isRunning(message: Message): Array[Object] =
+    def isRunning(context: Context, args: Arguments): Array[Object] =
       Array(Boolean.box(instance.isRunning))
 
     // ----------------------------------------------------------------------- //
