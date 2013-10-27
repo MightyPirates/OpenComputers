@@ -2,9 +2,10 @@ local function onComponentAvailable(_, componentType)
   if (componentType == "screen" and component.isAvailable("gpu")) or
      (componentType == "gpu" and component.isAvailable("screen"))
   then
-    component.primary("gpu").bind(component.primary("screen").address)
+    local gpu = component.primary("gpu")
+    gpu.bind(component.primary("screen").address)
     local maxX, maxY = gpu.maxResolution()
-    component.primary("gpu").setResolution(maxX, maxY)
+    gpu.setResolution(maxX, maxY)
   end
 end
 

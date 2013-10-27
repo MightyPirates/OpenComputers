@@ -8,14 +8,14 @@ import net.minecraftforge.common.ForgeDirection
 class RedstoneCard extends ManagedComponent {
   val node = api.Network.createComponent(api.Network.createNode(this, "redstone", Visibility.Neighbors))
 
-  @LuaCallback("getInput")
+  @LuaCallback(value = "getInput", asynchronous = true)
   def getInput(message: Message): Array[Object] = {
     val side = message.checkInteger(1)
     node.network.sendToAddress(node, message.source.address,
       "redstone.input", ForgeDirection.getOrientation(side))
   }
 
-  @LuaCallback("getOutput")
+  @LuaCallback(value = "getOutput", asynchronous = true)
   def getOutput(message: Message): Array[Object] = {
     val side = message.checkInteger(1)
     node.network.sendToAddress(node, message.source.address,

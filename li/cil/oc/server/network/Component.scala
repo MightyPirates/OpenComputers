@@ -63,11 +63,13 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
   override def receive(message: Message) = {
     if (message.name == "component.methods")
       if (canBeSeenBy(message.source))
-        Array(Array(luaCallbacks.keys.toSeq: _*))
+        Array(luaCallbacks.map {
+          case (method, (asynchronous, _)) => (method, asynchronous)
+        }.toArray)
       else null
     else if (message.name == "component.invoke") {
       luaCallbacks.get(message.data()(0).asInstanceOf[String]) match {
-        case Some(callback) => callback(host, message)
+        case Some((_, callback)) => callback(host, message)
         case _ => throw new NoSuchMethodException()
       }
     }
@@ -76,25 +78,25 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) {
+  override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (nbt.hasKey("visibility"))
       visibility_ = Visibility.values()(nbt.getInteger("visibility"))
   }
 
-  override def load(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setInteger("visibility", visibility_.ordinal())
   }
 }
 
 object Component {
-  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Object, api.network.Message) => Array[Object]]]
+  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Boolean, (Object, api.network.Message) => Array[Object])]]
 
   def callbacks(clazz: Class[_]) = cache.getOrElseUpdate(clazz, analyze(clazz))
 
   private def analyze(clazz: Class[_]) = {
-    val callbacks = mutable.Map.empty[String, (Object, api.network.Message) => Array[Object]]
+    val callbacks = mutable.Map.empty[String, (Boolean, (Object, api.network.Message) => Array[Object])]
     var c = clazz
     while (c != classOf[Object]) {
       val ms = c.getDeclaredMethods
@@ -112,7 +114,7 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value -> ((o, e) => try {
+            callbacks += a.value ->(a.asynchronous(), (o: Object, e: Message) => try {
               m.invoke(o, e).asInstanceOf[Array[Object]]
             } catch {
               case e: InvocationTargetException => throw e.getCause

@@ -1,7 +1,7 @@
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
-                 md="mkdir", cls="clear", more="less"}
+                 md="mkdir", cls="clear", more="less", rs="redstone"}
 
 local function findFile(name, path, ext)
   checkArg(1, name, "string")

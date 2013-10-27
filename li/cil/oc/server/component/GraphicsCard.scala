@@ -25,7 +25,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     }
   }
 
-  @LuaCallback("getResolution")
+  @LuaCallback(value = "getResolution", asynchronous = true)
   def getResolution(message: Message): Array[Object] = trySend("screen.resolution")
 
   @LuaCallback("setResolution")
@@ -39,7 +39,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
       Array(Unit, "unsupported resolution")
   }
 
-  @LuaCallback("maxResolution")
+  @LuaCallback(value = "maxResolution", asynchronous = true)
   def maxResolution(message: Message): Array[Object] =
     trySend("screen.resolution") match {
       case Array(w: Integer, h: Integer) =>
@@ -62,7 +62,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     val y = message.checkInteger(2)
     val w = message.checkInteger(3)
     val h = message.checkInteger(4)
-    val value = message.checkString(4)
+    val value = message.checkString(5)
     if (value.length == 1)
       trySend("screen.fill", x - 1, y - 1, w, h, value.charAt(0))
     else
@@ -96,13 +96,11 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
     if (nbt.hasKey("oc.gpu.screen"))
       screen = Some(nbt.getString("oc.gpu.screen"))
   }
 
   override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
     if (screen.isDefined)
       nbt.setString("oc.gpu.screen", screen.get)
   }

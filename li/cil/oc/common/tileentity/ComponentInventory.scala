@@ -50,6 +50,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
           case Some(driver) =>
             Option(driver.createEnvironment(stack)) match {
               case Some(environment) =>
+                environment.node.load(driver.nbt(stack))
                 environment.load(driver.nbt(stack))
                 Some(environment)
               case _ => None
@@ -66,7 +67,9 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
       case (stack, slot) => components(slot) match {
         case Some(environment) =>
           // We're guaranteed to have a driver for entries.
-          environment.save(Registry.driverFor(stack).get.nbt(stack))
+          val nbt = Registry.driverFor(stack).get.nbt(stack)
+          environment.save(nbt)
+          environment.node.save(nbt)
         case _ => // Nothing special to save.
       }
     }
@@ -82,6 +85,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
       case Some(driver) => Option(driver.createEnvironment(item)) match {
         case Some(environment) =>
           components(slot) = Some(environment)
+          environment.node.load(driver.nbt(item))
           environment.load(driver.nbt(item))
           node.network.connect(node, environment.node)
         case _ => // No environment (e.g. RAM).
@@ -100,7 +104,11 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
         // being installed into a different computer, even!)
         components(slot) = None
         environment.node.network.remove(environment.node)
-        Registry.driverFor(item).foreach(driver => environment.save(driver.nbt(item)))
+        Registry.driverFor(item).foreach(driver => {
+          val nbt = driver.nbt(item)
+          environment.save(nbt)
+          environment.node.save(nbt)
+        })
       case _ => // Nothing to do.
     }
   }

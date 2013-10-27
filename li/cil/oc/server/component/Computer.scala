@@ -329,8 +329,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             }.toArray)
         })
 
-        rom.foreach(_.load(computerNbt.getCompoundTag("rom")))
-        tmp.foreach(_.load(computerNbt.getCompoundTag("tmp")))
+        rom.foreach(rom => {
+          val romNbt = computerNbt.getCompoundTag("rom")
+          rom.node.load(romNbt)
+          rom.load(romNbt)
+        })
+        tmp.foreach(tmp => {
+          val tmpNbt = computerNbt.getCompoundTag("tmp")
+          tmp.node.load(tmpNbt)
+          tmp.load(tmpNbt)
+        })
         kernelMemory = computerNbt.getInteger("kernelMemory")
         timeStarted = computerNbt.getLong("timeStarted")
         cpuTime = computerNbt.getLong("cpuTime")
@@ -417,11 +425,17 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         computerNbt.setTag("signals", signalsNbt)
 
         val romNbt = new NBTTagCompound()
-        rom.foreach(_.save(romNbt))
+        rom.foreach(rom => {
+          rom.save(romNbt)
+          rom.node.save(romNbt)
+        })
         computerNbt.setCompoundTag("rom", romNbt)
 
         val tmpNbt = new NBTTagCompound()
-        tmp.foreach(_.save(tmpNbt))
+        tmp.foreach(tmp => {
+          tmp.save(tmpNbt)
+          tmp.node.save(tmpNbt)
+        })
         computerNbt.setCompoundTag("tmp", tmpNbt)
 
         computerNbt.setInteger("kernelMemory", kernelMemory)
@@ -626,11 +640,16 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       lua.pushScalaFunction(lua => {
         owner.node.network.sendToAddress(owner.node, lua.checkString(1), "component.methods") match {
-          case Array(names: Array[String]) =>
+          case Array(methods: Array[_]) =>
             lua.newTable()
-            for ((name, index) <- names.zipWithIndex) {
-              lua.pushString(name)
-              lua.rawSet(-2, index + 1)
+            for ((method, index) <- methods.zipWithIndex) {
+              method match {
+                case (name: String, asynchronous: Boolean) =>
+                  lua.pushString(name)
+                  lua.pushBoolean(asynchronous)
+                  lua.rawSet(-3)
+                case _ =>
+              }
             }
             1
           case _ =>
@@ -704,41 +723,52 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
               owner.node.network.sendToAddress(owner.node, address, "component.invoke", Seq(method) ++ args: _*)
             case _ => throw new Exception("no such component")
           }) match {
-            case Array(results@_*) =>
+            case results: Array[_] =>
+              lua.pushBoolean(true)
               results.foreach(pushResult(lua, _))
-              results.length
+              1 + results.length
             case _ =>
-              0
+              lua.pushBoolean(true)
+              1
           }
         } catch {
-          case e: Throwable if e.getMessage != null && !e.getMessage.isEmpty =>
-            lua.pushNil()
-            lua.pushString(e.getMessage)
-            2
-          case _: FileNotFoundException =>
-            lua.pushNil()
-            lua.pushString("file not found")
-            2
-          case _: SecurityException =>
-            lua.pushNil()
-            lua.pushString("access denied")
-            2
-          case _: IOException =>
-            lua.pushNil()
-            lua.pushString("i/o error")
-            2
           case _: NoSuchMethodException =>
-            lua.pushNil()
+            lua.pushBoolean(false)
             lua.pushString("no such method")
             2
+          case e: IllegalArgumentException if e.getMessage != null =>
+            lua.pushBoolean(false)
+            lua.pushString(e.getMessage)
+            2
           case _: IllegalArgumentException =>
-            lua.pushNil()
+            lua.pushBoolean(false)
             lua.pushString("bad argument")
             2
+          case e: Throwable if e.getMessage != null =>
+            lua.pushBoolean(true)
+            lua.pushNil()
+            lua.pushString(e.getMessage)
+            3
+          case _: FileNotFoundException =>
+            lua.pushBoolean(true)
+            lua.pushNil()
+            lua.pushString("file not found")
+            3
+          case _: SecurityException =>
+            lua.pushBoolean(true)
+            lua.pushNil()
+            lua.pushString("access denied")
+            3
+          case _: IOException =>
+            lua.pushBoolean(true)
+            lua.pushNil()
+            lua.pushString("i/o error")
+            3
           case _: Throwable =>
+            lua.pushBoolean(true)
             lua.pushNil()
             lua.pushString("unknown error")
-            2
+            3
         }
       })
       lua.setGlobal("componentInvoke")
@@ -771,23 +801,13 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       // timeouts.
       lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
-      // Run to the first yield in kernel, to get a good idea of how much
-      // memory all the basic functionality we provide needs.
-      val results = lua.resume(1, 0)
-      if (lua.status(1) != LuaState.YIELD)
-        if (!lua.toBoolean(-2)) throw new Exception(lua.toString(-1))
-        else throw new Exception("kernel return unexpectedly")
-      lua.pop(results)
-
-      // Run the garbage collector to get rid of stuff left behind after the
-      // initialization phase to get a good estimate of the base memory usage
-      // the kernel has. We remember that size to grant user-space programs a
-      // fixed base amount of memory, regardless of the memory need of the
-      // underlying system (which may change across releases). Add some buffer
-      // to avoid the init script eating up all the rest immediately.
-      lua.gc(LuaState.GcAction.COLLECT, 0)
-      kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory
-      recomputeMemory()
+      //      // Run to the first yield in kernel, to get a good idea of how much
+      //      // memory all the basic functionality we provide needs.
+      //      val results = lua.resume(1, 0)
+      //      if (lua.status(1) != LuaState.YIELD)
+      //        if (!lua.toBoolean(-2)) throw new Exception(lua.toString(-1))
+      //        else throw new Exception("kernel return unexpectedly")
+      //      lua.pop(results)
 
       // Clear any left-over signals from a previous run.
       signals.clear()
@@ -862,7 +882,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     try {
       // Help out the GC a little. The emergency GC has a few limitations that
       // will make it free less memory than doing a full step manually.
-      lua.gc(LuaState.GcAction.COLLECT, 0)
+      //      lua.gc(LuaState.GcAction.COLLECT, 0)
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
       val results = if (callReturn) {
@@ -886,6 +906,19 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }
       }
       cpuTime += System.nanoTime() - cpuStart
+
+      // Check if this was the first run, meaning the one used for initializing
+      // the kernel (loading the libs, establishing a memory baseline).
+      if (kernelMemory == 0) {
+        // Run the garbage collector to get rid of stuff left behind after the
+        // initialization phase to get a good estimate of the base memory usage
+        // the kernel has. We remember that size to grant user-space programs a
+        // fixed base amount of memory, regardless of the memory need of the
+        // underlying system (which may change across releases).
+        lua.gc(LuaState.GcAction.COLLECT, 0)
+        kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory
+        recomputeMemory()
+      }
 
       // Check if the kernel is still alive.
       stateMonitor.synchronized(if (lua.status(1) == LuaState.YIELD) {

@@ -1,11 +1,19 @@
+local args, options = shell.parse(...)
 local history = {}
+
+if options.v then
+  print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
+end
+
 while true do
-  if not term.isAvailable() then -- don't clear when opened by another shell
+  if not term.isAvailable() then -- don't clear unless we lost the term
     while not term.isAvailable() do
       os.sleep()
     end
     term.clear()
-    print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
+    if options.v then
+      print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
+    end
   end
   while term.isAvailable() do
     term.write("# ")

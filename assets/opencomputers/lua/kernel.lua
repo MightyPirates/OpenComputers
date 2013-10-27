@@ -236,36 +236,107 @@ end
 
 -------------------------------------------------------------------------------
 
+local component = {}
+
+component.list = componentList
+component.type = componentType
+
+-- We use a custom "protocol" where we return a boolean first, indicating
+-- whether we had an error that should be re-thrown.
+function component.invokeAsync(...)
+  local result = table.pack(componentInvoke(...))
+  if not result[1] then
+    -- We caught an error but performed some custom tostring logic.
+    error(result[2], 2)
+  else
+    -- We should return the results as they are.
+    return table.unpack(result, 2, result.n)
+  end
+end
+
+-------------------------------------------------------------------------------
+
+--[[ Wrap message sending callbacks to synchronize them to the server thread.
+
+     We generate a wrapper that will yield a closure that will perform the
+     actual call. The host will switch to messaging state and perform the
+     actual in the server thread (by running the yielded function), meaning
+     we don't have to worry about mutlithreading interaction with other
+     components of Minecraft.
+--]]
+-- OK, I admit this is a little crazy... here goes:
+local function synchronized(f)
+  -- This is the function that replaces the original API function. It is
+  -- called from userland when it wants something from a driver.
+  return function(...)
+    local args = table.pack(...)
+    -- What it does, is that it yields a function. That function is called
+    -- from the server thread, to ensure synchronicity with the world.
+    local result = coroutine.yield(function()
+      -- It runs the actual API function protected mode. We return this as
+      -- a table because a) we need it like this on the outside anyway and
+      -- b) only the first item in the global stack is persisted.
+      local result = table.pack(pcall(f, table.unpack(args, 1, args.n)))
+      if not result[1] then
+        -- We apply tostring to error messages immediately because JNLua
+        -- pushes the original Java exceptions which cannot be persisted.
+        result[2] = tostring(result[2])
+      end
+      return result
+    end)
+    -- The next time our executor runs it pushes that result and calls
+    -- resume, so we get it via the yield. Thus: result = pcall(f, ...)
+    if result[1] then
+      -- API call was successful, return the results.
+      return table.unpack(result, 2, result.n)
+    else
+      -- API call failed, re-throw the error.
+      error(result[2], 2)
+    end
+  end
+end
+
+component.methods = synchronized(componentMethods)
+component.invoke = synchronized(component.invokeAsync)
+
+-------------------------------------------------------------------------------
+
 sandbox.component = {}
 
 function sandbox.component.list(filter)
   checkArg(1, filter, "string", "nil")
-  return pairs(componentList(filter))
+  return pairs(component.list(filter))
 end
 
 function sandbox.component.type(address)
   checkArg(1, address, "string")
-  return componentType(address)
+  return component.type(address)
 end
 
 function sandbox.component.invoke(address, method, ...)
   checkArg(1, address, "string")
   checkArg(2, method, "string")
-  return componentInvokeSynchronized(address, method, ...)
+  return component.invoke(address, method, ...)
 end
 
 function sandbox.component.proxy(address)
   checkArg(1, address, "string")
-  local type, reason = componentType(address)
+  local type, reason = component.type(address)
   if not type then
     return nil, reason
   end
   local proxy = {address = address, type = type}
-  local methods = componentMethodsSynchronized(address)
+  local methods = component.methods(address)
   if methods then
-    for _, method in ipairs(methods) do
+    for method, asynchronous in pairs(methods) do
+      local invoke
+      if asynchronous then
+        invoke = component.invokeAsync
+      else
+        invoke = component.invoke
+      end
       proxy[method] = function(...)
-        return componentInvokeSynchronized(address, method, ...)
+        return invoke(address, method, ...)
       end
     end
   end
@@ -275,40 +346,14 @@ end
 -------------------------------------------------------------------------------
 
 local function main()
+  local args
   local function bootstrap()
-    -- Prepare low-level print logic to give boot progress feedback.
-    -- local gpus = gpus()
-    -- for i = 1, #gpus do
-    --   local gpu = gpus[i]
-    --   gpus[i] = nil
-    --   local w, h = sandbox.driver.gpu.resolution(gpu)
-    --   if w then
-    --     if sandbox.driver.gpu.fill(gpu, 1, 1, w, h, " ") then
-    --       gpus[i] = {gpu, w, h}
-    --     end
-    --   end
-    -- end
-    -- local l = 0
-    -- local function print(s)
-    --   l = l + 1
-    --   for _, gpu in pairs(gpus) do
-    --     if l > gpu[3] then
-    --       sandbox.driver.gpu.copy(gpu[1], 1, 1, gpu[2], gpu[3], 0, -1)
-    --       sandbox.driver.gpu.fill(gpu[1], 1, gpu[3], gpu[2], 1, " ")
-    --     end
-    --     sandbox.driver.gpu.set(gpu[1], 1, math.min(l, gpu[3]), s)
-    --   end
-    -- end
-    print("Booting...")
-
-    print("Mounting ROM and temporary file system.")
     local function rom(method, ...)
-      return componentInvoke(os.romAddress(), method, ...)
+      return component.invokeAsync(os.romAddress(), method, ...)
     end
 
     -- Custom dofile implementation since we don't have the baselib yet.
     local function dofile(file)
-      print("  " .. file)
       local handle, reason = rom("open", file)
       if not handle then
         error(reason)
@@ -337,7 +382,6 @@ local function main()
       end
     end
 
-    print("Loading libraries.")
     local init = {}
     for _, api in ipairs(rom("list", "lib")) do
       local path = "lib/" .. api
@@ -349,32 +393,29 @@ local function main()
       end
     end
 
-    print("Initializing libraries.")
     for _, install in ipairs(init) do
       install()
     end
     init = nil
 
-    print("Starting shell.")
+    -- Yield once to allow initializing up to here to get a memory baseline.
+    args = table.pack(coroutine.yield(0))
+
     return coroutine.create(load([[
       fs.mount(os.romAddress(), "/")
       fs.mount(os.tmpAddress(), "/tmp")
       for c, t in component.list() do
         event.fire("component_added", c, t)
       end
+      term.clear()
       while true do
-        local result, reason = os.execute("/bin/sh")
+        local result, reason = os.execute("/bin/sh -v")
         if not result then
           error(reason)
         end
       end]], "=init", "t", sandbox))
   end
   local co = bootstrap()
-
-  -- Yield once to allow initializing up to here to get a memory baseline.
-  assert(coroutine.yield() == "dummy")
-
-  local args = {n=0}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
     if not debug.gethook(co) then

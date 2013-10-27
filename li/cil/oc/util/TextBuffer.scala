@@ -27,18 +27,21 @@ class TextBuffer(var width: Int, var height: Int) {
    * buffer valid as possible if the size decreases, i.e. only data outside the
    * new buffer size will be truncated, all data still inside will be copied.
    */
-  def size_=(value: (Int, Int)): Boolean = if (size != value) {
-    val (w, h) = value
-    val newBuffer = Array.fill(h, w)(' ')
-    (0 until (h min height)) foreach {
-      y => Array.copy(buffer(y), 0, newBuffer(y), 0, w min width)
+  def size_=(value: (Int, Int)): Boolean = {
+    val (iw, ih) = value
+    val (w, h) = (iw max 1, ih max 1)
+    if (width != w || height != h) {
+      val newBuffer = Array.fill(h, w)(' ')
+      (0 until (h min height)) foreach {
+        y => Array.copy(buffer(y), 0, newBuffer(y), 0, w min width)
+      }
+      buffer = newBuffer
+      width = w
+      height = h
+      true
     }
-    buffer = newBuffer
-    width = w
-    height = h
-    true
+    else false
   }
-  else false
 
   /**
    * String based fill starting at a specified location.
