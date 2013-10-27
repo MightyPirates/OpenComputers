@@ -1,10 +1,9 @@
 package li.cil.oc.server.network
 
-import java.util.logging.Level
+import li.cil.oc.api
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.api.network.environment.Environment
 import li.cil.oc.server.network
-import li.cil.oc.{api, OpenComputers}
 import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.{IBlockAccess, World}
@@ -292,12 +291,13 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
 
   private def send(message: Network.Message, targets: Iterable[api.network.Node]) = {
+    var error: Option[Throwable] = None
     def protectedSend(target: api.network.Node) = try {
       //println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address.get + ":" + message.source.name + " -> " + target.address.get + ":" + target.name + ")")
       target.receive(message)
     } catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Error in message handler", e)
+        if (error.isEmpty) error = Some(e)
         null
     }
 
@@ -313,7 +313,10 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
             case null => // Ignore.
             case r => result = r
           }
-        result
+        error match {
+          case Some(e) => throw e
+          case _ => result
+        }
     }
   }
 }
@@ -477,7 +480,7 @@ object Network extends api.detail.NetworkAPI {
 
     private def typeError(index: Int, have: AnyRef, want: String) =
       new IllegalArgumentException(
-        "bad argument #%d (%s expected, got %have)".
+        "bad argument #%d (%s expected, got %s)".
           format(index + 1, want, typeName(have)))
 
     private def typeName(value: AnyRef): String = value match {

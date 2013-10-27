@@ -2,6 +2,7 @@ package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
+import java.lang.reflect.InvocationTargetException
 import li.cil.oc.api
 import li.cil.oc.api.network.environment.{Environment, LuaCallback}
 import li.cil.oc.api.network.{Message, Visibility}
@@ -60,18 +61,16 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
   // ----------------------------------------------------------------------- //
 
   override def receive(message: Message) = {
-    if (message.name == "computer.started" && canBeSeenBy(message.source))
-      network.sendToAddress(this, message.source.address, "computer.signal", "component_added")
-
     if (message.name == "component.methods")
       if (canBeSeenBy(message.source))
-        Array(luaCallbacks.keys.toSeq: _*)
+        Array(Array(luaCallbacks.keys.toSeq: _*))
       else null
-    else if (message.name == "component.call")
-      luaCallbacks.get(message.name) match {
+    else if (message.name == "component.invoke") {
+      luaCallbacks.get(message.data()(0).asInstanceOf[String]) match {
         case Some(callback) => callback(host, message)
         case _ => throw new NoSuchMethodException()
       }
+    }
     else super.receive(message)
   }
 
@@ -113,7 +112,11 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value -> ((o, e) => m.invoke(o, e).asInstanceOf[Array[Object]])
+            callbacks += a.value -> ((o, e) => try {
+              m.invoke(o, e).asInstanceOf[Array[Object]]
+            } catch {
+              case e: InvocationTargetException => throw e.getCause
+            })
           }
         }
       )

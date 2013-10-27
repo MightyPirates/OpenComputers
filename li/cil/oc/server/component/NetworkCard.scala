@@ -17,40 +17,40 @@ class NetworkCard extends ManagedComponent {
 
   @LuaCallback("open")
   def open(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(0))
+    val port = checkPort(message.checkInteger(1))
     result(openPorts.add(port))
   }
 
   @LuaCallback("close")
   def close(message: Message): Array[Object] = {
-    if (message.data.length == 0) {
+    if (message.data.length < 2) {
       openPorts.clear()
       result(true)
     }
     else {
-      val port = checkPort(message.checkInteger(0))
+      val port = checkPort(message.checkInteger(1))
       result(openPorts.remove(port))
     }
   }
 
   @LuaCallback("isOpen")
   def isOpen(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(0))
+    val port = checkPort(message.checkInteger(1))
     result(openPorts.contains(port))
   }
 
   @LuaCallback("send")
   def send(message: Message): Array[Object] = {
-    val address = message.checkString(0)
-    val port = checkPort(message.checkInteger(1))
-    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ message.data.drop(2): _*)
+    val address = message.checkString(1)
+    val port = checkPort(message.checkInteger(2))
+    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ message.data.drop(3): _*)
     result(true)
   }
 
   @LuaCallback("broadcast")
   def broadcast(message: Message): Array[Object] = {
-    val port = checkPort(message.checkInteger(0))
-    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ message.data.drop(1): _*)
+    val port = checkPort(message.checkInteger(1))
+    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ message.data.drop(2): _*)
     result(true)
   }
 

@@ -1,29 +1,18 @@
-local components = {}
 local removing = {}
 local primaries = {}
 
 -------------------------------------------------------------------------------
 
-component = {}
-
 function component.isAvailable(componentType)
   return primaries[componentType] ~= nil
-end
-
-function component.list(filter)
-  local address, ctype = nil
-  return function()
-    repeat
-      address, ctype = next(components, address)
-    until not address or type(filter) ~= "string" or ctype:match(filter)
-    return address, ctype
-  end
 end
 
 function component.isPrimary(address)
   local componentType = component.type(address)
   if componentType then
-    return primaries[componentType] == address
+    if component.isAvailable(componentType) then
+      return primaries[componentType].address == address
+    end
   end
   return false
 end
@@ -44,10 +33,10 @@ function component.primary(componentType, ...)
       assert(address, "no such component")
     end
     local wasAvailable = component.isAvailable(componentType)
-    primaries[componentType] = address
-    if not wasAvailable and component.isAvailable(componentType) then
+    primaries[componentType] = component.proxy(address)
+    if component.isAvailable(componentType) then
       event.fire("component_available", componentType)
-    elseif wasAvailable and not component.isAvailable(componentType) then
+    elseif wasAvailable then
       event.fire("component_unavailable", componentType)
     end
   else
@@ -57,41 +46,22 @@ function component.primary(componentType, ...)
   end
 end
 
-function component.type(address)
-  return components[address]
-end
-
 -------------------------------------------------------------------------------
 
-local function onComponentAdded(_, address)
-  if components[address] then
-    return false -- cancel this event, it is invalid
-  end
-  local componentType = driver.componentType(address)
-  if not componentType then
-    return -- component was removed again before signal could be processed
-  end
-  components[address] = componentType
+local function onComponentAdded(_, address, componentType)
   if not component.isAvailable(componentType) then
     component.primary(componentType, address)
   end
 end
 
-local function onComponentRemoved(_, address)
-  if removing[address] then return end
-  if not components[address] then return false end
-  local componentType = component.type(address)
-  components[address] = nil
-  -- Redispatch with component type, since we already removed.
-  removing[address] = true -- don't cancel this one!
-  event.fire("component_removed", address, componentType)
-  removing[address] = false
-  if primaries[componentType] == address then
+local function onComponentRemoved(_, address, componentType)
+  if component.isAvailable(componentType) and
+    component.primary(componentType).address == address
+  then
     component.primary(componentType, nil)
     address = component.list(componentType)()
     component.primary(componentType, address)
   end
-  return false -- cancel this one
 end
 
 return function()

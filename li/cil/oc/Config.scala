@@ -6,7 +6,6 @@ object Config {
   val resourceDomain = "opencomputers"
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
-  val driverPath = "/assets/" + resourceDomain + "/lua/drivers/"
 
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
 

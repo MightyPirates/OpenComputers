@@ -45,13 +45,11 @@ function event.fire(name, ...)
     -- Copy the listener lists because they may be changed by callbacks.
     local listeners = copy(listenersFor(name, false), listenersFor(name, true))
     for _, callback in ipairs(listeners) do
-      local result, message = pcall(callback, name, ...)
+      local result, message = xpcall(callback, debug.traceback, name, ...)
       if not result then
         if not (event.error and pcall(event.error, message)) then
           os.shutdown()
         end
-      elseif result and message == false then
-        break
       end
     end
   end

@@ -104,7 +104,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(metadata) match {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case environment: Environment =>
+          case environment: Environment if environment.node != null && environment.node.network != null =>
             environment.node.network.remove(environment.node)
           case _ => // Nothing special to do.
         }
@@ -293,7 +293,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(world, x, y, z) match {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case _: Node => Network.joinOrCreateNetwork(world, x, y, z)
+          case _: Environment => Network.joinOrCreateNetwork(world, x, y, z)
           case _ => // Nothing special to do.
         }
         subBlock.onBlockAdded(world, x, y, z)

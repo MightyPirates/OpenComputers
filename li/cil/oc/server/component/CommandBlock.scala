@@ -16,7 +16,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
 
   @LuaCallback("setValue")
   def setValue(message: Message): Array[Object] = {
-    val value = message.checkString(0)
+    val value = message.checkString(1)
     entity.setCommand(value)
     entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
     result(true)

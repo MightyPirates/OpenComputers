@@ -22,7 +22,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("setLabel")
   def setLabel(message: Message): Array[Object] = {
-    label = message.checkString(0)
+    label = message.checkString(1)
     if (label.length > 16)
       label = label.substring(0, 16)
     result(true)
@@ -43,24 +43,24 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("exists")
   def exists(message: Message): Array[Object] =
-    result(fileSystem.exists(clean(message.checkString(0))))
+    result(fileSystem.exists(clean(message.checkString(1))))
 
   @LuaCallback("size")
   def size(message: Message): Array[Object] =
-    result(fileSystem.size(clean(message.checkString(0))))
+    result(fileSystem.size(clean(message.checkString(1))))
 
   @LuaCallback("isDirectory")
   def isDirectory(message: Message): Array[Object] =
-    result(fileSystem.isDirectory(clean(message.checkString(0))))
+    result(fileSystem.isDirectory(clean(message.checkString(1))))
 
   @LuaCallback("lastModified")
   def lastModified(message: Message): Array[Object] =
-    result(fileSystem.lastModified(clean(message.checkString(0))))
+    result(fileSystem.lastModified(clean(message.checkString(1))))
 
   @LuaCallback("list")
   def list(message: Message): Array[Object] =
-    Option(fileSystem.list(clean(message.checkString(0)))) match {
-      case Some(list) => list.map(_.asInstanceOf[AnyRef])
+    Option(fileSystem.list(clean(message.checkString(1)))) match {
+      case Some(list) => Array(list)
       case _ => null
     }
 
@@ -68,23 +68,23 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   def makeDirectory(message: Message): Array[Object] = {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
-    result(recurse(clean(message.checkString(0))))
+    result(recurse(clean(message.checkString(1))))
   }
 
   @LuaCallback("remove")
   def remove(message: Message): Array[Object] = {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
-    result(recurse(clean(message.checkString(0))))
+    result(recurse(clean(message.checkString(1))))
   }
 
   @LuaCallback("rename")
   def rename(message: Message): Array[Object] =
-    result(fileSystem.rename(clean(message.checkString(0)), clean(message.checkString(1))))
+    result(fileSystem.rename(clean(message.checkString(1)), clean(message.checkString(2))))
 
   @LuaCallback("close")
   def close(message: Message): Array[Object] = {
-    val handle = message.checkInteger(0)
+    val handle = message.checkInteger(1)
     Option(fileSystem.file(handle)) match {
       case Some(file) =>
         owners.get(message.source.address) match {
@@ -101,8 +101,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
     if (owners.get(message.source.address).fold(false)(_.size >= Config.maxHandles))
       result(Unit, "too many open handles")
     else {
-      val path = message.checkString(0)
-      val mode = message.checkString(1)
+      val path = message.checkString(1)
+      val mode = if (message.data.length > 2) message.checkString(2) else "r"
       val handle = fileSystem.open(clean(path), Mode.parse(mode))
       if (handle > 0) {
         owners.getOrElseUpdate(message.source.address, mutable.Set.empty[Int]) += handle
@@ -112,8 +112,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("read")
   def read(message: Message): Array[Object] = {
-    val handle = message.checkInteger(0)
-    val n = message.checkInteger(1)
+    val handle = message.checkInteger(1)
+    val n = message.checkInteger(2)
     Option(fileSystem.file(handle)) match {
       case None => throw new IOException("bad file descriptor")
       case Some(file) =>
@@ -139,9 +139,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("seek")
   def seek(message: Message): Array[Object] = {
-    val handle = message.checkInteger(0)
-    val whence = message.checkString(1)
-    val offset = message.checkInteger(2)
+    val handle = message.checkInteger(1)
+    val whence = message.checkString(2)
+    val offset = message.checkInteger(3)
     Option(fileSystem.file(handle)) match {
       case Some(file) =>
         whence match {
@@ -157,8 +157,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("write")
   def write(message: Message): Array[Object] = {
-    val handle = message.checkInteger(0)
-    val value = message.checkByteArray(1)
+    val handle = message.checkInteger(1)
+    val value = message.checkByteArray(2)
     Option(fileSystem.file(handle)) match {
       case Some(file) => file.write(value); result(true)
       case _ => throw new IOException("bad file descriptor")

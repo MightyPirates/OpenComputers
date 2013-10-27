@@ -87,7 +87,7 @@ local function wrap(f)
     -- resume, so we get it via the yield. Thus: result = pcall(f, ...)
     if result[1] then
       -- API call was successful, return the results.
-      return select(2, table.unpack(result, 1, result.n))
+      return table.unpack(result, 2, result.n)
     else
       -- API call failed, re-throw the error.
       error(result[2], 2)
@@ -95,5 +95,5 @@ local function wrap(f)
   end
 end
 
-sendToAddress = wrap(sendToAddress)
-nodeName = wrap(nodeName)
+componentMethodsSynchronized = wrap(componentMethods)
+componentInvokeSynchronized = wrap(componentInvoke)

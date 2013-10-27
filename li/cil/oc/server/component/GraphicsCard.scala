@@ -15,7 +15,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   @LuaCallback("bind")
   def bind(message: Message): Array[Object] = {
-    val address = message.checkString(0)
+    val address = message.checkString(1)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
       case value if value.name() == "screen" =>
@@ -30,8 +30,8 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   @LuaCallback("setResolution")
   def setResolution(message: Message): Array[Object] = {
-    val w = message.checkInteger(0)
-    val h = message.checkInteger(1)
+    val w = message.checkInteger(1)
+    val h = message.checkInteger(2)
     val (mw, mh) = maxResolution
     if (w <= mw && h <= mh)
       trySend("screen.resolution=", w, h)
@@ -50,18 +50,18 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   @LuaCallback("set")
   def set(message: Message): Array[Object] = {
-    val x = message.checkInteger(0)
-    val y = message.checkInteger(1)
-    val value = message.checkString(2)
+    val x = message.checkInteger(1)
+    val y = message.checkInteger(2)
+    val value = message.checkString(3)
     trySend("screen.set", x - 1, y - 1, value)
   }
 
   @LuaCallback("fill")
   def fill(message: Message): Array[Object] = {
-    val x = message.checkInteger(0)
-    val y = message.checkInteger(1)
-    val w = message.checkInteger(2)
-    val h = message.checkInteger(3)
+    val x = message.checkInteger(1)
+    val y = message.checkInteger(2)
+    val w = message.checkInteger(3)
+    val h = message.checkInteger(4)
     val value = message.checkString(4)
     if (value.length == 1)
       trySend("screen.fill", x - 1, y - 1, w, h, value.charAt(0))
@@ -71,12 +71,12 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   @LuaCallback("copy")
   def copy(message: Message): Array[Object] = {
-    val x = message.checkInteger(0)
-    val y = message.checkInteger(1)
-    val w = message.checkInteger(2)
-    val h = message.checkInteger(3)
-    val tx = message.checkInteger(4)
-    val ty = message.checkInteger(5)
+    val x = message.checkInteger(1)
+    val y = message.checkInteger(2)
+    val w = message.checkInteger(3)
+    val h = message.checkInteger(4)
+    val tx = message.checkInteger(5)
+    val ty = message.checkInteger(6)
     trySend("screen.copy", x - 1, y - 1, w, h, tx, ty)
   }
 

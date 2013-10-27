@@ -1,6 +1,8 @@
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
 
+local function gpu() return component.primary("gpu") end
+
 -------------------------------------------------------------------------------
 
 term = {}
@@ -11,23 +13,23 @@ end
 
 function term.clear()
   if term.isAvailable() then
-    local w, h = gpu.resolution()
-    gpu.fill(1, 1, w, h, " ")
+    local w, h = gpu().getResolution()
+    gpu().fill(1, 1, w, h, " ")
   end
   cursorX, cursorY = 1, 1
 end
 
 function term.clearLine()
   if term.isAvailable() then
-    local w = gpu.resolution()
-    gpu.fill(1, cursorY, w, 1, " ")
+    local w = gpu().getResolution()
+    gpu().fill(1, cursorY, w, 1, " ")
   end
   cursorX = 1
 end
 
 function term.cursor(col, row)
   if col and row then
-    local w, h = gpu.resolution()
+    local w, h = gpu().getResolution()
     cursorX = math.min(math.max(col, 1), w)
     cursorY = math.min(math.max(row, 1), h)
   end
@@ -39,7 +41,7 @@ function term.cursorBlink(enabled)
     cursorBlink.state = not cursorBlink.state
     if term.isAvailable() then
       local char = cursorBlink.state and cursorBlink.solid or cursorBlink.alt
-      gpu.set(cursorX, cursorY, char)
+      gpu().set(cursorX, cursorY, char)
     end
   end
   local function start(alt)
@@ -93,24 +95,24 @@ function term.read(history)
   local function remove()
     local x = start - 1 + cursor - scroll
     local _, y = term.cursor()
-    local w = gpu.resolution()
-    gpu.copy(x + 1, y, w - x, 1, -1, 0)
+    local w = gpu().getResolution()
+    gpu().copy(x + 1, y, w - x, 1, -1, 0)
     local cursor = cursor + (w - x)
     local char = history[current]:usub(cursor, cursor)
     if char:ulen() == 0 then
       char = " "
     end
-    gpu.set(w, y, char)
+    gpu().set(w, y, char)
   end
   local function render()
     local _, y = term.cursor()
-    local w = gpu.resolution()
+    local w = gpu().getResolution()
     local str = history[current]:usub(1 + scroll, 1 + scroll + w - (start - 1))
     str = str .. string.rep(" ", (w - (start - 1)) - str:ulen())
-    gpu.set(start, y, str)
+    gpu().set(start, y, str)
   end
   local function scrollEnd()
-    local w = gpu.resolution()
+    local w = gpu().getResolution()
     cursor = history[current]:ulen() + 1
     scroll = math.max(0, cursor - (w - (start - 1)))
     render()
@@ -118,36 +120,36 @@ function term.read(history)
   local function scrollLeft()
     scroll = scroll - 1
     local _, y = term.cursor()
-    local w = gpu.resolution()
-    gpu.copy(start, y, w - start - 1, 1, 1, 0)
+    local w = gpu().getResolution()
+    gpu().copy(start, y, w - start - 1, 1, 1, 0)
     local cursor = w - (start - 1) + scroll
     local char = history[current]:usub(cursor, cursor)
     if char:ulen() == 0 then
       char = " "
     end
-    gpu.set(1, y, char)
+    gpu().set(1, y, char)
   end
   local function scrollRight()
     scroll = scroll + 1
     local _, y = term.cursor()
-    local w = gpu.resolution()
-    gpu.copy(start + 1, y, w - start, 1, -1, 0)
+    local w = gpu().getResolution()
+    gpu().copy(start + 1, y, w - start, 1, -1, 0)
     local cursor = w - (start - 1) + scroll
     local char = history[current]:usub(cursor, cursor)
     if char:ulen() == 0 then
       char = " "
     end
-    gpu.set(w, y, char)
+    gpu().set(w, y, char)
   end
   local function update()
     local _, y = term.cursor()
-    local w = gpu.resolution()
+    local w = gpu().getResolution()
     local cursor = cursor - 1
     local x = start - 1 + cursor - scroll
     if cursor < history[current]:ulen() then
-      gpu.copy(x, y, w - x, 1, 1, 0)
+      gpu().copy(x, y, w - x, 1, 1, 0)
     end
-    gpu.set(x, y, history[current]:usub(cursor, cursor))
+    gpu().set(x, y, history[current]:usub(cursor, cursor))
   end
   local function copyIfNecessary()
     if current ~= #history then
@@ -166,7 +168,7 @@ function term.read(history)
   end
   local function handleKeyPress(char, code)
     if not term.isAvailable() then return end
-    local w, h = gpu.resolution()
+    local w, h = gpu().getResolution()
     local cancel, blink = false, false
     term.cursorBlink(false)
     if code == keyboard.keys.back then
@@ -334,15 +336,15 @@ function term.write(value, wrap)
     return
   end
   value = value:gsub("\t", "  ")
-  local w, h = gpu.resolution()
+  local w, h = gpu().getResolution()
   local function checkCursor()
     if cursorX > w then
       cursorX = 1
       cursorY = cursorY + 1
     end
     if cursorY > h then
-      gpu.copy(1, 1, w, h, 0, -1)
-      gpu.fill(1, h, w, 1, " ")
+      gpu().copy(1, 1, w, h, 0, -1)
+      gpu().fill(1, h, w, 1, " ")
       cursorY = h
     end
   end
@@ -350,12 +352,12 @@ function term.write(value, wrap)
     while wrap and line:ulen() > w - cursorX + 1 do
       local partial = line:usub(1, w - cursorX + 1)
       line = line:usub(partial:ulen() + 1)
-      gpu.set(cursorX, cursorY, partial)
+      gpu().set(cursorX, cursorY, partial)
       cursorX = cursorX + partial:ulen()
       checkCursor()
     end
     if line:ulen() > 0 then
-      gpu.set(cursorX, cursorY, line)
+      gpu().set(cursorX, cursorY, line)
       cursorX = cursorX + line:ulen()
     end
     if nl:ulen() == 1 then

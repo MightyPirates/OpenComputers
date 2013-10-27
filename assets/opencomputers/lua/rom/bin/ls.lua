@@ -9,7 +9,7 @@ for i = 1, #dirs do
     if i > 1 then print() end
     print("/" .. path .. ":")
   end
-  local list, reason = fs.dir(path)
+  local list, reason = fs.list(path)
   if not list then
     print(reason)
   else

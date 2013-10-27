@@ -21,19 +21,19 @@ os.execute = function(command)
   return shell.execute(head, table.unpack(args))
 end
 
-os.remove = driver.filesystem.remove
+os.remove = fs.remove
 
-os.rename = driver.filesystem.rename
+os.rename = fs.rename
 
 function os.sleep(timeout)
   event.wait(nil, timeout)
 end
 
 function os.tmpname()
-  if driver.filesystem.exists("tmp") then
+  if fs.exists("tmp") then
     for i = 1, 10 do
       local name = "tmp/" .. math.random(1, 0x7FFFFFFF)
-      if not driver.filesystem.exists(name) then
+      if not fs.exists(name) then
         return name
       end
     end

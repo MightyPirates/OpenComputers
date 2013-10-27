@@ -236,92 +236,101 @@ end
 
 -------------------------------------------------------------------------------
 
-sandbox.driver = {}
+sandbox.component = {}
 
-function sandbox.driver.componentType(address)
-  checkArg(1, address, "string")
-  return nodeName(address)
+function sandbox.component.list(filter)
+  checkArg(1, filter, "string", "nil")
+  return pairs(componentList(filter))
 end
 
-do
-  local function send(address, name, ...)
-    checkArg(1, address, "string")
-    checkArg(2, name, "string")
-    return sendToAddress(address, name, ...)
+function sandbox.component.type(address)
+  checkArg(1, address, "string")
+  return componentType(address)
+end
+
+function sandbox.component.invoke(address, method, ...)
+  checkArg(1, address, "string")
+  checkArg(2, method, "string")
+  return componentInvokeSynchronized(address, method, ...)
+end
+
+function sandbox.component.proxy(address)
+  checkArg(1, address, "string")
+  local type, reason = componentType(address)
+  if not type then
+    return nil, reason
   end
-  local env = setmetatable({send = send},
-                           { __index = sandbox, __newindex = sandbox })
-  for name, code in pairs(drivers()) do
-    local driver, reason = load(code, "=" .. name, "t", env)
-    if not driver then
-      print("Failed loading driver '" .. name .. "': " .. reason)
-    else
-      local result, reason = xpcall(driver, function(msg)
-        return debug.traceback(msg, 2)
-      end)
-      if not result then
-        print("Failed initializing driver '" .. name .. "': " ..
-              (reason or "unknown error"))
+  local proxy = {address = address, type = type}
+  local methods = componentMethodsSynchronized(address)
+  if methods then
+    for _, method in ipairs(methods) do
+      proxy[method] = function(...)
+        return componentInvokeSynchronized(address, method, ...)
       end
     end
   end
+  return proxy
 end
 
 -------------------------------------------------------------------------------
 
-local function main(args)
+local function main()
   local function bootstrap()
     -- Prepare low-level print logic to give boot progress feedback.
-    local gpus = gpus()
-    for i = 1, #gpus do
-      local gpu = gpus[i]
-      gpus[i] = nil
-      local w, h = sandbox.driver.gpu.resolution(gpu)
-      if w then
-        if sandbox.driver.gpu.fill(gpu, 1, 1, w, h, " ") then
-          gpus[i] = {gpu, w, h}
-        end
-      end
-    end
-    local l = 0
-    local function print(s)
-      l = l + 1
-      for _, gpu in pairs(gpus) do
-        if l > gpu[3] then
-          sandbox.driver.gpu.copy(gpu[1], 1, 1, gpu[2], gpu[3], 0, -1)
-          sandbox.driver.gpu.fill(gpu[1], 1, gpu[3], gpu[2], 1, " ")
-        end
-        sandbox.driver.gpu.set(gpu[1], 1, math.min(l, gpu[3]), s)
-      end
-    end
+    -- local gpus = gpus()
+    -- for i = 1, #gpus do
+    --   local gpu = gpus[i]
+    --   gpus[i] = nil
+    --   local w, h = sandbox.driver.gpu.resolution(gpu)
+    --   if w then
+    --     if sandbox.driver.gpu.fill(gpu, 1, 1, w, h, " ") then
+    --       gpus[i] = {gpu, w, h}
+    --     end
+    --   end
+    -- end
+    -- local l = 0
+    -- local function print(s)
+    --   l = l + 1
+    --   for _, gpu in pairs(gpus) do
+    --     if l > gpu[3] then
+    --       sandbox.driver.gpu.copy(gpu[1], 1, 1, gpu[2], gpu[3], 0, -1)
+    --       sandbox.driver.gpu.fill(gpu[1], 1, gpu[3], gpu[2], 1, " ")
+    --     end
+    --     sandbox.driver.gpu.set(gpu[1], 1, math.min(l, gpu[3]), s)
+    --   end
+    -- end
     print("Booting...")
 
     print("Mounting ROM and temporary file system.")
-    local fs = sandbox.driver.filesystem
-    fs.mount(os.romAddress(), "/")
-    fs.mount(os.tmpAddress(), "/tmp")
+    local function rom(method, ...)
+      return componentInvoke(os.romAddress(), method, ...)
+    end
 
     -- Custom dofile implementation since we don't have the baselib yet.
     local function dofile(file)
       print("  " .. file)
-      local stream, reason = fs.open(file)
-      if not stream then
+      local handle, reason = rom("open", file)
+      if not handle then
         error(reason)
       end
-      if stream then
+      if handle then
         local buffer = ""
         repeat
-          local data = stream:read(math.huge)
+          local data = rom("read", handle, math.huge)
           if data then
             buffer = buffer .. data
           end
         until not data
-        stream:close()
-        stream = nil
-        local program, reason = sandbox.load(buffer, "=" .. file)
+        rom("close", handle)
+        local program, reason = load(buffer, "=" .. file, "t", sandbox)
         buffer = nil
         if program then
-          return program()
+          local result = table.pack(pcall(program))
+          if result[1] then
+            return table.unpack(result, 2, result.n)
+          else
+            error("error initializing lib '" .. file .. "': " .. result[2])
+          end
         else
           error("error loading lib '" .. file .. "': " .. reason)
         end
@@ -330,9 +339,9 @@ local function main(args)
 
     print("Loading libraries.")
     local init = {}
-    for api in fs.dir("lib") do
-      local path = fs.concat("lib", api)
-      if not fs.isDirectory(path) then
+    for _, api in ipairs(rom("list", "lib")) do
+      local path = "lib/" .. api
+      if not rom("isDirectory", path) then
         local install = dofile(path)
         if type(install) == "function" then
           table.insert(init, install)
@@ -347,14 +356,25 @@ local function main(args)
     init = nil
 
     print("Starting shell.")
-    return coroutine.create(function(...)
-      sandbox.event.fire(...) -- handle the first signal
-      while true do
-        sandbox.os.execute("/bin/sh")
+    return coroutine.create(load([[
+      fs.mount(os.romAddress(), "/")
+      fs.mount(os.tmpAddress(), "/tmp")
+      for c, t in component.list() do
+        event.fire("component_added", c, t)
       end
-    end)
+      while true do
+        local result, reason = os.execute("/bin/sh")
+        if not result then
+          error(reason)
+        end
+      end]], "=init", "t", sandbox))
   end
   local co = bootstrap()
+
+  -- Yield once to allow initializing up to here to get a memory baseline.
+  assert(coroutine.yield() == "dummy")
+
+  local args = {n=0}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
     if not debug.gethook(co) then
@@ -362,7 +382,7 @@ local function main(args)
     end
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
-      error(result[2] or "unknown error", 0)
+      error(tostring(result[2]), 0)
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
@@ -373,5 +393,4 @@ end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
--- Also, yield once to allow initializing up to here to get a memory baseline.
-return pcall(main, table.pack(coroutine.yield()))
+return pcall(main)

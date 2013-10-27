@@ -59,12 +59,6 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   }
 
   // ----------------------------------------------------------------------- //
-//
-//  override def save(nbt: NBTTagCompound) {}
-//
-//  override def load(nbt: NBTTagCompound) {}
-
-  override def onMessage(message: Message) = null
 
   override def updateEntity() = if (!worldObj.isRemote) {
     instance.update()

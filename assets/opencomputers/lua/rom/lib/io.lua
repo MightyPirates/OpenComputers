@@ -1,7 +1,9 @@
 local file = {}
 
 function file:close()
-  self:flush()
+  if self.mode ~= "r" and self.mode ~= "rb" then
+    self:flush()
+  end
   return self.stream:close()
 end
 
@@ -252,7 +254,7 @@ end
 
 function file.new(mode, stream, nogc)
   local result = {
-    mode = mode,
+    mode = mode or "r",
     stream = stream,
     buffer = "",
     bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
@@ -364,7 +366,7 @@ function io.lines(filename, ...)
 end
 
 function io.open(path, mode)
-  local stream, result = driver.filesystem.open(path, mode)
+  local stream, result = fs.open(path, mode)
   if stream then
     return file.new(mode, stream)
   else
