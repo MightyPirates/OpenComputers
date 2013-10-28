@@ -1,10 +1,9 @@
 local args = shell.parse(...)
 
 if #args == 0 then
-  for fs, path in fs.mount() do
-    local label = fs.getLabel()
-    label = (label and label ~= "") and label or fs.address
-    local mode = fs.isReadOnly() and "ro" or "rw"
+  for proxy, path in fs.mount() do
+    local label = proxy.getLabel() or proxy.address
+    local mode = proxy.isReadOnly() and "ro" or "rw"
     print(string.format("%s on %s (%s)", label, path, mode))
   end
   return

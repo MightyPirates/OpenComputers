@@ -277,7 +277,8 @@ function term.read(history)
       return
     end
     if keyRepeat then
-      keyRepeat = event.cancel(keyRepeat)
+      event.cancel(keyRepeat)
+      keyRepeat = nil
     end
     if not handleKeyPress(char, code) then
       local function onRepeatTimer()
@@ -290,7 +291,8 @@ function term.read(history)
   end
   local function onKeyUp(_, address, char, code)
     if component.isPrimary(address) and keyRepeat then
-      keyRepeat = event.cancel(keyRepeat)
+      event.cancel(keyRepeat)
+      keyRepeat = nil
     end
   end
   local function onClipboard(_, address, value)

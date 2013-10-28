@@ -18,8 +18,7 @@ end
 
 local result = {{"Filesystem", "Used", "Available", "Use%", "Mounted on"}}
 for path, proxy in pairs(mounts) do
-  local label = proxy.getLabel()
-  label = (label and label ~= "") and label or proxy.address
+  local label = proxy.getLabel() or proxy.address
   local used, total = proxy.spaceUsed(), proxy.spaceTotal()
   local available, percent
   if total == "unlimited" then

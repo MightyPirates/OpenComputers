@@ -18,7 +18,7 @@ if not proxy then
 end
 
 if #args < 2 then
-  print(proxy.getLabel())
+  print(proxy.getLabel() or "no label")
 else
   local result, reason = proxy.setLabel(args[2])
   if not result then

@@ -9,7 +9,7 @@ import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.fs.FileSystem, var label: String = "") extends ManagedComponent {
+class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends ManagedComponent {
   val node = api.Network.createComponent(api.Network.createNode(this, "filesystem", Visibility.Neighbors))
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
@@ -25,9 +25,13 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String = "") exte
       throw new IllegalArgumentException("file system is read only")
     if (fileSystem.isInstanceOf[Volatile])
       throw new IllegalArgumentException("cannot change label of ramfs")
-    label = args.checkString(1)
-    if (label.length > 16)
-      label = label.substring(0, 16)
+    if (args.checkAny(1) == null)
+      label = null
+    else {
+      label = args.checkString(1)
+      if (label.length > 16)
+        label = label.substring(0, 16)
+    }
     result(true)
   }
 
@@ -237,7 +241,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String = "") exte
       ownersNbt.appendTag(ownerNbt)
     }
     nbt.setTag("owners", ownersNbt)
-    if (label != "")
+    if (label != null)
       nbt.setString("label", label)
 
     val fsNbt = new NBTTagCompound()

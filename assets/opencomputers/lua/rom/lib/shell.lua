@@ -46,93 +46,6 @@ local function findFile(name, path, ext)
 end
 
 -------------------------------------------------------------------------------
--- We pseudo-sandbox programs we start via the shell. Pseudo because it's
--- really just a matter of convenience: listeners and timers get automatically
--- cleaned up when the program exits/crashes. This can be easily circumvented
--- by getting the parent environment via `getmetatable(_ENV).__index`. But if
--- you do that you will probably know what you're doing.
-function newEnvironment()
-  local listeners, timers, e = {[false]={}, [true]={}}, {}, {}
-  local env = setmetatable(e, {__index=_ENV})
-
-  e._G = e
-  e.event = {}
-  function e.event.ignore(name, callback, weak)
-    weak = weak or false
-    if listeners[weak][name] and listeners[weak][name][callback] then
-      listeners[weak][name][callback] = nil
-      return event.ignore(name, callback, weak)
-    end
-    return false
-  end
-  function e.event.listen(name, callback, weak)
-    weak = weak or false
-    if event.listen(name, callback, weak) then
-      listeners[weak][name] = listeners[weak][name] or {}
-      listeners[weak][name][callback] = true
-      return true
-    end
-    return false
-  end
-  function e.event.cancel(timerId)
-    if timers[timerId] then
-      timers[timerId] = nil
-      return event.cancel(timerId)
-    end
-    return false
-  end
-  function e.event.timer(timeout, callback)
-    local id
-    local function onTimer()
-      timers[id] = nil
-      callback()
-    end
-    id = event.timer(timeout, onTimer)
-    timers[id] = true
-    return id
-  end
-  function e.event.interval(frequency, callback)
-    local interval = {}
-    local function onTimer()
-      interval.id = env.event.timer(frequency, onTimer)
-      callback()
-    end
-    interval.id = env.event.timer(frequency, onTimer)
-    return interval
-  end
-  setmetatable(e.event, {__index=event, __newindex=event})
-
-  function e.load(ld, source, mode, environment)
-    return load(ld, source, mode, environment or env)
-  end
-  function e.loadfile(filename, mode, environment)
-    return loadfile(filename, mode, environment or env)
-  end
-  function e.dofile(filename)
-    local program, reason = env.loadfile(filename)
-    if not program then
-      return env.error(reason, 0)
-    end
-    return program()
-  end
-
-  function cleanup()
-    for weak, list in pairs(listeners) do
-      for name, callbacks in pairs(list) do
-        for callback in pairs(callbacks) do
-          event.ignore(name, callback, weak)
-        end
-      end
-    end
-    for id in pairs(timers) do
-      event.cancel(id)
-    end
-  end
-
-  return env, cleanup
-end
-
--------------------------------------------------------------------------------
 
 shell = {}
 
@@ -169,13 +82,17 @@ function shell.execute(program, ...)
   if not where then
     return nil, "program not found"
   end
-  local env, cleanup = newEnvironment()
-  program, reason = loadfile(where, "t", env)
+  program, reason = loadfile(where, "t", setmetatable({}, {__index=_ENV}))
   if not program then
     return nil, reason
   end
-  local result = table.pack(pcall(program, ...))
-  cleanup()
+  local args, co, result = table.pack(...), coroutine.create(program)
+  repeat
+    result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
+    if coroutine.status(co) ~= "dead" then
+      args = table.pack(event.wait(result[2])) -- emulate CC behavior
+    end
+  until coroutine.status(co) == "dead"
   return table.unpack(result, 1, result.n)
 end
 

@@ -95,6 +95,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // ----------------------------------------------------------------------- //
 
   def recomputeMemory() = stateMonitor.synchronized(if (lua != null) {
+    lua.setTotalMemory(Int.MaxValue)
     lua.gc(LuaState.GcAction.COLLECT, 0)
     lua.setTotalMemory(kernelMemory + owner.installedMemory)
   })
@@ -889,7 +890,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     try {
       // Help out the GC a little. The emergency GC has a few limitations that
       // will make it free less memory than doing a full step manually.
-            lua.gc(LuaState.GcAction.COLLECT, 0)
+      lua.gc(LuaState.GcAction.COLLECT, 0)
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
       val results = if (callReturn) {

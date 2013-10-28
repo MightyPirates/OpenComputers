@@ -408,8 +408,7 @@ fs = filesystem
 
 -------------------------------------------------------------------------------
 
-local function onComponentAdded(_, address)
-  local componentType = component.type(address)
+local function onComponentAdded(_, address, componentType)
   if componentType == "filesystem" then
     local proxy = component.proxy(address)
     if proxy then
@@ -422,15 +421,15 @@ local function onComponentAdded(_, address)
       name = fs.concat("/mnt", name)
       fs.mount(proxy, name)
       if isAutorunEnabled then
-        shell.execute(fs.concat(name, "autorun"))
+        shell.execute(fs.concat(name, "autorun"), proxy)
       end
     end
   end
 end
 
 local function onComponentRemoved(_, address, componentType)
-  if componentType == "filesystem" or componentType == "disk_drive" then
-    while fs.umount(address) do end -- remove *all* mounts
+  if componentType == "filesystem" then
+    fs.umount(address)
   end
 end
 
