@@ -11,6 +11,8 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  def isReadOnly = true
+
   def delete(path: String) = false
 
   def makeDirectory(path: String) = false

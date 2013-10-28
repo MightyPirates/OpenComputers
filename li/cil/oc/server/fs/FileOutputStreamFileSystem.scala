@@ -7,7 +7,7 @@ import li.cil.oc.api.fs.Mode
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {
   override def spaceTotal = -1
 
-  override def spaceUsed = root.getFreeSpace
+  override def spaceUsed = -1
 
   // ----------------------------------------------------------------------- //
 

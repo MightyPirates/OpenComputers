@@ -113,11 +113,17 @@ final public class FileSystem {
      * node, though, since it's visibility is neighbors only.
      *
      * @param fileSystem the file system to wrap.
+     * @param label      the label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem) {
-        if (instance != null) return instance.asManagedEnvironment(fileSystem);
+    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, String label) {
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem, label);
         return null;
+    }
+
+    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem) {
+        return asManagedEnvironment(fileSystem, null);
     }
 
     // ----------------------------------------------------------------------- //

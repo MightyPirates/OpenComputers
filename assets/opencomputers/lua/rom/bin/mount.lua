@@ -2,31 +2,27 @@ local args = shell.parse(...)
 
 if #args == 0 then
   for fs, path in fs.mount() do
-    print(fs.address, path)
+    local label = fs.getLabel()
+    label = (label and label ~= "") and label or fs.address
+    local mode = fs.isReadOnly() and "ro" or "rw"
+    print(string.format("%s on %s (%s)", label, path, mode))
   end
   return
 end
 
 if #args < 2 then
-  print("Usage: mount [<fs address> <path>]")
+  print("Usage: mount [<label|address> <path>]")
   print("Note that the address may be abbreviated.")
   return
 end
 
-local address
-for c in component.list("filesystem") do
-  if c:sub(1, args[1]:len()) == args[1] then
-    address = c
-    break
-  end
-end
-local proxy, reason = address and component.proxy(address)
+local proxy, reason = fs.proxy(args[1])
 if not proxy then
-  print(reason or "no such file system")
+  print(reason)
   return
 end
 
-local result, reason = fs.mount(proxy, args[2])
+local result, reason = fs.mount(proxy, shell.resolve(args[2]))
 if not result then
   print(reason)
 end

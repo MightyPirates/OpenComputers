@@ -1,6 +1,7 @@
 package li.cil.oc.api.fs;
 
 import li.cil.oc.api.Persistable;
+import li.cil.oc.api.network.Network;
 
 import java.io.FileNotFoundException;
 
@@ -25,6 +26,21 @@ import java.io.FileNotFoundException;
  * responsibility to ensure the path has been cleaned up.
  */
 public interface FileSystem extends Persistable {
+    /**
+     * Whether this file system is read-only.
+     * <p/>
+     * This is used to allow programs to check whether a file system can be
+     * written to without trying to open a file for writing. Note that this is
+     * merely used as an indicator. All mutating accessors should be implemented
+     * accordingly to enforce true read-only logic (i.e. {@link #open} should
+     * not allow opening files in write or append mode, {@link #makeDirectory}
+     * and such should do nothing/return false/throw an exception).
+     * <p/>
+     * For file systems made available to the component {@link Network} will
+     * also use this flag to determine whether their label may be changed.
+     */
+    boolean isReadOnly();
+
     /**
      * The total storage capacity of the file system, in bytes.
      * <p/>

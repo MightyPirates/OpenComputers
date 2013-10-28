@@ -8,18 +8,18 @@ import scala.collection.mutable
 class ZipFileInputStreamFileSystem(val zip: ZipFile, val root: String) extends InputStreamFileSystem {
   private val directories = mutable.Map.empty[ZipEntry, Array[String]]
 
-  private val totalSize = {
+  // ----------------------------------------------------------------------- //
+
+  def spaceTotal = spaceUsed
+
+  def spaceUsed = spaceUsed_
+
+  private lazy val spaceUsed_ = {
     var size = 0L
     val enum = zip.entries()
     while (enum.hasMoreElements) size += enum.nextElement.getSize
     size
   }
-
-  // ----------------------------------------------------------------------- //
-
-  def spaceTotal = totalSize
-
-  def spaceUsed = spaceTotal
 
   // ----------------------------------------------------------------------- //
 

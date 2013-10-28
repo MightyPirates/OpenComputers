@@ -4,16 +4,15 @@ import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
 import li.cil.oc.api.network.{Visibility, Message}
+import li.cil.oc.server.fs.Volatile
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
+class FileSystem(val fileSystem: api.fs.FileSystem, var label: String = "") extends ManagedComponent {
   val node = api.Network.createComponent(api.Network.createNode(this, "filesystem", Visibility.Neighbors))
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
-
-  private var label = ""
 
   // ----------------------------------------------------------------------- //
 
@@ -22,13 +21,21 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
 
   @LuaCallback("setLabel")
   def setLabel(context: Context, args: Arguments): Array[Object] = {
+    if (fileSystem.isReadOnly)
+      throw new IllegalArgumentException("file system is read only")
+    if (fileSystem.isInstanceOf[Volatile])
+      throw new IllegalArgumentException("cannot change label of ramfs")
     label = args.checkString(1)
     if (label.length > 16)
       label = label.substring(0, 16)
     result(true)
   }
 
-  @LuaCallback("spaceTotal")
+  @LuaCallback(value = "isReadOnly", asynchronous = true)
+  def isReadOnly(context: Context, args: Arguments): Array[Object] =
+    result(fileSystem.isReadOnly)
+
+  @LuaCallback(value = "spaceTotal", asynchronous = true)
   def spaceTotal(context: Context, args: Arguments): Array[Object] = {
     val space = fileSystem.spaceTotal
     if (space < 0)

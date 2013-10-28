@@ -1,20 +1,33 @@
-local args = shell.parse(...)
+local args, options = shell.parse(...)
 
 if #args < 1 then
-  print("Usage: umount <fs address>|<path>")
-  print("Note that the address may be abbreviated.")
+  print("Usage: umount [-a] <mount>")
+  print(" -a  Remove any mounts by file system label or address instead of by path. Note that the address may be abbreviated.")
   return
 end
 
-local address
-for c in component.list("filesystem") do
-  if c:sub(1, args[1]:len()) == args[1] then
-    address = c
-    break
+local proxy, reason
+if options.a then
+  proxy, reason = fs.proxy(args[1])
+  if proxy then
+    proxy = proxy.address
+  end
+else
+  local path = shell.resolve(args[1])
+  proxy, reason = fs.get(path)
+  if proxy then
+    proxy = reason -- = path
+    if proxy ~= path then
+      print("not a mount point")
+      return
+    end
   end
 end
-address = address or args[1]
+if not proxy then
+  print(reason)
+  return
+end
 
-if not fs.umount(address) then
+if not fs.umount(proxy) then
   print("nothing to unmount here")
 end

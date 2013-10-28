@@ -16,5 +16,5 @@ public interface FileSystemAPI {
 
     FileSystem fromComputerCraft(IWritableMount mount);
 
-    ManagedEnvironment asManagedEnvironment(FileSystem fs);
+    ManagedEnvironment asManagedEnvironment(FileSystem fs, String label);
 }

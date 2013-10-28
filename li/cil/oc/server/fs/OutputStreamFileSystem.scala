@@ -11,6 +11,10 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
+  override def isReadOnly = false
+
+  // ----------------------------------------------------------------------- //
+
   override def open(path: String, mode: Mode) = mode match {
     case Mode.Read => super.open(path, mode)
     case _ => if (!isDirectory(path)) {

@@ -7,9 +7,19 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def spaceTotal = 0
+  override def spaceTotal = spaceUsed
 
-  override def spaceUsed = 0
+  override def spaceUsed = spaceUsed_
+
+  private lazy val spaceUsed_ = {
+    def recurse(path: io.File): Long = {
+      if (path.isDirectory)
+        path.listFiles.foldLeft(0L)((acc, f) => acc + recurse(f))
+      else
+        path.length
+    }
+    recurse(root)
+  }
 
   // ----------------------------------------------------------------------- //
 

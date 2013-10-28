@@ -60,6 +60,14 @@ end
 
 filesystem = {}
 
+function filesystem.autorun(enabled)
+  if enabled ~= nil then
+    checkArg(1, enabled, "boolean")
+    isAutorunEnabled = enabled
+  end
+  return isAutorunEnabled
+end
+
 function filesystem.canonical(path)
   local result = table.concat(segments(path), "/")
   if unicode.sub(path, 1, 1) == "/" then
@@ -79,9 +87,23 @@ function filesystem.concat(pathA, pathB, ...)
   return filesystem.canonical(concat(pathA, pathB, ...))
 end
 
-function filesystem.name(path)
-  local parts = segments(path)
-  return parts[#parts]
+function filesystem.get(path)
+  local node, rest = findNode(path)
+  if node.fs then
+    local proxy = node.fs
+    path = "/"
+    while node.parent do
+      for name, child in pairs(node.parent.children) do
+        if child == node then
+          path = "/" .. name .. path
+          break
+        end
+      end
+      node = node.parent
+    end
+    return proxy, filesystem.canonical(path)
+  end
+  return nil, "no such file system"
 end
 
 function filesystem.mount(fs, path)
@@ -129,60 +151,55 @@ function filesystem.mount(fs, path)
   end
 end
 
+function filesystem.name(path)
+  local parts = segments(path)
+  return parts[#parts]
+end
+
+function filesystem.proxy(filter)
+  checkArg(1, filter, "string")
+  local address
+  for c in component.list("filesystem") do
+    if component.invoke(c, "getLabel") == filter then
+      address = c
+      break
+    end
+    if c:sub(1, filter:len()) == filter then
+      address = c
+      break
+    end
+  end
+  if not address then
+    return nil, "no such file system"
+  end
+  return component.proxy(address)
+end
+
 function filesystem.umount(fsOrPath)
-  local node, rest = findNode(fsOrPath)
-  if not rest and node.fs then
-    node.fs = nil
-    removeEmptyNodes(node)
-    return true
-  else
-    local function unmount(address)
-      local queue = {mtab}
-      for fs, path in filesystem.mount() do
-        if fs.address == address then
-          local node = findNode(path)
-          node.fs = nil
-          removeEmptyNodes(node)
-          return true
-        end
+  checkArg(1, fsOrPath, "string", "table")
+  if type(fsOrPath) == "string" then
+    local node, rest = findNode(fsOrPath)
+    if not rest and node.fs then
+      node.fs = nil
+      removeEmptyNodes(node)
+      return true
+    end
+  end
+  local function unmount(address)
+    local queue = {mtab}
+    for proxy, path in filesystem.mount() do
+      if proxy.address == address then
+        local node = findNode(path)
+        node.fs = nil
+        removeEmptyNodes(node)
+        return true
       end
     end
-    local fs = type(fsOrPath) == "table" and fsOrPath.address or fsOrPath
-    local result = false
-    while unmount(fs) do result = true end
-    return result
   end
-end
-
--------------------------------------------------------------------------------
-
-function filesystem.autorun(...)
-  local args = table.pack(...)
-  if args.n > 0 then
-    checkArg(1, args[1], "boolean")
-    isAutorunEnabled = args[1]
-  end
-  return isAutorunEnabled
-end
-
--------------------------------------------------------------------------------
-
-function filesystem.spaceTotal(path)
-  local node, rest = findNode(path)
-  if node.fs then
-    return node.fs.spaceTotal()
-  else
-    return nil, "invalid path"
-  end
-end
-
-function filesystem.spaceUsed(path)
-  local node, rest = findNode(path)
-  if node.fs then
-    return node.fs.spaceUsed()
-  else
-    return nil, "invalid path"
-  end
+  local address = type(fsOrPath) == "table" and fsOrPath.address or fsOrPath
+  local result = false
+  while unmount(address) do result = true end
+  return result
 end
 
 -------------------------------------------------------------------------------

@@ -19,6 +19,7 @@ while true do
     term.write("# ")
     local command = term.read(history)
     if not command then
+      print("exit")
       return -- eof
     end
     while #history > 10 do
