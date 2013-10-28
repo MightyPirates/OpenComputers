@@ -25,7 +25,7 @@ import scala.collection.mutable
  */
 class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
   val screen = tileEntity.origin
-  screen.guiScreen = Some(this)
+  screen.currentGui = Some(this)
 
   private var (x, y, innerWidth, innerHeight, scale) = (0, 0, 0, 0, 0.0)
 
@@ -89,7 +89,7 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
 
   override def onGuiClosed() = {
     super.onGuiClosed()
-    screen.guiScreen = None
+    screen.currentGui = None
     for ((code, char) <- pressedKeys) {
       PacketSender.sendKeyUp(screen, char, code)
     }

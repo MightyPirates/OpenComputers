@@ -202,7 +202,7 @@ object LuaStateFactory {
       state.pop(1)
 
       // Provide some better Unicode support.
-      state.getGlobal("string")
+      state.newTable()
 
       // TODO find (probably not necessary?)
 
@@ -230,19 +230,19 @@ object LuaStateFactory {
         lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
         1
       })
-      state.setField(-2, "uchar")
+      state.setField(-2, "char")
 
       state.pushScalaFunction(lua => {
         lua.pushInteger(lua.checkString(1).length)
         1
       })
-      state.setField(-2, "ulen")
+      state.setField(-2, "len")
 
       state.pushScalaFunction(lua => {
         lua.pushString(lua.checkString(1).reverse)
         1
       })
-      state.setField(-2, "ureverse")
+      state.setField(-2, "reverse")
 
       state.pushScalaFunction(lua => {
         val string = lua.checkString(1)
@@ -260,10 +260,9 @@ object LuaStateFactory {
         else lua.pushString(string.substring(start, end))
         1
       })
-      state.setField(-2, "usub")
+      state.setField(-2, "sub")
 
-      // Pop the string table.
-      state.pop(1)
+      state.setGlobal("unicode")
 
       Some(state)
     } catch {

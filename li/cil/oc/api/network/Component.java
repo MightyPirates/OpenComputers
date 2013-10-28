@@ -31,7 +31,7 @@ public interface Component extends Node {
      * Note that this cannot be higher / more visible than the reachability of
      * the node. Trying to set it to a higher value will generate an exception.
      */
-    void visibility(Visibility value);
+    void setVisibility(Visibility value);
 
     /**
      * Tests whether this component can be seen by the specified node,

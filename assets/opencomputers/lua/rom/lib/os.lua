@@ -7,7 +7,7 @@ os.execute = function(command)
   repeat
     local oldHead = head
     head = command:match("^%S+")
-    tail = command:usub(head:ulen() + 1) .. tail
+    tail = unicode.sub(command, unicode.len(head) + 1) .. tail
     if head == oldHead then -- say no to infinite recursion, live longer
       command = nil
     else

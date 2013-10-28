@@ -85,7 +85,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   @LuaCallback("close")
   def close(context: Context, args: Arguments): Array[Object] = {
     val handle = args.checkInteger(1)
-    Option(fileSystem.file(handle)) match {
+    Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         owners.get(context.address) match {
           case Some(set) => if (set.remove(handle)) file.close()
@@ -103,7 +103,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
     else {
       val path = args.checkString(1)
       val mode = if (args.count > 1) args.checkString(2) else "r"
-      val handle = fileSystem.open(clean(path), Mode.parse(mode))
+      val handle = fileSystem.open(clean(path), parseMode(mode))
       if (handle > 0) {
         owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
       }
@@ -114,7 +114,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   def read(context: Context, args: Arguments): Array[Object] = {
     val handle = args.checkInteger(1)
     val n = args.checkInteger(2)
-    Option(fileSystem.file(handle)) match {
+    Option(fileSystem.getHandle(handle)) match {
       case None => throw new IOException("bad file descriptor")
       case Some(file) =>
         // Limit reading to chunks of 8KB to avoid crazy allocations.
@@ -142,7 +142,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
     val handle = args.checkInteger(1)
     val whence = args.checkString(2)
     val offset = args.checkInteger(3)
-    Option(fileSystem.file(handle)) match {
+    Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         whence match {
           case "cur" => file.seek(file.position + offset)
@@ -159,7 +159,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   def write(context: Context, args: Arguments): Array[Object] = {
     val handle = args.checkInteger(1)
     val value = args.checkByteArray(2)
-    Option(fileSystem.file(handle)) match {
+    Option(fileSystem.getHandle(handle)) match {
       case Some(file) => file.write(value); result(true)
       case _ => throw new IOException("bad file descriptor")
     }
@@ -171,7 +171,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
     message.data match {
       case Array() if message.name == "system.disconnect" && owners.contains(message.source.address) =>
         for (handle <- owners(message.source.address)) {
-          Option(fileSystem.file(handle)) match {
+          Option(fileSystem.getHandle(handle)) match {
             case Some(file) => file.close()
             case _ => // Maybe file system was accessed from somewhere else.
           }
@@ -179,7 +179,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
       case Array() if message.name == "computer.stopped" =>
         owners.get(message.source.address) match {
           case Some(set) =>
-            set.foreach(handle => Option(fileSystem.file(handle)) match {
+            set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
               case Some(file) => file.close()
               case _ => // Invalid handle... huh.
             })
@@ -198,6 +198,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
     val ownersNbt = nbt.getTagList("owners")
     (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
       val address = ownerNbt.getString("address")
@@ -216,6 +217,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
   }
 
   override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
     val ownersNbt = new NBTTagList()
     for ((address, handles) <- owners) {
       val ownerNbt = new NBTTagCompound()
@@ -243,5 +245,12 @@ class FileSystem(val fileSystem: api.fs.FileSystem) extends ManagedComponent {
     if (result.startsWith("../")) throw new FileNotFoundException()
     if (result == "/" || result == ".") ""
     else result
+  }
+
+  private def parseMode(value: String): Mode = {
+    if (("r" == value) || ("rb" == value)) return Mode.Read
+    if (("w" == value) || ("wb" == value)) return Mode.Write
+    if (("a" == value) || ("ab" == value)) return Mode.Append
+    throw new IllegalArgumentException("unsupported mode")
   }
 }

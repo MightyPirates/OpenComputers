@@ -31,7 +31,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     }
   } else throw new FileNotFoundException()
 
-  def file(handle: Int): api.fs.Handle = handles.get(handle).orNull
+  def getHandle(handle: Int): api.fs.Handle = handles.get(handle).orNull
 
   def close() {
     for (handle <- handles.values)

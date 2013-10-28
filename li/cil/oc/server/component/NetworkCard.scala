@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class NetworkCard extends ManagedComponent {
   val node = api.Network.createComponent(api.Network.createNode(this, "network", Visibility.Network))
-  node.visibility(Visibility.Neighbors)
+  node.setVisibility(Visibility.Neighbors)
 
   private val openPorts = mutable.Set.empty[Int]
 
@@ -71,6 +71,7 @@ class NetworkCard extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
     if (nbt.hasKey("oc.net.openPorts")) {
       val openPortsNbt = nbt.getTagList("oc.net.openPorts")
       (0 until openPortsNbt.tagCount).
@@ -81,6 +82,7 @@ class NetworkCard extends ManagedComponent {
   }
 
   override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
     val openPortsNbt = new NBTTagList()
     for (port <- openPorts)
       openPortsNbt.appendTag(new NBTTagInt(null, port))

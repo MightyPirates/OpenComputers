@@ -18,10 +18,10 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
 
   def visibility = visibility_
 
-  def visibility(value: Visibility) = {
-    if (value.ordinal() > visibility.ordinal()) {
+  def setVisibility(value: Visibility) = {
+    if (value.ordinal() > reachability.ordinal()) {
       throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
-        "' node with reachability '" + visibility + "'. It will be limited to the node's reachability.")
+        "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
     if (value != visibility_ && FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
       if (network != null) visibility_ match {

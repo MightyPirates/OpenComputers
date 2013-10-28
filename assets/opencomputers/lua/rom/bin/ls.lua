@@ -14,7 +14,7 @@ for i = 1, #dirs do
     print(reason)
   else
     for f in list do
-      if options.a or f:usub(1, 1) ~= "." then
+      if options.a or f:sub(1, 1) ~= "." then
         if options.l then
           print(f, fs.size(fs.concat(path, f)))
         else

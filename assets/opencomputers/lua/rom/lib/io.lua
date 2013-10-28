@@ -47,8 +47,8 @@ function file:read(...)
   local function readBytesOrChars(n)
     local len, sub
     if self.mode == "r" then
-      len = string.ulen
-      sub = string.usub
+      len = unicode.len
+      sub = unicode.sub
     else
       assert(self.mode == "rb")
       len = rawlen
@@ -113,10 +113,10 @@ function file:read(...)
     if type(format) == "number" then
       return readBytesOrChars(format)
     else
-      if type(format) ~= "string" or format:usub(1, 1) ~= "*" then
+      if type(format) ~= "string" or unicode.sub(format, 1, 1) ~= "*" then
         error("bad argument #" .. n .. " (invalid option)")
       end
-      format = format:usub(2, 2)
+      format = unicode.sub(format, 2, 2)
       if format == "n" then
         --[[ TODO ]]
         error("not implemented")

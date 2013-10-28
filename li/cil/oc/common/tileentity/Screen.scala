@@ -1,8 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
-import li.cil.oc.api.network.{Visibility, Message}
-import li.cil.oc.api.power.Receiver
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
@@ -25,7 +24,7 @@ class ScreenTier3 extends Screen {
 }
 
 abstract class Screen extends Rotatable with component.Screen.Environment {
-  var guiScreen: Option[gui.Screen] = None
+  var currentGui: Option[gui.Screen] = None
 
   /**
    * Read and reset to false from the tile entity renderer. This is used to
@@ -68,12 +67,12 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    load(nbt)
+    super.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    save(nbt)
+    super.save(nbt)
   }
 
   override def validate() = {
@@ -134,9 +133,9 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
         if (screen.isOrigin)
-          screen.node.visibility(Visibility.Network)
+          screen.node.setVisibility(Visibility.Network)
         else {
-          screen.node.visibility(Visibility.None)
+          screen.node.setVisibility(Visibility.None)
           val s = screen.instance
           val (w, h) = s.resolution
           s.fill(0, 0, w, h, ' ')
@@ -221,7 +220,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
   override def onScreenResolutionChange(w: Int, h: Int) = {
     super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
-      guiScreen.foreach(_.changeSize(w, h))
+      currentGui.foreach(_.changeSize(w, h))
       hasChanged = true
     }
     else {
@@ -233,7 +232,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
   override def onScreenSet(col: Int, row: Int, s: String) = {
     super.onScreenSet(col, row, s)
     if (worldObj.isRemote) {
-      guiScreen.foreach(_.updateText())
+      currentGui.foreach(_.updateText())
       hasChanged = true
     }
     else {
@@ -245,7 +244,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
   override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
     super.onScreenFill(col, row, w, h, c)
     if (worldObj.isRemote) {
-      guiScreen.foreach(_.updateText())
+      currentGui.foreach(_.updateText())
       hasChanged = true
     }
     else {
@@ -257,7 +256,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
   override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
     super.onScreenCopy(col, row, w, h, tx, ty)
     if (worldObj.isRemote) {
-      guiScreen.foreach(_.updateText())
+      currentGui.foreach(_.updateText())
       hasChanged = true
     }
     else {

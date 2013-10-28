@@ -12,12 +12,11 @@ import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.ChunkEvent
 import scala.collection.JavaConverters._
 import scala.collection.convert.WrapAsJava._
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class Network private(private val addressedNodes: mutable.Map[String, Network.Node] = mutable.Map.empty,
-                      private val unaddressedNodes: mutable.ArrayBuffer[Network.Node] = mutable.ArrayBuffer.empty) extends api.network.Network {
+                      private val unaddressedNodes: mutable.ArrayBuffer[Network.Node] = mutable.ArrayBuffer.empty) {
   def this(node: network.Node) = {
     this()
     addNew(node)
@@ -25,21 +24,14 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       send(Network.ConnectMessage(node), Iterable(node))
   }
 
-  addressedNodes.values.foreach(_.data.network = this)
-  unaddressedNodes.foreach(_.data.network = this)
+  private lazy val wrapper = new Network.Wrapper(this)
+
+  addressedNodes.values.foreach(_.data.network = wrapper)
+  unaddressedNodes.foreach(_.data.network = wrapper)
 
   // ----------------------------------------------------------------------- //
 
-  def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
-    if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-    if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    connect0(nodeA.asInstanceOf[network.Node], nodeB.asInstanceOf[network.Node])
-  }
-
-  private def connect0(nodeA: network.Node, nodeB: network.Node) = this.synchronized {
+  def connect(nodeA: network.Node, nodeB: network.Node) = this.synchronized {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot connect a node to itself.")
 
@@ -73,16 +65,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     else add(oldNodeB, nodeA)
   }
 
-  def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
-    if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-    if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    disconnect0(nodeA.asInstanceOf[network.Node], nodeB.asInstanceOf[network.Node])
-  }
-
-  private def disconnect0(nodeA: network.Node, nodeB: network.Node) = this.synchronized {
+  def disconnect(nodeA: network.Node, nodeB: network.Node) = this.synchronized {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot disconnect a node from itself.")
 
@@ -108,14 +91,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
   }
 
-  def remove(node: api.network.Node) = {
-    if (!node.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    remove0(node.asInstanceOf[network.Node])
-  }
-
-  private def remove0(node: network.Node) = this.synchronized {
+  def remove(node: network.Node) = this.synchronized {
     (Option(node.address) match {
       case Some(address) => addressedNodes.remove(address)
       case _ => unaddressedNodes.indexWhere(_.data == node) match {
@@ -127,7 +103,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
         node.asInstanceOf[Node].network = null
         val subGraphs = entry.remove()
         val targets = Iterable(node) ++ (entry.data.reachability match {
-          case Visibility.None => Iterable.empty[api.network.Node]
+          case Visibility.None => Iterable.empty[network.Node]
           case Visibility.Neighbors => entry.edges.map(_.other(entry).data)
           case Visibility.Network => subGraphs.map {
             case (addressed, _) => addressed.values.map(_.data)
@@ -150,29 +126,15 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     }
   }
 
-  def nodes = this.synchronized(addressedNodes.values.map(_.data.asInstanceOf[api.network.Node]).asJava)
+  def nodes = this.synchronized(addressedNodes.values.map(_.data))
 
-  def nodes(reference: api.network.Node) = {
-    if (!reference.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    nodes0(reference.asInstanceOf[network.Node])
-  }
-
-  private def nodes0(reference: api.network.Node) = {
-    val referenceNeighbors = neighbors(reference).toSet.asJava
+  def nodes(reference: network.Node): Iterable[network.Node] = {
+    val referenceNeighbors = neighbors(reference).toSet
     nodes.filter(node => node != reference && (node.reachability == Visibility.Network ||
-      (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node)))).asJava
+      (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node))))
   }
 
-  def neighbors(node: api.network.Node) = {
-    if (!node.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    neighbors0(node.asInstanceOf[network.Node])
-  }
-
-  private def neighbors0(node: network.Node) = this.synchronized {
+  def neighbors(node: network.Node) = this.synchronized {
     Option(node.address) match {
       case Some(address) =>
         addressedNodes.get(address) match {
@@ -189,15 +151,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 
   // ----------------------------------------------------------------------- //
 
-  def sendToAddress(source: api.network.Node, target: String, name: String, data: AnyRef*): Array[Object] = {
-    if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    sendToAddress0(source.asInstanceOf[network.Node], target, name, data: _*)
-  }
-
-  private def sendToAddress0(source: network.Node, target: String, name: String, data: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != this)
+  def sendToAddress(source: network.Node, target: String, name: String, data: AnyRef*) = this.synchronized {
+    if (source.network == null || source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address != null) addressedNodes.get(target) match {
       case Some(node) if node.data.reachability == Visibility.Network ||
@@ -207,30 +162,16 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
     } else null
   }
 
-  def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*): Array[Object] = {
-    if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    sendToNeighbors0(source.asInstanceOf[network.Node], name, data: _*)
-  }
-
-  private def sendToNeighbors0(source: network.Node, name: String, data: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != this)
+  def sendToNeighbors(source: network.Node, name: String, data: AnyRef*) = this.synchronized {
+    if (source.network == null || source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address != null)
       send(new Network.Message(source, name, Array(data: _*)), neighbors(source).filter(_.reachability != Visibility.None))
     else null
   }
 
-  def sendToVisible(source: api.network.Node, name: String, data: AnyRef*): Array[Object] = {
-    if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
-      "Unsupported node implementation. Don't implement the interface yourself!")
-
-    sendToVisible0(source.asInstanceOf[network.Node], name, data: _*)
-  }
-
-  private def sendToVisible0(source: network.Node, name: String, data: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != this)
+  def sendToVisible(source: network.Node, name: String, data: AnyRef*) = this.synchronized {
+    if (source.network == null || source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     if (source.address != null)
       send(new Network.Message(source, name, Array(data: _*)), nodes(source))
@@ -239,12 +180,12 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 
   // ----------------------------------------------------------------------- //
 
-  private def contains(node: api.network.Node) = (Option(node.address) match {
+  private def contains(node: network.Node) = (Option(node.address) match {
     case Some(address) => addressedNodes.get(address)
     case None => unaddressedNodes.find(_.data == node)
   }).exists(_.data == node)
 
-  private def node(node: api.network.Node) = (Option(node.address) match {
+  private def node(node: network.Node) = (Option(node.address) match {
     case Some(address) => addressedNodes.get(address)
     case None => unaddressedNodes.find(_.data == node)
   }).get
@@ -257,13 +198,13 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       addressedNodes += node.address -> newNode
     else
       unaddressedNodes += newNode
-    node.network = this
+    node.network = wrapper
     newNode
   }
 
   private def add(oldNode: Network.Node, addedNode: network.Node) = {
     // Queue any messages to avoid side effects from receivers.
-    val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[api.network.Node])]
+    val sendQueue = mutable.Buffer.empty[(Network.Message, Iterable[network.Node])]
     // Check if the other node is new or if we have to merge networks.
     if (addedNode.network == null) {
       val newNode = addNew(addedNode)
@@ -281,7 +222,7 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       }
     }
     else {
-      val otherNetwork = addedNode.network.asInstanceOf[Network]
+      val otherNetwork = addedNode.network.asInstanceOf[Network.Wrapper].owner
 
       if (addedNode.reachability == Visibility.Neighbors && oldNode.data.address != null)
         sendQueue += ((Network.ConnectMessage(addedNode), Iterable(oldNode.data)))
@@ -298,8 +239,8 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
 
       addressedNodes ++= otherNetwork.addressedNodes
       unaddressedNodes ++= otherNetwork.unaddressedNodes
-      otherNetwork.addressedNodes.values.foreach(_.data.network = this)
-      otherNetwork.unaddressedNodes.foreach(_.data.network = this)
+      otherNetwork.addressedNodes.values.foreach(_.data.network = wrapper)
+      otherNetwork.unaddressedNodes.foreach(_.data.network = wrapper)
 
       val newNode = Option(addedNode.address) match {
         case None => unaddressedNodes.find(_.data == addedNode).get
@@ -346,9 +287,9 @@ class Network private(private val addressedNodes: mutable.Map[String, Network.No
       }
     }
 
-  private def send(message: Network.Message, targets: Iterable[api.network.Node]) = {
+  private def send(message: Network.Message, targets: Iterable[network.Node]) = {
     var error: Option[Throwable] = None
-    def protectedSend(target: api.network.Node) = try {
+    def protectedSend(target: network.Node) = try {
       //println("receive(" + message.name + "(" + message.data.mkString(", ") + "): " + message.source.address.get + ":" + message.source.name + " -> " + target.address.get + ":" + target.name + ")")
       target.receive(message)
     } catch {
@@ -498,5 +439,73 @@ object Network extends api.detail.NetworkAPI {
   private case class ConnectMessage(override val source: api.network.Node) extends Message(source, "system.connect")
 
   private case class DisconnectMessage(override val source: api.network.Node) extends Message(source, "system.disconnect")
+
+  // ----------------------------------------------------------------------- //
+
+  private class Wrapper(val owner: Network) extends api.network.Network {
+    def connect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+      if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+      if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.connect(nodeA.asInstanceOf[network.Node], nodeB.asInstanceOf[network.Node])
+    }
+
+    def disconnect(nodeA: api.network.Node, nodeB: api.network.Node) = {
+      if (!nodeA.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+      if (!nodeB.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.disconnect(nodeA.asInstanceOf[network.Node], nodeB.asInstanceOf[network.Node])
+    }
+
+    def remove(node: api.network.Node) = {
+      if (!node.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.remove(node.asInstanceOf[network.Node])
+    }
+
+    def node(address: String) = owner.node(address)
+
+    def nodes = owner.nodes.map(_.asInstanceOf[api.network.Node]).asJava
+
+    def nodes(reference: api.network.Node) = {
+      if (!reference.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.nodes(reference.asInstanceOf[network.Node]).map(_.asInstanceOf[api.network.Node]).asJava
+    }
+
+    def neighbors(node: api.network.Node) = {
+      if (!node.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.neighbors(node.asInstanceOf[network.Node])
+    }
+
+    def sendToAddress(source: api.network.Node, target: String, name: String, data: AnyRef*): Array[Object] = {
+      if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.sendToAddress(source.asInstanceOf[network.Node], target, name, data: _*)
+    }
+
+    def sendToNeighbors(source: api.network.Node, name: String, data: AnyRef*): Array[Object] = {
+      if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.sendToNeighbors(source.asInstanceOf[network.Node], name, data: _*)
+    }
+
+    def sendToVisible(source: api.network.Node, name: String, data: AnyRef*): Array[Object] = {
+      if (!source.isInstanceOf[network.Node]) throw new IllegalArgumentException(
+        "Unsupported node implementation. Don't implement the interface yourself!")
+
+      owner.sendToVisible(source.asInstanceOf[network.Node], name, data: _*)
+    }
+  }
 
 }

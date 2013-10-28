@@ -62,15 +62,21 @@ filesystem = {}
 
 function filesystem.canonical(path)
   local result = table.concat(segments(path), "/")
-  if path:usub(1, 1) == "/" then
+  if unicode.sub(path, 1, 1) == "/" then
     return "/" .. result
   else
     return result
   end
 end
 
-function filesystem.concat(pathA, pathB)
-  return filesystem.canonical(pathA .. "/" .. pathB)
+function filesystem.concat(pathA, pathB, ...)
+  local function concat(a, b, ...)
+    if not b then
+      return a
+    end
+    return concat(a .. "/" .. b, ...)
+  end
+  return filesystem.canonical(concat(pathA, pathB, ...))
 end
 
 function filesystem.name(path)
@@ -82,13 +88,14 @@ function filesystem.mount(fs, path)
   if type(fs) == "string" then
     fs = component.proxy(fs)
   end
-  assert(type(fs) == "table", "bad argument #1 (file system proxy or address expected)")
   if fs and path then
+    assert(type(fs) == "table", "bad argument #1 (file system proxy or address expected)")
     local node = findNode(path, true)
     if node.fs then
       return nil, "another filesystem is already mounted here"
     end
     node.fs = fs
+    return true
   else
     local function path(node)
       local result = "/"
@@ -141,7 +148,9 @@ function filesystem.umount(fsOrPath)
       end
     end
     local fs = type(fsOrPath) == "table" and fsOrPath.address or fsOrPath
-    while unmount(fs) do end
+    local result = false
+    while unmount(fs) do result = true end
+    return result
   end
 end
 
@@ -186,6 +195,7 @@ function filesystem.exists(path)
   if node.fs then
     return node.fs.exists(rest)
   end
+  return false
 end
 
 function filesystem.size(path)
@@ -201,7 +211,7 @@ function filesystem.isDirectory(path)
   if node.fs and rest then
     return node.fs.isDirectory(rest)
   else
-    return not rest or rest:ulen() == 0
+    return not rest or unicode.len(rest) == 0
   end
 end
 
@@ -246,6 +256,9 @@ function filesystem.makeDirectory(path)
   local node, rest = findNode(path)
   if node.fs and rest then
     return node.fs.makeDirectory(rest)
+  end
+  if node.fs then
+    return nil, "virtual directory with that name already exists"
   end
   return nil, "cannot create a directory in a virtual directory"
 end
@@ -380,17 +393,20 @@ fs = filesystem
 
 local function onComponentAdded(_, address)
   local componentType = component.type(address)
-  if (componentType == "filesystem" or componentType == "disk_drive") and
-     address ~= os.romAddress() and
-     address ~= os.tmpAddress()
-  then
-    local name = address:usub(1, 3)
-    repeat
-      name = address:usub(1, name:ulen() + 1)
-    until not fs.exists("/mnt/" .. name)
-    fs.mount(address, "/mnt/" .. name)
-    if isAutorunEnabled then
-      shell.execute("/mnt/" .. name .. "/autorun")
+  if componentType == "filesystem" then
+    local proxy = component.proxy(address)
+    if proxy then
+      local name = address:sub(1, 3)
+      while fs.exists(fs.concat("/mnt", name)) and
+            name:len() < address:len() -- just to be on the safe side
+      do
+        name = address:sub(1, name:len() + 1)
+      end
+      name = fs.concat("/mnt", name)
+      fs.mount(proxy, name)
+      if isAutorunEnabled then
+        shell.execute(fs.concat(name, "autorun"))
+      end
     end
   end
 end

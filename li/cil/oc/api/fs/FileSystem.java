@@ -209,7 +209,7 @@ public interface FileSystem extends Persistable {
      * @param handle the ID of the handle to get the wrapper for.
      * @return the wrapper for that handle ID; None if the ID is invalid.
      */
-    Handle file(int handle);
+    Handle getHandle(int handle);
 
     /**
      * Called when the file system is close.

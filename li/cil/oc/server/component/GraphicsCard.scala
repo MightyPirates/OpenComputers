@@ -96,11 +96,13 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
     if (nbt.hasKey("oc.gpu.screen"))
       screen = Some(nbt.getString("oc.gpu.screen"))
   }
 
   override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
     if (screen.isDefined)
       nbt.setString("oc.gpu.screen", screen.get)
   }

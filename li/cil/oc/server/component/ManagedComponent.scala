@@ -14,9 +14,9 @@ abstract class ManagedComponent extends ManagedEnvironment {
 
   def onConnect() {}
 
-  def load(nbt: NBTTagCompound) {}
+  def load(nbt: NBTTagCompound) = node.load(nbt)
 
-  def save(nbt: NBTTagCompound) {}
+  def save(nbt: NBTTagCompound) = node.save(nbt)
 
   /**
    * Handy function for returning a list of results.

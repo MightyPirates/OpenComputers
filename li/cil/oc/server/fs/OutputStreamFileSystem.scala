@@ -24,7 +24,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     } else throw new FileNotFoundException()
   }
 
-  override def file(handle: Int): api.fs.Handle = Option(super.file(handle)).orElse(handles.get(handle)).orNull
+  override def getHandle(handle: Int): api.fs.Handle = Option(super.getHandle(handle)).orElse(handles.get(handle)).orNull
 
   override def close() {
     super.close()

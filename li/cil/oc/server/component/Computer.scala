@@ -217,7 +217,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     stateMonitor.synchronized(state match {
       // Computer is rebooting.
       case Computer.State.Rebooting => {
-        state = Computer.State.Stopped
+        close()
         cleanup()
         start()
       }
@@ -613,6 +613,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.pushNumber(Config.timeout)
       lua.setGlobal("timeout")
 
+      // Component interaction stuff.
+      lua.newTable()
+
       lua.pushScalaFunction(lua => components.synchronized {
         val filter = if (lua.isString(1)) Option(lua.toString(1)) else None
         lua.newTable(0, components.size)
@@ -625,7 +628,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }
         1
       })
-      lua.setGlobal("componentList")
+      lua.setField(-2, "list")
 
       lua.pushScalaFunction(lua => components.synchronized {
         components.get(lua.checkString(1)) match {
@@ -638,7 +641,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             2
         }
       })
-      lua.setGlobal("componentType")
+      lua.setField(-2, "type")
 
       lua.pushScalaFunction(lua => {
         owner.node.network.sendToAddress(owner.node, lua.checkString(1), "component.methods") match {
@@ -660,7 +663,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             2
         }
       })
-      lua.setGlobal("componentMethods")
+      lua.setField(-2, "methods")
 
       // Set up functions used to send component.invoke network messages.
       def parseArgument(lua: LuaState, index: Int): AnyRef = lua.`type`(index) match {
@@ -773,7 +776,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             3
         }
       })
-      lua.setGlobal("componentInvoke")
+      lua.setField(-2, "invoke")
+
+      lua.setGlobal("component")
 
       // List of installed GPUs - this is used during boot to allow giving some
       // feedback on the process, since booting can take some time. It feels a
@@ -894,8 +899,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         lua.resume(1, 1)
       }
       else stateMonitor.synchronized(signals.dequeueFirst(_ => true)) match {
-        case None => lua.resume(1, 0)
-        case Some(signal) => {
+        case Some(signal) =>
           lua.pushString(signal.name)
           signal.args.foreach {
             case Unit => lua.pushNil()
@@ -905,7 +909,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             case arg: Array[Byte] => lua.pushByteArray(arg)
           }
           lua.resume(1, 1 + signal.args.length)
-        }
+        case _ =>
+          lua.resume(1, 0)
       }
       cpuTime += System.nanoTime() - cpuStart
 
@@ -951,10 +956,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         // signalled by boolean values, where `false` means shut down, `true`
         // means reboot (i.e shutdown then start again).
         else if (results == 1 && lua.isBoolean(2)) {
-          val reboot = lua.toBoolean(2)
-          close()
-          if (reboot)
+          if (lua.toBoolean(2))
             state = Computer.State.Rebooting
+          else
+            close()
         }
         else {
           // Something else, just pop the results and try again.
@@ -1020,7 +1025,7 @@ object Computer {
   trait Environment extends tileentity.Environment with tileentity.Persistable with Context {
     val node = api.Network.createComponent(api.Network.createNode(this, "computer", Visibility.Network))
 
-    node.visibility(Visibility.Neighbors)
+    node.setVisibility(Visibility.Neighbors)
 
     protected val instance: Computer
 

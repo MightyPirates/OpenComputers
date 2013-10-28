@@ -12,7 +12,7 @@ end
 
 local line = nil
 while true do
-  local w, h = gpu.resolution()
+  local w, h = component.primary("gpu").getResolution()
   term.clear()
   term.cursorBlink(false)
   local i = 1
@@ -23,9 +23,9 @@ while true do
         return 
       end
     end
-    if line:ulen() > w then
-      print(line:usub(1, w))
-      line = line:usub(w + 1)
+    if unicode.len(line) > w then
+      print(unicode.sub(line, 1, w))
+      line = unicode.sub(line, w + 1)
     else
       print(line)
       line = nil

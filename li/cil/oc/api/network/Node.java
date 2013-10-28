@@ -2,7 +2,6 @@ package li.cil.oc.api.network;
 
 import li.cil.oc.api.Persistable;
 import li.cil.oc.api.network.environment.Environment;
-import li.cil.oc.api.network.environment.ManagedEnvironment;
 
 /**
  * A single node in a {@link Network}.
@@ -69,8 +68,6 @@ public interface Node extends Persistable {
      */
     Visibility reachability();
 
-    // ----------------------------------------------------------------------- //
-
     /**
      * The address of the node, so that it can be found in the network.
      * <p/>
@@ -93,18 +90,4 @@ public interface Node extends Persistable {
      * change this value and do not return anything that it wasn't set to.
      */
     Network network();
-
-    // ----------------------------------------------------------------------- //
-
-    /**
-     * This is called once per tick.
-     * <p/>
-     * If the node is held by a {@link ManagedEnvironment} this function will
-     * also automatically be called, i.e. a managed environment should
-     * <em>not</em> call this function. Normal environments (tile entities, e.g)
-     * however <em>should</em> call this function in their own update method.
-     */
-    void update();
-
-    Object[] receive(Message message);
 }

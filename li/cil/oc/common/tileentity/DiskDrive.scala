@@ -46,7 +46,7 @@ class DiskDrive extends Rotatable with Environment with ComponentInventory {
     super.onItemAdded(slot, item)
     components(slot) match {
       case Some(environment) => environment.node match {
-        case component: Component => component.visibility(Visibility.Network)
+        case component: Component => component.setVisibility(Visibility.Network)
       }
       case _ =>
     }

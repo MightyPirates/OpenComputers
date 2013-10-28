@@ -1,7 +1,9 @@
 package li.cil.oc.api.fs;
 
+import java.io.IOException;
+
 /**
- * Represents a handle to a file opened from a `FileSystem`.
+ * Represents a handle to a file opened from a {@link FileSystem}.
  */
 public interface Handle {
     /**
@@ -18,8 +20,8 @@ public interface Handle {
      * Closes the handle.
      * <p/>
      * For example, if there is an underlying stream, this should close that
-     * stream. Any future calls to `read` or `write` should throw an
-     * `IOException` after this function was called.
+     * stream. Any future calls to {@link #read} or {@link #write} should throw an
+     * <tt>IOException</tt> after this function was called.
      */
     void close();
 
@@ -32,11 +34,11 @@ public interface Handle {
      *
      * @param into the buffer to read the data into.
      * @return the number of bytes read; -1 if there are no more bytes (EOF).
-     * @throws java.io.IOException if the file was opened in writing mode or an
-     *                             I/O error occurred or the file was already
-     *                             closed.
+     * @throws IOException if the file was opened in writing mode or an
+     *                     I/O error occurred or the file was already
+     *                     closed.
      */
-    int read(byte[] into);
+    int read(byte[] into) throws IOException;
 
     /**
      * Jump to the specified position in the file, if possible.
@@ -46,8 +48,9 @@ public interface Handle {
      *
      * @param to the position in the file to jump to.
      * @return the resulting position in the file.
+     * @throws IOException if the file was opened in write mode.
      */
-    long seek(long to);
+    long seek(long to) throws IOException;
 
     /**
      * Tries to write all the data from the specified array into the file.
@@ -55,9 +58,9 @@ public interface Handle {
      * For files opened in read mode this should always throw an exception.
      *
      * @param value the data to write into the file.
-     * @throws java.io.IOException if the file was opened in read-only mode, or
-     *                             another I/O error occurred (no more space,
-     *                             for example), or the file was already closed.
+     * @throws IOException if the file was opened in read-only mode, or
+     *                     another I/O error occurred (no more space,
+     *                     for example), or the file was already closed.
      */
-    void write(byte[] value);
+    void write(byte[] value) throws IOException;
 }

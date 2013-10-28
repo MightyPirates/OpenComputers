@@ -24,11 +24,12 @@ event = {}
 --[[ Error handler for ALL event callbacks. If this throws an error or is not,
      set the computer will immediately shut down. ]]
 function event.error(message)
-  local log = io.open("tmp/event.log", "a")
-  if log then
-    log:write(message .. "\n")
-    log:close()
-  end
+  io.stderr:write(message)
+  -- local log = io.open("tmp/event.log", "a")
+  -- if log then
+  --   log:write(message .. "\n")
+  --   log:close()
+  -- end
 end
 
 function event.fire(name, ...)
@@ -45,7 +46,7 @@ function event.fire(name, ...)
     -- Copy the listener lists because they may be changed by callbacks.
     local listeners = copy(listenersFor(name, false), listenersFor(name, true))
     for _, callback in ipairs(listeners) do
-      local result, message = xpcall(callback, debug.traceback, name, ...)
+      local result, message = pcall(callback, name, ...)
       if not result then
         if not (event.error and pcall(event.error, message)) then
           os.shutdown()

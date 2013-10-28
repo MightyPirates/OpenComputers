@@ -25,7 +25,7 @@ function component.primary(componentType, ...)
     local address
     if args[1] ~= nil then
       for c in component.list(componentType) do
-        if c:usub(1, args[1]:ulen()) == args[1] then
+        if c:sub(1, args[1]:len()) == args[1] then
           address = c
           break
         end
@@ -33,7 +33,7 @@ function component.primary(componentType, ...)
       assert(address, "no such component")
     end
     local wasAvailable = component.isAvailable(componentType)
-    primaries[componentType] = component.proxy(address)
+    primaries[componentType] = address and component.proxy(address) or nil
     if component.isAvailable(componentType) then
       event.fire("component_available", componentType)
     elseif wasAvailable then

@@ -14,7 +14,7 @@ local function findFile(name, path, ext)
       for file in list do
         files[file] = true
       end
-      if ext and name:usub(-(1 + ext:ulen())) == "." .. ext then
+      if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
         if files[name] then
           return true, fs.concat(path, name)
         end
@@ -29,7 +29,7 @@ local function findFile(name, path, ext)
     end
     return false
   end
-  if name:usub(1, 1) == "/" then
+  if unicode.sub(name, 1, 1) == "/" then
     local found, where = findIn("/")
     if found then return where end
   else
@@ -185,9 +185,9 @@ function shell.parse(...)
   local options = {}
   for i = 1, params.n do
     local param = params[i]
-    if param:usub(1, 1) == "-" then
-      for j = 2, param:ulen() do
-        options[param:usub(j, j)] = true
+    if unicode.sub(param, 1, 1) == "-" then
+      for j = 2, unicode.len(param) do
+        options[unicode.sub(param, j, j)] = true
       end
     else
       table.insert(args, param)
@@ -204,7 +204,7 @@ function shell.path(...)
     path = {}
     for p in string:gmatch(args[1], "[^:]") do
       p = fs.canonical(string.trim(p))
-      if p:usub(1, 1) ~= "/" then
+      if unicode.sub(p, 1, 1) ~= "/" then
         p = "/" .. p
       end
       table.insert(path, p)
@@ -214,7 +214,7 @@ function shell.path(...)
 end
 
 function shell.resolve(path)
-  if path:usub(1, 1) == "/" then
+  if unicode.sub(path, 1, 1) == "/" then
     return fs.canonical(path)
   else
     return fs.concat(shell.cwd(), path)
