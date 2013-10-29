@@ -21,12 +21,23 @@ os.execute = function(command)
   return shell.execute(head, table.unpack(args))
 end
 
+function os.exit()
+  local result, reason = shell.kill(coroutine.running())
+  if result then
+    coroutine.yield() -- never returns
+  end
+  error(reason, 2)
+end
+
 os.remove = fs.remove
 
 os.rename = fs.rename
 
 function os.sleep(timeout)
-  event.wait(nil, timeout)
+  local deadline = os.uptime() + timeout
+  repeat
+    event.wait(deadline - os.uptime())
+  until os.uptime() >= deadline
 end
 
 function os.tmpname()

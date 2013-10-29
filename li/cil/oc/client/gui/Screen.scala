@@ -85,6 +85,7 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
     Screen.init(mc.renderEngine)
     val (w, h) = screen.instance.resolution
     changeSize(w, h)
+    Keyboard.enableRepeatEvents(true)
   }
 
   override def onGuiClosed() = {
@@ -93,6 +94,7 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
     for ((code, char) <- pressedKeys) {
       PacketSender.sendKeyUp(screen, char, code)
     }
+    Keyboard.enableRepeatEvents(false)
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {

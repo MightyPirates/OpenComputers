@@ -23,6 +23,7 @@ import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.math.ScalaNumber
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -681,39 +682,38 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         lua.newTable()
         var count = 0
         value.foreach {
-          case (entry, index) =>
-            pushResult(lua, entry)
+          case (x, index) => {
+            x match {
+              case (entry: ScalaNumber) =>
+                pushResult(lua, entry.underlying())
+              case (entry) =>
+                pushResult(lua, entry.asInstanceOf[AnyRef])
+            }
             lua.rawSet(-2, index + 1)
             count = count + 1
+          }
         }
         lua.pushString("n")
         lua.pushInteger(count)
         lua.rawSet(-3)
       }
 
-      def pushResult(lua: LuaState, value: Any): Unit = value match {
+      def pushResult(lua: LuaState, value: AnyRef): Unit = value match {
         case null | Unit => lua.pushNil()
-        case value: Boolean => lua.pushBoolean(value)
-        case value: Byte => lua.pushNumber(value)
-        case value: Short => lua.pushNumber(value)
-        case value: Int => lua.pushNumber(value)
-        case value: Long => lua.pushNumber(value)
-        case value: Float => lua.pushNumber(value)
-        case value: Double => lua.pushNumber(value)
-        case value: String => lua.pushString(value)
-        case value: Array[Byte] => lua.pushByteArray(value)
-        case value: Array[_] => pushList(value.zipWithIndex.iterator)
-        case value: Product => pushList(value.productIterator.zipWithIndex)
-        case value: Seq[_] => pushList(value.zipWithIndex.iterator)
-        // TODO maps?
-        // TODO I fear they are, but check if the following are really necessary for Java interop.
         case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
+        case value: java.lang.Character => lua.pushString(String.valueOf(value))
         case value: java.lang.Byte => lua.pushNumber(value.byteValue)
         case value: java.lang.Short => lua.pushNumber(value.shortValue)
         case value: java.lang.Integer => lua.pushNumber(value.intValue)
         case value: java.lang.Long => lua.pushNumber(value.longValue)
         case value: java.lang.Float => lua.pushNumber(value.floatValue)
         case value: java.lang.Double => lua.pushNumber(value.doubleValue)
+        case value: java.lang.String => lua.pushString(value)
+        case value: Array[Byte] => lua.pushByteArray(value)
+        case value: Array[_] => pushList(value.zipWithIndex.iterator)
+        case value: Product => pushList(value.productIterator.zipWithIndex)
+        case value: Seq[_] => pushList(value.zipWithIndex.iterator)
+        // TODO maps?
         case _ =>
           OpenComputers.log.warning("A component callback tried to return an unsupported value of type " + value.getClass.getName + ".")
           lua.pushNil()
@@ -738,23 +738,27 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
               1
           }
         } catch {
-          case _: NoSuchMethodException =>
-            lua.pushBoolean(false)
-            lua.pushString("no such method")
-            2
           case e: IllegalArgumentException if e.getMessage != null =>
             lua.pushBoolean(false)
             lua.pushString(e.getMessage)
-            2
-          case _: IllegalArgumentException =>
-            lua.pushBoolean(false)
-            lua.pushString("bad argument")
             2
           case e: Throwable if e.getMessage != null =>
             lua.pushBoolean(true)
             lua.pushNil()
             lua.pushString(e.getMessage)
             3
+          case _: ArrayIndexOutOfBoundsException =>
+            lua.pushBoolean(false)
+            lua.pushString("index out of bounds")
+            2
+          case _: IllegalArgumentException =>
+            lua.pushBoolean(false)
+            lua.pushString("bad argument")
+            2
+          case _: NoSuchMethodException =>
+            lua.pushBoolean(false)
+            lua.pushString("no such method")
+            2
           case _: FileNotFoundException =>
             lua.pushBoolean(true)
             lua.pushNil()

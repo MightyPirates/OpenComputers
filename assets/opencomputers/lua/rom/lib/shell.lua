@@ -2,6 +2,7 @@ local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
                  md="mkdir", cls="clear", more="less", rs="redstone"}
+local running = {}
 
 local function findFile(name, path, ext)
   checkArg(1, name, "string")
@@ -78,22 +79,42 @@ function shell.cwd(path)
 end
 
 function shell.execute(program, ...)
-  local where = findFile(program, path, "lua")
-  if not where then
-    return nil, "program not found"
-  end
-  program, reason = loadfile(where, "t", setmetatable({}, {__index=_ENV}))
-  if not program then
-    return nil, reason
-  end
-  local args, co, result = table.pack(...), coroutine.create(program)
-  repeat
-    result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
-    if coroutine.status(co) ~= "dead" then
-      args = table.pack(event.wait(result[2])) -- emulate CC behavior
+  if type(program) ~= "function" then
+    local where = findFile(program, path, "lua")
+    if not where then
+      return nil, "program not found"
     end
-  until coroutine.status(co) == "dead"
+    local code, reason = loadfile(where, "t", setmetatable({}, {__index=_ENV}))
+    if not code then
+      return nil, reason
+    end
+    program = code
+  end
+  local co, args, result = coroutine.create(program), table.pack(true, ...), nil
+  running[co] = true
+  while running[co] and args[1] do
+    result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
+    if coroutine.status(co) ~= "dead" then
+      -- Emulate CC behavior by making yields a filtered event.wait.
+      args = table.pack(pcall(event.wait, math.huge,
+                              table.unpack(result, 2, result.n)))
+    else
+      break
+    end
+  end
+  running[co] = nil
+  if not args[1] then
+    return false, "interrupted"
+  end
   return table.unpack(result, 1, result.n)
+end
+
+function shell.kill(co)
+  if running[co] ~= nil then
+    running[co] = nil
+    return true
+  end
+  return nil, "not a program thread"
 end
 
 function shell.parse(...)

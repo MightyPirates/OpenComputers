@@ -1,7 +1,7 @@
 local deadline = 0
-
+local realTime = os.realTime
 local function checkDeadline()
-  if os.realTime() > deadline then
+  if realTime() > deadline then
     error("too long without yielding", 0)
   end
 end
@@ -91,11 +91,10 @@ sandbox = {
       end
       local args = table.pack(...)
       while true do -- for consecutive sysyields
-        if not debug.gethook(co) then -- don't reset counter
-          debug.sethook(co, checkDeadline, "", 10000)
-        end
+        debug.sethook(co, checkDeadline, "", 10000)
         local result = table.pack(
           coroutine.resume(co, table.unpack(args, 1, args.n)))
+        debug.sethook(co) -- avoid gc issues
         checkDeadline()
         if result[1] then -- success: (true, sysval?, ...?)
           if coroutine.status(co) == "dead" then -- return: (true, ...)
@@ -219,6 +218,7 @@ sandbox = {
       return t2 - t1
     end,
     -- execute is reimplemented in lib/os.lua
+    -- exit is reimplemented in lib/os.lua
     -- remove is reimplemented in lib/os.lua
     -- rename is reimplemented in lib/os.lua
     time = os.time,
@@ -329,10 +329,10 @@ local function main()
             if result[1] then
               return table.unpack(result, 2, result.n)
             else
-              error("error initializing lib '" .. file .. "': " .. result[2])
+              error("error initializing lib: " .. result[2])
             end
           else
-            error("error loading lib '" .. file .. "': " .. reason)
+            error("error loading lib: " .. reason)
           end
         end
       end
@@ -366,16 +366,14 @@ local function main()
       while true do
         local result, reason = os.execute("/bin/sh -v")
         if not result then
-          error(reason)
+          error(reason, 0)
         end
       end]], os.romAddress(), os.tmpAddress()), "=init", "t", sandbox))
   end
   local co = bootstrap()
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
-    if not debug.gethook(co) then
-      debug.sethook(co, checkDeadline, "", 10000)
-    end
+    debug.sethook(co, checkDeadline, "", 10000)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
       error(tostring(result[2]), 0)
@@ -389,4 +387,4 @@ end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return xpcall(main, debug.traceback)
+return pcall(main)

@@ -6,7 +6,7 @@ end
 
 for i = 1, #args do
   local path = shell.resolve(args[i])
-  if not fs.remove(path) then
+  if not os.remove(path) then
     print(path .. ": no such file, or permission denied")
   end
 end

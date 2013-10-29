@@ -157,6 +157,10 @@ function keyboard.isControlDown()
   return (pressedCodes[keyboard.keys.lcontrol] or pressedCodes[keyboard.keys.rcontrol]) ~= nil
 end
 
+function keyboard.isAltDown()
+  return (pressedCodes[keyboard.keys.lmenu] or pressedCodes[keyboard.keys.rmenu]) ~= nil
+end
+
 function keyboard.isShiftDown()
   return (pressedCodes[keyboard.keys.lshift] or pressedCodes[keyboard.keys.rshift]) ~= nil
 end

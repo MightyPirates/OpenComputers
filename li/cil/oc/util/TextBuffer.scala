@@ -43,9 +43,10 @@ class TextBuffer(var width: Int, var height: Int) {
     else false
   }
 
-  /**
-   * String based fill starting at a specified location.
-   */
+  /** Get the char at the specified index. */
+  def get(col: Int, row: Int) = buffer(row)(col)
+
+  /** String based fill starting at a specified location. */
   def set(col: Int, row: Int, s: String): Boolean =
     if (row < 0 || row >= height) false
     else {
@@ -59,9 +60,7 @@ class TextBuffer(var width: Int, var height: Int) {
       changed
     }
 
-  /**
-   * Fills an area of the buffer with the specified character.
-   */
+  /** Fills an area of the buffer with the specified character. */
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char): Boolean = {
     // Anything to do at all?
     if (w <= 0 || h <= 0) return false

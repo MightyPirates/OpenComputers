@@ -48,6 +48,13 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
       case _ => null
     }
 
+  @LuaCallback(value = "get", asynchronous = true)
+  def get(context: Context, args: Arguments): Array[Object] = {
+    val x = args.checkInteger(1)
+    val y = args.checkInteger(2)
+    trySend("screen.get", x - 1, y - 1)
+  }
+
   @LuaCallback("set")
   def set(context: Context, args: Arguments): Array[Object] = {
     val x = args.checkInteger(1)

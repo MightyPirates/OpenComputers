@@ -187,7 +187,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
             case _ => // Maybe file system was accessed from somewhere else.
           }
         }
-      case Array() if message.name == "computer.stopped" =>
+      case Array() if message.name == "computer.stopped" ||
+                      message.name == "computer.started" =>
         owners.get(message.source.address) match {
           case Some(set) =>
             set.foreach(handle => Option(fileSystem.getHandle(handle)) match {

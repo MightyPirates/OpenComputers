@@ -14,7 +14,7 @@ while term.isAvailable() do
   local expression = load("return " .. command, "=stdin", "t", env)
   local code = expression or statement
   if code then
-    local result = table.pack(pcall(code))
+    local result = table.pack(shell.execute(code))
     if not result[1] or result.n > 1 then
       print(table.unpack(result, 2, result.n))
     end

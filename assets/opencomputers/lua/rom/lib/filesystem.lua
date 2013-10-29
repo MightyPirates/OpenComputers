@@ -78,13 +78,15 @@ function filesystem.canonical(path)
 end
 
 function filesystem.concat(pathA, pathB, ...)
-  local function concat(a, b, ...)
+  checkArg(1, pathA, "string")
+  local function concat(n, a, b, ...)
     if not b then
       return a
     end
-    return concat(a .. "/" .. b, ...)
+    checkArg(n, b, "string")
+    return concat(n + 1, a .. "/" .. b, ...)
   end
-  return filesystem.canonical(concat(pathA, pathB, ...))
+  return filesystem.canonical(concat(2, pathA, pathB, ...))
 end
 
 function filesystem.get(path)
@@ -367,6 +369,7 @@ end
 -------------------------------------------------------------------------------
 
 function filesystem.open(path, mode)
+  checkArg(1, path, "string")
   mode = tostring(mode or "r")
   checkArg(2, mode, "string")
   assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],

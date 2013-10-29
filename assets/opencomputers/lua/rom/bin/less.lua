@@ -35,12 +35,16 @@ while true do
   term.cursor(1, h)
   term.write(":")
   term.cursorBlink(true)
-  local event, address, char, code = event.wait("key_down")
-  if component.isPrimary(address) then
-    if code == keyboard.keys.q then
-      term.cursorBlink(false)
-      term.clearLine()
-      return
+  while true do
+    local event, address, char, code = coroutine.yield("key_down")
+    if component.isPrimary(address) then
+      if code == keyboard.keys.q then
+        term.cursorBlink(false)
+        term.clearLine()
+        return
+      elseif code == keyboard.keys.space then
+        break
+      end
     end
   end
 end

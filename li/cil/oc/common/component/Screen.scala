@@ -28,6 +28,8 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
     else false
   }
 
+  def get(col: Int, row: Int) = buffer.get(col, row)
+
   def set(col: Int, row: Int, s: String) = if (col < buffer.width && (col >= 0 || -col < s.length)) {
     // Make sure the string isn't longer than it needs to be, in particular to
     // avoid sending too much data to our clients.
@@ -81,6 +83,8 @@ object Screen {
         case Array() if message.name == "screen.maxResolution" =>
           val (w, h) = instance.maxResolution
           Array(Int.box(w), Int.box(h))
+        case Array(x: Integer, y: Integer) if message.name == "screen.get" =>
+          Array(Char.box(instance.get(x, y)))
         case Array(x: Integer, y: Integer, value: String) if message.name == "screen.set" =>
           instance.set(x, y, value)
           Array(Boolean.box(true))

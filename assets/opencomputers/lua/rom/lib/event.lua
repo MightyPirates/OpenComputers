@@ -1,15 +1,4 @@
--- We track listeners per thread to allow killing them when their coroutine
--- dies / goes out of scope.
-local threads = setmetatable({}, {__mode = "k"})
-local closestTimer = 0 -- for event.wait to know how to sleep
-
-local function listeners(create)
-  local thread = coroutine.running()
-  if not threads[thread] and create then
-    threads[thread] = {listeners = {[false] = {}, [true] = {}}, timers = {}}
-  end
-  return threads[thread]
-end
+local listeners, timers = {}, {}
 
 -------------------------------------------------------------------------------
 
@@ -36,65 +25,48 @@ function event.fire(name, ...)
   -- timer check (for example if we had no signal in event.wait()).
   if name then
     checkArg(1, name, "string")
-    local function listeners()
-      -- Copy the listener lists because they may be changed by callbacks.
-      local list = {}
-      for thread, info in pairs(threads) do
-        if coroutine.status(thread) == "dead" then
-          threads[thread] = nil
+    if listeners[name] then
+      local function callbacks()
+        local list = {}
+        for index, listener in ipairs(listeners[name]) do
+          list[index] = listener
+        end
+        return list
+      end
+      for _, callback in ipairs(callbacks()) do
+        call(callback, name, ...)
+      end
+    end
+  end
+  local function elapsed()
+    local list = {}
+    for id, timer in pairs(timers) do
+      if timer.after <= os.uptime() then
+        table.insert(list, timer.callback)
+        timer.times = timer.times - 1
+        if timer.times <= 0 then
+          timers[id] = nil
         else
-          for weak, listeners in pairs(info.listeners) do
-            if weak then
-              for name in pairs(listeners) do -- clean up weak tables
-                if #listeners[name] == 0 then
-                  listeners[name] = nil
-                end
-              end
-            end
-            if listeners[name] then
-              for _, listener in ipairs(listeners[name]) do
-                table.insert(list, listener)
-              end
-            end
-          end
-        end
-      end
-      return list
-    end
-    for _, callback in ipairs(listeners()) do
-      call(callback, name, ...)
-    end
-  end
-  local elapsed = {}
-  for thread, info in pairs(threads) do
-    if coroutine.status(thread) == "dead" then
-      threads[thread] = nil
-    else
-      for id, timer in pairs(info.timers) do
-        if timer.after <= os.uptime() then
-          table.insert(elapsed, timer.callback)
-          info.timers[id] = nil
+          timer.after = timer.after + timer.interval
         end
       end
     end
+    return list
   end
-  for _, callback in ipairs(elapsed) do
+  for _, callback in ipairs(elapsed()) do
     call(callback)
   end
 end
 
-function event.ignore(name, callback, weak)
+function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  weak = weak ~= nil and weak ~= false
-  local list = listeners(false)
-  if list and list.listeners[weak] and list.listeners[weak][name] then
-    local listeners = list.listeners[weak][name]
-    for i = 1, #listeners do
-      if listeners[i] == callback then
-        table.remove(listeners, i)
-        if #listeners == 0 then
-          list.listeners[weak][name] = nil
+  if listeners[name] then
+    for i = 1, #listeners[name] do
+      if listeners[name][i] == callback then
+        table.remove(listeners[name], i)
+        if #listeners[name] == 0 then
+          list.listeners[name] = nil
         end
         return true
       end
@@ -103,25 +75,19 @@ function event.ignore(name, callback, weak)
   return false
 end
 
-function event.listen(name, callback, weak)
+function event.listen(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
-  weak = weak ~= nil and weak ~= false
-  local list = listeners(true).listeners[weak]
-  if not list[name] then
-    if weak then
-      list[name] = setmetatable({}, {__mode = "v"})
-    else
-      list[name] = {}
+  if listeners[name] then
+    for i = 1, #listeners[name] do
+      if listeners[name][i] == callback then
+        return false
+      end
     end
+  else
+    listeners[name] = {}
   end
-  list = list[name]
-  for i = 1, #list do
-    if list[i] == callback then
-      return false
-    end
-  end
-  table.insert(list, callback)
+  table.insert(listeners[name], callback)
   return true
 end
 
@@ -129,48 +95,74 @@ end
 
 function event.cancel(timerId)
   checkArg(1, timerId, "number")
-  local list = listeners(false)
-  if list and list.timers[timerId] then
-    list.timers[timerId] = nil
+  if timers[timerId] then
+    timers[timerId] = nil
     return true
   end
   return false
 end
 
-function event.interval(frequency, callback)
-  local interval = {}
-  local function onTimer()
-    interval.id = event.timer(frequency, onTimer)
-    callback()
-  end
-  interval.id = event.timer(frequency, onTimer)
-  return interval
-end
-
-function event.timer(timeout, callback)
-  local list, id = listeners(true).timers
+function event.timer(interval, callback, times)
+  checkArg(1, interval, "number")
+  checkArg(2, callback, "function")
+  checkArg(3, times, "number", "nil")
+  local id
   repeat
     id = math.floor(math.random(1, 0x7FFFFFFF))
-  until not list[id]
-  list[id] = {after = os.uptime() + timeout, callback = callback}
-  if closestTimer < os.uptime() or closestTimer > list[id].after then
-    closestTimer = list[id].after
-  end
+  until not timers[id]
+  timers[id] = {
+    interval = interval,
+    after = os.uptime() + interval,
+    callback = callback,
+    times = times or 1
+  }
   return id
 end
 
-function event.wait(filter, seconds)
-  checkArg(1, filter, "string", "nil")
-  seconds = seconds or (filter and math.huge or 0/0)
-  checkArg(2, seconds, "number")
-  local function isNaN(n) return n ~= n end
-  local deadline = os.uptime() + (isNaN(seconds) and 0 or seconds)
+-------------------------------------------------------------------------------
+
+function event.wait(seconds, name, ...)
+  checkArg(1, seconds, "number", "nil")
+  checkArg(2, name, "string", "nil")
+  local filter = table.pack(...)
+  local hasFilter = name ~= nil
+  for i = 1, filter.n do
+    hasFilter = hasFilter or filter[i] ~= nil
+  end
+
+  local function matches(signal)
+    if not (not name or type(signal[1]) == "string" and signal[1]:match(name)) then
+      return false
+    end
+    for i = 1, filter.n do
+      if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
+        return false
+      end
+    end
+    return true
+  end
+
+  local deadline = seconds and
+                   (os.uptime() + seconds) or
+                   (hasFilter and math.huge or 0)
   repeat
-    local closest = math.min(closestTimer, isNaN(seconds) and math.huge or deadline)
+    local closest = seconds and deadline or math.huge
+    for _, timer in pairs(timers) do
+      closest = math.min(closest, timer.after)
+    end
     local signal = table.pack(os.signal(nil, closest - os.uptime()))
     event.fire(table.unpack(signal, 1, signal.n))
-    if filter and type(signal[1]) == "string" and signal[1]:match(filter) then
+    if event.shouldInterrupt() then
+      error("interrupted", 0)
+    end
+    if not (seconds or hasFilter) or matches(signal) then
       return table.unpack(signal, 1, signal.n)
     end
   until os.uptime() >= deadline
+end
+
+function event.shouldInterrupt()
+  return keyboard.isControlDown() and
+         keyboard.isAltDown() and
+         keyboard.isKeyDown(keyboard.keys.c)
 end
