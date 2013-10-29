@@ -34,9 +34,10 @@ os.remove = fs.remove
 os.rename = fs.rename
 
 function os.sleep(timeout)
-  local deadline = os.uptime() + timeout
+  checkArg(1, timeout, "number", "nil")
+  local deadline = os.uptime() + (timeout or 0)
   repeat
-    event.wait(deadline - os.uptime())
+    event.pull(deadline - os.uptime())
   until os.uptime() >= deadline
 end
 

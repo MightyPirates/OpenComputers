@@ -8,7 +8,7 @@ end
 while true do
   if not term.isAvailable() then -- don't clear unless we lost the term
     while not term.isAvailable() do
-      os.sleep()
+      event.pull("term_available")
     end
     term.clear()
     if options.v then

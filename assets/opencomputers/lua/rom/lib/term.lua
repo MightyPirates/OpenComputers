@@ -286,7 +286,7 @@ function term.read(history)
 
   term.cursorBlink(true)
   while term.isAvailable() do
-    local ok, event, address, charOrValue, code = pcall(event.wait)
+    local ok, event, address, charOrValue, code = pcall(event.pull)
     if not ok then
       cleanup()
       error("interrupted", 0)
@@ -358,7 +358,7 @@ local function onComponentAvailable(_, componentType)
   if (componentType == "gpu" and component.isAvailable("screen")) or
      (componentType == "screen" and component.isAvailable("gpu"))
   then
-    event.fire("term_available")
+    os.pushSignal("term_available")
   end
 end
 
@@ -366,7 +366,7 @@ local function onComponentUnavailable(_, componentType)
   if (componentType == "gpu" and component.isAvailable("screen")) or
      (componentType == "screen" and component.isAvailable("gpu"))
   then
-    event.fire("term_unavailable")
+    os.pushSignal("term_unavailable")
   end
 end
 

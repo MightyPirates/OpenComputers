@@ -96,8 +96,11 @@ function shell.execute(program, ...)
     result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
     if coroutine.status(co) ~= "dead" then
       -- Emulate CC behavior by making yields a filtered event.wait.
-      args = table.pack(pcall(event.wait, math.huge,
-                              table.unpack(result, 2, result.n)))
+      if type(result[2]) == "string" then
+        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
+      else
+        args = {true, n=1}
+      end
     else
       break
     end

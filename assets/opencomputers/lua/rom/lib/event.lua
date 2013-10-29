@@ -1,43 +1,41 @@
 local listeners, timers = {}, {}
 
--------------------------------------------------------------------------------
+local function matches(signal, name, filter)
+  if name and not (type(signal[1]) == "string" and signal[1]:match(name))
+  then
+    return false
+  end
+  for i = 1, filter.n do
+    if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
+      return false
+    end
+  end
+  return true
+end
 
-event = {}
-
---[[ Error handler for ALL event callbacks. If this throws an error or is not,
-     set the computer will immediately shut down. ]]
-function event.error(message)
-  local log = io.open("tmp/event.log", "a")
-  if log then
-    log:write(message .. "\n")
-    log:close()
+local function call(callback, ...)
+  local result, message = pcall(callback, ...)
+  if not result and not (event.error and pcall(event.error, message)) then
+    os.shutdown()
   end
 end
 
-function event.fire(name, ...)
-  local function call(callback, ...)
-    local result, message = pcall(callback, ...)
-    if not result and not (event.error and pcall(event.error, message)) then
-      os.shutdown()
+local function dispatch(signal, ...)
+  if listeners[signal] then
+    local function callbacks()
+      local list = {}
+      for index, listener in ipairs(listeners[signal]) do
+        list[index] = listener
+      end
+      return list
+    end
+    for _, callback in ipairs(callbacks()) do
+      call(callback, signal, ...)
     end
   end
-  -- We may have no arguments at all if the call is just used to drive the
-  -- timer check (for example if we had no signal in event.wait()).
-  if name then
-    checkArg(1, name, "string")
-    if listeners[name] then
-      local function callbacks()
-        local list = {}
-        for index, listener in ipairs(listeners[name]) do
-          list[index] = listener
-        end
-        return list
-      end
-      for _, callback in ipairs(callbacks()) do
-        call(callback, name, ...)
-      end
-    end
-  end
+end
+
+local function tick()
   local function elapsed()
     local list = {}
     for id, timer in pairs(timers) do
@@ -55,6 +53,20 @@ function event.fire(name, ...)
   end
   for _, callback in ipairs(elapsed()) do
     call(callback)
+  end
+end
+
+-------------------------------------------------------------------------------
+
+event = {}
+
+--[[ Error handler for ALL event callbacks. If this throws an error or is not,
+     set the computer will immediately shut down. ]]
+function event.error(message)
+  local log = io.open("tmp/event.log", "a")
+  if log then
+    log:write(message .. "\n")
+    log:close()
   end
 end
 
@@ -121,41 +133,45 @@ end
 
 -------------------------------------------------------------------------------
 
-function event.wait(seconds, name, ...)
-  checkArg(1, seconds, "number", "nil")
-  checkArg(2, name, "string", "nil")
-  local filter = table.pack(...)
-  local hasFilter = name ~= nil
-  for i = 1, filter.n do
-    hasFilter = hasFilter or filter[i] ~= nil
+function event.pull(...)
+  local args = table.pack(...)
+  local seconds, name, filter
+  if type(args[1]) == "string" then
+    name = args[1]
+    filter = table.pack(table.unpack(args, 2, args.n))
+  else
+    checkArg(1, args[1], "number", "nil")
+    checkArg(2, args[2], "string", "nil")
+    seconds = args[1]
+    name = args[2]
+    filter = table.pack(table.unpack(args, 3, args.n))
   end
 
-  local function matches(signal)
-    if not (not name or type(signal[1]) == "string" and signal[1]:match(name)) then
-      return false
-    end
+  local hasFilter = name ~= nil
+  if not hasFilter then
     for i = 1, filter.n do
-      if filter[i] ~= nil and filter[i] ~= signal[i + 1] then
-        return false
-      end
+      hasFilter = hasFilter or filter[i] ~= nil
     end
-    return true
   end
 
   local deadline = seconds and
                    (os.uptime() + seconds) or
                    (hasFilter and math.huge or 0)
+
   repeat
     local closest = seconds and deadline or math.huge
     for _, timer in pairs(timers) do
       closest = math.min(closest, timer.after)
     end
-    local signal = table.pack(os.signal(nil, closest - os.uptime()))
-    event.fire(table.unpack(signal, 1, signal.n))
+    local signal = table.pack(os.pullSignal(closest - os.uptime()))
+    if signal.n > 0 then
+      dispatch(table.unpack(signal, 1, signal.n))
+    end
+    tick()
     if event.shouldInterrupt() then
       error("interrupted", 0)
     end
-    if not (seconds or hasFilter) or matches(signal) then
+    if not (seconds or hasFilter) or matches(signal, name, filter) then
       return table.unpack(signal, 1, signal.n)
     end
   until os.uptime() >= deadline

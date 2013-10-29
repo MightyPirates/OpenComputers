@@ -46,6 +46,10 @@ end
 -------------------------------------------------------------------------------
 
 --[[ This is the global environment we make available to userland programs. ]]
+-- You'll notice that we do a lot of wrapping of native functions and adding
+-- parameter checks in those wrappers. This is to avoid errors from the host
+-- side that would push error objects - which are userdata and cannot be
+-- persisted.
 local sandbox
 sandbox = {
   assert = assert,
@@ -232,15 +236,23 @@ sandbox = {
     shutdown = function(reboot)
       coroutine.yield(reboot ~= nil and reboot ~= false)
     end,
-    signal = function(name, timeout)
-      local waitUntil = os.uptime() +
+    pushSignal = function(name, ...)
+      checkArg(1, name, "string")
+      local args = table.pack(...)
+      for i = 1, args.n do
+        checkArg(i + 1, args[i], "nil", "boolean", "string", "number")
+      end
+      return os.pushSignal(name, ...)
+    end,
+    pullSignal = function(timeout)
+      local deadline = os.uptime() +
         (type(timeout) == "number" and timeout or math.huge)
       repeat
-        local signal = table.pack(coroutine.yield(waitUntil - os.uptime()))
-        if signal.n > 0 and (name == signal[1] or name == nil) then
+        local signal = table.pack(coroutine.yield(deadline - os.uptime()))
+        if signal.n > 0 then -- not a "blind" resume?
           return table.unpack(signal, 1, signal.n)
         end
-      until os.uptime() >= waitUntil
+      until os.uptime() >= deadline
     end
   },
 
@@ -360,13 +372,13 @@ local function main()
       fs.mount("%s", "/")
       fs.mount("%s", "/tmp")
       for c, t in component.list() do
-        event.fire("component_added", c, t)
+        os.pushSignal("component_added", c, t)
       end
       term.clear()
       while true do
         local result, reason = os.execute("/bin/sh -v")
         if not result then
-          error(reason, 0)
+          print(reason)
         end
       end]], os.romAddress(), os.tmpAddress()), "=init", "t", sandbox))
   end

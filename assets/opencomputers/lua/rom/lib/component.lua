@@ -35,9 +35,9 @@ function component.primary(componentType, ...)
     local wasAvailable = component.isAvailable(componentType)
     primaries[componentType] = address and component.proxy(address) or nil
     if component.isAvailable(componentType) then
-      event.fire("component_available", componentType)
+      os.pushSignal("component_available", componentType)
     elseif wasAvailable then
-      event.fire("component_unavailable", componentType)
+      os.pushSignal("component_unavailable", componentType)
     end
   else
     assert(component.isAvailable(componentType),
