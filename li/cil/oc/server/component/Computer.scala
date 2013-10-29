@@ -65,6 +65,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private val components = mutable.Map.empty[String, String]
 
+  private val addedComponents = mutable.Set.empty[Component]
+
   private val signals = new mutable.Queue[Computer.Signal]
 
   private val rom = Option(api.FileSystem.
@@ -165,8 +167,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   def addComponent(component: Component) {
     if (!components.contains(component.address)) {
-      components += component.address -> component.name
-      signal("component_added", component.address, component.name)
+      addedComponents += component
     }
   }
 
@@ -175,9 +176,30 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       components -= component.address
       signal("component_removed", component.address, component.name)
     }
+    addedComponents -= component
+  }
+
+  private def processAddedComponents() {
+    for (component <- addedComponents) {
+      if (component.canBeSeenBy(owner.node)) {
+        components += component.address -> component.name
+        signal("component_added", component.address, component.name)
+      }
+    }
+    addedComponents.clear()
   }
 
   def update() {
+    // Add components that were added since the last update to the actual list
+    // of components if we can see them. We use this delayed approach to avoid
+    // issues with components that have a visibility lower than their
+    // reachability, because in that case if they get connected in the wrong
+    // order we wouldn't add them (since they'd be invisible in their connect
+    // message, and only become visible with a later node-to-node connection,
+    // but that wouldn't trigger a connect message anymore due to the higher
+    // reachability).
+    processAddedComponents()
+
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
     lastUpdate = System.currentTimeMillis
@@ -376,6 +398,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state != Computer.State.Stopping) // Only set while executor is running.
+
+    processAddedComponents()
 
     val computerNbt = new NBTTagCompound()
 
@@ -680,7 +704,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         val filter = if (lua.isString(1)) Option(lua.toString(1)) else None
         lua.newTable(0, components.size)
         for ((address, name) <- components) {
-          if (filter.isEmpty || name.matches(filter.get)) {
+          if (filter.isEmpty || name.contains(filter.get)) {
             lua.pushString(address)
             lua.pushString(name)
             lua.rawSet(-3)
@@ -1076,7 +1100,7 @@ object Computer {
 
     override def onMessage(message: Message) = {
       message.source match {
-        case component: Component if component.canBeSeenBy(node) =>
+        case component: Component =>
           message.name match {
             case "system.connect" => instance.addComponent(component)
             case "system.disconnect" => instance.removeComponent(component)
@@ -1103,8 +1127,10 @@ object Computer {
 
     override def onDisconnect() {
       super.onDisconnect()
-      instance.rom.foreach(rom => rom.node.network.remove(rom.node))
-      instance.tmp.foreach(tmp => tmp.node.network.remove(tmp.node))
+      instance.rom.foreach(rom =>
+        Option(rom.node.network).foreach(_.remove(rom.node)))
+      instance.tmp.foreach(tmp =>
+        Option(tmp.node.network).foreach(_.remove(tmp.node)))
     }
 
     // ----------------------------------------------------------------------- //
