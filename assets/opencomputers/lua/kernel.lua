@@ -228,6 +228,9 @@ sandbox = {
     time = os.time,
     -- tmpname is reimplemented in lib/os.lua
 
+-------------------------------------------------------------------------------
+-- Start of non-standard stuff.
+
     address = os.address,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
@@ -342,7 +345,6 @@ local function main()
           until not data
           rom.close(handle)
           local program, reason = load(buffer, "=" .. file, "t", sandbox)
-          buffer = nil
           if program then
             local result = table.pack(pcall(program))
             if result[1] then

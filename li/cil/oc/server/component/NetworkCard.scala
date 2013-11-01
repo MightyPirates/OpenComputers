@@ -61,10 +61,7 @@ class NetworkCard extends ManagedComponent {
       openPorts.clear()
     if (message.name == "network.message") message.data match {
       case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        for (node <- node.reachableNodes()) node.host match {
-          case computer: Context => computer.signal("network_message", Seq(message.source.address, Int.box(port)) ++ args: _*)
-          case _ =>
-        }
+        node.sendToReachable("computer.signal", Seq("network_message", message.source.address, Int.box(port)) ++ args: _*)
       case _ =>
     }
   }

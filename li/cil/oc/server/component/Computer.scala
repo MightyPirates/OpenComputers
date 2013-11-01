@@ -473,31 +473,42 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   }
 
   private def persist(index: Int): Array[Byte] = {
-    lua.getGlobal("persist") // ... obj persist?
+    lua.getGlobal("eris") /* ... eris */
+    lua.getField(-1, "persist") /* ... eris persist */
     if (lua.isFunction(-1)) {
-      // ... obj persist
-      lua.pushValue(index) // ... obj persist obj
-      lua.call(1, 1) // ... obj str?
+      lua.getField(LuaState.REGISTRYINDEX, "perms") /* ... eris persist perms */
+      lua.pushValue(index) // ... eris persist perms obj
+      try {
+        lua.call(2, 1) // ... eris str?
+      } catch {
+        case e: Throwable =>
+          lua.pop(1)
+          throw e
+      }
       if (lua.isString(-1)) {
-        // ... obj str
+        // ... eris str
         val result = lua.toByteArray(-1)
-        lua.pop(1) // ... obj
+        lua.pop(2) // ...
         return result
-      } // ... obj :(
-    } // ... obj :(
-    lua.pop(1) // ... obj
+      } // ... eris :(
+    } // ... eris :(
+    lua.pop(2) // ...
     Array[Byte]()
   }
 
   private def unpersist(value: Array[Byte]): Boolean = {
-    lua.getGlobal("unpersist") // ... unpersist?
+    lua.getGlobal("eris") // ... eris
+    lua.getField(-1, "unpersist") // ... eris unpersist
     if (lua.isFunction(-1)) {
-      // ... unpersist
-      lua.pushByteArray(value) // ... unpersist str
-      lua.call(1, 1) // ... obj
-      true
+      lua.getField(LuaState.REGISTRYINDEX, "uperms") /* ... eris persist uperms */
+      lua.pushByteArray(value) // ... eris unpersist uperms str
+      lua.call(2, 1) // ... eris obj
+      lua.insert(-2) // ... obj eris
+      lua.pop(1)
+      return true
     } // ... :(
-    else false
+    lua.pop(1)
+    false
   }
 
   // ----------------------------------------------------------------------- //
@@ -800,41 +811,20 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
       lua.setGlobal("component")
 
-      // List of installed GPUs - this is used during boot to allow giving some
-      // feedback on the process, since booting can take some time. It feels a
-      // bit like cheating, but it's really the only way to communicate with
-      // our components at this low level.
-      //      val gpus = owner.network.fold(Iterable.empty[String])(_.neighbors(owner).filter(_.name == "gpu").map(_.address.get)).toArray
-      //      lua.pushScalaFunction(lua => {
-      //        lua.newTable(gpus.length, 0)
-      //        for (i <- 0 until gpus.length) {
-      //          lua.pushString(gpus(i))
-      //          lua.rawSet(-2, i + 1)
-      //        }
-      //        1
-      //      })
-      //      lua.setGlobal("gpus")
-
       // Run the boot script. This sets up the permanent value tables as
       // well as making the functions used for persisting/unpersisting
       // available as globals. It also wraps the message sending functions
       // so that they yield a closure doing the actual call so that that
       // message call can be performed in a synchronized fashion.
-      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "boot.lua"), "=boot", "t")
-      lua.call(0, 0)
+      //      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "boot.lua"), "=boot", "t")
+      //      lua.call(0, 0)
+      initPerms()
 
       // Load the basic kernel which sets up the sandbox, loads the init script
       // and then runs it in a coroutine with a debug hook checking for
       // timeouts.
       lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
-      //      // Run to the first yield in kernel, to get a good idea of how much
-      //      // memory all the basic functionality we provide needs.
-      //      val results = lua.resume(1, 0)
-      //      if (lua.status(1) != LuaState.YIELD)
-      //        if (!lua.toBoolean(-2)) throw new Exception(lua.toString(-1))
-      //        else throw new Exception("kernel return unexpectedly")
-      //      lua.pop(results)
 
       // Clear any left-over signals from a previous run.
       signals.clear()
@@ -850,7 +840,76 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     false
   }
 
-  private def close(): Unit = stateMonitor.synchronized(
+  private def initPerms() {
+    // These tables must contain all java callbacks (i.e. C functions, since
+    // they are wrapped on the native side using a C function, of course).
+    // They are used when persisting/unpersisting the state so that the
+    // persistence library knows which values it doesn't have to serialize
+    // (since it cannot persist C functions).
+    lua.newTable() /* ... perms */
+    lua.newTable() /* ... uperms */
+
+    val perms = lua.getTop - 1
+    val uperms = lua.getTop
+
+    def flattenAndStore() {
+      /* ... k v */
+      // We only care for tables and functions, any value types are safe.
+      if (lua.isFunction(-1) || lua.isTable(-1)) {
+        lua.pushValue(-2) /* ... k v k */
+        lua.getTable(uperms) /* ... k v uperms[k] */
+        assert(lua.isNil(-1), "duplicate permanent value named " + lua.toString(-3))
+        lua.pop(1) /* ... k v */
+        // If we have aliases its enough to store the value once.
+        lua.pushValue(-1) /* ... k v v */
+        lua.getTable(perms) /* ... k v perms[v] */
+        val isNew = lua.isNil(-1)
+        lua.pop(1) /* ... k v */
+        if (isNew) {
+          lua.pushValue(-1) /* ... k v v */
+          lua.pushValue(-3) /* ... k v v k */
+          lua.rawSet(perms) /* ... k v ; perms[v] = k */
+          lua.pushValue(-2) /* ... k v k */
+          lua.pushValue(-2) /* ... k v k v */
+          lua.rawSet(uperms) /* ... k v ; uperms[k] = v */
+          // Recurse into tables.
+          if (lua.isTable(-1)) {
+            // Enforce a deterministic order when determining the keys, to ensure
+            // the keys are the same when unpersisting again.
+            val key = lua.toString(-2)
+            val childKeys = mutable.ArrayBuffer.empty[String]
+            lua.pushNil() /* ... k v nil */
+            while (lua.next(-2)) {
+              /* ... k v ck cv */
+              lua.pop(1) /* ... k v ck */
+              childKeys += lua.toString(-1)
+            }
+            /* ... k v */
+            childKeys.sortWith((a, b) => a.compareTo(b) < 0)
+            for (childKey <- childKeys) {
+              lua.pushString(key + "." + childKey) /* ... k v ck */
+              lua.getField(-2, childKey) /* ... k v ck cv */
+              flattenAndStore() /* ... k v */
+            }
+            /* ... k v */
+          }
+          /* ... k v */
+        }
+        /* ... k v */
+      }
+      lua.pop(2) /* ... */
+    }
+
+    // Mark everything that's globally reachable at this point as permanent.
+    lua.pushString("_G") /* ... perms uperms k */
+    lua.getGlobal("_G") /* ... perms uperms k v */
+
+    flattenAndStore() /* ... perms uperms */
+    lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
+    lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
+  }
+
+  private def close() = stateMonitor.synchronized(
     if (state != Computer.State.Stopped) {
       state = Computer.State.Stopped
       lua.setTotalMemory(Integer.MAX_VALUE)
