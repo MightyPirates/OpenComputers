@@ -29,6 +29,7 @@ object Config {
   var fileCost = 512
   var filesBuffered = true
   var maxHandles = 16
+  var maxReadBuffer = 8 * 1024 // TODO make configurable
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var threads = 4

@@ -3,7 +3,7 @@ package li.cil.oc.api;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
-import li.cil.oc.api.network.environment.ManagedEnvironment;
+import li.cil.oc.api.network.ManagedEnvironment;
 
 final public class FileSystem {
     /**

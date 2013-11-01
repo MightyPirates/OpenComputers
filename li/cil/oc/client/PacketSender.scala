@@ -1,6 +1,5 @@
 package li.cil.oc.client
 
-import li.cil.oc.api.network.environment.Environment
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.Computer
@@ -8,6 +7,7 @@ import li.cil.oc.common.tileentity.Rotatable
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
+import li.cil.oc.api.network.Environment
 
 object PacketSender {
   def sendScreenBufferRequest(t: Screen) = {

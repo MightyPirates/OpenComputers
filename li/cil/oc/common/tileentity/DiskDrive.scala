@@ -17,13 +17,13 @@ class DiskDrive extends Rotatable with Environment with ComponentInventory {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    node.load(nbt)
+    if (node != null) node.load(nbt)
     load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    node.save(nbt)
+    if (node != null) node.save(nbt)
     save(nbt)
   }
 

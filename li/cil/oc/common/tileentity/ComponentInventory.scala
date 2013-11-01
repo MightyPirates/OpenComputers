@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.network.environment.ManagedEnvironment
+import li.cil.oc.api.network.{Node, ManagedEnvironment}
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -24,17 +24,21 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect() {
-    super.onConnect()
-    components collect {
-      case Some(environment) => node.network.connect(node, environment.node)
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      components collect {
+        case Some(environment) => node.network.connect(node, environment.node)
+      }
     }
   }
 
-  override def onDisconnect() {
-    super.onDisconnect()
-    components collect {
-      case Some(environment) => environment.node.network.remove(environment.node)
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      components collect {
+        case Some(environment) => environment.node.network.remove(environment.node)
+      }
     }
   }
 

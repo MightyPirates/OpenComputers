@@ -3,7 +3,7 @@ package li.cil.oc.api.detail;
 import li.cil.oc.api.network.Component;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.network.environment.Environment;
+import li.cil.oc.api.network.Environment;
 import net.minecraft.world.World;
 
 public interface NetworkAPI {

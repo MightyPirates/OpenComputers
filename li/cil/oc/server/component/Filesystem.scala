@@ -2,11 +2,11 @@ package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.Mode
-import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
-import li.cil.oc.api.network.{Visibility, Message}
+import li.cil.oc.api.network._
 import li.cil.oc.server.fs.Volatile
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import scala.Some
 import scala.collection.mutable
 
 class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends ManagedComponent {
@@ -25,10 +25,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
       throw new IllegalArgumentException("file system is read only")
     if (fileSystem.isInstanceOf[Volatile])
       throw new IllegalArgumentException("cannot change label of ramfs")
-    if (args.checkAny(1) == null)
+    if (args.checkAny(0) == null)
       label = null
     else {
-      label = args.checkString(1)
+      label = args.checkString(0)
       if (label.length > 16)
         label = label.substring(0, 16)
     }
@@ -54,23 +54,23 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
 
   @LuaCallback("exists")
   def exists(context: Context, args: Arguments): Array[Object] =
-    result(fileSystem.exists(clean(args.checkString(1))))
+    result(fileSystem.exists(clean(args.checkString(0))))
 
   @LuaCallback("size")
   def size(context: Context, args: Arguments): Array[Object] =
-    result(fileSystem.size(clean(args.checkString(1))))
+    result(fileSystem.size(clean(args.checkString(0))))
 
   @LuaCallback("isDirectory")
   def isDirectory(context: Context, args: Arguments): Array[Object] =
-    result(fileSystem.isDirectory(clean(args.checkString(1))))
+    result(fileSystem.isDirectory(clean(args.checkString(0))))
 
   @LuaCallback("lastModified")
   def lastModified(context: Context, args: Arguments): Array[Object] =
-    result(fileSystem.lastModified(clean(args.checkString(1))))
+    result(fileSystem.lastModified(clean(args.checkString(0))))
 
   @LuaCallback("list")
   def list(context: Context, args: Arguments): Array[Object] =
-    Option(fileSystem.list(clean(args.checkString(1)))) match {
+    Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) => Array(list)
       case _ => null
     }
@@ -79,30 +79,30 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
   def makeDirectory(context: Context, args: Arguments): Array[Object] = {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
-    result(recurse(clean(args.checkString(1))))
+    result(recurse(clean(args.checkString(0))))
   }
 
   @LuaCallback("remove")
   def remove(context: Context, args: Arguments): Array[Object] = {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
-    result(recurse(clean(args.checkString(1))))
+    result(recurse(clean(args.checkString(0))))
   }
 
   @LuaCallback("rename")
   def rename(context: Context, args: Arguments): Array[Object] =
-    result(fileSystem.rename(clean(args.checkString(1)), clean(args.checkString(2))))
+    result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
 
   @LuaCallback("close")
   def close(context: Context, args: Arguments): Array[Object] = {
-    val handle = args.checkInteger(1)
+    val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         owners.get(context.address) match {
           case Some(set) => if (set.remove(handle)) file.close()
           case _ => // Not the owner of this handle.
         }
-      case _ => Array(Unit, "bad file descriptor")
+      case _ => throw new IllegalArgumentException("bad file descriptor")
     }
     null
   }
@@ -110,10 +110,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
   @LuaCallback("open")
   def open(context: Context, args: Arguments): Array[Object] =
     if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
-      result(Unit, "too many open handles")
+      throw new IOException("too many open handles")
     else {
-      val path = args.checkString(1)
-      val mode = if (args.count > 1) args.checkString(2) else "r"
+      val path = args.checkString(0)
+      val mode = if (args.count > 1) args.checkString(1) else "r"
       val handle = fileSystem.open(clean(path), parseMode(mode))
       if (handle > 0) {
         owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
@@ -123,13 +123,13 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
 
   @LuaCallback("read")
   def read(context: Context, args: Arguments): Array[Object] = {
-    val handle = args.checkInteger(1)
-    val n = args.checkInteger(2)
+    val handle = args.checkInteger(0)
+    val n = args.checkInteger(1)
+    checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
-      case None => throw new IOException("bad file descriptor")
       case Some(file) =>
-        // Limit reading to chunks of 8KB to avoid crazy allocations.
-        val buffer = new Array[Byte](n min (8 * 1024))
+        // Limit size of read buffer to avoid crazy allocations.
+        val buffer = new Array[Byte](n min Config.maxReadBuffer)
         val read = file.read(buffer)
         if (read >= 0) {
           val bytes =
@@ -145,14 +145,16 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
         else {
           result(Unit)
         }
+      case _ => throw new IllegalArgumentException("bad file descriptor")
     }
   }
 
   @LuaCallback("seek")
   def seek(context: Context, args: Arguments): Array[Object] = {
-    val handle = args.checkInteger(1)
-    val whence = args.checkString(2)
-    val offset = args.checkInteger(3)
+    val handle = args.checkInteger(0)
+    val whence = args.checkString(1)
+    val offset = args.checkInteger(2)
+    checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         whence match {
@@ -168,8 +170,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
 
   @LuaCallback("write")
   def write(context: Context, args: Arguments): Array[Object] = {
-    val handle = args.checkInteger(1)
-    val value = args.checkByteArray(2)
+    val handle = args.checkInteger(0)
+    val value = args.checkByteArray(1)
+    checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) => file.write(value); result(true)
       case _ => throw new IOException("bad file descriptor")
@@ -178,17 +181,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
 
   // ----------------------------------------------------------------------- //
 
-  override def onMessage(message: Message) = {
+  override def onMessage(message: Message) {
+    super.onMessage(message)
     message.data match {
-      case Array() if message.name == "system.disconnect" && owners.contains(message.source.address) =>
-        for (handle <- owners(message.source.address)) {
-          Option(fileSystem.getHandle(handle)) match {
-            case Some(file) => file.close()
-            case _ => // Maybe file system was accessed from somewhere else.
-          }
-        }
-      case Array() if message.name == "computer.stopped" ||
-                      message.name == "computer.started" =>
+      case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
         owners.get(message.source.address) match {
           case Some(set) =>
             set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
@@ -200,11 +196,22 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
         }
       case _ =>
     }
-    null
   }
 
-  override def onDisconnect() {
-    fileSystem.close()
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      fileSystem.close()
+    }
+    else if (owners.contains(node.address)) {
+      for (handle <- owners(node.address)) {
+        Option(fileSystem.getHandle(handle)) match {
+          case Some(file) => file.close()
+          case _ =>
+        }
+      }
+      owners.remove(node.address)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -265,4 +272,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
     if (("a" == value) || ("ab" == value)) return Mode.Append
     throw new IllegalArgumentException("unsupported mode")
   }
+
+  private def checkOwner(owner: String, handle: Int) =
+    if (!owners.contains(owner) || !owners(owner).contains(handle))
+      throw new IllegalArgumentException("bad file descriptor")
 }

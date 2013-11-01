@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.Message
 import li.cil.oc.common.tileentity
 import net.minecraft.nbt.{NBTTagByte, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
@@ -29,7 +28,7 @@ trait Redstone extends tileentity.Environment with tileentity.Persistable {
     this
   }
 
-  def input(side: ForgeDirection): Int
+  def input(side: ForgeDirection): Int = _input(side.ordinal())
 
   def output(side: ForgeDirection): Int = _output(side.ordinal())
 
@@ -44,12 +43,12 @@ trait Redstone extends tileentity.Environment with tileentity.Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  def update() {
+  def updateRedstoneInput() {
     if (_shouldUpdateInput) {
       _shouldUpdateInput = false
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val oldInput = _input(side.ordinal())
-        val newInput = input(side)
+        val newInput = computeInput(side)
         _input(side.ordinal()) = newInput.toByte
         if (oldInput >= 0 && _input(side.ordinal()) != oldInput) {
           onRedstoneInputChanged(side)
@@ -57,18 +56,6 @@ trait Redstone extends tileentity.Environment with tileentity.Persistable {
       }
     }
   }
-
-  override def onMessage(message: Message) =
-    message.data match {
-      case Array(side: ForgeDirection) if message.name == "redstone.input" && side != ForgeDirection.UNKNOWN =>
-        Array(Int.box(_input(side.ordinal())))
-      case Array(side: ForgeDirection) if message.name == "redstone.output" && side != ForgeDirection.UNKNOWN =>
-        Array(Int.box(output(side)))
-      case Array(side: ForgeDirection, value: Integer) if message.name == "redstone.output=" && side != ForgeDirection.UNKNOWN =>
-        output(side, value)
-        Array(Boolean.box(true))
-      case _ => super.onMessage(message)
-    }
 
   // ----------------------------------------------------------------------- //
 
@@ -107,6 +94,8 @@ trait Redstone extends tileentity.Environment with tileentity.Persistable {
   }
 
   // ----------------------------------------------------------------------- //
+
+  protected def computeInput(side: ForgeDirection): Int
 
   protected def onRedstoneInputChanged(side: ForgeDirection) {}
 

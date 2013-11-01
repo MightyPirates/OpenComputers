@@ -1,9 +1,5 @@
-package li.cil.oc.api.network.environment;
+package li.cil.oc.api.network;
 
-import li.cil.oc.api.network.Component;
-import li.cil.oc.api.network.Message;
-import li.cil.oc.api.network.Network;
-import li.cil.oc.api.network.Node;
 import net.minecraft.world.World;
 
 /**
@@ -51,38 +47,38 @@ public interface Environment {
     Node node();
 
     /**
-     * This is called <em>by the node</em> when it is added to a network.
+     * This is called when a node is added to a network.
      * <p/>
-     * At this point the node's network is available and you can send messages
-     * through it or query it for other nodes. Use this to perform
-     * initialization logic, such as building lists of nodes of a certain type
-     * in the network.
+     * This is also called for the node itself, if it was added to the network.
+     * For example, after a tile entity with a node was placed, this method
+     * will be called on it after its node has been connected to an existing
+     * network or created a new network.
+     * <p/>
+     * At this point the node's network is never <tt>null</tt> and you can use
+     * it to query it for other nodes. Use this to perform initialization logic,
+     * such as building lists of nodes of a certain type in the network.
      */
-    void onConnect();
+    void onConnect(Node node);
 
     /**
-     * This is called <em>by the node</em> when it has been removed from a
-     * network.
+     * This is called when a node is removed from the network.
      * <p/>
-     * At this point the node's network is no longer available and you cannot
-     * send messages any more. Use this to perform clean-up logic.
+     * This is also called for the node itself, when it has been removed from
+     * its network.
+     * <p/>
+     * At this point the node's network is no longer available (<tt>null</tt>).
+     * Use this to perform clean-up logic such as removing references to the
+     * removed node.
      */
-    void onDisconnect();
+    void onDisconnect(Node node);
 
     /**
      * This is the generic message handler.
      * <p/>
-     * It is called <em>by the node</em> whenever it receives a message it
-     * cannot handle itself. For example, connect and disconnect messages for
-     * the node itself are directly handled by calling {@link #onConnect()} or
-     * {@link #onDisconnect()}. Lua component call requests are resolved via
-     * methods annotated appropriately, if possible, otherwise we throw a no
-     * such method exception. All other messages are forwarded here, including
-     * system messages, such as connect/disconnect messages for other nodes.
+     * It is called whenever this environments Node receives a message that was
+     * sent via one of the <tt>send</tt> methods in the {@link Network}.
      *
      * @param message the message to handle.
-     * @return the result of the message being handled. If there is no result,
-     *         simply return <tt>null</tt>.
      */
-    abstract Object[] onMessage(Message message);
+    abstract void onMessage(Message message);
 }

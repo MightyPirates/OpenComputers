@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
+import li.cil.oc.server.component.Computer.{Environment => ComputerEnvironment}
 import li.cil.oc.server.component.Redstone
 import li.cil.oc.server.driver
 import li.cil.oc.server.driver.Registry
@@ -13,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with component.Computer.Environment with ComponentInventory with Redstone {
+class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -48,20 +49,20 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    load(nbt)
+    super.load(nbt)
     instance.recomputeMemory()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    save(nbt)
+    super.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() = if (!worldObj.isRemote) {
     instance.update()
-    update()
+    updateRedstoneInput()
     if (hasChanged.get)
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
     if (isRunning != instance.isRunning)
@@ -113,10 +114,13 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
 
   def canConnectRedstone(side: ForgeDirection) = isOutputEnabled
 
-  override def input(side: ForgeDirection) = {
+  override def computeInput(side: ForgeDirection) = {
     val global = toGlobal(side)
     worldObj.getIndirectPowerLevelTo(
-      xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, global.ordinal())
+      xCoord + global.offsetX,
+      yCoord + global.offsetY,
+      zCoord + global.offsetZ,
+      global.ordinal())
   }
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
@@ -127,11 +131,16 @@ class Computer(isClient: Boolean) extends Rotatable with component.Computer.Envi
   override protected def onRedstoneOutputChanged(side: ForgeDirection) {
     super.onRedstoneOutputChanged(side)
     if (side == ForgeDirection.UNKNOWN) {
-      worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, getBlockType.blockID)
+      worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord,
+        getBlockType.blockID)
     }
     else {
       val global = toGlobal(side)
-      worldObj.notifyBlockOfNeighborChange(xCoord + global.offsetX, yCoord + global.offsetY, zCoord + global.offsetZ, getBlockType.blockID)
+      worldObj.notifyBlockOfNeighborChange(
+        xCoord + global.offsetX,
+        yCoord + global.offsetY,
+        zCoord + global.offsetZ,
+        getBlockType.blockID)
     }
     if (!worldObj.isRemote) ServerPacketSender.sendRedstoneState(this)
     else worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)

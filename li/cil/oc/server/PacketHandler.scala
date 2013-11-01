@@ -1,13 +1,13 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.api.network.environment.Environment
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
+import li.cil.oc.api.network.Environment
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =

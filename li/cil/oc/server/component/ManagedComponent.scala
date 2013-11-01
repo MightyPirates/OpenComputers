@@ -1,22 +1,25 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.Message
-import li.cil.oc.api.network.environment.ManagedEnvironment
+import li.cil.oc.api.network.{Node, ManagedEnvironment, Message}
 import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 
 abstract class ManagedComponent extends ManagedEnvironment {
   def update() {}
 
-  def onMessage(message: Message) = null
+  def onMessage(message: Message) {}
 
-  def onDisconnect() {}
+  def onDisconnect(node: Node) {}
 
-  def onConnect() {}
+  def onConnect(node: Node) {}
 
-  def load(nbt: NBTTagCompound) = node.load(nbt)
+  def load(nbt: NBTTagCompound) = {
+    if (node != null) node.load(nbt)
+  }
 
-  def save(nbt: NBTTagCompound) = node.save(nbt)
+  def save(nbt: NBTTagCompound) = {
+    if (node != null) node.save(nbt)
+  }
 
   /**
    * Handy function for returning a list of results.

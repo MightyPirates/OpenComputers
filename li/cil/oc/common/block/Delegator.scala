@@ -5,8 +5,7 @@ import java.util
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.Node
-import li.cil.oc.api.network.environment.Environment
+import li.cil.oc.api.network.{Environment, Node}
 import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material

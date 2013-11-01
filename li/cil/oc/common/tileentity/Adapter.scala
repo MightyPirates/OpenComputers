@@ -2,18 +2,19 @@ package li.cil.oc.common.tileentity
 
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
-import li.cil.oc.api.network.environment.ManagedEnvironment
-import li.cil.oc.api.network.{Message, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.server
 import li.cil.oc.server.driver
 import net.minecraft.nbt.{NBTTagString, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
+import scala.Some
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 // TODO persist managed environments of attached blocks somehow...
 
 class Adapter extends Rotatable with Environment with IPeripheral {
-  val node = api.Network.createNode(this, "adapter", Visibility.None)
+  val node = api.Network.createComponent(api.Network.createNode(this, "adapter", Visibility.None))
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
@@ -62,20 +63,23 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   // ----------------------------------------------------------------------- //
 
-  override def onMessage(message: Message) = {
-    message.data match {
-      case Array(port: Integer, answerPort: java.lang.Double, data@_*) if message.name == "network.message" =>
-        for ((computer, ports) <- openPorts) if (ports.contains(port)) {
-          computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt)) ++ data: _*))
-        }
-      case _ =>
+  @LuaCallback("send")
+  def send(context: Context, args: Arguments) = {
+    val port = args.checkInteger(0)
+    val answerPort = args.checkInteger(1)
+    for ((computer, ports) <- openPorts if ports.contains(port)) {
+      computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.drop(2): _*))
     }
-    super.onMessage(message)
+    null
   }
 
-  override def onConnect() {
-    super.onConnect()
-    neighborChanged()
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      neighborChanged()
+    }
   }
 
   // ----------------------------------------------------------------------- //

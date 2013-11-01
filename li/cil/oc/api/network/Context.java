@@ -1,4 +1,4 @@
-package li.cil.oc.api.network.environment;
+package li.cil.oc.api.network;
 
 /**
  * This is used to provide some context to {@link LuaCallback}s, i.e. the

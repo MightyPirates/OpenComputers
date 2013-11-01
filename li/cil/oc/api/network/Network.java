@@ -5,12 +5,14 @@ package li.cil.oc.api.network;
  * <p/>
  * Computers and components form ad-hoc "networks" when placed next to each
  * other. They allow computers to communicate with the components attached to
- * them, as well as components to send signals to computers they are attached to
- * (and even among each other).
+ * them (and nodes amongst each other) by using the network as an index
+ * structure.
  * <p/>
- * The actual network is a bit more abstract than that, though. It consists of
- * arbitrary `Node`s, that are generally used to interface some object with the
- * network. For example, most tile entities in the mod are nodes.
+ * There are four types of nodes:
+ * <ul>
+ * <li>{@link Node}, the most basic form.</li>
+ * <li>{@link Component}, used to expose callbacks to Lua.</li>
+ * </ul>
  * <p/>
  * `Component`s are specializations of `Node`s, that can be addressed by
  * computers via a corresponding `Driver`.
@@ -167,10 +169,9 @@ public interface Network {
      * @param target the id of the node to send the message to.
      * @param name   the name of the message.
      * @param data   the message to send.
-     * @return the result of the message being handled, if any.
      * @throws IllegalArgumentException if the source node is not in this network.
      */
-    Object[] sendToAddress(Node source, String target, String name, Object... data);
+    void sendToAddress(Node source, String target, String name, Object... data);
 
     /**
      * Sends a message to all addressed, visible neighbors of the source node.
@@ -187,11 +188,10 @@ public interface Network {
      * @param source the node that sends the message.
      * @param name   the name of the message.
      * @param data   the message to send.
-     * @return the result of the message being handled, if any.
      * @throws IllegalArgumentException if the source node is not in this network.
      * @see `neighbors`
      */
-    Object[] sendToNeighbors(Node source, String name, Object... data);
+    void sendToNeighbors(Node source, String name, Object... data);
 
     /**
      * Sends a message to all addressed nodes visible to the source node.
@@ -206,9 +206,8 @@ public interface Network {
      *
      * @param source the node that sends the message.
      * @param data   the message to send.
-     * @return the result of the message being handled, if any.
      * @throws IllegalArgumentException if the source node is not in this network.
      * @see `nodes`
      */
-    Object[] sendToVisible(Node source, String name, Object... data);
+    void sendToVisible(Node source, String name, Object... data);
 }

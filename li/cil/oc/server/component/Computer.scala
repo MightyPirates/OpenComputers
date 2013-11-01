@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.environment.{Arguments, Context, LuaCallback}
-import li.cil.oc.api.network.{Component, Message, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
+import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{OpenComputers, Config}
@@ -24,6 +24,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber
+import scala.Some
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -181,7 +182,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private def processAddedComponents() {
     for (component <- addedComponents) {
-      if (component.canBeSeenBy(owner.node)) {
+      if (component.canBeSeenFrom(owner.node)) {
         components += component.address -> component.name
         signal("component_added", component.address, component.name)
       }
@@ -728,17 +729,13 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.setField(-2, "type")
 
       lua.pushScalaFunction(lua => {
-        owner.node.network.sendToAddress(owner.node, lua.checkString(1), "component.methods") match {
-          case Array(methods: Array[_]) =>
+        Option(owner.node.network.node(lua.checkString(1))) match {
+          case Some(component: server.network.Component) if component.canBeSeenFrom(owner.node) =>
             lua.newTable()
-            for ((method, index) <- methods.zipWithIndex) {
-              method match {
-                case (name: String, asynchronous: Boolean) =>
-                  lua.pushString(name)
-                  lua.pushBoolean(asynchronous)
-                  lua.rawSet(-3)
-                case _ =>
-              }
+            for (method <- component.methods()) {
+              lua.pushString(method)
+              lua.pushBoolean(component.isAsynchronous(method))
+              lua.rawSet(-3)
             }
             1
           case _ =>
@@ -755,8 +752,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         val args = parseArguments(lua, 3)
         try {
           (Option(owner.node.network.node(address)) match {
-            case Some(node: Component) if node.canBeSeenBy(owner.node) =>
-              owner.node.network.sendToAddress(owner.node, address, "component.invoke", Seq(method) ++ args: _*)
+            case Some(component: Component) if component.canBeSeenFrom(owner.node) =>
+              component.invoke(method, owner, args: _*)
             case _ => throw new Exception("no such component")
           }) match {
             case results: Array[_] =>
@@ -1099,52 +1096,58 @@ object Computer {
     // ----------------------------------------------------------------------- //
 
     override def onMessage(message: Message) = {
-      message.source match {
-        case component: Component =>
-          message.name match {
-            case "system.connect" => instance.addComponent(component)
-            case "system.disconnect" => instance.removeComponent(component)
-            case _ =>
-          }
-        case _ =>
-      }
+      super.onMessage(message)
       if (instance.isRunning) {
         message.data match {
-          // Arbitrary signals, usually from other components.
           case Array(name: String, args@_*) if message.name == "computer.signal" =>
             instance.signal(name, Seq(message.source.address) ++ args: _*)
           case _ =>
         }
       }
-      super.onMessage(message)
     }
 
-    override def onConnect() {
-      super.onConnect()
-      instance.rom.foreach(rom => node.network.connect(node, rom.node))
-      instance.tmp.foreach(tmp => node.network.connect(node, tmp.node))
+    override def onConnect(node: Node) {
+      super.onConnect(node)
+      if (node == this.node) {
+        instance.rom.foreach(rom => node.network.connect(node, rom.node))
+        instance.tmp.foreach(tmp => node.network.connect(node, tmp.node))
+      }
+      else {
+        node match {
+          case component: Component => instance.addComponent(component)
+          case _ =>
+        }
+      }
     }
 
-    override def onDisconnect() {
-      super.onDisconnect()
-      instance.rom.foreach(rom =>
-        Option(rom.node.network).foreach(_.remove(rom.node)))
-      instance.tmp.foreach(tmp =>
-        Option(tmp.node.network).foreach(_.remove(tmp.node)))
+    override def onDisconnect(node: Node) {
+      super.onDisconnect(node)
+      if (node == this.node) {
+        instance.rom.foreach(rom =>
+          Option(rom.node.network).foreach(_.remove(rom.node)))
+        instance.tmp.foreach(tmp =>
+          Option(tmp.node.network).foreach(_.remove(tmp.node)))
+      }
+      else {
+        node match {
+          case component: Component => instance.removeComponent(component)
+          case _ =>
+        }
+      }
     }
 
     // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      node.load(nbt)
-      instance.load(nbt)
+      if (node != null) node.load(nbt)
+      if (instance != null) instance.load(nbt)
     }
 
     override def save(nbt: NBTTagCompound) {
       super.save(nbt)
-      node.save(nbt)
-      instance.save(nbt)
+      if (node != null) node.save(nbt)
+      if (instance != null) instance.save(nbt)
     }
   }
 

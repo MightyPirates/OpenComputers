@@ -1,6 +1,6 @@
 package li.cil.oc.api.driver;
 
-import li.cil.oc.api.network.environment.ManagedEnvironment;
+import li.cil.oc.api.network.ManagedEnvironment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 

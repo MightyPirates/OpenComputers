@@ -1,7 +1,6 @@
 package li.cil.oc.api.network;
 
 import li.cil.oc.api.Persistable;
-import li.cil.oc.api.network.environment.Environment;
 
 /**
  * A single node in a {@link Network}.
@@ -90,4 +89,8 @@ public interface Node extends Persistable {
      * change this value and do not return anything that it wasn't set to.
      */
     Network network();
+
+    boolean canBeReachedFrom(Node other);
+
+    boolean isNeighborOf(Node other);
 }

@@ -2,9 +2,9 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.detail.NetworkAPI;
 import li.cil.oc.api.network.Component;
+import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
-import li.cil.oc.api.network.environment.Environment;
 import net.minecraft.world.World;
 
 final public class Network {

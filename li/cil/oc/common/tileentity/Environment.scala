@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.{Message, environment}
+import li.cil.oc.api.network
 
-trait Environment extends environment.Environment {
-  def onMessage(message: Message): Array[Object] = null
+trait Environment extends network.Environment {
+  def onMessage(message: network.Message) {}
 
-  def onConnect() {}
+  def onConnect(node: network.Node) {}
 
-  def onDisconnect() {}
+  def onDisconnect(node: network.Node) {}
 }

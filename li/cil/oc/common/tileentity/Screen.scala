@@ -77,8 +77,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
 
   override def validate() = {
     super.validate()
-    if (worldObj.isRemote)
-      ClientPacketSender.sendScreenBufferRequest(this)
+    if (worldObj.isRemote) ClientPacketSender.sendScreenBufferRequest(this)
   }
 
   override def invalidate() {

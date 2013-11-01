@@ -2,8 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Config
 import li.cil.oc.api
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.network.environment.{Context, Arguments, LuaCallback}
+import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
 class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
@@ -16,7 +15,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
 
   @LuaCallback("setValue")
   def setValue(context: Context, args: Arguments): Array[Object] = {
-    val value = args.checkString(1)
+    val value = args.checkString(0)
     entity.setCommand(value)
     entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
     result(true)

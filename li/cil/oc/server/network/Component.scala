@@ -4,9 +4,9 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.InvocationTargetException
 import li.cil.oc.api
-import li.cil.oc.api.network.environment.{Arguments, Context, Environment, LuaCallback}
-import li.cil.oc.api.network.{Message, Visibility}
+import li.cil.oc.api.network._
 import net.minecraft.nbt.NBTTagCompound
+import scala.Some
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
@@ -53,30 +53,24 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
     }
   }
 
-  def canBeSeenBy(other: api.network.Node) = network == null || (visibility match {
+  def canBeSeenFrom(other: api.network.Node) = visibility match {
     case Visibility.None => false
-    case Visibility.Network => true
-    case Visibility.Neighbors => other.network.neighbors(other).exists(_ == this)
-  })
+    case Visibility.Network => canBeReachedFrom(other)
+    case Visibility.Neighbors => isNeighborOf(other)
+  }
 
   // ----------------------------------------------------------------------- //
 
-  override def receive(message: Message) = {
-    if (message.name == "component.methods")
-      if (canBeSeenBy(message.source))
-        Array(luaCallbacks.map {
-          case (method, (asynchronous, _)) => (method, asynchronous)
-        }.toArray)
-      else null
-    else if (message.name == "component.invoke") {
-      (message.source.host, luaCallbacks.get(message.data()(0).asInstanceOf[String])) match {
-        case (computer: Context, Some((_, callback))) =>
-          callback(host, computer, new Component.MessageArguments(message))
-        case _ => throw new NoSuchMethodException()
-      }
+  def methods() = luaCallbacks.keySet
+
+  def invoke(method: String, context: Context, arguments: AnyRef*) = {
+    luaCallbacks.get(method) match {
+      case Some((_, callback)) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
+      case _ => throw new NoSuchMethodException()
     }
-    else super.receive(message)
   }
+
+  def isAsynchronous(method: String) = luaCallbacks(method)._1
 
   // ----------------------------------------------------------------------- //
 
@@ -106,7 +100,7 @@ object Component {
       ms.filter(_.isAnnotationPresent(classOf[LuaCallback])).foreach(m =>
         if (m.getParameterTypes.size != 2 ||
           m.getParameterTypes()(0) != classOf[Context] ||
-          m.getParameterTypes()(1) != classOf[api.network.environment.Arguments]) {
+          m.getParameterTypes()(1) != classOf[Arguments]) {
           throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
         }
         else if (m.getReturnType != classOf[Array[Object]]) {
@@ -134,20 +128,19 @@ object Component {
 
   // ----------------------------------------------------------------------- //
 
-  class MessageArguments(val message: Message) extends Arguments {
+  class VarArgs(val args: Seq[AnyRef]) extends Arguments {
+    def iterator() = args.iterator
 
-    def iterator() = message.data.drop(1).iterator
-
-    def count() = message.data.length - 1
+    def count() = args.length
 
     def checkAny(index: Int) = {
       checkIndex(index, "value")
-      message.data()(index)
+      args(index)
     }
 
     def checkBoolean(index: Int): Boolean = {
       checkIndex(index, "boolean")
-      message.data()(index) match {
+      args(index) match {
         case value: java.lang.Boolean => value
         case value => throw typeError(index, value, "boolean")
       }
@@ -155,7 +148,7 @@ object Component {
 
     def checkDouble(index: Int): Double = {
       checkIndex(index, "number")
-      message.data()(index) match {
+      args(index) match {
         case value: java.lang.Double => value
         case value => throw typeError(index, value, "number")
       }
@@ -163,7 +156,7 @@ object Component {
 
     def checkInteger(index: Int): Int = {
       checkIndex(index, "number")
-      message.data()(index) match {
+      args(index) match {
         case value: java.lang.Double => value.intValue
         case value => throw typeError(index, value, "number")
       }
@@ -174,22 +167,22 @@ object Component {
 
     def checkByteArray(index: Int): Array[Byte] = {
       checkIndex(index, "string")
-      message.data()(index) match {
+      args(index) match {
         case value: Array[Byte] => value
         case value => throw typeError(index, value, "string")
       }
     }
 
     private def checkIndex(index: Int, name: String) =
-      if (index < 1) throw new IndexOutOfBoundsException()
-      else if (message.data.length <= index) throw new IllegalArgumentException(
+      if (index < 0) throw new IndexOutOfBoundsException()
+      else if (args.length <= index) throw new IllegalArgumentException(
         "bad arguments #%d (%s expected, got no value)".
-          format(index, name))
+          format(index + 1, name))
 
     private def typeError(index: Int, have: AnyRef, want: String) =
       new IllegalArgumentException(
         "bad argument #%d (%s expected, got %s)".
-          format(index, want, typeName(have)))
+          format(index + 1, want, typeName(have)))
 
     private def typeName(value: AnyRef): String = value match {
       case null => "nil"

@@ -1,41 +1,26 @@
 package li.cil.oc.server.network
 
-import java.util.logging.Level
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.api.network.environment.Environment
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.api
+import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
+import scala.collection.convert.WrapAsScala._
 
 class Node(val host: Environment, val name: String, val reachability: Visibility) extends api.network.Node {
   final var address: String = null
 
   final var network: api.network.Network = null
 
-  def update() {}
+  def canBeReachedFrom(other: ImmutableNode) = reachability match {
+    case Visibility.None => false
+    case Visibility.Neighbors => isNeighborOf(other)
+    case Visibility.Network => isInSameNetwork(other)
+  }
 
-  def receive(message: api.network.Message) =
-    if (message.source == this) message.name match {
-      case "system.connect" =>
-        try {
-          host.onConnect()
-        } catch {
-          case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in connect callback:\n", e)
-        }
-        null
-      case "system.disconnect" =>
-        try {
-          host.onDisconnect()
-        } catch {
-          case e: Throwable => OpenComputers.log.log(Level.WARNING, "Error in disconnect callback:\n", e)
-        }
-        null
-    } else {
-      try {
-        host.onMessage(message)
-      } catch {
-        case e: Throwable => Array(Unit, e.getMessage)
-      }
-    }
+  def isNeighborOf(other: ImmutableNode) =
+    isInSameNetwork(other) && network.neighbors(this).exists(_ == other)
+
+  private def isInSameNetwork(other: ImmutableNode) =
+    network != null && network == other.network
 
   // ----------------------------------------------------------------------- //
 

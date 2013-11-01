@@ -1,4 +1,4 @@
-package li.cil.oc.api.network.environment;
+package li.cil.oc.api.network;
 
 /**
  * This interface provides access to arguments passed to a {@link LuaCallback}.

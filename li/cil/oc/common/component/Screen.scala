@@ -72,34 +72,6 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
-    override def onMessage(message: Message) = {
-      message.data match {
-        case Array(w: Integer, h: Integer) if message.name == "screen.resolution=" =>
-          Array(Boolean.box(instance.resolution = (w, h)))
-        case Array() if message.name == "screen.resolution" => {
-          val (w, h) = instance.resolution
-          Array(Int.box(w), Int.box(h))
-        }
-        case Array() if message.name == "screen.maxResolution" =>
-          val (w, h) = instance.maxResolution
-          Array(Int.box(w), Int.box(h))
-        case Array(x: Integer, y: Integer) if message.name == "screen.get" =>
-          Array(Char.box(instance.get(x, y)))
-        case Array(x: Integer, y: Integer, value: String) if message.name == "screen.set" =>
-          instance.set(x, y, value)
-          Array(Boolean.box(true))
-        case Array(x: Integer, y: Integer, w: Integer, h: Integer, value: Character) if message.name == "screen.fill" =>
-          instance.fill(x, y, w, h, value)
-          Array(Boolean.box(true))
-        case Array(x: Integer, y: Integer, w: Integer, h: Integer, tx: Integer, ty: Integer) if message.name == "screen.copy" =>
-          instance.copy(x, y, w, h, tx, ty)
-          Array(Boolean.box(true))
-        case _ => super.onMessage(message)
-      }
-    }
-
-    // ----------------------------------------------------------------------- //
-
     override def load(nbt: NBTTagCompound) = {
       super.load(nbt)
       if (node != null) node.load(nbt)

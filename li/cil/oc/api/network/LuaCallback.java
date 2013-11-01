@@ -1,4 +1,4 @@
-package li.cil.oc.api.network.environment;
+package li.cil.oc.api.network;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
