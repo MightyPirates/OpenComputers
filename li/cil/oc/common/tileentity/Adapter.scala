@@ -37,24 +37,24 @@ class Adapter extends Rotatable with Environment with IPeripheral {
           case Some((environment, driver)) =>
             if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
-              node.network.disconnect(node, environment.node)
+              node.disconnect(environment.node)
               val newEnvironment = newDriver.createEnvironment(worldObj, x, y, z)
               newEnvironment.node.asInstanceOf[server.network.Node].address = blocksAddresses(d.ordinal())
-              node.network.connect(node, newEnvironment.node)
+              node.connect(newEnvironment.node)
               blocks(d.ordinal()) = Some((newEnvironment, newDriver))
             } // else: the more things change, the more they stay the same.
           case _ =>
             // A challenger appears.
             val environment = newDriver.createEnvironment(worldObj, x, y, z)
             environment.node.asInstanceOf[server.network.Node].address = blocksAddresses(d.ordinal())
-            node.network.connect(node, environment.node)
+            node.connect(environment.node)
             blocks(d.ordinal()) = Some((environment, newDriver))
         }
         case _ => blocks(d.ordinal()) match {
           case Some((environment, driver)) =>
             // We had something there, but it's gone now...
             blocks(d.ordinal()) = None
-            node.network.disconnect(node, environment.node)
+            node.disconnect(environment.node)
           case _ => // Nothing before, nothing now.
         }
       }
@@ -147,9 +147,9 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     case "transmit" =>
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
-      node.network.sendToVisible(node, "network.message", Seq(Int.box(sendPort), Int.box(answerPort)) ++ arguments.drop(2): _*)
+      node.sendToReachable("network.message", Seq(Int.box(sendPort), Int.box(answerPort)) ++ arguments.drop(2): _*)
       null
-    case "isWireless" => Array(Boolean.box(false))
+    case "isWireless" => Array(java.lang.Boolean.FALSE)
     case _ => null
   }
 

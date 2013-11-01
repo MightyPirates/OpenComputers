@@ -103,8 +103,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(metadata) match {
       case Some(subBlock) => {
         world.getBlockTileEntity(x, y, z) match {
-          case environment: Environment if environment.node != null && environment.node.network != null =>
-            environment.node.network.remove(environment.node)
+          case environment: Environment if environment.node != null =>
+            environment.node.remove()
           case _ => // Nothing special to do.
         }
         subBlock.breakBlock(world, x, y, z, blockId)

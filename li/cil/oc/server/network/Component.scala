@@ -40,12 +40,12 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
             val visible = network.nodes(this)
             val delta = visible.filterNot(neighbors.contains)
             delta.foreach(node => network.sendToAddress(this, node.address, "computer.signal", "component_removed"))
-          case Visibility.None => network.sendToVisible(this, "computer.signal", "component_removed")
+          case Visibility.None => network.sendToReachable(this, "computer.signal", "component_removed")
           case _ => // Cannot happen, but avoids compiler warnings.
         }
         case Visibility.None => value match {
           case Visibility.Neighbors => network.sendToNeighbors(this, "computer.signal", "component_added")
-          case Visibility.Network => network.sendToVisible(this, "computer.signal", "component_added")
+          case Visibility.Network => network.sendToReachable(this, "computer.signal", "component_added")
           case _ => // Cannot happen, but avoids compiler warnings.
         }
       }

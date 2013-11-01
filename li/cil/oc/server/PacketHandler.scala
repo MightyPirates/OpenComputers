@@ -56,9 +56,8 @@ class PacketHandler extends CommonPacketHandler {
       case Some(s: tileentity.Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
-        val network = s.origin.node.network
-        s.screens.foreach(e => network.sendToNeighbors(e.node, "keyboard.keyDown", p.player, char, code))
-      case Some(e) => e.node.network.sendToNeighbors(e.node, "keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+        s.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
+      case Some(e) => e.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
@@ -67,9 +66,8 @@ class PacketHandler extends CommonPacketHandler {
       case Some(s: tileentity.Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
-        val network = s.origin.node.network
-        s.screens.foreach(e => network.sendToNeighbors(e.node, "keyboard.keyUp", p.player, char, code))
-      case Some(e) => e.node.network.sendToNeighbors(e.node, "keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+        s.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
+      case Some(e) => e.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
@@ -77,9 +75,8 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Environment]() match {
       case Some(s: tileentity.Screen) =>
         val value = p.readUTF()
-        val network = s.origin.node.network
-        s.screens.foreach(e => network.sendToNeighbors(e.node, "keyboard.clipboard", p.player, value))
-      case Some(e) => e.node.network.sendToNeighbors(e.node, "keyboard.clipboard", p.player, p.readUTF())
+        s.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
+      case Some(e) => e.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
       case _ => // Invalid packet.
     }
 }

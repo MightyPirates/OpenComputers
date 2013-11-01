@@ -23,13 +23,13 @@ class Keyboard extends Rotatable with Environment {
     message.data match {
       case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p))
-          node.network.sendToVisible(node, "computer.signal", "key_down", char, code)
+          node.sendToReachable("computer.signal", "key_down", char, code)
       case Array(p: Player, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
         if (isUseableByPlayer(p))
-          node.network.sendToVisible(node, "computer.signal", "key_up", char, code)
+          node.sendToReachable("computer.signal", "key_up", char, code)
       case Array(p: Player, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p))
-          node.network.sendToVisible(node, "computer.signal", "clipboard", value)
+          node.sendToReachable("computer.signal", "clipboard", value)
       case _ =>
     }
     super.onMessage(message)

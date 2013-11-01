@@ -87,8 +87,8 @@ object Screen {
     // ----------------------------------------------------------------------- //
 
     def onScreenResolutionChange(w: Int, h: Int) {
-      if (node != null && node.network != null)
-        node.network.sendToVisible(node, "computer.signal", "screen_resized", Int.box(w), Int.box(h))
+      if (node != null)
+        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
     }
 
     def onScreenSet(col: Int, row: Int, s: String) {}

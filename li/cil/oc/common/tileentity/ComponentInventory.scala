@@ -28,7 +28,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
     super.onConnect(node)
     if (node == this.node) {
       components collect {
-        case Some(environment) => node.network.connect(node, environment.node)
+        case Some(component) => node.connect(component.node)
       }
     }
   }
@@ -37,7 +37,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
     super.onDisconnect(node)
     if (node == this.node) {
       components collect {
-        case Some(environment) => environment.node.network.remove(environment.node)
+        case Some(component) => component.node.remove()
       }
     }
   }
@@ -84,10 +84,10 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
   override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
     Registry.driverFor(item) match {
       case Some(driver) => Option(driver.createEnvironment(item)) match {
-        case Some(environment) =>
-          components(slot) = Some(environment)
-          environment.load(driver.nbt(item))
-          node.network.connect(node, environment.node)
+        case Some(component) =>
+          components(slot) = Some(component)
+          component.load(driver.nbt(item))
+          node.connect(component.node)
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.
@@ -97,15 +97,15 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
   override protected def onItemRemoved(slot: Int, item: ItemStack) = if (!world.isRemote) {
     // Uninstall component previously in that slot.
     components(slot) match {
-      case Some(environment) =>
+      case Some(component) =>
         // Note to self: we have to remove the node from the network *before*
         // saving, to allow file systems to close their handles before they
         // are saved (otherwise hard drives would restore all handles after
         // being installed into a different computer, even!)
         components(slot) = None
-        environment.node.network.remove(environment.node)
+        component.node.remove()
         Registry.driverFor(item).foreach(driver =>
-          environment.save(driver.nbt(item)))
+          component.save(driver.nbt(item)))
       case _ => // Nothing to do.
     }
   }

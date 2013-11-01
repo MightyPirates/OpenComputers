@@ -90,7 +90,127 @@ public interface Node extends Persistable {
      */
     Network network();
 
+    // ----------------------------------------------------------------------- //
+
+    /**
+     * Checks whether this node is a neighbor of the specified node.
+     *
+     * @param other the node to check for.
+     * @return whether this node is directly connected to the other node.
+     */
+    boolean isNeighborOf(Node other);
+
+    /**
+     * Checks whether this node can be reached from the specified node.
+     *
+     * @param other the node to check for.
+     * @return whether this node can be reached from the specified node.
+     */
     boolean canBeReachedFrom(Node other);
 
-    boolean isNeighborOf(Node other);
+    /**
+     * Get the list of neighbor nodes, i.e. nodes directly connected to this
+     * node.
+     * <p/>
+     * This is a shortcut for <tt>node.network.neighbors(node)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this returns an empty list.
+     *
+     * @return the list of nodes directly connected to this node.
+     */
+    Iterable<Node> neighbors();
+
+    /**
+     * Get the list of nodes reachable from this node, based on their
+     * {@link #reachability()}.
+     * <p/>
+     * This is a shortcut for <tt>node.network.nodes(node)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this returns an empty list.
+     *
+     * @return the list of nodes reachable from this node.
+     */
+    Iterable<Node> reachableNodes();
+
+    // ----------------------------------------------------------------------- //
+
+    /**
+     * Connects the specified node to this node.
+     * <p/>
+     * This is a shortcut for <tt>node.network.connect(node, other)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will throw an exception.
+     *
+     * @param node the node to connect to this node.
+     * @throws NullPointerException if <tt>network</tt> is <tt>null</tt>.
+     */
+    void connect(Node node);
+
+    /**
+     * Disconnects the specified node from this node.
+     * <p/>
+     * This is a shortcut for <tt>node.network.disconnect(node, other)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will do nothing.
+     *
+     * @param node the node to connect to this node.
+     * @throws NullPointerException if <tt>network</tt> is <tt>null</tt>.
+     */
+    void disconnect(Node node);
+
+    /**
+     * Removes this node from its network.
+     * <p/>
+     * This is a shortcut for <tt>node.network.remove(node)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will do nothing.
+     */
+    void remove();
+
+    // ----------------------------------------------------------------------- //
+
+    /**
+     * Send a message to a node with the specified address.
+     * <p/>
+     * This is a shortcut for <tt>node.network.sendToAddress(node, ...)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will do nothing.
+     *
+     * @param target the address of the node to send the message to.
+     * @param name   the name of the message.
+     * @param data   the data to pass along with the message.
+     */
+    void sendToAddress(String target, String name, Object... data);
+
+    /**
+     * Send a message to all neighbors of this node.
+     * <p/>
+     * This is a shortcut for <tt>node.network.sendToNeighbors(node, ...)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will do nothing.
+     *
+     * @param name the name of the message.
+     * @param data the data to pass along with the message.
+     */
+    void sendToNeighbors(String name, Object... data);
+
+    /**
+     * Send a message to all nodes reachable from this node.
+     * <p/>
+     * This is a shortcut for <tt>node.network.sendToReachable(node, ...)</tt>.
+     * <p/>
+     * If this node is not in a network, i.e. <tt>network</tt> is <tt>null</tt>,
+     * this will do nothing.
+     *
+     * @param name the name of the message.
+     * @param data the data to pass along with the message.
+     */
+    void sendToReachable(String name, Object... data);
 }

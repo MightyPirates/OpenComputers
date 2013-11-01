@@ -209,5 +209,5 @@ public interface Network {
      * @throws IllegalArgumentException if the source node is not in this network.
      * @see `nodes`
      */
-    void sendToVisible(Node source, String name, Object... data);
+    void sendToReachable(Node source, String name, Object... data);
 }

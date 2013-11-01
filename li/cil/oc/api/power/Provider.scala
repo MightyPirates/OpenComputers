@@ -160,7 +160,7 @@ trait Provider {
 //  }
 //
 //  def searchMain() {
-//    network.foreach(_.sendToVisible(this, "power.find") match {
+//    network.foreach(_.sendToReachable(this, "power.find") match {
 //      case Array(powerDistributor: Provider) => {
 //        println("found other distri")
 //        isActive = false

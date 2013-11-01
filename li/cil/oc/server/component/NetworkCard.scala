@@ -42,14 +42,14 @@ class NetworkCard extends ManagedComponent {
   def send(context: Context, args: Arguments): Array[Object] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
-    node.network.sendToAddress(node, address, "network.message", Seq(Int.box(port)) ++ args.drop(2): _*)
+    node.sendToAddress(address, "network.message", Seq(Int.box(port)) ++ args.drop(2): _*)
     result(true)
   }
 
   @LuaCallback("broadcast")
   def broadcast(context: Context, args: Arguments): Array[Object] = {
     val port = checkPort(args.checkInteger(0))
-    node.network.sendToVisible(node, "network.message", Seq(Int.box(port)) ++ args.drop(1): _*)
+    node.sendToReachable("network.message", Seq(Int.box(port)) ++ args.drop(1): _*)
     result(true)
   }
 
@@ -61,7 +61,7 @@ class NetworkCard extends ManagedComponent {
       openPorts.clear()
     if (message.name == "network.message") message.data match {
       case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        for (node <- node.network.nodes(node)) node.host match {
+        for (node <- node.reachableNodes()) node.host match {
           case computer: Context => computer.signal("network_message", Seq(message.source.address, Int.box(port)) ++ args: _*)
           case _ =>
         }

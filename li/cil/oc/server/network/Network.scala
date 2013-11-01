@@ -133,7 +133,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
   // ----------------------------------------------------------------------- //
 
   def sendToAddress(source: ImmutableNode, target: String, name: String, args: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != wrapper)
+    if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     data.get(target) match {
       case Some(node) if node.data.canBeReachedFrom(source) =>
@@ -143,13 +143,13 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
   }
 
   def sendToNeighbors(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != wrapper)
+    if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, neighbors(source).filter(_.reachability != Visibility.None), name, args: _*)
   }
 
-  def sendToVisible(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
-    if (source.network == null || source.network != wrapper)
+  def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
+    if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, nodes(source), name, args: _*)
   }
@@ -248,9 +248,9 @@ object Network extends api.detail.NetworkAPI {
       case Some(node: MutableNode) => {
         for (side <- ForgeDirection.VALID_DIRECTIONS) {
           getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case Some(neighborNode) =>
-              if (neighborNode.network != null) {
-                neighborNode.network.connect(neighborNode, node)
+            case Some(neighbor) =>
+              if (neighbor.network != null) {
+                neighbor.connect(node)
               }
             case _ => // Ignore.
           }
@@ -295,7 +295,7 @@ object Network extends api.detail.NetworkAPI {
     tileEntities.
       filter(_.isInstanceOf[Environment]).
       map(_.asInstanceOf[Environment]).
-      foreach(t => t.node.network.remove(t.node))
+      foreach(t => t.node.remove())
   }
 
   private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
@@ -380,8 +380,8 @@ object Network extends api.detail.NetworkAPI {
     def sendToNeighbors(source: ImmutableNode, name: String, data: AnyRef*) =
       network.sendToNeighbors(source, name, data: _*)
 
-    def sendToVisible(source: ImmutableNode, name: String, data: AnyRef*) =
-      network.sendToVisible(source, name, data: _*)
+    def sendToReachable(source: ImmutableNode, name: String, data: AnyRef*) =
+      network.sendToReachable(source, name, data: _*)
   }
 
 }

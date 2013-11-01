@@ -122,7 +122,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       signal("dummy")
 
       // All green, computer started successfully.
-      owner.node.network.sendToVisible(owner.node, "computer.started")
+      owner.node.sendToReachable("computer.started")
       true
     })
 
@@ -213,23 +213,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
     def cleanup() {
-      rom.foreach(rom => rom.node.network.remove(rom.node))
-      tmp.foreach(tmp => tmp.node.network.remove(tmp.node))
-      owner.node.network.sendToVisible(owner.node, "computer.stopped")
+      rom.foreach(_.node.remove())
+      tmp.foreach(_.node.remove())
+      owner.node.sendToReachable("computer.stopped")
 
-      // If there was an error message (i.e. the computer crashed) display it on
-      // any screens we used (stored in GPUs).
-      if (message.isDefined) {
-        println(message.get) // TODO remove this at some point (add a tool that can read these error messages?)
-
-        // Clear any screens we use before displaying the error message on them.
-        // TODO this is fugly, think of some other way, e.g. listen to stopped/crashed in gpu or sth.
-        owner.node.network.sendToNeighbors(owner.node, "gpu.fill",
-          Double.box(1.0), Double.box(1.0), Double.box(Double.PositiveInfinity), Double.box(Double.PositiveInfinity), " ".getBytes("UTF-8"))
-        for ((line, row) <- message.get.replace("\t", "  ").lines.zipWithIndex) {
-          owner.node.network.sendToNeighbors(owner.node, "gpu.set", Double.box(1.0), Double.box(1.0 + row), line.getBytes("UTF-8"))
-        }
-      }
+      message.foreach(println) // TODO remove this at some point (add a tool that can read these error messages?)
     }
 
     // Signal stops to the network. This is used to close file handles, for example.
@@ -582,9 +570,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     }
 
     // Connect the ROM and `/tmp` node to our owner.
-    if (owner.node.network != null) {
-      rom.foreach(rom => owner.node.network.connect(owner.node, rom.node))
-      tmp.foreach(tmp => owner.node.network.connect(owner.node, tmp.node))
+    if (owner.node.network != null) { // In case we're loading.
+      rom.foreach(rom => owner.node.connect(rom.node))
+      tmp.foreach(tmp => owner.node.connect(tmp.node))
     }
 
     try {
@@ -1109,8 +1097,8 @@ object Computer {
     override def onConnect(node: Node) {
       super.onConnect(node)
       if (node == this.node) {
-        instance.rom.foreach(rom => node.network.connect(node, rom.node))
-        instance.tmp.foreach(tmp => node.network.connect(node, tmp.node))
+        instance.rom.foreach(rom => node.connect(rom.node))
+        instance.tmp.foreach(tmp => node.connect(tmp.node))
       }
       else {
         node match {
@@ -1123,10 +1111,8 @@ object Computer {
     override def onDisconnect(node: Node) {
       super.onDisconnect(node)
       if (node == this.node) {
-        instance.rom.foreach(rom =>
-          Option(rom.node.network).foreach(_.remove(rom.node)))
-        instance.tmp.foreach(tmp =>
-          Option(tmp.node.network).foreach(_.remove(tmp.node)))
+        instance.rom.foreach(_.node.remove())
+        instance.tmp.foreach(_.node.remove())
       }
       else {
         node match {
