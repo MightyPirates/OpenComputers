@@ -11,7 +11,7 @@ object Memory extends Item with driver.Memory {
     case _ => 0
   } else 0
 
-  def worksWith(item: ItemStack) = WorksWith(Items.ram3, Items.ram1, Items.ram2)(item)
+  def worksWith(item: ItemStack) = isOneOf(item, Items.ram3, Items.ram1, Items.ram2)
 
   def createEnvironment(item: ItemStack) = null
 

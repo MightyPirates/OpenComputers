@@ -24,7 +24,6 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber
-import scala.Some
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -569,8 +568,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       case Some(value) => lua = value
     }
 
-    // Connect the ROM and `/tmp` node to our owner.
-    if (owner.node.network != null) { // In case we're loading.
+    // Connect the ROM and `/tmp` node to our owner. We're not in a network in
+    // case we're loading, which is why we have to check it here.
+    if (owner.node.network != null) {
       rom.foreach(rom => owner.node.connect(rom.node))
       tmp.foreach(tmp => owner.node.connect(tmp.node))
     }
@@ -1047,7 +1047,7 @@ object Computer {
 
     node.setVisibility(Visibility.Neighbors)
 
-    protected val instance: Computer
+    val instance: Computer
 
     def world: World
 

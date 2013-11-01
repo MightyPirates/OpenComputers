@@ -25,7 +25,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  override protected val instance = if (isClient) null else new component.Computer(this)
+  val instance = if (isClient) null else new component.Computer(this)
 
   def world = worldObj
 

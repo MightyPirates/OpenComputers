@@ -7,7 +7,7 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object GraphicsCard extends Item {
-  override def worksWith(item: ItemStack) = WorksWith(Items.gpu1, Items.gpu2, Items.gpu3)(item)
+  override def worksWith(item: ItemStack) = isOneOf(item, Items.gpu1, Items.gpu2, Items.gpu3)
 
   override def createEnvironment(item: ItemStack) =
     Items.multi.subItem(item) match {

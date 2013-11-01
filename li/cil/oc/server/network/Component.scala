@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.InvocationTargetException
 import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.server.component.Computer
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
@@ -23,30 +24,24 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
       throw new IllegalArgumentException("Trying to set computer visibility to '" + value + "' on a '" + name +
         "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
-    if (value != visibility_ && FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
+    if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
       if (network != null) visibility_ match {
         case Visibility.Neighbors => value match {
-          case Visibility.Network =>
-            val neighbors = network.neighbors(this).toSet
-            val visible = network.nodes(this)
-            val delta = visible.filterNot(neighbors.contains)
-            delta.foreach(node => network.sendToAddress(this, node.address, "computer.signal", "component_added"))
-          case Visibility.None => network.sendToNeighbors(this, "computer.signal", "component_removed")
-          case _ => // Cannot happen, but avoids compiler warnings.
+          case Visibility.Network => addTo(reachableNodes)
+          case Visibility.None => removeFrom(neighbors)
+          case _ =>
         }
         case Visibility.Network => value match {
           case Visibility.Neighbors =>
-            val neighbors = network.neighbors(this).toSet
-            val visible = network.nodes(this)
-            val delta = visible.filterNot(neighbors.contains)
-            delta.foreach(node => network.sendToAddress(this, node.address, "computer.signal", "component_removed"))
-          case Visibility.None => network.sendToReachable(this, "computer.signal", "component_removed")
-          case _ => // Cannot happen, but avoids compiler warnings.
+            val neighborSet = neighbors.toSet
+            removeFrom(reachableNodes.filterNot(neighborSet.contains))
+          case Visibility.None => removeFrom(reachableNodes)
+          case _ =>
         }
         case Visibility.None => value match {
-          case Visibility.Neighbors => network.sendToNeighbors(this, "computer.signal", "component_added")
-          case Visibility.Network => network.sendToReachable(this, "computer.signal", "component_added")
-          case _ => // Cannot happen, but avoids compiler warnings.
+          case Visibility.Neighbors => addTo(neighbors)
+          case Visibility.Network => addTo(reachableNodes)
+          case _ =>
         }
       }
       visibility_ = value
@@ -58,6 +53,16 @@ class Component(host: Environment, name: String, reachability: Visibility) exten
     case Visibility.Network => canBeReachedFrom(other)
     case Visibility.Neighbors => isNeighborOf(other)
   }
+
+  private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
+    case computer: Computer.Environment => computer.instance.addComponent(this)
+    case _ =>
+  })
+
+  private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
+    case computer: Computer.Environment => computer.instance.removeComponent(this)
+    case _ =>
+  })
 
   // ----------------------------------------------------------------------- //
 

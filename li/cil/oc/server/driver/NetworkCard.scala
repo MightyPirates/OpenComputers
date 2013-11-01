@@ -6,7 +6,7 @@ import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 
 object NetworkCard extends Item {
-  def worksWith(item: ItemStack) = WorksWith(Items.lan)(item)
+  def worksWith(item: ItemStack) = isOneOf(item, Items.lan)
 
   override def createEnvironment(item: ItemStack) = new component.NetworkCard()
 

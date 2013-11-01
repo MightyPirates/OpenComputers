@@ -42,6 +42,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
       case null => Array(Unit, "invalid address")
       case node: Node if node.host.isInstanceOf[Screen.Environment] =>
         screenAddress = Option(address)
+        screenInstance = None
         result(true)
       case _ => Array(Unit, "not a screen")
     }

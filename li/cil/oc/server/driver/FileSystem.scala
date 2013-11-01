@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object FileSystem extends Item {
-  override def worksWith(item: ItemStack) = WorksWith(Items.hdd1, Items.hdd2, Items.hdd3, Items.disk)(item)
+  override def worksWith(item: ItemStack) = isOneOf(item, Items.hdd1, Items.hdd2, Items.hdd3, Items.disk)
 
   override def createEnvironment(item: ItemStack) = Items.multi.subItem(item) match {
     case Some(hdd: HardDiskDrive) => createEnvironment(item, hdd.megaBytes * 1024 * 1024)

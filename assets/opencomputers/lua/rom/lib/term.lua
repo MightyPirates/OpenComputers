@@ -1,3 +1,4 @@
+local gpuAvailable, screenAvailable = false, false
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
 
@@ -19,7 +20,7 @@ end
 term = {}
 
 function term.isAvailable()
-  return component.isAvailable("gpu") and component.isAvailable("screen")
+  return gpuAvailable and screenAvailable
 end
 
 function term.clear()
@@ -355,17 +356,25 @@ end
 -------------------------------------------------------------------------------
 
 local function onComponentAvailable(_, componentType)
-  if (componentType == "gpu" and component.isAvailable("screen")) or
-     (componentType == "screen" and component.isAvailable("gpu"))
-  then
+  local wasAvailable = term.isAvailable()
+  if componentType == "gpu" then
+    gpuAvailable = true
+  elseif componentType == "screen" then
+    screenAvailable = true
+  end
+  if not wasAvailable and term.isAvailable() then
     os.pushSignal("term_available")
   end
 end
 
 local function onComponentUnavailable(_, componentType)
-  if (componentType == "gpu" and component.isAvailable("screen")) or
-     (componentType == "screen" and component.isAvailable("gpu"))
-  then
+  local wasAvailable = term.isAvailable()
+  if componentType == "gpu" then
+    gpuAvailable = false
+  elseif componentType == "screen" then
+    screenAvailable = false
+  end
+  if wasAvailable and not term.isAvailable() then
     os.pushSignal("term_unavailable")
   end
 end

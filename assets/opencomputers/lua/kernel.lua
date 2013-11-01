@@ -264,7 +264,14 @@ sandbox = {
     end,
     list = function(filter)
       checkArg(1, filter, "string", "nil")
-      return pairs(component.list(filter))
+      local list = component.list(filter)
+      local key = nil
+      return function()
+        key = next(list, key)
+        if key then
+          return key, list[key]
+        end
+      end
     end,
     proxy = function(address)
       checkArg(1, address, "string")

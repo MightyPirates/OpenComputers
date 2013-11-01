@@ -9,15 +9,6 @@ local function onComponentAvailable(_, componentType)
   end
 end
 
--- local function onScreenResized(_, address, width, height)
---   if component.isPrimary(address) and component.isAvailable("gpu") then
---     component.primary("gpu").getResolution = function()
---       return width, height
---     end
---   end
--- end
-
 return function()
   event.listen("component_available", onComponentAvailable)
-  -- event.listen("screen_resized", onScreenResized)
 end
