@@ -2,6 +2,7 @@ local deadline = 0
 local realTime = os.realTime
 local function checkDeadline()
   if realTime() > deadline then
+    debug.sethook(coroutine.running(), checkDeadline, "", 1)
     error("too long without yielding", 0)
   end
 end
@@ -53,24 +54,20 @@ end
 local sandbox
 sandbox = {
   assert = assert,
-  -- dofile is reimplemented in lib/base.lua
+  dofile = nil, -- in lib/base.lua
   error = error,
-  -- _G is set below
+  _G = nil, -- see below
   getmetatable = getmetatable,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
     assert((mode or "t") == "t", "unsupported mode")
     return load(ld, source, "t", env or sandbox)
   end,
-  -- loadfile is reimplemented in lib/base.lua
+  loadfile = nil, -- in lib/base.lua
   next = next,
   pairs = pairs,
-  pcall = function(...)
-    local result = table.pack(pcall(...))
-    checkDeadline()
-    return table.unpack(result, 1, result.n)
-  end,
-  -- print is reimplemented in lib/base.lua
+  pcall = pcall,
+  print = nil, -- in lib/base.lua
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,
@@ -81,15 +78,12 @@ sandbox = {
   tostring = tostring,
   type = type,
   _VERSION = "Lua 5.2",
-  xpcall = function(...)
-    local result = table.pack(xpcall(...))
-    checkDeadline()
-    return table.unpack(result, 1, result.n)
-  end,
+  xpcall = xpcall,
 
   coroutine = {
     create = coroutine.create,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
+      checkArg(1, co, "thread")
       if co == coroutine.running() then
         return nil, "cannot resume non-suspended coroutine"
       end
@@ -213,7 +207,7 @@ sandbox = {
     rshift = bit32.rshift
   },
 
-  -- io library is largely reimplemented in lib/io.lua
+  io = nil, -- in lib/io.lua
 
   os = {
     clock = os.clock,
@@ -221,12 +215,12 @@ sandbox = {
     difftime = function(t2, t1)
       return t2 - t1
     end,
-    -- execute is reimplemented in lib/os.lua
-    -- exit is reimplemented in lib/os.lua
-    -- remove is reimplemented in lib/os.lua
-    -- rename is reimplemented in lib/os.lua
+    execute = nil, -- in lib/os.lua
+    exit = nil, -- in lib/os.lua
+    remove = nil, -- in lib/os.lua
+    rename = nil, -- in lib/os.lua
     time = os.time,
-    -- tmpname is reimplemented in lib/os.lua
+    tmpname = nil, -- in lib/os.lua
 
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
@@ -317,65 +311,63 @@ sandbox._G = sandbox
 local function main()
   local args
   local function bootstrap()
-    do
-      -- Minimalistic hard-coded proxy for our ROM.
-      local rom = {}
-      function rom.invoke(method, ...)
-        return invoke(true, os.romAddress(), method, ...)
-      end
-      function rom.open(file) return rom.invoke("open", file) end
-      function rom.read(handle) return rom.invoke("read", handle, math.huge) end
-      function rom.close(handle) return rom.invoke("close", handle) end
-      function rom.libs(file) return ipairs(rom.invoke("list", "lib")) end
-      function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
+    -- Minimalistic hard-coded pure async proxy for our ROM.
+    local rom = {}
+    function rom.invoke(method, ...)
+      return invoke(true, os.romAddress(), method, ...)
+    end
+    function rom.open(file) return rom.invoke("open", file) end
+    function rom.read(handle) return rom.invoke("read", handle, math.huge) end
+    function rom.close(handle) return rom.invoke("close", handle) end
+    function rom.libs(file) return ipairs(rom.invoke("list", "lib")) end
+    function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
 
-      -- Custom dofile implementation since we don't have the baselib yet.
-      local function dofile(file)
-        local handle, reason = rom.open(file)
-        if not handle then
-          error(reason)
-        end
-        if handle then
-          local buffer = ""
-          repeat
-            local data = rom.read(handle)
-            if data then
-              buffer = buffer .. data
-            end
-          until not data
-          rom.close(handle)
-          local program, reason = load(buffer, "=" .. file, "t", sandbox)
-          if program then
-            local result = table.pack(pcall(program))
-            if result[1] then
-              return table.unpack(result, 2, result.n)
-            else
-              error("error initializing lib: " .. result[2])
-            end
+    -- Custom low-level dofile implementation reading from our ROM.
+    local function dofile(file)
+      local handle, reason = rom.open(file)
+      if not handle then
+        error(reason)
+      end
+      if handle then
+        local buffer = ""
+        repeat
+          local data = rom.read(handle)
+          if data then
+            buffer = buffer .. data
+          end
+        until not data
+        rom.close(handle)
+        local program, reason = load(buffer, "=" .. file, "t", sandbox)
+        if program then
+          local result = table.pack(pcall(program))
+          if result[1] then
+            return table.unpack(result, 2, result.n)
           else
-            error("error loading lib: " .. reason)
+            error("error initializing lib: " .. result[2])
           end
+        else
+          error("error loading lib: " .. reason)
         end
-      end
-
-      local init = {}
-      for _, lib in rom.libs() do
-        local path = "lib/" .. lib
-        if not rom.isDirectory(path) then
-          local install = dofile(path)
-          if type(install) == "function" then
-            table.insert(init, install)
-          end
-        end
-      end
-
-      for _, install in ipairs(init) do
-        install()
       end
     end
 
+    local init = {}
+    for _, lib in rom.libs() do
+      local path = "lib/" .. lib
+      if not rom.isDirectory(path) then
+        local install = dofile(path)
+        if type(install) == "function" then
+          table.insert(init, install)
+        end
+      end
+    end
+
+    for _, install in ipairs(init) do
+      install()
+    end
+
     -- Yield once to get a memory baseline.
-    args = table.pack(coroutine.yield(0)) -- pseudo sleep to avoid dying
+    args = table.pack(coroutine.yield(0)) -- pseudo sleep to avoid suspension
 
     return coroutine.create(load(string.format([[
       fs.mount("%s", "/")
