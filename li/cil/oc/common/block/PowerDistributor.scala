@@ -9,8 +9,7 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], "oc.powerdistributor")
-
+  GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], "oc.power_distributor")
   val unlocalizedName = "PowerDistributor"
 
   // ----------------------------------------------------------------------- //

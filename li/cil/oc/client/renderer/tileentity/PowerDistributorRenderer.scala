@@ -2,23 +2,24 @@ package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
-import li.cil.oc.util.RenderState
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
   private val sideOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/power_distributor_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
-    val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
-    if (false /*distributor.isActive*/) {
+    val balancer = tileEntity.asInstanceOf[tileentity.PowerDistributor]
+    if (balancer.average > 0) {
       GL11.glPushAttrib(0xFFFFFF)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
+      RenderState.setBlendAlpha(balancer.average.toFloat)
 
       GL11.glPushMatrix()
 

@@ -8,13 +8,12 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class PowerSupply(val parent: SimpleDelegator) extends SimpleDelegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.PowerSupply], "oc.powersupply")
-  val unlocalizedName = "PowerSupply"
+class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
+  GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], "oc.power_converter")
+  val unlocalizedName = "PowerConverter"
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.PowerSupply].onUnload()
-  }
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.PowerConverter].unload()
 
   // ----------------------------------------------------------------------- //
 
@@ -38,5 +37,5 @@ class PowerSupply(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.PowerSupply)
+  override def createTileEntity(world: World) = Some(new tileentity.PowerConverter)
 }

@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.util
 
 import li.cil.oc.api
 import net.minecraft.nbt.NBTTagCompound
