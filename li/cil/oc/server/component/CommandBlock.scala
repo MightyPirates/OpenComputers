@@ -6,7 +6,9 @@ import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
 class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
-  val node = api.Network.createComponent(api.Network.createNode(this, "command_block", Visibility.Network))
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("command_block").
+    create()
 
   // ----------------------------------------------------------------------- //
 

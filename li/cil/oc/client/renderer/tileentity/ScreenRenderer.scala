@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
-import org.lwjgl.opengl.{GLContext, GL14, GL11}
+import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   private val maxRenderDistanceSq = Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance
@@ -21,8 +21,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
   private val fadeDistanceSq = Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance
 
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
-
-  private val canFade = GLContext.getCapabilities.OpenGL14
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
@@ -62,10 +60,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
-    if (canFade && distance > fadeDistanceSq) {
-      val fade = 1.0 min ((distance - fadeDistanceSq) * fadeRatio)
-      GL14.glBlendColor(0, 0, 0, 1 - fade.toFloat)
-      GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
+    if (distance > fadeDistanceSq) {
+      RenderState.setBlendAlpha(0f max
+        (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
     }
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)

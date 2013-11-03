@@ -4,20 +4,23 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.InvocationTargetException
 import li.cil.oc.api
-import li.cil.oc.api.network._
+import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
 import li.cil.oc.server.component.Computer
+import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
 
-class Component(host: Environment, name: String, reachability: Visibility) extends Node(host, name, reachability) with api.network.Component {
-  private val luaCallbacks = Component.callbacks(host.getClass)
-
-  private var visibility_ = reachability
+trait Component extends api.network.Component with Persistable {
+  val name: String
 
   def visibility = visibility_
+
+  private lazy val luaCallbacks = Component.callbacks(host.getClass)
+
+  private var visibility_ = Visibility.None
 
   def setVisibility(value: Visibility) = {
     if (value.ordinal() > reachability.ordinal()) {

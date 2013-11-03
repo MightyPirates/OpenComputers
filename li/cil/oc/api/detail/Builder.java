@@ -9,7 +9,7 @@ public interface Builder<T extends Node> {
     T create();
 
     public static interface NodeBuilder extends Builder<Node> {
-        ComponentBuilder withComponent();
+        ComponentBuilder withComponent(String name);
 
         ConnectorBuilder withConnector(double bufferSize);
     }
@@ -19,7 +19,7 @@ public interface Builder<T extends Node> {
     }
 
     static interface ConnectorBuilder extends Builder<Connector> {
-        ComponentConnectorBuilder withComponent();
+        ComponentConnectorBuilder withComponent(String name);
     }
 
     static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {

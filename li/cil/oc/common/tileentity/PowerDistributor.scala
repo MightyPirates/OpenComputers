@@ -10,8 +10,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class PowerDistributor extends Rotatable with Environment {
-  val node = api.Network.newNode(this, "power_distributor", Visibility.Network).
-    create()
+  val node = api.Network.newNode(this, Visibility.Network).create()
 
   val connectors = mutable.Set.empty[Connector]
 

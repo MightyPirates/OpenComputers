@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack

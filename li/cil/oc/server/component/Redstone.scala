@@ -3,8 +3,9 @@ package li.cil.oc.server.component
 import li.cil.oc.common.tileentity
 import net.minecraft.nbt.{NBTTagByte, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.util.Persistable
 
-trait Redstone extends tileentity.Environment with tileentity.Persistable {
+trait Redstone extends tileentity.Environment with Persistable {
   private val _input = Array.fill[Byte](6)(-1)
 
   private val _output = Array.fill[Byte](6)(0)

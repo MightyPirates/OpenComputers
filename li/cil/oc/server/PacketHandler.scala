@@ -1,13 +1,13 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
-import li.cil.oc.api.network.Environment
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -15,21 +15,14 @@ class PacketHandler extends CommonPacketHandler {
 
   def dispatch(p: PacketParser) =
     p.packetType match {
-      case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
-      case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
+      case PacketType.PowerStateRequest => onPowerStateRequest(p)
       case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
+      case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
+      case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
-      case _ => // Invalid packet.
-    }
-
-  def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[tileentity.Screen]() match {
-      case Some(t) =>
-        val (w, h) = t.instance.resolution
-        PacketSender.sendScreenBufferState(t, w, h, t.instance.text, Option(p.player))
       case _ => // Invalid packet.
     }
 
@@ -39,15 +32,29 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[tileentity.Rotatable]() match {
-      case Some(t) => PacketSender.sendRotatableState(t, Option(p.player))
+  def onPowerStateRequest(p: PacketParser) =
+    p.readTileEntity[tileentity.PowerDistributor]() match {
+      case Some(t) => PacketSender.sendPowerState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 
   def onRedstoneStateRequest(p: PacketParser) =
     p.readTileEntity[TileEntity with Redstone]() match {
       case Some(t) => PacketSender.sendRedstoneState(t, Option(p.player))
+      case _ => // Invalid packet.
+    }
+
+  def onRotatableStateRequest(p: PacketParser) =
+    p.readTileEntity[tileentity.Rotatable]() match {
+      case Some(t) => PacketSender.sendRotatableState(t, Option(p.player))
+      case _ => // Invalid packet.
+    }
+
+  def onScreenBufferRequest(p: PacketParser) =
+    p.readTileEntity[tileentity.Screen]() match {
+      case Some(t) =>
+        val (w, h) = t.instance.resolution
+        PacketSender.sendScreenBufferState(t, w, h, t.instance.text, Option(p.player))
       case _ => // Invalid packet.
     }
 

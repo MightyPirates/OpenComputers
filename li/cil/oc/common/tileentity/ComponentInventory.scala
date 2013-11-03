@@ -1,8 +1,9 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
-import li.cil.oc.api.network.{Node, ManagedEnvironment}
+import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World

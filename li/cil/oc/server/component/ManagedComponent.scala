@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Node, ManagedEnvironment, Message}
+import li.cil.oc.api.network.{ManagedEnvironment, Node, Message}
 import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 

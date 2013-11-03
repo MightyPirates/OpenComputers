@@ -17,10 +17,12 @@ object Config {
 
   var blockId = 3650
   var blockSpecialId = 3651
+  var itemId = 4600
 
   // ----------------------------------------------------------------------- //
 
-  var itemId = 4600
+  var maxScreenTextRenderDistance = 10.0
+  var screenTextFadeStartDistance = 8.0
 
   // ----------------------------------------------------------------------- //
 
@@ -29,21 +31,18 @@ object Config {
   var fileCost = 512
   var filesBuffered = true
   var maxHandles = 16
-  var maxReadBuffer = 8 * 1024 // TODO make configurable
+  var maxReadBuffer = 8 * 1024
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var threads = 4
   var timeout = 3.0
-
-  var maxScreenTextRenderDistance = 10.0
-  var screenTextFadeStartDistance = 8.0
 
   // ----------------------------------------------------------------------- //
 
   def load(file: File) = {
     val config = new net.minecraftforge.common.Configuration(file)
 
-    // ----------------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     blockId = config.getBlock("block", blockId,
       "The block ID used for simple blocks.").
@@ -57,9 +56,10 @@ object Config {
       "The item ID used for all non-stackable items.").
       getInt(itemId)
 
-    // ----------------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
-    config.getCategory("client").setComment("Client side settings, presentation and performance related stuff.")
+    config.getCategory("client").
+      setComment("Client side settings, presentation and performance related stuff.")
 
     maxScreenTextRenderDistance = config.get("client", "maxScreenTextRenderDistance", maxScreenTextRenderDistance, "" +
       "The maximum distance at which to render text on screens. Rendering text\n" +
@@ -76,9 +76,10 @@ object Config {
       "instantly disappear when moving away from the screen displaying it.").
       getDouble(screenTextFadeStartDistance)
 
-    // ----------------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
-    config.getCategory("server").setComment("Server side settings, gameplay and security related stuff.")
+    config.getCategory("server").
+      setComment("Server side settings, gameplay and security related stuff.")
 
     baseMemory = config.get("server", "baseMemory", baseMemory, "" +
       "The base amount of memory made available in computers even if they have no\n" +
@@ -118,14 +119,29 @@ object Config {
       "well ignore this. Since file systems are usually 'virtual' this will\n" +
       "usually not have any real impact on performance/not be noticeable on the\n" +
       "host operating system.")
-      .getInt(maxHandles)
+      .getInt(maxHandles) max 1
+
+    maxReadBuffer = config.get("server", "maxReadBuffer", maxReadBuffer, "" +
+      "The maximum block size that can be read in one 'read' call on a file\n" +
+      "system. This is used to limit the amount of memory a call from a user\n" +
+      "program can cause to be allocated on the host side: when 'read' is called,\n" +
+      "a byte array with the specified size has to be allocated. So if this\n" +
+      "weren't limited, a Lua program could trigger massive memory allocations\n" +
+      "regardless of the amount of RAM installed in the computer it runs on. As a\n" +
+      "side effect this pretty much determines the read performance of file\n" +
+      "systems.")
+      .getInt(maxReadBuffer) max 1
 
     maxScreenHeight = config.get("server", "maxScreenHeight", maxScreenHeight, "" +
-      "The maximum height of multi-block screens, in blocks.")
+      "The maximum height of multi-block screens, in blocks. This is limited to\n" +
+      "avoid excessive computations for merging screens. If you really need\n" +
+      "bigger screens it's probably safe to bump this quite a bit before you\n" +
+      "notice anything, since at least incremental updates should be very\n" +
+      "efficient (i.e. when adding/removing a single screen).")
       .getInt(maxScreenHeight) max 1
 
     maxScreenWidth = config.get("server", "maxScreenWidth", maxScreenWidth, "" +
-      "The maximum width of multi-block screens, in blocks.")
+      "The maximum width of multi-block screens, in blocks. See maxScreenHeight.")
       .getInt(maxScreenWidth) max 1
 
     threads = config.get("server", "threads", threads, "" +
@@ -140,10 +156,12 @@ object Config {
     timeout = config.get("server", "timeout", timeout, "" +
       "The time in seconds a program may run without yielding before it is\n" +
       "forcibly aborted. This is used to avoid stupidly written or malicious\n" +
-      "programs blocking other computers by locking down the executor threads.").
-      getDouble(timeout)
+      "programs blocking other computers by locking down the executor threads.\n" +
+      "Note that changing this won't have any effect on computers that are\n" +
+      "already running - they'll have to be rebooted for this to take effect.").
+      getDouble(timeout) max 0.05
 
-    // ----------------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     if (config.hasChanged)
       config.save()

@@ -10,7 +10,7 @@ object Blocks {
   var screen1, screen2, screen3: Screen = null
   var keyboard: Keyboard = null
 
-  var powerSupply: PowerSupply = null
+  var powerSupply: PowerConverter = null
   var powerDistributor: PowerDistributor = null
 
   var adapter: Adapter = null
@@ -31,7 +31,7 @@ object Blocks {
 
     keyboard = new Keyboard(blockSpecial)
 
-    powerSupply = new PowerSupply(blockSimple)
+    powerSupply = new PowerConverter(blockSimple)
     powerDistributor = new PowerDistributor(blockSimple)
 
     adapter = new Adapter(blockSimple)

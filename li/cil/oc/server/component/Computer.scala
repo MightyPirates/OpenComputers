@@ -6,6 +6,7 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
+import li.cil.oc
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network._
@@ -190,6 +191,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   }
 
   def update() {
+    owner.node.changeBuffer(1)
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their
@@ -1101,8 +1103,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
 object Computer {
 
-  trait Environment extends tileentity.Environment with tileentity.Persistable with Context {
-    val node = api.Network.createComponent(api.Network.createNode(this, "computer", Visibility.Network))
+  trait Environment extends tileentity.Environment with oc.util.Persistable with Context {
+    val node = api.Network.newNode(this, Visibility.Network).
+      withComponent("computer").
+      withConnector(16).
+      create()
 
     node.setVisibility(Visibility.Neighbors)
 

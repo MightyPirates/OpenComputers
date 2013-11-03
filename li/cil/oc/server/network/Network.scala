@@ -272,13 +272,49 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  def createNode(host: Environment, name: String, reachability: Visibility) = new MutableNode(host, name, reachability)
+  def newNode(host: Environment, reachability: Visibility) = new NodeBuilder(host, reachability)
 
-  def createComponent(node: ImmutableNode) = new Component(node.host, node.name, node.reachability)
+  class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
+    def withComponent(name: String) = new Network.ComponentBuilder(_host, name, _reachability)
 
-  def createConsumer(node: ImmutableNode) = ???
+    def withConnector(bufferSize: Double) = new Network.ConnectorBuilder(_host, _reachability, bufferSize)
 
-  def createProducer(node: ImmutableNode) = ???
+    def create() = new MutableNode {
+      val host = _host
+      val reachability = _reachability
+    }
+  }
+
+  class ComponentBuilder(val _host: Environment, val _name: String, val _reachability: Visibility) extends api.detail.Builder.ComponentBuilder {
+    def withConnector(bufferSize: Double) = new Network.ComponentConnectorBuilder(_host, _reachability, _name, bufferSize)
+
+    def create() = new MutableNode with Component {
+      val host = _host
+      val reachability = _reachability
+      val name = _name
+      setVisibility(reachability)
+    }
+  }
+
+  class ConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _bufferSize: Double) extends api.detail.Builder.ConnectorBuilder {
+    def withComponent(name: String) = new Network.ComponentConnectorBuilder(_host, _reachability, name, _bufferSize)
+
+    def create() = new MutableNode with Connector {
+      val host = _host
+      val reachability = _reachability
+      val bufferSize = _bufferSize
+    }
+  }
+
+  class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
+    def create() = new MutableNode with Component with Connector with api.network.ComponentConnector {
+      val host = _host
+      val reachability = _reachability
+      val name = _name
+      val bufferSize = _bufferSize
+      setVisibility(reachability)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

@@ -7,7 +7,9 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class NetworkCard extends ManagedComponent {
-  val node = api.Network.createComponent(api.Network.createNode(this, "network", Visibility.Network))
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("modem").
+    create()
   node.setVisibility(Visibility.Neighbors)
 
   private val openPorts = mutable.Set.empty[Int]

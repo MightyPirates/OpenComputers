@@ -7,7 +7,9 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
 class Keyboard extends Rotatable with Environment {
-  val node = api.Network.createComponent(api.Network.createNode(this, "keyboard", Visibility.Network))
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("keyboard").
+    create()
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)

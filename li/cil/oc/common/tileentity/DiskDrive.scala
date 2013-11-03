@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 class DiskDrive extends Rotatable with Environment with ComponentInventory {
-  val node = api.Network.createNode(this, "disk_drive", Visibility.None)
+  val node = api.Network.newNode(this, Visibility.None).create()
 
   def world = worldObj
 

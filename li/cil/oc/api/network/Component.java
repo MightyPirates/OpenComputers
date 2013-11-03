@@ -21,6 +21,17 @@ package li.cil.oc.api.network;
  */
 public interface Component extends Node {
     /**
+     * The name of the node.
+     * <p/>
+     * This should be the type name of the component represented by the node,
+     * since this is what is returned from <tt>component.type</tt>. As such it
+     * is to be expected that there be multiple nodes with the same name, but
+     * that those nodes all have the same underlying type (i.e. there can be
+     * multiple "filesystem" nodes, but they should all behave the same way).
+     */
+    String name();
+
+    /**
      * Get the visibility of this component.
      */
     Visibility visibility();

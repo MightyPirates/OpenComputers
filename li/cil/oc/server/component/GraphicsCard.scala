@@ -7,7 +7,9 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
 class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
-  val node = api.Network.createComponent(api.Network.createNode(this, "gpu", Visibility.Neighbors))
+  val node = api.Network.newNode(this, Visibility.Neighbors).
+    withComponent("gpu").
+    create()
 
   private var screenAddress: Option[String] = None
 

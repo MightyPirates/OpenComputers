@@ -1,10 +1,12 @@
 package li.cil.oc.util
 
 import net.minecraft.client.renderer.OpenGlHelper
-import org.lwjgl.opengl.{ARBMultitexture, GLContext, GL11, GL13}
+import org.lwjgl.opengl._
 
 object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
+
+  private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
 
   def disableLighting() {
     GL11.glDisable(GL11.GL_LIGHTING)
@@ -24,5 +26,10 @@ object RenderState {
     GL11.glEnable(GL11.GL_BLEND)
     GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR)
     GL11.glDepthFunc(GL11.GL_LEQUAL)
+  }
+
+  def setBlendAlpha(alpha: Float) = if (canUseBlendColor) {
+    GL14.glBlendColor(0, 0, 0, alpha)
+    GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE)
   }
 }

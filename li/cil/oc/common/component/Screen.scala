@@ -1,10 +1,10 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api
 import li.cil.oc.api.Persistable
-import li.cil.oc.api.network.{Message, Visibility}
+import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.{tileentity, component}
 import li.cil.oc.util.TextBuffer
+import li.cil.oc.{util, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) extends Persistable {
@@ -63,8 +63,10 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
 
 object Screen {
 
-  trait Environment extends tileentity.Environment with tileentity.Persistable {
-    val node = api.Network.createComponent(api.Network.createNode(this, "screen", Visibility.Network))
+  trait Environment extends tileentity.Environment with util.Persistable {
+    val node = api.Network.newNode(this, Visibility.Network).
+      withComponent("screen").
+      create()
 
     final val instance = new component.Screen(this, maxResolution)
 

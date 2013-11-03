@@ -14,7 +14,9 @@ import scala.collection.mutable
 // TODO persist managed environments of attached blocks somehow...
 
 class Adapter extends Rotatable with Environment with IPeripheral {
-  val node = api.Network.createComponent(api.Network.createNode(this, "adapter", Visibility.None))
+  val node = api.Network.newNode(this, Visibility.None).
+    withComponent("adapter").
+    create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 

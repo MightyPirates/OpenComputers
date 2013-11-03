@@ -38,15 +38,6 @@ public interface Node extends Persistable {
     Environment host();
 
     /**
-     * The name of the node.
-     * <p/>
-     * This should be the type name of the component represented by the node,
-     * since this is what is returned from `driver.componentType`. As such it
-     * is to be expected that there be multiple nodes with the same name.
-     */
-    String name();
-
-    /**
      * The reachability of this node.
      * <p/>
      * This is used by the network to control which system messages to deliver

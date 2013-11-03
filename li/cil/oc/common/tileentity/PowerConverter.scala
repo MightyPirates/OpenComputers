@@ -12,7 +12,7 @@ import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
 
 class PowerConverter extends Rotatable with Environment with IEnergySink with IPowerReceptor with IElectrical {
-  val node = api.Network.newNode(this, "power_converter", Visibility.Network).
+  val node = api.Network.newNode(this, Visibility.Network).
     withConnector(128).
     create()
 

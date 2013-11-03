@@ -5,7 +5,9 @@ import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
 import net.minecraftforge.common.ForgeDirection
 
 class RedstoneCard extends ManagedComponent {
-  val node = api.Network.createComponent(api.Network.createNode(this, "redstone", Visibility.Neighbors))
+  val node = api.Network.newNode(this, Visibility.Neighbors).
+    withComponent("redstone").
+    create()
 
   @LuaCallback(value = "getInput", asynchronous = true)
   def getInput(context: Context, args: Arguments): Array[Object] = {
