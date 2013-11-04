@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.inventory.{Container, Slot}
 import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.opengl.GL11
+import li.cil.oc.util.RenderState
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
   protected val slotBackground = new ResourceLocation(Config.resourceDomain, "textures/gui/slot.png")
@@ -19,21 +20,23 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
     y = (height - ySize) / 2
   }
 
-  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
+  override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
       StatCollector.translateToLocal("container.inventory"),
       8, ySize - 96 + 2, 0x404040)
   }
 
-  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) = {
-    GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F)
+  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     mc.renderEngine.bindTexture(background)
     drawTexturedModalRect(x, y, 0, 0, xSize, ySize)
   }
 
-  override def drawSlotInventory(slot: Slot) = {
-    if (slot.slotNumber < container.inventorySlots.size() - 36)
+  override def drawSlotInventory(slot: Slot) {
+    if (slot.slotNumber < container.inventorySlots.size() - 36) {
+      GL11.glDisable(GL11.GL_LIGHTING)
       drawSlotBackground(slot.xDisplayPosition - 1, slot.yDisplayPosition - 1)
+      GL11.glEnable(GL11.GL_LIGHTING)
+    }
     GL11.glEnable(GL11.GL_BLEND)
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
     super.drawSlotInventory(slot)
