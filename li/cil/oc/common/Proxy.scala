@@ -28,6 +28,7 @@ class Proxy {
     api.Driver.add(driver.RedstoneCard)
     api.Driver.add(driver.CommandBlock)
     api.Driver.add(driver.PowerSupply)
+    api.Driver.add(driver.Peripheral)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)

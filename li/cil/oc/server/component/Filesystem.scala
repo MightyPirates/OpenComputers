@@ -10,8 +10,8 @@ import scala.Some
 import scala.collection.mutable
 
 class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Neighbors).
-    withComponent("filesystem").
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("filesystem", Visibility.Neighbors).
     create()
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
