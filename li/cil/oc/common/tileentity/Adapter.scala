@@ -15,9 +15,7 @@ import scala.collection.mutable
 // TODO persist managed environments of attached blocks somehow...
 
 class Adapter extends Rotatable with Environment with IPeripheral {
-  val node = api.Network.newNode(this, Visibility.None).
-    withComponent("adapter").
-    create()
+  val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
@@ -86,6 +84,21 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     super.onConnect(node)
     if (node == this.node) {
       neighborChanged()
+    }
+  }
+
+  override def onMessage(message: Message) {
+    super.onMessage(message)
+    if (message.name == "network.message") message.data match {
+      case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
+        for (computer <- computers) {
+          if (openPorts(computer).contains(port))
+            computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt)) ++ args.map {
+              case x: Array[Byte] => new String(x, "UTF-8")
+              case x => x
+            }: _*))
+        }
+      case _ =>
     }
   }
 
@@ -163,11 +176,11 @@ class Adapter extends Rotatable with Environment with IPeripheral {
   override def canAttachToSide(side: Int) = true
 
   private def checkPort(args: Array[AnyRef], index: Int) = {
-    if (args.length < index - 1 || !args(index).isInstanceOf[Int])
-      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index))
-    val port = args(index).asInstanceOf[Int]
+    if (args.length < index - 1 || !args(index).isInstanceOf[Double])
+      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
+    val port = args(index).asInstanceOf[Double].toInt
     if (port < 1 || port > 0xFFFF)
-      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index))
+      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
     port
   }
 }
