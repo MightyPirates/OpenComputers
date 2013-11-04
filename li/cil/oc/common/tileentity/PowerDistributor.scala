@@ -28,10 +28,8 @@ class PowerDistributor extends Rotatable with Environment {
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
     }
-    if (!worldObj.isRemote && connectors.exists(_.dirty) && computeAverage()) {
-      // Adjust buffer fill ratio for all buffers to average.
-      connectors.foreach(c => c.buffer = c.bufferSize * average)
-    }
+    if (!worldObj.isRemote && connectors.exists(_.dirty))
+      balance()
   }
 
   override def validate() {
@@ -51,7 +49,7 @@ class PowerDistributor extends Rotatable with Environment {
     else node match {
       case connector: Connector =>
         connectors -= connector
-        computeAverage()
+        balance()
       case _ => node.host match {
         case distributor: PowerDistributor => distributors -= distributor
         case _ =>
@@ -69,7 +67,7 @@ class PowerDistributor extends Rotatable with Environment {
           case _ =>
         }
       }
-      computeAverage()
+      balance()
     }
     else node match {
       case connector: Connector => connectors += connector
@@ -94,7 +92,7 @@ class PowerDistributor extends Rotatable with Environment {
 
   // ----------------------------------------------------------------------- //
 
-  private def computeAverage() = {
+  private def balance() {
     // Computer average fill ratio of all buffers.
     val (minRelativeBuffer, maxRelativeBuffer, sumBuffer, sumBufferSize) =
       connectors.foldRight((1.0, 0.0, 0.0, 0.0))((c, acc) => {
@@ -111,6 +109,9 @@ class PowerDistributor extends Rotatable with Environment {
         ServerPacketSender.sendPowerState(distributor)
       }
     }
-    maxRelativeBuffer - minRelativeBuffer > 10e-4
+    if (maxRelativeBuffer - minRelativeBuffer > 10e-4) {
+      // Adjust buffer fill ratio for all buffers to average.
+      connectors.foreach(c => c.buffer = c.bufferSize * average)
+    }
   }
 }

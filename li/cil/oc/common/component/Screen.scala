@@ -4,7 +4,7 @@ import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.{tileentity, component}
 import li.cil.oc.util.TextBuffer
-import li.cil.oc.{util, api}
+import li.cil.oc.{Config, util, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) extends Persistable {
@@ -36,17 +36,20 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
     val (x, truncated) =
       if (col < 0) (0, s.substring(-col))
       else (col, s.substring(0, s.length min buffer.width))
-    if (buffer.set(x, row, truncated))
-      owner.onScreenSet(x, row, truncated)
+    if (consumePower(truncated.length, Config.screenSetCost))
+      if (buffer.set(x, row, truncated))
+        owner.onScreenSet(x, row, truncated)
   }
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =
-    if (buffer.fill(col, row, w, h, c))
-      owner.onScreenFill(col, row, w, h, c)
+    if (consumePower(w * h, if (c == ' ') Config.screenClearCost else Config.screenFillCost))
+      if (buffer.fill(col, row, w, h, c))
+        owner.onScreenFill(col, row, w, h, c)
 
   def copy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    if (buffer.copy(col, row, w, h, tx, ty))
-      owner.onScreenCopy(col, row, w, h, tx, ty)
+    if (consumePower(w * h, Config.screenCopyCost))
+      if (buffer.copy(col, row, w, h, tx, ty))
+        owner.onScreenCopy(col, row, w, h, tx, ty)
 
   // ----------------------------------------------------------------------- //
 
@@ -59,6 +62,11 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
     buffer.writeToNBT(screenNbt)
     nbt.setCompoundTag("oc.screen", screenNbt)
   }
+
+  // ----------------------------------------------------------------------- //
+
+  private def consumePower(n: Double, cost: Double) =
+    owner.node == null || owner.node.changeBuffer(-n * cost)
 }
 
 object Screen {
@@ -89,16 +97,16 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
+    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {}
+
+    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {}
+
     def onScreenResolutionChange(w: Int, h: Int) {
       if (node != null)
         node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
     }
 
     def onScreenSet(col: Int, row: Int, s: String) {}
-
-    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {}
-
-    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {}
   }
 
 }

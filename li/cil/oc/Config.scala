@@ -7,7 +7,26 @@ object Config {
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
 
+  // ----------------------------------------------------------------------- //
+
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
+
+  // ----------------------------------------------------------------------- //
+
+  // Power it takes to run a computer at 100% CPU time for one second.
+  val cpuTimeCost = 256
+
+  // Power it takes to change a single pixel via the set command.
+  val screenSetCost = 1.0 / 20
+
+  // Power it takes to change a single pixel via the fill command.
+  val screenFillCost = 1.0 / 180
+
+  // Power it takes to change a single pixel to blank via the fill command.
+  val screenClearCost = 1.0 / 200
+
+  // Power it takes to move a single pixel via the copy command.
+  val screenCopyCost = 1.0 / 160
 
   // ----------------------------------------------------------------------- //
 

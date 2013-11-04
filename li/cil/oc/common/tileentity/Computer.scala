@@ -1,6 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import java.util.concurrent.atomic.AtomicBoolean
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
@@ -20,7 +19,9 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  private val hasChanged = new AtomicBoolean(true) // For `markChanged`.
+  private var powerConsumed = 0.0
+
+  private var hasChanged = false
 
   private var isRunning = false
 
@@ -30,7 +31,10 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   def world = worldObj
 
-  def markAsChanged() = hasChanged.set(true)
+  def markAsChanged(power: Double) = this.synchronized {
+    powerConsumed = (powerConsumed + power) max 0
+    hasChanged = true
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -72,12 +76,24 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       // too, avoiding issues of missing nodes (e.g. in the GPU which would
       // otherwise loose track of its screen).
       instance.update()
-      updateRedstoneInput()
-      if (hasChanged.get)
+      val (powerRequired, needsSaving) = this.synchronized {
+        val a = powerConsumed + 0.05
+        val b = hasChanged
+        powerConsumed = 0
+        hasChanged = false
+        (a, b)
+      }
+      if (isRunning && !node.changeBuffer(-powerRequired)) {
+        // TODO try to print to screen? sound effect? particle effect?
+        println("not enough power, shutting down... " + powerRequired)
+        turnOff()
+      }
+      if (needsSaving)
         worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       if (isRunning != instance.isRunning)
         ServerPacketSender.sendComputerState(this, instance.isRunning)
       isRunning = instance.isRunning
+      updateRedstoneInput()
     }
 
     for (component <- components) component match {

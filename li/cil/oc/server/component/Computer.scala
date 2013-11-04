@@ -106,25 +106,27 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  def start() = stateMonitor.synchronized(
-    (owner.node.network != null && state == Computer.State.Stopped) && init() && {
-      // Initial state. Will be switched to State.Yielded in the next update()
-      // due to the signals queue not being empty (
-      state = Computer.State.Suspended
+  def start() = stateMonitor.synchronized(owner.node.network != null &&
+    state == Computer.State.Stopped &&
+    owner.installedMemory > 0 &&
+    init() && {
+    // Initial state. Will be switched to State.Yielded in the next update()
+    // due to the signals queue not being empty (
+    state = Computer.State.Suspended
 
-      // Remember when we started, for os.clock().
-      timeStarted = owner.world.getWorldInfo.getWorldTotalTime
+    // Remember when we started, for os.clock().
+    timeStarted = owner.world.getWorldInfo.getWorldTotalTime
 
-      // Mark state change in owner, to send it to clients.
-      owner.markAsChanged()
+    // Mark state change in owner, to send it to clients.
+    owner.markAsChanged(8) // Initial power required to start.
 
-      // Push a dummy signal to get the computer going.
-      signal("dummy")
+    // Push a dummy signal to get the computer going.
+    signal("dummy")
 
-      // All green, computer started successfully.
-      owner.node.sendToReachable("computer.started")
-      true
-    })
+    // All green, computer started successfully.
+    owner.node.sendToReachable("computer.started")
+    true
+  })
 
   def stop() = stateMonitor.synchronized(state match {
     case Computer.State.Stopped => false // Nothing to do.
@@ -925,7 +927,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       sleepUntil = Long.MaxValue
 
       // Mark state change in owner, to send it to clients.
-      owner.markAsChanged()
+      owner.markAsChanged(Double.NegativeInfinity)
     })
 
   // ----------------------------------------------------------------------- //
@@ -957,6 +959,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     } match {
       case Computer.State.SynchronizedReturn => true
       case Computer.State.Yielded | Computer.State.Sleeping => false
+      case Computer.State.Stopping =>
+        // stop() was called directly after start(), e.g. due to lack of power.
+        close()
+        return
       case s =>
         OpenComputers.log.warning("Running computer from invalid state " + s.toString + ". This is a bug!")
         close()
@@ -992,7 +998,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case _ =>
           lua.resume(1, 0)
       }
-      cpuTime += System.nanoTime() - cpuStart
+      val runtime = System.nanoTime() - cpuStart
+      cpuTime += runtime
 
       // Check if this was the first run, meaning the one used for initializing
       // the kernel (loading the libs, establishing a memory baseline).
@@ -1051,7 +1058,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }
 
         // State has inevitably changed, mark as changed to save again.
-        owner.markAsChanged()
+        owner.markAsChanged(Config.cpuTimeCost.toDouble * runtime / 1000 / 1000 / 1000)
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
       else {
@@ -1119,8 +1126,10 @@ object Computer {
      * <p/>
      * This is called asynchronously from the Computer's executor thread, so the
      * computer's owner must make sure to handle this in a synchronized fashion.
+     *
+     * @param power the power that should be consumed.
      */
-    def markAsChanged(): Unit
+    def markAsChanged(power: Double): Unit
 
     // ----------------------------------------------------------------------- //
 
