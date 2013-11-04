@@ -7,6 +7,7 @@ object Items {
 
   var rs: item.RedstoneCard = null
   var lan: item.NetworkCard = null
+  var psu: item.PowerSupply = null
 
   var gpu1: item.GraphicsCard = null
   var gpu2: item.GraphicsCard = null
@@ -39,5 +40,7 @@ object Items {
     hdd2 = new item.HardDiskDrive(multi, 4)
     hdd3 = new item.HardDiskDrive(multi, 8)
     disk = new item.Disk(multi)
+
+    psu = new item.PowerSupply(multi)
   }
 }

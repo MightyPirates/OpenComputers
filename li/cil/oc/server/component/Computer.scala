@@ -191,7 +191,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   }
 
   def update() {
-    owner.node.changeBuffer(1)
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their

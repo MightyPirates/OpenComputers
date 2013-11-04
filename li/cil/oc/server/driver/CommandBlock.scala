@@ -10,7 +10,7 @@ object CommandBlock extends driver.Block {
   def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getBlockId(x, y, z) == Block.commandBlock.blockID
 
-  override def createEnvironment(world: World, x: Int, y: Int, z: Int) =
+  def createEnvironment(world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case block: TileEntityCommandBlock => new component.CommandBlock(block)
       case _ => null
