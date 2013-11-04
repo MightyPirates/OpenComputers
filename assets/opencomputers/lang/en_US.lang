@@ -20,4 +20,5 @@ oc.item.Memory128k.name=RAM (128KB)
 oc.item.Memory32k.name=RAM (32KB)
 oc.item.Memory64k.name=RAM (64KB)
 oc.item.NetworkCard.name=Network Card
+oc.item.PowerSupply.name=Power Supply
 oc.item.RedstoneCard.name=Redstone Card
