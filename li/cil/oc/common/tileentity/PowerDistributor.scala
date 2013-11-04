@@ -16,6 +16,8 @@ class PowerDistributor extends Rotatable with Environment {
 
   var average = 0.0
 
+  private var lastSentAverage = 0.0
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
@@ -77,16 +79,17 @@ class PowerDistributor extends Rotatable with Environment {
 
   private def computeAverage() = {
     // Computer average fill ratio of all buffers.
-    val (sumBuffer, sumBufferSize) = connectors.foldRight((0.0, 0.0))((c, acc) => {
-      c.dirty = false // clear dirty flag for all connectors
-      (acc._1 + c.buffer, acc._2 + c.bufferSize)
-    })
-    val newAverage = if (sumBufferSize > 0) sumBuffer / sumBufferSize else 0
-    if ((average - newAverage).abs > 10e-4) {
-      average = newAverage
+    val (minRelativeBuffer, maxRelativeBuffer, sumBuffer, sumBufferSize) =
+      connectors.foldRight((1.0, 0.0, 0.0, 0.0))((c, acc) => {
+        c.dirty = false // clear dirty flag for all connectors
+        (acc._1 min (c.buffer / c.bufferSize), acc._2 max (c.buffer / c.bufferSize),
+          acc._3 + c.buffer, acc._4 + c.bufferSize)
+      })
+    average = if (sumBufferSize > 0) sumBuffer / sumBufferSize else 0
+    if ((lastSentAverage - average).abs > 0.05) {
+      lastSentAverage = average
       ServerPacketSender.sendPowerState(this)
-      true
     }
-    else false
+    maxRelativeBuffer - minRelativeBuffer > 10e-4
   }
 }
