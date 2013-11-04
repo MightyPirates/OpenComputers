@@ -14,6 +14,7 @@ object Config {
   // ----------------------------------------------------------------------- //
 
   var bufferComputer = 16.0
+  var bufferConverter = 64.0
   var bufferScreen = 16.0
   var computerBaseCost = 1.0 / 20
   var computerCpuTimeCost = 256.0
@@ -98,6 +99,10 @@ object Config {
     bufferComputer = config.get("power", "bufferComputer", bufferComputer, "" +
       "The buffer size for computers, i.e. how much power they store internally.").
       getDouble(bufferComputer)
+
+    bufferConverter = config.get("power", "bufferConverter", bufferConverter, "" +
+      "The buffer size for converters, i.e. how much power they store internally.").
+      getDouble(bufferConverter)
 
     bufferScreen = config.get("power", "bufferScreen", bufferScreen, "" +
       "The buffer size for screens, i.e. how much power they store internally.").

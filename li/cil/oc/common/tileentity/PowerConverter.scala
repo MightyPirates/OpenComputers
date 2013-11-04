@@ -3,9 +3,9 @@ package li.cil.oc.common.tileentity
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
@@ -14,7 +14,7 @@ import universalelectricity.core.electricity.ElectricityPack
 
 class PowerConverter extends Rotatable with Environment with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
-    withConnector(128).
+    withConnector(Config.bufferConverter).
     create()
 
   private var addedToEnet = false
@@ -68,14 +68,14 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    node.load(nbt)
+    if (node != null) node.load(nbt)
     getPowerProvider.readFromNBT(nbt)
 
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    node.save(nbt)
+    if (node != null) node.save(nbt)
     getPowerProvider.writeToNBT(nbt)
   }
 
@@ -105,16 +105,20 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
   // BuildCraft
 
   def getPowerProvider = {
-    if (powerHandler == null) {
+    if (node != null && powerHandler == null) {
       powerHandler = new PowerHandler(this, PowerHandler.Type.STORAGE)
       if (powerHandler != null) {
         powerHandler.configure(1, 320, Float.MaxValue, node.bufferSize.toFloat / ratioBuildCraft)
+        powerHandler.configurePowerPerdition(0, 0)
       }
     }
     powerHandler
   }
 
-  def getPowerReceiver(side: ForgeDirection) = getPowerProvider.getPowerReceiver
+  def getPowerReceiver(side: ForgeDirection) =
+    if (node != null)
+      getPowerProvider.getPowerReceiver
+    else null
 
   def getWorld = worldObj
 

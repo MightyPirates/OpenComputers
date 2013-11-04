@@ -258,8 +258,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
             }
             // Check if there's more than one, and if so set to the next one.
             if (validPitch.length > 1) {
-              if (!world.isRemote)
-                rotatable.pitch = validPitch((validPitch.indexOf(rotatable.pitch) + 1) % validPitch.length)
+              // Can rotate, indicate that to the player. Note that the actual
+              // rotation logic is performed in rotateBlock.
               return true
             }
           }
@@ -270,8 +270,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
             }
             // Check if there's more than one, and if so set to the next one.
             if (validYaw.length > 1) {
-              if (!world.isRemote)
-                rotatable.yaw = validYaw((validYaw.indexOf(rotatable.yaw) + 1) % validYaw.length)
+              // Can rotate, indicate that to the player. Note that the actual
+              // rotation logic is performed in rotateBlock.
               return true
             }
           }

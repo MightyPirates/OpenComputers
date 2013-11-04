@@ -90,7 +90,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
 
-  private var sleepUntil = Double.PositiveInfinity // Real-world time [ms].
+  private var sleepUntil = 0.0 // Real-world time [ms].
 
   private var wasRunning = false // To signal stops synchronously.
 
@@ -101,7 +101,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   def recomputeMemory() = stateMonitor.synchronized(if (lua != null) {
     lua.setTotalMemory(Int.MaxValue)
     lua.gc(LuaState.GcAction.COLLECT, 0)
-    lua.setTotalMemory(kernelMemory + owner.installedMemory)
+    if (kernelMemory > 0)
+      lua.setTotalMemory(kernelMemory + owner.installedMemory)
   })
 
   // ----------------------------------------------------------------------- //
@@ -931,7 +932,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       cpuTime = 0
       cpuStart = 0
       future = None
-      sleepUntil = Double.PositiveInfinity
+      sleepUntil = 0
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged(Double.NegativeInfinity)
@@ -941,7 +942,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private def execute(value: Computer.State.Value) {
     assert(future.isEmpty)
-    sleepUntil = Double.PositiveInfinity
+    sleepUntil = 0
     state = value
     future = Some(Computer.Executor.pool.submit(this))
   }

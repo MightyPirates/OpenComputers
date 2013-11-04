@@ -8,7 +8,7 @@ import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 
 object PacketSender {
-  def sendComputerStateRequest(t: Computer) = {
+  def sendComputerStateRequest(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerStateRequest)
 
     pb.writeTileEntity(t)
@@ -16,7 +16,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendPowerStateRequest(t: PowerDistributor) = {
+  def sendPowerStateRequest(t: PowerDistributor) {
     val pb = new PacketBuilder(PacketType.PowerStateRequest)
 
     pb.writeTileEntity(t)
@@ -24,7 +24,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRedstoneStateRequest(t: TileEntity with Redstone) = {
+  def sendRedstoneStateRequest(t: TileEntity with Redstone) {
     val pb = new PacketBuilder(PacketType.RedstoneStateRequest)
 
     pb.writeTileEntity(t)
@@ -32,7 +32,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRotatableStateRequest(t: Rotatable) = {
+  def sendRotatableStateRequest(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableStateRequest)
 
     pb.writeTileEntity(t)
@@ -40,7 +40,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendScreenBufferRequest(t: Screen) = {
+  def sendScreenBufferRequest(t: Screen) {
     val pb = new PacketBuilder(PacketType.ScreenBufferRequest)
 
     pb.writeTileEntity(t)
@@ -48,7 +48,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: TileEntity with Environment](t: T, char: Char, code: Int) = {
+  def sendKeyDown[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
@@ -58,7 +58,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: TileEntity with Environment](t: T, char: Char, code: Int) = {
+  def sendKeyUp[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
