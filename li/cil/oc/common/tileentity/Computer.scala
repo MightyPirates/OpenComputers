@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.Config
 
 class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone {
   def this() = this(false)
@@ -77,7 +78,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       // otherwise loose track of its screen).
       instance.update()
       val (powerRequired, needsSaving) = this.synchronized {
-        val a = powerConsumed + 0.05
+        val a = powerConsumed + Config.computerBaseCost
         val b = hasChanged
         powerConsumed = 0
         hasChanged = false

@@ -13,20 +13,14 @@ object Config {
 
   // ----------------------------------------------------------------------- //
 
-  // Power it takes to run a computer at 100% CPU time for one second.
-  val cpuTimeCost = 256
-
-  // Power it takes to change a single pixel via the set command.
-  val screenSetCost = 1.0 / 20
-
-  // Power it takes to change a single pixel via the fill command.
-  val screenFillCost = 1.0 / 180
-
-  // Power it takes to change a single pixel to blank via the fill command.
-  val screenClearCost = 1.0 / 200
-
-  // Power it takes to move a single pixel via the copy command.
-  val screenCopyCost = 1.0 / 160
+  var bufferComputer = 16.0
+  var bufferScreen = 16.0
+  var computerBaseCost = 1.0 / 20
+  var computerCpuTimeCost = 256.0
+  var screenFillCost = 1.0 / 180
+  var screenClearCost = 1.0 / 200
+  var screenCopyCost = 1.0 / 160
+  var screenSetCost = 1.0 / 20
 
   // ----------------------------------------------------------------------- //
 
@@ -95,6 +89,43 @@ object Config {
       "Note that this needs OpenGL 1.4 to work, otherwise text will always just\n" +
       "instantly disappear when moving away from the screen displaying it.").
       getDouble(screenTextFadeStartDistance)
+
+    // --------------------------------------------------------------------- //
+
+    config.getCategory("power").
+      setComment("Power settings, buffer sizes and power consumption.")
+
+    bufferComputer = config.get("power", "bufferComputer", bufferComputer, "" +
+      "The buffer size for computers, i.e. how much power they store internally.").
+      getDouble(bufferComputer)
+
+    bufferScreen = config.get("power", "bufferScreen", bufferScreen, "" +
+      "The buffer size for screens, i.e. how much power they store internally.").
+      getDouble(bufferScreen)
+
+    computerBaseCost = config.get("power", "computerBaseCost", computerBaseCost, "" +
+      "Power it takes per tick to run a computer, even if it's idle (base cost).").
+      getDouble(computerBaseCost)
+
+    computerCpuTimeCost = config.get("power", "computerCpuTimeCost", computerCpuTimeCost, "" +
+      "Power it takes to run a computer at 100% CPU time for one second.").
+      getDouble(computerCpuTimeCost)
+
+    screenFillCost = config.get("power", "screenFillCost", screenFillCost, "" +
+      "Power it takes to change a single pixel via the fill command.").
+      getDouble(screenFillCost)
+
+    screenClearCost = config.get("power", "screenClearCost", screenClearCost, "" +
+      "Power it takes to change a single pixel to blank via the fill command.").
+      getDouble(screenClearCost)
+
+    screenCopyCost = config.get("power", "screenCopyCost", screenCopyCost, "" +
+      "Power it takes to move a single pixel via the copy command.").
+      getDouble(screenCopyCost)
+
+    screenSetCost = config.get("power", "screenSetCost", screenSetCost, "" +
+      "Power it takes to change a single pixel via the set command.").
+      getDouble(screenSetCost)
 
     // --------------------------------------------------------------------- //
 

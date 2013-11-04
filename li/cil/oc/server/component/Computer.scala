@@ -203,6 +203,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // reachability).
     processAddedComponents()
 
+    // Are we waiting for the world to settle?
+    if (lastUpdate == 0 && System.currentTimeMillis() < sleepUntil)
+      return
+
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
     lastUpdate = System.currentTimeMillis
@@ -375,6 +379,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             state = Computer.State.SynchronizedReturnPaused
           case _ => // Will be started by update() if necessary.
         }
+
+        // Delay execution for a second to allow the world around us to settle.
+        sleepUntil = System.currentTimeMillis() + 1000
       } catch {
         case e: LuaRuntimeException => {
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
@@ -924,7 +931,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       cpuTime = 0
       cpuStart = 0
       future = None
-      sleepUntil = Long.MaxValue
+      sleepUntil = Double.PositiveInfinity
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged(Double.NegativeInfinity)
@@ -934,7 +941,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private def execute(value: Computer.State.Value) {
     assert(future.isEmpty)
-    sleepUntil = Long.MaxValue
+    sleepUntil = Double.PositiveInfinity
     state = value
     future = Some(Computer.Executor.pool.submit(this))
   }
@@ -946,7 +953,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       state = Computer.State.Running
 
       // See if the game appears to be paused, in which case we also pause.
-      if (System.currentTimeMillis - lastUpdate > 200) {
+      if (System.currentTimeMillis - lastUpdate > 50) {
         state = oldState match {
           case Computer.State.SynchronizedReturn => Computer.State.SynchronizedReturnPaused
           case _ => Computer.State.Paused
@@ -998,12 +1005,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         case _ =>
           lua.resume(1, 0)
       }
-      val runtime = System.nanoTime() - cpuStart
-      cpuTime += runtime
 
       // Check if this was the first run, meaning the one used for initializing
       // the kernel (loading the libs, establishing a memory baseline).
-      if (kernelMemory == 0) {
+      val runtime = if (kernelMemory == 0) {
         // Run the garbage collector to get rid of stuff left behind after the
         // initialization phase to get a good estimate of the base memory usage
         // the kernel has. We remember that size to grant user-space programs a
@@ -1012,7 +1017,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         lua.gc(LuaState.GcAction.COLLECT, 0)
         kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory
         recomputeMemory()
+        0
       }
+      else {
+         System.nanoTime() - cpuStart
+      }
+      cpuTime += runtime
 
       // Check if the kernel is still alive.
       stateMonitor.synchronized(if (lua.status(1) == LuaState.YIELD) {
@@ -1058,7 +1068,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         }
 
         // State has inevitably changed, mark as changed to save again.
-        owner.markAsChanged(Config.cpuTimeCost.toDouble * runtime / 1000 / 1000 / 1000)
+        owner.markAsChanged(Config.computerCpuTimeCost * runtime / 1000 / 1000 / 1000)
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
       else {
@@ -1112,7 +1122,7 @@ object Computer {
   trait Environment extends tileentity.Environment with oc.util.Persistable with Context {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("computer", Visibility.Neighbors).
-      withConnector(16).
+      withConnector(Config.bufferComputer).
       create()
 
     val instance: Computer

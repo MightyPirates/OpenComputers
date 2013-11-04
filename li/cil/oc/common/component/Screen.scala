@@ -74,7 +74,7 @@ object Screen {
   trait Environment extends tileentity.Environment with util.Persistable {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("screen").
-      withConnector(16).
+      withConnector(Config.bufferScreen).
       create()
 
     final val instance = new component.Screen(this, maxResolution)
