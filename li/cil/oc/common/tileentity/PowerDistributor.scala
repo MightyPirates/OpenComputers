@@ -18,6 +18,8 @@ class PowerDistributor extends Rotatable with Environment {
 
   private var lastSentAverage = 0.0
 
+  private val distributors = mutable.Set.empty[PowerDistributor]
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
@@ -38,13 +40,17 @@ class PowerDistributor extends Rotatable with Environment {
     super.onDisconnect(node)
     if (node == this.node) {
       connectors.clear()
+      distributors.clear()
       average = -1
     }
     else node match {
       case connector: Connector =>
         connectors -= connector
         computeAverage()
-      case _ =>
+      case _ => node.host match {
+        case distributor: PowerDistributor => distributors -= distributor
+        case _ =>
+      }
     }
   }
 
@@ -53,13 +59,19 @@ class PowerDistributor extends Rotatable with Environment {
     if (node == this.node) {
       for (node <- node.network.nodes) node match {
         case connector: Connector => connectors += connector
-        case _ =>
+        case _ => node.host match {
+          case distributor: PowerDistributor => distributors += distributor
+          case _ =>
+        }
       }
       computeAverage()
     }
     else node match {
       case connector: Connector => connectors += connector
-      case _ =>
+      case _ => node.host match {
+        case distributor: PowerDistributor => distributors += distributor
+        case _ =>
+      }
     }
   }
 
@@ -88,7 +100,11 @@ class PowerDistributor extends Rotatable with Environment {
     average = if (sumBufferSize > 0) sumBuffer / sumBufferSize else 0
     if ((lastSentAverage - average).abs > 0.05) {
       lastSentAverage = average
-      ServerPacketSender.sendPowerState(this)
+      for (distributor <- distributors) {
+        distributor.average = average
+        distributor.lastSentAverage = lastSentAverage
+        ServerPacketSender.sendPowerState(distributor)
+      }
     }
     maxRelativeBuffer - minRelativeBuffer > 10e-4
   }
