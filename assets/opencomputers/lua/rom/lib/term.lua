@@ -1,3 +1,4 @@
+local term = {}
 local gpuAvailable, screenAvailable = false, false
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
@@ -16,12 +17,6 @@ local function toggleBlink()
 end
 
 -------------------------------------------------------------------------------
-
-term = {}
-
-function term.isAvailable()
-  return gpuAvailable and screenAvailable
-end
 
 function term.clear()
   if term.isAvailable() then
@@ -75,7 +70,9 @@ function term.cursorBlink(enabled)
   return cursorBlink ~= nil
 end
 
--------------------------------------------------------------------------------
+function term.isAvailable()
+  return gpuAvailable and screenAvailable
+end
 
 function term.read(history)
   checkArg(1, history, "table", "nil")
@@ -378,6 +375,8 @@ local function onComponentUnavailable(_, componentType)
     os.pushSignal("term_unavailable")
   end
 end
+
+_G.term = term
 
 return function()
   event.listen("component_available", onComponentAvailable)

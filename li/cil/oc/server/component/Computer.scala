@@ -187,10 +187,27 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     for (component <- addedComponents) {
       if (component.canBeSeenFrom(owner.node)) {
         components += component.address -> component.name
-        signal("component_added", component.address, component.name)
+        // Skip the signal if we're not initialized yet, since we'd generate a
+        // duplicate in the startup script otherwise.
+        if (kernelMemory > 0)
+          signal("component_added", component.address, component.name)
       }
     }
     addedComponents.clear()
+  }
+
+  private def verifyComponents() {
+    val invalid = mutable.Set.empty[String]
+    for ((address, name) <- components) {
+      if (owner.node.network.node(address) == null) {
+        OpenComputers.log.warning("A component of type " + name + " disappeared!")
+        signal("component_removed", address, name)
+        invalid += address
+      }
+    }
+    for (address <- invalid) {
+      components -= address
+    }
   }
 
   def update() {
@@ -205,8 +222,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     processAddedComponents()
 
     // Are we waiting for the world to settle?
-    if (lastUpdate == 0 && System.currentTimeMillis() < sleepUntil)
-      return
+    if (lastUpdate == 0)
+      if (System.currentTimeMillis() < sleepUntil)
+        return
+      else
+        verifyComponents()
 
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
@@ -1021,7 +1041,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         0
       }
       else {
-         System.nanoTime() - cpuStart
+        System.nanoTime() - cpuStart
       }
       cpuTime += runtime
 

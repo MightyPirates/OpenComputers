@@ -1,9 +1,4 @@
-local pressedChars = {}
-local pressedCodes = {}
-
--------------------------------------------------------------------------------
-
-keyboard = {}
+local keyboard, pressedChars, pressedCodes = {}, {}, {}
 
 keyboard.keys = {
   ["1"]           = 0x02,
@@ -140,8 +135,18 @@ for k, v in pairs(keyboard.keys) do
   keyboard.keys[v] = k
 end
 
+-------------------------------------------------------------------------------
+
+function keyboard.isAltDown()
+  return (pressedCodes[keyboard.keys.lmenu] or pressedCodes[keyboard.keys.rmenu]) ~= nil
+end
+
 function keyboard.isControl(char)
   return type(char) == "number" and (char < 0x20 or (char >= 0x7F and char <= 0x9F))
+end
+
+function keyboard.isControlDown()
+  return (pressedCodes[keyboard.keys.lcontrol] or pressedCodes[keyboard.keys.rcontrol]) ~= nil
 end
 
 function keyboard.isKeyDown(charOrCode)
@@ -151,14 +156,6 @@ function keyboard.isKeyDown(charOrCode)
   elseif type(charOrCode) == "number" then
     return pressedCodes[charOrCode]
   end
-end
-
-function keyboard.isControlDown()
-  return (pressedCodes[keyboard.keys.lcontrol] or pressedCodes[keyboard.keys.rcontrol]) ~= nil
-end
-
-function keyboard.isAltDown()
-  return (pressedCodes[keyboard.keys.lmenu] or pressedCodes[keyboard.keys.rmenu]) ~= nil
 end
 
 function keyboard.isShiftDown()
@@ -187,6 +184,8 @@ local function onComponentUnavailable(_, componentType)
     pressedCodes = {}
   end
 end
+
+_G.keyboard = keyboard
 
 return function()
   event.listen("key_down", onKeyDown)

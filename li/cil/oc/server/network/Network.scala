@@ -332,20 +332,12 @@ object Network extends api.detail.NetworkAPI {
   def onChunkUnload(e: ChunkEvent.Unload) =
     onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
 
-  @ForgeSubscribe
-  def onChunkLoad(e: ChunkEvent.Load) =
-    onLoad(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
-
   private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
     // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
     tileEntities.
       filter(_.isInstanceOf[Environment]).
       map(_.asInstanceOf[Environment]).
       foreach(t => t.node.remove())
-  }
-
-  private def onLoad(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
-    tileEntities.foreach(t => joinOrCreateNetwork(w, t.xCoord, t.yCoord, t.zCoord))
   }
 
   // ----------------------------------------------------------------------- //

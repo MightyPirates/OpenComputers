@@ -57,7 +57,10 @@ sandbox = {
   dofile = nil, -- in lib/base.lua
   error = error,
   _G = nil, -- see below
-  getmetatable = getmetatable,
+  getmetatable = function(t)
+    if type(t) == "string" then return nil end
+    return getmetatable(t)
+  end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
     assert((mode or "t") == "t", "unsupported mode")
@@ -143,8 +146,8 @@ sandbox = {
     uchar = string.uchar,
 
     trim = function(s) -- from http://lua-users.org/wiki/StringTrim
-      local from = s:match("^%s*()")
-      return from > #s and "" or s:match(".*%S", from)
+      local from = string.match(s, "^%s*()")
+      return from > #s and "" or string.match(s, ".*%S", from)
     end
   },
 

@@ -4,22 +4,19 @@ import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.server
 import li.cil.oc.server.driver
-import net.minecraft.nbt.{NBTTagString, NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-
-// TODO persist managed environments of attached blocks somehow...
 
 class Adapter extends Rotatable with Environment with IPeripheral {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
-  private val blocksAddresses = Array.fill[String](6)(java.util.UUID.randomUUID.toString)
+  private val blocksData = Array.fill[Option[BlockData]](6)(None)
 
   // ----------------------------------------------------------------------- //
 
@@ -39,27 +36,33 @@ class Adapter extends Rotatable with Environment with IPeripheral {
       val (x, y, z) = (xCoord + d.offsetX, yCoord + d.offsetY, zCoord + d.offsetZ)
       driver.Registry.driverFor(worldObj, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
-          case Some((environment, driver)) =>
+          case Some((oldEnvironment, driver)) =>
             if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
-              node.disconnect(environment.node)
-              val newEnvironment = newDriver.createEnvironment(worldObj, x, y, z)
-              newEnvironment.node.asInstanceOf[server.network.Node].address = blocksAddresses(d.ordinal())
-              node.connect(newEnvironment.node)
-              blocks(d.ordinal()) = Some((newEnvironment, newDriver))
+              node.disconnect(oldEnvironment.node)
+              val environment = newDriver.createEnvironment(worldObj, x, y, z)
+              blocks(d.ordinal()) = Some((environment, newDriver))
+              blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+              node.connect(environment.node)
             } // else: the more things change, the more they stay the same.
           case _ =>
             // A challenger appears.
             val environment = newDriver.createEnvironment(worldObj, x, y, z)
-            environment.node.asInstanceOf[server.network.Node].address = blocksAddresses(d.ordinal())
-            node.connect(environment.node)
             blocks(d.ordinal()) = Some((environment, newDriver))
+            blocksData(d.ordinal()) match {
+              case Some(data) if data.name == environment.getClass.getName =>
+                environment.load(data.data)
+              case _ =>
+            }
+            blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+            node.connect(environment.node)
         }
         case _ => blocks(d.ordinal()) match {
           case Some((environment, driver)) =>
             // We had something there, but it's gone now...
-            blocks(d.ordinal()) = None
             node.disconnect(environment.node)
+            environment.save(blocksData(d.ordinal()).get.data)
+            blocks(d.ordinal()) = None
           case _ => // Nothing before, nothing now.
         }
       }
@@ -108,13 +111,16 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     super.readFromNBT(nbt)
     node.load(nbt)
 
-    val addressesNbt = nbt.getTagList("oc.adapter.addresses")
-    (0 until (addressesNbt.tagCount min blocksAddresses.length)).
-      map(addressesNbt.tagAt).
-      map(_.asInstanceOf[NBTTagString].data).
+    val blocksNbt = nbt.getTagList("oc.adapter.blocks")
+    (0 until (blocksNbt.tagCount min blocksData.length)).
+      map(blocksNbt.tagAt).
+      map(_.asInstanceOf[NBTTagCompound]).
       zipWithIndex.
       foreach {
-      case (a, i) => blocksAddresses(i) = a
+      case (blockNbt, i) =>
+        if (blockNbt.hasKey("name") && blockNbt.hasKey("data")) {
+          blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
+        }
     }
   }
 
@@ -122,11 +128,22 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     super.writeToNBT(nbt)
     node.save(nbt)
 
-    val addressesNbt = new NBTTagList()
-    for (i <- 0 until blocksAddresses.length) {
-      addressesNbt.appendTag(new NBTTagString(null, blocksAddresses(i)))
+    val blocksNbt = new NBTTagList()
+    for (i <- 0 until blocks.length) {
+      val blockNbt = new NBTTagCompound()
+      blocksData(i) match {
+        case Some(data) =>
+          blocks(i) match {
+            case Some((environment, _)) => environment.save(data.data)
+            case _ =>
+          }
+          blockNbt.setString("name", data.name)
+          blockNbt.setCompoundTag("data", data.data)
+        case _ =>
+      }
+      blocksNbt.appendTag(blockNbt)
     }
-    nbt.setTag("oc.adapter.addresses", addressesNbt)
+    nbt.setTag("oc.adapter.blocks", blocksNbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -183,4 +200,9 @@ class Adapter extends Rotatable with Environment with IPeripheral {
       throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
     port
   }
+
+  // ----------------------------------------------------------------------- //
+
+  private class BlockData(val name: String, val data: NBTTagCompound)
+
 }

@@ -1,4 +1,19 @@
-local file = {}
+local io, file = {}, {}
+
+function file.new(mode, stream, nogc)
+  local result = {
+    mode = mode or "r",
+    stream = stream,
+    buffer = "",
+    bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
+    bufferMode = "full"
+  }
+  local metatable = {
+    __index = file,
+    __metatable = "file"
+  }
+  return setmetatable(result, metatable)
+end
 
 function file:close()
   if self.mode ~= "r" and self.mode ~= "rb" then
@@ -252,23 +267,6 @@ end
 
 -------------------------------------------------------------------------------
 
-function file.new(mode, stream, nogc)
-  local result = {
-    mode = mode or "r",
-    stream = stream,
-    buffer = "",
-    bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
-    bufferMode = "full"
-  }
-  local metatable = {
-    __index = file,
-    __metatable = "file"
-  }
-  return setmetatable(result, metatable)
-end
-
--------------------------------------------------------------------------------
-
 local stdinStream = {handle="stdin"}
 local stdoutStream = {handle="stdout"}
 local stdinHistory = {}
@@ -301,8 +299,6 @@ stdoutStream.read = badFileDescriptor
 stdoutStream.seek = badFileDescriptor
 
 -------------------------------------------------------------------------------
-
-io = {}
 
 io.stdin = file.new("r", stdinStream, true)
 io.stdout = file.new("w", stdoutStream, true)
@@ -420,3 +416,7 @@ end
 function io.write(...)
   return io.output():write(...)
 end
+
+-------------------------------------------------------------------------------
+
+_G.io = io

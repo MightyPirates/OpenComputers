@@ -1,3 +1,4 @@
+local shell = {}
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
@@ -47,8 +48,6 @@ local function findFile(name, path, ext)
 end
 
 -------------------------------------------------------------------------------
-
-shell = {}
 
 function shell.alias(alias, ...)
   checkArg(1, alias, "string")
@@ -170,3 +169,7 @@ function shell.which(program)
     return nil, "program not found"
   end
 end
+
+-------------------------------------------------------------------------------
+
+_G.shell = shell

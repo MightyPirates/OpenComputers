@@ -22,9 +22,9 @@ for path, proxy in pairs(mounts) do
   local used, total = proxy.spaceUsed(), proxy.spaceTotal()
   local available, percent
   if total == "unlimited" then
-    used = "N/A"
+    used = used or "N/A"
     available = "unlimited"
-    percent = 0
+    percent = "0%"
   else
     available = total - used
     percent = used / total

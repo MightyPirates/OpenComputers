@@ -1,3 +1,4 @@
+local filesystem, fileStream = {}, {}
 local isAutorunEnabled = true
 local mtab = {children={}}
 
@@ -57,8 +58,6 @@ local function removeEmptyNodes(node)
 end
 
 -------------------------------------------------------------------------------
-
-filesystem = {}
 
 function filesystem.autorun(enabled)
   if enabled ~= nil then
@@ -204,8 +203,6 @@ function filesystem.umount(fsOrPath)
   return result
 end
 
--------------------------------------------------------------------------------
-
 function filesystem.exists(path)
   local node, rest = findNode(path)
   if not rest then -- virtual directory
@@ -268,8 +265,6 @@ function filesystem.list(path)
     return result[i]
   end
 end
-
--------------------------------------------------------------------------------
 
 function filesystem.makeDirectory(path)
   local node, rest = findNode(path)
@@ -336,10 +331,6 @@ function filesystem.copy(fromPath, toPath)
   return true
 end
 
--------------------------------------------------------------------------------
-
-local fileStream = {}
-
 function fileStream:close()
   self.fs.close(self.handle)
   self.handle = nil
@@ -365,8 +356,6 @@ function fileStream:write(str)
   end
   return self.fs.write(self.handle, str)
 end
-
--------------------------------------------------------------------------------
 
 function filesystem.open(path, mode)
   checkArg(1, path, "string")
@@ -407,24 +396,20 @@ end
 
 -------------------------------------------------------------------------------
 
-fs = filesystem
-
--------------------------------------------------------------------------------
-
 local function onComponentAdded(_, address, componentType)
   if componentType == "filesystem" then
     local proxy = component.proxy(address)
     if proxy then
       local name = address:sub(1, 3)
-      while fs.exists(fs.concat("/mnt", name)) and
+      while filesystem.exists(filesystem.concat("/mnt", name)) and
             name:len() < address:len() -- just to be on the safe side
       do
         name = address:sub(1, name:len() + 1)
       end
-      name = fs.concat("/mnt", name)
-      fs.mount(proxy, name)
+      name = filesystem.concat("/mnt", name)
+      filesystem.mount(proxy, name)
       if isAutorunEnabled then
-        shell.execute(fs.concat(name, "autorun"), proxy)
+        shell.execute(filesystem.concat(name, "autorun"), proxy)
       end
     end
   end
@@ -432,9 +417,12 @@ end
 
 local function onComponentRemoved(_, address, componentType)
   if componentType == "filesystem" then
-    fs.umount(address)
+    filesystem.umount(address)
   end
 end
+
+_G.filesystem = filesystem
+_G.fs = filesystem
 
 return function()
   event.listen("component_added", onComponentAdded)

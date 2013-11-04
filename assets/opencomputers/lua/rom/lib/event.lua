@@ -1,4 +1,4 @@
-local listeners, timers = {}, {}
+local event, listeners, timers = {}, {}, {}
 
 local function matches(signal, name, filter)
   if name and not (type(signal[1]) == "string" and signal[1]:match(name))
@@ -58,7 +58,14 @@ end
 
 -------------------------------------------------------------------------------
 
-event = {}
+function event.cancel(timerId)
+  checkArg(1, timerId, "number")
+  if timers[timerId] then
+    timers[timerId] = nil
+    return true
+  end
+  return false
+end
 
 --[[ Error handler for ALL event callbacks. If this throws an error or is not,
      set the computer will immediately shut down. ]]
@@ -102,36 +109,6 @@ function event.listen(name, callback)
   table.insert(listeners[name], callback)
   return true
 end
-
--------------------------------------------------------------------------------
-
-function event.cancel(timerId)
-  checkArg(1, timerId, "number")
-  if timers[timerId] then
-    timers[timerId] = nil
-    return true
-  end
-  return false
-end
-
-function event.timer(interval, callback, times)
-  checkArg(1, interval, "number")
-  checkArg(2, callback, "function")
-  checkArg(3, times, "number", "nil")
-  local id
-  repeat
-    id = math.floor(math.random(1, 0x7FFFFFFF))
-  until not timers[id]
-  timers[id] = {
-    interval = interval,
-    after = os.uptime() + interval,
-    callback = callback,
-    times = times or 1
-  }
-  return id
-end
-
--------------------------------------------------------------------------------
 
 function event.pull(...)
   local args = table.pack(...)
@@ -182,3 +159,24 @@ function event.shouldInterrupt()
          keyboard.isAltDown() and
          keyboard.isKeyDown(keyboard.keys.c)
 end
+
+function event.timer(interval, callback, times)
+  checkArg(1, interval, "number")
+  checkArg(2, callback, "function")
+  checkArg(3, times, "number", "nil")
+  local id
+  repeat
+    id = math.floor(math.random(1, 0x7FFFFFFF))
+  until not timers[id]
+  timers[id] = {
+    interval = interval,
+    after = os.uptime() + interval,
+    callback = callback,
+    times = times or 1
+  }
+  return id
+end
+
+-------------------------------------------------------------------------------
+
+_G.event = event

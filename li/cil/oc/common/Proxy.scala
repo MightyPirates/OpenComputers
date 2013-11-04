@@ -21,14 +21,14 @@ class Proxy {
     Blocks.init()
     Items.init()
 
+    api.Driver.add(driver.CommandBlock)
     api.Driver.add(driver.FileSystem)
     api.Driver.add(driver.GraphicsCard)
     api.Driver.add(driver.Memory)
     api.Driver.add(driver.NetworkCard)
-    api.Driver.add(driver.RedstoneCard)
-    api.Driver.add(driver.CommandBlock)
-    api.Driver.add(driver.PowerSupply)
     api.Driver.add(driver.Peripheral)
+    api.Driver.add(driver.PowerSupply)
+    api.Driver.add(driver.RedstoneCard)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)
