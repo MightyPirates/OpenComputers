@@ -4,8 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import java.util
 import li.cil.oc.Config
 import li.cil.oc.CreativeTab
-import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Environment, Node}
+import li.cil.oc.api.network.Environment
 import li.cil.oc.common.tileentity.Rotatable
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -290,13 +289,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def onBlockAdded(world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => {
-        world.getBlockTileEntity(x, y, z) match {
-          case _: Environment => Network.joinOrCreateNetwork(world, x, y, z)
-          case _ => // Nothing special to do.
-        }
-        subBlock.onBlockAdded(world, x, y, z)
-      }
+      case Some(subBlock) => subBlock.onBlockAdded(world, x, y, z)
       case _ => // Invalid but avoid match error.
     }
 

@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.network.Connector
@@ -23,6 +24,10 @@ class PowerDistributor extends Rotatable with Environment {
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
+    super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
     if (!worldObj.isRemote && connectors.exists(_.dirty) && computeAverage()) {
       // Adjust buffer fill ratio for all buffers to average.
       connectors.foreach(c => c.buffer = c.bufferSize * average)

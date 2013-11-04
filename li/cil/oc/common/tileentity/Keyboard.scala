@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -10,6 +11,16 @@ class Keyboard extends Rotatable with Environment {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
+
+  // ----------------------------------------------------------------------- //
+
+  override def updateEntity() {
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
@@ -20,6 +31,8 @@ class Keyboard extends Rotatable with Environment {
     super.writeToNBT(nbt)
     node.save(nbt)
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def onMessage(message: Message) = {
     message.data match {
@@ -36,6 +49,8 @@ class Keyboard extends Rotatable with Environment {
     }
     super.onMessage(message)
   }
+
+  // ----------------------------------------------------------------------- //
 
   def isUseableByPlayer(p: Player) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
     p.asInstanceOf[EntityPlayer].getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64

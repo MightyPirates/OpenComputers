@@ -4,6 +4,7 @@ import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
@@ -37,6 +38,9 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def updateEntity() {
     super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
     if (!worldObj.isRemote) {
       if (!addedToEnet) {
         MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this))
@@ -62,14 +66,14 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
+  override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     node.load(nbt)
     getPowerProvider.readFromNBT(nbt)
 
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
+  override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     node.save(nbt)
     getPowerProvider.writeToNBT(nbt)

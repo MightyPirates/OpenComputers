@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.server
 import li.cil.oc.server.driver
@@ -25,6 +26,10 @@ class Adapter extends Rotatable with Environment with IPeripheral {
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
+    super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
     for (block <- blocks) block match {
       case Some((environment, _)) => environment.update()
       case _ => // Empty.

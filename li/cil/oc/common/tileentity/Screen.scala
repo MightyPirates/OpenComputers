@@ -1,10 +1,11 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component
+import li.cil.oc.common.component.Screen.{Environment => ScreenEnvironment}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
@@ -23,7 +24,7 @@ class ScreenTier3 extends Screen {
   protected def maxResolution = Config.screenResolutionsByTier(2)
 }
 
-abstract class Screen extends Rotatable with component.Screen.Environment {
+abstract class Screen extends Rotatable with ScreenEnvironment {
   var currentGui: Option[gui.Screen] = None
 
   /**
@@ -75,7 +76,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
     super.save(nbt)
   }
 
-  override def validate() = {
+  override def validate() {
     super.validate()
     if (worldObj.isRemote) ClientPacketSender.sendScreenBufferRequest(this)
   }
@@ -89,7 +90,11 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() =
+  override def updateEntity() {
+    super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
     if (shouldCheckForMultiBlock) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
@@ -142,6 +147,7 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
         }
       )
     }
+  }
 
   def checkMultiBlock() {
     shouldCheckForMultiBlock = true

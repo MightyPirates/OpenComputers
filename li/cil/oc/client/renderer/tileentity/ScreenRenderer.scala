@@ -24,7 +24,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    weakKeys().
     expireAfterAccess(5, TimeUnit.SECONDS).
     removalListener(this).
     asInstanceOf[CacheBuilder[Screen, Int]].build[Screen, Int]()

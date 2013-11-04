@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import java.util.concurrent.atomic.AtomicBoolean
+import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
@@ -60,14 +61,24 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() = if (!worldObj.isRemote) {
-    instance.update()
-    updateRedstoneInput()
-    if (hasChanged.get)
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-    if (isRunning != instance.isRunning)
-      ServerPacketSender.sendComputerState(this, instance.isRunning)
-    isRunning = instance.isRunning
+  override def updateEntity() {
+    super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
+    else if (!worldObj.isRemote) {
+      // If we just joined a network we were just loaded from disk. We skip the
+      // update this round to allow other tile entities to join the network,
+      // too, avoiding issues of missing nodes (e.g. in the GPU which would
+      // otherwise loose track of its screen).
+      instance.update()
+      updateRedstoneInput()
+      if (hasChanged.get)
+        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      if (isRunning != instance.isRunning)
+        ServerPacketSender.sendComputerState(this, instance.isRunning)
+      isRunning = instance.isRunning
+    }
 
     for (component <- components) component match {
       case Some(environment) => environment.update()
@@ -75,7 +86,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     }
   }
 
-  override def validate() = {
+  override def validate() {
     super.validate()
     if (worldObj.isRemote) {
       ClientPacketSender.sendComputerStateRequest(this)

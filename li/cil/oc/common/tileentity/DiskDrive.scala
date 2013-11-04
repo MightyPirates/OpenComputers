@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Component, Visibility}
 import li.cil.oc.server.driver.Registry
@@ -12,6 +13,15 @@ class DiskDrive extends Rotatable with Environment with ComponentInventory {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   def world = worldObj
+
+  // ----------------------------------------------------------------------- //
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
