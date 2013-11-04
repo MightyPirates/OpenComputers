@@ -1,5 +1,6 @@
 package li.cil.oc.server.network
 
+import li.cil.oc.Config
 import li.cil.oc.api.network
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
@@ -24,7 +25,7 @@ trait Connector extends network.Connector with Persistable {
     }
     else true
     if (buffer != oldBuffer) dirty = true
-    ok
+    ok || Config.ignorePower
   }
 
   override def load(nbt: NBTTagCompound) {

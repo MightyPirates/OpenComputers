@@ -19,8 +19,7 @@ class PowerDistributor extends Rotatable with Environment {
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (!worldObj.isRemote && connectors.exists(_.dirty)) {
-      computeAverage()
+    if (!worldObj.isRemote && connectors.exists(_.dirty) && computeAverage()) {
       // Adjust buffer fill ratio for all buffers to average.
       connectors.foreach(c => c.buffer = c.bufferSize * average)
     }
@@ -76,12 +75,18 @@ class PowerDistributor extends Rotatable with Environment {
 
   // ----------------------------------------------------------------------- //
 
-  private def computeAverage() {
+  private def computeAverage() = {
     // Computer average fill ratio of all buffers.
-    average = connectors.foldRight(0.0)((c, acc) => {
+    val (sumBuffer, sumBufferSize) = connectors.foldRight((0.0, 0.0))((c, acc) => {
       c.dirty = false // clear dirty flag for all connectors
-      acc + (c.buffer / c.bufferSize)
-    }) / (connectors.size max 1) // avoid NaNs
-    ServerPacketSender.sendPowerState(this)
+      (acc._1 + c.buffer, acc._2 + c.bufferSize)
+    })
+    val newAverage = if (sumBufferSize > 0) sumBuffer / sumBufferSize else 0
+    if ((average - newAverage).abs > 10e-4) {
+      average = newAverage
+      ServerPacketSender.sendPowerState(this)
+      true
+    }
+    else false
   }
 }

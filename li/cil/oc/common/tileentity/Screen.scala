@@ -131,10 +131,11 @@ abstract class Screen extends Rotatable with component.Screen.Environment {
       }
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
-        if (screen.isOrigin)
-          screen.node.setVisibility(Visibility.Network)
+        if (screen.isOrigin) {
+          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.Network)
+        }
         else {
-          screen.node.setVisibility(Visibility.None)
+          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.None)
           val s = screen.instance
           val (w, h) = s.resolution
           s.fill(0, 0, w, h, ' ')

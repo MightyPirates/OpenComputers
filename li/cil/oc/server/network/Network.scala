@@ -1,5 +1,7 @@
 package li.cil.oc.server.network
 
+import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import li.cil.oc.server.network.{Node => MutableNode}
@@ -275,45 +277,53 @@ object Network extends api.detail.NetworkAPI {
   def newNode(host: Environment, reachability: Visibility) = new NodeBuilder(host, reachability)
 
   class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
-    def withComponent(name: String) = new Network.ComponentBuilder(_host, name, _reachability)
+    def withComponent(name: String, visibility: Visibility) = new Network.ComponentBuilder(_host, _reachability, name, visibility)
+
+    def withComponent(name: String) = withComponent(name, _reachability)
 
     def withConnector(bufferSize: Double) = new Network.ConnectorBuilder(_host, _reachability, bufferSize)
 
-    def create() = new MutableNode {
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode {
       val host = _host
       val reachability = _reachability
     }
+    else null
   }
 
-  class ComponentBuilder(val _host: Environment, val _name: String, val _reachability: Visibility) extends api.detail.Builder.ComponentBuilder {
-    def withConnector(bufferSize: Double) = new Network.ComponentConnectorBuilder(_host, _reachability, _name, bufferSize)
+  class ComponentBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility) extends api.detail.Builder.ComponentBuilder {
+    def withConnector(bufferSize: Double) = new Network.ComponentConnectorBuilder(_host, _reachability, _name, _visibility, bufferSize)
 
-    def create() = new MutableNode with Component {
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Component {
       val host = _host
       val reachability = _reachability
       val name = _name
-      setVisibility(reachability)
+      setVisibility(_visibility)
     }
+    else null
   }
 
   class ConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _bufferSize: Double) extends api.detail.Builder.ConnectorBuilder {
-    def withComponent(name: String) = new Network.ComponentConnectorBuilder(_host, _reachability, name, _bufferSize)
+    def withComponent(name: String, visibility: Visibility) = new Network.ComponentConnectorBuilder(_host, _reachability, name, visibility, _bufferSize)
 
-    def create() = new MutableNode with Connector {
+    def withComponent(name: String) = withComponent(name, _reachability)
+
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Connector {
       val host = _host
       val reachability = _reachability
       val bufferSize = _bufferSize
     }
+    else null
   }
 
-  class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
-    def create() = new MutableNode with Component with Connector with api.network.ComponentConnector {
+  class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Component with Connector with api.network.ComponentConnector {
       val host = _host
       val reachability = _reachability
       val name = _name
       val bufferSize = _bufferSize
-      setVisibility(reachability)
+      setVisibility(_visibility)
     }
+    else null
   }
 
   // ----------------------------------------------------------------------- //

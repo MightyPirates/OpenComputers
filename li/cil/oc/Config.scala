@@ -30,6 +30,7 @@ object Config {
   var commandUser = "OpenComputers"
   var fileCost = 512
   var filesBuffered = true
+  var ignorePower = false
   var maxHandles = 16
   var maxReadBuffer = 8 * 1024
   var maxScreenHeight = 6
@@ -111,6 +112,16 @@ object Config {
       "slightly higher memory consumption, since all loaded files have to be kept\n" +
       "in memory (loaded as in when the hard drive is in a computer).").
       getBoolean(filesBuffered)
+
+    ignorePower = config.get("server", "ignorePower", ignorePower, "" +
+      "Whether to ignore any power requirements. Whenever something requires\n" +
+      "power to function, it will try to get the amount of power it needs from\n" +
+      "the buffer of its connector node, and in case it fails it won't perform" +
+      "the action / trigger a shutdown / whatever. Setting this to `true` will\n" +
+      "simply make the check 'is there enough power' succeed unconditionally.\n" +
+      "Note that buffers are still filled and emptied following the usual rules,\n" +
+      "there just is no failure case anymore.").
+      getBoolean(ignorePower)
 
     maxHandles = config.get("server", "maxHandles", maxHandles, "" +
       "The maximum number of file handles any single computer may have open at a\n" +

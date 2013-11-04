@@ -1105,11 +1105,9 @@ object Computer {
 
   trait Environment extends tileentity.Environment with oc.util.Persistable with Context {
     val node = api.Network.newNode(this, Visibility.Network).
-      withComponent("computer").
+      withComponent("computer", Visibility.Neighbors).
       withConnector(16).
       create()
-
-    node.setVisibility(Visibility.Neighbors)
 
     val instance: Computer
 

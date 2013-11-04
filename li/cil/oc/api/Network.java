@@ -27,6 +27,20 @@ final public class Network {
      * will return a builder that can be used to further specialize the node,
      * making it either a component node (for Lua callbacks), a connector node
      * (for power interaction) or both.
+     * <p/>
+     * Example use:
+     * <pre>
+     * class YourThing extends TileEntity implements Environment {
+     *     private ComponentConnector node_ = api.Network.newNode(this, Visibility.Network).
+     *         withComponent("your_thing").
+     *         withConnector(32).
+     *         create();
+     *
+     *     public Node node() { return node_; }
+     *
+     *     // ...
+     * }
+     * </pre>
      *
      * @param host       the environment the node is created for.
      * @param visibility the visibility of the node.
