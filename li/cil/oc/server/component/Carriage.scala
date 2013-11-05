@@ -38,6 +38,8 @@ class Carriage(controller: Object) extends ManagedComponent {
     if (shouldMove || moving)
       throw new Exception("already moving")
     direction = args.checkInteger(0)
+    if (direction < 0 || direction > directions.length)
+      throw new ArrayIndexOutOfBoundsException("invalid direction")
     simulating = args.checkBoolean(1)
     anchored = args.checkBoolean(2)
     shouldMove = true
