@@ -6,6 +6,15 @@ import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Visibility;
 import net.minecraft.world.World;
 
+/**
+ * This class provides factories networks and nodes.
+ * <p/>
+ * The two functions provided provided by this API are to allow existing
+ * environments - implemented in a tile entity - to join an existing network or
+ * create a new one, and to create nodes that may then be connected to an
+ * existing network. It is not possible to create networks that do not belong
+ * to at least one tile entity at this time.
+ */
 final public class Network {
     /**
      * Tries to add a tile entity network node at the specified coordinates to

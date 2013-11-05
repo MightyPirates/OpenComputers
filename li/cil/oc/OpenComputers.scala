@@ -14,7 +14,9 @@ import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
 import scala.reflect.runtime.{universe => ru}
 
-@Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0", dependencies = "required-after:Forge@[9.10.0.804,)", modLanguage = "scala")
+@Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0",
+  dependencies = "required-after:Forge@[9.11.1.940,)",
+  modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),

@@ -5,6 +5,18 @@ import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
 import li.cil.oc.api.network.ManagedEnvironment;
 
+/**
+ * This class provides factory methods for creating file systems that are
+ * compatible with the built-in filesystem driver.
+ * <p/>
+ * File systems created this way and wrapped in a managed environment via
+ * {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem)} will appear as
+ * <tt>filesystem</tt> components in the internal network. Note that the
+ * component's visibility is set to <tt>Neighbors</tt> per default. If you wish
+ * to change the file system's visibility (e.g. like the disk drive does) you
+ * must cast the environment's node to {@link li.cil.oc.api.network.Component}
+ * and set it accordingly.
+ */
 final public class FileSystem {
     /**
      * Creates a new file system based on the location of a class.
