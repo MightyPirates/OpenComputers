@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.Network
@@ -7,10 +8,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.server.driver
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
-import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.{Array, Some}
 
+@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
 class Adapter extends Rotatable with Environment with IPeripheral {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
@@ -73,10 +75,11 @@ class Adapter extends Rotatable with Environment with IPeripheral {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("send")
+  @Optional.Method(modid = "ComputerCraft")
   def send(context: Context, args: Arguments) = {
     val port = args.checkInteger(0)
     val answerPort = args.checkInteger(1)
-    for ((computer, ports) <- openPorts if ports.contains(port)) {
+    for ((computer: IComputerAccess, ports) <- openPorts if ports.contains(port)) {
       computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.drop(2): _*))
     }
     null
@@ -93,16 +96,18 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def onMessage(message: Message) {
     super.onMessage(message)
-    if (message.name == "network.message") message.data match {
-      case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
-        for (computer <- computers) {
-          if (openPorts(computer).contains(port))
-            computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt)) ++ args.map {
-              case x: Array[Byte] => new String(x, "UTF-8")
-              case x => x
-            }: _*))
-        }
-      case _ =>
+    if (Loader.isModLoaded("ComputerCraft")) {
+      if (message.name == "network.message") message.data match {
+        case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
+          for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+            if (openPorts(computer).contains(port))
+              computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt)) ++ args.map {
+                case x: Array[Byte] => new String(x, "UTF-8")
+                case x => x
+              }: _*))
+          }
+        case _ =>
+      }
     }
   }
 
@@ -149,24 +154,29 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   // ----------------------------------------------------------------------- //
 
-  private val computers = mutable.ArrayBuffer.empty[IComputerAccess]
+  private val computers = mutable.ArrayBuffer.empty[AnyRef]
 
-  private val openPorts = mutable.Map.empty[IComputerAccess, mutable.Set[Int]]
+  private val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
 
+  @Optional.Method(modid = "ComputerCraft")
   override def getType = "oc_adapter"
 
+  @Optional.Method(modid = "ComputerCraft")
   override def attach(computer: IComputerAccess) {
     computers += computer
     openPorts += computer -> mutable.Set.empty
   }
 
+  @Optional.Method(modid = "ComputerCraft")
   override def detach(computer: IComputerAccess) {
     computers -= computer
     openPorts -= computer
   }
 
+  @Optional.Method(modid = "ComputerCraft")
   override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "transmit", "isWireless")
 
+  @Optional.Method(modid = "ComputerCraft")
   override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = getMethodNames()(method) match {
     case "open" =>
       val port = checkPort(arguments, 0)
@@ -191,6 +201,7 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     case _ => null
   }
 
+  @Optional.Method(modid = "ComputerCraft")
   override def canAttachToSide(side: Int) = true
 
   private def checkPort(args: Array[AnyRef], index: Int) = {
