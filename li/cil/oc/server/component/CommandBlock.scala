@@ -13,10 +13,10 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("getValue")
-  def getValue(context: Context, args: Arguments): Array[Object] = Array(entity.getCommand)
+  def getValue(context: Context, args: Arguments): Array[AnyRef] = Array(entity.getCommand)
 
   @LuaCallback("setValue")
-  def setValue(context: Context, args: Arguments): Array[Object] = {
+  def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val value = args.checkString(0)
     entity.setCommand(value)
     entity.worldObj.markBlockForUpdate(entity.xCoord, entity.yCoord, entity.zCoord)
@@ -24,7 +24,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
   }
 
   @LuaCallback("run")
-  def run(context: Context, args: Arguments): Array[Object] = {
+  def run(context: Context, args: Arguments): Array[AnyRef] = {
     val name = if (Config.commandUser != null && !Config.commandUser.isEmpty)
       Config.commandUser
     else

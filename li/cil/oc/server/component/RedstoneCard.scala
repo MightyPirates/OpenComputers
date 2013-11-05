@@ -10,7 +10,7 @@ class RedstoneCard extends ManagedComponent {
     create()
 
   @LuaCallback(value = "getInput", direct = true)
-  def getInput(context: Context, args: Arguments): Array[Object] = {
+  def getInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = args.checkInteger(0)
     node.network.node(context.address).host match {
       case redstone: Redstone =>
@@ -20,7 +20,7 @@ class RedstoneCard extends ManagedComponent {
   }
 
   @LuaCallback(value = "getOutput", direct = true)
-  def getOutput(context: Context, args: Arguments): Array[Object] = {
+  def getOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = args.checkInteger(0)
     node.network.node(context.address).host match {
       case redstone: Redstone =>
@@ -30,7 +30,7 @@ class RedstoneCard extends ManagedComponent {
   }
 
   @LuaCallback("setOutput")
-  def setOutput(context: Context, args: Arguments): Array[Object] = {
+  def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = args.checkInteger(0)
     val value = args.checkInteger(1)
     node.network.node(context.address).host match {

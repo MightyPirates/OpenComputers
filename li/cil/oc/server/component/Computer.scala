@@ -1172,15 +1172,15 @@ object Computer {
     // ----------------------------------------------------------------------- //
 
     @LuaCallback("start")
-    def start(context: Context, args: Arguments): Array[Object] =
+    def start(context: Context, args: Arguments): Array[AnyRef] =
       Array(Boolean.box(instance.start()))
 
     @LuaCallback("stop")
-    def stop(context: Context, args: Arguments): Array[Object] =
+    def stop(context: Context, args: Arguments): Array[AnyRef] =
       Array(Boolean.box(instance.stop()))
 
     @LuaCallback("isRunning")
-    def isRunning(context: Context, args: Arguments): Array[Object] =
+    def isRunning(context: Context, args: Arguments): Array[AnyRef] =
       Array(Boolean.box(instance.isRunning))
 
     // ----------------------------------------------------------------------- //

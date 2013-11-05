@@ -15,7 +15,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   private var screenInstance: Option[Screen] = None
 
-  private def screen(f: (Screen) => Array[Object]) = {
+  private def screen(f: (Screen) => Array[AnyRef]) = {
     if (screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
         case Some(node: Node) if node.host.isInstanceOf[Screen.Environment] =>
@@ -38,7 +38,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("bind")
-  def bind(context: Context, args: Arguments): Array[Object] = {
+  def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
@@ -51,14 +51,14 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback(value = "getResolution", direct = true)
-  def getResolution(context: Context, args: Arguments): Array[Object] =
+  def getResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (w, h) = s.resolution
       result(w, h)
     })
 
   @LuaCallback("setResolution")
-  def setResolution(context: Context, args: Arguments): Array[Object] = {
+  def setResolution(context: Context, args: Arguments): Array[AnyRef] = {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
     val (mw, mh) = maxResolution
@@ -69,7 +69,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback(value = "maxResolution", direct = true)
-  def maxResolution(context: Context, args: Arguments): Array[Object] =
+  def maxResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (gmw, gmh) = maxResolution
       val (smw, smh) = s.maxResolution
@@ -77,14 +77,14 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     })
 
   @LuaCallback(value = "get", direct = true)
-  def get(context: Context, args: Arguments): Array[Object] = {
+  def get(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     screen(s => result(s.get(x - 1, y - 1)))
   }
 
   @LuaCallback("set")
-  def set(context: Context, args: Arguments): Array[Object] = {
+  def set(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val value = args.checkString(2)
@@ -95,7 +95,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback("fill")
-  def fill(context: Context, args: Arguments): Array[Object] = {
+  def fill(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val w = args.checkInteger(2)
@@ -111,7 +111,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   }
 
   @LuaCallback("copy")
-  def copy(context: Context, args: Arguments): Array[Object] = {
+  def copy(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)
     val w = args.checkInteger(2)

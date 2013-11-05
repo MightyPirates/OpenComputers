@@ -21,15 +21,15 @@ class Peripheral(peripheral: IPeripheral) extends ManagedComponent with ICompute
   // ----------------------------------------------------------------------- //
 
   @LuaCallback(value = "getType", direct = true)
-  def getType(context: Context, args: Arguments): Array[Object] =
+  def getType(context: Context, args: Arguments): Array[AnyRef] =
     result(peripheral.getType)
 
   @LuaCallback(value = "getMethodNames", direct = true)
-  def getMethodNames(context: Context, args: Arguments): Array[Object] =
+  def getMethodNames(context: Context, args: Arguments): Array[AnyRef] =
     peripheral.getMethodNames.map(_.asInstanceOf[AnyRef])
 
   @LuaCallback(value = "callMethod", direct = true)
-  def callMethod(context: Context, args: Arguments): Array[Object] = {
+  def callMethod(context: Context, args: Arguments): Array[AnyRef] = {
     val method = args.checkInteger(0)
     peripheral.callMethod(this, null, method, args.drop(1).map {
       case x: Array[Byte] => new String(x, "UTF-8")

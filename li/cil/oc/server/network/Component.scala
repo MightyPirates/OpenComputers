@@ -95,12 +95,12 @@ trait Component extends api.network.Component with Persistable {
 }
 
 object Component {
-  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Boolean, (Object, Context, Arguments) => Array[Object])]]
+  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]]
 
   def callbacks(clazz: Class[_]) = cache.getOrElseUpdate(clazz, analyze(clazz))
 
   private def analyze(clazz: Class[_]) = {
-    val callbacks = mutable.Map.empty[String, (Boolean, (Object, Context, Arguments) => Array[Object])]
+    val callbacks = mutable.Map.empty[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]
     var c = clazz
     while (c != classOf[Object]) {
       val ms = c.getDeclaredMethods
@@ -111,7 +111,7 @@ object Component {
           m.getParameterTypes()(1) != classOf[Arguments]) {
           throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
         }
-        else if (m.getReturnType != classOf[Array[Object]]) {
+        else if (m.getReturnType != classOf[Array[AnyRef]]) {
           throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
         }
         else {
@@ -120,8 +120,8 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value ->(a.direct(), (o: Object, c: Context, a: Arguments) => try {
-              m.invoke(o, c, a).asInstanceOf[Array[Object]]
+            callbacks += a.value ->(a.direct(), (o: AnyRef, c: Context, a: Arguments) => try {
+              m.invoke(o, c, a).asInstanceOf[Array[AnyRef]]
             } catch {
               case e: InvocationTargetException => throw e.getCause
             })

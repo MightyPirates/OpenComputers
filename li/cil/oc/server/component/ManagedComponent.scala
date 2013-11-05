@@ -30,7 +30,7 @@ abstract class ManagedComponent extends ManagedEnvironment {
    * @param args the values to return.
    * @return and array of objects.
    */
-  final protected def result(args: Any*): Array[Object] = {
+  final protected def result(args: Any*): Array[AnyRef] = {
     def unwrap(arg: Any): AnyRef = arg match {
       case x: ScalaNumber => x.underlying
       case x => x.asInstanceOf[AnyRef]

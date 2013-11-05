@@ -24,7 +24,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("move")
-  def move(context: Context, args: Arguments): Array[Object] = {
+  def move(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = if (args.count > 1) args.checkBoolean(1) else false
     shouldMove = true
@@ -32,7 +32,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
   }
 
   @LuaCallback("simulate")
-  def simulate(context: Context, args: Arguments): Array[Object] = {
+  def simulate(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = true
     shouldMove = true
@@ -40,11 +40,11 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
   }
 
   @LuaCallback(value = "getAnchored", direct = true)
-  def getAnchored(context: Context, args: Arguments): Array[Object] =
+  def getAnchored(context: Context, args: Arguments): Array[AnyRef] =
     result(anchored)
 
   @LuaCallback("setAnchored")
-  def setAnchored(context: Context, args: Arguments): Array[Object] = {
+  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = {
     anchored = args.checkBoolean(0)
     result(anchored)
   }
