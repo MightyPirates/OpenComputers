@@ -9,7 +9,7 @@ class RedstoneCard extends ManagedComponent {
     withComponent("redstone").
     create()
 
-  @LuaCallback(value = "getInput", asynchronous = true)
+  @LuaCallback(value = "getInput", direct = true)
   def getInput(context: Context, args: Arguments): Array[Object] = {
     val side = args.checkInteger(0)
     node.network.node(context.address).host match {
@@ -19,7 +19,7 @@ class RedstoneCard extends ManagedComponent {
     }
   }
 
-  @LuaCallback(value = "getOutput", asynchronous = true)
+  @LuaCallback(value = "getOutput", direct = true)
   def getOutput(context: Context, args: Arguments): Array[Object] = {
     val side = args.checkInteger(0)
     node.network.node(context.address).host match {

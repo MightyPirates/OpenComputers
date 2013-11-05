@@ -120,7 +120,7 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value ->(a.asynchronous(), (o: Object, c: Context, a: Arguments) => try {
+            callbacks += a.value ->(a.direct(), (o: Object, c: Context, a: Arguments) => try {
               m.invoke(o, c, a).asInstanceOf[Array[Object]]
             } catch {
               case e: InvocationTargetException => throw e.getCause

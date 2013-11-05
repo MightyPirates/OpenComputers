@@ -37,11 +37,11 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
     result(true)
   }
 
-  @LuaCallback(value = "isReadOnly", asynchronous = true)
+  @LuaCallback(value = "isReadOnly", direct = true)
   def isReadOnly(context: Context, args: Arguments): Array[Object] =
     result(fileSystem.isReadOnly)
 
-  @LuaCallback(value = "spaceTotal", asynchronous = true)
+  @LuaCallback(value = "spaceTotal", direct = true)
   def spaceTotal(context: Context, args: Arguments): Array[Object] = {
     val space = fileSystem.spaceTotal
     if (space < 0)

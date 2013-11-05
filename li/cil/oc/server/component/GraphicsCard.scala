@@ -50,7 +50,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     }
   }
 
-  @LuaCallback(value = "getResolution", asynchronous = true)
+  @LuaCallback(value = "getResolution", direct = true)
   def getResolution(context: Context, args: Arguments): Array[Object] =
     screen(s => {
       val (w, h) = s.resolution
@@ -68,7 +68,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
       Array(Unit, "unsupported resolution")
   }
 
-  @LuaCallback(value = "maxResolution", asynchronous = true)
+  @LuaCallback(value = "maxResolution", direct = true)
   def maxResolution(context: Context, args: Arguments): Array[Object] =
     screen(s => {
       val (gmw, gmh) = maxResolution
@@ -76,7 +76,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
       result(gmw min smw, gmh min smh)
     })
 
-  @LuaCallback(value = "get", asynchronous = true)
+  @LuaCallback(value = "get", direct = true)
   def get(context: Context, args: Arguments): Array[Object] = {
     val x = args.checkInteger(0)
     val y = args.checkInteger(1)

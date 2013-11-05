@@ -200,7 +200,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- components) {
       if (owner.node.network.node(address) == null) {
-        OpenComputers.log.warning("A component of type " + name + " disappeared!")
+        OpenComputers.log.warning("A component of type '" + name +
+          "' disappeared! This usually means that it didn't save its node.")
         signal("component_removed", address, name)
         invalid += address
       }

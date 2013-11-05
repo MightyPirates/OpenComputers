@@ -14,9 +14,9 @@ class PowerSupply extends ManagedComponent {
     node.changeBuffer(1)
   }
 
-  @LuaCallback(value = "bufferSize", asynchronous = true)
+  @LuaCallback(value = "bufferSize", direct = true)
   def bufferSize(context: Context, args: Arguments): Array[Object] = result(node.bufferSize)
 
-  @LuaCallback(value = "buffer", asynchronous = true)
+  @LuaCallback(value = "buffer", direct = true)
   def buffer(context: Context, args: Arguments): Array[Object] = result(node.buffer)
 }

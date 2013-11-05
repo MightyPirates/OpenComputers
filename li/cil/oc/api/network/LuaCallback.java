@@ -32,13 +32,18 @@ public @interface LuaCallback {
     String value() default "";
 
     /**
-     * Whether this function may be called asynchronously, i.e. directly from
-     * the computer's executor thread.
+     * Whether this function may be called directly from the computer's executor
+     * thread instead of from the server thread.
      * <p/>
      * You will have to ensure anything your callback does is thread safe when
      * setting this to <tt>true</tt>. Use this for minor lookups, for example.
      * This is mainly intended to allow functions to perform faster than when
-     * called synchronously (where the call takes at least one server tick).
+     * called 'synchronously' (where the call takes at least one server tick).
+     * <p/>
+     * Note that {@link Network} interaction is mostly synchronized - i.e. the
+     * operations on the network itself are: once you get some result you're
+     * <em>not</em> guaranteed that node you just fetched is still in the
+     * network, for example!
      */
-    boolean asynchronous() default false;
+    boolean direct() default false;
 }
