@@ -146,7 +146,7 @@ object Component {
       args(index)
     }
 
-    def checkBoolean(index: Int): Boolean = {
+    def checkBoolean(index: Int) = {
       checkIndex(index, "boolean")
       args(index) match {
         case value: java.lang.Boolean => value
@@ -154,7 +154,7 @@ object Component {
       }
     }
 
-    def checkDouble(index: Int): Double = {
+    def checkDouble(index: Int) = {
       checkIndex(index, "number")
       args(index) match {
         case value: java.lang.Double => value
@@ -162,7 +162,7 @@ object Component {
       }
     }
 
-    def checkInteger(index: Int): Int = {
+    def checkInteger(index: Int) = {
       checkIndex(index, "number")
       args(index) match {
         case value: java.lang.Double => value.intValue
@@ -170,16 +170,53 @@ object Component {
       }
     }
 
-    def checkString(index: Int) =
-      new String(checkByteArray(index), "UTF-8")
+    def checkString(index: Int) = {
+      checkIndex(index, "string")
+      args(index) match {
+        case value: java.lang.String => value
+        case value: Array[Byte] => new String(value, "UTF-8")
+        case value => throw typeError(index, value, "string")
+      }
+    }
 
-    def checkByteArray(index: Int): Array[Byte] = {
+    def checkByteArray(index: Int) = {
       checkIndex(index, "string")
       args(index) match {
         case value: Array[Byte] => value
         case value => throw typeError(index, value, "string")
       }
     }
+
+    def isBoolean(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: java.lang.Boolean => true
+        case _ => false
+      })
+
+    def isDouble(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: java.lang.Double => true
+        case _ => false
+      })
+
+    def isInteger(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: java.lang.Integer => true
+        case _ => false
+      })
+
+    def isString(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: java.lang.String => true
+        case value: Array[Byte] => true
+        case _ => false
+      })
+
+    def isByteArray(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: Array[Byte] => true
+        case _ => false
+      })
 
     private def checkIndex(index: Int, name: String) =
       if (index < 0) throw new IndexOutOfBoundsException()
