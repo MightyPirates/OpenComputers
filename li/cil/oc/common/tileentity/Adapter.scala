@@ -24,6 +24,7 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     super.updateEntity()
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+      neighborChanged()
     }
     for (block <- blocks) block match {
       case Some((environment, _)) => environment.update()
@@ -31,7 +32,7 @@ class Adapter extends Rotatable with Environment with IPeripheral {
     }
   }
 
-  def neighborChanged() {
+  def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (xCoord + d.offsetX, yCoord + d.offsetY, zCoord + d.offsetZ)
       driver.Registry.driverFor(worldObj, x, y, z) match {

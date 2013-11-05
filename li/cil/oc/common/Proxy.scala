@@ -21,6 +21,7 @@ class Proxy {
     Blocks.init()
     Items.init()
 
+    api.Driver.add(driver.Carriage)
     api.Driver.add(driver.CommandBlock)
     api.Driver.add(driver.FileSystem)
     api.Driver.add(driver.GraphicsCard)

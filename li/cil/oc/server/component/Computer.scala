@@ -142,7 +142,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       true
   })
 
-  def isRunning = state != Computer.State.Stopped && lastUpdate != 0
+  def isRunning = state != Computer.State.Stopped
 
   // ----------------------------------------------------------------------- //
 
@@ -1186,12 +1186,10 @@ object Computer {
 
     override def onMessage(message: Message) = {
       super.onMessage(message)
-      if (instance.isRunning) {
-        message.data match {
-          case Array(name: String, args@_*) if message.name == "computer.signal" =>
-            instance.signal(name, Seq(message.source.address) ++ args: _*)
-          case _ =>
-        }
+      message.data match {
+        case Array(name: String, args@_*) if message.name == "computer.signal" =>
+          instance.signal(name, Seq(message.source.address) ++ args: _*)
+        case _ =>
       }
     }
 

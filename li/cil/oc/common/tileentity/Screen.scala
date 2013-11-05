@@ -11,6 +11,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
+import net.minecraft.client.Minecraft
 
 class ScreenTier1 extends Screen {
   protected def maxResolution = Config.screenResolutionsByTier(0)
@@ -83,6 +84,7 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
 
   override def invalidate() {
     super.invalidate()
+    if (currentGui.isDefined) Minecraft.getMinecraft.displayGuiScreen(null)
     screens.clone().foreach(_.checkMultiBlock())
   }
 
