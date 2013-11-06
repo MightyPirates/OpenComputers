@@ -8,7 +8,8 @@ import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import scala.reflect.runtime.{universe => ru}
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 abstract class PacketHandler extends IPacketHandler {
   /** Top level dispatcher based on packet type. */
@@ -32,7 +33,7 @@ abstract class PacketHandler extends IPacketHandler {
   protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T: ru.TypeTag](): Option[T] = {
+    def readTileEntity[T: ClassTag](): Option[T] = {
       val dimension = readInt()
       val x = readInt()
       val y = readInt()
@@ -40,12 +41,10 @@ abstract class PacketHandler extends IPacketHandler {
 
       world(player, dimension) match {
         case None => // Invalid dimension.
-        case Some(world) => ru.synchronized {
+        case Some(world) =>
           val t = world.getBlockTileEntity(x, y, z)
-          val m = ru.runtimeMirror(this.getClass.getClassLoader)
-          if (t != null && m.classSymbol(t.getClass).toType <:< ru.typeOf[T])
+          if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass))
             return Some(t.asInstanceOf[T])
-        }
       }
       None
     }

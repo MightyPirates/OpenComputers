@@ -49,6 +49,7 @@ object Config {
   var maxReadBuffer = 8 * 1024
   var maxScreenHeight = 6
   var maxScreenWidth = 8
+  var startupDelay = 0.5
   var threads = 4
   var timeout = 3.0
 
@@ -209,6 +210,13 @@ object Config {
     maxScreenWidth = config.get("server", "maxScreenWidth", maxScreenWidth, "" +
       "The maximum width of multi-block screens, in blocks. See maxScreenHeight.")
       .getInt(maxScreenWidth) max 1
+
+    startupDelay = config.get("server", "startupDelay", startupDelay, "" +
+      "The time in seconds to wait after a computer has been restored before it\n" +
+      "continues to run. This is meant to allow the world around the computer to\n" +
+      "settle, avoiding issues such as components in neighboring chunks being\n" +
+      "removed and then re-connected and other odd things that might happen.").
+      getDouble(startupDelay) max 0
 
     threads = config.get("server", "threads", threads, "" +
       "The overall number of threads to use to drive computers. Whenever a\n" +

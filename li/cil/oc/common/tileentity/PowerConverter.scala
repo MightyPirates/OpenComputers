@@ -15,7 +15,8 @@ import universalelectricity.core.electricity.ElectricityPack
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
-  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
+  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy"),
+  new Optional.Interface(iface = "buildcraft.api.power.PowerHandler", modid = "BuildCraft|Energy")))
 class PowerConverter extends Rotatable with Environment with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Config.bufferConverter).
@@ -139,7 +140,10 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
         powerHandler = Some(handler)
       }
     }
-    powerHandler.fold(null: PowerHandler)(_.asInstanceOf[PowerHandler])
+    powerHandler match {
+      case Some(handler) => handler.asInstanceOf[PowerHandler]
+      case _ => null
+    }
   }
 
   @Optional.Method(modid = "BuildCraft|Energy")

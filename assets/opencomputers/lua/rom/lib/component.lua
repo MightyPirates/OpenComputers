@@ -1,9 +1,20 @@
 local removing = {}
 local primaries = {}
 
+local function tryGetPrimary(self, key)
+  if component.isAvailable(key) then
+    return primaries[key]
+  end
+end
+
 -------------------------------------------------------------------------------
 
+-- This allows writing component.modem.open(123) instead of writing
+-- component.primary("modem").open(123), which may be nicer to read.
+setmetatable(component, {__index=tryGetPrimary})
+
 function component.isAvailable(componentType)
+  checkArg(1, componentType, "string")
   return primaries[componentType] ~= nil
 end
 

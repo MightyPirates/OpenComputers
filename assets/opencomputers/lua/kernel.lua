@@ -9,9 +9,9 @@ end
 
 -------------------------------------------------------------------------------
 
-local function invoke(asynchronous, ...)
+local function invoke(direct, ...)
   local result
-  if asynchronous then
+  if direct then
     result = table.pack(component.invoke(...))
   else
     local args = table.pack(...) -- for access in closure
@@ -282,9 +282,9 @@ sandbox = {
       local proxy = {address = address, type = type}
       local methods = component.methods(address)
       if methods then
-        for method, asynchronous in pairs(methods) do
+        for method, direct in pairs(methods) do
           proxy[method] = function(...)
-            return invoke(asynchronous, address, method, ...)
+            return invoke(direct, address, method, ...)
           end
         end
       end
@@ -370,7 +370,7 @@ local function main()
     end
 
     -- Yield once to get a memory baseline.
-    args = table.pack(coroutine.yield(0)) -- pseudo sleep to avoid suspension
+    coroutine.yield()
 
     return coroutine.create(load(string.format([[
       fs.mount("%s", "/")
@@ -386,7 +386,7 @@ local function main()
         end
       end]], os.romAddress(), os.tmpAddress()), "=init", "t", sandbox))
   end
-  local co = bootstrap()
+  local co, args = bootstrap(), {n=0}
   while true do
     deadline = os.realTime() + timeout -- timeout global is set by host
     debug.sethook(co, checkDeadline, "", 10000)

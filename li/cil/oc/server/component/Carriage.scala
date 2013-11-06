@@ -23,16 +23,16 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("move")
-  def move(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback(value = "move", direct = true)
+  def move(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     direction = checkDirection(args)
     simulating = if (args.count > 1) args.checkBoolean(1) else false
     shouldMove = true
     result(true)
   }
 
-  @LuaCallback("simulate")
-  def simulate(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback(value = "simulate", direct = true)
+  def simulate(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     direction = checkDirection(args)
     simulating = true
     shouldMove = true
@@ -41,10 +41,10 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   @LuaCallback(value = "getAnchored", direct = true)
   def getAnchored(context: Context, args: Arguments): Array[AnyRef] =
-    result(anchored)
+    this.synchronized(result(anchored))
 
-  @LuaCallback("setAnchored")
-  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback(value = "setAnchored", direct = true)
+  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     anchored = args.checkBoolean(0)
     result(anchored)
   }
@@ -72,7 +72,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   override def update() {
     super.update()
-    if (shouldMove) {
+    if (shouldMove) this.synchronized {
       shouldMove = false
       moving = true
       try {

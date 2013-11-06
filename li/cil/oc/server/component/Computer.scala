@@ -54,9 +54,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
   // General
   // ----------------------------------------------------------------------- //
 
-  private var state = Computer.State.Stopped
-
-  private val stateMonitor = new Object() // To synchronize access to `state`.
+  private val state = mutable.Stack(Computer.State.Stopped)
 
   private var future: Option[Future[_]] = None
 
@@ -92,13 +90,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private var sleepUntil = 0.0 // Real-world time [ms].
 
-  private var wasRunning = false // To signal stops synchronously.
-
   private var message: Option[String] = None // For error messages.
 
   // ----------------------------------------------------------------------- //
 
-  def recomputeMemory() = stateMonitor.synchronized(if (lua != null) {
+  def recomputeMemory() = state.synchronized(if (lua != null) {
     lua.setTotalMemory(Int.MaxValue)
     lua.gc(LuaState.GcAction.COLLECT, 0)
     if (kernelMemory > 0)
@@ -107,13 +103,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  def start() = stateMonitor.synchronized(owner.node.network != null &&
-    state == Computer.State.Stopped &&
+  def start() = state.synchronized(owner.node.network != null &&
+    state.top == Computer.State.Stopped &&
     owner.installedMemory > 0 &&
     init() && {
-    // Initial state. Will be switched to State.Yielded in the next update()
-    // due to the signals queue not being empty (
-    state = Computer.State.Suspended
+    // Initial state. Will be switched to State.Yielded in the next update().
+    switchTo(Computer.State.Starting)
 
     // Remember when we started, for os.clock().
     timeStarted = owner.world.getWorldInfo.getWorldTotalTime
@@ -121,52 +116,44 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // Mark state change in owner, to send it to clients.
     owner.markAsChanged(8) // Initial power required to start.
 
-    // Push a dummy signal to get the computer going.
-    signal("dummy")
-
     // All green, computer started successfully.
     owner.node.sendToReachable("computer.started")
     true
   })
 
-  def stop() = stateMonitor.synchronized(state match {
-    case Computer.State.Stopped => false // Nothing to do.
-    case _ if future.isEmpty => close(); true // Not executing, kill it.
-    case _ =>
-      // If the computer is currently executing something we enter an
-      // intermediate state to ensure the executor or synchronized call truly
-      // stopped, before switching back to stopped to allow starting the
-      // computer again. The executor and synchronized call will check for
-      // this state and call close(), thus switching the state to stopped.
-      state = Computer.State.Stopping
-      true
+  def stop() = state.synchronized(state.top match {
+    case Computer.State.Stopped | Computer.State.Stopping => false
+    case _ => state.push(Computer.State.Stopping); true
   })
 
-  def isRunning = state != Computer.State.Stopped
+  def isRunning = state.synchronized(state.top != Computer.State.Stopped)
 
   // ----------------------------------------------------------------------- //
 
-  def signal(name: String, args: Any*) = stateMonitor.synchronized(state match {
+  def signal(name: String, args: Any*) = state.synchronized(state.top match {
     case Computer.State.Stopped | Computer.State.Stopping => false
-    case _ if signals.size >= 256 => false
-    case _ =>
-      signals.enqueue(new Computer.Signal(name, args.map {
-        case null | Unit | None => Unit
-        case arg: java.lang.Boolean => arg
-        case arg: java.lang.Byte => arg.toDouble
-        case arg: java.lang.Character => arg.toDouble
-        case arg: java.lang.Short => arg.toDouble
-        case arg: java.lang.Integer => arg.toDouble
-        case arg: java.lang.Long => arg.toDouble
-        case arg: java.lang.Float => arg.toDouble
-        case arg: java.lang.Double => arg
-        case arg: java.lang.String => arg
-        case arg: Array[Byte] => arg
-        case arg =>
-          OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
-          Unit
-      }.toArray))
-      true
+    case _ => signals.synchronized {
+      if (signals.size >= 256) false
+      else {
+        signals.enqueue(new Computer.Signal(name, args.map {
+          case null | Unit | None => Unit
+          case arg: java.lang.Boolean => arg
+          case arg: java.lang.Byte => arg.toDouble
+          case arg: java.lang.Character => arg.toDouble
+          case arg: java.lang.Short => arg.toDouble
+          case arg: java.lang.Integer => arg.toDouble
+          case arg: java.lang.Long => arg.toDouble
+          case arg: java.lang.Float => arg.toDouble
+          case arg: java.lang.Double => arg
+          case arg: java.lang.String => arg
+          case arg: Array[Byte] => arg
+          case arg =>
+            OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+            Unit
+        }.toArray))
+        true
+      }
+    }
   })
 
   def addComponent(component: Component) {
@@ -222,13 +209,6 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // reachability).
     processAddedComponents()
 
-    // Are we waiting for the world to settle?
-    if (lastUpdate == 0)
-      if (System.currentTimeMillis() < sleepUntil)
-        return
-      else
-        verifyComponents()
-
     // Update last time run to let our executor thread know it doesn't have to
     // pause.
     lastUpdate = System.currentTimeMillis
@@ -240,34 +220,46 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     // Update world time for computer threads.
     worldTime = owner.world.getWorldInfo.getWorldTotalTime
 
-    def cleanup() {
-      rom.foreach(_.node.remove())
-      tmp.foreach(_.node.remove())
-      owner.node.sendToReachable("computer.stopped")
-
-      message.foreach(println) // TODO remove this at some point (add a tool that can read these error messages?)
-    }
-
-    // Signal stops to the network. This is used to close file handles, for example.
-    if (wasRunning && !isRunning) {
-      cleanup()
-    }
-    wasRunning = isRunning
-
     // Check if we should switch states.
-    stateMonitor.synchronized(state match {
+    state.synchronized(state.top match {
+      // Booting up.
+      case Computer.State.Starting => {
+        verifyComponents()
+        switchTo(Computer.State.Yielded)
+      }
+      // Resuming after being loaded.
+      case Computer.State.Resuming if System.currentTimeMillis() >= sleepUntil => {
+        verifyComponents()
+        owner.markAsChanged(Double.NegativeInfinity)
+        state.pop()
+        switchTo(state.top) // Trigger execution if necessary.
+      }
       // Computer is rebooting.
-      case Computer.State.Rebooting => {
+      case Computer.State.Restarting => {
         close()
-        cleanup()
+        tmp.foreach(_.node.remove()) // To force deleting contents.
+        owner.node.sendToReachable("computer.stopped")
         start()
       }
-      // Resume from pauses based on signal underflow.
-      case Computer.State.Suspended if !signals.isEmpty => execute(Computer.State.Yielded)
-      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => execute(Computer.State.Yielded)
+      // Computer is shutting down.
+      case Computer.State.Stopping => this.synchronized {
+        assert(future.isEmpty)
+        close()
+        rom.foreach(_.node.remove())
+        tmp.foreach(_.node.remove())
+        owner.node.sendToReachable("computer.stopped")
+
+        message.foreach(println) // TODO remove this at some point (add a tool that can read these error messages?)
+      }
+      // Resume from pauses based on sleep or signal underflow.
+      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
+        switchTo(Computer.State.Yielded)
+      }
       // Resume in case we paused  because the game was paused.
-      case Computer.State.Paused => execute(Computer.State.Yielded)
-      case Computer.State.SynchronizedReturnPaused => execute(Computer.State.SynchronizedReturn)
+      case Computer.State.Paused => {
+        state.pop()
+        switchTo(state.top) // Trigger execution if necessary.
+      }
       // Perform a synchronized call (message sending).
       case Computer.State.SynchronizedCall => {
         assert(future.isEmpty)
@@ -277,7 +269,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         assert(lua.isFunction(2))
         // We switch into running state, since we'll behave as though the call
         // were performed from our executor thread.
-        state = Computer.State.Running
+        switchTo(Computer.State.Running)
         try {
           // Synchronized call protocol requires the called function to return
           // a table, which holds the results of the call, to be passed back
@@ -288,11 +280,9 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           assert(future.isEmpty)
           // If the call lead to stop() being called we stop right now,
           // otherwise we return the result to our executor.
-          if (state == Computer.State.Stopping)
-            close()
-          else {
-            assert(state == Computer.State.Running)
-            execute(Computer.State.SynchronizedReturn)
+          if (state.top != Computer.State.Stopping) {
+            assert(state.top == Computer.State.Running)
+            switchTo(Computer.State.SynchronizedReturn)
           }
         } catch {
           case _: LuaMemoryAllocationException =>
@@ -300,14 +290,14 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             // exception to a string (which we have to do to avoid keeping
             // userdata on the stack, which cannot be persisted).
             message = Some("not enough memory")
-            close()
+            state.push(Computer.State.Stopping)
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
             message = Some("not enough memory")
-            close()
+            state.push(Computer.State.Stopping)
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
             message = Some("protocol error")
-            close()
+            state.push(Computer.State.Stopping)
         }
       }
       case _ => // Nothing special to do, just avoid match errors.
@@ -316,15 +306,20 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) {
+  def load(nbt: NBTTagCompound) = this.synchronized {
+    assert(state.top == Computer.State.Stopped)
+    assert(future.isEmpty)
+
     val computerNbt = nbt.getCompoundTag("oc.computer")
 
-    state = computerNbt.getInteger("state") match {
-      case id if id >= 0 && id < Computer.State.maxId => Computer.State(id)
-      case _ => Computer.State.Stopped
-    }
+    state.clear()
+    val stateNbt = computerNbt.getTagList("state")
+    (0 until stateNbt.tagCount).
+      map(stateNbt.tagAt).
+      map(_.asInstanceOf[NBTTagInt]).
+      foreach(s => state.push(Computer.State(s.data)))
 
-    if (state != Computer.State.Stopped && init()) {
+    if (state.top != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -333,18 +328,18 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         // on. First, clear the stack, meaning the current kernel.
         lua.setTop(0)
 
-        if (!computerNbt.hasKey("kernel") || !unpersist(computerNbt.getByteArray("kernel")) || !lua.isThread(1)) {
+        unpersist(computerNbt.getByteArray("kernel"))
+        if (!lua.isThread(1)) {
           // This shouldn't really happen, but there's a chance it does if
           // the save was corrupt (maybe someone modified the Lua files).
-          throw new IllegalStateException("Invalid kernel.")
+          throw new IllegalArgumentException("Invalid kernel.")
         }
-        if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn) {
-          if (!computerNbt.hasKey("stack") || !unpersist(computerNbt.getByteArray("stack")) ||
-            (state == Computer.State.SynchronizedCall && !lua.isFunction(2)) ||
-            (state == Computer.State.SynchronizedReturn && !lua.isTable(2))) {
+        if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
+          unpersist(computerNbt.getByteArray("stack"))
+          if (!(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
             // Same as with the above, should not really happen normally, but
             // could for the same reasons.
-            throw new IllegalStateException("Invalid stack.")
+            throw new IllegalArgumentException("Invalid stack.")
           }
         }
 
@@ -392,44 +387,36 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         // Limit memory again.
         recomputeMemory()
 
-        // Ensure the executor is started in the next update if necessary.
-        assert(future.isEmpty)
-        state match {
-          case Computer.State.Yielded =>
-            state = Computer.State.Paused
-          case Computer.State.SynchronizedReturn =>
-            state = Computer.State.SynchronizedReturnPaused
-          case _ => // Will be started by update() if necessary.
-        }
-
         // Delay execution for a second to allow the world around us to settle.
-        sleepUntil = System.currentTimeMillis() + 1000
+        sleepUntil = System.currentTimeMillis() + 1000 * Config.startupDelay
+        if (state.top != Computer.State.Resuming) // Maybe saved while resuming?
+          state.push(Computer.State.Resuming)
       } catch {
         case e: LuaRuntimeException => {
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-          close()
+          state.push(Computer.State.Stopping)
         }
       }
     }
-    // Init failed, or we were already stopped.
-    else state = Computer.State.Stopped
+    else close() // Clean up in case we got a weird state stack.
   }
 
   def save(nbt: NBTTagCompound): Unit = this.synchronized {
-    assert(state != Computer.State.Running) // Lock on 'this' should guarantee this.
-    assert(state != Computer.State.Stopping) // Only set while executor is running.
+    assert(state.top != Computer.State.Running) // Lock on 'this' should guarantee this.
+    assert(state.top != Computer.State.Stopping) // Only set while executor is running.
 
+    // Make sure the component list is up-to-date.
     processAddedComponents()
 
     val computerNbt = new NBTTagCompound()
 
-    computerNbt.setInteger("state", (state match {
-      case Computer.State.Paused => Computer.State.Yielded
-      case Computer.State.SynchronizedReturnPaused => Computer.State.SynchronizedReturn
-      case Computer.State.Sleeping => Computer.State.Yielded
-      case other => other
-    }).id)
-    if (state != Computer.State.Stopped) {
+    val stateNbt = new NBTTagList()
+    for (state <- state) {
+      stateNbt.appendTag(new NBTTagInt(null, state.id))
+    }
+    computerNbt.setTag("state", stateNbt)
+
+    if (state.top != Computer.State.Stopped) {
       // Unlimit memory while persisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -440,8 +427,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         computerNbt.setByteArray("kernel", persist(1))
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
-        if (state == Computer.State.SynchronizedCall || state == Computer.State.SynchronizedReturn || state == Computer.State.SynchronizedReturnPaused) {
-          assert(if (state == Computer.State.SynchronizedCall) lua.isFunction(2) else lua.isTable(2))
+        if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
+          assert(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
           computerNbt.setByteArray("stack", persist(2))
         }
 
@@ -941,9 +928,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
   }
 
-  private def close() = stateMonitor.synchronized(
-    if (state != Computer.State.Stopped) {
-      state = Computer.State.Stopped
+  private def close() = state.synchronized(
+    if (state.top != Computer.State.Stopped) {
+      state.clear()
+      state.push(Computer.State.Stopped)
       lua.setTotalMemory(Integer.MAX_VALUE)
       lua.close()
       lua = null
@@ -961,136 +949,131 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
-  private def execute(value: Computer.State.Value) {
-    assert(future.isEmpty)
-    sleepUntil = 0
-    state = value
-    future = Some(Computer.Executor.pool.submit(this))
+  private def switchTo(value: Computer.State.Value) = {
+    val result = state.pop()
+    state.push(value)
+    if (value == Computer.State.Yielded || value == Computer.State.SynchronizedReturn) {
+      assert(future.isEmpty)
+      sleepUntil = 0
+      future = Some(Computer.Executor.pool.submit(this))
+    }
+    result
   }
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = this.synchronized {
-    val callReturn = stateMonitor.synchronized {
-      val oldState = state
-      state = Computer.State.Running
+    future = None
 
+    val enterState = state.synchronized {
       // See if the game appears to be paused, in which case we also pause.
-      if (System.currentTimeMillis - lastUpdate > 50) {
-        state = oldState match {
-          case Computer.State.SynchronizedReturn => Computer.State.SynchronizedReturnPaused
-          case _ => Computer.State.Paused
-        }
-        future = None
+      if (System.currentTimeMillis - lastUpdate > 100) {
+        state.push(Computer.State.Paused)
         return
       }
-
-      oldState
-    } match {
-      case Computer.State.SynchronizedReturn => true
-      case Computer.State.Yielded | Computer.State.Sleeping => false
-      case Computer.State.Stopping =>
-        // stop() was called directly after start(), e.g. due to lack of power.
-        close()
+      if (state.top == Computer.State.Stopping)
         return
-      case s =>
-        OpenComputers.log.warning("Running computer from invalid state " + s.toString + ". This is a bug!")
-        close()
-        return
+      switchTo(Computer.State.Running)
     }
 
-    // The kernel thread will always be at stack index one.
-    assert(lua.isThread(1))
-
     try {
+      // The kernel thread will always be at stack index one.
+      assert(lua.isThread(1))
+
       // Help out the GC a little. The emergency GC has a few limitations that
       // will make it free less memory than doing a full step manually.
       lua.gc(LuaState.GcAction.COLLECT, 0)
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
-      val results = if (callReturn) {
-        // If we were doing a synchronized call, continue where we left off.
-        assert(lua.getTop == 2)
-        assert(lua.isTable(2))
-        lua.resume(1, 1)
-      }
-      else stateMonitor.synchronized(signals.dequeueFirst(_ => true)) match {
-        case Some(signal) =>
-          lua.pushString(signal.name)
-          signal.args.foreach {
-            case Unit => lua.pushNil()
-            case arg: Boolean => lua.pushBoolean(arg)
-            case arg: Double => lua.pushNumber(arg)
-            case arg: String => lua.pushString(arg)
-            case arg: Array[Byte] => lua.pushByteArray(arg)
+      val (results, runtime) = enterState match {
+        case Computer.State.SynchronizedReturn =>
+          // If we were doing a synchronized call, continue where we left off.
+          assert(lua.getTop == 2)
+          assert(lua.isTable(2))
+          (lua.resume(1, 1), System.nanoTime() - cpuStart)
+        case Computer.State.Yielded =>
+          if (kernelMemory == 0) {
+            // We're doing the initialization run.
+            lua.pop(lua.resume(1, 0))
+            // Run the garbage collector to get rid of stuff left behind after
+            // the initialization phase to get a good estimate of the base
+            // memory usage the kernel has (including libraries). We remember
+            // that size to grant user-space programs a fixed base amount of
+            // memory, regardless of the memory need of the underlying system
+            // (which may change across releases).
+            lua.gc(LuaState.GcAction.COLLECT, 0)
+            kernelMemory = ((lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory) max 1
+            recomputeMemory()
+
+            // Fake zero sleep to avoid stopping if there are no signals.
+            lua.pushInteger(0)
+            (1, 0L)
           }
-          lua.resume(1, 1 + signal.args.length)
-        case _ =>
-          lua.resume(1, 0)
+          else (signals.synchronized(if (signals.isEmpty) None else Some(signals.dequeue())) match {
+            case Some(signal) =>
+              lua.pushString(signal.name)
+              signal.args.foreach {
+                case Unit => lua.pushNil()
+                case arg: Boolean => lua.pushBoolean(arg)
+                case arg: Double => lua.pushNumber(arg)
+                case arg: String => lua.pushString(arg)
+                case arg: Array[Byte] => lua.pushByteArray(arg)
+              }
+              lua.resume(1, 1 + signal.args.length)
+            case _ =>
+              lua.resume(1, 0)
+          }, System.nanoTime() - cpuStart)
+        case s => throw new Exception("Running computer from invalid state " + s.toString)
       }
 
-      // Check if this was the first run, meaning the one used for initializing
-      // the kernel (loading the libs, establishing a memory baseline).
-      val runtime = if (kernelMemory == 0) {
-        // Run the garbage collector to get rid of stuff left behind after the
-        // initialization phase to get a good estimate of the base memory usage
-        // the kernel has. We remember that size to grant user-space programs a
-        // fixed base amount of memory, regardless of the memory need of the
-        // underlying system (which may change across releases).
-        lua.gc(LuaState.GcAction.COLLECT, 0)
-        kernelMemory = (lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory
-        recomputeMemory()
-        0
-      }
-      else {
-        System.nanoTime() - cpuStart
-      }
+      // Keep track of time spent executing the computer.
       cpuTime += runtime
 
       // Check if the kernel is still alive.
-      stateMonitor.synchronized(if (lua.status(1) == LuaState.YIELD) {
+      state.synchronized(if (lua.status(1) == LuaState.YIELD) {
+        assert(isRunning)
         // Intermediate state in some cases. Satisfies the assert in execute().
         future = None
-        // Someone called stop() in the meantime.
-        if (state == Computer.State.Stopping)
-          close()
-        // If we have a single number that's how long we may wait before
-        // resuming the state again.
-        else if (results == 1 && lua.isNumber(2)) {
-          val sleep = lua.toNumber(2) * 1000
-          lua.pop(results)
-          // But only sleep if we don't have more signals to process.
-          if (signals.isEmpty) {
-            state = Computer.State.Sleeping
-            sleepUntil = System.currentTimeMillis + sleep
+        // Check if someone called stop() in the meantime.
+        if (state.top != Computer.State.Stopping) {
+          // If we get one function it must be a wrapper for a synchronized
+          // call. The protocol is that a closure is pushed that is then called
+          // from the main server thread, and returns a table, which is in turn
+          // passed to the originating coroutine.yield().
+          if (results == 1 && lua.isFunction(2)) {
+            switchTo(Computer.State.SynchronizedCall)
           }
-          else execute(Computer.State.Yielded)
-        }
-        // If we get one function it must be a wrapper for a synchronized call.
-        // The protocol is that a closure is pushed that is then called from
-        // the main server thread, and returns a table, which is in turn passed
-        // to the originating coroutine.yield().
-        else if (results == 1 && lua.isFunction(2))
-          state = Computer.State.SynchronizedCall
-        // Check if we are shutting down, and if so if we're rebooting. This is
-        // signalled by boolean values, where `false` means shut down, `true`
-        // means reboot (i.e shutdown then start again).
-        else if (results == 1 && lua.isBoolean(2)) {
-          if (lua.toBoolean(2))
-            state = Computer.State.Rebooting
-          else
-            close()
-        }
-        else {
-          // Something else, just pop the results and try again.
-          lua.pop(results)
-          if (signals.isEmpty)
-            state = Computer.State.Suspended
-          else
-            execute(Computer.State.Yielded)
-        }
+          // Check if we are shutting down, and if so if we're rebooting. This
+          // is signalled by boolean values, where `false` means shut down,
+          // `true` means reboot (i.e shutdown then start again).
+          else if (results == 1 && lua.isBoolean(2)) {
+            if (lua.toBoolean(2)) switchTo(Computer.State.Restarting)
+            else switchTo(Computer.State.Stopping)
+          }
+          else {
+            // If we have a single number, that's how long we may wait before
+            // resuming the state again. Note that the sleep may be interrupted
+            // early if a signal arrives in the meantime. If we have something
+            // else we just process the next signal or wait for one.
+            val sleep =
+              if (results == 1 && lua.isNumber(2)) lua.toNumber(2) * 1000
+              else Double.PositiveInfinity
+            lua.pop(results)
+            signals.synchronized {
+              // Immediately check for signals to allow processing more than one
+              // signal per game tick.
+              if (signals.isEmpty) {
+                switchTo(Computer.State.Sleeping)
+                sleepUntil = System.currentTimeMillis + sleep
+              } else {
+                switchTo(Computer.State.Yielded)
+              }
+            }
+          }
 
-        // State has inevitably changed, mark as changed to save again.
-        owner.markAsChanged(Config.computerCpuTimeCost * runtime / 1000 / 1000 / 1000)
+          // State has inevitably changed, mark as changed to save again and
+          // increment power consumption based on CPU time.
+          owner.markAsChanged(Config.computerCpuTimeCost * runtime / 1000 / 1000 / 1000)
+        }
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
       else {
@@ -1111,30 +1094,30 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
           else
             message = Some("unknown error")
         }
-        close()
+        switchTo(Computer.State.Stopping)
       })
     }
     catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         message = Some("kernel panic")
-        close()
+        state.synchronized(state.push(Computer.State.Stopping))
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null)
           message = Some("kernel panic:\n" + e.getMessage)
         else
           message = Some("kernel panic:\nerror in garbage collection metamethod")
-        close()
+        state.synchronized(state.push(Computer.State.Stopping))
       case e: LuaMemoryAllocationException =>
         message = Some("not enough memory")
-        close()
+        state.synchronized(state.push(Computer.State.Stopping))
       case e: java.lang.Error if e.getMessage == "not enough memory" =>
         message = Some("not enough memory")
-        close()
+        state.synchronized(state.push(Computer.State.Stopping))
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
         message = Some("kernel panic")
-        close()
+        state.synchronized(state.push(Computer.State.Stopping))
     }
   }
 }
@@ -1256,11 +1239,17 @@ object Computer {
     /** The computer is not running right now and there is no Lua state. */
     val Stopped = Value("Stopped")
 
-    /** The computer is running but yielded and there were no more signals to process. */
-    val Suspended = Value("Suspended")
+    /** Booting up, doing the first run to initialize the kernel and libs. */
+    val Starting = Value("Starting")
 
-    /** The computer is running but yielded but will resume as soon as possible. */
-    val Yielded = Value("Yielded")
+    /** Resuming to run after being loaded, waiting for the world to settle. */
+    val Resuming = Value("Resuming")
+
+    /** Computer is currently rebooting. */
+    val Restarting = Value("Restarting")
+
+    /** The computer is currently shutting down. */
+    val Stopping = Value("Stopping")
 
     /** The computer is running but yielding for a longer amount of time. */
     val Sleeping = Value("Sleeping")
@@ -1268,23 +1257,17 @@ object Computer {
     /** The computer is paused and waiting for the game to resume. */
     val Paused = Value("Paused")
 
-    /** The computer is up and running, executing Lua code. */
-    val Running = Value("Running")
-
-    /** The computer is currently shutting down (waiting for executor). */
-    val Stopping = Value("Stopping")
-
     /** The computer executor is waiting for a synchronized call to be made. */
     val SynchronizedCall = Value("SynchronizedCall")
 
     /** The computer should resume with the result of a synchronized call. */
     val SynchronizedReturn = Value("SynchronizedReturn")
 
-    /** The computer is paused and waiting for the game to resume. */
-    val SynchronizedReturnPaused = Value("SynchronizedReturnPaused")
+    /** The computer will resume as soon as possible. */
+    val Yielded = Value("Yielded")
 
-    /** Computer is currently rebooting. */
-    val Rebooting = Value("Rebooting")
+    /** The computer is up and running, executing Lua code. */
+    val Running = Value("Running")
   }
 
   /** Singleton for requesting executors that run our Lua states. */

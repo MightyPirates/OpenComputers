@@ -13,8 +13,6 @@ import java.util.List;
 /**
  * Represents a read only part of a virtual filesystem that can be mounted onto a computer using IComputerAccess.mount().
  * Ready made implementations of this interface can be created using ComputerCraftAPI.createSaveDirMount() or ComputerCraftAPI.createResourceMount(), or you're free to implement it yourselves!
- * @see ComputerCraftAPI#createSaveDirMount(World, String)
- * @see ComputerCraftAPI#createResourceMount(Class, String, String)
  * @see IComputerAccess#mount(String, IMount)
  * @see IWritableMount
  */

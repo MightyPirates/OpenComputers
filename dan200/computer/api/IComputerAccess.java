@@ -15,30 +15,26 @@ public interface IComputerAccess
 {
 	/**
 	 * Mount a mount onto the computers' file system in a read only mode.<br>
-	 * @param desiredLoction The location on the computer's file system where you would like the mount to be mounted.
+	 * @param desiredLocation The location on the computer's file system where you would like the mount to be mounted.
 	 * @param mount The mount object to mount on the computer. These can be obtained by calling ComputerCraftAPI.createSaveDirMount(), ComputerCraftAPI.createResourceMount() or by creating your own objects that implement the IMount interface.
 	 * @return The location on the computer's file system where you the mount mounted, or null if there was already a file in the desired location. Store this value if you wish to unmount the mount later.
-	 * @see ComputerCraftAPI#createSaveDirMount(World, String)
-	 * @see ComputerCraftAPI#createResourceMount(Class, String, String)
 	 * @see #mountWritable(String, IWritableMount)
 	 * @see #unmount(String)
 	 * @see IMount
 	 */
 	public String mount( String desiredLocation, IMount mount );
-	
+
 	/**
 	 * Mount a mount onto the computers' file system in a writable mode.<br>
-	 * @param desiredLoction The location on the computer's file system where you would like the mount to be mounted.
+	 * @param desiredLocation The location on the computer's file system where you would like the mount to be mounted.
 	 * @param mount The mount object to mount on the computer. These can be obtained by calling ComputerCraftAPI.createSaveDirMount() or by creating your own objects that implement the IWritableMount interface.
 	 * @return The location on the computer's file system where you the mount mounted, or null if there was already a file in the desired location. Store this value if you wish to unmount the mount later.
-	 * @see ComputerCraftAPI#createSaveDirMount(World, String)
-	 * @see ComputerCraftAPI#createResourceMount(Class, String, String)
 	 * @see #mount(String, IMount)
 	 * @see #unmount(String)
 	 * @see IMount
 	 */
 	public String mountWritable( String desiredLocation, IWritableMount mount );
-	
+
 	/**
 	 * Unmounts a directory previously mounted onto the computers file system by mount() or mountWritable().<br>
 	 * When a directory is unmounted, it will disappear from the computers file system, and the user will no longer be able to
@@ -51,14 +47,14 @@ public interface IComputerAccess
 	 * @see	#mountWritable(String, IWritableMount)
 	 */
 	public void unmount( String location );
-	
+
 	/**
 	 * Returns the numerical ID of this computer.<br>
 	 * This is the same number obtained by calling os.getComputerID() or running the "id" program from lua,
-	 * and is guarunteed unique. This number will be positive.
+	 * and is guaranteed unique. This number will be positive.
 	 * @return	The identifier.
 	 */
-	public int getID();	
+	public int getID();
 
 	/**
 	 * Causes an event to be raised on this computer, which the computer can respond to by calling
@@ -66,7 +62,7 @@ public interface IComputerAccess
 	 * this peripheral.
 	 * @param event		A string identifying the type of event that has occurred, this will be
 	 *					returned as the first value from os.pullEvent(). It is recommended that you
-	 *					you choose a name that is unique, and recognisable as originating from your 
+	 *					you choose a name that is unique, and recognisable as originating from your
 	 *					peripheral. eg: If your peripheral type is "button", a suitable event would be
 	 *					"button_pressed".
 	 * @param arguments	In addition to a name, you may pass an array of extra arguments to the event, that will
