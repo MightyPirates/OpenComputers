@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.IPlayerTracker
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Visibility, Message}
-import li.cil.oc.common.ReleasePressedKeys
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.{Event, ForgeSubscribe}
 import scala.collection.mutable
 
 class Keyboard extends Rotatable with Environment {
@@ -43,7 +43,7 @@ class Keyboard extends Rotatable with Environment {
   }
 
   @ForgeSubscribe
-  def onReleasePressedKeys(e: ReleasePressedKeys) {
+  def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {
     pressedKeys.get(e.player) match {
       case Some(keys) => for ((code, char) <- keys)
         node.sendToReachable("computer.signal", "key_up", char, code, e.player.getCommandSenderName)
@@ -93,4 +93,24 @@ class Keyboard extends Rotatable with Environment {
 
   def isUseableByPlayer(p: EntityPlayer) = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
     p.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
+}
+
+object Keyboard extends IPlayerTracker {
+
+  def onPlayerRespawn(player: EntityPlayer) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  }
+
+  def onPlayerChangedDimension(player: EntityPlayer) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  }
+
+  def onPlayerLogout(player: EntityPlayer) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  }
+
+  def onPlayerLogin(player: EntityPlayer) {}
+
+  class ReleasePressedKeys(val player: EntityPlayer) extends Event
+
 }
