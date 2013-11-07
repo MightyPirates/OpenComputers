@@ -25,6 +25,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber
+import scala.runtime.BoxedUnit
 
 /**
  * Wrapper class for Lua states set up to behave like a pseudo-OS.
@@ -565,7 +566,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     }
 
     def pushResult(lua: LuaState, value: AnyRef): Unit = value match {
-      case null | Unit => lua.pushNil()
+      case null | Unit | _: BoxedUnit => lua.pushNil()
       case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
       case value: java.lang.Byte => lua.pushNumber(value.byteValue)
       case value: java.lang.Character => lua.pushString(String.valueOf(value))

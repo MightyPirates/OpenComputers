@@ -202,6 +202,7 @@ object Component {
     def isInteger(index: Int) =
       index >= 0 && index < count && (args(index) match {
         case value: java.lang.Integer => true
+        case value: java.lang.Double => true
         case _ => false
       })
 

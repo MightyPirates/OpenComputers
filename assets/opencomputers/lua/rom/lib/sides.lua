@@ -4,11 +4,16 @@ local sides = {
   [2] = "back",
   [3] = "front",
   [4] = "right",
-  [5] = "left"
+  [5] = "left",
+
+  bottom = 0,
+  top = 1,
+  back = 2,
+  front = 3,
+  right = 4,
+  left = 5
 }
-for k, v in pairs(sides) do
-  sides[v] = k
-end
+
 sides.up = sides.top
 sides.down = sides.bottom
 

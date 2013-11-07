@@ -131,8 +131,14 @@ keyboard.keys = {
 }
 
 -- Create inverse mapping for name lookup.
-for k, v in pairs(keyboard.keys) do
-  keyboard.keys[v] = k
+do
+  local keys = {}
+  for k in pairs(keyboard.keys) do
+    table.insert(keys, k)
+  end
+  for _, k in pairs(keys) do
+    keyboard.keys[keyboard.keys[k]] = k
+  end
 end
 
 -------------------------------------------------------------------------------

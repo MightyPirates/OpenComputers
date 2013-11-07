@@ -4,12 +4,12 @@ if #args < 1 then
   return
 end
 
-local side = rs.sides[args[1]]
+local side = sides[args[1]]
 if not side then
   print("Invalid side.")
 end
 if type(side) == "string" then
-  side = rs.sides[side]
+  side = sides[side]
 end
 
 if #args > 1 then

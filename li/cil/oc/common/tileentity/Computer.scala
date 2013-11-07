@@ -1,5 +1,7 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Loader
+import li.cil.oc.Config
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
@@ -9,11 +11,11 @@ import li.cil.oc.server.component.Redstone
 import li.cil.oc.server.driver
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import mods.immibis.redlogic.api.wiring.IBundledEmitter
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.Config
 
 class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone {
   def this() = this(false)
@@ -91,8 +93,10 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       }
       if (needsSaving)
         worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      if (isRunning != instance.isRunning)
+      if (isRunning != instance.isRunning) {
+        isOutputEnabled = hasRedstoneCard && instance.isRunning
         ServerPacketSender.sendComputerState(this, instance.isRunning)
+      }
       isRunning = instance.isRunning
       updateRedstoneInput()
     }
@@ -134,7 +138,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     super.onInventoryChanged()
     if (!worldObj.isRemote) {
       instance.recomputeMemory()
-      isOutputEnabled = hasRedstoneCard
+      isOutputEnabled = hasRedstoneCard && instance.isRunning
     }
   }
 
@@ -149,6 +153,24 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       yCoord + global.offsetY,
       zCoord + global.offsetZ,
       global.ordinal())
+  }
+
+  protected def computeBundledInput(side: ForgeDirection) = {
+    val global = toGlobal(side)
+    if (Loader.isModLoaded("RedLogic")) {
+      worldObj.getBlockTileEntity(
+        xCoord + global.offsetX,
+        yCoord + global.offsetY,
+        zCoord + global.offsetZ) match {
+        case emitter: IBundledEmitter =>
+          var strength: Array[Byte] = null
+          for (i <- -1 to 5 if strength == null) {
+            strength = emitter.getBundledCableStrength(i, global.getOpposite.ordinal())
+          }
+          strength
+        case _ => null
+      }
+    } else null
   }
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {

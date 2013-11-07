@@ -45,6 +45,8 @@ trait Delegate {
 
   def icon(side: ForgeDirection): Option[Icon] = None
 
+  def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
+
   def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
   def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
@@ -84,8 +86,6 @@ trait SpecialDelegate extends Delegate {
   val blockId = parent.add(this)
 
   // ----------------------------------------------------------------------- //
-
-  def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
 
   def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 

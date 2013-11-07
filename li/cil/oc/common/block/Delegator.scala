@@ -213,6 +213,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     case _ => false
   }
 
+  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
+    subBlock(world.getBlockMetadata(x, y, z)) match {
+      case Some(subBlock) => subBlock.isBlockNormalCube(world, x, y, z)
+      case _ => false
+    }
+
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.isProvidingStrongPower(
@@ -333,12 +339,6 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
 
 class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
-      case Some(subBlock) => subBlock.isBlockNormalCube(world, x, y, z)
-      case _ => false
-    }
-
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case Some(subBlock) => subBlock.isBlockSolid(world, x, y, z, ForgeDirection.getOrientation(side))
