@@ -45,7 +45,7 @@ local function tick()
         if timer.times <= 0 then
           timers[id] = nil
         else
-          timer.after = timer.after + timer.interval
+          timer.after = os.uptime() + timer.interval
         end
       end
     end

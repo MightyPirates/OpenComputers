@@ -72,6 +72,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     super.updateEntity()
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+      this.synchronized(powerConsumed = 0.0)
     }
     else if (!worldObj.isRemote) {
       // If we just joined a network we were just loaded from disk. We skip the

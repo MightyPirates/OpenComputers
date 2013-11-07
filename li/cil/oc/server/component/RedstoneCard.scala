@@ -33,7 +33,7 @@ class RedstoneCard extends ManagedComponent {
   @LuaCallback("setOutput")
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
-    val value = args.checkInteger(1) max 0 min 15
+    val value = args.checkInteger(1) max 0 min 255
     node.network.node(context.address).host match {
       case redstone: Redstone =>
         redstone.output(ForgeDirection.getOrientation(side), value.toShort)

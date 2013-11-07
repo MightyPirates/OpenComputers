@@ -214,7 +214,11 @@ sandbox = {
 
   os = {
     clock = os.clock,
-    date = os.date,
+    date = function(format, time)
+      checkArg(1, format, "string", "nil")
+      checkArg(2, time, "number", "nil")
+      return os.date(format, time)
+    end,
     difftime = function(t2, t1)
       return t2 - t1
     end,

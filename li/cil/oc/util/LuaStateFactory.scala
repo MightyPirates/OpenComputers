@@ -5,7 +5,6 @@ import com.naef.jnlua.{LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
-import java.util.{Locale, Calendar}
 import li.cil.oc.server.component.Computer
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Config}
@@ -153,15 +152,6 @@ object LuaStateFactory {
         1
       })
       state.setField(-2, "realTime")
-
-      // Date-time formatting using Java's formatting capabilities.
-      state.pushScalaFunction(lua => {
-        val calendar = Calendar.getInstance(Locale.ENGLISH)
-        calendar.setTimeInMillis(lua.checkInteger(1))
-        // TODO
-        1
-      })
-      state.setField(-2, "date")
 
       // Pop the os table.
       state.pop(1)
