@@ -16,7 +16,7 @@ import scala.language.implicitConversions
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
-    withConnector(Config.bufferComputer).
+    withConnector(Config.bufferWireless).
     create()
 
   var strength = 64.0
@@ -28,7 +28,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   @LuaCallback(value = "setStrength", direct = true)
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    strength = args.checkDouble(0)
+    strength = args.checkDouble(0) max 0
     result(strength)
   }
 
@@ -37,22 +37,35 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def send(context: Context, args: Arguments) = this.synchronized {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
-    for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-         if card.node.address == address && card.openPorts.contains(port)) {
-      card.node.sendToReachable("computer.signal",
-        Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+    if (strength > 0) {
+      checkPower()
+      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
+           if card.node.address == address && card.openPorts.contains(port)) {
+        card.node.sendToReachable("computer.signal",
+          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+      }
     }
     super.send(context, args)
   }
 
   override def broadcast(context: Context, args: Arguments) = this.synchronized {
     val port = checkPort(args.checkInteger(0))
-    for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-         if card.openPorts.contains(port)) {
-      card.node.sendToReachable("computer.signal",
-        Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+    if (strength > 0) {
+      checkPower()
+      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
+           if card.openPorts.contains(port)) {
+        card.node.sendToReachable("computer.signal",
+          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+      }
     }
     super.broadcast(context, args)
+  }
+
+
+  private def checkPower() {
+    val rate = Config.wirelessRangePerPower
+    if (rate != 0 && !node.changeBuffer(-strength / rate))
+      throw new Exception("not enough energy")
   }
 
   // ----------------------------------------------------------------------- //
@@ -136,13 +149,16 @@ object WirelessNetwork {
 
   def computeReachableFrom(card: WirelessNetworkCard) = {
     dimensions.get(dimension(card)) match {
-      case Some(set) if card.strength >= 1 =>
-        set.range(offset(card, -card.strength), offset(card, card.strength)).
+      case Some(set) if card.strength > 0 =>
+        val range = card.strength + 1
+        set.range(offset(card, -range), offset(card, range)).
           map(_.card.get).
           filter(_ != card).
           map(zipWithDistance(card)).
-          filter(_._2 <= card.strength * card.strength).
-          map { case (c, distance) => (c, Math.sqrt(distance)) }.
+          filter(_._2 <= range * range).
+          map {
+          case (c, distance) => (c, Math.sqrt(distance))
+        }.
           filter(isUnobstructed(card))
       case _ => Iterable.empty[(WirelessNetworkCard, Double)] // Should not be possible.
     }
@@ -203,7 +219,7 @@ object WirelessNetwork {
       hardness *= gap.toDouble / samples.toDouble
 
       // Remaining signal strength.
-      val strength = reference.strength - distance
+      val strength = reference.strength - gap
 
       // See if we have enough power to overcome the obstructions.
       strength > hardness

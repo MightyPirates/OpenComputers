@@ -16,12 +16,14 @@ object Config {
   var bufferComputer = 16.0
   var bufferConverter = 64.0
   var bufferScreen = 16.0
+  var bufferWireless = 32.0
   var computerBaseCost = 1.0 / 20
   var computerCpuTimeCost = 256.0
   var screenFillCost = 1.0 / 180
   var screenClearCost = 1.0 / 200
   var screenCopyCost = 1.0 / 160
   var screenSetCost = 1.0 / 20
+  var wirelessRangePerPower = 8.0
 
   // ----------------------------------------------------------------------- //
 
@@ -101,15 +103,22 @@ object Config {
       setComment("Power settings, buffer sizes and power consumption.")
 
     bufferComputer = config.get("power", "bufferComputer", bufferComputer, "" +
-      "The buffer size for computers, i.e. how much power they store internally.").
+      "The buffer size for computers.").
       getDouble(bufferComputer)
 
     bufferConverter = config.get("power", "bufferConverter", bufferConverter, "" +
-      "The buffer size for converters, i.e. how much power they store internally.").
+      "The buffer size for converters.").
       getDouble(bufferConverter)
 
     bufferScreen = config.get("power", "bufferScreen", bufferScreen, "" +
-      "The buffer size for screens, i.e. how much power they store internally.").
+      "The buffer size for screens.").
+      getDouble(bufferScreen)
+
+    bufferWireless = config.get("power", "bufferWireless", bufferWireless, "" +
+      "The buffer size for wireless network cards. Note that this effectively\n" +
+      "limits the maximum range of wireless communication, together with the\n" +
+      "`wirelessRangePerPower` setting: the maximum range is this times the\n" +
+      "range per power (so per default that's 32 * 8 = 256 blocks).").
       getDouble(bufferScreen)
 
     computerBaseCost = config.get("power", "computerBaseCost", computerBaseCost, "" +
@@ -135,6 +144,13 @@ object Config {
     screenSetCost = config.get("power", "screenSetCost", screenSetCost, "" +
       "Power it takes to change a single pixel via the set command.").
       getDouble(screenSetCost)
+
+    wirelessRangePerPower = config.get("power", "wirelessRangePerPower", wirelessRangePerPower, "" +
+      "The range in blocks a wireless network card gains for each additional\n" +
+      "power it spends. In other words, the higher this value, the lower the\n" +
+      "cost of incrementing the signal strength.\n" +
+      "See also: `bufferWireless`").
+      getDouble(wirelessRangePerPower) max 0
 
     // --------------------------------------------------------------------- //
 
