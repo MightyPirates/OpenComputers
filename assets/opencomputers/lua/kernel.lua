@@ -237,6 +237,16 @@ sandbox = {
     totalMemory = os.totalMemory,
     uptime = os.uptime,
 
+    users = os.users,
+    addUser = function(name)
+      checkArg(1, name, "string")
+      return os.addUser(name)
+    end,
+    removeUser = function(name)
+      checkArg(1, name, "string")
+      return os.removeUser(name)
+    end,
+
     shutdown = function(reboot)
       coroutine.yield(reboot ~= nil and reboot ~= false)
     end,

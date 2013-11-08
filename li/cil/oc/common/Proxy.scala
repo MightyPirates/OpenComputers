@@ -29,7 +29,7 @@ class Proxy {
     api.Driver.add(driver.GraphicsCard)
     api.Driver.add(driver.Memory)
     api.Driver.add(driver.NetworkCard)
-    api.Driver.add(driver.Peripheral)
+    // api.Driver.add(driver.Peripheral) // Can cause severe issues (deadlocks).
     api.Driver.add(driver.PowerSupply)
     api.Driver.add(driver.RedstoneCard)
 

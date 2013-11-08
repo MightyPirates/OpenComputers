@@ -11,6 +11,38 @@ public interface Context {
     String address();
 
     /**
+     * Tests whether a player is allowed to use the computer.
+     * <p/>
+     * If enabled in the server's configuration, computers can be owned by
+     * players. This means that only players that are in a computer's user list
+     * may interact with it, i.e. only players in the user list may:
+     * <ul>
+     * <li>Trigger input via a keyboard.</li>
+     * <li>Change the computer's inventory.</li>
+     * <li>Break the computer block.</li>
+     * </ul>
+     * <p/>
+     * There are three exceptions to this rule:
+     * <ul>
+     * <li>Operators are <em>always</em> allowed the above actions.</li>
+     * <li>If the user list is <em>empty</em> then <em>all</em> players are
+     * allowed the above actions.</li>
+     * <li>In single player mode the player is always allowed the above
+     * actions.</li>
+     * </ul>
+     * <p/>
+     * Use this to check whether you should signal something to the computer,
+     * for example. Note that for signals triggered via network messages there
+     * is a <tt>computer.checked_signal</tt> message, that expects an
+     * <tt>EntityPlayer</tt> as the first argument and performs this check
+     * before pushing the signal.
+     *
+     * @param player the name of the player to check for.
+     * @return whether the player with the specified name may use the computer.
+     */
+    boolean isUser(String player);
+
+    /**
      * Push a signal into the computer.
      * <p/>
      * Signals are processed sequentially by the computer, and are queued in a

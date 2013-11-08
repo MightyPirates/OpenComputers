@@ -5,12 +5,12 @@ local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
                  md="mkdir", cls="clear", more="less", rs="redstone"}
 local running = {}
 
-local function findFile(name, path, ext)
+local function findFile(name, ext)
   checkArg(1, name, "string")
-  local function findIn(path)
-    path = fs.concat(fs.concat(path, name), "..")
+  local function findIn(dir)
+    dir = fs.concat(fs.concat(dir, name), "..")
     name = fs.name(name)
-    local list = fs.list(path)
+    local list = fs.list(dir)
     if list then
       local files = {}
       for file in list do
@@ -18,14 +18,14 @@ local function findFile(name, path, ext)
       end
       if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
         if files[name] then
-          return true, fs.concat(path, name)
+          return true, fs.concat(dir, name)
         end
       elseif files[name] then
-        return true, fs.concat(path, name)
+        return true, fs.concat(dir, name)
       elseif ext then
         name = name .. "." .. ext
         if files[name] then
-          return true, fs.concat(path, name)
+          return true, fs.concat(dir, name)
         end
       end
     end
@@ -37,11 +37,9 @@ local function findFile(name, path, ext)
   else
     local found, where = findIn(shell.cwd())
     if found then return where end
-    if path then
-      for _, p in ipairs(path) do
-        local found, where = findIn(p)
-        if found then return where end
-      end
+    for _, p in ipairs(path) do
+      local found, where = findIn(p)
+      if found then return where end
     end
   end
   return false
@@ -64,12 +62,12 @@ function shell.aliases()
   return pairs(aliases)
 end
 
-function shell.cwd(path)
-  if path then
-    checkArg(1, path, "string")
-    local path = fs.canonical(path) .. "/"
-    if fs.isDirectory(path) then
-      cwd = path
+function shell.cwd(dir)
+  if dir then
+    checkArg(1, dir, "string")
+    dir = fs.canonical(dir) .. "/"
+    if fs.isDirectory(dir) then
+      cwd = dir
     else
       return nil, "not a directory"
     end
@@ -79,9 +77,9 @@ end
 
 function shell.execute(program, ...)
   if type(program) ~= "function" then
-    local where = findFile(program, path, "lua")
+    local where, reason = shell.resolve(program, "lua")
     if not where then
-      return nil, "program not found"
+      return nil, reason
     end
     local code, reason = loadfile(where, "t", setmetatable({}, {__index=_ENV}))
     if not code then
@@ -153,20 +151,21 @@ function shell.path(...)
   return result
 end
 
-function shell.resolve(path)
-  if unicode.sub(path, 1, 1) == "/" then
-    return fs.canonical(path)
+function shell.resolve(path, ext)
+  if ext then
+    checkArg(2, ext, "string")
+    local where = findFile(path, ext)
+    if where then
+      return where
+    else
+      return nil, "file not found"
+    end
   else
-    return fs.concat(shell.cwd(), path)
-  end
-end
-
-function shell.which(program)
-  local where = findFile(program, path, "lua")
-  if where then
-    return where
-  else
-    return nil, "program not found"
+    if unicode.sub(path, 1, 1) == "/" then
+      return fs.canonical(path)
+    else
+      return fs.concat(shell.cwd(), path)
+    end
   end
 end
 

@@ -41,6 +41,7 @@ object Config {
   // ----------------------------------------------------------------------- //
 
   var baseMemory = 0
+  var canComputersBeOwned = true
   var commandUser = "OpenComputers"
   var fileCost = 512
   var filesBuffered = true
@@ -49,6 +50,8 @@ object Config {
   var maxReadBuffer = 8 * 1024
   var maxScreenHeight = 6
   var maxScreenWidth = 8
+  var maxUsers = 16
+  var maxUsernameLength = 32
   var startupDelay = 0.5
   var threads = 4
   var timeout = 3.0
@@ -145,6 +148,22 @@ object Config {
       "global and applies to all computers!").
       getInt(baseMemory)
 
+    canComputersBeOwned = config.get("server", "canComputersBeOwned", canComputersBeOwned, "" +
+      "This determines whether computers can only be used by players that are\n" +
+      "registered as users on them. Per default a newly placed computer has no\n" +
+      "users. Whenever there are no users the computer is free for all. Users\n" +
+      "can be managed via the Lua API (os.addUser, os.removeUser, os.users). If\n" +
+      "this is true, the following interactions are only possible for users:\n" +
+      " - input via the keyboard.\n" +
+      " - inventory management.\n" +
+      " - breaking the computer block.\n" +
+      "If this is set to false, all computers will always be usable by all\n" +
+      "players, no matter the contents of the user list. Note that operators are\n" +
+      "treated as if they were in the user list of every computer, i.e. no\n" +
+      "restrictions apply to them.\n" +
+      "See also: `maxUsers` and `maxUsernameLength`.").
+      getBoolean(canComputersBeOwned)
+
     commandUser = config.get("server", "commandUser", commandUser, "" +
       "The user name to specify when executing a command via a command block. If\n" +
       "you leave this empty it will use the address of the network node that sent\n" +
@@ -208,8 +227,23 @@ object Config {
       .getInt(maxScreenHeight) max 1
 
     maxScreenWidth = config.get("server", "maxScreenWidth", maxScreenWidth, "" +
-      "The maximum width of multi-block screens, in blocks. See maxScreenHeight.")
+      "The maximum width of multi-block screens, in blocks.\n" +
+      "See also: `maxScreenHeight`.")
       .getInt(maxScreenWidth) max 1
+
+    maxUsers = config.get("server", "maxUsers", maxUsers, "" +
+      "The maximum number of users that can be registered with a single computer.\n" +
+      "This used to avoid computers allocating unchecked amounts of memory by\n" +
+      "registering an unlimited number of users.\n" +
+      "See also: `canComputersBeOwned`.").
+      getInt(maxUsers)
+
+    maxUsernameLength = config.get("server", "maxUsernameLength", maxUsernameLength, "" +
+      "Sanity check for username length for users registered with computers. We\n" +
+      "store the actual user names instead of a hash to allow iterating the list\n" +
+      "of registered users on the Lua side.\n" +
+      "See also: `canComputersBeOwned`.").
+      getInt(maxUsernameLength)
 
     startupDelay = config.get("server", "startupDelay", startupDelay, "" +
       "The time in seconds to wait after a computer has been restored before it\n" +

@@ -95,4 +95,12 @@ class Computer(val parent: SimpleDelegator) extends SimpleDelegate {
       case computer: tileentity.Computer => computer.checkRedstoneInputChanged()
       case _ => // Ignore.
     }
+
+  // TODO do we have to manually sync the client since we can only check this on the server side?
+  override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
+    world.getBlockTileEntity(x, y, z) match {
+      case computer: tileentity.Computer if !world.isRemote =>
+        computer.isUser(player.getCommandSenderName)
+      case _ => super.onBlockRemovedBy(world, x, y, z, player)
+    }
 }

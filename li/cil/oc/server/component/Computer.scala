@@ -15,7 +15,9 @@ import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, Config}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
+import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.event.ForgeSubscribe
@@ -27,37 +29,8 @@ import scala.collection.mutable
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
 
-/**
- * Wrapper class for Lua states set up to behave like a pseudo-OS.
- * <p/>
- * This class takes care of the following:
- * <ul>
- * <li>Creating a new Lua state when started from a previously stopped state.</li>
- * <li>Updating the Lua state in a parallel thread so as not to block the game.</li>
- * <li>Synchronizing calls from the computer thread to other game components.</li>
- * <li>Saving the internal state of the computer across chunk saves/loads.</li>
- * <li>Closing the Lua state when stopping a previously running computer.</li>
- * </ul>
- * <p/>
- * Computers are relatively useless without drivers. Drivers are a combination
- * of Lua and Java/Scala code that allows the computer to interact with the
- * game world, or more specifically: with other components, by sending messages
- * across the component network the computer is connected to (see `Network`).
- * <p/>
- * Host code (Java/Scala) cannot directly call Lua code. It can only queue
- * signals (events, messages, packets, whatever you want to call it) which will
- * be passed to the Lua state one by one and processed there (see `signal`).
- * <p/>
- *
- */
 class Computer(val owner: Computer.Environment) extends Persistable with Runnable {
-  // ----------------------------------------------------------------------- //
-  // General
-  // ----------------------------------------------------------------------- //
-
   private val state = mutable.Stack(Computer.State.Stopped)
-
-  private var future: Option[Future[_]] = None
 
   private var lua: LuaState = null
 
@@ -67,15 +40,17 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   private val addedComponents = mutable.Set.empty[Component]
 
+  private val users = mutable.Set.empty[String]
+
   private val signals = new mutable.Queue[Computer.Signal]
 
-  private val rom = Option(api.FileSystem.
-    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom")).
-    flatMap(fs => Option(api.FileSystem.asManagedEnvironment(fs, "rom")))
+  private var future: Option[Future[_]] = None
 
-  private val tmp = Option(api.FileSystem.
-    fromMemory(512 * 1024)).
-    flatMap(fs => Option(api.FileSystem.asManagedEnvironment(fs, "tmpfs")))
+  private val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom"), "rom"))
+
+  private val tmp = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    fromMemory(512 * 1024), "tmpfs"))
 
   // ----------------------------------------------------------------------- //
 
@@ -131,6 +106,11 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
   // ----------------------------------------------------------------------- //
 
+  def isUser(player: String) = !Config.canComputersBeOwned ||
+    users.isEmpty || users.contains(player) ||
+    MinecraftServer.getServer.isSinglePlayer ||
+    MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
+
   def signal(name: String, args: Any*) = state.synchronized(state.top match {
     case Computer.State.Stopped | Computer.State.Stopping => false
     case _ => signals.synchronized {
@@ -156,6 +136,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       }
     }
   })
+
+  // ----------------------------------------------------------------------- //
 
   def addComponent(component: Component) {
     if (!components.contains(component.address)) {
@@ -198,6 +180,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       components -= address
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   def update() {
     // Add components that were added since the last update to the actual list
@@ -319,6 +303,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       map(_.asInstanceOf[NBTTagInt]).
       foreach(s => state.push(Computer.State(s.data)))
 
+    val usersNbt = computerNbt.getTagList("users")
+    (0 until usersNbt.tagCount).
+      map(usersNbt.tagAt).
+      map(_.asInstanceOf[NBTTagString]).
+      foreach(u => users += u.data)
+
     if (state.top != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
@@ -415,6 +405,12 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       stateNbt.appendTag(new NBTTagInt(null, state.id))
     }
     computerNbt.setTag("state", stateNbt)
+
+    val usersNbt = new NBTTagList()
+    for (user <- users) {
+      usersNbt.appendTag(new NBTTagString(null, user))
+    }
+    computerNbt.setTag("users", usersNbt)
 
     if (state.top != Computer.State.Stopped) {
       // Unlimit memory while persisting.
@@ -736,6 +732,44 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
         1
       })
       lua.setField(-2, "tmpAddress")
+
+      // User management.
+      lua.pushScalaFunction(lua => {
+        users.foreach(lua.pushString)
+        users.size
+      })
+      lua.setField(-2, "users")
+
+      lua.pushScalaFunction(lua => try {
+        if (users.size >= Config.maxUsers)
+          throw new Exception("too many users")
+
+        val name = lua.checkString(1)
+
+        if (users.contains(name))
+          throw new Exception("user exists")
+        if (name.length > Config.maxUsernameLength)
+          throw new Exception("username too long")
+        if (!MinecraftServer.getServer.getConfigurationManager.getAllUsernames.contains(name))
+          throw new Exception("player must be online")
+
+        users += name
+        lua.pushBoolean(true)
+        1
+      } catch {
+        case e: Throwable =>
+          lua.pushNil()
+          lua.pushString(Option(e.getMessage).getOrElse(e.toString))
+          2
+      })
+      lua.setField(-2, "addUser")
+
+      lua.pushScalaFunction(lua => {
+        val name = lua.checkString(1)
+        lua.pushBoolean(users.remove(name))
+        1
+      })
+      lua.setField(-2, "removeUser")
 
       // Pop the os table.
       lua.pop(1)
@@ -1194,6 +1228,8 @@ object Computer {
 
     def address = node.address
 
+    def isUser(player: String) = instance.isUser(player)
+
     def signal(name: String, args: AnyRef*) = instance.signal(name, args: _*)
 
     // ----------------------------------------------------------------------- //
@@ -1217,6 +1253,9 @@ object Computer {
       message.data match {
         case Array(name: String, args@_*) if message.name == "computer.signal" =>
           instance.signal(name, Seq(message.source.address) ++ args: _*)
+        case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
+          if (isUser(player.getCommandSenderName))
+            instance.signal(name, Seq(message.source.address) ++ args: _*)
         case _ =>
       }
     }

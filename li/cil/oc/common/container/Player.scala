@@ -21,7 +21,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
   def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
-    val slot = inventorySlots.get(index).asInstanceOf[Slot]
+    val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
     if (slot != null && slot.getHasStack) {
       // Get search range and direction for checking for merge options.
       val playerInventorySize = 4 * 9
@@ -37,8 +37,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
 
       val stack = slot.getStack
       val originalStack = stack.copy()
-      // TODO this won't check a slot's isItemValidForSlot value...
-      if (mergeItemStack(stack, begin, length, direction)) {
+      if (tryTransferStackInSlot(stack, begin, length, direction)) {
         if (stack.stackSize == 0) {
           // We could move everything, clear the slot.
           slot.putStack(null)
@@ -58,6 +57,50 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     }
     // else: Empty slot.
     null
+  }
+
+  private def tryTransferStackInSlot(stack: ItemStack, offset: Int, length: Int, intoPlayerInventory: Boolean) = {
+    var somethingChanged = false
+    val step = if (intoPlayerInventory) -1 else 1
+    val (begin, end) =
+      if (intoPlayerInventory) (offset + length - 1, offset - 1)
+      else (offset, offset + length)
+    for (i <- begin until end by step if stack.isStackable && stack.stackSize > 0) {
+      val slot = inventorySlots.get(i).asInstanceOf[Slot]
+      if (slot.getHasStack) {
+        val slotStack = slot.getStack
+        val itemsAreEqual = stack.isItemEqual(slotStack) && ItemStack.areItemStackTagsEqual(stack, slotStack)
+        val slotHasCapacity = slotStack.stackSize < slotStack.getMaxStackSize
+        if (itemsAreEqual && slotHasCapacity) {
+          val slotWouldOverflow = stack.stackSize + slotStack.stackSize > slotStack.getMaxStackSize
+          if (slotWouldOverflow) {
+            val itemsMoved = slotStack.getMaxStackSize - slotStack.stackSize
+            stack.stackSize -= itemsMoved
+            slotStack.stackSize = slotStack.getMaxStackSize
+            slot.onSlotChanged()
+            somethingChanged = true
+          }
+          else {
+            slotStack.stackSize += stack.stackSize
+            stack.stackSize = 0
+            slot.onSlotChanged()
+            somethingChanged = true
+          }
+        }
+      }
+    }
+    for (i <- begin until end by step if stack.stackSize > 0) {
+      val slot = inventorySlots.get(i).asInstanceOf[Slot]
+      // The isItemValid is the only reason for the reimplementation of
+      // mergeItemStack... no idea why it doesn't do that itself.
+      if (!slot.getHasStack && slot.isItemValid(stack)) {
+        slot.putStack(stack.copy())
+        stack.stackSize = 0
+        slot.onSlotChanged()
+        somethingChanged = true
+      }
+    }
+    somethingChanged
   }
 
   /** Render player inventory at the specified coordinates. */

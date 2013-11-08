@@ -15,8 +15,8 @@ end
 
 local function call(callback, ...)
   local result, message = pcall(callback, ...)
-  if not result and not (event.error and pcall(event.error, message)) then
-    os.shutdown()
+  if not result and type(event.onError) == "function" then
+    pcall(event.onError, message)
   end
 end
 
@@ -67,16 +67,6 @@ function event.cancel(timerId)
   return false
 end
 
---[[ Error handler for ALL event callbacks. If this throws an error or is not,
-     set the computer will immediately shut down. ]]
-function event.error(message)
-  local log = io.open("tmp/event.log", "a")
-  if log then
-    log:write(message .. "\n")
-    log:close()
-  end
-end
-
 function event.ignore(name, callback)
   checkArg(1, name, "string")
   checkArg(2, callback, "function")
@@ -108,6 +98,14 @@ function event.listen(name, callback)
   end
   table.insert(listeners[name], callback)
   return true
+end
+
+function event.onError(message)
+  local log = io.open("tmp/event.log", "a")
+  if log then
+    log:write(message .. "\n")
+    log:close()
+  end
 end
 
 function event.pull(...)

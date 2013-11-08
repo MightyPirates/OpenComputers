@@ -4,7 +4,7 @@ if #args == 0 then
   return
 end
 
-local result, reason = shell.which(args[1])
+local result, reason = shell.resolve(args[1], "lua")
 if result then
   print(result)
 else
