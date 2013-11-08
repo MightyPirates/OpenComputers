@@ -32,6 +32,7 @@ class Proxy {
     // api.Driver.add(driver.Peripheral) // Can cause severe issues (deadlocks).
     api.Driver.add(driver.PowerSupply)
     api.Driver.add(driver.RedstoneCard)
+    api.Driver.add(driver.WirelessNetworkCard)
 
     MinecraftForge.EVENT_BUS.register(Computer)
     MinecraftForge.EVENT_BUS.register(network.Network)

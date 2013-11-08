@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 object PowerSupply extends Item {
   override def worksWith(item: ItemStack) = isOneOf(item, Items.psu)
 
-  override def createEnvironment(item: ItemStack) = new component.PowerSupply()
+  override def createEnvironment(item: ItemStack, container: AnyRef) = new component.PowerSupply()
 
   override def slot(item: ItemStack) = Slot.Power
 }

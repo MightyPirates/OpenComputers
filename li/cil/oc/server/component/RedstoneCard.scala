@@ -5,41 +5,31 @@ import li.cil.oc.api
 import li.cil.oc.api.network._
 import net.minecraftforge.common.ForgeDirection
 
-class RedstoneCard extends ManagedComponent {
+class RedstoneCard(val owner: Redstone) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("redstone").
     create()
 
+  // ----------------------------------------------------------------------- //
+
   @LuaCallback(value = "getInput", direct = true)
   def getInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        result(redstone.input(ForgeDirection.getOrientation(side)))
-      case _ => result(false)
-    }
+    result(owner.input(ForgeDirection.getOrientation(side)))
   }
 
   @LuaCallback(value = "getOutput", direct = true)
   def getOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        result(redstone.output(ForgeDirection.getOrientation(side)))
-      case _ => result(false)
-    }
+    result(owner.output(ForgeDirection.getOrientation(side)))
   }
 
   @LuaCallback("setOutput")
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val value = args.checkInteger(1) max 0 min 255
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        redstone.output(ForgeDirection.getOrientation(side), value.toShort)
-        result(redstone.output(ForgeDirection.getOrientation(side)))
-      case _ => result(false)
-    }
+    owner.output(ForgeDirection.getOrientation(side), value.toShort)
+    result(owner.output(ForgeDirection.getOrientation(side)))
   }
 
   @LuaCallback(value = "getBundledInput", direct = true)
@@ -47,11 +37,7 @@ class RedstoneCard extends ManagedComponent {
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        result(redstone.bundledInput(ForgeDirection.getOrientation(side), color))
-      case _ => result(0)
-    }
+    result(owner.bundledInput(ForgeDirection.getOrientation(side), color))
   }
 
   @LuaCallback(value = "getBundledOutput", direct = true)
@@ -59,11 +45,7 @@ class RedstoneCard extends ManagedComponent {
   def getBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        result(redstone.bundledOutput(ForgeDirection.getOrientation(side), color))
-      case _ => result(false)
-    }
+    result(owner.bundledOutput(ForgeDirection.getOrientation(side), color))
   }
 
   @LuaCallback("setBundledOutput")
@@ -72,12 +54,8 @@ class RedstoneCard extends ManagedComponent {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     val value = args.checkInteger(2) max 0 min 255
-    node.network.node(context.address).host match {
-      case redstone: Redstone =>
-        redstone.output(ForgeDirection.getOrientation(side), value.toShort)
-        result(redstone.bundledOutput(ForgeDirection.getOrientation(side), color, value.toShort))
-      case _ => result(false)
-    }
+    owner.output(ForgeDirection.getOrientation(side), value.toShort)
+    result(owner.bundledOutput(ForgeDirection.getOrientation(side), color, value.toShort))
   }
 
   // ----------------------------------------------------------------------- //

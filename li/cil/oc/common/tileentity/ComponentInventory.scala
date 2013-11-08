@@ -53,7 +53,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
       case (stack, slot) =>
         components(slot) = Registry.driverFor(stack) match {
           case Some(driver) =>
-            Option(driver.createEnvironment(stack)) match {
+            Option(driver.createEnvironment(stack, this)) match {
               case Some(environment) =>
                 environment.load(driver.nbt(stack))
                 Some(environment)
@@ -84,7 +84,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
 
   override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
     Registry.driverFor(item) match {
-      case Some(driver) => Option(driver.createEnvironment(item)) match {
+      case Some(driver) => Option(driver.createEnvironment(item, this)) match {
         case Some(component) =>
           components(slot) = Some(component)
           component.load(driver.nbt(item))

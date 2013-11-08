@@ -22,8 +22,6 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  private var powerConsumed = 0.0
-
   private var hasChanged = false
 
   private var isRunning = false
@@ -34,10 +32,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   def world = worldObj
 
-  def markAsChanged(power: Double) = this.synchronized {
-    powerConsumed = (powerConsumed + power) max 0
-    hasChanged = true
-  }
+  def markAsChanged() = hasChanged = true
 
   // ----------------------------------------------------------------------- //
 
@@ -72,7 +67,6 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     super.updateEntity()
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-      this.synchronized(powerConsumed = 0.0)
     }
     else if (!worldObj.isRemote) {
       // If we just joined a network we were just loaded from disk. We skip the
@@ -80,20 +74,15 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       // too, avoiding issues of missing nodes (e.g. in the GPU which would
       // otherwise loose track of its screen).
       instance.update()
-      val (powerRequired, needsSaving) = this.synchronized {
-        val a = powerConsumed + Config.computerBaseCost
-        val b = hasChanged
-        powerConsumed = 0
-        hasChanged = false
-        (a, b)
-      }
-      if (isRunning && !node.changeBuffer(-powerRequired)) {
+      if (isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
         // TODO try to print to screen? sound effect? particle effect?
-        println("not enough power, shutting down... " + powerRequired)
+        println("not enough power, shutting down... ")
         turnOff()
       }
-      if (needsSaving)
+      if (hasChanged) {
+        hasChanged = false
         worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      }
       if (isRunning != instance.isRunning) {
         isOutputEnabled = hasRedstoneCard && instance.isRunning
         ServerPacketSender.sendComputerState(this, instance.isRunning)

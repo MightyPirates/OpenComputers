@@ -3,17 +3,17 @@ package li.cil.oc.server.driver
 import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.component
-import li.cil.oc.server.component.Redstone
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 
-object RedstoneCard extends Item {
-  override def worksWith(item: ItemStack) = isOneOf(item, Items.rs)
+object WirelessNetworkCard extends Item {
+  def worksWith(item: ItemStack) = isOneOf(item, Items.wlan)
 
   override def createEnvironment(item: ItemStack, container: AnyRef) =
     container match {
-      case redstone: Redstone => new component.RedstoneCard(redstone)
+      case t: TileEntity => new component.WirelessNetworkCard(t)
       case _ => null
     }
 
-  override def slot(item: ItemStack) = Slot.Card
+  def slot(item: ItemStack) = Slot.Card
 }

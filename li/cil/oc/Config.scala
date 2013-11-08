@@ -50,8 +50,8 @@ object Config {
   var maxReadBuffer = 8 * 1024
   var maxScreenHeight = 6
   var maxScreenWidth = 8
-  var maxUsers = 16
   var maxUsernameLength = 32
+  var maxUsers = 16
   var startupDelay = 0.5
   var threads = 4
   var timeout = 3.0
@@ -231,19 +231,19 @@ object Config {
       "See also: `maxScreenHeight`.")
       .getInt(maxScreenWidth) max 1
 
-    maxUsers = config.get("server", "maxUsers", maxUsers, "" +
-      "The maximum number of users that can be registered with a single computer.\n" +
-      "This used to avoid computers allocating unchecked amounts of memory by\n" +
-      "registering an unlimited number of users.\n" +
-      "See also: `canComputersBeOwned`.").
-      getInt(maxUsers)
-
     maxUsernameLength = config.get("server", "maxUsernameLength", maxUsernameLength, "" +
       "Sanity check for username length for users registered with computers. We\n" +
       "store the actual user names instead of a hash to allow iterating the list\n" +
       "of registered users on the Lua side.\n" +
       "See also: `canComputersBeOwned`.").
       getInt(maxUsernameLength)
+
+    maxUsers = config.get("server", "maxUsers", maxUsers, "" +
+      "The maximum number of users that can be registered with a single computer.\n" +
+      "This is used to avoid computers allocating unchecked amounts of memory by\n" +
+      "registering an unlimited number of users.\n" +
+      "See also: `canComputersBeOwned`.").
+      getInt(maxUsers)
 
     startupDelay = config.get("server", "startupDelay", startupDelay, "" +
       "The time in seconds to wait after a computer has been restored before it\n" +

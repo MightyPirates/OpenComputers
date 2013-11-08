@@ -11,18 +11,18 @@ class NetworkCard extends ManagedComponent {
     withComponent("modem", Visibility.Neighbors).
     create()
 
-  private val openPorts = mutable.Set.empty[Int]
+  protected val openPorts = mutable.Set.empty[Int]
 
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("open")
-  def open(context: Context, args: Arguments): Array[AnyRef] = {
+  def open(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.add(port))
   }
 
   @LuaCallback("close")
-  def close(context: Context, args: Arguments): Array[AnyRef] = {
+  def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     if (args.count == 0) {
       openPorts.clear()
       result(true)
@@ -33,11 +33,14 @@ class NetworkCard extends ManagedComponent {
     }
   }
 
-  @LuaCallback("isOpen")
-  def isOpen(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback(value = "isOpen", direct = true)
+  def isOpen(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.contains(port))
   }
+
+  @LuaCallback(value = "isWireless", direct = true)
+  def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(false)
 
   @LuaCallback("send")
   def send(context: Context, args: Arguments): Array[AnyRef] = {
@@ -56,13 +59,13 @@ class NetworkCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  override def onMessage(message: Message) = {
+  override def onMessage(message: Message) = this.synchronized {
     super.onMessage(message)
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()
     if (message.name == "network.message") message.data match {
       case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        node.sendToReachable("computer.signal", Seq("network_message", message.source.address, Int.box(port)) ++ args: _*)
+        node.sendToReachable("computer.signal", Seq("network_message", message.source.address, Int.box(port), Int.box(-1)) ++ args: _*)
       case _ =>
     }
   }
@@ -90,7 +93,7 @@ class NetworkCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  private def checkPort(port: Int) =
+  protected def checkPort(port: Int) =
     if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
     else port
 }

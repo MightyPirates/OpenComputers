@@ -13,7 +13,7 @@ object Memory extends Item with driver.Memory {
 
   def worksWith(item: ItemStack) = isOneOf(item, Items.ram3, Items.ram1, Items.ram2)
 
-  def createEnvironment(item: ItemStack) = null
+  def createEnvironment(item: ItemStack, container: AnyRef) = null
 
   def slot(item: ItemStack) = Slot.Memory
 }

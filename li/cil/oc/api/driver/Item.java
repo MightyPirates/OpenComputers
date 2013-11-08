@@ -46,10 +46,12 @@ public interface Item {
      * <p/>
      * This is expected to return a *new instance* each time it is called.
      *
-     * @param item the item instance for which to get the node.
+     * @param item      the item instance for which to get the node.
+     * @param container the container the environment will be managed by. This
+     *                  will usually be a tile entity.
      * @return the network node for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack item);
+    ManagedEnvironment createEnvironment(ItemStack item, Object container);
 
     /**
      * The slot type of the specified item this driver supports.

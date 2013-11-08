@@ -7,6 +7,7 @@ object Items {
 
   var rs: item.RedstoneCard = null
   var lan: item.NetworkCard = null
+  var wlan: item.WirelessNetworkCard = null
   var psu: item.PowerSupply = null
 
   var gpu1: item.GraphicsCard = null
@@ -42,5 +43,6 @@ object Items {
     disk = new item.Disk(multi)
 
     psu = new item.PowerSupply(multi)
+    wlan = new item.WirelessNetworkCard(multi)
   }
 }

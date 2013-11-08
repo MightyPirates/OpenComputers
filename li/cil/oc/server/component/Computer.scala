@@ -90,7 +90,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
     timeStarted = owner.world.getWorldTime
 
     // Mark state change in owner, to send it to clients.
-    owner.markAsChanged(8) // Initial power required to start.
+    owner.markAsChanged()
 
     // All green, computer started successfully.
     owner.node.sendToReachable("computer.started")
@@ -1022,7 +1022,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       sleepUntil = 0
 
       // Mark state change in owner, to send it to clients.
-      owner.markAsChanged(Double.NegativeInfinity)
+      owner.markAsChanged()
     })
 
   // ----------------------------------------------------------------------- //
@@ -1148,9 +1148,8 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
             }
           }
 
-          // State has inevitably changed, mark as changed to save again and
-          // increment power consumption based on CPU time.
-          owner.markAsChanged(Config.computerCpuTimeCost * runtime / 1000 / 1000 / 1000)
+          // State has inevitably changed, mark as changed to save again.
+          owner.markAsChanged()
         }
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
@@ -1219,10 +1218,8 @@ object Computer {
      * <p/>
      * This is called asynchronously from the Computer's executor thread, so the
      * computer's owner must make sure to handle this in a synchronized fashion.
-     *
-     * @param power the power that should be consumed.
      */
-    def markAsChanged(power: Double): Unit
+    def markAsChanged(): Unit
 
     // ----------------------------------------------------------------------- //
 
