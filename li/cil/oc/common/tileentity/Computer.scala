@@ -75,8 +75,7 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
       // otherwise loose track of its screen).
       instance.update()
       if (isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
-        // TODO try to print to screen? sound effect? particle effect?
-        println("not enough power, shutting down... ")
+        instance.lastError = "not enough power"
         turnOff()
       }
       if (hasChanged) {

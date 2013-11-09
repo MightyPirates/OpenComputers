@@ -5,6 +5,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.{PowerDistributor, Computer, Rotatable, Screen}
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
@@ -18,6 +19,7 @@ class PacketHandler extends CommonPacketHandler {
 
   override def dispatch(p: PacketParser) =
     p.packetType match {
+      case PacketType.Clipboard => onClipboard(p)
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
@@ -29,6 +31,11 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenSet => onScreenSet(p)
       case _ => // Invalid packet.
     }
+
+  def onClipboard(p: PacketParser) = {
+    GuiScreen.setClipboardString(p.readUTF())
+    p.player.asInstanceOf[EntityPlayer].addChatMessage("Copied to clipboard.")
+  }
 
   def onComputerStateResponse(p: PacketParser) =
     p.readTileEntity[Computer]() match {

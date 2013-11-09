@@ -23,6 +23,8 @@ object Items {
   var hdd3: item.HardDiskDrive = null
   var disk: item.Disk = null
 
+  var analyzer: item.Analyzer = null
+
   def init() {
     multi = new item.Delegator(Config.itemId)
 
@@ -44,5 +46,7 @@ object Items {
 
     psu = new item.PowerSupply(multi)
     wlan = new item.WirelessNetworkCard(multi)
+
+    analyzer = new item.Analyzer(multi)
   }
 }

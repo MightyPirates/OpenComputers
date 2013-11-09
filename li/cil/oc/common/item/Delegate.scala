@@ -30,4 +30,7 @@ trait Delegate {
   def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def registerIcons(iconRegister: IconRegister) {}
+
+  def equals(item: ItemStack) =
+    item != null && item.itemID == parent.itemID && parent.subItem(item).exists(_.itemId == itemId)
 }

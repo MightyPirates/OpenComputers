@@ -77,6 +77,10 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
       lua.setTotalMemory(kernelMemory + owner.installedMemory)
   })
 
+  def lastError = message
+
+  def lastError_=(value: String) = message = Option(value)
+
   // ----------------------------------------------------------------------- //
 
   def start() = state.synchronized(owner.node.network != null &&

@@ -2,10 +2,9 @@ package li.cil.oc.common.block
 
 import cpw.mods.fml.common.registry.GameRegistry
 import java.util
-import li.cil.oc.Config
-import li.cil.oc.CreativeTab
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.{Items, Config, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
@@ -234,6 +233,10 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    // Do nothing if we have an analyzer in hand.
+    if (Items.analyzer.equals(player.getCurrentEquippedItem))
+      return false
+
     // Helper method to detect items that can be used to rotate blocks, such as
     // wrenches. This structural type is compatible with the BuildCraft wrench
     // interface.

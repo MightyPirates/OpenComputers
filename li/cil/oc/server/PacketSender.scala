@@ -10,7 +10,15 @@ import net.minecraftforge.common.ForgeDirection
 
 /** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
-  def sendComputerState(t: TileEntity, value: Boolean, player: Option[Player] = None) = {
+  def sendClipboard(value: String, player: Player) {
+    val pb = new PacketBuilder(PacketType.Clipboard)
+
+    pb.writeUTF(value)
+
+    pb.sendToPlayer(player)
+  }
+
+  def sendComputerState(t: TileEntity, value: Boolean, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ComputerStateResponse)
 
     pb.writeTileEntity(t)
@@ -22,7 +30,7 @@ object PacketSender {
     }
   }
 
-  def sendPowerState(t: PowerDistributor, player: Option[Player] = None) = {
+  def sendPowerState(t: PowerDistributor, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.PowerStateResponse)
 
     pb.writeTileEntity(t)
@@ -34,7 +42,7 @@ object PacketSender {
     }
   }
 
-  def sendRedstoneState(t: TileEntity with Redstone, player: Option[Player] = None) = {
+  def sendRedstoneState(t: TileEntity with Redstone, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RedstoneStateResponse)
 
     pb.writeTileEntity(t)
@@ -49,7 +57,7 @@ object PacketSender {
     }
   }
 
-  def sendRotatableState(t: Rotatable, player: Option[Player] = None) = {
+  def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)
@@ -62,7 +70,7 @@ object PacketSender {
     }
   }
 
-  def sendScreenBufferState(t: TileEntity, w: Int, h: Int, text: String, player: Option[Player] = None) = {
+  def sendScreenBufferState(t: TileEntity, w: Int, h: Int, text: String, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
 
     pb.writeTileEntity(t)
@@ -76,7 +84,7 @@ object PacketSender {
     }
   }
 
-  def sendScreenCopy(t: TileEntity, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
+  def sendScreenCopy(t: TileEntity, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     val pb = new PacketBuilder(PacketType.ScreenCopy)
 
     pb.writeTileEntity(t)
@@ -90,7 +98,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenFill(t: TileEntity, col: Int, row: Int, w: Int, h: Int, c: Char) = {
+  def sendScreenFill(t: TileEntity, col: Int, row: Int, w: Int, h: Int, c: Char) {
     val pb = new PacketBuilder(PacketType.ScreenFill)
 
     pb.writeTileEntity(t)
@@ -103,7 +111,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenResolutionChange(t: TileEntity, w: Int, h: Int) = {
+  def sendScreenResolutionChange(t: TileEntity, w: Int, h: Int) {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
     pb.writeTileEntity(t)
@@ -113,7 +121,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenSet(t: TileEntity, col: Int, row: Int, s: String) = {
+  def sendScreenSet(t: TileEntity, col: Int, row: Int, s: String) {
     val pb = new PacketBuilder(PacketType.ScreenSet)
 
     pb.writeTileEntity(t)
