@@ -9,6 +9,7 @@ oc.block.ScreenBasic.name=Basic Screen
 oc.block.ScreenProfessional.name=Professional Screen
 oc.container.Computer=Computer
 oc.container.DiskDrive=Disk Drive
+oc.item.Analyzer.name=Analyzer
 oc.item.Disk.name=Floppy Disk
 oc.item.GraphicsCardAdvanced.name=Advanced Graphics Card
 oc.item.GraphicsCardBasic.name=Basic Graphics Card
