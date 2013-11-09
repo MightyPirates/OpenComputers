@@ -28,6 +28,20 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
+      for ((stack, slot) <- inventory.zipWithIndex collect {
+        case (Some(stack), slot) => (stack, slot)
+      } if components(slot).isEmpty) {
+        components(slot) = Registry.driverFor(stack) match {
+          case Some(driver) =>
+            Option(driver.createEnvironment(stack, this)) match {
+              case Some(environment) =>
+                environment.load(driver.nbt(stack))
+                Some(environment)
+              case _ => None
+            }
+          case _ => None
+        }
+      }
       components collect {
         case Some(component) => node.connect(component.node)
       }
@@ -44,25 +58,6 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt) // Load items before we can read their tags.
-    inventory.zipWithIndex collect {
-      case (Some(stack), slot) => (stack, slot)
-    } foreach {
-      case (stack, slot) =>
-        components(slot) = Registry.driverFor(stack) match {
-          case Some(driver) =>
-            Option(driver.createEnvironment(stack, this)) match {
-              case Some(environment) =>
-                environment.load(driver.nbt(stack))
-                Some(environment)
-              case _ => None
-            }
-          case _ => None
-        }
-    }
-  }
 
   override def save(nbt: NBTTagCompound) = {
     inventory.zipWithIndex collect {

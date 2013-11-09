@@ -12,10 +12,9 @@ import java.util.logging.Logger
 import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
-import scala.reflect.runtime.{universe => ru}
 
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0",
-  dependencies = "required-after:Forge@[9.11.1.940,)",
+  dependencies = "required-after:Forge@[9.11.1.940,);after:BuildCraft|Energy;after:RedLogic;after:IC2;after:ComputerCraft",
   modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
@@ -23,13 +22,7 @@ import scala.reflect.runtime.{universe => ru}
   serverPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ServerPacketHandler]))
 object OpenComputers {
-  /** Logger used all throughout this mod. */
   val log = Logger.getLogger("OpenComputers")
-
-  // Workaround for threading issues in Scala 2.10's runtime reflection: just
-  // initialize it once in the beginning. For more on this issue see
-  // http://docs.scala-lang.org/overviews/reflection/thread-safety.html
-  val mirror = ru.runtimeMirror(OpenComputers.getClass.getClassLoader)
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null

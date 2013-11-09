@@ -3,6 +3,7 @@ package li.cil.oc.server.fs
 import dan200.computer.api.{IWritableMount, IMount}
 import java.io
 import java.util.zip.ZipFile
+import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
 import li.cil.oc.{Config, api}
 import net.minecraftforge.common.DimensionManager
@@ -57,8 +58,20 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
-  override def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
-    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, Option(label).orNull))).orNull
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label))
+
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem) =
+    asManagedEnvironment(fileSystem, null: Label)
+
+  private class ReadOnlyLabel(val label: String) extends Label {
+    def setLabel(value: String) = throw new Exception("label is read only")
+
+    def getLabel = label
+  }
 
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem

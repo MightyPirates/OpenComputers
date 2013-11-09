@@ -59,6 +59,13 @@ class NetworkCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      openPorts.clear()
+    }
+  }
+
   override def onMessage(message: Message) = this.synchronized {
     super.onMessage(message)
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))

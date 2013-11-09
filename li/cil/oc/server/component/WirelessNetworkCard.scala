@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network._
+import li.cil.oc.util.RTree
 import li.cil.oc.{Config, api}
 import net.minecraft.block.Block
 import net.minecraft.nbt.NBTTagCompound
@@ -61,7 +62,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     super.broadcast(context, args)
   }
 
-
   private def checkPower() {
     val rate = Config.wirelessRangePerPower
     if (rate != 0 && !node.changeBuffer(-strength / rate))
@@ -102,7 +102,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 object WirelessNetwork {
   MinecraftForge.EVENT_BUS.register(this)
 
-  val dimensions = mutable.Map.empty[Int, mutable.TreeSet[WirelessNode]]
+  val dimensions = mutable.Map.empty[Int, RTree[WirelessNetworkCard]]
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) {
@@ -118,47 +118,26 @@ object WirelessNetwork {
     }
   }
 
-  class WirelessNode(val x: Double, val y: Double, val z: Double, val card: Option[WirelessNetworkCard]) extends Ordered[WirelessNode] {
-    // This metric allows us detecting any nodes in the cube spanned by two
-    // points - those being the box around a transmitter with all sides being
-    // away card.strength from the center (so the edge length is 2 * strength).
-    // This gives us a quick first estimate on which receivers may be in range.
-    // We then refine this with some further checks, see below.
-    def compare(that: WirelessNode) =
-      if (x < that.x && y < that.y && z < that.z) -1
-      else if (x >= that.x && y >= that.y && z >= that.z) 1
-      else 0
-  }
-
-  private implicit def toNode(card: WirelessNetworkCard) =
-    new WirelessNode(card.owner.xCoord + 0.5, card.owner.yCoord + 0.5, card.owner.zCoord + 0.5, Some(card))
-
-  private implicit def toNode(coordinate: (Double, Double, Double)) =
-    new WirelessNode(coordinate._1, coordinate._2, coordinate._3, None)
-
   def add(card: WirelessNetworkCard) {
-    dimensions.getOrElseUpdate(dimension(card), mutable.TreeSet.empty[WirelessNode]) += card
+    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](4)((card) => (card.owner.xCoord, card.owner.yCoord, card.owner.zCoord))).add(card)
   }
 
   def remove(card: WirelessNetworkCard) {
     dimensions.get(dimension(card)) match {
-      case Some(set) => set -= card
+      case Some(set) => set.remove(card)
       case _ =>
     }
   }
 
   def computeReachableFrom(card: WirelessNetworkCard) = {
     dimensions.get(dimension(card)) match {
-      case Some(set) if card.strength > 0 =>
+      case Some(tree) if card.strength > 0 =>
         val range = card.strength + 1
-        set.range(offset(card, -range), offset(card, range)).
-          map(_.card.get).
+        tree.query(offset(card, -range), offset(card, range)).
           filter(_ != card).
           map(zipWithDistance(card)).
           filter(_._2 <= range * range).
-          map {
-          case (c, distance) => (c, Math.sqrt(distance))
-        }.
+          map { case (c, distance) => (c, Math.sqrt(distance)) }.
           filter(isUnobstructed(card))
       case _ => Iterable.empty[(WirelessNetworkCard, Double)] // Should not be possible.
     }

@@ -7,7 +7,7 @@ object GameTimeFormatter {
   // server's locale I think it makes more sense to keep it English always.
   private val weekDays = Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
   private val shortWeekDays = Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-  private val months = Array("January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+  private val months = Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
   private val shortMonths = Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
   private val amPm = Array("AM", "PM")
 

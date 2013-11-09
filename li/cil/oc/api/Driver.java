@@ -14,7 +14,7 @@ import li.cil.oc.api.driver.Item;
  * @see Block
  * @see Item
  */
-final public class Driver {
+public final class Driver {
     /**
      * Registers a new block driver.
      * <p/>

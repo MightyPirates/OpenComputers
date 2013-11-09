@@ -49,17 +49,17 @@ class Delegator(id: Int) extends Item(id) {
     super.addInformation(item, player, tooltip, advanced)
     subItem(item) match {
       case Some(subItem) => subItem.addInformation(item, player, tooltip.asInstanceOf[util.List[String]], advanced)
-      case None => // Nothing to add.
+      case _ => // Nothing to add.
     }
   }
 
   override def getIconFromDamage(damage: Int): Icon =
     subItem(damage) match {
-      case None => super.getIconFromDamage(damage)
       case Some(subItem) => subItem.icon match {
-        case None => super.getIconFromDamage(damage)
         case Some(icon) => icon
+        case _ => super.getIconFromDamage(damage)
       }
+      case _ => super.getIconFromDamage(damage)
     }
 
   override def getRarity(item: ItemStack) = EnumRarity.uncommon
@@ -75,8 +75,8 @@ class Delegator(id: Int) extends Item(id) {
 
   override def getUnlocalizedName(item: ItemStack): String =
     subItem(item) match {
-      case None => getUnlocalizedName
       case Some(subItem) => "oc.item." + subItem.unlocalizedName
+      case _ => getUnlocalizedName
     }
 
   override def getUnlocalizedName: String = "oc.item"
@@ -85,14 +85,14 @@ class Delegator(id: Int) extends Item(id) {
 
   override def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack =
     subItem(item) match {
-      case None => super.onItemRightClick(item, world, player)
       case Some(subItem) => subItem.onItemRightClick(item, world, player)
+      case _ => super.onItemRightClick(item, world, player)
     }
 
   override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subItem(item) match {
-      case None => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
       case Some(subItem) => subItem.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
   override def registerIcons(iconRegister: IconRegister) {

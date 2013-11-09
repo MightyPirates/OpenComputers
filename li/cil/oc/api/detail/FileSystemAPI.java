@@ -3,6 +3,7 @@ package li.cil.oc.api.detail;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.fs.FileSystem;
+import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
 
 public interface FileSystemAPI {
@@ -16,5 +17,9 @@ public interface FileSystemAPI {
 
     FileSystem fromComputerCraft(IWritableMount mount);
 
+    ManagedEnvironment asManagedEnvironment(FileSystem fs, Label label);
+
     ManagedEnvironment asManagedEnvironment(FileSystem fs, String label);
+
+    ManagedEnvironment asManagedEnvironment(FileSystem fs);
 }

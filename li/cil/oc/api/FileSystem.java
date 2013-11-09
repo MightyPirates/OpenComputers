@@ -3,6 +3,7 @@ package li.cil.oc.api;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
+import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
 
 /**
@@ -17,7 +18,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
  * must cast the environment's node to {@link li.cil.oc.api.network.Component}
  * and set it accordingly.
  */
-final public class FileSystem {
+public final class FileSystem {
     /**
      * Creates a new file system based on the location of a class.
      * <p/>
@@ -44,12 +45,12 @@ final public class FileSystem {
     }
 
     /**
-     * Creates a new *writable* file system in the save folder.
+     * Creates a new <em>writable</em> file system in the save folder.
      * <p/>
      * This will create a folder, if necessary, and create a writable virtual
      * file system based in that folder. The actual path is based in a sub-
      * folder of the save folder. The actual path is e.g. built like this:
-     * `"saves/" + WORLD_NAME + "/opencomputers/" + root`. Where the first
+     * <tt>"saves/" + WORLD_NAME + "/opencomputers/" + root</tt>. Where the first
      * part may differ, in particular for servers. But you get the idea.
      * <p/>
      * Usually the name will be the name of the node used to represent the
@@ -67,11 +68,19 @@ final public class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(String root, long capacity, boolean buffered) {
-        if (instance != null)
-            return instance.fromSaveDirectory(root, capacity, buffered);
+        if (instance != null) return instance.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
 
+    /**
+     * Same as {@link #fromSaveDirectory(String, long, boolean)} with the
+     * <tt>buffered</tt> parameter being true, i.e. will always create a
+     * buffered file system.
+     *
+     * @param root     the name of the file system.
+     * @param capacity the amount of space in bytes to allow being used.
+     * @return a file system wrapping the specified folder.
+     */
     public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(String root, long capacity) {
         return fromSaveDirectory(root, capacity, true);
     }
@@ -128,14 +137,35 @@ final public class FileSystem {
      * @param label      the label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, String label) {
-        if (instance != null)
-            return instance.asManagedEnvironment(fileSystem, label);
+    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, Label label) {
+        if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
         return null;
     }
 
+    /**
+     * Does the same thing {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)}
+     * does, but creates a read-only label initialized to the specified value.
+     *
+     * @param fileSystem the file system to wrap.
+     * @param label      the read-only label of the file system.
+     * @return the network node wrapping the file system.
+     */
+    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, String label) {
+        if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
+        return null;
+    }
+
+    /**
+     * Does the same thing {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)}
+     * does, but creates an unlabeled file system (i.e. the label can neither
+     * be read nor written).
+     *
+     * @param fileSystem the file system to wrap.
+     * @return the network node wrapping the file system.
+     */
     public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem) {
-        return asManagedEnvironment(fileSystem, null);
+        if (instance != null) return instance.asManagedEnvironment(fileSystem);
+        return null;
     }
 
     // ----------------------------------------------------------------------- //

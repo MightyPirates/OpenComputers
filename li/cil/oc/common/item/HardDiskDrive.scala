@@ -14,10 +14,10 @@ class HardDiskDrive(val parent: Delegator, val megaBytes: Int) extends Delegate 
 
     if (item.hasTagCompound) {
       val nbt = item.getTagCompound
+      if (nbt.hasKey("oc.fs.label"))
+        tooltip.add(nbt.getString("oc.fs.label"))
       if (nbt.hasKey("oc.node")) {
         val nodeNbt = nbt.getCompoundTag("oc.node")
-        if (nodeNbt.hasKey("label"))
-          tooltip.add(nodeNbt.getString("label"))
         if (nodeNbt.hasKey("oc.node.address"))
           tooltip.add(nodeNbt.getString("oc.node.address"))
         if (advanced && nodeNbt.hasKey("fs")) {

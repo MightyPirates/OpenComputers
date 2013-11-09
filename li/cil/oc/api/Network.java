@@ -15,7 +15,7 @@ import net.minecraft.world.World;
  * existing network. It is not possible to create networks that do not belong
  * to at least one tile entity at this time.
  */
-final public class Network {
+public final class Network {
     /**
      * Tries to add a tile entity network node at the specified coordinates to
      * adjacent networks.
@@ -56,8 +56,7 @@ final public class Network {
      * @return a new node builder.
      */
     public static Builder.NodeBuilder newNode(Environment host, Visibility visibility) {
-        if (instance != null)
-            return instance.newNode(host, visibility);
+        if (instance != null) return instance.newNode(host, visibility);
         return null;
     }
 

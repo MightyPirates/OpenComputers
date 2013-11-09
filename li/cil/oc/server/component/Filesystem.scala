@@ -1,15 +1,14 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
-import li.cil.oc.api.fs.Mode
+import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.api.network._
-import li.cil.oc.server.fs.Volatile
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.Some
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends ManagedComponent {
+class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     create()
@@ -18,23 +17,16 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("getLabel")
-  def getLabel(context: Context, args: Arguments): Array[AnyRef] = Array(label)
+  @LuaCallback(value = "getLabel", direct = true)
+  def getLabel(context: Context, args: Arguments): Array[AnyRef] =
+    this.synchronized(result(label.getLabel))
 
-  @LuaCallback("setLabel")
-  def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
-    if (fileSystem.isReadOnly)
-      throw new IllegalArgumentException("file system is read only")
-    if (fileSystem.isInstanceOf[Volatile])
-      throw new IllegalArgumentException("cannot change label of ramfs")
-    if (args.checkAny(0) == null)
-      label = null
-    else {
-      label = args.checkString(0)
-      if (label.length > 16)
-        label = label.substring(0, 16)
-    }
-    result(true)
+  @LuaCallback(value = "setLabel", direct = true)
+  def setLabel(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    if (label == null) throw new Exception("filesystem does not support labeling")
+    if (args.checkAny(0) == null) label.setLabel(null)
+    else label.setLabel(args.checkString(0))
+    result(label.getLabel)
   }
 
   @LuaCallback(value = "isReadOnly", direct = true)
@@ -231,8 +223,6 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
           to[mutable.Set]
       }
     })
-    if (nbt.hasKey("label"))
-      label = nbt.getString("label")
 
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
@@ -251,8 +241,6 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: String) extends M
       ownersNbt.appendTag(ownerNbt)
     }
     nbt.setTag("owners", ownersNbt)
-    if (label != null)
-      nbt.setString("label", label)
 
     val fsNbt = new NBTTagCompound()
     fileSystem.save(fsNbt)
