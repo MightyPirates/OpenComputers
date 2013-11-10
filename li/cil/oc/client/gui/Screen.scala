@@ -2,6 +2,7 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.Config
 import li.cil.oc.client.PacketSender
+import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.{GuiScreen => MCGuiScreen}
 import net.minecraft.client.renderer.GLAllocation
@@ -11,6 +12,7 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import scala.collection.mutable
+import li.cil.oc.util.PackedColor
 
 /**
  * This GUI shows the buffer of a single screen.
@@ -47,11 +49,11 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
 
     // Re-build display lists.
     Screen.compileBackground(innerWidth, innerHeight)
-    Screen.compileText(scale, screen.instance.lines)
+    Screen.compileText(scale, screen.instance.lines, screen.instance.colors, screen.instance.depth)
   }
 
   /** Must be called whenever the buffer of the underlying screen changes. */
-  def updateText() = Screen.compileText(scale, screen.instance.lines)
+  def updateText() = Screen.compileText(scale, screen.instance.lines, screen.instance.colors, screen.instance.depth)
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
@@ -182,14 +184,14 @@ object Screen {
       GL11.glEndList()
     }
 
-  private[gui] def compileText(scale: Double, lines: Array[Array[Char]]) =
+  private[gui] def compileText(scale: Double, lines: Array[Array[Char]], colors:Array[Array[Int]], depth: PackedColor.Depth.Value) =
     if (textureManager.isDefined) {
       GL11.glNewList(displayLists.get + 1, GL11.GL_COMPILE)
 
       GL11.glTranslatef(margin + innerMargin, margin + innerMargin, 0)
       GL11.glScaled(scale, scale, 1)
-      lines.zipWithIndex.foreach {
-        case (line, i) => MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
+      lines.zip(colors).zipWithIndex.foreach {
+        case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, depth)
       }
 
       GL11.glEndList()

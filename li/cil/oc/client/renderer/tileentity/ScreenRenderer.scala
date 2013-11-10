@@ -5,7 +5,7 @@ import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Config
-import li.cil.oc.client.gui.MonospaceFontRenderer
+import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -130,8 +130,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for ((line, i) <- screen.instance.lines.zipWithIndex) {
-      MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
+    for (((line, color), i) <- screen.instance.lines.zip(screen.instance.colors).zipWithIndex) {
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.instance.depth)
     }
 
     GL11.glEndList()

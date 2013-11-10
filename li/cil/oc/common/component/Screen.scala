@@ -3,18 +3,22 @@ package li.cil.oc.common.component
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.{tileentity, component}
-import li.cil.oc.util.TextBuffer
+import li.cil.oc.util.{PackedColor, TextBuffer}
 import li.cil.oc.{Config, util, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) extends Persistable {
-  private val buffer = new TextBuffer(maxResolution)
+  private val buffer = new TextBuffer(maxResolution, PackedColor.Depth.OneBit)
 
   // ----------------------------------------------------------------------- //
 
   def text = buffer.toString
 
   def lines = buffer.buffer
+
+  def colors = buffer.color
+
+  def depth = buffer.depth
 
   def resolution = buffer.size
 
