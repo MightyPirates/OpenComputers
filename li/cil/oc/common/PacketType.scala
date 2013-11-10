@@ -34,7 +34,9 @@ object PacketType extends Enumeration {
   val ScreenBufferResponse = Value("ScreenBufferResponse")
 
   /** These are sent from the server to the client for partial updates. */
+  val ScreenColorChange = Value("ScreenColorChange")
   val ScreenCopy = Value("ScreenCopy")
+  val ScreenDepthChange = Value("ScreenDepthChange")
   val ScreenFill = Value("ScreenFill")
   val ScreenResolutionChange = Value("ScreenResolutionChange")
   val ScreenSet = Value("ScreenSet")

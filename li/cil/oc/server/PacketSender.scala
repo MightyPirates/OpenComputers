@@ -3,8 +3,10 @@ package li.cil.oc.server
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.component.Screen
 import li.cil.oc.common.tileentity.{PowerDistributor, Rotatable}
 import li.cil.oc.server.component.Redstone
+import li.cil.oc.util.PackedColor
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
@@ -70,18 +72,35 @@ object PacketSender {
     }
   }
 
-  def sendScreenBufferState(t: TileEntity, w: Int, h: Int, text: String, player: Option[Player] = None) {
+  def sendScreenBufferState(t: TileEntity with Screen.Environment, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
 
     pb.writeTileEntity(t)
+
+    val screen = t.instance
+    val (w, h) = screen.resolution
     pb.writeInt(w)
     pb.writeInt(h)
-    pb.writeUTF(text)
+    pb.writeUTF(screen.text)
+    pb.writeInt(screen.depth.id)
+    pb.writeInt(screen.foreground)
+    pb.writeInt(screen.background)
+    for (cs <- screen.colors) for (c <- cs) pb.writeShort(c)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
       case _ => pb.sendToAllPlayers()
     }
+  }
+
+  def sendScreenColorChange(t: TileEntity, foreground: Int, background: Int) {
+    val pb = new PacketBuilder(PacketType.ScreenColorChange)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(foreground)
+    pb.writeInt(background)
+
+    pb.sendToAllPlayers()
   }
 
   def sendScreenCopy(t: TileEntity, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
@@ -94,6 +113,15 @@ object PacketSender {
     pb.writeInt(h)
     pb.writeInt(tx)
     pb.writeInt(ty)
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendScreenDepthChange(t: TileEntity, value: PackedColor.Depth.Value) {
+    val pb = new PacketBuilder(PacketType.ScreenDepthChange)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(value.id)
 
     pb.sendToAllPlayers()
   }

@@ -4,6 +4,7 @@ import li.cil.oc.Config
 import li.cil.oc.client.PacketSender
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.{GuiScreen => MCGuiScreen}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
@@ -12,7 +13,6 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import scala.collection.mutable
-import li.cil.oc.util.PackedColor
 
 /**
  * This GUI shows the buffer of a single screen.
@@ -184,9 +184,11 @@ object Screen {
       GL11.glEndList()
     }
 
-  private[gui] def compileText(scale: Double, lines: Array[Array[Char]], colors:Array[Array[Int]], depth: PackedColor.Depth.Value) =
+  private[gui] def compileText(scale: Double, lines: Array[Array[Char]], colors: Array[Array[Short]], depth: PackedColor.Depth.Value) =
     if (textureManager.isDefined) {
       GL11.glNewList(displayLists.get + 1, GL11.GL_COMPILE)
+      GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
+      GL11.glDepthMask(false)
 
       GL11.glTranslatef(margin + innerMargin, margin + innerMargin, 0)
       GL11.glScaled(scale, scale, 1)
@@ -194,6 +196,7 @@ object Screen {
         case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, depth)
       }
 
+      GL11.glPopAttrib()
       GL11.glEndList()
     }
 

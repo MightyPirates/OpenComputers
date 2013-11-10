@@ -4,8 +4,6 @@ local function onComponentAvailable(_, componentType)
   then
     local gpu = component.primary("gpu")
     gpu.bind(component.primary("screen").address)
-    local maxX, maxY = gpu.maxResolution()
-    gpu.setResolution(maxX, maxY)
   end
 end
 

@@ -2,7 +2,9 @@ print("Lua 5.2.2 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
 local history = {}
 local env = setmetatable({}, {__index=_ENV})
 while term.isAvailable() do
+  local foreground = component.gpu.setForeground(0x00FF00)
   term.write("lua> ")
+  component.gpu.setForeground(foreground)
   local command = term.read(history)
   if command == nil then -- eof
     return

@@ -7,7 +7,7 @@ import li.cil.oc.util.{PackedColor, TextBuffer}
 import li.cil.oc.{Config, util, api}
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) extends Persistable {
+class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends Persistable {
   private val buffer = new TextBuffer(maxResolution, PackedColor.Depth.OneBit)
 
   // ----------------------------------------------------------------------- //
@@ -20,12 +20,48 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
 
   def depth = buffer.depth
 
+  def depth_=(value: PackedColor.Depth.Value) = {
+    if (value > maxDepth)
+      throw new IllegalArgumentException("unsupported depth")
+    if (buffer.depth = value) {
+      owner.onScreenDepthChange(value)
+      true
+    }
+    else false
+  }
+
+  def foreground = buffer.foreground
+
+  def foreground_=(value: Int) = {
+    if (buffer.foreground != value) {
+      val result = buffer.foreground
+      buffer.foreground = value
+      owner.onScreenColorChange(foreground, background)
+      result
+    }
+    else value
+  }
+
+  def background = buffer.background
+
+  def background_=(value: Int) = {
+    if (buffer.background != value) {
+      val result = buffer.background
+      buffer.background = value
+      owner.onScreenColorChange(foreground, background)
+      result
+    }
+    else value
+  }
+
   def resolution = buffer.size
 
   def resolution_=(value: (Int, Int)) = {
     val (w, h) = value
     val (mw, mh) = maxResolution
-    if (w <= mw && h <= mh && (buffer.size = value)) {
+    if (w < 1 || w > mw || h < 1 || h > mh)
+      throw new IllegalArgumentException("unsupported resolution")
+    if (buffer.size = value) {
       owner.onScreenResolutionChange(w, h)
       true
     }
@@ -58,12 +94,12 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int)) exten
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
-    buffer.readFromNBT(nbt.getCompoundTag("oc.screen"))
+    buffer.load(nbt.getCompoundTag("oc.screen"))
   }
 
   override def save(nbt: NBTTagCompound) = {
     val screenNbt = new NBTTagCompound
-    buffer.writeToNBT(screenNbt)
+    buffer.save(screenNbt)
     nbt.setCompoundTag("oc.screen", screenNbt)
   }
 
@@ -81,7 +117,7 @@ object Screen {
       withConnector(Config.bufferScreen * (tier + 1)).
       create()
 
-    final val instance = new component.Screen(this, Config.screenResolutionsByTier(tier))
+    final val instance = new component.Screen(this, Config.screenResolutionsByTier(tier), Config.screenDepthsByTier(tier))
 
     protected def tier: Int
 
@@ -101,7 +137,11 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
+    def onScreenColorChange(foreground: Int, background: Int) {}
+
     def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {}
+
+    def onScreenDepthChange(depth: PackedColor.Depth.Value) {}
 
     def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {}
 

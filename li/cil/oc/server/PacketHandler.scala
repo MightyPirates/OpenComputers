@@ -52,9 +52,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenBufferRequest(p: PacketParser) =
     p.readTileEntity[tileentity.Screen]() match {
-      case Some(t) =>
-        val (w, h) = t.instance.resolution
-        PacketSender.sendScreenBufferState(t, w, h, t.instance.text, Option(p.player))
+      case Some(t) => PacketSender.sendScreenBufferState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 

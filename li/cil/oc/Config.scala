@@ -1,6 +1,7 @@
 package li.cil.oc
 
 import java.io.File
+import li.cil.oc.util.PackedColor
 
 object Config {
   val resourceDomain = "opencomputers"
@@ -10,6 +11,7 @@ object Config {
   // ----------------------------------------------------------------------- //
 
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
+  val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
 
   // ----------------------------------------------------------------------- //
 
@@ -39,6 +41,7 @@ object Config {
 
   var maxScreenTextRenderDistance = 10.0
   var screenTextFadeStartDistance = 8.0
+  var textLinearFiltering = false
 
   // ----------------------------------------------------------------------- //
 
@@ -96,6 +99,15 @@ object Config {
       "Note that this needs OpenGL 1.4 to work, otherwise text will always just\n" +
       "instantly disappear when moving away from the screen displaying it.").
       getDouble(screenTextFadeStartDistance)
+
+    textLinearFiltering = config.get("client", "textLinearFiltering", textLinearFiltering, "" +
+      "Whether to apply linear filtering for text displayed on screens when the\n" +
+      "screen has to be scaled down - i.e. the text is rendered at a resolution\n" +
+      "lower than their native one, e.g. when the GUI scale is less than one or\n" +
+      "when looking at a far away screen. This leads to smoother text for scaled\n" +
+      "down text but results in characters not perfectly connecting anymore (for\n" +
+      "example for box drawing characters. Look it up on Wikipedia.)").
+      getBoolean(textLinearFiltering)
 
     // --------------------------------------------------------------------- //
 

@@ -5,6 +5,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity.{PowerDistributor, Computer, Rotatable, Screen}
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
+import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
@@ -25,7 +26,9 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
       case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
       case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
+      case PacketType.ScreenColorChange => onScreenColorChange(p)
       case PacketType.ScreenCopy => onScreenCopy(p)
+      case PacketType.ScreenDepthChange => onScreenDepthChange(p)
       case PacketType.ScreenFill => onScreenFill(p)
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
@@ -74,12 +77,31 @@ class PacketHandler extends CommonPacketHandler {
   def onScreenBufferResponse(p: PacketParser) =
     p.readTileEntity[Screen]() match {
       case Some(t) =>
+        val screen = t.instance
         val w = p.readInt()
         val h = p.readInt()
-        t.instance.resolution = (w, h)
+        screen.resolution = (w, h)
         p.readUTF.split('\n').zipWithIndex.foreach {
-          case (line, i) => t.instance.set(0, i, line)
+          case (line, i) => screen.set(0, i, line)
         }
+        screen.depth = PackedColor.Depth(p.readInt())
+        screen.foreground = p.readInt()
+        screen.background = p.readInt()
+        for (row <- 0 until h) {
+          val rowColor = screen.colors(row)
+          for (col <- 0 until w) {
+            rowColor(col) = p.readShort()
+          }
+        }
+      case _ => // Invalid packet.
+    }
+
+  def onScreenColorChange(p: PacketParser) =
+    p.readTileEntity[Screen]() match {
+      case Some(t) => {
+        t.instance.foreground = p.readInt()
+        t.instance.background = p.readInt()
+      }
       case _ => // Invalid packet.
     }
 
@@ -93,6 +115,14 @@ class PacketHandler extends CommonPacketHandler {
         val tx = p.readInt()
         val ty = p.readInt()
         t.instance.copy(col, row, w, h, tx, ty)
+      }
+      case _ => // Invalid packet.
+    }
+
+  def onScreenDepthChange(p: PacketParser) =
+    p.readTileEntity[Screen]() match {
+      case Some(t) => {
+        t.instance.depth = PackedColor.Depth(p.readInt())
       }
       case _ => // Invalid packet.
     }

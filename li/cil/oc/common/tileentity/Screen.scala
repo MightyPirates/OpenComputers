@@ -7,11 +7,12 @@ import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component.Screen.{Environment => ScreenEnvironment}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.PackedColor
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.client.Minecraft
 
 class ScreenTier1 extends Screen {
   protected def tier = 0
@@ -225,6 +226,46 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  override def onScreenColorChange(foreground: Int, background: Int) {
+    super.onScreenColorChange(foreground, background)
+    if (!worldObj.isRemote) {
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      ServerPacketSender.sendScreenColorChange(this, foreground, background)
+    }
+  }
+
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
+    super.onScreenCopy(col, row, w, h, tx, ty)
+    if (worldObj.isRemote) {
+      currentGui.foreach(_.updateText())
+      hasChanged = true
+    }
+    else {
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
+    }
+  }
+
+  override def onScreenDepthChange(depth: PackedColor.Depth.Value) {
+    super.onScreenDepthChange(depth)
+    if (!worldObj.isRemote) {
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      ServerPacketSender.sendScreenDepthChange(this, depth)
+    }
+  }
+
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
+    super.onScreenFill(col, row, w, h, c)
+    if (worldObj.isRemote) {
+      currentGui.foreach(_.updateText())
+      hasChanged = true
+    }
+    else {
+      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
+    }
+  }
+
   override def onScreenResolutionChange(w: Int, h: Int) = {
     super.onScreenResolutionChange(w, h)
     if (worldObj.isRemote) {
@@ -246,30 +287,6 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
     else {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenSet(this, col, row, s)
-    }
-  }
-
-  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
-    super.onScreenFill(col, row, w, h, c)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
-    }
-  }
-
-  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
-    super.onScreenCopy(col, row, w, h, tx, ty)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
     }
   }
 }

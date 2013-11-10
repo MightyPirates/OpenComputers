@@ -3,10 +3,11 @@ package li.cil.oc.server.component
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.Screen
+import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
-class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
+class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     create()
@@ -15,7 +16,7 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
 
   private var screenInstance: Option[Screen] = None
 
-  private def screen(f: (Screen) => Array[AnyRef]) = {
+  private def screen(f: (Screen) => Array[AnyRef]) = this.synchronized {
     if (screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
         case Some(node: Node) if node.host.isInstanceOf[Screen.Environment] =>
@@ -38,17 +39,72 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("bind")
-  def bind(context: Context, args: Arguments): Array[AnyRef] = {
+  def bind(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
       case node: Node if node.host.isInstanceOf[Screen.Environment] =>
         screenAddress = Option(address)
         screenInstance = None
-        result(true)
+        screen(s => {
+          val (gmw, gmh) = maxResolution
+          val (smw, smh) = s.maxResolution
+          s.resolution = (gmw min smw, gmh min smh)
+          s.depth = PackedColor.Depth(maxDepth.id min s.maxDepth.id)
+          s.foreground = 0xFFFFFF
+          s.background = 0x000000
+          result(true)
+        })
       case _ => Array(Unit, "not a screen")
     }
   }
+
+  @LuaCallback(value = "getBackground", direct = true)
+  def getBackground(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(s.background))
+
+  @LuaCallback("setBackground")
+  def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
+    val color = args.checkInteger(0)
+    screen(s => result(s.background = color))
+  }
+
+  @LuaCallback(value = "getForeground", direct = true)
+  def getForeground(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(s.foreground))
+
+  @LuaCallback("setForeground")
+  def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
+    val color = args.checkInteger(0)
+    screen(s => result(s.foreground = color))
+  }
+
+  @LuaCallback(value = "getDepth", direct = true)
+  def getDepth(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(s.depth match {
+      case PackedColor.Depth.OneBit => 1
+      case PackedColor.Depth.FourBit => 4
+      case PackedColor.Depth.EightBit => 8
+    }))
+
+  @LuaCallback("setDepth")
+  def setDepth(context: Context, args: Arguments): Array[AnyRef] = {
+    val depth = args.checkInteger(0)
+    screen(s => result(s.depth = depth match {
+      case 1 => PackedColor.Depth.OneBit
+      case 4 if maxDepth >= PackedColor.Depth.FourBit => PackedColor.Depth.FourBit
+      case 8 if maxDepth >= PackedColor.Depth.EightBit => PackedColor.Depth.EightBit
+      case _ => throw new IllegalArgumentException("unsupported depth")
+    }))
+  }
+
+  @LuaCallback(value = "maxDepth", direct = true)
+  def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => result(PackedColor.Depth(maxDepth.id min s.maxDepth.id) match {
+      case PackedColor.Depth.OneBit => 1
+      case PackedColor.Depth.FourBit => 4
+      case PackedColor.Depth.EightBit => 8
+    }))
 
   @LuaCallback(value = "getResolution", direct = true)
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
@@ -62,10 +118,8 @@ class GraphicsCard(val maxResolution: (Int, Int)) extends ManagedComponent {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
     val (mw, mh) = maxResolution
-    if (w > 0 && h > 0 && w <= mw && h <= mh)
-      screen(s => result(s.resolution = (w, h)))
-    else
-      Array(Unit, "unsupported resolution")
+    if (w > 0 && h > 0 && w <= mw && h <= mh) screen(s => result(s.resolution = (w, h)))
+    else throw new IllegalArgumentException("unsupported resolution")
   }
 
   @LuaCallback(value = "maxResolution", direct = true)

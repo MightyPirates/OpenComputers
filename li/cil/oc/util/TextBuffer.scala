@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound, NBTTagList, NBTTagString}
+import net.minecraft.nbt._
 
 /**
  * This stores chars in a 2D-Array and provides some manipulation functions.
@@ -10,27 +10,49 @@ import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound, NBTTagList, NBTTagStri
  * relatively fast updates, given a smart algorithm (using copy()/fill()
  * instead of set()ing everything).
  */
-class TextBuffer(var width: Int, var height: Int, val depth: PackedColor.Depth.Value) {
+class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Depth.Value) extends Persistable {
   def this(size: (Int, Int), depth: PackedColor.Depth.Value) = this(size._1, size._2, depth)
+
+  private var depth_ = initialDepth
 
   private var foreground_ = 0xFFFFFF
 
   private var background_ = 0x000000
 
-  private var packed = PackedColor.pack(foreground_, background_, depth)
+  private var packed = PackedColor.pack(foreground_, background_, depth_)
 
   def foreground = foreground_
 
   def foreground_=(value: Int) = {
     foreground_ = value
-    packed = PackedColor.pack(foreground_, background_, depth)
+    packed = PackedColor.pack(foreground_, background_, depth_)
   }
 
   def background = background_
 
   def background_=(value: Int) = {
     background_ = value
-    packed = PackedColor.pack(foreground_, background_, depth)
+    packed = PackedColor.pack(foreground_, background_, depth_)
+  }
+
+  def depth = depth_
+
+  def depth_=(value: PackedColor.Depth.Value) = {
+    if (depth != value) {
+      for (row <- 0 until height) {
+        val rowColor = color(row)
+        for (col <- 0 until width) {
+          val packed = rowColor(col)
+          val fg = PackedColor.unpackForeground(packed, depth_)
+          val bg = PackedColor.unpackBackground(packed, depth_)
+          rowColor(col) = PackedColor.pack(fg, bg, value)
+        }
+      }
+      depth_ = value
+      packed = PackedColor.pack(foreground_, background_, depth_)
+      true
+    }
+    else false
   }
 
   var color = Array.fill(height, width)(packed)
@@ -143,33 +165,50 @@ class TextBuffer(var width: Int, var height: Int, val depth: PackedColor.Depth.V
     changed
   }
 
-  def readFromNBT(nbt: NBTTagCompound): Unit = {
+  override def load(nbt: NBTTagCompound): Unit = {
     val w = nbt.getInteger("width")
     val h = nbt.getInteger("height")
     size = (w, h)
+
     val b = nbt.getTagList("buffer")
     for (i <- 0 until (h min b.tagCount)) {
       val line = b.tagAt(i).asInstanceOf[NBTTagString].data
       set(0, i, line)
     }
+
+    depth_ = PackedColor.Depth(nbt.getInteger("depth"))
+    foreground = nbt.getInteger("foreground")
+    background = nbt.getInteger("background")
+
     val c = nbt.getTagList("color")
-    for (i <- 0 until (h min c.tagCount)) {
-      val line = c.tagAt(i).asInstanceOf[NBTTagIntArray].intArray
-      Array.copy(line, 0, color(i), 0, line.length min width)
+    for (i <- 0 until h) {
+      val rowColor = color(i)
+      for (j <- 0 until w) {
+        rowColor(j) = c.tagAt(j + i * w).asInstanceOf[NBTTagShort].data
+      }
     }
   }
 
-  def writeToNBT(nbt: NBTTagCompound): Unit = {
+  override def save(nbt: NBTTagCompound): Unit = {
     nbt.setInteger("width", width)
     nbt.setInteger("height", height)
+
     val b = new NBTTagList()
     for (i <- 0 until height) {
       b.appendTag(new NBTTagString(null, String.valueOf(buffer(i))))
     }
     nbt.setTag("buffer", b)
+
+    nbt.setInteger("depth", depth_.id)
+    nbt.setInteger("foreground", foreground_)
+    nbt.setInteger("background", background_)
+
     val c = new NBTTagList()
     for (i <- 0 until height) {
-      c.appendTag(new NBTTagIntArray(null, color(i)))
+      val rowColor = color(i)
+      for (j <- 0 until width) {
+        c.appendTag(new NBTTagShort(null, rowColor(j)))
+      }
     }
     nbt.setTag("color", c)
   }

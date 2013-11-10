@@ -8,6 +8,8 @@ class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
 
   val maxResolution = Config.screenResolutionsByTier(tier)
 
+  val maxDepth = Config.screenDepthsByTier(tier)
+
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
