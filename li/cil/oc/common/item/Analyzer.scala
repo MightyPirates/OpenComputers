@@ -41,7 +41,7 @@ class Analyzer(val parent: Delegator) extends Delegate {
   private def analyzeNode(environment: Environment, player: EntityPlayer) {
     environment.node match {
       case connector: Connector =>
-        player.addChatMessage("Buffer: %f/%f".format(connector.buffer, connector.bufferSize))
+        player.addChatMessage("Power: %.2f/%.2f".format(connector.buffer, connector.bufferSize))
       case _ =>
     }
     val address = environment.node.address()
