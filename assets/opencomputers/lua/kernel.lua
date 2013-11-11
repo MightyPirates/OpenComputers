@@ -87,9 +87,6 @@ sandbox = {
     create = coroutine.create,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
       checkArg(1, co, "thread")
-      if co == coroutine.running() then
-        return nil, "cannot resume non-suspended coroutine"
-      end
       local args = table.pack(...)
       while true do -- for consecutive sysyields
         debug.sethook(co, checkDeadline, "", 10000)
