@@ -1,4 +1,4 @@
-print("Lua 5.2.2 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
+print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
 local history = {}
 local env = setmetatable({}, {__index=_ENV})
 while term.isAvailable() do

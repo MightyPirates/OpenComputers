@@ -146,7 +146,7 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
           if (!worldObj.isRemote) screen.node.setVisibility(Visibility.None)
           val s = screen.instance
           val (w, h) = s.resolution
-          s.fill(0, 0, w, h, ' ')
+          s.buffer.fill(0, 0, w, h, ' ')
         }
       )
     }

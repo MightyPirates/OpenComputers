@@ -12,7 +12,7 @@ trait Connector extends network.Connector with Persistable {
 
   var buffer = 0.0
 
-  def changeBuffer(delta: Double) = {
+  def changeBuffer(delta: Double) = if (delta != 0) {
     val oldBuffer = buffer
     buffer = buffer + delta
     val ok = if (buffer < 0) {
@@ -26,7 +26,7 @@ trait Connector extends network.Connector with Persistable {
     else true
     if (buffer != oldBuffer) dirty = true
     ok || Config.ignorePower
-  }
+  } else true
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)

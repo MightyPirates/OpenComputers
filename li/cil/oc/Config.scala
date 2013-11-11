@@ -17,7 +17,7 @@ object Config {
 
   var bufferComputer = 16.0
   var bufferConverter = 64.0
-  var bufferScreen = 16.0
+  var bufferScreen = 32.0
   var bufferWireless = 32.0
   var computerBaseCost = 1.0 / 20
   var computerCpuTimeCost = 256.0

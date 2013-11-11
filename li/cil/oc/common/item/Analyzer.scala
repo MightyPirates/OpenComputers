@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Config
-import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.{Connector, Environment}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import net.minecraft.client.renderer.texture.IconRegister
@@ -21,24 +21,29 @@ class Analyzer(val parent: Delegator) extends Delegate {
             case Some(value) => player.addChatMessage("Last error: " + value)
             case _ =>
           }
-          processAddress(computer, player)
+          analyzeNode(computer, player)
         }
         true
       case screen: tileentity.Screen =>
         if (!world.isRemote) {
-          processAddress(screen.origin, player)
+          analyzeNode(screen.origin, player)
         }
         true
       case environment: Environment =>
         if (!world.isRemote) {
-          processAddress(environment, player)
+          analyzeNode(environment, player)
         }
         true
       case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
   }
 
-  private def processAddress(environment: Environment, player: EntityPlayer) {
+  private def analyzeNode(environment: Environment, player: EntityPlayer) {
+    environment.node match {
+      case connector: Connector =>
+        player.addChatMessage("Buffer: %f/%f".format(connector.buffer, connector.bufferSize))
+      case _ =>
+    }
     val address = environment.node.address()
     player.addChatMessage("Address: " + address)
     if (player.isSneaking) {

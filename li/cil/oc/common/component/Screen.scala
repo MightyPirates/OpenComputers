@@ -8,7 +8,7 @@ import li.cil.oc.{Config, util, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends Persistable {
-  private val buffer = new TextBuffer(maxResolution, PackedColor.Depth.OneBit)
+  val buffer = new TextBuffer(maxResolution, PackedColor.Depth.OneBit)
 
   // ----------------------------------------------------------------------- //
 
