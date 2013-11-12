@@ -28,7 +28,8 @@ class Item(id: Int) extends ItemBlock(id) {
       // If it's a rotatable block try to make it face the player.
       world.getBlockTileEntity(x, y, z) match {
         case rotatable: Rotatable =>
-          rotatable.setFromEntityPitchAndYaw(player).invertRotation()
+          rotatable.setFromEntityPitchAndYaw(player)
+          rotatable.invertRotation()
         case _ => // Ignore.
       }
       true

@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Loader
 import li.cil.oc.Config
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.network.Analyzable
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Computer.{Environment => ComputerEnvironment}
@@ -17,7 +18,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone {
+class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone with Analyzable {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
@@ -45,6 +46,16 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
   def isOn_=(value: Boolean) = {
     isRunning = value
     worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
+    this
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    instance.lastError match {
+      case Some(value) => player.addChatMessage("Last error: " + value)
+      case _ =>
+    }
     this
   }
 

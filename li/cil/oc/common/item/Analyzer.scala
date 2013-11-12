@@ -2,8 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Config
-import li.cil.oc.api.network.{Connector, Environment}
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.network.{Analyzable, Connector, Environment}
 import li.cil.oc.server.PacketSender
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -15,18 +14,9 @@ class Analyzer(val parent: Delegator) extends Delegate {
 
   override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer =>
+      case analyzable: Analyzable =>
         if (!world.isRemote) {
-          computer.instance.lastError match {
-            case Some(value) => player.addChatMessage("Last error: " + value)
-            case _ =>
-          }
-          analyzeNode(computer, player)
-        }
-        true
-      case screen: tileentity.Screen =>
-        if (!world.isRemote) {
-          analyzeNode(screen.origin, player)
+          analyzeNode(analyzable.onAnalyze(player, side, hitX, hitY, hitZ), player)
         }
         true
       case environment: Environment =>
@@ -38,7 +28,7 @@ class Analyzer(val parent: Delegator) extends Delegate {
     }
   }
 
-  private def analyzeNode(environment: Environment, player: EntityPlayer) {
+  private def analyzeNode(environment: Environment, player: EntityPlayer) = if (environment != null) {
     environment.node match {
       case connector: Connector =>
         player.addChatMessage("Power: %.2f/%.2f".format(connector.buffer, connector.bufferSize))

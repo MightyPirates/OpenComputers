@@ -2,13 +2,14 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Analyzable, Visibility}
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component.Screen.{Environment => ScreenEnvironment}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
@@ -26,7 +27,7 @@ class ScreenTier3 extends Screen {
   protected def tier = 2
 }
 
-abstract class Screen extends Rotatable with ScreenEnvironment {
+abstract class Screen extends Rotatable with ScreenEnvironment with Analyzable {
   var currentGui: Option[gui.Screen] = None
 
   /**
@@ -65,6 +66,10 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
     val (ox, oy, _) = project(origin)
     ((ox - x).abs, (oy - y).abs)
   }
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
 
   // ----------------------------------------------------------------------- //
 

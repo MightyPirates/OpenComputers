@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
+import org.lwjgl.input.Keyboard
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -36,8 +37,10 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onClipboard(p: PacketParser) = {
-    GuiScreen.setClipboardString(p.readUTF())
-    p.player.asInstanceOf[EntityPlayer].addChatMessage("Copied to clipboard.")
+    if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+      GuiScreen.setClipboardString(p.readUTF())
+      p.player.asInstanceOf[EntityPlayer].addChatMessage("Copied to clipboard.")
+    }
   }
 
   def onComputerStateResponse(p: PacketParser) =

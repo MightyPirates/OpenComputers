@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import java.util
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.tileentity.Rotatable
-import li.cil.oc.{Items, Config, CreativeTab}
+import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
@@ -233,10 +233,6 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    // Do nothing if we have an analyzer in hand.
-    if (Items.analyzer.equals(player.getCurrentEquippedItem))
-      return false
-
     // Helper method to detect items that can be used to rotate blocks, such as
     // wrenches. This structural type is compatible with the BuildCraft wrench
     // interface.
@@ -331,12 +327,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => true
     }) && super.removeBlockByPlayer(world, player, x, y, z)
 
-  override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) = {
-    val newFacing = getFacing(world, x, y, z).getRotation(axis)
-    if (getValidRotations(world, x, y, z).contains(newFacing))
-      setFacing(world, x, y, z, newFacing)
-    else false
-  }
+  override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z) match {
+      case rotatable: Rotatable if rotatable.rotate(axis) =>
+        world.markBlockForRenderUpdate(x, y, z)
+        true
+      case _ => false
+    }
 }
 
 class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)

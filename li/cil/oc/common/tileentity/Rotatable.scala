@@ -127,6 +127,16 @@ abstract class Rotatable extends TileEntity {
     case _ => _yaw
   }
 
+  def rotate(axis: ForgeDirection) = {
+    val (newPitch, newYaw) = facing.getRotation(axis) match {
+      case value@(ForgeDirection.UP | ForgeDirection.DOWN) =>
+        if (value == pitch) (value, yaw.getRotation(axis))
+        else (value, yaw)
+      case value => (ForgeDirection.NORTH, value)
+    }
+    trySetPitchYaw(newPitch, newYaw)
+  }
+
   def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
 
   def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
@@ -173,16 +183,21 @@ abstract class Rotatable extends TileEntity {
 
   /** Validates new values against the allowed rotations as set in our block. */
   private def trySetPitchYaw(pitch: ForgeDirection, yaw: ForgeDirection) = {
+    var changed = false
     val block = Block.blocksList(worldObj.getBlockId(xCoord, yCoord, zCoord))
     if (block != null) {
       val valid = block.getValidRotations(worldObj, xCoord, yCoord, zCoord)
-      if (valid.contains(pitch))
+      if (valid.contains(pitch)) {
+        changed = true
         _pitch = pitch
-      if (valid.contains(yaw))
+      }
+      if (valid.contains(yaw)) {
+        changed = true
         _yaw = yaw
+      }
       updateTranslation()
     }
-    this
+    changed
   }
 
   private def invert(t: Array[ForgeDirection]) =
