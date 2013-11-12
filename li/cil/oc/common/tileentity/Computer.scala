@@ -1,10 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Loader
-import li.cil.oc.Config
-import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.Analyzable
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.server.component.Computer.{Environment => ComputerEnvironment}
@@ -18,22 +15,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment with ComponentInventory with Redstone with Analyzable {
+class Computer(isClient: Boolean) extends ComputerEnvironment with ComponentInventory with Rotatable with Redstone {
   def this() = this(false)
-
-  // ----------------------------------------------------------------------- //
-
-  private var hasChanged = false
-
-  private var isRunning = false
 
   // ----------------------------------------------------------------------- //
 
   val instance = if (isClient) null else new component.Computer(this)
 
-  def world = worldObj
-
-  def markAsChanged() = hasChanged = true
+  private var isRunning = false
 
   // ----------------------------------------------------------------------- //
 
@@ -51,48 +40,9 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    instance.lastError match {
-      case Some(value) => player.addChatMessage("Last error: " + value)
-      case _ =>
-    }
-    this
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    super.load(nbt)
-    instance.recomputeMemory()
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    super.save(nbt)
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
-    else if (!worldObj.isRemote) {
-      // If we just joined a network we were just loaded from disk. We skip the
-      // update this round to allow other tile entities to join the network,
-      // too, avoiding issues of missing nodes (e.g. in the GPU which would
-      // otherwise loose track of its screen).
-      instance.update()
-      if (isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
-        instance.lastError = "not enough power"
-        turnOff()
-      }
-      if (hasChanged) {
-        hasChanged = false
-        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      }
+    if (!worldObj.isRemote) {
       if (isRunning != instance.isRunning) {
         isOutputEnabled = hasRedstoneCard && instance.isRunning
         ServerPacketSender.sendComputerState(this, instance.isRunning)
@@ -107,12 +57,26 @@ class Computer(isClient: Boolean) extends Rotatable with ComputerEnvironment wit
     }
   }
 
-  override def validate() {
+  override def validate() = {
     super.validate()
     if (worldObj.isRemote) {
+      ClientPacketSender.sendRotatableStateRequest(this)
       ClientPacketSender.sendComputerStateRequest(this)
       ClientPacketSender.sendRedstoneStateRequest(this)
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    super.load(nbt)
+    instance.recomputeMemory()
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    super.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //

@@ -1,7 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.IPlayerTracker
-import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
@@ -10,27 +9,14 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.{Event, ForgeSubscribe}
 import scala.collection.mutable
 
-class Keyboard extends Rotatable with Environment {
-  val node = api.Network.newNode(this, Visibility.Network).
+class Keyboard extends Environment with Rotatable {
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
 
   val pressedKeys = mutable.Map.empty[EntityPlayer, mutable.Map[Integer, Character]]
 
   // ----------------------------------------------------------------------- //
-
-  override def updateEntity() {
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def invalidate() {
-    super.invalidate()
-    MinecraftForge.EVENT_BUS.unregister(this)
-  }
 
   override def validate() {
     super.validate()
@@ -41,6 +27,13 @@ class Keyboard extends Rotatable with Environment {
     super.onChunkUnload()
     MinecraftForge.EVENT_BUS.unregister(this)
   }
+
+  override def invalidate() {
+    super.invalidate()
+    MinecraftForge.EVENT_BUS.unregister(this)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @ForgeSubscribe
   def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {

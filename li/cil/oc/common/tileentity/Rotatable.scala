@@ -1,15 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.Persistable
 import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
-abstract class Rotatable extends TileEntity {
+trait Rotatable extends TileEntity with Persistable {
   // ----------------------------------------------------------------------- //
   // Lookup tables
   // ----------------------------------------------------------------------- //
@@ -147,23 +146,17 @@ abstract class Rotatable extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
     _yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
     updateTranslation()
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
     nbt.setInteger("pitch", _pitch.ordinal)
     nbt.setInteger("yaw", _yaw.ordinal)
-  }
-
-  override def validate() = {
-    super.validate()
-    if (worldObj.isRemote)
-      ClientPacketSender.sendRotatableStateRequest(this)
   }
 
   // ----------------------------------------------------------------------- //
@@ -174,19 +167,18 @@ abstract class Rotatable extends TileEntity {
     if (cachedTranslation != newTranslation) {
       cachedTranslation = newTranslation
       cachedInverseTranslation = invert(cachedTranslation)
-      if (worldObj != null && !worldObj.isRemote) {
-        ServerPacketSender.sendRotatableState(this)
+      if (world != null) {
+        onRotationChanged()
       }
-      onRotationChanged()
     }
   }
 
   /** Validates new values against the allowed rotations as set in our block. */
   private def trySetPitchYaw(pitch: ForgeDirection, yaw: ForgeDirection) = {
     var changed = false
-    val block = Block.blocksList(worldObj.getBlockId(xCoord, yCoord, zCoord))
+    val block = Block.blocksList(world.getBlockId(x, y, z))
     if (block != null) {
-      val valid = block.getValidRotations(worldObj, xCoord, yCoord, zCoord)
+      val valid = block.getValidRotations(world, x, y, z)
       if (valid.contains(pitch)) {
         changed = true
         _pitch = pitch

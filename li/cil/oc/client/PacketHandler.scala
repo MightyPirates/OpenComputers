@@ -70,7 +70,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateResponse(p: PacketParser) =
-    p.readTileEntity[Rotatable]() match {
+    p.readTileEntity[TileEntity with Rotatable]() match {
       case Some(t) =>
         t.pitch = p.readDirection()
         t.yaw = p.readDirection()

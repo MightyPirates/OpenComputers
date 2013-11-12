@@ -1,4 +1,5 @@
 oc.block.Adapter.name=Adapter
+oc.block.Cable.name=Kabel
 oc.block.Computer.name=Computer
 oc.block.DiskDrive.name=Diskettenlaufwerk
 oc.block.Keyboard.name=Tastatur

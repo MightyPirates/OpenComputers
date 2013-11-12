@@ -3,7 +3,7 @@ package li.cil.oc.client
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.{PowerDistributor, Computer, Rotatable, Screen}
+import li.cil.oc.common.tileentity.{Computer, PowerDistributor, Rotatable, Screen}
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 
@@ -32,7 +32,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRotatableStateRequest(t: Rotatable) {
+  def sendRotatableStateRequest(t: TileEntity with Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableStateRequest)
 
     pb.writeTileEntity(t)

@@ -1,25 +1,24 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Component, Visibility}
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Rotatable with Environment with ComponentInventory {
+class DiskDrive extends Environment with ComponentInventory with Rotatable {
   val node = api.Network.newNode(this, Visibility.None).create()
-
-  def world = worldObj
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
-    super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+  override def validate() = {
+    super.validate()
+    if (worldObj.isRemote) {
+      ClientPacketSender.sendRotatableStateRequest(this)
     }
   }
 
@@ -27,17 +26,21 @@ class DiskDrive extends Rotatable with Environment with ComponentInventory {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (node != null) node.load(nbt)
-    load(nbt)
+    super.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (node != null) node.save(nbt)
-    save(nbt)
+    super.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def onRotationChanged() {
+    if (!world.isRemote) {
+      ServerPacketSender.sendRotatableState(this)
+    }
+  }
 
   def getInvName = "oc.container.DiskDrive"
 

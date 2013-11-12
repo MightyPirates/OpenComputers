@@ -59,7 +59,7 @@ object PacketSender {
     }
   }
 
-  def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
+  def sendRotatableState(t: TileEntity with Rotatable, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)

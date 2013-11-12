@@ -4,6 +4,7 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.Rotatable
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
@@ -45,7 +46,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[tileentity.Rotatable]() match {
+    p.readTileEntity[TileEntity with Rotatable]() match {
       case Some(t) => PacketSender.sendRotatableState(t, Option(p.player))
       case _ => // Invalid packet.
     }

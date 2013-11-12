@@ -31,7 +31,7 @@ trait Delegate {
                               worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
 
   def getRenderColor = 0xFFFFFF
 
@@ -65,6 +65,8 @@ trait Delegate {
 
   def registerIcons(iconRegister: IconRegister) {}
 
+  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int)
+
   // ----------------------------------------------------------------------- //
 
   private val validRotations = Array(
@@ -78,6 +80,10 @@ trait SimpleDelegate extends Delegate {
   val parent: SimpleDelegator
 
   val blockId = parent.add(this)
+
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
+    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+  }
 }
 
 trait SpecialDelegate extends Delegate {
@@ -89,6 +95,10 @@ trait SpecialDelegate extends Delegate {
 
   def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
+    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+  }
+
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.isBlockOpaqueCube(x, y, z)
+    !world.isBlockOpaqueCube(x, y, z)
 }

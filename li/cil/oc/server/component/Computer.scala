@@ -6,10 +6,10 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import li.cil.oc
 import li.cil.oc.api
 import li.cil.oc.api.Persistable
 import li.cil.oc.api.network._
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -18,10 +18,6 @@ import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
-import net.minecraft.tileentity.TileEntity
-import net.minecraft.world.World
-import net.minecraftforge.event.ForgeSubscribe
-import net.minecraftforge.event.world.ChunkEvent
 import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.convert.WrapAsScala._
@@ -1205,7 +1201,7 @@ class Computer(val owner: Computer.Environment) extends Persistable with Runnabl
 
 object Computer {
 
-  trait Environment extends tileentity.Environment with oc.util.Persistable with Context {
+  abstract class Environment extends tileentity.Environment with Context with Analyzable {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("computer", Visibility.Neighbors).
       withConnector(Config.bufferComputer).
@@ -1213,17 +1209,48 @@ object Computer {
 
     val instance: Computer
 
-    def world: World
-
     def installedMemory: Int
 
-    /**
-     * Called when the computer state changed, so it should be saved again.
-     * <p/>
-     * This is called asynchronously from the Computer's executor thread, so the
-     * computer's owner must make sure to handle this in a synchronized fashion.
-     */
-    def markAsChanged(): Unit
+    // ----------------------------------------------------------------------- //
+
+    private var hasChanged = false
+
+    def markAsChanged() = hasChanged = true
+
+    // ----------------------------------------------------------------------- //
+
+    override def updateEntity() {
+      // If we're not yet in a network we were just loaded from disk. We skip
+      // the update this round to allow other tile entities to join the network,
+      // too, avoiding issues of missing nodes (e.g. in the GPU which would
+      // otherwise loose track of its screen).
+      if (!worldObj.isRemote && node != null && node.network != null) {
+        if (instance.isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
+          instance.lastError = "not enough power"
+          instance.stop()
+        }
+        instance.update()
+
+        if (hasChanged) {
+          hasChanged = false
+          worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+        }
+      }
+
+      super.updateEntity()
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    override def readFromNBT(nbt: NBTTagCompound) {
+      super.readFromNBT(nbt)
+      if (instance != null) instance.load(nbt)
+    }
+
+    override def writeToNBT(nbt: NBTTagCompound) {
+      super.writeToNBT(nbt)
+      if (instance != null) instance.save(nbt)
+    }
 
     // ----------------------------------------------------------------------- //
 
@@ -1232,6 +1259,18 @@ object Computer {
     def isUser(player: String) = instance.isUser(player)
 
     def signal(name: String, args: AnyRef*) = instance.signal(name, args: _*)
+
+    // ----------------------------------------------------------------------- //
+
+    def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+      if (instance != null) {
+        instance.lastError match {
+          case Some(value) => player.addChatMessage("Last error: " + value)
+          case _ =>
+        }
+      }
+      this
+    }
 
     // ----------------------------------------------------------------------- //
 
@@ -1280,6 +1319,7 @@ object Computer {
       if (node == this.node) {
         instance.rom.foreach(_.node.remove())
         instance.tmp.foreach(_.node.remove())
+        instance.stop()
       }
       else {
         node match {
@@ -1288,31 +1328,6 @@ object Computer {
         }
       }
     }
-
-    // ----------------------------------------------------------------------- //
-
-    override def load(nbt: NBTTagCompound) {
-      super.load(nbt)
-      if (node != null) node.load(nbt)
-      if (instance != null) instance.load(nbt)
-    }
-
-    override def save(nbt: NBTTagCompound) {
-      super.save(nbt)
-      if (node != null) node.save(nbt)
-      if (instance != null) instance.save(nbt)
-    }
-  }
-
-  @ForgeSubscribe
-  def onChunkUnload(e: ChunkEvent.Unload) =
-    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.map(_.asInstanceOf[TileEntity]))
-
-  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
-    tileEntities.
-      filter(_.isInstanceOf[tileentity.Computer]).
-      map(_.asInstanceOf[tileentity.Computer]).
-      foreach(_.turnOff())
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */

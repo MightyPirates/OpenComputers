@@ -1,17 +1,15 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
+import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
 
-trait ComponentInventory extends Inventory with Environment with Persistable {
+trait ComponentInventory extends Inventory with TileEntity with network.Environment with Persistable {
   protected val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
-
-  def world: World
 
   // ----------------------------------------------------------------------- //
 
@@ -25,7 +23,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
+  abstract override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
       for ((stack, slot) <- inventory.zipWithIndex collect {
@@ -48,7 +46,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
     }
   }
 
-  override def onDisconnect(node: Node) {
+  abstract override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
       components collect {

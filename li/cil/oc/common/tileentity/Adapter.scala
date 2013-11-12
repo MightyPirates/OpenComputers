@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
@@ -13,7 +12,7 @@ import scala.collection.mutable
 import scala.{Array, Some}
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Adapter extends Rotatable with Environment with IPeripheral {
+class Adapter extends Environment with IPeripheral {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -24,10 +23,6 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-      neighborChanged()
-    }
     for (block <- blocks) block match {
       case Some((environment, _)) => environment.update()
       case _ => // Empty.
@@ -115,7 +110,6 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    node.load(nbt)
 
     val blocksNbt = nbt.getTagList("oc.adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
@@ -132,7 +126,6 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    node.save(nbt)
 
     val blocksNbt = new NBTTagList()
     for (i <- 0 until blocks.length) {

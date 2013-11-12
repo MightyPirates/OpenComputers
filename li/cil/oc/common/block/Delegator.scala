@@ -9,9 +9,8 @@ import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.IBlockAccess
@@ -112,6 +111,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
+  override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
+
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.getRenderColor
@@ -147,12 +148,14 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => null
     }
 
-  override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world, x, y, z) match {
-      // TODO Rotate to world space if we have a Rotatable?
-      case Some(subBlock) => subBlock.getCollisionBoundingBoxFromPool(world, x, y, z)
-      case _ => super.getCollisionBoundingBoxFromPool(world, x, y, z)
-    }
+  override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) = {
+    setBlockBoundsBasedOnState(world, x, y, z)
+    super.getCollisionBoundingBoxFromPool(world, x, y, z)
+  }
+
+  override def setBlockBoundsForItemRender() {
+    setBlockBounds(0, 0, 0, 1, 1, 1)
+  }
 
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
@@ -334,6 +337,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
         true
       case _ => false
     }
+
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ =>
+    }
 }
 
 class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
@@ -349,9 +358,11 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
 
   override def renderAsNormalBlock = false
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
-      case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, ForgeDirection.getOrientation(side))
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = {
+    val direction = ForgeDirection.getOrientation(side)
+    subBlock(world.getBlockMetadata(x - direction.offsetX, y - direction.offsetY, z - direction.offsetZ)) match {
+      case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, direction)
       case _ => super.shouldSideBeRendered(world, x, y, z, side)
     }
+  }
 }

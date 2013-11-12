@@ -4,11 +4,9 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.common.tileentity.Keyboard
-import li.cil.oc.server.component.Computer
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
-import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -34,8 +32,6 @@ class Proxy {
     api.Driver.add(driver.RedstoneCard)
     api.Driver.add(driver.WirelessNetworkCard)
 
-    MinecraftForge.EVENT_BUS.register(Computer)
-    MinecraftForge.EVENT_BUS.register(network.Network)
     GameRegistry.registerPlayerTracker(Keyboard)
   }
 

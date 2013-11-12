@@ -4,7 +4,7 @@ import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.{tileentity, component}
 import li.cil.oc.util.{PackedColor, TextBuffer}
-import li.cil.oc.{Config, util, api}
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends Persistable {
@@ -111,7 +111,7 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val m
 
 object Screen {
 
-  trait Environment extends tileentity.Environment with util.Persistable {
+  trait Environment extends tileentity.Environment {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("screen").
       withConnector(Config.bufferScreen * (tier + 1)).
@@ -123,15 +123,13 @@ object Screen {
 
     // ----------------------------------------------------------------------- //
 
-    override def load(nbt: NBTTagCompound) = {
-      super.load(nbt)
-      if (node != null) node.load(nbt)
+    override def readFromNBT(nbt: NBTTagCompound) = {
+      super.readFromNBT(nbt)
       instance.load(nbt)
     }
 
-    override def save(nbt: NBTTagCompound) = {
-      super.save(nbt)
-      if (node != null) node.save(nbt)
+    override def writeToNBT(nbt: NBTTagCompound) = {
+      super.writeToNBT(nbt)
       instance.save(nbt)
     }
 

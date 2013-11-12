@@ -12,9 +12,6 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], "oc.power_converter")
   val unlocalizedName = "PowerConverter"
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.PowerConverter].unload()
-
   // ----------------------------------------------------------------------- //
 
   private val icons = Array.fill[Icon](6)(null)

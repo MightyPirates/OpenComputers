@@ -1,16 +1,14 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class PowerDistributor extends Rotatable with Environment {
+class PowerDistributor extends Environment {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   val connectors = mutable.Set.empty[Connector]
@@ -25,16 +23,15 @@ class PowerDistributor extends Rotatable with Environment {
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
     if (!worldObj.isRemote && connectors.exists(_.dirty))
       balance()
   }
 
   override def validate() {
     super.validate()
-    if (worldObj.isRemote) ClientPacketSender.sendPowerStateRequest(this)
+    if (worldObj.isRemote) {
+      ClientPacketSender.sendPowerStateRequest(this)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -76,18 +73,6 @@ class PowerDistributor extends Rotatable with Environment {
         case _ =>
       }
     }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super[Rotatable].readFromNBT(nbt)
-    node.load(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super[Rotatable].writeToNBT(nbt)
-    node.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //

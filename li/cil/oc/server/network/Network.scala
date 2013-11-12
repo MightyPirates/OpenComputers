@@ -6,11 +6,8 @@ import li.cil.oc.api
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import li.cil.oc.server.network.{Node => MutableNode}
 import net.minecraft.block.Block
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.event.ForgeSubscribe
-import net.minecraftforge.event.world.ChunkEvent
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -324,20 +321,6 @@ object Network extends api.detail.NetworkAPI {
       setVisibility(_visibility)
     }
     else null
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  @ForgeSubscribe
-  def onChunkUnload(e: ChunkEvent.Unload) =
-    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
-
-  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
-    // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
-    tileEntities.
-      filter(_.isInstanceOf[Environment]).
-      map(_.asInstanceOf[Environment]).
-      foreach(t => t.node.remove())
   }
 
   // ----------------------------------------------------------------------- //

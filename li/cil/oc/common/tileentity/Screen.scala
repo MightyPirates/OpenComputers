@@ -1,7 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
-import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Analyzable, Visibility}
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
@@ -27,7 +26,7 @@ class ScreenTier3 extends Screen {
   protected def tier = 2
 }
 
-abstract class Screen extends Rotatable with ScreenEnvironment with Analyzable {
+abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
   var currentGui: Option[gui.Screen] = None
 
   /**
@@ -73,36 +72,8 @@ abstract class Screen extends Rotatable with ScreenEnvironment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    super.load(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    super.save(nbt)
-  }
-
-  override def validate() {
-    super.validate()
-    if (worldObj.isRemote) ClientPacketSender.sendScreenBufferRequest(this)
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    if (currentGui.isDefined) Minecraft.getMinecraft.displayGuiScreen(null)
-    screens.clone().foreach(_.checkMultiBlock())
-  }
-
-  override def onRotationChanged() = screens.clone().foreach(_.checkMultiBlock())
-
-  // ----------------------------------------------------------------------- //
-
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
     if (shouldCheckForMultiBlock) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
@@ -156,6 +127,36 @@ abstract class Screen extends Rotatable with ScreenEnvironment with Analyzable {
       )
     }
   }
+
+  override def validate() {
+    super.validate()
+    if (worldObj.isRemote) {
+      ClientPacketSender.sendRotatableStateRequest(this)
+      ClientPacketSender.sendScreenBufferRequest(this)
+    }
+  }
+
+  override def invalidate() {
+    super.invalidate()
+    if (currentGui.isDefined) {
+      Minecraft.getMinecraft.displayGuiScreen(null)
+    }
+    screens.clone().foreach(_.checkMultiBlock())
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    super.load(nbt)
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    super.save(nbt)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   def checkMultiBlock() {
     shouldCheckForMultiBlock = true
@@ -230,6 +231,13 @@ abstract class Screen extends Rotatable with ScreenEnvironment with Analyzable {
   override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
 
   // ----------------------------------------------------------------------- //
+
+  override def onRotationChanged() {
+    if (!worldObj.isRemote) {
+      ServerPacketSender.sendRotatableState(this)
+    }
+    screens.clone().foreach(_.checkMultiBlock())
+  }
 
   override def onScreenColorChange(foreground: Int, background: Int) {
     super.onScreenColorChange(foreground, background)

@@ -4,11 +4,9 @@ import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
@@ -16,7 +14,7 @@ import universalelectricity.core.electricity.ElectricityPack
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
-class PowerConverter extends Rotatable with Environment with IEnergySink with IPowerReceptor with IElectrical {
+class PowerConverter extends Environment with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Config.bufferConverter).
     create()
@@ -36,9 +34,6 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
     if (!worldObj.isRemote) {
       if (Loader.isModLoaded("IC2")) {
         loadIC2()
@@ -51,10 +46,13 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    unload()
+    if (Loader.isModLoaded("IC2")) {
+      unloadIC2()
+    }
   }
 
-  def unload() {
+  override def invalidate() {
+    super.invalidate()
     if (Loader.isModLoaded("IC2")) {
       unloadIC2()
     }
@@ -64,18 +62,16 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (node != null) node.load(nbt)
-
-    if (Loader.isModLoaded("BuildCraft|Energy"))
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
       getPowerProvider.readFromNBT(nbt)
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (node != null) node.save(nbt)
-
-    if (Loader.isModLoaded("BuildCraft|Energy"))
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
       getPowerProvider.writeToNBT(nbt)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -102,13 +98,13 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
   }
 
   @Optional.Method(modid = "IC2")
-  override def acceptsEnergyFrom(emitter: TileEntity, direction: ForgeDirection) = true
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = true
 
   @Optional.Method(modid = "IC2")
-  override def getMaxSafeInput = Integer.MAX_VALUE
+  def getMaxSafeInput = Integer.MAX_VALUE
 
   @Optional.Method(modid = "IC2")
-  override def demandedEnergyUnits = {
+  def demandedEnergyUnits = {
     // We try to avoid requesting energy when we need less than what we get with
     // a single packet. However, if our buffer gets dangerously low we will ask
     // for energy even if there's the danger of wasting some energy.
@@ -118,7 +114,7 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
   }
 
   @Optional.Method(modid = "IC2")
-  override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
+  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
     lastPacketSize = amount
     node.changeBuffer(amount * ratioIndustrialCraft)
     0

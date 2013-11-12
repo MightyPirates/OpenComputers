@@ -15,6 +15,7 @@ object Blocks {
 
   var adapter: Adapter = null
   var diskDrive: DiskDrive = null
+  var cable: Cable = null
 
   def init() {
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -30,6 +31,7 @@ object Blocks {
     screen3 = new ScreenTier3(blockSimple)
 
     keyboard = new Keyboard(blockSpecial)
+    cable = new Cable(blockSpecial)
 
     powerSupply = new PowerConverter(blockSimple)
     powerDistributor = new PowerDistributor(blockSimple)
