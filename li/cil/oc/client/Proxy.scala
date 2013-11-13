@@ -6,7 +6,7 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.OpenComputers
-import li.cil.oc.client.renderer.tileentity.{CableRenderer, PowerDistributorRenderer, ScreenRenderer, ComputerRenderer}
+import li.cil.oc.client.renderer.tileentity.{CableRenderer, PowerDistributorRenderer, ScreenRenderer, CaseRenderer}
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import net.minecraftforge.common.MinecraftForge
@@ -18,7 +18,7 @@ private[oc] class Proxy extends CommonProxy {
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)
-    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Computer], ComputerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 

@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -10,8 +9,6 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], "oc.disk_drive")
-
   val unlocalizedName = "DiskDrive"
 
   // ----------------------------------------------------------------------- //
@@ -21,7 +18,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 
     icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":disk_drive_side")

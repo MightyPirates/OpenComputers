@@ -13,7 +13,7 @@ trait ComponentInventory extends Inventory with TileEntity with network.Environm
 
   // ----------------------------------------------------------------------- //
 
-  def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (stack match {
+  def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.driverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
@@ -26,7 +26,7 @@ trait ComponentInventory extends Inventory with TileEntity with network.Environm
   abstract override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      for ((stack, slot) <- inventory.zipWithIndex collect {
+      for ((stack, slot) <- items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
       } if components(slot).isEmpty) {
         components(slot) = Registry.driverFor(stack) match {
@@ -58,7 +58,7 @@ trait ComponentInventory extends Inventory with TileEntity with network.Environm
   // ----------------------------------------------------------------------- //
 
   override def save(nbt: NBTTagCompound) = {
-    inventory.zipWithIndex collect {
+    items.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
     } foreach {
       case (stack, slot) => components(slot) match {

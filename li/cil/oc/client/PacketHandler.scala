@@ -2,15 +2,15 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.{PowerDistributor, Computer, Rotatable, Screen}
+import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.server.component.Redstone
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
+import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -44,7 +44,7 @@ class PacketHandler extends CommonPacketHandler {
   }
 
   def onComputerStateResponse(p: PacketParser) =
-    p.readTileEntity[Computer]() match {
+    p.readTileEntity[Case]() match {
       case Some(t) => {
         t.isOn = p.readBoolean()
       }

@@ -1,167 +1,137 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Loader
-import li.cil.oc.api.driver.Slot
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.api.network._
 import li.cil.oc.server.component
-import li.cil.oc.server.component.Computer.{Environment => ComputerEnvironment}
-import li.cil.oc.server.component.Redstone
-import li.cil.oc.server.driver
-import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import mods.immibis.redlogic.api.wiring.IBundledEmitter
+import li.cil.oc.{Config, api}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import scala.Some
 
-class Computer(isClient: Boolean) extends ComputerEnvironment with ComponentInventory with Rotatable with Redstone {
-  def this() = this(false)
+abstract class Computer extends Environment with Context with Analyzable {
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("computer", Visibility.Neighbors).
+    withConnector(Config.bufferComputer).
+    create()
+
+  val instance: component.Computer
+
+  def installedMemory: Int
 
   // ----------------------------------------------------------------------- //
 
-  val instance = if (isClient) null else new component.Computer(this)
+  private var hasChanged = false
 
-  private var isRunning = false
-
-  // ----------------------------------------------------------------------- //
-
-  def turnOn() = instance.start()
-
-  def turnOff() = instance.stop()
-
-  def isOn = isRunning
-
-  def isOn_=(value: Boolean) = {
-    isRunning = value
-    worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
-    this
-  }
+  def markAsChanged() = hasChanged = true
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    super.updateEntity()
-    if (!worldObj.isRemote) {
-      if (isRunning != instance.isRunning) {
-        isOutputEnabled = hasRedstoneCard && instance.isRunning
-        ServerPacketSender.sendComputerState(this, instance.isRunning)
+    // If we're not yet in a network we were just loaded from disk. We skip
+    // the update this round to allow other tile entities to join the network,
+    // too, avoiding issues of missing nodes (e.g. in the GPU which would
+    // otherwise loose track of its screen).
+    if (!worldObj.isRemote && node != null && node.network != null) {
+      if (instance.isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
+        instance.lastError = "not enough power"
+        instance.stop()
       }
-      isRunning = instance.isRunning
-      updateRedstoneInput()
+      instance.update()
+
+      if (hasChanged) {
+        hasChanged = false
+        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+      }
     }
 
-    for (component <- components) component match {
-      case Some(environment) => environment.update()
-      case _ => // Empty.
-    }
-  }
-
-  override def validate() = {
-    super.validate()
-    if (worldObj.isRemote) {
-      ClientPacketSender.sendRotatableStateRequest(this)
-      ClientPacketSender.sendComputerStateRequest(this)
-      ClientPacketSender.sendRedstoneStateRequest(this)
-    }
+    super.updateEntity()
   }
 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    super.load(nbt)
-    instance.recomputeMemory()
+    if (instance != null) instance.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    super.save(nbt)
+    if (instance != null) instance.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = "oc.container.Computer"
+  def address = node.address
 
-  def getSizeInventory = 8
+  def isUser(player: String) = instance.isUser(player)
 
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
-    case (_, None) => false // Invalid item.
-    case (0, Some(driver)) => driver.slot(item) == Slot.Power
-    case (1 | 2 | 3, Some(driver)) => driver.slot(item) == Slot.Card
-    case (4 | 5, Some(driver)) => driver.slot(item) == Slot.Memory
-    case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
-    case _ => false // Invalid slot.
+  def signal(name: String, args: AnyRef*) = instance.signal(name, args: _*)
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (instance != null) {
+      instance.lastError match {
+        case Some(value) => player.addChatMessage("Last error: " + value)
+        case _ =>
+      }
+    }
+    this
   }
 
-  override def isUseableByPlayer(player: EntityPlayer) =
-    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
-      player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
+  // ----------------------------------------------------------------------- //
 
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
-    if (!worldObj.isRemote) {
-      instance.recomputeMemory()
-      isOutputEnabled = hasRedstoneCard && instance.isRunning
+  @LuaCallback("start")
+  def start(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(instance.start()))
+
+  @LuaCallback("stop")
+  def stop(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(instance.stop()))
+
+  @LuaCallback("isRunning")
+  def isRunning(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(instance.isRunning))
+
+  // ----------------------------------------------------------------------- //
+
+  override def onMessage(message: Message) = {
+    super.onMessage(message)
+    message.data match {
+      case Array(name: String, args@_*) if message.name == "computer.signal" =>
+        instance.signal(name, Seq(message.source.address) ++ args: _*)
+      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
+        if (isUser(player.getCommandSenderName))
+          instance.signal(name, Seq(message.source.address) ++ args: _*)
+      case _ =>
     }
   }
 
-  // ----------------------------------------------------------------------- //
-
-  def canConnectRedstone(side: ForgeDirection) = isOutputEnabled
-
-  override def computeInput(side: ForgeDirection) = {
-    val global = toGlobal(side)
-    worldObj.getIndirectPowerLevelTo(
-      xCoord + global.offsetX,
-      yCoord + global.offsetY,
-      zCoord + global.offsetZ,
-      global.ordinal())
-  }
-
-  protected def computeBundledInput(side: ForgeDirection) = {
-    val global = toGlobal(side)
-    if (Loader.isModLoaded("RedLogic")) {
-      worldObj.getBlockTileEntity(
-        xCoord + global.offsetX,
-        yCoord + global.offsetY,
-        zCoord + global.offsetZ) match {
-        case emitter: IBundledEmitter =>
-          var strength: Array[Byte] = null
-          for (i <- -1 to 5 if strength == null) {
-            strength = emitter.getBundledCableStrength(i, global.getOpposite.ordinal())
-          }
-          strength
-        case _ => null
-      }
-    } else null
-  }
-
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
-    super.onRedstoneInputChanged(side)
-    instance.signal("redstone_changed", side.ordinal())
-  }
-
-  override protected def onRedstoneOutputChanged(side: ForgeDirection) {
-    super.onRedstoneOutputChanged(side)
-    if (side == ForgeDirection.UNKNOWN) {
-      worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord,
-        getBlockType.blockID)
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      instance.rom.foreach(rom => node.connect(rom.node))
+      instance.tmp.foreach(tmp => node.connect(tmp.node))
     }
     else {
-      val global = toGlobal(side)
-      worldObj.notifyBlockOfNeighborChange(
-        xCoord + global.offsetX,
-        yCoord + global.offsetY,
-        zCoord + global.offsetZ,
-        getBlockType.blockID)
+      node match {
+        case component: Component => instance.addComponent(component)
+        case _ =>
+      }
     }
-    if (!worldObj.isRemote) ServerPacketSender.sendRedstoneState(this)
-    else worldObj.markBlockForRenderUpdate(xCoord, yCoord, zCoord)
   }
 
-  private def hasRedstoneCard = inventory.exists {
-    case Some(item) => driver.RedstoneCard.worksWith(item)
-    case _ => false
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      instance.rom.foreach(_.node.remove())
+      instance.tmp.foreach(_.node.remove())
+      instance.stop()
+    }
+    else {
+      node match {
+        case component: Component => instance.removeComponent(component)
+        case _ =>
+      }
+    }
   }
 }

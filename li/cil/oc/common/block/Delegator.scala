@@ -32,13 +32,11 @@ import scala.collection.mutable
  * sides are also translated into local coordinate space for the sub block
  * (i.e. "up" will always be up relative to the block itself. So if it's
  * rotated up may actually be west).
- * - Component network logic for adding / removing blocks from the component
- * network when they are placed / removed.
  */
-class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
+class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerBlock(this, classOf[Item], "oc.block." + id)
+  GameRegistry.registerBlock(this, classOf[Item], Config.namespace + "block_" + name)
 
   // ----------------------------------------------------------------------- //
   // SubBlock
@@ -201,7 +199,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.unlocalizedName
-      case _ => "oc.block"
+      case _ => Config.namespace + "block"
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
@@ -345,9 +343,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 }
 
-class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
+class SimpleDelegator(id: Int, name: String) extends Delegator[SimpleDelegate](id, name)
 
-class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
+class SpecialDelegator(id: Int, name: String) extends Delegator[SpecialDelegate](id, name) {
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case Some(subBlock) => subBlock.isBlockSolid(world, x, y, z, ForgeDirection.getOrientation(side))

@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.Optional
 import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.common.tileentity.Redstone
 import net.minecraftforge.common.ForgeDirection
 
 class RedstoneCard(val owner: Redstone) extends ManagedComponent {
@@ -54,8 +55,8 @@ class RedstoneCard(val owner: Redstone) extends ManagedComponent {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     val value = args.checkInteger(2) max 0 min 255
-    owner.output(ForgeDirection.getOrientation(side), value.toShort)
-    result(owner.bundledOutput(ForgeDirection.getOrientation(side), color, value.toShort))
+    owner.bundledOutput(ForgeDirection.getOrientation(side), color, value.toShort)
+    result(owner.bundledOutput(ForgeDirection.getOrientation(side), color))
   }
 
   // ----------------------------------------------------------------------- //

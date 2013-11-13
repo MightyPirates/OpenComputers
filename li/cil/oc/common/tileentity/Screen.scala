@@ -4,7 +4,7 @@ import li.cil.oc.Config
 import li.cil.oc.api.network.{Analyzable, Visibility}
 import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component.Screen.{Environment => ScreenEnvironment}
+import li.cil.oc.common.component.Buffer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.Minecraft
@@ -14,19 +14,9 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class ScreenTier1 extends Screen {
-  protected def tier = 0
-}
+class Screen(var tier: Int) extends Environment with Buffer.Environment with Rotatable with Analyzable {
+  def this() = this(0)
 
-class ScreenTier2 extends Screen {
-  protected def tier = 1
-}
-
-class ScreenTier3 extends Screen {
-  protected def tier = 2
-}
-
-abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
   var currentGui: Option[gui.Screen] = None
 
   /**
@@ -42,13 +32,6 @@ abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
    * update to avoid unnecessary checks on chunk unload.
    */
   private var shouldCheckForMultiBlock = true
-
-  private val ordering = new Ordering[Screen] {
-    def compare(a: Screen, b: Screen) =
-      if (a.xCoord != b.xCoord) a.xCoord - b.xCoord
-      else if (a.yCoord != b.yCoord) a.yCoord - b.yCoord
-      else a.zCoord - b.zCoord
-  }
 
   var width, height = 1
 
@@ -79,9 +62,7 @@ abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
       // different results on server and client due to the update order
       // differing between the two. This also saves us from having to save
       // any multi-block specific state information.
-      // We use a very primitive hash for the coordinates, which should be
-      // good enough for... "normal" screen sizes.
-      val pending = mutable.SortedSet(this)(ordering)
+      val pending = mutable.SortedSet(this)(Screen.ordering)
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
@@ -144,14 +125,18 @@ abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
     screens.clone().foreach(_.checkMultiBlock())
   }
 
+  override def onChunkUnload() = super.onChunkUnload()
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
+    tier = nbt.getByte(Config.namespace + "screen.tier")
     super.readFromNBT(nbt)
     super.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
+    nbt.setByte(Config.namespace + "screen.tier", tier.toByte)
     super.writeToNBT(nbt)
     super.save(nbt)
   }
@@ -301,5 +286,14 @@ abstract class Screen extends ScreenEnvironment with Rotatable with Analyzable {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenSet(this, col, row, s)
     }
+  }
+}
+
+object Screen {
+  val ordering = new Ordering[Screen] {
+    def compare(a: Screen, b: Screen) =
+      if (a.xCoord != b.xCoord) a.xCoord - b.xCoord
+      else if (a.yCoord != b.yCoord) a.yCoord - b.yCoord
+      else a.zCoord - b.zCoord
   }
 }

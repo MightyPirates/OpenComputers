@@ -14,16 +14,18 @@ class HardDiskDrive(val parent: Delegator, val megaBytes: Int) extends Delegate 
 
     if (item.hasTagCompound) {
       val nbt = item.getTagCompound
-      if (nbt.hasKey("oc.fs.label"))
-        tooltip.add(nbt.getString("oc.fs.label"))
-      if (nbt.hasKey("oc.node")) {
-        val nodeNbt = nbt.getCompoundTag("oc.node")
-        if (nodeNbt.hasKey("oc.node.address"))
-          tooltip.add(nodeNbt.getString("oc.node.address"))
-        if (advanced && nodeNbt.hasKey("fs")) {
-          val fsNbt = nodeNbt.getCompoundTag("fs")
-          if (fsNbt.hasKey("oc.capacity.used")) {
-            val used = fsNbt.getLong("oc.capacity.used")
+      if (nbt.hasKey(Config.namespace + "data")) {
+        val data = nbt.getCompoundTag(Config.namespace + "data")
+        if (data.hasKey(Config.namespace + "fs.label")) {
+          tooltip.add(data.getString(Config.namespace + "fs.label"))
+        }
+        if (data.hasKey(Config.namespace + "node.address")) {
+          tooltip.add(data.getString(Config.namespace + "node.address"))
+        }
+        if (advanced && data.hasKey("fs")) {
+          val fsNbt = data.getCompoundTag("fs")
+          if (fsNbt.hasKey("capacity.used")) {
+            val used = fsNbt.getLong("capacity.used")
             tooltip.add("Disk usage: %d/%d Byte".format(used, megaBytes * 1024 * 1024))
           }
         }

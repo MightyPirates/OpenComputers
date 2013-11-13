@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -81,13 +81,11 @@ class NetworkCard extends ManagedComponent {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.net.openPorts")) {
-      val openPortsNbt = nbt.getTagList("oc.net.openPorts")
-      (0 until openPortsNbt.tagCount).
-        map(openPortsNbt.tagAt).
-        map(_.asInstanceOf[NBTTagInt]).
-        foreach(portNbt => openPorts.add(portNbt.data))
-    }
+    val openPortsNbt = nbt.getTagList(Config.namespace + "modem.openPorts")
+    (0 until openPortsNbt.tagCount).
+      map(openPortsNbt.tagAt).
+      map(_.asInstanceOf[NBTTagInt]).
+      foreach(portNbt => openPorts.add(portNbt.data))
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -95,7 +93,7 @@ class NetworkCard extends ManagedComponent {
     val openPortsNbt = new NBTTagList()
     for (port <- openPorts)
       openPortsNbt.appendTag(new NBTTagInt(null, port))
-    nbt.setTag("oc.net.openPorts", openPortsNbt)
+    nbt.setTag(Config.namespace + "modem.openPorts", openPortsNbt)
   }
 
   // ----------------------------------------------------------------------- //

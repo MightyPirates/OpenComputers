@@ -1,19 +1,20 @@
 package li.cil.oc.server.driver
 
 import li.cil.oc.common.item
-import li.cil.oc.{Items, api}
+import li.cil.oc.{Config, Items, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends api.driver.Item {
   def nbt(item: ItemStack) = {
-    if (!item.hasTagCompound)
+    if (!item.hasTagCompound) {
       item.setTagCompound(new NBTTagCompound())
-    val nbt = item.getTagCompound
-    if (!nbt.hasKey("oc.node")) {
-      nbt.setCompoundTag("oc.node", new NBTTagCompound())
     }
-    nbt.getCompoundTag("oc.node")
+    val nbt = item.getTagCompound
+    if (!nbt.hasKey(Config.namespace + "data")) {
+      nbt.setCompoundTag(Config.namespace + "data", new NBTTagCompound())
+    }
+    nbt.getCompoundTag(Config.namespace + "data")
   }
 
   protected def isOneOf(stack: ItemStack, items: item.Delegate*) =

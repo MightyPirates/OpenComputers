@@ -5,6 +5,7 @@ import li.cil.oc.util.PackedColor
 
 object Config {
   val resourceDomain = "opencomputers"
+  val namespace = "oc:"
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
 

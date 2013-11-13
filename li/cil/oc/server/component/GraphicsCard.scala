@@ -1,9 +1,9 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.Screen
+import li.cil.oc.common.component.Buffer
 import li.cil.oc.util.PackedColor
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
@@ -14,13 +14,13 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
 
   private var screenAddress: Option[String] = None
 
-  private var screenInstance: Option[Screen] = None
+  private var screenInstance: Option[Buffer] = None
 
-  private def screen(f: (Screen) => Array[AnyRef]) = this.synchronized {
+  private def screen(f: (Buffer) => Array[AnyRef]) = this.synchronized {
     if (screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[Screen.Environment] =>
-          screenInstance = Some(node.host.asInstanceOf[Screen.Environment].instance)
+        case Some(node: Node) if node.host.isInstanceOf[Buffer.Environment] =>
+          screenInstance = Some(node.host.asInstanceOf[Buffer.Environment].instance)
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -43,7 +43,7 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Screen.Environment] =>
+      case node: Node if node.host.isInstanceOf[Buffer.Environment] =>
         screenAddress = Option(address)
         screenInstance = None
         screen(s => {
@@ -192,15 +192,16 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.gpu.screen")) {
-      screenAddress = Some(nbt.getString("oc.gpu.screen"))
+    if (nbt.hasKey(Config.namespace + "gpu.screen")) {
+      screenAddress = Some(nbt.getString(Config.namespace + "gpu.screen"))
       screenInstance = None
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    if (screenAddress.isDefined)
-      nbt.setString("oc.gpu.screen", screenAddress.get)
+    if (screenAddress.isDefined) {
+      nbt.setString(Config.namespace + "gpu.screen", screenAddress.get)
+    }
   }
 }

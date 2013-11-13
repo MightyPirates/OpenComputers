@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Component, Visibility}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.{Config, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -42,7 +42,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable {
     }
   }
 
-  def getInvName = "oc.container.DiskDrive"
+  def getInvName = Config.namespace + "container.DiskDrive"
 
   def getSizeInventory = 1
 

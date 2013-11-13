@@ -57,7 +57,7 @@ object FileSystem extends Item {
   }
 
   private def addressFromTag(tag: NBTTagCompound) =
-    if (tag.hasKey("oc.node.address")) tag.getString("oc.node.address")
+    if (tag.hasKey(Config.namespace + "node.address")) tag.getString(Config.namespace + "node.address")
     else java.util.UUID.randomUUID().toString
 
   private class ComputerCraftLabel(val item: ItemStack) extends Label {
@@ -72,13 +72,12 @@ object FileSystem extends Item {
 
   private class ItemLabel(val item: ItemStack) extends Label {
     def getLabel =
-      if (item.hasTagCompound && item.getTagCompound.hasKey("oc.fs.label"))
-        item.getTagCompound.getString("oc.fs.label")
+      if (nbt(item).hasKey(Config.namespace + "fs.label"))
+        nbt(item).getString(Config.namespace + "fs.label")
       else null
 
     def setLabel(value: String) {
-      if (!item.hasTagCompound) item.setTagCompound(new NBTTagCompound())
-      item.getTagCompound.setString("oc.fs.label",
+      nbt(item).setString(Config.namespace + "fs.label",
         if (value.length > 16) value.substring(0, 16) else value)
     }
   }

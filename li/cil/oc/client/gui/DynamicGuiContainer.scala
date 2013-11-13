@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.inventory.{Container, Slot}
 import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.opengl.GL11
-import li.cil.oc.util.RenderState
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
   protected val slotBackground = new ResourceLocation(Config.resourceDomain, "textures/gui/slot.png")

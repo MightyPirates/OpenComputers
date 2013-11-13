@@ -3,12 +3,11 @@ package li.cil.oc.client
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.{Computer, PowerDistributor, Rotatable, Screen}
-import li.cil.oc.server.component.Redstone
+import li.cil.oc.common.tileentity._
 import net.minecraft.tileentity.TileEntity
 
 object PacketSender {
-  def sendComputerStateRequest(t: Computer) {
+  def sendComputerStateRequest(t: Case) {
     val pb = new PacketBuilder(PacketType.ComputerStateRequest)
 
     pb.writeTileEntity(t)

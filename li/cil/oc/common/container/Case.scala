@@ -7,7 +7,7 @@ import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
-class Computer(playerInventory: InventoryPlayer, computer: tileentity.Computer) extends Player(playerInventory, computer) {
+class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends Player(playerInventory, computer) {
   addSlotToContainer(new Slot(computer, getInventory.size, 58, 17) {
     setBackgroundIcon(Icons.bySlotType(api.driver.Slot.Power))
 

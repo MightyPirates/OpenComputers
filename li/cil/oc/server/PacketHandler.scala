@@ -4,9 +4,8 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.common.tileentity.{Redstone, Rotatable}
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.server.component.Redstone
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.DimensionManager
 
@@ -28,7 +27,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[tileentity.Computer]() match {
+    p.readTileEntity[tileentity.Case]() match {
       case Some(t) => PacketSender.sendComputerState(t, t.isOn, Option(p.player))
       case _ => // Invalid packet.
     }

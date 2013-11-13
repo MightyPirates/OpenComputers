@@ -1,14 +1,17 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.common.{tileentity, component}
-import li.cil.oc.util.{PackedColor, TextBuffer}
-import li.cil.oc.{Config, api}
+import li.cil.oc.common.component
+import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
+import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
 
-class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends Persistable {
-  val buffer = new TextBuffer(maxResolution, PackedColor.Depth.OneBit)
+class Buffer(val owner: Buffer.Environment) extends Persistable {
+  val buffer = new TextBuffer(maxResolution, maxDepth)
+
+  def maxResolution = Config.screenResolutionsByTier(owner.tier)
+
+  def maxDepth = Config.screenDepthsByTier(owner.tier)
 
   // ----------------------------------------------------------------------- //
 
@@ -94,13 +97,13 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val m
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
-    buffer.load(nbt.getCompoundTag("oc.screen"))
+    buffer.load(nbt.getCompoundTag(Config.namespace + "screen"))
   }
 
   override def save(nbt: NBTTagCompound) = {
     val screenNbt = new NBTTagCompound
     buffer.save(screenNbt)
-    nbt.setCompoundTag("oc.screen", screenNbt)
+    nbt.setCompoundTag(Config.namespace + "screen", screenNbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -109,27 +112,27 @@ class Screen(val owner: Screen.Environment, val maxResolution: (Int, Int), val m
     owner.node == null || owner.node.changeBuffer(-n * cost)
 }
 
-object Screen {
+object Buffer {
 
-  trait Environment extends tileentity.Environment {
+  trait Environment extends api.network.Environment with Persistable {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("screen").
       withConnector(Config.bufferScreen * (tier + 1)).
       create()
 
-    final val instance = new component.Screen(this, Config.screenResolutionsByTier(tier), Config.screenDepthsByTier(tier))
+    final val instance = new component.Buffer(this)
 
-    protected def tier: Int
+    def tier: Int
 
     // ----------------------------------------------------------------------- //
 
-    override def readFromNBT(nbt: NBTTagCompound) = {
-      super.readFromNBT(nbt)
+    override def load(nbt: NBTTagCompound) = {
+      super.load(nbt)
       instance.load(nbt)
     }
 
-    override def writeToNBT(nbt: NBTTagCompound) = {
-      super.writeToNBT(nbt)
+    override def save(nbt: NBTTagCompound) = {
+      super.save(nbt)
       instance.save(nbt)
     }
 

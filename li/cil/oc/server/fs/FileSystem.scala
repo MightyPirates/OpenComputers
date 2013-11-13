@@ -44,10 +44,8 @@ object FileSystem extends api.detail.FileSystemAPI {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Config.savePath + root)
     path.mkdirs()
     if (path.exists() && path.isDirectory) {
-      if (buffered)
-        new BufferedFileSystem(path, capacity)
-      else
-        new ReadWriteFileSystem(path, capacity)
+      if (buffered) new BufferedFileSystem(path, capacity)
+      else new ReadWriteFileSystem(path, capacity)
     }
     else null
   }

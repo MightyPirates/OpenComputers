@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.registry.GameRegistry
 import java.util
-import li.cil.oc.CreativeTab
+import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -15,7 +15,7 @@ class Delegator(id: Int) extends Item(id) {
   setMaxStackSize(1)
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerItem(this, "oc.item." + id)
+  GameRegistry.registerItem(this, Config.namespace + "item")
 
   // ----------------------------------------------------------------------- //
   // SubItem
@@ -75,11 +75,11 @@ class Delegator(id: Int) extends Item(id) {
 
   override def getUnlocalizedName(item: ItemStack): String =
     subItem(item) match {
-      case Some(subItem) => "oc.item." + subItem.unlocalizedName
+      case Some(subItem) => Config.namespace + "item." + subItem.unlocalizedName
       case _ => getUnlocalizedName
     }
 
-  override def getUnlocalizedName: String = "oc.item"
+  override def getUnlocalizedName: String = Config.namespace + "item"
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 

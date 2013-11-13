@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Config
 import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.IInventory
@@ -8,11 +9,11 @@ import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraft.world.World
 
 trait Inventory extends IInventory with Persistable {
-  protected val inventory = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+  protected val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
 
-  def getStackInSlot(i: Int) = inventory(i).orNull
+  def getStackInSlot(i: Int) = items(i).orNull
 
-  def decrStackSize(slot: Int, amount: Int) = inventory(slot) match {
+  def decrStackSize(slot: Int, amount: Int) = items(slot) match {
     case Some(stack) if stack.stackSize <= amount =>
       setInventorySlotContents(slot, null)
       stack
@@ -24,15 +25,15 @@ trait Inventory extends IInventory with Persistable {
   }
 
   def setInventorySlotContents(slot: Int, item: ItemStack) = {
-    if (inventory(slot).isDefined)
-      onItemRemoved(slot, inventory(slot).get)
+    if (items(slot).isDefined)
+      onItemRemoved(slot, items(slot).get)
 
-    inventory(slot) = Option(item)
+    items(slot) = Option(item)
     if (item != null && item.stackSize > getInventoryStackLimit)
       item.stackSize = getInventoryStackLimit
 
-    if (inventory(slot).isDefined)
-      onItemAdded(slot, inventory(slot).get)
+    if (items(slot).isDefined)
+      onItemAdded(slot, items(slot).get)
 
     onInventoryChanged()
   }
@@ -48,7 +49,7 @@ trait Inventory extends IInventory with Persistable {
   def dropContent(world: World, x: Int, y: Int, z: Int) {
     val rng = world.rand
     for (slot <- 0 until getSizeInventory) {
-      inventory(slot) match {
+      items(slot) match {
         case Some(stack) if stack.stackSize > 0 =>
           setInventorySlotContents(slot, null)
           val (tx, ty, tz) = (0.25 + (rng.nextDouble() * 0.5), 0.25 + (rng.nextDouble() * 0.5), 0.25 + (rng.nextDouble() * 0.5))
@@ -64,13 +65,13 @@ trait Inventory extends IInventory with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    val inventoryNbt = nbt.getTagList("oc.inventory.list")
+    val inventoryNbt = nbt.getTagList(Config.namespace + "inventory.items")
     for (i <- 0 until inventoryNbt.tagCount) {
       val slotNbt = inventoryNbt.tagAt(i).asInstanceOf[NBTTagCompound]
       val slot = slotNbt.getByte("slot")
-      if (slot >= 0 && slot < inventory.length) {
+      if (slot >= 0 && slot < items.length) {
         val item = ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item"))
-        inventory(slot) = Some(item)
+        items(slot) = Some(item)
       }
     }
   }
@@ -78,7 +79,7 @@ trait Inventory extends IInventory with Persistable {
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     val inventoryNbt = new NBTTagList()
-    inventory.zipWithIndex collect {
+    items.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
     } foreach {
       case (stack, slot) => {
@@ -90,7 +91,7 @@ trait Inventory extends IInventory with Persistable {
         inventoryNbt.appendTag(slotNbt)
       }
     }
-    nbt.setTag("oc.inventory.list", inventoryNbt)
+    nbt.setTag(Config.namespace + "inventory.items", inventoryNbt)
   }
 
   protected def onItemAdded(slot: Int, item: ItemStack) {}

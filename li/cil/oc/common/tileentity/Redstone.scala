@@ -1,7 +1,8 @@
-package li.cil.oc.server.component
+package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Interface
+import li.cil.oc.Config
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
@@ -102,17 +103,17 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    val inputNbt = nbt.getTagList("oc.rs.input")
+    val inputNbt = nbt.getTagList(Config.namespace + "redstone.input")
     for (i <- 0 until (_input.length min inputNbt.tagCount)) {
       _input(i) = inputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
     }
 
-    val outputNbt = nbt.getTagList("oc.rs.output")
+    val outputNbt = nbt.getTagList(Config.namespace + "redstone.output")
     for (i <- 0 until (_output.length min outputNbt.tagCount)) {
       _output(i) = outputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
     }
 
-    val bundledInputNbt = nbt.getTagList("oc.rs.bundledInput")
+    val bundledInputNbt = nbt.getTagList(Config.namespace + "redstone.bundledInput")
     for (i <- 0 until (_bundledInput.length min bundledInputNbt.tagCount)) {
       val bundleNbt = bundledInputNbt.tagAt(i).asInstanceOf[NBTTagList]
       for (j <- 0 until (_bundledInput(i).length min bundleNbt.tagCount())) {
@@ -120,7 +121,7 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
       }
     }
 
-    val bundledOutputNbt = nbt.getTagList("oc.rs.bundledOutput")
+    val bundledOutputNbt = nbt.getTagList(Config.namespace + "redstone.bundledOutput")
     for (i <- 0 until (_bundledOutput.length min bundledOutputNbt.tagCount)) {
       val bundleNbt = bundledOutputNbt.tagAt(i).asInstanceOf[NBTTagList]
       for (j <- 0 until (_bundledOutput(i).length min bundleNbt.tagCount())) {
@@ -136,13 +137,13 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
     for (i <- 0 until _input.length) {
       inputNbt.appendTag(new NBTTagByte(null, _input(i)))
     }
-    nbt.setTag("oc.rs.input", inputNbt)
+    nbt.setTag(Config.namespace + "redstone.input", inputNbt)
 
     val outputNbt = new NBTTagList()
     for (i <- 0 until _output.length) {
       outputNbt.appendTag(new NBTTagByte(null, _output(i)))
     }
-    nbt.setTag("oc.rs.output", outputNbt)
+    nbt.setTag(Config.namespace + "redstone.output", outputNbt)
 
     val bundledInputNbt = new NBTTagList()
     for (i <- 0 until _bundledInput.length) {
@@ -152,7 +153,7 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
       }
       bundledInputNbt.appendTag(bundleNbt)
     }
-    nbt.setTag("oc.rs.bundledInput", bundledInputNbt)
+    nbt.setTag(Config.namespace + "redstone.bundledInput", bundledInputNbt)
 
     val bundledOutputNbt = new NBTTagList()
     for (i <- 0 until _bundledOutput.length) {
@@ -162,7 +163,7 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
       }
       bundledOutputNbt.appendTag(bundleNbt)
     }
-    nbt.setTag("oc.rs.bundledOutput", bundledOutputNbt)
+    nbt.setTag(Config.namespace + "redstone.bundledOutput", bundledOutputNbt)
   }
 
   // ----------------------------------------------------------------------- //

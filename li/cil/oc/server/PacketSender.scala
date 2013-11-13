@@ -3,9 +3,8 @@ package li.cil.oc.server
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.component.Screen
-import li.cil.oc.common.tileentity.{PowerDistributor, Rotatable}
-import li.cil.oc.server.component.Redstone
+import li.cil.oc.common.component.Buffer
+import li.cil.oc.common.tileentity.{Redstone, PowerDistributor, Rotatable}
 import li.cil.oc.util.PackedColor
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
@@ -72,7 +71,7 @@ object PacketSender {
     }
   }
 
-  def sendScreenBufferState(t: TileEntity with Screen.Environment, player: Option[Player] = None) {
+  def sendScreenBufferState(t: TileEntity with Buffer.Environment, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
 
     pb.writeTileEntity(t)

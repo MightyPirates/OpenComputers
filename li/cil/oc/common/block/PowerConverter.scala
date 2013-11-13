@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
@@ -9,7 +8,6 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
-  GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], "oc.power_converter")
   val unlocalizedName = "PowerConverter"
 
   // ----------------------------------------------------------------------- //
@@ -19,7 +17,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":computer_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 
     icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":power_converter")

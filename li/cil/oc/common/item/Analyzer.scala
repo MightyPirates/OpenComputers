@@ -2,6 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Config
+import li.cil.oc.api.network.Component
 import li.cil.oc.api.network.{Analyzable, Connector, Environment}
 import li.cil.oc.server.PacketSender
 import net.minecraft.client.renderer.texture.IconRegister
@@ -32,6 +33,11 @@ class Analyzer(val parent: Delegator) extends Delegate {
     environment.node match {
       case connector: Connector =>
         player.addChatMessage("Power: %.2f/%.2f".format(connector.buffer, connector.bufferSize))
+      case _ =>
+    }
+    environment.node match {
+      case component: Component =>
+        player.addChatMessage("Component: " + component.name)
       case _ =>
     }
     val address = environment.node.address()

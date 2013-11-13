@@ -30,14 +30,12 @@ trait Connector extends network.Connector with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.connector.buffer")) {
-      buffer = nbt.getDouble("oc.connector.buffer") max 0 min bufferSize
-      dirty = true
-    }
+    buffer = nbt.getDouble(Config.namespace + "connector.buffer") max 0 min bufferSize
+    dirty = true
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble("oc.connector.buffer", buffer)
+    nbt.setDouble(Config.namespace + "connector.buffer", buffer)
   }
 }

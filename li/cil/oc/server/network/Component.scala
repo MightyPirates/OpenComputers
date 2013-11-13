@@ -3,10 +3,10 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.InvocationTargetException
-import li.cil.oc.api
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
-import li.cil.oc.server.component.Computer
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
@@ -58,12 +58,12 @@ trait Component extends api.network.Component with Persistable {
   }
 
   private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: Computer.Environment => computer.instance.addComponent(this)
+    case computer: tileentity.Computer => computer.instance.addComponent(this)
     case _ =>
   })
 
   private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: Computer.Environment => computer.instance.removeComponent(this)
+    case computer: tileentity.Computer => computer.instance.removeComponent(this)
     case _ =>
   })
 
@@ -84,13 +84,14 @@ trait Component extends api.network.Component with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.component.visibility"))
-      visibility_ = Visibility.values()(nbt.getInteger("oc.component.visibility"))
+    if (nbt.hasKey(Config.namespace + "component.visibility")) {
+      visibility_ = Visibility.values()(nbt.getInteger(Config.namespace + "component.visibility"))
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger("oc.component.visibility", visibility_.ordinal())
+    nbt.setInteger(Config.namespace + "component.visibility", visibility_.ordinal())
   }
 }
 
