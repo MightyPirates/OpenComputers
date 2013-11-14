@@ -185,13 +185,13 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toDirection)
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(ForgeDirection.getOrientation(toDirection).getOpposite.ordinal())
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()
 
   @Optional.Method(modid = "RedLogic")
-  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toDirection)
+  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = (_output(ForgeDirection.getOrientation(toDirection).getOpposite.ordinal()) & 0xFF).toShort
 
   @Optional.Method(modid = "RedLogic")
   def onRedstoneInputChanged() = checkRedstoneInputChanged()

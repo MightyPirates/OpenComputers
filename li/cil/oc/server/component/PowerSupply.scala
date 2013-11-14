@@ -11,7 +11,7 @@ class PowerSupply extends ManagedComponent {
 
   override def update() {
     super.update()
-    node.changeBuffer(2)
+    node.changeBuffer(1.25)
   }
 
   @LuaCallback(value = "localBufferSize", direct = true)
