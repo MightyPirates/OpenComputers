@@ -1,4 +1,4 @@
-package li.cil.oc.server.driver
+package li.cil.oc.server.driver.block
 
 import li.cil.oc.api.driver
 import li.cil.oc.server.component

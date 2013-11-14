@@ -160,7 +160,7 @@ class Case(isClient: Boolean) extends Computer with ComponentInventory with Rota
   }
 
   private def hasRedstoneCard = items.exists {
-    case Some(item) => driver.RedstoneCard.worksWith(item)
+    case Some(item) => driver.item.RedstoneCard.worksWith(item)
     case _ => false
   }
 }

@@ -1,4 +1,4 @@
-package li.cil.oc.server.driver
+package li.cil.oc.server.driver.item
 
 import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot

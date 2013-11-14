@@ -1,4 +1,4 @@
-package li.cil.oc.server.driver
+package li.cil.oc.server.driver.block
 
 import dan200.computer.api.IPeripheral
 import li.cil.oc.api.driver

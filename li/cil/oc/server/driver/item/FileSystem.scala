@@ -1,4 +1,4 @@
-package li.cil.oc.server.driver
+package li.cil.oc.server.driver.item
 
 import dan200.computer.api.IMedia
 import li.cil.oc
