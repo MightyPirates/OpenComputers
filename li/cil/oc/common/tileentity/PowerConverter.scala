@@ -19,7 +19,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     withConnector(Config.bufferConverter).
     create()
 
-  private def demand = node.localBufferSize - node.localBuffer
+  private def demand = node.globalBufferSize - node.globalBuffer
 
   // ----------------------------------------------------------------------- //
   // Energy conversion ratios, Mode -> Internal
