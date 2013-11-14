@@ -11,6 +11,7 @@ import scala.collection.mutable
 class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
+    withConnector().
     create()
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
@@ -134,6 +135,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
+          if (!node.changeBuffer(-Config.hddReadCost * bytes.length)) {
+            throw new IOException("not enough energy")
+          }
           result(bytes)
         }
         else {
@@ -166,6 +170,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
+    if (!node.changeBuffer(-Config.hddWriteCost * value.length)) {
+      throw new IOException("not enough energy")
+    }
     checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) => file.write(value); result(true)

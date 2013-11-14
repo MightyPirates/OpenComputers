@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import java.io.IOException
 import li.cil.oc.api.network._
 import li.cil.oc.util.WirelessNetwork
 import li.cil.oc.{Config, api}
@@ -11,10 +12,10 @@ import scala.language.implicitConversions
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
-    withConnector(Config.bufferWireless).
+    withConnector().
     create()
 
-  var strength = 64.0
+  var strength = 0.0
 
   // ----------------------------------------------------------------------- //
 
@@ -23,7 +24,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   @LuaCallback(value = "setStrength", direct = true)
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    strength = args.checkDouble(0) max 0
+    strength = args.checkDouble(0) max 0 min Config.maxWirelessRange
     result(strength)
   }
 
@@ -57,9 +58,12 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   }
 
   private def checkPower() {
-    val rate = Config.wirelessRangePerPower
-    if (rate != 0 && !node.changeBuffer(-strength / rate))
-      throw new Exception("not enough energy")
+    val cost = Config.wirelessCostPerRange
+    if (cost > 0) {
+      if (node.globalBuffer < cost || !node.changeBuffer(-strength * cost)) {
+        throw new IOException("not enough energy")
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //

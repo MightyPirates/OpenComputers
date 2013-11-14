@@ -1,5 +1,6 @@
 oc:block.Adapter.name=Adapter
 oc:block.Cable.name=Kabel
+oc:block.Capacitor.name=Kondensator
 oc:block.Case.name=Gehäuse
 oc:block.DiskDrive.name=Diskettenlaufwerk
 oc:block.Keyboard.name=Tastatur
@@ -25,3 +26,8 @@ oc:item.NetworkCard.name=Netzwerkkarte
 oc:item.PowerSupply.name=Netzteil
 oc:item.RedstoneCard.name=Redstonekarte
 oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
+oc:text.Analyzer.Address=Adresse
+oc:text.Analyzer.ComponentName=Komponentenname
+oc:text.Analyzer.LastError=Letzter Fehler
+oc:text.Analyzer.StoredEnergy=Gespeicherte Energie
+oc:text.Analyzer.TotalEnergy=Insgesamt gespeicherte Energie

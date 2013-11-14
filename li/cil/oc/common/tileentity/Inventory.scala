@@ -56,7 +56,7 @@ trait Inventory extends IInventory with Persistable {
           val (vx, vy, vz) = ((rng.nextDouble() - 0.3) * 0.5, (rng.nextDouble() - 0.5) * 0.3, (rng.nextDouble() - 0.5) * 0.3)
           val entity = new EntityItem(world, x + tx, y + ty, z + tz, stack.copy())
           entity.setVelocity(vx, vy, vz)
-          entity.delayBeforeCanPickup = 20
+          entity.delayBeforeCanPickup = 10
           world.spawnEntityInWorld(entity)
         case _ => // Nothing.
       }

@@ -7,10 +7,13 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.nbt.{NBTTagString, NBTBase, NBTTagCompound}
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.StatCollector
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 import scala.Some
+import scala.collection.convert.WrapAsScala._
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -21,7 +24,7 @@ class PacketHandler extends CommonPacketHandler {
 
   override def dispatch(p: PacketParser) =
     p.packetType match {
-      case PacketType.Clipboard => onClipboard(p)
+      case PacketType.Analyze => onAnalyze(p)
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
@@ -36,10 +39,19 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onClipboard(p: PacketParser) = {
+  def onAnalyze(p: PacketParser) = {
+    val player = p.player.asInstanceOf[EntityPlayer]
+    val stats = p.readNBT().asInstanceOf[NBTTagCompound]
+    for (tag <- stats.getTags.map(_.asInstanceOf[NBTBase])) {
+      player.addChatMessage(StatCollector.translateToLocal(tag.getName) + ": " + (tag match {
+        case value: NBTTagString => value.data
+        case _ => "ERROR: invalid value type. Stat values must be strings."
+      }))
+    }
+    val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
-      GuiScreen.setClipboardString(p.readUTF())
-      p.player.asInstanceOf[EntityPlayer].addChatMessage("Copied to clipboard.")
+      GuiScreen.setClipboardString(address)
+      player.addChatMessage("Address copied to clipboard.")
     }
   }
 

@@ -234,58 +234,6 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    // Helper method to detect items that can be used to rotate blocks, such as
-    // wrenches. This structural type is compatible with the BuildCraft wrench
-    // interface.
-    def canWrench = {
-      if (player.getCurrentEquippedItem != null)
-        try {
-          player.getCurrentEquippedItem.getItem.asInstanceOf[ {
-            def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean
-          }].canWrench(player, x, y, z)
-        }
-        catch {
-          case _: Throwable => false
-        }
-      else
-        false
-    }
-
-    // Get valid rotations to skip rotating if there's only one.
-    val valid = getValidRotations(world, x, y, z)
-    if (valid.length > 1 && canWrench)
-      world.getBlockTileEntity(x, y, z) match {
-        case rotatable: Rotatable => {
-          if (player.isSneaking) {
-            // Rotate pitch. Get the valid pitch rotations.
-            val validPitch = valid.collect {
-              case direction if direction == ForgeDirection.DOWN || direction == ForgeDirection.UP => direction
-              case direction if direction != ForgeDirection.UNKNOWN => ForgeDirection.NORTH
-            }
-            // Check if there's more than one, and if so set to the next one.
-            if (validPitch.length > 1) {
-              // Can rotate, indicate that to the player. Note that the actual
-              // rotation logic is performed in rotateBlock.
-              return true
-            }
-          }
-          else {
-            // Rotate yaw. Get the valid yaw rotations.
-            val validYaw = valid.collect {
-              case direction if direction != ForgeDirection.DOWN && direction != ForgeDirection.UP && direction != ForgeDirection.UNKNOWN => direction
-            }
-            // Check if there's more than one, and if so set to the next one.
-            if (validYaw.length > 1) {
-              // Can rotate, indicate that to the player. Note that the actual
-              // rotation logic is performed in rotateBlock.
-              return true
-            }
-          }
-        }
-        case _ => // Cannot rotate this block.
-      }
-
-    // No rotating tool in hand or can't rotate: activate the block.
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.onBlockActivated(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)

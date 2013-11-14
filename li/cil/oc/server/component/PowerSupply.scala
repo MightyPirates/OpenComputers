@@ -6,12 +6,12 @@ import li.cil.oc.api.network.{Context, Arguments, LuaCallback, Visibility}
 class PowerSupply extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("psu").
-    withConnector(16).
+    withConnector(20).
     create()
 
   override def update() {
     super.update()
-    node.changeBuffer(1)
+    node.changeBuffer(2)
   }
 
   @LuaCallback(value = "localBufferSize", direct = true)

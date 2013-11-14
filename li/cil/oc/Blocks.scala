@@ -10,6 +10,7 @@ object Blocks {
 
   var adapter: Adapter = null
   var cable: Cable = null
+  var capacitor: Capacitor = null
   var computer: Case = null
   var diskDrive: DiskDrive = null
   var keyboard: Keyboard = null
@@ -35,8 +36,11 @@ object Blocks {
     screen2 = new Screen.Tier2(blockSimple)
     screen3 = new Screen.Tier3(blockSimple)
 
+    capacitor = new Capacitor(blockSimple)
+
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Config.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Config.namespace + "cable")
+    GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Config.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Config.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Config.namespace + "disk_drive")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Config.namespace + "keyboard")

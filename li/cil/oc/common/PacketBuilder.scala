@@ -4,6 +4,7 @@ import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import net.minecraft.nbt.NBTBase
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
@@ -20,6 +21,8 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
   }
 
   def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
+
+  def writeNBT(nbt: NBTBase) = NBTBase.writeNamedTag(nbt, this)
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 

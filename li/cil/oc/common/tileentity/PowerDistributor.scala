@@ -1,16 +1,19 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.{Config, api}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class PowerDistributor extends Environment with Analyzable {
-  val node = api.Network.newNode(this, Visibility.Network).create()
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("power", Visibility.Network).
+    create()
 
   var globalBuffer = 0.0
 
@@ -28,8 +31,16 @@ class PowerDistributor extends Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage("Global power: %.2f/%.2f".format(globalBuffer, globalBufferSize))
+  @LuaCallback(value = "buffer", direct = true)
+  def buffer(context: Context, args: Arguments): Array[AnyRef] = result(globalBuffer)
+
+  @LuaCallback(value = "bufferSize", direct = true)
+  def bufferSize(context: Context, args: Arguments): Array[AnyRef] = result(globalBufferSize)
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    stats.setString(Config.namespace + "text.Analyzer.TotalEnergy", "%.2f/%.2f".format(globalBuffer, globalBufferSize))
     this
   }
 

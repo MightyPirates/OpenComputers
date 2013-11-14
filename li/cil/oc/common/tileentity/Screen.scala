@@ -49,9 +49,11 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
     ((ox - x).abs, (oy - y).abs)
   }
 
+  def size = width * height
+
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
 
   // ----------------------------------------------------------------------- //
 

@@ -108,8 +108,10 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  private def consumePower(n: Double, cost: Double) =
-    owner.node == null || owner.node.changeBuffer(-n * cost)
+  private def consumePower(n: Double, cost: Double) = owner.node == null || {
+    owner.node.changeBuffer(-n * cost * (1 + owner.size * Config.screenMultiCostScale))
+  }
+
 }
 
 object Buffer {
@@ -117,12 +119,14 @@ object Buffer {
   trait Environment extends api.network.Environment with Persistable {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("screen").
-      withConnector(Config.bufferScreen * (tier + 1)).
+      withConnector().
       create()
 
     final val instance = new component.Buffer(this)
 
     def tier: Int
+
+    def size: Int
 
     // ----------------------------------------------------------------------- //
 

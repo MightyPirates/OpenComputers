@@ -41,6 +41,9 @@ object PacketType extends Enumeration {
   val ScreenResolutionChange = Value("ScreenResolutionChange")
   val ScreenSet = Value("ScreenSet")
 
+  /** Sent by analyzer tool when used. */
+  val Analyze = Value("Analyze")
+
   /** Sent by clients on keyboard input for computers. */
   val KeyDown = Value("KeyDown")
   val KeyUp = Value("KeyUp")

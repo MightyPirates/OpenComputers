@@ -16,17 +16,18 @@ object Config {
 
   // ----------------------------------------------------------------------- //
 
-  var bufferComputer = 16.0
-  var bufferConverter = 64.0
-  var bufferScreen = 32.0
-  var bufferWireless = 32.0
-  var computerBaseCost = 1.0 / 20
-  var computerCpuTimeCost = 256.0
-  var screenFillCost = 1.0 / 180
-  var screenClearCost = 1.0 / 200
-  var screenCopyCost = 1.0 / 160
-  var screenSetCost = 1.0 / 20
-  var wirelessRangePerPower = 8.0
+  var ignorePower = false
+  var bufferConverter = 100.0
+  var bufferCapacitor = 50.0
+  var computerCost = 1.0
+  var hddReadCost = 1.0 / 1600.0
+  var hddWriteCost = 1.0 / 800.0
+  var screenFillCost = 1.0 / 100
+  var screenClearCost = 1.0 / 400
+  var screenCopyCost = 1.0 / 200
+  var screenMultiCostScale = 0.2
+  var screenSetCost = 1.0 / 80
+  var wirelessCostPerRange = 1.0 / 20.0
 
   // ----------------------------------------------------------------------- //
 
@@ -48,19 +49,21 @@ object Config {
 
   var baseMemory = 0
   var canComputersBeOwned = true
-  var commandUser = "OpenComputers"
-  var fileCost = 512
-  var filesBuffered = true
-  var ignorePower = false
-  var maxHandles = 16
-  var maxReadBuffer = 8 * 1024
-  var maxScreenHeight = 6
-  var maxScreenWidth = 8
   var maxUsernameLength = 32
   var maxUsers = 16
   var startupDelay = 0.5
   var threads = 4
   var timeout = 3.0
+
+  var fileCost = 512
+  var filesBuffered = true
+  var maxHandles = 16
+  var maxReadBuffer = 8 * 1024
+
+  var commandUser = "OpenComputers"
+  var maxScreenHeight = 6
+  var maxScreenWidth = 8
+  var maxWirelessRange = 400.0
 
   // ----------------------------------------------------------------------- //
 
@@ -115,188 +118,223 @@ object Config {
     config.getCategory("power").
       setComment("Power settings, buffer sizes and power consumption.")
 
-    bufferComputer = config.get("power", "bufferComputer", bufferComputer, "" +
-      "The buffer size for computers.").
-      getDouble(bufferComputer)
+    ignorePower = config.get("power", "ignorePower", ignorePower, "" +
+      "Whether to ignore any power requirements. Whenever something requires\n" +
+      "power to function, it will try to get the amount of energy it needs from\n" +
+      "the buffer of its connector node, and in case it fails it won't perform\n" +
+      "the action / trigger a shutdown / whatever. Setting this to `true` will\n" +
+      "simply make the check 'is there enough energy' succeed unconditionally.\n" +
+      "Note that buffers are still filled and emptied following the usual rules,\n" +
+      "there just is no failure case anymore.").
+      getBoolean(ignorePower)
 
-    bufferConverter = config.get("power", "bufferConverter", bufferConverter, "" +
-      "The buffer size for converters.").
-      getDouble(bufferConverter)
+    // --------------------------------------------------------------------- //
 
-    bufferScreen = config.get("power", "bufferScreen", bufferScreen, "" +
-      "The buffer size for screens.").
-      getDouble(bufferScreen)
+    bufferCapacitor = config.get("power.buffer", "bufferCapacitor", bufferCapacitor, "" +
+      "The amount of energy a capacitor can store.").
+      getDouble(bufferCapacitor) max 0
 
-    bufferWireless = config.get("power", "bufferWireless", bufferWireless, "" +
-      "The buffer size for wireless network cards. Note that this effectively\n" +
-      "limits the maximum range of wireless communication, together with the\n" +
-      "`wirelessRangePerPower` setting: the maximum range is this times the\n" +
-      "range per power (so per default that's 32 * 8 = 256 blocks).").
-      getDouble(bufferScreen)
+    bufferConverter = config.get("power.buffer", "bufferConverter", bufferConverter, "" +
+      "The amount of energy a power converter can store.").
+      getDouble(bufferConverter) max 0
 
-    computerBaseCost = config.get("power", "computerBaseCost", computerBaseCost, "" +
-      "Power it takes per tick to run a computer, even if it's idle (base cost).").
-      getDouble(computerBaseCost)
+    // --------------------------------------------------------------------- //
 
-    computerCpuTimeCost = config.get("power", "computerCpuTimeCost", computerCpuTimeCost, "" +
-      "Power it takes to run a computer at 100% CPU time for one second.").
-      getDouble(computerCpuTimeCost)
+    computerCost = config.get("power.cost", "computerCost", computerCost, "" +
+      "Energy it takes per tick to run a computer, even if it's idle.").
+      getDouble(computerCost) max 0
 
-    screenFillCost = config.get("power", "screenFillCost", screenFillCost, "" +
-      "Power it takes to change a single pixel via the fill command.").
-      getDouble(screenFillCost)
+    hddReadCost = config.get("power.cost", "hddReadCost", hddReadCost, "" +
+      "Energy it takes read a single byte from a file system. Note that non\n" +
+      "I/O operations on file systems such as `list` or `getFreeSpace` do\n" +
+      "*not* consume power.").
+      getDouble(hddReadCost) max 0
 
-    screenClearCost = config.get("power", "screenClearCost", screenClearCost, "" +
-      "Power it takes to change a single pixel to blank via the fill command.").
-      getDouble(screenClearCost)
+    hddWriteCost = config.get("power.cost", "hddWriteCost", hddWriteCost, "" +
+      "Energy it takes to write a single byte to a file system.").
+      getDouble(hddWriteCost) max 0
 
-    screenCopyCost = config.get("power", "screenCopyCost", screenCopyCost, "" +
-      "Power it takes to move a single pixel via the copy command.").
-      getDouble(screenCopyCost)
+    screenFillCost = config.get("power.cost", "screenFillCost", screenFillCost, "" +
+      "Energy it takes to change a single pixel via the fill command. This\n" +
+      "means the total cost of the fill command will be its area times this.").
+      getDouble(screenFillCost) max 0
 
-    screenSetCost = config.get("power", "screenSetCost", screenSetCost, "" +
-      "Power it takes to change a single pixel via the set command.").
-      getDouble(screenSetCost)
+    screenClearCost = config.get("power.cost", "screenClearCost", screenClearCost, "" +
+      "Energy it takes to change a single pixel to blank using the fill\n" +
+      "command. This means the total cost of the fill command will be the\n" +
+      "screen area times this.").
+      getDouble(screenClearCost) max 0
 
-    wirelessRangePerPower = config.get("power", "wirelessRangePerPower", wirelessRangePerPower, "" +
-      "The range in blocks a wireless network card gains for each additional\n" +
-      "power it spends. In other words, the higher this value, the lower the\n" +
-      "cost of incrementing the signal strength.\n" +
-      "See also: `bufferWireless`").
-      getDouble(wirelessRangePerPower) max 0
+    screenCopyCost = config.get("power.cost", "screenCopyCost", screenCopyCost, "" +
+      "Energy it takes to move a single pixel via the copy command. This\n" +
+      "means the total cost of the copy command will be its area times this.").
+      getDouble(screenCopyCost) max 0
+
+    screenMultiCostScale = config.get("power.cost", "screenMultiCostScale", screenMultiCostScale, "" +
+      "This defines how much power demand scales for multi-block screens.\n" +
+      "The costs of all the basic operations (set, copy, fill/clear)\n" +
+      "increase linearly with the size of the multi-block screen following\n" +
+      "this formula:\n" +
+      "cost = opCost * (1 + #blocks * `screenMultiCostScale`)\n" +
+      "So for example, to clear a 3 by 4 multi-block screen it'd take a\n" +
+      "total of `screenClearCost` * (1 + 3 * 4 * `screenMultiCostScale`)\n" +
+      "power units.").
+      getDouble(screenMultiCostScale) max 0
+
+    screenSetCost = config.get("power.cost", "screenSetCost", screenSetCost, "" +
+      "Energy it takes to change a single pixel via the set command.").
+      getDouble(screenSetCost) max 0
+
+    wirelessCostPerRange = config.get("power.cost", "wirelessCostPerRange", wirelessCostPerRange, "" +
+      "The amount of energy it costs to send a signal with strength one,\n" +
+      "which means the signal reaches one block. This is scaled up linearly,\n" +
+      "so for example to send a signal 400 blocks a signal strength of 400\n" +
+      "is required, costing a total of 400 * `wirelessCostPerRange`. In\n" +
+      "other words, the higher this value, the higher the cost of wireless\n" +
+      "messages.\n" +
+      "See also: `maxWirelessRange`.").
+      getDouble(wirelessCostPerRange) max 0
 
     // --------------------------------------------------------------------- //
 
     config.getCategory("server").
       setComment("Server side settings, gameplay and security related stuff.")
 
-    baseMemory = config.get("server", "baseMemory", baseMemory, "" +
-      "The base amount of memory made available in computers even if they have no\n" +
-      "RAM installed. Use this if you feel you can't get enough RAM using the\n" +
-      "given means, that being RAM components. Just keep in mind that this is\n" +
-      "global and applies to all computers!").
+    baseMemory = config.get("server.computer", "baseMemory", baseMemory, "" +
+      "The base amount of memory made available in computers even if they\n" +
+      "have no RAM installed. Use this if you feel you can't get enough RAM\n" +
+      "using the given means, that being RAM components. Just keep in mind\n" +
+      "that this is global and applies to all computers!").
       getInt(baseMemory)
 
-    canComputersBeOwned = config.get("server", "canComputersBeOwned", canComputersBeOwned, "" +
-      "This determines whether computers can only be used by players that are\n" +
-      "registered as users on them. Per default a newly placed computer has no\n" +
-      "users. Whenever there are no users the computer is free for all. Users\n" +
-      "can be managed via the Lua API (os.addUser, os.removeUser, os.users). If\n" +
-      "this is true, the following interactions are only possible for users:\n" +
+    canComputersBeOwned = config.get("server.computer", "canComputersBeOwned", canComputersBeOwned, "" +
+      "This determines whether computers can only be used by players that\n" +
+      "are registered as users on them. Per default a newly placed computer\n" +
+      "has no users. Whenever there are no users the computer is free for\n" +
+      "all. Users can be managed via the Lua API (os.addUser, os.removeUser,\n" +
+      "os.users). If this is true, the following interactions are only\n" +
+      "possible for users:\n" +
       " - input via the keyboard.\n" +
       " - inventory management.\n" +
       " - breaking the computer block.\n" +
       "If this is set to false, all computers will always be usable by all\n" +
-      "players, no matter the contents of the user list. Note that operators are\n" +
-      "treated as if they were in the user list of every computer, i.e. no\n" +
-      "restrictions apply to them.\n" +
+      "players, no matter the contents of the user list. Note that operators\n" +
+      "are treated as if they were in the user list of every computer, i.e.\n" +
+      "no restrictions apply to them.\n" +
       "See also: `maxUsers` and `maxUsernameLength`.").
       getBoolean(canComputersBeOwned)
 
-    commandUser = config.get("server", "commandUser", commandUser, "" +
-      "The user name to specify when executing a command via a command block. If\n" +
-      "you leave this empty it will use the address of the network node that sent\n" +
-      "the execution request - which will usually be a computer.").
-      getString.trim
+    maxUsernameLength = config.get("server.computer", "maxUsernameLength", maxUsernameLength, "" +
+      "Sanity check for username length for users registered with computers.\n" +
+      "We store the actual user names instead of a hash to allow iterating\n" +
+      "the list of registered users on the Lua side.\n" +
+      "See also: `canComputersBeOwned`.").
+      getInt(maxUsernameLength) max 0
 
-    fileCost = config.get("server", "fileCost", fileCost, "" +
-      "The base 'cost' of a single file or directory on a limited file system,\n" +
-      "such as hard drives. When computing the used space we add this cost to\n" +
-      "the real size of each file (and folders, which are zero sized otherwise).\n" +
-      "This is to ensure that users cannot spam the file system with an infinite\n" +
-      "number of files and/or folders. Note that the size returned via fs.size\n" +
-      "will always be the real file size, however.").
+    maxUsers = config.get("server.computer", "maxUsers", maxUsers, "" +
+      "The maximum number of users that can be registered with a single\n" +
+      "computer. This is used to avoid computers allocating unchecked\n" +
+      "amounts of memory by registering an unlimited number of users.\n" +
+      "See also: `canComputersBeOwned`.").
+      getInt(maxUsers) max 0
+
+    startupDelay = config.get("server.computer", "startupDelay", startupDelay, "" +
+      "The time in seconds to wait after a computer has been restored before\n" +
+      "it continues to run. This is meant to allow the world around the\n" +
+      "computer to settle, avoiding issues such as components in neighboring\n" +
+      "chunks being removed and then re-connected and other odd things that\n" +
+      "might happen.").
+      getDouble(startupDelay) max 0
+
+    threads = config.get("server.computer", "threads", threads, "" +
+      "The overall number of threads to use to drive computers. Whenever a\n" +
+      "computer should run, for example because a signal should be processed\n" +
+      "or some sleep timer expired it is queued for execution by a worker\n" +
+      "thread. The higher the number of worker threads, the less likely it\n" +
+      "will be that computers block each other from running, but the higher\n" +
+      "the host system's load may become.").
+      getInt(threads) max 1
+
+    timeout = config.get("server.computer", "timeout", timeout, "" +
+      "The time in seconds a program may run without yielding before it is\n" +
+      "forcibly aborted. This is used to avoid stupidly written or malicious\n" +
+      "programs blocking other computers by locking down the executor\n" +
+      "threads. Note that changing this won't have any effect on computers\n" +
+      "that are already running - they'll have to be rebooted for this to\n" +
+      "take effect.").
+      getDouble(timeout) max 0
+
+    // --------------------------------------------------------------------- //
+
+    fileCost = config.get("server.filesystem", "fileCost", fileCost, "" +
+      "The base 'cost' of a single file or directory on a limited file\n" +
+      "system, such as hard drives. When computing the used space we add\n" +
+      "this cost to the real size of each file (and folders, which are zero\n" +
+      "sized otherwise). This is to ensure that users cannot spam the file\n" +
+      "system with an infinite number of files and/or folders. Note that the\n" +
+      "size returned via the API will always be the real file size, however.").
       getInt(fileCost) max 0
 
-    filesBuffered = config.get("server", "filesBuffered", filesBuffered, "" +
-      "Whether persistent file systems such as disk drivers should be 'buffered',\n" +
-      "and only written to disk when the world is saved. This applies to all hard\n" +
-      "drives. The advantage of having this enabled is that data will never go\n" +
-      "'out of sync' with the computer's state if the game crashes. The price is\n" +
-      "slightly higher memory consumption, since all loaded files have to be kept\n" +
-      "in memory (loaded as in when the hard drive is in a computer).").
+    filesBuffered = config.get("server.filesystem", "filesBuffered", filesBuffered, "" +
+      "Whether persistent file systems such as disk drivers should be\n" +
+      "'buffered', and only written to disk when the world is saved. This\n" +
+      "applies to all hard drives. The advantage of having this enabled is\n" +
+      "that data will never go 'out of sync' with the computer's state if\n" +
+      "the game crashes. The price is slightly higher memory consumption,\n" +
+      "since all loaded files have to be kept in memory (loaded as in when\n" +
+      "the hard drive is in a computer).").
       getBoolean(filesBuffered)
 
-    ignorePower = config.get("server", "ignorePower", ignorePower, "" +
-      "Whether to ignore any power requirements. Whenever something requires\n" +
-      "power to function, it will try to get the amount of power it needs from\n" +
-      "the buffer of its connector node, and in case it fails it won't perform" +
-      "the action / trigger a shutdown / whatever. Setting this to `true` will\n" +
-      "simply make the check 'is there enough power' succeed unconditionally.\n" +
-      "Note that buffers are still filled and emptied following the usual rules,\n" +
-      "there just is no failure case anymore.").
-      getBoolean(ignorePower)
+    maxHandles = config.get("server.filesystem", "maxHandles", maxHandles, "" +
+      "The maximum number of file handles any single computer may have open\n" +
+      "at a time. Note that this is *per filesystem*. Also note that this is\n" +
+      "only enforced by the filesystem node - if an add-on decides to be\n" +
+      "fancy it may well ignore this. Since file systems are usually\n" +
+      "'virtual' this will usually not have any real impact on performance\n" +
+      "and won't be noticeable on the host operating system.")
+      .getInt(maxHandles) max 0
 
-    maxHandles = config.get("server", "maxHandles", maxHandles, "" +
-      "The maximum number of file handles any single computer may have open at a\n" +
-      "time. Note that this is *per filesystem*. Also note that this is only\n" +
-      "enforced by the filesystem node - if an addon decides to be fancy it may\n" +
-      "well ignore this. Since file systems are usually 'virtual' this will\n" +
-      "usually not have any real impact on performance/not be noticeable on the\n" +
-      "host operating system.")
-      .getInt(maxHandles) max 1
-
-    maxReadBuffer = config.get("server", "maxReadBuffer", maxReadBuffer, "" +
+    maxReadBuffer = config.get("server.filesystem", "maxReadBuffer", maxReadBuffer, "" +
       "The maximum block size that can be read in one 'read' call on a file\n" +
       "system. This is used to limit the amount of memory a call from a user\n" +
-      "program can cause to be allocated on the host side: when 'read' is called,\n" +
-      "a byte array with the specified size has to be allocated. So if this\n" +
-      "weren't limited, a Lua program could trigger massive memory allocations\n" +
-      "regardless of the amount of RAM installed in the computer it runs on. As a\n" +
-      "side effect this pretty much determines the read performance of file\n" +
-      "systems.")
-      .getInt(maxReadBuffer) max 1
+      "program can cause to be allocated on the host side: when 'read' is,\n" +
+      "called a byte array with the specified size has to be allocated. So\n" +
+      "if this weren't limited, a Lua program could trigger massive memory\n" +
+      "allocations regardless of the amount of RAM installed in the computer\n" +
+      "it runs on. As a side effect this pretty much determines the read\n" +
+      "performance of file systems.")
+      .getInt(maxReadBuffer) max 0
 
-    maxScreenHeight = config.get("server", "maxScreenHeight", maxScreenHeight, "" +
-      "The maximum height of multi-block screens, in blocks. This is limited to\n" +
-      "avoid excessive computations for merging screens. If you really need\n" +
-      "bigger screens it's probably safe to bump this quite a bit before you\n" +
-      "notice anything, since at least incremental updates should be very\n" +
-      "efficient (i.e. when adding/removing a single screen).")
+    // --------------------------------------------------------------------- //
+
+    commandUser = config.get("server.misc", "commandUser", commandUser, "" +
+      "The user name to specify when executing a command via a command\n" +
+      "block. If you leave this empty it will use the address of the network\n" +
+      "node that sent the execution request - which will usually be a\n" +
+      "computer.").
+      getString.trim
+
+    maxScreenHeight = config.get("server.misc", "maxScreenHeight", maxScreenHeight, "" +
+      "The maximum height of multi-block screens, in blocks. This is limited\n" +
+      "to avoid excessive computations for merging screens. If you really\n" +
+      "need bigger screens it's probably safe to bump this quite a bit\n" +
+      "before you notice anything, since at least incremental updates should\n" +
+      "be very efficient (i.e. when adding/removing a single screen).")
       .getInt(maxScreenHeight) max 1
 
-    maxScreenWidth = config.get("server", "maxScreenWidth", maxScreenWidth, "" +
+    maxScreenWidth = config.get("server.misc", "maxScreenWidth", maxScreenWidth, "" +
       "The maximum width of multi-block screens, in blocks.\n" +
       "See also: `maxScreenHeight`.")
       .getInt(maxScreenWidth) max 1
 
-    maxUsernameLength = config.get("server", "maxUsernameLength", maxUsernameLength, "" +
-      "Sanity check for username length for users registered with computers. We\n" +
-      "store the actual user names instead of a hash to allow iterating the list\n" +
-      "of registered users on the Lua side.\n" +
-      "See also: `canComputersBeOwned`.").
-      getInt(maxUsernameLength)
-
-    maxUsers = config.get("server", "maxUsers", maxUsers, "" +
-      "The maximum number of users that can be registered with a single computer.\n" +
-      "This is used to avoid computers allocating unchecked amounts of memory by\n" +
-      "registering an unlimited number of users.\n" +
-      "See also: `canComputersBeOwned`.").
-      getInt(maxUsers)
-
-    startupDelay = config.get("server", "startupDelay", startupDelay, "" +
-      "The time in seconds to wait after a computer has been restored before it\n" +
-      "continues to run. This is meant to allow the world around the computer to\n" +
-      "settle, avoiding issues such as components in neighboring chunks being\n" +
-      "removed and then re-connected and other odd things that might happen.").
-      getDouble(startupDelay) max 0
-
-    threads = config.get("server", "threads", threads, "" +
-      "The overall number of threads to use to drive computers. Whenever a\n" +
-      "computer should run, for example because a signal should be processed or\n" +
-      "some sleep timer expired it is queued for execution by a worker thread.\n" +
-      "The higher the number of worker threads, the less likely it will be that\n" +
-      "computers block each other from running, but the higher the host system's\n" +
-      "load may become.").
-      getInt(threads) max 1
-
-    timeout = config.get("server", "timeout", timeout, "" +
-      "The time in seconds a program may run without yielding before it is\n" +
-      "forcibly aborted. This is used to avoid stupidly written or malicious\n" +
-      "programs blocking other computers by locking down the executor threads.\n" +
-      "Note that changing this won't have any effect on computers that are\n" +
-      "already running - they'll have to be rebooted for this to take effect.").
-      getDouble(timeout) max 0.05
+    maxWirelessRange = config.get("server.misc", "maxWirelessRange", maxWirelessRange, "" +
+      "The maximum distance a wireless message can be sent. In other words,\n" +
+      "this is the maximum signal strength a wireless network card supports.\n" +
+      "This is used to limit the search range in which to check for modems,\n" +
+      "which may or may not lead to performance issues for ridiculous\n" +
+      "ranges - like, you know, more than the loaded area.\n" +
+      "See also: `wirelessCostPerRange`.").
+      getDouble(maxWirelessRange) max 0
 
     // --------------------------------------------------------------------- //
 

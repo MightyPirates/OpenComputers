@@ -14,6 +14,8 @@ public interface Builder<T extends Node> {
     }
 
     static interface ComponentBuilder extends Builder<Component> {
+        ComponentConnectorBuilder withConnector();
+
         ComponentConnectorBuilder withConnector(double bufferSize);
     }
 

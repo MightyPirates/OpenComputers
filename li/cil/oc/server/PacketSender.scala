@@ -6,15 +6,17 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity.{Redstone, PowerDistributor, Rotatable}
 import li.cil.oc.util.PackedColor
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
-  def sendClipboard(value: String, player: Player) {
-    val pb = new PacketBuilder(PacketType.Clipboard)
+  def sendAnalyze(stats: NBTTagCompound, address: String, player: Player) {
+    val pb = new PacketBuilder(PacketType.Analyze)
 
-    pb.writeUTF(value)
+    pb.writeNBT(stats)
+    pb.writeUTF(address)
 
     pb.sendToPlayer(player)
   }

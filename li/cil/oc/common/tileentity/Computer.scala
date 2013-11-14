@@ -10,7 +10,7 @@ import scala.Some
 abstract class Computer extends Environment with Context with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
-    withConnector(Config.bufferComputer).
+    withConnector().
     create()
 
   val instance: component.Computer
@@ -31,8 +31,8 @@ abstract class Computer extends Environment with Context with Analyzable {
     // too, avoiding issues of missing nodes (e.g. in the GPU which would
     // otherwise loose track of its screen).
     if (!worldObj.isRemote && node != null && node.network != null) {
-      if (instance.isRunning && !node.changeBuffer(-Config.computerBaseCost)) {
-        instance.lastError = "not enough power"
+      if (instance.isRunning && !node.changeBuffer(-Config.computerCost)) {
+        instance.lastError = "not enough energy"
         instance.stop()
       }
       instance.update()
@@ -68,10 +68,10 @@ abstract class Computer extends Environment with Context with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (instance != null) {
       instance.lastError match {
-        case Some(value) => player.addChatMessage("Last error: " + value)
+        case Some(value) => stats.setString(Config.namespace + "text.Analyzer.LastError", value)
         case _ =>
       }
     }

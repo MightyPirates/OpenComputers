@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.{Network, network}
 import net.minecraft.nbt.NBTTagCompound
+import scala.math.ScalaNumber
 
 abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment {
 
@@ -51,4 +52,14 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
   def onConnect(node: network.Node) {}
 
   def onDisconnect(node: network.Node) {}
+
+  // ----------------------------------------------------------------------- //
+
+  final protected def result(args: Any*): Array[AnyRef] = {
+    def unwrap(arg: Any): AnyRef = arg match {
+      case x: ScalaNumber => x.underlying
+      case x => x.asInstanceOf[AnyRef]
+    }
+    Array(args map unwrap: _*)
+  }
 }

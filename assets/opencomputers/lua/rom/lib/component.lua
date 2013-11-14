@@ -13,6 +13,17 @@ end
 -- component.primary("modem").open(123), which may be nicer to read.
 setmetatable(component, {__index=tryGetPrimary})
 
+function component.get(address, componentType)
+  checkArg(1, address, "string")
+  checkArg(2, componentType, "string", "nil")
+  for c in component.list(componentType) do
+    if c:sub(1, address:len()) == address then
+      return c
+    end
+  end
+  return nil, "no such component"
+end
+
 function component.isAvailable(componentType)
   checkArg(1, componentType, "string")
   return primaries[componentType] ~= nil
@@ -35,12 +46,7 @@ function component.primary(componentType, ...)
     checkArg(2, args[1], "string", "nil")
     local address
     if args[1] ~= nil then
-      for c in component.list(componentType) do
-        if c:sub(1, args[1]:len()) == args[1] then
-          address = c
-          break
-        end
-      end
+      address = component.get(args[1], componentType)
       assert(address, "no such component")
     end
     local wasAvailable = component.isAvailable(componentType)

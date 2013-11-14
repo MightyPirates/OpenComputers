@@ -95,6 +95,12 @@ class Delegator(id: Int) extends Item(id) {
       case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
+  override def onItemUseFirst(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+    subItem(item) match {
+      case Some(subItem) => subItem.onItemUseFirst(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUseFirst(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+    }
+
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
     subItems.foreach(_.registerIcons(iconRegister))
