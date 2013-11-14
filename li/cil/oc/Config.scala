@@ -17,11 +17,15 @@ object Config {
   // ----------------------------------------------------------------------- //
 
   var ignorePower = false
+
   var bufferConverter = 100.0
   var bufferCapacitor = 50.0
+  var bufferPowerSupply = 20.0
+
   var computerCost = 1.0
   var hddReadCost = 1.0 / 1600.0
   var hddWriteCost = 1.0 / 800.0
+  var powerSupplyCost = -1.25
   var screenFillCost = 1.0 / 100
   var screenClearCost = 1.0 / 400
   var screenCopyCost = 1.0 / 200
@@ -138,6 +142,10 @@ object Config {
       "The amount of energy a power converter can store.").
       getDouble(bufferConverter) max 0
 
+    bufferPowerSupply = config.get("power.buffer", "bufferPowerSupply", bufferPowerSupply, "" +
+      "The amount of energy a power supply can store.").
+      getDouble(bufferPowerSupply) max 0
+
     // --------------------------------------------------------------------- //
 
     computerCost = config.get("power.cost", "computerCost", computerCost, "" +
@@ -153,6 +161,14 @@ object Config {
     hddWriteCost = config.get("power.cost", "hddWriteCost", hddWriteCost, "" +
       "Energy it takes to write a single byte to a file system.").
       getDouble(hddWriteCost) max 0
+
+    powerSupplyCost = config.get("power.cost", "powerSupplyCost", powerSupplyCost, "" +
+      "The amount of energy a power supply (item) produces per tick. This is\n" +
+      "basically just a consumer, but instead of taking energy it puts it\n" +
+      "back into the network. This is slightly more than what a computer\n" +
+      "consumes per tick. It's meant as an easy way to powering a small\n" +
+      "setup, mostly for testing. ").
+      getDouble(powerSupplyCost)
 
     screenFillCost = config.get("power.cost", "screenFillCost", screenFillCost, "" +
       "Energy it takes to change a single pixel via the fill command. This\n" +
