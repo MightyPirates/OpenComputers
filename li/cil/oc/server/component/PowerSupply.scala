@@ -14,9 +14,9 @@ class PowerSupply extends ManagedComponent {
     node.changeBuffer(1)
   }
 
-  @LuaCallback(value = "bufferSize", direct = true)
-  def bufferSize(context: Context, args: Arguments): Array[AnyRef] = result(node.bufferSize)
+  @LuaCallback(value = "localBufferSize", direct = true)
+  def bufferSize(context: Context, args: Arguments): Array[AnyRef] = result(node.localBufferSize)
 
-  @LuaCallback(value = "buffer", direct = true)
-  def buffer(context: Context, args: Arguments): Array[AnyRef] = result(node.buffer)
+  @LuaCallback(value = "localBuffer", direct = true)
+  def buffer(context: Context, args: Arguments): Array[AnyRef] = result(node.localBuffer)
 }

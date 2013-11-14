@@ -29,8 +29,6 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
 
   // ----------------------------------------------------------------------- //
-  // Tile entity
-  // ----------------------------------------------------------------------- //
 
   override def hasTileEntity = true
 

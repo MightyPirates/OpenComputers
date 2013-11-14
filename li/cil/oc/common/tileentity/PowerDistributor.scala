@@ -5,26 +5,81 @@ import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import net.minecraft.entity.player.EntityPlayer
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class PowerDistributor extends Environment {
+class PowerDistributor extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
-  val connectors = mutable.Set.empty[Connector]
+  var globalBuffer = 0.0
+
+  var globalBufferSize = 0.0
 
   var average = 0.0
 
   private var lastSentAverage = 0.0
 
+  private val buffers = mutable.Set.empty[Connector]
+
   private val distributors = mutable.Set.empty[PowerDistributor]
+
+  private var dirty = true
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    player.addChatMessage("Global power: %.2f/%.2f".format(globalBuffer, globalBufferSize))
+    this
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def changeBuffer(delta: Double): Boolean = {
+    if (delta != 0) {
+      val oldBuffer = globalBuffer
+      globalBuffer = (globalBuffer + delta) max 0 min globalBufferSize
+      if (globalBuffer != oldBuffer) {
+        dirty = true
+        if (delta < 0) {
+          var remaining = -delta
+          for (connector <- buffers if connector.localBuffer > 0) {
+            if (connector.localBuffer < remaining) {
+              remaining -= connector.localBuffer
+              connector.localBuffer = 0
+            }
+            else {
+              connector.changeBuffer(-remaining)
+              return true
+            }
+          }
+        }
+        else if (delta > 0) {
+          var remaining = delta
+          for (connector <- buffers if connector.localBuffer < connector.localBufferSize) {
+            val space = connector.localBufferSize - connector.localBuffer
+            if (space < remaining) {
+              remaining -= space
+              connector.localBuffer = connector.localBufferSize
+            }
+            else {
+              connector.changeBuffer(remaining)
+              return true
+            }
+          }
+        }
+      }
+    }
+    false
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (!worldObj.isRemote && connectors.exists(_.dirty))
-      balance()
+    if (!worldObj.isRemote && (dirty || buffers.exists(_.dirty))) {
+      updateCachedValues()
+    }
   }
 
   override def validate() {
@@ -36,38 +91,27 @@ class PowerDistributor extends Environment {
 
   // ----------------------------------------------------------------------- //
 
-  override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      connectors.clear()
-      distributors.clear()
-      average = -1
-    }
-    else node match {
-      case connector: Connector =>
-        connectors -= connector
-        balance()
-      case _ => node.host match {
-        case distributor: PowerDistributor => distributors -= distributor
-        case _ =>
-      }
-    }
-  }
-
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
       for (node <- node.network.nodes) node match {
-        case connector: Connector => connectors += connector
+        case connector: Connector if connector.localBufferSize > 0 =>
+          buffers += connector
+          globalBuffer += connector.localBuffer
+          globalBufferSize += connector.localBufferSize
         case _ => node.host match {
           case distributor: PowerDistributor => distributors += distributor
           case _ =>
         }
       }
-      balance()
+      dirty = true
     }
     else node match {
-      case connector: Connector => connectors += connector
+      case connector: Connector =>
+        buffers += connector
+        globalBuffer += connector.localBuffer
+        globalBufferSize += connector.localBufferSize
+        dirty = true
       case _ => node.host match {
         case distributor: PowerDistributor => distributors += distributor
         case _ =>
@@ -75,28 +119,48 @@ class PowerDistributor extends Environment {
     }
   }
 
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      buffers.clear()
+      distributors.clear()
+      globalBuffer = 0
+      globalBufferSize = 0
+      average = -1
+    }
+    else node match {
+      case connector: Connector =>
+        buffers -= connector
+        globalBuffer -= connector.localBuffer
+        globalBufferSize -= connector.localBufferSize
+        dirty = true
+      case _ => node.host match {
+        case distributor: PowerDistributor => distributors -= distributor
+        case _ =>
+      }
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
-  private def balance() {
+  def updateCachedValues() {
     // Computer average fill ratio of all buffers.
-    val (minRelativeBuffer, maxRelativeBuffer, sumBuffer, sumBufferSize) =
-      connectors.foldRight((1.0, 0.0, 0.0, 0.0))((c, acc) => {
+    val (sumBuffer, sumBufferSize) =
+      buffers.foldRight((0.0, 0.0))((c, acc) => {
         c.dirty = false // clear dirty flag for all connectors
-        (acc._1 min (c.buffer / c.bufferSize), acc._2 max (c.buffer / c.bufferSize),
-          acc._3 + c.buffer, acc._4 + c.bufferSize)
+        (acc._1 + c.localBuffer, acc._2 + c.localBufferSize)
       })
-    average = if (sumBufferSize > 0) sumBuffer / sumBufferSize else 0
-    if ((lastSentAverage - average).abs > 0.05) {
-      lastSentAverage = average
-      for (distributor <- distributors) {
-        distributor.average = average
+    average = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0
+    val shouldSend = (lastSentAverage - average).abs > 0.05
+    for (distributor <- distributors) {
+      distributor.dirty = false
+      distributor.globalBuffer = sumBuffer
+      distributor.globalBufferSize = sumBufferSize
+      distributor.average = average
+      if (shouldSend) {
         distributor.lastSentAverage = lastSentAverage
         ServerPacketSender.sendPowerState(distributor)
       }
-    }
-    if (maxRelativeBuffer - minRelativeBuffer > 10e-4) {
-      // Adjust buffer fill ratio for all buffers to average.
-      connectors.foreach(c => c.buffer = c.bufferSize * average)
     }
   }
 }

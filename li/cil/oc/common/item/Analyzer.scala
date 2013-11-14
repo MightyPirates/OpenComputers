@@ -31,8 +31,8 @@ class Analyzer(val parent: Delegator) extends Delegate {
 
   private def analyzeNode(environment: Environment, player: EntityPlayer) = if (environment != null) {
     environment.node match {
-      case connector: Connector =>
-        player.addChatMessage("Power: %.2f/%.2f".format(connector.buffer, connector.bufferSize))
+      case connector: Connector if connector.localBufferSize > 0 =>
+        player.addChatMessage("Stored power: %.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
       case _ =>
     }
     environment.node match {

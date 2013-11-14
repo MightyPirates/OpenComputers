@@ -16,7 +16,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
   def this(node: MutableNode) = {
     this()
     addNew(node)
-    node.host.onConnect(node)
+    node.onConnect(node)
   }
 
   private lazy val wrapper = new Network.Wrapper(this)
@@ -48,9 +48,9 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
         assert(!oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
         Network.Edge(oldNodeA, oldNodeB)
         if (oldNodeA.data.reachability == Visibility.Neighbors)
-          oldNodeB.data.host.onConnect(oldNodeA.data)
+          oldNodeB.data.onConnect(oldNodeA.data)
         if (oldNodeB.data.reachability == Visibility.Neighbors)
-          oldNodeA.data.host.onConnect(oldNodeB.data)
+          oldNodeA.data.onConnect(oldNodeB.data)
         true
       }
       else false // That connection already exists.
@@ -76,9 +76,9 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       case Some(edge) => {
         handleSplit(edge.remove())
         if (edge.left.data.reachability == Visibility.Neighbors)
-          edge.right.data.host.onDisconnect(edge.left.data)
+          edge.right.data.onDisconnect(edge.left.data)
         if (edge.right.data.reachability == Visibility.Neighbors)
-          edge.left.data.host.onDisconnect(edge.right.data)
+          edge.left.data.onDisconnect(edge.right.data)
         true
       }
       case _ => false // That connection doesn't exists.
@@ -96,7 +96,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
           case Visibility.Network => subGraphs.map(_.values.map(_.data)).flatten
         })
         handleSplit(subGraphs)
-        targets.foreach(_.host.onDisconnect(node))
+        targets.foreach(_.asInstanceOf[MutableNode].onDisconnect(node))
         true
       }
       case _ => false
@@ -209,7 +209,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       Network.Edge(oldNode, node(addedNode))
     }
 
-    for ((node, nodes) <- connects) nodes.foreach(_.host.onConnect(node))
+    for ((node, nodes) <- connects) nodes.foreach(_.asInstanceOf[MutableNode].onConnect(node))
 
     true
   }
@@ -229,8 +229,8 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
         for (indexB <- (indexA + 1) until subGraphs.length) {
           val nodesB = nodes(indexB)
           val visibleNodesB = visibleNodes(indexB)
-          visibleNodesA.foreach(node => nodesB.foreach(_.host.onDisconnect(node)))
-          visibleNodesB.foreach(node => nodesA.foreach(_.host.onDisconnect(node)))
+          visibleNodesA.foreach(node => nodesB.foreach(_.onDisconnect(node)))
+          visibleNodesB.foreach(node => nodesA.foreach(_.onDisconnect(node)))
         }
       }
     }
@@ -307,7 +307,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Connector {
       val host = _host
       val reachability = _reachability
-      val bufferSize = _bufferSize
+      val localBufferSize = _bufferSize
     }
     else null
   }
@@ -317,7 +317,7 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      val bufferSize = _bufferSize
+      val localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null

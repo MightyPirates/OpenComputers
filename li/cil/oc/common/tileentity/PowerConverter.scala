@@ -19,7 +19,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     withConnector(Config.bufferConverter).
     create()
 
-  private def demand = node.bufferSize - node.buffer
+  private def demand = node.localBufferSize - node.localBuffer
 
   // ----------------------------------------------------------------------- //
   // Energy conversion ratios, Mode -> Internal
@@ -108,7 +108,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     // We try to avoid requesting energy when we need less than what we get with
     // a single packet. However, if our buffer gets dangerously low we will ask
     // for energy even if there's the danger of wasting some energy.
-    if (demand >= lastPacketSize * ratioIndustrialCraft || demand > node.bufferSize * 0.5) {
+    if (demand >= lastPacketSize * ratioIndustrialCraft || demand > node.localBufferSize * 0.5) {
       demand
     } else 0
   }
@@ -130,7 +130,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     if (node != null && powerHandler.isEmpty) {
       val handler = new PowerHandler(this, PowerHandler.Type.STORAGE)
       if (handler != null) {
-        handler.configure(1, 320, Float.MaxValue, node.bufferSize.toFloat / ratioBuildCraft)
+        handler.configure(1, 320, Float.MaxValue, node.localBufferSize.toFloat / ratioBuildCraft)
         handler.configurePowerPerdition(0, 0)
         powerHandler = Some(handler)
       }

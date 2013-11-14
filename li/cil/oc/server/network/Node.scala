@@ -53,13 +53,25 @@ trait Node extends api.network.Node with Persistable {
 
   // ----------------------------------------------------------------------- //
 
+  def onConnect(node: ImmutableNode) {
+    host.onConnect(node)
+  }
+
+  def onDisconnect(node: ImmutableNode) {
+    host.onDisconnect(node)
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
     if (nbt.hasKey(Config.namespace + "node.address")) {
       address = nbt.getString(Config.namespace + "node.address")
     }
   }
 
   override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
     if (address != null) {
       nbt.setString(Config.namespace + "node.address", address)
     }
