@@ -6,10 +6,6 @@ import net.minecraft.client.renderer.texture.IconRegister
 class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
   val unlocalizedName = "GraphicsCard" + Array("Basic", "Advanced", "Professional").apply(tier)
 
-  val maxResolution = Config.screenResolutionsByTier(tier)
-
-  val maxDepth = Config.screenDepthsByTier(tier)
-
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 

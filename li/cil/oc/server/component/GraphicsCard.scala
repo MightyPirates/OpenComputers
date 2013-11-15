@@ -7,10 +7,15 @@ import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
-class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Depth.Value) extends ManagedComponent {
+abstract class GraphicsCard extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
+    withConnector().
     create()
+
+  val maxResolution: (Int, Int)
+
+  val maxDepth: PackedColor.Depth.Value
 
   private var screenAddress: Option[String] = None
 
@@ -63,7 +68,6 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.background))
 
-  @LuaCallback("setBackground")
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => result(s.background = color))
@@ -73,7 +77,6 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.foreground))
 
-  @LuaCallback("setForeground")
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => result(s.foreground = color))
@@ -132,51 +135,60 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
 
   @LuaCallback(value = "get", direct = true)
   def get(context: Context, args: Arguments): Array[AnyRef] = {
-    val x = args.checkInteger(0)
-    val y = args.checkInteger(1)
-    screen(s => result(s.get(x - 1, y - 1)))
+    val x = args.checkInteger(0) - 1
+    val y = args.checkInteger(1) - 1
+    screen(s => result(s.get(x, y)))
   }
 
-  @LuaCallback("set")
   def set(context: Context, args: Arguments): Array[AnyRef] = {
-    val x = args.checkInteger(0)
-    val y = args.checkInteger(1)
+    val x = args.checkInteger(0) - 1
+    val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
+
     screen(s => {
-      s.set(x - 1, y - 1, value)
-      result(true)
+      if (consumePower(value.length, Config.gpuSetCost)) {
+        s.set(x, y, value)
+        result(true)
+      }
+      else result(false)
     })
   }
 
-  @LuaCallback("fill")
-  def fill(context: Context, args: Arguments): Array[AnyRef] = {
-    val x = args.checkInteger(0)
-    val y = args.checkInteger(1)
-    val w = args.checkInteger(2)
-    val h = args.checkInteger(3)
-    val value = args.checkString(4)
-    if (value.length == 1)
-      screen(s => {
-        s.fill(x - 1, y - 1, w, h, value.charAt(0))
-        result(true)
-      })
-    else
-      Array(Unit, "invalid fill value")
-  }
-
-  @LuaCallback("copy")
   def copy(context: Context, args: Arguments): Array[AnyRef] = {
-    val x = args.checkInteger(0)
-    val y = args.checkInteger(1)
+    val x = args.checkInteger(0) - 1
+    val y = args.checkInteger(1) - 1
     val w = args.checkInteger(2)
     val h = args.checkInteger(3)
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
-      s.copy(x - 1, y - 1, w, h, tx, ty)
-      result(true)
+      if (consumePower(w * h, Config.gpuCopyCost)) {
+        s.copy(x, y, w, h, tx, ty)
+        result(true)
+      }
+      else result(false)
     })
   }
+
+  def fill(context: Context, args: Arguments): Array[AnyRef] = {
+    val x = args.checkInteger(0) - 1
+    val y = args.checkInteger(1) - 1
+    val w = args.checkInteger(2)
+    val h = args.checkInteger(3)
+    val value = args.checkString(4)
+    if (value.length == 1) screen(s => {
+      val c = value.charAt(0)
+      val cost = if (c == ' ') Config.gpuClearCost else Config.gpuFillCost
+      if (consumePower(w * h, cost)) {
+        s.fill(x, y, w, h, value.charAt(0))
+        result(true)
+      }
+      else result(false)
+    })
+    else throw new Exception("invalid fill value")
+  }
+
+  private def consumePower(n: Double, cost: Double) = node.changeBuffer(-n * cost)
 
   // ----------------------------------------------------------------------- //
 
@@ -204,4 +216,68 @@ class GraphicsCard(val maxResolution: (Int, Int), val maxDepth: PackedColor.Dept
       nbt.setString(Config.namespace + "gpu.screen", screenAddress.get)
     }
   }
+}
+
+object GraphicsCard {
+
+  class Tier1 extends GraphicsCard {
+    val maxDepth = Config.screenDepthsByTier(0)
+    val maxResolution = Config.screenResolutionsByTier(0)
+
+    @LuaCallback(value = "copy", direct = true, limit = 1)
+    override def copy(context: Context, args: Arguments) = super.copy(context, args)
+
+    @LuaCallback(value = "fill", direct = true, limit = 1)
+    override def fill(context: Context, args: Arguments) = super.fill(context, args)
+
+    @LuaCallback(value = "set", direct = true, limit = 4)
+    override def set(context: Context, args: Arguments) = super.set(context, args)
+
+    @LuaCallback(value = "setBackground", direct = true, limit = 2)
+    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
+
+    @LuaCallback(value = "setForeground", direct = true, limit = 2)
+    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+  }
+
+  class Tier2 extends GraphicsCard {
+    val maxDepth = Config.screenDepthsByTier(1)
+    val maxResolution = Config.screenResolutionsByTier(1)
+
+    @LuaCallback(value = "copy", direct = true, limit = 2)
+    override def copy(context: Context, args: Arguments) = super.copy(context, args)
+
+    @LuaCallback(value = "fill", direct = true, limit = 4)
+    override def fill(context: Context, args: Arguments) = super.fill(context, args)
+
+    @LuaCallback(value = "set", direct = true, limit = 8)
+    override def set(context: Context, args: Arguments) = super.set(context, args)
+
+    @LuaCallback(value = "setBackground", direct = true, limit = 4)
+    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
+
+    @LuaCallback(value = "setForeground", direct = true, limit = 4)
+    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+  }
+
+  class Tier3 extends GraphicsCard {
+    val maxDepth = Config.screenDepthsByTier(2)
+    val maxResolution = Config.screenResolutionsByTier(2)
+
+    @LuaCallback(value = "copy", direct = true, limit = 4)
+    override def copy(context: Context, args: Arguments) = super.copy(context, args)
+
+    @LuaCallback(value = "fill", direct = true, limit = 8)
+    override def fill(context: Context, args: Arguments) = super.fill(context, args)
+
+    @LuaCallback(value = "set", direct = true, limit = 16)
+    override def set(context: Context, args: Arguments) = super.set(context, args)
+
+    @LuaCallback(value = "setBackground", direct = true, limit = 8)
+    override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
+
+    @LuaCallback(value = "setForeground", direct = true, limit = 8)
+    override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
+  }
+
 }

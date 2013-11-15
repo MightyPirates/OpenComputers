@@ -11,8 +11,12 @@ object GraphicsCard extends Item {
 
   override def createEnvironment(item: ItemStack, container: AnyRef) =
     Items.multi.subItem(item) match {
-      case Some(gpu: common.item.GraphicsCard) =>
-        new component.GraphicsCard(gpu.maxResolution, gpu.maxDepth)
+      case Some(gpu: common.item.GraphicsCard) => gpu.tier match {
+        case 0 => new component.GraphicsCard.Tier1()
+        case 1 => new component.GraphicsCard.Tier2()
+        case 2 => new component.GraphicsCard.Tier3()
+        case _ => null
+      }
       case _ => null
     }
 

@@ -38,6 +38,7 @@ object PacketType extends Enumeration {
   val ScreenCopy = Value("ScreenCopy")
   val ScreenDepthChange = Value("ScreenDepthChange")
   val ScreenFill = Value("ScreenFill")
+  val ScreenPowerChange = Value("ScreenPowerChange")
   val ScreenResolutionChange = Value("ScreenResolutionChange")
   val ScreenSet = Value("ScreenSet")
 

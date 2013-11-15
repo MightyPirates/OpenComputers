@@ -49,11 +49,11 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
 
     // Re-build display lists.
     Screen.compileBackground(innerWidth, innerHeight)
-    Screen.compileText(scale, screen.instance.lines, screen.instance.colors, screen.instance.depth)
+    Screen.compileText(scale, screen.instance.lines, screen.instance.color, screen.instance.depth)
   }
 
   /** Must be called whenever the buffer of the underlying screen changes. */
-  def updateText() = Screen.compileText(scale, screen.instance.lines, screen.instance.colors, screen.instance.depth)
+  def updateText() = Screen.compileText(scale, screen.instance.lines, screen.instance.color, screen.instance.depth)
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
@@ -103,7 +103,7 @@ class Screen(tileEntity: tileentity.Screen) extends MCGuiScreen {
     GL11.glPushMatrix()
     GL11.glTranslatef(x, y, 0)
     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F)
-    Screen.draw()
+    Screen.draw(screen.hasPower)
     GL11.glPopMatrix()
 
     super.drawScreen(mouseX, mouseY, dt)
@@ -124,19 +124,16 @@ object Screen {
 
   private var displayLists: Option[Int] = None
 
-  private var buffer: Option[java.nio.IntBuffer] = None
-
   def init(tm: TextureManager) = if (!textureManager.isDefined) {
     textureManager = Some(tm)
     displayLists = Some(GLAllocation.generateDisplayLists(2))
-    buffer = Some(GLAllocation.createDirectIntBuffer(2))
-    buffer.get.put(displayLists.get)
-    buffer.get.put(displayLists.get + 1)
   }
 
-  def draw() = if (textureManager.isDefined) {
-    buffer.get.rewind()
-    GL11.glCallLists(buffer.get)
+  def draw(hasPower: Boolean) = if (textureManager.isDefined) {
+    GL11.glCallList(displayLists.get)
+    if (hasPower) {
+      GL11.glCallList(displayLists.get + 1)
+    }
   }
 
   private[gui] def compileBackground(bufferWidth: Int, bufferHeight: Int) =

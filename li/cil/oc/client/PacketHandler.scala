@@ -2,6 +2,7 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.PackedColor
@@ -33,6 +34,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenCopy => onScreenCopy(p)
       case PacketType.ScreenDepthChange => onScreenDepthChange(p)
       case PacketType.ScreenFill => onScreenFill(p)
+      case PacketType.ScreenPowerChange => onScreenPowerChange(p)
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
       case _ => // Invalid packet.
@@ -56,17 +58,13 @@ class PacketHandler extends CommonPacketHandler {
 
   def onComputerStateResponse(p: PacketParser) =
     p.readTileEntity[Case]() match {
-      case Some(t) => {
-        t.isOn = p.readBoolean()
-      }
+      case Some(t) => t.isOn = p.readBoolean()
       case _ => // Invalid packet.
     }
 
   def onPowerStateResponse(p: PacketParser) =
     p.readTileEntity[PowerDistributor]() match {
-      case Some(t) => {
-        t.average = p.readDouble()
-      }
+      case Some(t) => t.average = p.readDouble()
       case _ => // Invalid packet.
     }
 
@@ -89,7 +87,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferResponse(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(t) =>
         val screen = t.instance
         val w = p.readInt()
@@ -102,7 +100,7 @@ class PacketHandler extends CommonPacketHandler {
         screen.foreground = p.readInt()
         screen.background = p.readInt()
         for (row <- 0 until h) {
-          val rowColor = screen.colors(row)
+          val rowColor = screen.color(row)
           for (col <- 0 until w) {
             rowColor(col) = p.readShort()
           }
@@ -111,17 +109,16 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenColorChange(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => {
+    p.readTileEntity[Buffer.Environment]() match {
+      case Some(t) =>
         t.instance.foreground = p.readInt()
         t.instance.background = p.readInt()
-      }
       case _ => // Invalid packet.
     }
 
   def onScreenCopy(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => {
+    p.readTileEntity[Buffer.Environment]() match {
+      case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()
         val w = p.readInt()
@@ -129,49 +126,49 @@ class PacketHandler extends CommonPacketHandler {
         val tx = p.readInt()
         val ty = p.readInt()
         t.instance.copy(col, row, w, h, tx, ty)
-      }
       case _ => // Invalid packet.
     }
 
   def onScreenDepthChange(p: PacketParser) =
     p.readTileEntity[Screen]() match {
-      case Some(t) => {
-        t.instance.depth = PackedColor.Depth(p.readInt())
-      }
+      case Some(t) => t.instance.depth = PackedColor.Depth(p.readInt())
       case _ => // Invalid packet.
     }
 
   def onScreenFill(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => {
+    p.readTileEntity[Buffer.Environment]() match {
+      case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()
         val w = p.readInt()
         val h = p.readInt()
         val c = p.readChar()
         t.instance.fill(col, row, w, h, c)
-      }
+      case _ => // Invalid packet.
+    }
+
+  def onScreenPowerChange(p: PacketParser) =
+    p.readTileEntity[Screen]() match {
+      case Some(t) => t.hasPower = p.readBoolean()
       case _ => // Invalid packet.
     }
 
   def onScreenResolutionChange(p: PacketParser) =
     p.readTileEntity[Screen]() match {
-      case Some(t) => {
+      case Some(t) =>
         val w = p.readInt()
         val h = p.readInt()
         t.instance.resolution = (w, h)
-      }
       case _ => // Invalid packet.
     }
 
   def onScreenSet(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => {
+    p.readTileEntity[Buffer.Environment]() match {
+      case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()
         val s = p.readUTF()
         t.instance.set(col, row, s)
-      }
       case _ => // Invalid packet.
     }
 }

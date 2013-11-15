@@ -46,6 +46,8 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
 
   private var future: Option[Future[_]] = None
 
+  private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
+
   // ----------------------------------------------------------------------- //
 
   private var timeStarted = 0L // Game-world time [ms] for os.uptime().
@@ -203,7 +205,11 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       timeStarted = timeStarted min worldTime
     }
 
-    // Check if we should switch states.
+    // Clear direct call limits.
+    callCounts.synchronized(callCounts.clear())
+
+    // Check if we should switch states. These are all the states in which we're
+    // guaranteed that the executor thread isn't running anymore.
     state.synchronized(state.top match {
       // Booting up.
       case Computer.State.Starting => {
@@ -222,16 +228,6 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
         tmp.foreach(_.node.remove()) // To force deleting contents.
         owner.node.sendToReachable("computer.stopped")
         start()
-      }
-      // Computer is shutting down.
-      case Computer.State.Stopping => this.synchronized {
-        assert(future.isEmpty)
-        close()
-        rom.foreach(_.node.remove())
-        tmp.foreach(_.node.remove())
-        owner.node.sendToReachable("computer.stopped")
-
-        message.foreach(println) // TODO remove this at some point (add a tool that can read these error messages?)
       }
       // Resume from pauses based on sleep or signal underflow.
       case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
@@ -284,6 +280,21 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       }
       case _ => // Nothing special to do, just avoid match errors.
     })
+
+    // Finally check if we should stop the computer. We cannot lock the state
+    // because we may have to wait for the executor thread to finish, which
+    // might turn into a deadlock depending on where it currently is.
+    state.synchronized(state.top) match {
+      // Computer is shutting down.
+      case Computer.State.Stopping => this.synchronized(state.synchronized {
+        assert(future.isEmpty)
+        close()
+        rom.foreach(_.node.remove())
+        tmp.foreach(_.node.remove())
+        owner.node.sendToReachable("computer.stopped")
+      })
+      case _ =>
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -828,7 +839,7 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
             lua.newTable()
             for (method <- component.methods()) {
               lua.pushString(method)
-              lua.pushBoolean(component.isAsynchronous(method))
+              lua.pushBoolean(component.isDirect(method))
               lua.rawSet(-3)
             }
             1
@@ -840,13 +851,25 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       })
       lua.setField(-2, "methods")
 
+      class LimitReachedException extends Exception
+
       lua.pushScalaFunction(lua => {
         val address = lua.checkString(1)
         val method = lua.checkString(2)
         val args = parseArguments(lua, 3)
         try {
           (Option(owner.node.network.node(address)) match {
-            case Some(component: Component) if component.canBeSeenFrom(owner.node) =>
+            case Some(component: server.network.Component) if component.canBeSeenFrom(owner.node) =>
+              val direct = component.isDirect(method)
+              if (direct) callCounts.synchronized {
+                val limit = component.limit(method)
+                val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
+                val count = counts.getOrElseUpdate(method, 0)
+                if (count >= limit) {
+                  throw new LimitReachedException()
+                }
+                counts(method) += 1
+              }
               component.invoke(method, owner, args: _*)
             case _ => throw new Exception("no such component")
           }) match {
@@ -859,6 +882,8 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
               1
           }
         } catch {
+          case _: LimitReachedException =>
+            0
           case e: IllegalArgumentException if e.getMessage != null =>
             lua.pushBoolean(false)
             lua.pushString(e.getMessage)

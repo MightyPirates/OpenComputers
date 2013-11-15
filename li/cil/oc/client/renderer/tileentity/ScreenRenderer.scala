@@ -37,18 +37,21 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     screen = t.asInstanceOf[Screen]
-    if (!screen.isOrigin)
+    if (!screen.isOrigin || !screen.hasPower) {
       return
+    }
 
     val distance = playerDistanceSq()
-    if (distance > maxRenderDistanceSq)
+    if (distance > maxRenderDistanceSq) {
       return
+    }
 
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0)
+    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0) {
       return
+    }
 
     GL11.glPushAttrib(0xFFFFFF)
 
@@ -60,8 +63,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     if (distance > fadeDistanceSq) {
-      RenderState.setBlendAlpha(0f max
-        (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
+      RenderState.setBlendAlpha(0f max (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
     }
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
@@ -130,7 +132,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for (((line, color), i) <- screen.instance.lines.zip(screen.instance.colors).zipWithIndex) {
+    for (((line, color), i) <- screen.instance.lines.zip(screen.instance.color).zipWithIndex) {
       MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.instance.depth)
     }
 

@@ -4,10 +4,11 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.Buffer
-import li.cil.oc.common.tileentity.{Redstone, PowerDistributor, Rotatable, TileEntity}
+import li.cil.oc.common.tileentity._
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import scala.Some
 
 /** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
@@ -85,7 +86,7 @@ object PacketSender {
     pb.writeInt(screen.depth.id)
     pb.writeInt(screen.foreground)
     pb.writeInt(screen.background)
-    for (cs <- screen.colors) for (c <- cs) pb.writeShort(c)
+    for (cs <- screen.color) for (c <- cs) pb.writeShort(c)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
@@ -93,7 +94,7 @@ object PacketSender {
     }
   }
 
-  def sendScreenColorChange(t: TileEntity, foreground: Int, background: Int) {
+  def sendScreenColorChange(t: Buffer.Environment, foreground: Int, background: Int) {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 
     pb.writeTileEntity(t)
@@ -103,7 +104,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenCopy(t: TileEntity, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+  def sendScreenCopy(t: Buffer.Environment, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     val pb = new PacketBuilder(PacketType.ScreenCopy)
 
     pb.writeTileEntity(t)
@@ -117,7 +118,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenDepthChange(t: TileEntity, value: PackedColor.Depth.Value) {
+  def sendScreenDepthChange(t: Screen, value: PackedColor.Depth.Value) {
     val pb = new PacketBuilder(PacketType.ScreenDepthChange)
 
     pb.writeTileEntity(t)
@@ -126,7 +127,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenFill(t: TileEntity, col: Int, row: Int, w: Int, h: Int, c: Char) {
+  def sendScreenFill(t: Buffer.Environment, col: Int, row: Int, w: Int, h: Int, c: Char) {
     val pb = new PacketBuilder(PacketType.ScreenFill)
 
     pb.writeTileEntity(t)
@@ -139,7 +140,16 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenResolutionChange(t: TileEntity, w: Int, h: Int) {
+  def sendScreenPowerChange(t: Screen, hasPower: Boolean) {
+    val pb = new PacketBuilder(PacketType.ScreenPowerChange)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(hasPower)
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendScreenResolutionChange(t: Screen, w: Int, h: Int) {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
     pb.writeTileEntity(t)
@@ -149,7 +159,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenSet(t: TileEntity, col: Int, row: Int, s: String) {
+  def sendScreenSet(t: Buffer.Environment, col: Int, row: Int, s: String) {
     val pb = new PacketBuilder(PacketType.ScreenSet)
 
     pb.writeTileEntity(t)

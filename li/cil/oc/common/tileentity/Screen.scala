@@ -31,13 +31,15 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
    * Check for multi-block screen option in next update. We do this in the
    * update to avoid unnecessary checks on chunk unload.
    */
-  private var shouldCheckForMultiBlock = true
+  var shouldCheckForMultiBlock = true
 
   var width, height = 1
 
   var origin = this
 
   val screens = mutable.Set(this)
+
+  var hasPower = true
 
   // ----------------------------------------------------------------------- //
 
@@ -64,6 +66,13 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
 
   override def updateEntity() {
     super.updateEntity()
+    if (isServer) {
+      val hadPower = hasPower
+      hasPower = node.changeBuffer(-Config.screenCost)
+      if (hasPower != hadPower) {
+        ServerPacketSender.sendScreenPowerChange(this, hasPower)
+      }
+    }
     if (shouldCheckForMultiBlock) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
@@ -135,8 +144,6 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
     }
     screens.clone().foreach(_.checkMultiBlock())
   }
-
-  override def onChunkUnload() = super.onChunkUnload()
 
   // ----------------------------------------------------------------------- //
 

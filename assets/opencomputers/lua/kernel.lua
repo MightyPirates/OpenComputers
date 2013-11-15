@@ -13,7 +13,11 @@ local function invoke(direct, ...)
   local result
   if direct then
     result = table.pack(component.invoke(...))
-  else
+    if result.n == 0 then -- limit for direct calls reached
+      result = nil
+    end
+  end
+  if not result then
     local args = table.pack(...) -- for access in closure
     result = select(1, coroutine.yield(function()
       return table.pack(component.invoke(table.unpack(args, 1, args.n)))

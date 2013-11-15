@@ -20,7 +20,7 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
 
   def lines = buffer.buffer
 
-  def colors = buffer.color
+  def color = buffer.color
 
   def depth = buffer.depth
 
@@ -79,21 +79,18 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
     // avoid sending too much data to our clients.
     val (x, truncated) =
       if (col < 0) (0, s.substring(-col))
-      else (col, s.substring(0, s.length min buffer.width))
-    if (consumePower(truncated.length, Config.screenSetCost))
-      if (buffer.set(x, row, truncated))
-        owner.onScreenSet(x, row, truncated)
+      else (col, s.substring(0, s.length min (buffer.width - col)))
+    if (buffer.set(x, row, truncated))
+      owner.onScreenSet(x, row, truncated)
   }
 
   def fill(col: Int, row: Int, w: Int, h: Int, c: Char) =
-    if (consumePower(w * h, if (c == ' ') Config.screenClearCost else Config.screenFillCost))
-      if (buffer.fill(col, row, w, h, c))
-        owner.onScreenFill(col, row, w, h, c)
+    if (buffer.fill(col, row, w, h, c))
+      owner.onScreenFill(col, row, w, h, c)
 
   def copy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) =
-    if (consumePower(w * h, Config.screenCopyCost))
-      if (buffer.copy(col, row, w, h, tx, ty))
-        owner.onScreenCopy(col, row, w, h, tx, ty)
+    if (buffer.copy(col, row, w, h, tx, ty))
+      owner.onScreenCopy(col, row, w, h, tx, ty)
 
   // ----------------------------------------------------------------------- //
 
@@ -106,13 +103,6 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
     buffer.save(screenNbt)
     nbt.setCompoundTag(Config.namespace + "screen", screenNbt)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  private def consumePower(n: Double, cost: Double) = owner.node == null || {
-    owner.node.changeBuffer(-n * cost * (1 + owner.size * Config.screenMultiCostScale))
-  }
-
 }
 
 object Buffer {

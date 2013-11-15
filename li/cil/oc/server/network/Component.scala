@@ -2,7 +2,7 @@ package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
-import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.{Method, InvocationTargetException}
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
@@ -18,7 +18,7 @@ trait Component extends api.network.Component with Persistable {
 
   def visibility = visibility_
 
-  private lazy val luaCallbacks = Component.callbacks(host.getClass)
+  private lazy val callbacks = Component.callbacks(host.getClass)
 
   private var visibility_ = Visibility.None
 
@@ -69,16 +69,25 @@ trait Component extends api.network.Component with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  def methods() = luaCallbacks.keySet
+  def methods = callbacks.keySet
 
-  def invoke(method: String, context: Context, arguments: AnyRef*) = {
-    luaCallbacks.get(method) match {
-      case Some((_, callback)) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
+  def invoke(method: String, context: Context, arguments: AnyRef*) =
+    callbacks.get(method) match {
+      case Some(callback) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
       case _ => throw new NoSuchMethodException()
     }
-  }
 
-  def isAsynchronous(method: String) = luaCallbacks(method)._1
+  def isDirect(method: String) =
+    callbacks.get(method) match {
+      case Some(callback) => callbacks(method).direct
+      case _ => throw new NoSuchMethodException()
+    }
+
+  def limit(method: String) =
+    callbacks.get(method) match {
+      case Some(callback) => callbacks(method).limit
+      case _ => throw new NoSuchMethodException()
+    }
 
   // ----------------------------------------------------------------------- //
 
@@ -96,12 +105,12 @@ trait Component extends api.network.Component with Persistable {
 }
 
 object Component {
-  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]]
+  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
   def callbacks(clazz: Class[_]) = cache.getOrElseUpdate(clazz, analyze(clazz))
 
   private def analyze(clazz: Class[_]) = {
-    val callbacks = mutable.Map.empty[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]
+    val callbacks = mutable.Map.empty[String, Callback]
     var c = clazz
     while (c != classOf[Object]) {
       val ms = c.getDeclaredMethods
@@ -121,11 +130,8 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value ->(a.direct(), (o: AnyRef, c: Context, a: Arguments) => try {
-              m.invoke(o, c, a).asInstanceOf[Array[AnyRef]]
-            } catch {
-              case e: InvocationTargetException => throw e.getCause
-            })
+
+            callbacks += a.value -> new Callback(m, a.direct, a.limit)
           }
         }
       )
@@ -136,6 +142,14 @@ object Component {
   }
 
   // ----------------------------------------------------------------------- //
+
+  class Callback(val method: Method, val direct: Boolean, val limit: Int) {
+    def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = try {
+      method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
+    } catch {
+      case e: InvocationTargetException => throw e.getCause
+    }
+  }
 
   class VarArgs(val args: Seq[AnyRef]) extends Arguments {
     def iterator() = args.iterator

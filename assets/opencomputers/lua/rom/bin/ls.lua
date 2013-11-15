@@ -27,10 +27,10 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
+        io.write(f .. "\t")
         if options.l then
-          print(f, fs.size(fs.concat(path, f)))
-        else
-          io.write(f .. "\t")
+          setColor(0xFFFFFF)
+          print(fs.size(fs.concat(path, f)))
         end
       end
     end

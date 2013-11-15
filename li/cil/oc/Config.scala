@@ -20,17 +20,17 @@ object Config {
 
   var bufferConverter = 100.0
   var bufferCapacitor = 50.0
-  var bufferPowerSupply = 20.0
+  var bufferPowerSupply = 50.0
 
   var computerCost = 1.0
+  var gpuFillCost = 1.0 / 100
+  var gpuClearCost = 1.0 / 400
+  var gpuCopyCost = 1.0 / 200
+  var gpuSetCost = 1.0 / 80
   var hddReadCost = 1.0 / 1600.0
   var hddWriteCost = 1.0 / 800.0
   var powerSupplyCost = -1.25
-  var screenFillCost = 1.0 / 100
-  var screenClearCost = 1.0 / 400
-  var screenCopyCost = 1.0 / 200
-  var screenMultiCostScale = 0.2
-  var screenSetCost = 1.0 / 80
+  var screenCost = 0.2
   var wirelessCostPerRange = 1.0 / 20.0
 
   // ----------------------------------------------------------------------- //
@@ -149,8 +149,30 @@ object Config {
     // --------------------------------------------------------------------- //
 
     computerCost = config.get("power.cost", "computerCost", computerCost, "" +
-      "Energy it takes per tick to run a computer, even if it's idle.").
+      "The amount of energy a computer consumes per tick when running.").
       getDouble(computerCost) max 0
+
+    gpuFillCost = config.get("power.cost", "gpuFillCost", gpuFillCost, "" +
+      "Energy it takes to change a single 'pixel' via the fill command. This\n" +
+      "means the total cost of the fill command will be its area times this.").
+      getDouble(gpuFillCost) max 0
+
+    gpuClearCost = config.get("power.cost", "gpuClearCost", gpuClearCost, "" +
+      "Energy it takes to change a single 'pixel' to blank using the fill\n" +
+      "command. This means the total cost of the fill command will be its\n" +
+      "area times this.").
+      getDouble(gpuClearCost) max 0
+
+    gpuCopyCost = config.get("power.cost", "gpuCopyCost", gpuCopyCost, "" +
+      "Energy it takes to move a single 'pixel' via the copy command. This\n" +
+      "means the total cost of the copy command will be its area times this.").
+      getDouble(gpuCopyCost) max 0
+
+    gpuSetCost = config.get("power.cost", "gpuSetCost", gpuSetCost, "" +
+      "Energy it takes to change a single 'pixel' via the set command. For\n" +
+      "calls to set with a string, this means the total cost will be the\n" +
+      "string length times this.").
+      getDouble(gpuSetCost) max 0
 
     hddReadCost = config.get("power.cost", "hddReadCost", hddReadCost, "" +
       "Energy it takes read a single byte from a file system. Note that non\n" +
@@ -170,36 +192,15 @@ object Config {
       "setup, mostly for testing. ").
       getDouble(powerSupplyCost)
 
-    screenFillCost = config.get("power.cost", "screenFillCost", screenFillCost, "" +
-      "Energy it takes to change a single pixel via the fill command. This\n" +
-      "means the total cost of the fill command will be its area times this.").
-      getDouble(screenFillCost) max 0
-
-    screenClearCost = config.get("power.cost", "screenClearCost", screenClearCost, "" +
-      "Energy it takes to change a single pixel to blank using the fill\n" +
-      "command. This means the total cost of the fill command will be the\n" +
-      "screen area times this.").
-      getDouble(screenClearCost) max 0
-
-    screenCopyCost = config.get("power.cost", "screenCopyCost", screenCopyCost, "" +
-      "Energy it takes to move a single pixel via the copy command. This\n" +
-      "means the total cost of the copy command will be its area times this.").
-      getDouble(screenCopyCost) max 0
-
-    screenMultiCostScale = config.get("power.cost", "screenMultiCostScale", screenMultiCostScale, "" +
-      "This defines how much power demand scales for multi-block screens.\n" +
-      "The costs of all the basic operations (set, copy, fill/clear)\n" +
-      "increase linearly with the size of the multi-block screen following\n" +
-      "this formula:\n" +
-      "cost = opCost * (1 + #blocks * `screenMultiCostScale`)\n" +
-      "So for example, to clear a 3 by 4 multi-block screen it'd take a\n" +
-      "total of `screenClearCost` * (1 + 3 * 4 * `screenMultiCostScale`)\n" +
-      "power units.").
-      getDouble(screenMultiCostScale) max 0
-
-    screenSetCost = config.get("power.cost", "screenSetCost", screenSetCost, "" +
-      "Energy it takes to change a single pixel via the set command.").
-      getDouble(screenSetCost) max 0
+    screenCost = config.get("power.cost", "screenCost", screenCost, "" +
+      "The amount of energy a screen consumes per tick. If a screen cannot\n" +
+      "consume the defined amount of energy it will stop rendering the text\n" +
+      "that should be displayed on it. It will *not* forget that text,\n" +
+      "however, so when enough power is available again it will restore the\n" +
+      "previously displayed text (with any changes possibly made in the\n" +
+      "meantime). Note that for multi-block screens *each* screen that is\n" +
+      "part of it will consume this amount of energy per tick.").
+      getDouble(screenCost) max 0
 
     wirelessCostPerRange = config.get("power.cost", "wirelessCostPerRange", wirelessCostPerRange, "" +
       "The amount of energy it costs to send a signal with strength one,\n" +
