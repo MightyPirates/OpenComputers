@@ -4,10 +4,9 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component.Buffer
-import li.cil.oc.common.tileentity.{Redstone, PowerDistributor, Rotatable}
+import li.cil.oc.common.tileentity.{Redstone, PowerDistributor, Rotatable, TileEntity}
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** Centralized packet dispatcher for sending updates to the client. */
@@ -45,7 +44,7 @@ object PacketSender {
     }
   }
 
-  def sendRedstoneState(t: TileEntity with Redstone, player: Option[Player] = None) {
+  def sendRedstoneState(t: Redstone, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RedstoneStateResponse)
 
     pb.writeTileEntity(t)
@@ -60,7 +59,7 @@ object PacketSender {
     }
   }
 
-  def sendRotatableState(t: TileEntity with Rotatable, player: Option[Player] = None) {
+  def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 
     pb.writeTileEntity(t)
@@ -73,7 +72,7 @@ object PacketSender {
     }
   }
 
-  def sendScreenBufferState(t: TileEntity with Buffer.Environment, player: Option[Player] = None) {
+  def sendScreenBufferState(t: Buffer.Environment, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
 
     pb.writeTileEntity(t)

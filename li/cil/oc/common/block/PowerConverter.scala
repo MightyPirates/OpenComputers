@@ -27,8 +27,6 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   }
 
   // ----------------------------------------------------------------------- //
-  // Tile entity
-  // ----------------------------------------------------------------------- //
 
   override def hasTileEntity = true
 

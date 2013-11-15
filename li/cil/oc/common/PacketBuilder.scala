@@ -4,9 +4,9 @@ import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import li.cil.oc.common.tileentity.TileEntity
 import net.minecraft.nbt.NBTBase
 import net.minecraft.network.packet.Packet250CustomPayload
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** Utility class for packet creation. */
@@ -14,10 +14,10 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
   writeByte(packetType.id)
 
   def writeTileEntity(t: TileEntity) = {
-    writeInt(t.worldObj.provider.dimensionId)
-    writeInt(t.xCoord)
-    writeInt(t.yCoord)
-    writeInt(t.zCoord)
+    writeInt(t.world.provider.dimensionId)
+    writeInt(t.x)
+    writeInt(t.y)
+    writeInt(t.z)
   }
 
   def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)

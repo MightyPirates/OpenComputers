@@ -8,7 +8,7 @@ import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-trait ComponentInventory extends Inventory with TileEntity with network.Environment with Persistable {
+trait ComponentInventory extends Inventory with network.Environment with Persistable {
   protected val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
@@ -75,7 +75,7 @@ trait ComponentInventory extends Inventory with TileEntity with network.Environm
 
   def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
+  override protected def onItemAdded(slot: Int, item: ItemStack) = if (isServer) {
     Registry.driverFor(item) match {
       case Some(driver) => Option(driver.createEnvironment(item, this)) match {
         case Some(component) =>
@@ -88,7 +88,7 @@ trait ComponentInventory extends Inventory with TileEntity with network.Environm
     }
   }
 
-  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (!world.isRemote) {
+  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (isServer) {
     // Uninstall component previously in that slot.
     components(slot) match {
       case Some(component) =>

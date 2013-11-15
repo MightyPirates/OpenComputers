@@ -4,7 +4,6 @@ import cpw.mods.fml.common.IPlayerTracker
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.{Event, ForgeSubscribe}
 import scala.collection.mutable
@@ -47,18 +46,6 @@ class Keyboard extends Environment with Rotatable {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    node.load(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    node.save(nbt)
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def onMessage(message: Message) = {
     message.data match {
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
@@ -85,8 +72,8 @@ class Keyboard extends Environment with Rotatable {
   // ----------------------------------------------------------------------- //
 
   private def isUseableByPlayer(p: EntityPlayer) =
-    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
-      p.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
+    world.getBlockTileEntity(x, y, z) == this &&
+      p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) < 64
 }
 
 object Keyboard extends IPlayerTracker {

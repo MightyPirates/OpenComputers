@@ -3,13 +3,16 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Config
 import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraft.world.World
 
-trait Inventory extends IInventory with Persistable {
+trait Inventory extends TileEntity with IInventory with Persistable {
   protected val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+
+  // ----------------------------------------------------------------------- //
 
   def getStackInSlot(i: Int) = items(i).orNull
 
@@ -25,26 +28,37 @@ trait Inventory extends IInventory with Persistable {
   }
 
   def setInventorySlotContents(slot: Int, item: ItemStack) = {
-    if (items(slot).isDefined)
+    if (items(slot).isDefined) {
       onItemRemoved(slot, items(slot).get)
+    }
 
     items(slot) = Option(item)
-    if (item != null && item.stackSize > getInventoryStackLimit)
+    if (item != null && item.stackSize > getInventoryStackLimit) {
       item.stackSize = getInventoryStackLimit
+    }
 
-    if (items(slot).isDefined)
+    if (items(slot).isDefined) {
       onItemAdded(slot, items(slot).get)
+    }
 
     onInventoryChanged()
   }
 
   def getStackInSlotOnClosing(slot: Int) = null
 
-  def isInvNameLocalized = false
-
   def openChest() {}
 
   def closeChest() {}
+
+  def isInvNameLocalized = false
+
+  def isUseableByPlayer(player: EntityPlayer) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: TileEntity if t == this => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) < 64
+      case _ => false
+    }
+
+  // ----------------------------------------------------------------------- //
 
   def dropContent(world: World, x: Int, y: Int, z: Int) {
     val rng = world.rand
@@ -63,8 +77,11 @@ trait Inventory extends IInventory with Persistable {
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
+
     val inventoryNbt = nbt.getTagList(Config.namespace + "inventory.items")
     for (i <- 0 until inventoryNbt.tagCount) {
       val slotNbt = inventoryNbt.tagAt(i).asInstanceOf[NBTTagCompound]
@@ -78,6 +95,7 @@ trait Inventory extends IInventory with Persistable {
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+
     val inventoryNbt = new NBTTagList()
     items.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
@@ -93,6 +111,8 @@ trait Inventory extends IInventory with Persistable {
     }
     nbt.setTag(Config.namespace + "inventory.items", inventoryNbt)
   }
+
+  // ----------------------------------------------------------------------- //
 
   protected def onItemAdded(slot: Int, item: ItemStack) {}
 

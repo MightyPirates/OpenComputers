@@ -2,6 +2,7 @@ package li.cil.oc.common.component
 
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.component
+import li.cil.oc.common.tileentity.TileEntity
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
 import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
@@ -116,7 +117,7 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
 
 object Buffer {
 
-  trait Environment extends api.network.Environment with Persistable {
+  trait Environment extends TileEntity with api.network.Environment with Persistable {
     val node = api.Network.newNode(this, Visibility.Network).
       withComponent("screen").
       withConnector().

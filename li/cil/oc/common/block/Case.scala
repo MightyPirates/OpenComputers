@@ -70,7 +70,7 @@ class Case(val parent: SimpleDelegator) extends SimpleDelegate {
   override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Case =>
-        computer.turnOff()
+        computer.instance.stop()
         computer.dropContent(world, x, y, z)
       case _ => // Ignore.
     }
@@ -80,7 +80,7 @@ class Case(val parent: SimpleDelegator) extends SimpleDelegate {
     if (!player.isSneaking) {
       // Start the computer if it isn't already running and open the GUI.
       if (!world.isRemote) {
-        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Case].turnOn()
+        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Case].instance.start()
       }
       player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
       true

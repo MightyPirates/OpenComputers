@@ -1,10 +1,8 @@
 package li.cil.oc.client
 
-import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
-import net.minecraft.tileentity.TileEntity
 
 object PacketSender {
   def sendComputerStateRequest(t: Case) {
@@ -23,7 +21,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRedstoneStateRequest(t: TileEntity with Redstone) {
+  def sendRedstoneStateRequest(t: Redstone) {
     val pb = new PacketBuilder(PacketType.RedstoneStateRequest)
 
     pb.writeTileEntity(t)
@@ -31,7 +29,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRotatableStateRequest(t: TileEntity with Rotatable) {
+  def sendRotatableStateRequest(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableStateRequest)
 
     pb.writeTileEntity(t)
@@ -47,7 +45,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
+  def sendKeyDown[T <: Environment](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
@@ -57,7 +55,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
+  def sendKeyUp[T <: Environment](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
@@ -67,7 +65,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendClipboard[T <: TileEntity with Environment](t: T, value: String) = if (!value.isEmpty) {
+  def sendClipboard[T <: Environment](t: T, value: String) = if (!value.isEmpty) {
     val pb = new PacketBuilder(PacketType.Clipboard)
 
     pb.writeTileEntity(t)

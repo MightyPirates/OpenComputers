@@ -30,7 +30,7 @@ abstract class Computer extends Environment with Context with Analyzable {
     // the update this round to allow other tile entities to join the network,
     // too, avoiding issues of missing nodes (e.g. in the GPU which would
     // otherwise loose track of its screen).
-    if (!worldObj.isRemote && node != null && node.network != null) {
+    if (isServer && node != null && node.network != null) {
       if (instance.isRunning && !node.changeBuffer(-Config.computerCost)) {
         instance.lastError = "not enough energy"
         instance.stop()

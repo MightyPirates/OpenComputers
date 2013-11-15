@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Interface
+import cpw.mods.fml.common.{Loader, Optional}
 import li.cil.oc.Config
-import li.cil.oc.common.tileentity
+import li.cil.oc.api.network
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
 import net.minecraft.nbt.{NBTTagByte, NBTTagList, NBTTagCompound}
@@ -16,7 +17,7 @@ import net.minecraftforge.common.ForgeDirection
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
-trait Redstone extends tileentity.Environment with Persistable
+trait Redstone extends TileEntity with network.Environment with Rotatable with Persistable
 with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmitter with IRedstoneUpdatable {
   private val _input = Array.fill[Byte](6)(-1)
 
@@ -168,13 +169,57 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
 
   // ----------------------------------------------------------------------- //
 
-  protected def computeInput(side: ForgeDirection): Int
+  protected def computeInput(side: ForgeDirection) = {
+    val global = toGlobal(side)
+    world.getIndirectPowerLevelTo(
+      x + global.offsetX,
+      y + global.offsetY,
+      z + global.offsetZ,
+      global.ordinal())
+  }
 
-  protected def computeBundledInput(side: ForgeDirection): Array[Byte]
+  protected def computeBundledInput(side: ForgeDirection) = {
+    val global = toGlobal(side)
+    if (Loader.isModLoaded("RedLogic")) {
+      world.getBlockTileEntity(
+        x + global.offsetX,
+        y + global.offsetY,
+        z + global.offsetZ) match {
+        case wire: IInsulatedRedstoneWire =>
+          var strength: Array[Byte] = null
+          for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
+            strength = Array.fill[Byte](16)(0)
+            strength(wire.getInsulatedWireColour) = wire.getEmittedSignalStrength(face, side.ordinal()).toByte
+          }
+          strength
+        case emitter: IBundledEmitter =>
+          var strength: Array[Byte] = null
+          for (i <- -1 to 5 if strength == null) {
+            strength = emitter.getBundledCableStrength(i, global.getOpposite.ordinal())
+          }
+          strength
+        case _ => null
+      }
+    } else null
+  }
 
   protected def onRedstoneInputChanged(side: ForgeDirection) {}
 
-  protected def onRedstoneOutputChanged(side: ForgeDirection) {}
+  protected def onRedstoneOutputChanged(side: ForgeDirection) {
+    if (side == ForgeDirection.UNKNOWN) {
+      world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
+    }
+    else {
+      val global = toGlobal(side)
+      world.notifyBlockOfNeighborChange(
+        x + global.offsetX,
+        y + global.offsetY,
+        z + global.offsetZ,
+        block.blockID)
+    }
+    if (isServer) ServerPacketSender.sendRedstoneState(this)
+    else world.markBlockForRenderUpdate(x, y, z)
+  }
 
   // ----------------------------------------------------------------------- //
 

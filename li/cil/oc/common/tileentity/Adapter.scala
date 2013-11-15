@@ -31,21 +31,21 @@ class Adapter extends Environment with IPeripheral {
 
   def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
-      val (x, y, z) = (xCoord + d.offsetX, yCoord + d.offsetY, zCoord + d.offsetZ)
-      driver.Registry.driverFor(worldObj, x, y, z) match {
+      val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
+      driver.Registry.driverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
             if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
-              val environment = newDriver.createEnvironment(worldObj, x, y, z)
+              val environment = newDriver.createEnvironment(world, x, y, z)
               blocks(d.ordinal()) = Some((environment, newDriver))
               blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
               node.connect(environment.node)
             } // else: the more things change, the more they stay the same.
           case _ =>
             // A challenger appears.
-            val environment = newDriver.createEnvironment(worldObj, x, y, z)
+            val environment = newDriver.createEnvironment(world, x, y, z)
             blocks(d.ordinal()) = Some((environment, newDriver))
             blocksData(d.ordinal()) match {
               case Some(data) if data.name == environment.getClass.getName =>

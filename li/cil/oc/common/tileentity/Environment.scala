@@ -1,18 +1,21 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.{Network, network}
+import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 
-abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment {
+abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment with Persistable {
 
-  def world = worldObj
+  def world = getWorldObj
 
   def x = xCoord
 
   def y = yCoord
 
   def z = zCoord
+
+  def block = getBlockType
 
   // ----------------------------------------------------------------------- //
 
@@ -37,11 +40,13 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
+    load(nbt)
     if (node != null) node.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
+    save(nbt)
     if (node != null) node.save(nbt)
   }
 

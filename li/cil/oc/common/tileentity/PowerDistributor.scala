@@ -88,14 +88,14 @@ class PowerDistributor extends Environment with Analyzable {
 
   override def updateEntity() {
     super.updateEntity()
-    if (!worldObj.isRemote && (dirty || buffers.exists(_.dirty))) {
+    if (isServer && (dirty || buffers.exists(_.dirty))) {
       updateCachedValues()
     }
   }
 
   override def validate() {
     super.validate()
-    if (worldObj.isRemote) {
+    if (isClient) {
       ClientPacketSender.sendPowerStateRequest(this)
     }
   }

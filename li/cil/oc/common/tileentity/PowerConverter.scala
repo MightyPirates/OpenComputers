@@ -34,7 +34,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
 
   override def updateEntity() {
     super.updateEntity()
-    if (!worldObj.isRemote) {
+    if (isServer) {
       if (Loader.isModLoaded("IC2")) {
         loadIC2()
       }

@@ -8,7 +8,6 @@ import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTBase, NBTTagCompound}
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.StatCollector
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
@@ -72,7 +71,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRedstoneStateResponse(p: PacketParser) =
-    p.readTileEntity[TileEntity with Redstone]() match {
+    p.readTileEntity[Redstone]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
         for (d <- ForgeDirection.VALID_DIRECTIONS) {
@@ -82,7 +81,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRotatableStateResponse(p: PacketParser) =
-    p.readTileEntity[TileEntity with Rotatable]() match {
+    p.readTileEntity[Rotatable]() match {
       case Some(t) =>
         t.pitch = p.readDirection()
         t.yaw = p.readDirection()

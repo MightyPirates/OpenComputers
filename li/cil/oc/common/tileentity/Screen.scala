@@ -14,7 +14,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Environment with Buffer.Environment with Rotatable with Analyzable {
+class Screen(var tier: Int) extends Environment with Buffer.Environment with Rotatable with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
   var currentGui: Option[gui.Screen] = None
@@ -55,6 +55,11 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
 
+  def compare(that: Screen) =
+    if (x != that.x) x - that.x
+    else if (y != that.y) y - that.y
+    else z - that.z
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
@@ -64,7 +69,7 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
       // different results on server and client due to the update order
       // differing between the two. This also saves us from having to save
       // any multi-block specific state information.
-      val pending = mutable.SortedSet(this)(Screen.ordering)
+      val pending = mutable.SortedSet(this)
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
@@ -99,10 +104,14 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
         if (screen.isOrigin) {
-          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.Network)
+          if (isServer) {
+            screen.node.setVisibility(Visibility.Network)
+          }
         }
         else {
-          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.None)
+          if (isServer) {
+            screen.node.setVisibility(Visibility.None)
+          }
           val s = screen.instance
           val (w, h) = s.resolution
           s.buffer.fill(0, 0, w, h, ' ')
@@ -113,7 +122,7 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
 
   override def validate() {
     super.validate()
-    if (worldObj.isRemote) {
+    if (isClient) {
       ClientPacketSender.sendRotatableStateRequest(this)
       ClientPacketSender.sendScreenBufferRequest(this)
     }
@@ -134,13 +143,11 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Config.namespace + "screen.tier")
     super.readFromNBT(nbt)
-    super.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Config.namespace + "screen.tier", tier.toByte)
     super.writeToNBT(nbt)
-    super.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
@@ -220,15 +227,13 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
   // ----------------------------------------------------------------------- //
 
   override def onRotationChanged() {
-    if (!worldObj.isRemote) {
-      ServerPacketSender.sendRotatableState(this)
-    }
+    super.onRotationChanged()
     screens.clone().foreach(_.checkMultiBlock())
   }
 
   override def onScreenColorChange(foreground: Int, background: Int) {
     super.onScreenColorChange(foreground, background)
-    if (!worldObj.isRemote) {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenColorChange(this, foreground, background)
     }
@@ -236,66 +241,60 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
 
   override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
     super.onScreenCopy(col, row, w, h, tx, ty)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
+    }
+    else {
+      currentGui.foreach(_.updateText())
+      hasChanged = true
     }
   }
 
   override def onScreenDepthChange(depth: PackedColor.Depth.Value) {
     super.onScreenDepthChange(depth)
-    if (!worldObj.isRemote) {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenDepthChange(this, depth)
+    }
+    else {
+      hasChanged = true
     }
   }
 
   override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
     super.onScreenFill(col, row, w, h, c)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
+    }
+    else {
+      currentGui.foreach(_.updateText())
+      hasChanged = true
     }
   }
 
   override def onScreenResolutionChange(w: Int, h: Int) = {
     super.onScreenResolutionChange(w, h)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.changeSize(w, h))
-      hasChanged = true
-    }
-    else {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenResolutionChange(this, w, h)
+    }
+    else {
+      currentGui.foreach(_.changeSize(w, h))
+      hasChanged = true
     }
   }
 
   override def onScreenSet(col: Int, row: Int, s: String) = {
     super.onScreenSet(col, row, s)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
+    if (isServer) {
       worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       ServerPacketSender.sendScreenSet(this, col, row, s)
     }
-  }
-}
-
-object Screen {
-  val ordering = new Ordering[Screen] {
-    def compare(a: Screen, b: Screen) =
-      if (a.xCoord != b.xCoord) a.xCoord - b.xCoord
-      else if (a.yCoord != b.yCoord) a.yCoord - b.yCoord
-      else a.zCoord - b.zCoord
+    else {
+      currentGui.foreach(_.updateText())
+      hasChanged = true
+    }
   }
 }
