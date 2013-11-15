@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 
 class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends Player(playerInventory, computer) {
   addSlotToContainer(new Slot(computer, getInventory.size, 58, 17) {
-    setBackgroundIcon(Icons.bySlotType(api.driver.Slot.Power))
+    setBackgroundIcon(Icons.get(api.driver.Slot.Power))
 
     override def isItemValid(item: ItemStack) = {
       computer.isItemValidForSlot(0, item)
@@ -19,7 +19,7 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
   for (i <- 0 to 2) {
     val index = getInventory.size
     addSlotToContainer(new Slot(computer, index, 80, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.bySlotType(api.driver.Slot.Card))
+      setBackgroundIcon(Icons.get(api.driver.Slot.Card))
 
       override def isItemValid(item: ItemStack) = {
         computer.isItemValidForSlot(index, item)
@@ -30,7 +30,7 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
   for (i <- 0 to 1) {
     val index = getInventory.size
     addSlotToContainer(new Slot(computer, index, 102, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.bySlotType(api.driver.Slot.Memory))
+      setBackgroundIcon(Icons.get(api.driver.Slot.Memory))
 
       override def isItemValid(item: ItemStack) = {
         computer.isItemValidForSlot(index, item)
@@ -41,7 +41,7 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
   for (i <- 0 to 1) {
     val index = getInventory.size
     addSlotToContainer(new Slot(computer, index, 124, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.bySlotType(api.driver.Slot.HardDiskDrive))
+      setBackgroundIcon(Icons.get(api.driver.Slot.HardDiskDrive))
 
       override def isItemValid(item: ItemStack) = {
         computer.isItemValidForSlot(index, item)

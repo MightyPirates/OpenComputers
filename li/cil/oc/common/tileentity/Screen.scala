@@ -106,9 +106,11 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
             pending.remove(screen)
             queue += screen
         }
-        val bounds = current.origin.getRenderBoundingBox
-        worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
-          bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
+        if (isClient) {
+          val bounds = current.origin.getRenderBoundingBox
+          worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+            bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
+        }
       }
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
