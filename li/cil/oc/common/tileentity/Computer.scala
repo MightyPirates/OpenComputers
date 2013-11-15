@@ -1,13 +1,15 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
-import li.cil.oc.server.component
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.{Config, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
-abstract class Computer extends Environment with Context with Analyzable {
+abstract class Computer extends Environment with ComponentInventory with Rotatable with Redstone with Context with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector().
@@ -15,35 +17,72 @@ abstract class Computer extends Environment with Context with Analyzable {
 
   val instance: component.Computer
 
-  def installedMemory: Int
-
-  // ----------------------------------------------------------------------- //
+  private var isRunning = false
 
   private var hasChanged = false
 
+  // ----------------------------------------------------------------------- //
+
+  def isOn = isRunning
+
+  def isOn_=(value: Boolean) = {
+    isRunning = value
+    world.markBlockForRenderUpdate(x, y, z)
+    this
+  }
+
   def markAsChanged() = hasChanged = true
+
+  def hasRedstoneCard = items.exists {
+    case Some(item) => driver.item.RedstoneCard.worksWith(item)
+    case _ => false
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    // If we're not yet in a network we were just loaded from disk. We skip
-    // the update this round to allow other tile entities to join the network,
-    // too, avoiding issues of missing nodes (e.g. in the GPU which would
-    // otherwise loose track of its screen).
-    if (isServer && node != null && node.network != null) {
-      if (instance.isRunning && !node.changeBuffer(-Config.computerCost)) {
-        instance.lastError = "not enough energy"
-        instance.stop()
-      }
-      instance.update()
+    if (isServer) {
+      // If we're not yet in a network we were just loaded from disk. We skip
+      // the update this round to allow other tile entities to join the network,
+      // too, avoiding issues of missing nodes (e.g. in the GPU which would
+      // otherwise loose track of its screen).
+      if (node != null && node.network != null) {
+        if (instance.isRunning && !node.changeBuffer(-Config.computerCost)) {
+          instance.lastError = "not enough energy"
+          instance.stop()
+        }
+        instance.update()
 
-      if (hasChanged) {
-        hasChanged = false
-        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+        if (hasChanged) {
+          hasChanged = false
+          worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+        }
+      }
+
+      if (isRunning != instance.isRunning) {
+        isOutputEnabled = hasRedstoneCard && instance.isRunning
+        ServerPacketSender.sendComputerState(this, instance.isRunning)
+      }
+      isRunning = instance.isRunning
+
+      updateRedstoneInput()
+
+      for (component <- components) component match {
+        case Some(environment) => environment.update()
+        case _ => // Empty.
       }
     }
 
     super.updateEntity()
+  }
+
+  override def validate() = {
+    super.validate()
+    if (isClient) {
+      ClientPacketSender.sendRotatableStateRequest(this)
+      ClientPacketSender.sendComputerStateRequest(this)
+      ClientPacketSender.sendRedstoneStateRequest(this)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -51,6 +90,7 @@ abstract class Computer extends Environment with Context with Analyzable {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (instance != null) instance.load(nbt)
+    //    instance.recomputeMemory()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -76,6 +116,21 @@ abstract class Computer extends Environment with Context with Analyzable {
       }
     }
     this
+  }
+
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    if (isServer) {
+      instance.recomputeMemory()
+      isOutputEnabled = hasRedstoneCard && instance.isRunning
+    }
+  }
+
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    if (isServer) {
+      instance.signal("redstone_changed", side.ordinal())
+    }
   }
 
   // ----------------------------------------------------------------------- //
