@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) {
+private class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) {
   def this(node: MutableNode) = {
     this()
     addNew(node)
@@ -25,7 +25,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def connect(nodeA: MutableNode, nodeB: MutableNode) = this.synchronized {
+  def connect(nodeA: MutableNode, nodeB: MutableNode) = {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot connect a node to itself.")
 
@@ -59,7 +59,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
     else add(oldNodeB, nodeA)
   }
 
-  def disconnect(nodeA: MutableNode, nodeB: MutableNode) = this.synchronized {
+  def disconnect(nodeA: MutableNode, nodeB: MutableNode) = {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot disconnect a node from itself.")
 
@@ -85,7 +85,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
     }
   }
 
-  def remove(node: MutableNode) = this.synchronized {
+  def remove(node: MutableNode) = {
     data.remove(node.address) match {
       case Some(entry) => {
         node.network = null
@@ -105,14 +105,14 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def node(address: String) = this.synchronized {
+  def node(address: String) = {
     data.get(address) match {
       case Some(node) => node.data
       case _ => null
     }
   }
 
-  def nodes: Iterable[ImmutableNode] = this.synchronized(data.values.map(_.data))
+  def nodes: Iterable[ImmutableNode] = data.values.map(_.data)
 
   def nodes(reference: ImmutableNode): Iterable[ImmutableNode] = {
     val referenceNeighbors = neighbors(reference).toSet
@@ -120,7 +120,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node))))
   }
 
-  def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = this.synchronized {
+  def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = {
     data.get(node.address) match {
       case Some(n) =>
         assert(n.data == node)
@@ -131,7 +131,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def sendToAddress(source: ImmutableNode, target: String, name: String, args: AnyRef*) = this.synchronized {
+  def sendToAddress(source: ImmutableNode, target: String, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     data.get(target) match {
@@ -141,13 +141,13 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
     }
   }
 
-  def sendToNeighbors(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
+  def sendToNeighbors(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, neighbors(source).filter(_.reachability != Visibility.None), name, args: _*)
   }
 
-  def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
+  def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, nodes(source), name, args: _*)
@@ -386,8 +386,7 @@ object Network extends api.detail.NetworkAPI {
     def disconnect(nodeA: ImmutableNode, nodeB: ImmutableNode) =
       network.disconnect(nodeA.asInstanceOf[MutableNode], nodeB.asInstanceOf[MutableNode])
 
-    def remove(node: ImmutableNode) =
-      network.remove(node.asInstanceOf[MutableNode])
+    def remove(node: ImmutableNode) = network.remove(node.asInstanceOf[MutableNode])
 
     def node(address: String) = network.node(address)
 

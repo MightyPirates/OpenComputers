@@ -22,15 +22,15 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   @LuaCallback(value = "getStrength", direct = true)
   def getStrength(context: Context, args: Arguments): Array[AnyRef] = result(strength)
 
-  @LuaCallback(value = "setStrength", direct = true)
-  def setStrength(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("setStrength")
+  def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
     strength = args.checkDouble(0) max 0 min Config.maxWirelessRange
     result(strength)
   }
 
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
-  override def send(context: Context, args: Arguments) = this.synchronized {
+  override def send(context: Context, args: Arguments) = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
     if (strength > 0) {
@@ -44,7 +44,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     super.send(context, args)
   }
 
-  override def broadcast(context: Context, args: Arguments) = this.synchronized {
+  override def broadcast(context: Context, args: Arguments) = {
     val port = checkPort(args.checkInteger(0))
     if (strength > 0) {
       checkPower()

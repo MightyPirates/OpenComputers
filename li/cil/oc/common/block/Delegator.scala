@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -283,6 +284,12 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
         true
       case _ => false
     }
+
+  def setBlockBounds(bounds: AxisAlignedBB) {
+    setBlockBounds(
+      bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat,
+      bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat)
+  }
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {

@@ -26,21 +26,24 @@ trait Connector extends Node with network.Connector with Persistable {
   // ----------------------------------------------------------------------- //
 
   def changeBuffer(delta: Double) = if (delta != 0) {
-    val oldBuffer = localBuffer
-    localBuffer = localBuffer + delta
-    val ok = if (localBuffer < 0) {
-      val remaining = localBuffer
-      localBuffer = 0
-      distributor.fold(false)(_.changeBuffer(remaining))
+    val remaining = this.synchronized {
+      val oldBuffer = localBuffer
+      localBuffer = localBuffer + delta
+      val remaining = if (localBuffer < 0) {
+        val remaining = localBuffer
+        localBuffer = 0
+        remaining
+      }
+      else if (localBuffer > localBufferSize) {
+        val remaining = localBuffer - localBufferSize
+        localBuffer = localBufferSize
+        remaining
+      }
+      else 0
+      dirty ||= (localBuffer != oldBuffer)
+      remaining
     }
-    else if (localBuffer > localBufferSize) {
-      val remaining = localBuffer - localBufferSize
-      localBuffer = localBufferSize
-      distributor.fold(false)(_.changeBuffer(remaining))
-    }
-    else true
-    dirty ||= (localBuffer != oldBuffer)
-    ok || Config.ignorePower
+    distributor.fold(remaining == 0)(_.changeBuffer(remaining)) || Config.ignorePower
   } else true
 
   // ----------------------------------------------------------------------- //
@@ -59,7 +62,7 @@ trait Connector extends Node with network.Connector with Persistable {
     super.onDisconnect(node)
   }
 
-  private def findDistributor() {
+  private def findDistributor() = {
     distributor = reachableNodes.find(_.host.isInstanceOf[PowerDistributor]).fold(None: Option[PowerDistributor])(n => Some(n.host.asInstanceOf[PowerDistributor]))
   }
 

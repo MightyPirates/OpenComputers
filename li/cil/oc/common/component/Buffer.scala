@@ -2,10 +2,12 @@ package li.cil.oc.common.component
 
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.component
+import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.TileEntity
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
 import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
+import scala.collection.convert.WrapAsScala._
 
 class Buffer(val owner: Buffer.Environment) extends Persistable {
   val buffer = new TextBuffer(maxResolution, maxDepth)
@@ -99,6 +101,22 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
   }
 
   override def save(nbt: NBTTagCompound) = {
+    // Happy thread synchronization hack! Here's the problem: GPUs allow direct
+    // calls for modifying screens to give a more responsive experience. This
+    // causes the following problem: when saving, if the screen is saved first,
+    // then the executor runs in parallel and changes the screen *before* the
+    // server thread begins saving that computer, the saved computer will think
+    // it changed the screen, although the saved screen wasn't. To avoid that we
+    // wait for all computers the screen is connected to to finish their current
+    // execution and pausing them (which will make them resume in the next tick
+    // when their update() runs).
+    if (owner.node.network != null) {
+      for (node <- owner.node.reachableNodes) node.host match {
+        case computer: tileentity.Computer => computer.instance.pause()
+        case _ =>
+      }
+    }
+
     val screenNbt = new NBTTagCompound
     buffer.save(screenNbt)
     nbt.setCompoundTag(Config.namespace + "screen", screenNbt)

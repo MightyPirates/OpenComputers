@@ -47,36 +47,42 @@ class PowerDistributor extends Environment with Analyzable {
   // ----------------------------------------------------------------------- //
 
   def changeBuffer(delta: Double): Boolean = {
-    if (delta != 0) {
+    if (delta != 0) this.synchronized {
       val oldBuffer = globalBuffer
       globalBuffer = (globalBuffer + delta) max 0 min globalBufferSize
       if (globalBuffer != oldBuffer) {
         dirty = true
         if (delta < 0) {
           var remaining = -delta
-          for (connector <- buffers if connector.localBuffer > 0) {
-            if (connector.localBuffer < remaining) {
-              remaining -= connector.localBuffer
-              connector.localBuffer = 0
-            }
-            else {
-              connector.changeBuffer(-remaining)
-              return true
-            }
+          for (connector <- buffers) {
+            connector.synchronized(if (connector.localBuffer > 0) {
+              connector.dirty = true
+              if (connector.localBuffer < remaining) {
+                remaining -= connector.localBuffer
+                connector.localBuffer = 0
+              }
+              else {
+                connector.localBuffer -= remaining
+                return true
+              }
+            })
           }
         }
         else if (delta > 0) {
           var remaining = delta
-          for (connector <- buffers if connector.localBuffer < connector.localBufferSize) {
-            val space = connector.localBufferSize - connector.localBuffer
-            if (space < remaining) {
-              remaining -= space
-              connector.localBuffer = connector.localBufferSize
-            }
-            else {
-              connector.changeBuffer(remaining)
-              return true
-            }
+          for (connector <- buffers) {
+            connector.synchronized(if (connector.localBuffer < connector.localBufferSize) {
+              connector.dirty = true
+              val space = connector.localBufferSize - connector.localBuffer
+              if (space < remaining) {
+                remaining -= space
+                connector.localBuffer = connector.localBufferSize
+              }
+              else {
+                connector.localBuffer += remaining
+                return true
+              }
+            })
           }
         }
       }
@@ -106,10 +112,11 @@ class PowerDistributor extends Environment with Analyzable {
     super.onConnect(node)
     if (node == this.node) {
       for (node <- node.network.nodes) node match {
-        case connector: Connector if connector.localBufferSize > 0 =>
+        case connector: Connector if connector.localBufferSize > 0 => this.synchronized {
           buffers += connector
           globalBuffer += connector.localBuffer
           globalBufferSize += connector.localBufferSize
+        }
         case _ => node.host match {
           case distributor: PowerDistributor => distributors += distributor
           case _ =>
@@ -118,11 +125,12 @@ class PowerDistributor extends Environment with Analyzable {
       dirty = true
     }
     else node match {
-      case connector: Connector =>
+      case connector: Connector => this.synchronized {
         buffers += connector
         globalBuffer += connector.localBuffer
         globalBufferSize += connector.localBufferSize
         dirty = true
+      }
       case _ => node.host match {
         case distributor: PowerDistributor => distributors += distributor
         case _ =>
@@ -132,7 +140,7 @@ class PowerDistributor extends Environment with Analyzable {
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) {
+    if (node == this.node) this.synchronized {
       buffers.clear()
       distributors.clear()
       globalBuffer = 0
@@ -140,11 +148,12 @@ class PowerDistributor extends Environment with Analyzable {
       average = -1
     }
     else node match {
-      case connector: Connector =>
+      case connector: Connector => this.synchronized {
         buffers -= connector
         globalBuffer -= connector.localBuffer
         globalBufferSize -= connector.localBufferSize
         dirty = true
+      }
       case _ => node.host match {
         case distributor: PowerDistributor => distributors -= distributor
         case _ =>
@@ -163,7 +172,7 @@ class PowerDistributor extends Environment with Analyzable {
       })
     average = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0
     val shouldSend = (lastSentAverage - average).abs > 0.05
-    for (distributor <- distributors) {
+    for (distributor <- distributors) distributor.synchronized {
       distributor.dirty = false
       distributor.globalBuffer = sumBuffer
       distributor.globalBufferSize = sumBufferSize

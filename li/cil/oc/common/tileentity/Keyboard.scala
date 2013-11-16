@@ -73,7 +73,7 @@ class Keyboard extends Environment with Rotatable {
 
   private def isUseableByPlayer(p: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) == this &&
-      p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) < 64
+      p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
 }
 
 object Keyboard extends IPlayerTracker {

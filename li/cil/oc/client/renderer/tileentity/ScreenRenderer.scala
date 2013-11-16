@@ -24,9 +24,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(5, TimeUnit.SECONDS).
+    expireAfterAccess(2, TimeUnit.SECONDS).
     removalListener(this).
-    asInstanceOf[CacheBuilder[Screen, Int]].build[Screen, Int]()
+    asInstanceOf[CacheBuilder[Screen, Int]].
+    build[Screen, Int]()
 
   /** Used to pass the current screen along to call(). */
   private var screen: Screen = null
@@ -68,19 +69,18 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
     val list = cache.get(screen, this)
-    compile(list)
-    GL11.glCallList(list)
+    compileOrDraw(list)
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
   }
 
-  private def compile(list: Int) = if (screen.hasChanged) {
+  private def compileOrDraw(list: Int) = if (screen.hasChanged && !RenderState.compilingDisplayList) {
     screen.hasChanged = false
     val (sx, sy) = (screen.width, screen.height)
     val (tw, th) = (sx * 16f, sy * 16f)
 
-    GL11.glNewList(list, GL11.GL_COMPILE)
+    GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 
     screen.yaw match {
       case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
@@ -137,7 +137,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
 
     GL11.glEndList()
+
+    true
   }
+  else GL11.glCallList(list)
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
@@ -191,12 +194,12 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
   def call = {
     val list = GLAllocation.generateDisplayLists(1)
     screen.hasChanged = true // Force compilation.
-    compile(list)
     list
   }
 
-  def onRemoval(e: RemovalNotification[TileEntity, Int]) =
+  def onRemoval(e: RemovalNotification[TileEntity, Int]) {
     GLAllocation.deleteDisplayLists(e.getValue)
+  }
 
   // ----------------------------------------------------------------------- //
   // ITickHandler

@@ -1,8 +1,7 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.common.GuiType
+import li.cil.oc.Config
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Config, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -10,7 +9,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Case(val parent: SimpleDelegator) extends SimpleDelegate {
+class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   val unlocalizedName = "Case"
 
   // ----------------------------------------------------------------------- //
@@ -52,47 +51,9 @@ class Case(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def hasTileEntity = true
-
   override def createTileEntity(world: World) = Some(new tileentity.Case(world.isRemote))
 
   // ----------------------------------------------------------------------- //
-
-  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Case].canConnectRedstone(side)
-
-  override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    isProvidingWeakPower(world, x, y, z, side)
-
-  override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Case].output(side)
-
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
-    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Case =>
-        computer.instance.stop()
-        computer.dropContent(world, x, y, z)
-      case _ => // Ignore.
-    }
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      // Start the computer if it isn't already running and open the GUI.
-      if (!world.isRemote) {
-        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Case].instance.start()
-      }
-      player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
-      true
-    }
-    else false
-  }
-
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Case => computer.checkRedstoneInputChanged()
-      case _ => // Ignore.
-    }
 
   // TODO do we have to manually sync the client since we can only check this on the server side?
   override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =

@@ -264,7 +264,7 @@ sandbox = {
         (type(timeout) == "number" and timeout or math.huge)
       repeat
         local signal = table.pack(coroutine.yield(deadline - os.uptime()))
-        if signal.n > 0 then -- not a "blind" resume?
+        if signal.n > 0 then
           return table.unpack(signal, 1, signal.n)
         end
       until os.uptime() >= deadline
@@ -295,12 +295,13 @@ sandbox = {
         return nil, reason
       end
       local proxy = {address = address, type = type}
-      local methods = component.methods(address)
-      if methods then
-        for method, direct in pairs(methods) do
-          proxy[method] = function(...)
-            return invoke(direct, address, method, ...)
-          end
+      local methods, reason = component.methods(address)
+      if not methods then
+        return nil, reason
+      end
+      for method, direct in pairs(methods) do
+        proxy[method] = function(...)
+          return invoke(direct, address, method, ...)
         end
       end
       return proxy

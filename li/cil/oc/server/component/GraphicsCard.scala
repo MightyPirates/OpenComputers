@@ -21,7 +21,15 @@ abstract class GraphicsCard extends ManagedComponent {
 
   private var screenInstance: Option[Buffer] = None
 
-  private def screen(f: (Buffer) => Array[AnyRef]) = this.synchronized {
+  private def screen(f: (Buffer) => Array[AnyRef]) = screenInstance match {
+    case Some(screen) => screen.synchronized(f(screen))
+    case _ => Array(Unit, "no screen")
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def update() {
+    super.update()
     if (screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
         case Some(node: Node) if node.host.isInstanceOf[Buffer.Environment] =>
@@ -35,22 +43,16 @@ abstract class GraphicsCard extends ManagedComponent {
           screenAddress = None
       }
     }
-    screenInstance match {
-      case Some(screen) => f(screen)
-      case _ => Array(Unit, "no screen")
-    }
   }
 
-  // ----------------------------------------------------------------------- //
-
   @LuaCallback("bind")
-  def bind(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Buffer.Environment] =>
+      case node: Node if node.host.isInstanceOf[Buffer.Environment] => {
         screenAddress = Option(address)
-        screenInstance = None
+        screenInstance = Some(node.host.asInstanceOf[Buffer.Environment].instance)
         screen(s => {
           val (gmw, gmh) = maxResolution
           val (smw, smh) = s.maxResolution
@@ -60,6 +62,7 @@ abstract class GraphicsCard extends ManagedComponent {
           s.background = 0x000000
           result(true)
         })
+      }
       case _ => Array(Unit, "not a screen")
     }
   }
@@ -219,6 +222,18 @@ abstract class GraphicsCard extends ManagedComponent {
 }
 
 object GraphicsCard {
+
+  // IMPORTANT: usually methods with side effects should *not* be direct
+  // callbacks to avoid the massive headache synchronizing them ensues, in
+  // particular when it comes to world saving. I'm making an exception for
+  // screens, though since they'd be painfully sluggish otherwise. This also
+  // means we have to use a somewhat nasty trick in common.component.Buffer's
+  // save function: we wait for all computers in the same network to finish
+  // their current execution and then pause them, to ensure the state of the
+  // buffer is "clean", meaning the computer has the correct state when it is
+  // saved in turn. If we didn't, a computer might change a screen after it was
+  // saved, but before the computer was saved, leading to mismatching states in
+  // the save file - a Bad Thing (TM).
 
   class Tier1 extends GraphicsCard {
     val maxDepth = Config.screenDepthsByTier(0)

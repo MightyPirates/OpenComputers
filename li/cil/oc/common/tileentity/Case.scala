@@ -5,7 +5,6 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.component
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.ForgeDirection
 
 class Case(isClient: Boolean) extends Computer {
   def this() = this(false)
@@ -13,12 +12,6 @@ class Case(isClient: Boolean) extends Computer {
   // ----------------------------------------------------------------------- //
 
   val instance = if (isClient) null else new component.Computer(this)
-
-  // ----------------------------------------------------------------------- //
-
-  override def updateEntity() {
-    super.updateEntity()
-  }
 
   // ----------------------------------------------------------------------- //
 
@@ -34,8 +27,4 @@ class Case(isClient: Boolean) extends Computer {
     case (6 | 7, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
     case _ => false // Invalid slot.
   }
-
-  // ----------------------------------------------------------------------- //
-
-  def canConnectRedstone(side: ForgeDirection) = isOutputEnabled
 }

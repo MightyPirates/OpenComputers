@@ -97,12 +97,18 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
     true
   })
 
+  def pause() = if (state.synchronized(isRunning && !isStopping)) {
+    this.synchronized(if (!isStopping) state.push(Computer.State.Paused))
+  }
+
   def stop() = state.synchronized(state.top match {
     case Computer.State.Stopped | Computer.State.Stopping => false
     case _ => state.push(Computer.State.Stopping); true
   })
 
   def isRunning = state.synchronized(state.top != Computer.State.Stopped)
+
+  def isStopping = state.synchronized(state.top == Computer.State.Stopping)
 
   // ----------------------------------------------------------------------- //
 
@@ -245,6 +251,11 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
         assert(lua.isFunction(2))
+        // Clear direct call limits again, just to be on the safe side...
+        // Theoretically it'd be possible for the executor to do some direct
+        // calls between the clear and the state check, which could in turn
+        // make this synchronized call fail due the limit still being maxed.
+        callCounts.clear()
         // We switch into running state, since we'll behave as though the call
         // were performed from our executor thread.
         switchTo(Computer.State.Running)
@@ -931,18 +942,8 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
 
       lua.setGlobal("component")
 
-      // Run the boot script. This sets up the permanent value tables as
-      // well as making the functions used for persisting/unpersisting
-      // available as globals. It also wraps the message sending functions
-      // so that they yield a closure doing the actual call so that that
-      // message call can be performed in a synchronized fashion.
-      //      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "boot.lua"), "=boot", "t")
-      //      lua.call(0, 0)
       initPerms()
 
-      // Load the basic kernel which sets up the sandbox, loads the init script
-      // and then runs it in a coroutine with a debug hook checking for
-      // timeouts.
       lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
 
@@ -1066,13 +1067,16 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
     future = None
 
     val enterState = state.synchronized {
+      if (state.top == Computer.State.Stopped ||
+        state.top == Computer.State.Stopping ||
+        state.top == Computer.State.Paused) {
+        return
+      }
       // See if the game appears to be paused, in which case we also pause.
       if (System.currentTimeMillis - lastUpdate > 100) {
         state.push(Computer.State.Paused)
         return
       }
-      if (state.top == Computer.State.Stopping)
-        return
       switchTo(Computer.State.Running)
     }
 

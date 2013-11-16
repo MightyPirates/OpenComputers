@@ -16,13 +16,13 @@ class NetworkCard extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("open")
-  def open(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.add(port))
   }
 
   @LuaCallback("close")
-  def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def close(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 0) {
       openPorts.clear()
       result(true)
@@ -34,7 +34,7 @@ class NetworkCard extends ManagedComponent {
   }
 
   @LuaCallback(value = "isOpen", direct = true)
-  def isOpen(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def isOpen(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.contains(port))
   }
@@ -66,7 +66,7 @@ class NetworkCard extends ManagedComponent {
     }
   }
 
-  override def onMessage(message: Message) = this.synchronized {
+  override def onMessage(message: Message) = {
     super.onMessage(message)
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()

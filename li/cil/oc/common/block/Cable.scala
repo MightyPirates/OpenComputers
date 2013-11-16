@@ -32,13 +32,8 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
-
-
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
-    val bounds = Cable.bounds(world, x, y, z)
-    parent.setBlockBounds(
-      bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat,
-      bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat)
+    parent.setBlockBounds(Cable.bounds(world, x, y, z))
   }
 }
 

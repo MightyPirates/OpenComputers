@@ -23,28 +23,28 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(value = "move", direct = true)
-  def move(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("move")
+  def move(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = if (args.count > 1) args.checkBoolean(1) else false
     shouldMove = true
     result(true)
   }
 
-  @LuaCallback(value = "simulate", direct = true)
-  def simulate(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("simulate")
+  def simulate(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = true
     shouldMove = true
     result(true)
   }
 
-  @LuaCallback(value = "getAnchored", direct = true)
+  @LuaCallback("getAnchored")
   def getAnchored(context: Context, args: Arguments): Array[AnyRef] =
-    this.synchronized(result(anchored))
+    result(anchored)
 
-  @LuaCallback(value = "setAnchored", direct = true)
-  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("setAnchored")
+  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = {
     anchored = args.checkBoolean(0)
     result(anchored)
   }
@@ -72,7 +72,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   override def update() {
     super.update()
-    if (shouldMove) this.synchronized {
+    if (shouldMove) {
       shouldMove = false
       moving = true
       try {
@@ -104,7 +104,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
     nbt.setBoolean("moving", moving)
     nbt.setBoolean("anchored", anchored)

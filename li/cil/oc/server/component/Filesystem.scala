@@ -19,11 +19,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   // ----------------------------------------------------------------------- //
 
   @LuaCallback(value = "getLabel", direct = true)
-  def getLabel(context: Context, args: Arguments): Array[AnyRef] =
-    this.synchronized(result(label.getLabel))
+  def getLabel(context: Context, args: Arguments): Array[AnyRef] = result(label.getLabel)
 
-  @LuaCallback(value = "setLabel", direct = true)
-  def setLabel(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("setLabel")
+  def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
     if (label == null) throw new Exception("filesystem does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
     else label.setLabel(args.checkString(0))
@@ -31,12 +30,12 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback(value = "isReadOnly", direct = true)
-  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isReadOnly)
   }
 
   @LuaCallback(value = "spaceTotal", direct = true)
-  def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = {
     val space = fileSystem.spaceTotal
     if (space < 0)
       Array("unlimited")
@@ -45,59 +44,59 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback(value = "spaceUsed", direct = true)
-  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.spaceUsed)
   }
 
   @LuaCallback(value = "exists", direct = true)
-  def exists(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def exists(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.exists(clean(args.checkString(0))))
   }
 
   @LuaCallback(value = "size", direct = true)
-  def size(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def size(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.size(clean(args.checkString(0))))
   }
 
   @LuaCallback(value = "isDirectory", direct = true)
-  def isDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def isDirectory(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isDirectory(clean(args.checkString(0))))
   }
 
   @LuaCallback(value = "lastModified", direct = true)
-  def lastModified(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def lastModified(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.lastModified(clean(args.checkString(0))))
   }
 
   @LuaCallback("list")
-  def list(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def list(context: Context, args: Arguments): Array[AnyRef] = {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
-        case Some(list) => Array(list)
-        case _ => null
-      }
+      case Some(list) => Array(list)
+      case _ => null
+    }
   }
 
   @LuaCallback("makeDirectory")
-  def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
     result(recurse(clean(args.checkString(0))))
   }
 
   @LuaCallback("remove")
-  def remove(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def remove(context: Context, args: Arguments): Array[AnyRef] = {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
     result(recurse(clean(args.checkString(0))))
   }
 
   @LuaCallback("rename")
-  def rename(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def rename(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
   }
 
   @LuaCallback("close")
-  def close(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
@@ -111,8 +110,8 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("open")
-  def open(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
-  if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
+  def open(context: Context, args: Arguments): Array[AnyRef] = {
+    if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
       throw new IOException("too many open handles")
     else {
       val path = args.checkString(0)
@@ -126,7 +125,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("read")
-  def read(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = args.checkInteger(1)
     checkOwner(context.address, handle)
@@ -157,7 +156,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("seek")
-  def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def seek(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
     val offset = args.checkInteger(2)
@@ -176,7 +175,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("write")
-  def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+  def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     if (!node.changeBuffer(-Config.hddWriteCost * value.length)) {
@@ -196,7 +195,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     message.data match {
       case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
         owners.get(message.source.address) match {
-          case Some(set) => fileSystem.synchronized {
+          case Some(set) => {
             set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
               case Some(file) => file.close()
               case _ => // Invalid handle... huh.
@@ -211,10 +210,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (node == this.node) fileSystem.synchronized {
+    if (node == this.node) {
       fileSystem.close()
     }
-    else if (owners.contains(node.address)) fileSystem.synchronized {
+    else if (owners.contains(node.address)) {
       for (handle <- owners(node.address)) {
         Option(fileSystem.getHandle(handle)) match {
           case Some(file) => file.close()

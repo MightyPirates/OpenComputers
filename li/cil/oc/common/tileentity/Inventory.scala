@@ -54,7 +54,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
 
   def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: TileEntity if t == this => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) < 64
+      case t: TileEntity if t == this => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false
     }
 

@@ -1,12 +1,29 @@
 package li.cil.oc.util
 
+import li.cil.oc.OpenComputers
 import net.minecraft.client.renderer.OpenGlHelper
 import org.lwjgl.opengl._
+import org.lwjgl.util.glu.GLU
 
 object RenderState {
   val arb = GLContext.getCapabilities.GL_ARB_multitexture && !GLContext.getCapabilities.OpenGL13
 
   private val canUseBlendColor = GLContext.getCapabilities.OpenGL14
+
+  def checkError(where: String) {
+    val error = GL11.glGetError
+    if (error != 0) {
+      OpenComputers.log.warning("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
+    }
+  }
+
+  def compilingDisplayList = {
+    if (GL11.glGetInteger(GL11.GL_LIST_INDEX) != 0) {
+      val mode = GL11.glGetInteger(GL11.GL_LIST_MODE)
+      mode == GL11.GL_COMPILE || mode == GL11.GL_COMPILE_AND_EXECUTE
+    }
+    else false
+  }
 
   def disableLighting() {
     GL11.glDisable(GL11.GL_LIGHTING)
