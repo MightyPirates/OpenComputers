@@ -32,8 +32,8 @@ abstract class GraphicsCard extends ManagedComponent {
     super.update()
     if (screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[Buffer.Environment] =>
-          screenInstance = Some(node.host.asInstanceOf[Buffer.Environment].instance)
+        case Some(node: Node) if node.host.isInstanceOf[Buffer] =>
+          screenInstance = Some(node.host.asInstanceOf[Buffer])
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -50,9 +50,9 @@ abstract class GraphicsCard extends ManagedComponent {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Buffer.Environment] => {
+      case node: Node if node.host.isInstanceOf[Buffer] => {
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[Buffer.Environment].instance)
+        screenInstance = Some(node.host.asInstanceOf[Buffer])
         screen(s => {
           val (gmw, gmh) = maxResolution
           val (smw, smh) = s.maxResolution

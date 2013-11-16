@@ -75,8 +75,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glPopAttrib()
   }
 
-  private def compileOrDraw(list: Int) = if (screen.hasChanged && !RenderState.compilingDisplayList) {
-    screen.hasChanged = false
+  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
+    screen.bufferIsDirty = false
     val (sx, sy) = (screen.width, screen.height)
     val (tw, th) = (sx * 16f, sy * 16f)
 
@@ -109,7 +109,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     val isy = sy - (4.5f / 16)
 
     // Scale based on actual buffer size.
-    val (resX, resY) = screen.instance.resolution
+    val (resX, resY) = screen.buffer.resolution
     val sizeX = resX * MonospaceFontRenderer.fontWidth
     val sizeY = resY * MonospaceFontRenderer.fontHeight
     val scaleX = isx / sizeX
@@ -132,8 +132,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for (((line, color), i) <- screen.instance.lines.zip(screen.instance.color).zipWithIndex) {
-      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.instance.depth)
+    for (((line, color), i) <- screen.buffer.lines.zip(screen.buffer.color).zipWithIndex) {
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
     }
 
     GL11.glEndList()
@@ -193,7 +193,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   def call = {
     val list = GLAllocation.generateDisplayLists(1)
-    screen.hasChanged = true // Force compilation.
+    screen.bufferIsDirty = true // Force compilation.
     list
   }
 

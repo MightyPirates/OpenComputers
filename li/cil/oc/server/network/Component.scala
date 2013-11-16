@@ -58,12 +58,12 @@ trait Component extends api.network.Component with Persistable {
   }
 
   private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: tileentity.Computer => computer.instance.addComponent(this)
+    case computer: tileentity.Computer => computer.computer.addComponent(this)
     case _ =>
   })
 
   private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: tileentity.Computer => computer.instance.removeComponent(this)
+    case computer: tileentity.Computer => computer.computer.removeComponent(this)
     case _ =>
   })
 

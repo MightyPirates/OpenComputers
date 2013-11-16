@@ -20,7 +20,7 @@ abstract class Computer extends Delegate {
   override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Computer =>
-        computer.instance.stop()
+        computer.computer.stop()
         computer.dropContent(world, x, y, z)
       case _ => // Ignore.
     }
@@ -29,7 +29,7 @@ abstract class Computer extends Delegate {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
-        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].instance.start()
+        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].computer.start()
       }
     }
     super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)

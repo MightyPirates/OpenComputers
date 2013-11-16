@@ -280,6 +280,8 @@ object Network extends api.detail.NetworkAPI {
 
     def withConnector(bufferSize: Double) = new Network.ConnectorBuilder(_host, _reachability, bufferSize)
 
+    def withConnector() = withConnector(0)
+
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode {
       val host = _host
       val reachability = _reachability

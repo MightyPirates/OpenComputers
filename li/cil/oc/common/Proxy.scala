@@ -3,7 +3,7 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
-import li.cil.oc.common.tileentity.Keyboard
+import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network

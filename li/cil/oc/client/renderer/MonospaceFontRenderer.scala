@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer
 
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
@@ -29,9 +29,11 @@ object MonospaceFontRenderer {
   private class Renderer(private val textureManager: TextureManager) {
     /** Display lists, one per char (renders quad with char's uv coords). */
     private val charLists = GLAllocation.generateDisplayLists(256)
+    RenderState.checkError("MonospaceFontRenderer.charLists")
 
     /** Buffer filled with char display lists to efficiently draw strings. */
     private val listBuffer = GLAllocation.createDirectIntBuffer(512)
+    RenderState.checkError("MonospaceFontRenderer.listBuffer")
 
     private val (charWidth, charHeight) = (MonospaceFontRenderer.fontWidth * 2, MonospaceFontRenderer.fontHeight * 2)
     private val cols = 256 / charWidth

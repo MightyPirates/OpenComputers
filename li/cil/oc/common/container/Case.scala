@@ -7,44 +7,44 @@ import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
-class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends Player(playerInventory, computer) {
-  addSlotToContainer(new Slot(computer, getInventory.size, 58, 17) {
+class Case(playerInventory: InventoryPlayer, `case`: tileentity.Case) extends Player(playerInventory, `case`) {
+  addSlotToContainer(new Slot(`case`, getInventory.size, 58, 17) {
     setBackgroundIcon(Icons.get(api.driver.Slot.Power))
 
     override def isItemValid(item: ItemStack) = {
-      computer.isItemValidForSlot(0, item)
+      `case`.isItemValidForSlot(0, item)
     }
   })
 
   for (i <- 0 to 2) {
     val index = getInventory.size
-    addSlotToContainer(new Slot(computer, index, 80, 17 + i * slotSize) {
+    addSlotToContainer(new Slot(`case`, index, 80, 17 + i * slotSize) {
       setBackgroundIcon(Icons.get(api.driver.Slot.Card))
 
       override def isItemValid(item: ItemStack) = {
-        computer.isItemValidForSlot(index, item)
+        `case`.isItemValidForSlot(index, item)
       }
     })
   }
 
   for (i <- 0 to 1) {
     val index = getInventory.size
-    addSlotToContainer(new Slot(computer, index, 102, 17 + i * slotSize) {
+    addSlotToContainer(new Slot(`case`, index, 102, 17 + i * slotSize) {
       setBackgroundIcon(Icons.get(api.driver.Slot.Memory))
 
       override def isItemValid(item: ItemStack) = {
-        computer.isItemValidForSlot(index, item)
+        `case`.isItemValidForSlot(index, item)
       }
     })
   }
 
   for (i <- 0 to 1) {
     val index = getInventory.size
-    addSlotToContainer(new Slot(computer, index, 124, 17 + i * slotSize) {
+    addSlotToContainer(new Slot(`case`, index, 124, 17 + i * slotSize) {
       setBackgroundIcon(Icons.get(api.driver.Slot.HardDiskDrive))
 
       override def isItemValid(item: ItemStack) = {
-        computer.isItemValidForSlot(index, item)
+        `case`.isItemValidForSlot(index, item)
       }
     })
   }
@@ -53,5 +53,5 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
   addPlayerInventorySlots(8, 84)
 
   override def canInteractWith(player: EntityPlayer) =
-    super.canInteractWith(player) && computer.isUser(player.getCommandSenderName)
+    super.canInteractWith(player) && `case`.computer.isUser(player.getCommandSenderName)
 }

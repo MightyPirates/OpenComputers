@@ -3,6 +3,7 @@ package li.cil.oc.server
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraftforge.common.DimensionManager
@@ -26,7 +27,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[Case]() match {
+    p.readTileEntity[Computer]() match {
       case Some(t) => PacketSender.sendComputerState(t, t.isOn, Option(p.player))
       case _ => // Invalid packet.
     }
@@ -50,7 +51,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(t) => PacketSender.sendScreenBufferState(t, Option(p.player))
       case _ => // Invalid packet.
     }

@@ -9,7 +9,7 @@ import net.minecraftforge.common.ForgeDirection
 class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
   val unlocalizedName = "Robot"
 
-  override def createTileEntity(world: World) = Some(new tileentity.Robot)
+  override def createTileEntity(world: World) = Some(new tileentity.Robot(world.isRemote))
 
   // ----------------------------------------------------------------------- //
 
@@ -17,7 +17,9 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
     if (!player.isSneaking) {
-      player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
+      if (!world.isRemote) {
+        player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
+      }
       true
     }
     else false

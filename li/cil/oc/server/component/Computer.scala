@@ -14,6 +14,7 @@ import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, Config}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import scala.Array.canBuildFrom
@@ -23,7 +24,12 @@ import scala.collection.mutable
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
 
-class Computer(val owner: tileentity.Computer) extends Persistable with Runnable {
+class Computer(val owner: tileentity.Computer) extends Environment with Context with Persistable with Runnable {
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("computer", Visibility.Neighbors).
+    withConnector().
+    create()
+
   val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom"), "rom"))
 
@@ -75,11 +81,13 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
 
   def lastError = message
 
-  def lastError_=(value: String) = message = Option(value)
-
   // ----------------------------------------------------------------------- //
 
-  def start() = state.synchronized(owner.node.network != null &&
+  def isRunning = state.synchronized(state.top != Computer.State.Stopped)
+
+  def isStopping = state.synchronized(state.top == Computer.State.Stopping)
+
+  def start() = state.synchronized(node.network != null &&
     state.top == Computer.State.Stopped &&
     owner.installedMemory > 0 &&
     init() && {
@@ -93,7 +101,7 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
     owner.markAsChanged()
 
     // All green, computer started successfully.
-    owner.node.sendToReachable("computer.started")
+    node.sendToReachable("computer.started")
     true
   })
 
@@ -106,18 +114,21 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
     case _ => state.push(Computer.State.Stopping); true
   })
 
-  def isRunning = state.synchronized(state.top != Computer.State.Stopped)
-
-  def isStopping = state.synchronized(state.top == Computer.State.Stopping)
+  def crash(message: String) = {
+    this.message = Option(message)
+    stop()
+  }
 
   // ----------------------------------------------------------------------- //
+
+  def address = node.address
 
   def isUser(player: String) = !Config.canComputersBeOwned ||
     users.isEmpty || users.contains(player) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
 
-  def signal(name: String, args: Any*) = state.synchronized(state.top match {
+  def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
     case Computer.State.Stopped | Computer.State.Stopping => false
     case _ => signals.synchronized {
       if (signals.size >= 256) false
@@ -142,50 +153,6 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       }
     }
   })
-
-  // ----------------------------------------------------------------------- //
-
-  def addComponent(component: Component) {
-    if (!components.contains(component.address)) {
-      addedComponents += component
-    }
-  }
-
-  def removeComponent(component: Component) {
-    if (components.contains(component.address)) {
-      components -= component.address
-      signal("component_removed", component.address, component.name)
-    }
-    addedComponents -= component
-  }
-
-  private def processAddedComponents() {
-    for (component <- addedComponents) {
-      if (component.canBeSeenFrom(owner.node)) {
-        components += component.address -> component.name
-        // Skip the signal if we're not initialized yet, since we'd generate a
-        // duplicate in the startup script otherwise.
-        if (kernelMemory > 0)
-          signal("component_added", component.address, component.name)
-      }
-    }
-    addedComponents.clear()
-  }
-
-  private def verifyComponents() {
-    val invalid = mutable.Set.empty[String]
-    for ((address, name) <- components) {
-      if (owner.node.network.node(address) == null) {
-        OpenComputers.log.warning("A component of type '" + name +
-          "' disappeared! This usually means that it didn't save its node.")
-        signal("component_removed", address, name)
-        invalid += address
-      }
-    }
-    for (address <- invalid) {
-      components -= address
-    }
-  }
 
   // ----------------------------------------------------------------------- //
 
@@ -214,6 +181,11 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
     // Clear direct call limits.
     callCounts.synchronized(callCounts.clear())
 
+    // Make sure we have enough power.
+    if (isRunning && !isStopping && !node.changeBuffer(-Config.computerCost)) {
+      crash("not enough energy")
+    }
+
     // Check if we should switch states. These are all the states in which we're
     // guaranteed that the executor thread isn't running anymore.
     state.synchronized(state.top match {
@@ -232,7 +204,7 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       case Computer.State.Restarting => {
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
-        owner.node.sendToReachable("computer.stopped")
+        node.sendToReachable("computer.stopped")
         start()
       }
       // Resume from pauses based on sleep or signal underflow.
@@ -278,15 +250,12 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
             // This can happen if we run out of memory while converting a Java
             // exception to a string (which we have to do to avoid keeping
             // userdata on the stack, which cannot be persisted).
-            message = Some("not enough memory")
-            state.push(Computer.State.Stopping)
+            crash("not enough memory")
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
-            message = Some("not enough memory")
-            state.push(Computer.State.Stopping)
+            crash("not enough memory")
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
-            message = Some("protocol error")
-            state.push(Computer.State.Stopping)
+            crash("protocol error")
         }
       }
       case _ => // Nothing special to do, just avoid match errors.
@@ -302,9 +271,95 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
         close()
         rom.foreach(_.node.remove())
         tmp.foreach(_.node.remove())
-        owner.node.sendToReachable("computer.stopped")
+        node.sendToReachable("computer.stopped")
       })
       case _ =>
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def onConnect(node: Node) {
+    if (node == this.node) {
+      rom.foreach(rom => node.connect(rom.node))
+      tmp.foreach(tmp => node.connect(tmp.node))
+    }
+    else {
+      node match {
+        case component: Component => addComponent(component)
+        case _ =>
+      }
+    }
+    owner.onConnect(node)
+  }
+
+  def onDisconnect(node: Node) {
+    if (node == this.node) {
+      stop()
+      rom.foreach(_.node.remove())
+      tmp.foreach(_.node.remove())
+    }
+    else {
+      node match {
+        case component: Component => removeComponent(component)
+        case _ =>
+      }
+    }
+    owner.onDisconnect(node)
+  }
+
+  def onMessage(message: Message) {
+    message.data match {
+      case Array(name: String, args@_*) if message.name == "computer.signal" =>
+        signal(name, Seq(message.source.address) ++ args: _*)
+      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
+        if (isUser(player.getCommandSenderName))
+          signal(name, Seq(message.source.address) ++ args: _*)
+      case _ =>
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def addComponent(component: Component) {
+    if (!components.contains(component.address)) {
+      addedComponents += component
+    }
+  }
+
+  def removeComponent(component: Component) {
+    if (components.contains(component.address)) {
+      components -= component.address
+      signal("component_removed", component.address, component.name)
+    }
+    addedComponents -= component
+  }
+
+  private def processAddedComponents() {
+    for (component <- addedComponents) {
+      if (component.canBeSeenFrom(node)) {
+        components += component.address -> component.name
+        // Skip the signal if we're not initialized yet, since we'd generate a
+        // duplicate in the startup script otherwise.
+        if (kernelMemory > 0)
+          signal("component_added", component.address, component.name)
+      }
+    }
+    addedComponents.clear()
+  }
+
+  private def verifyComponents() {
+    val invalid = mutable.Set.empty[String]
+    for ((address, name) <- components) {
+      if (node.network.node(address) == null) {
+        OpenComputers.log.warning("A component of type '" + name +
+          "' disappeared! This usually means that it didn't save its node.")
+        signal("component_removed", address, name)
+        invalid += address
+      }
+    }
+    for (address <- invalid) {
+      components -= address
     }
   }
 
@@ -616,9 +671,9 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
 
     // Connect the ROM and `/tmp` node to our owner. We're not in a network in
     // case we're loading, which is why we have to check it here.
-    if (owner.node.network != null) {
-      rom.foreach(rom => owner.node.connect(rom.node))
-      tmp.foreach(tmp => owner.node.connect(tmp.node))
+    if (node.network != null) {
+      rom.foreach(rom => node.connect(rom.node))
+      tmp.foreach(tmp => node.connect(tmp.node))
     }
 
     try {
@@ -725,7 +780,7 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
 
       // Allow the computer to figure out its own id in the component network.
       lua.pushScalaFunction(lua => {
-        Option(owner.node.address) match {
+        Option(node.address) match {
           case None => lua.pushNil()
           case Some(address) => lua.pushString(address)
         }
@@ -845,8 +900,8 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
       lua.setField(-2, "type")
 
       lua.pushScalaFunction(lua => {
-        Option(owner.node.network.node(lua.checkString(1))) match {
-          case Some(component: server.network.Component) if component.canBeSeenFrom(owner.node) =>
+        Option(node.network.node(lua.checkString(1))) match {
+          case Some(component: server.network.Component) if component.canBeSeenFrom(node) =>
             lua.newTable()
             for (method <- component.methods()) {
               lua.pushString(method)
@@ -869,8 +924,8 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
         val method = lua.checkString(2)
         val args = parseArguments(lua, 3)
         try {
-          (Option(owner.node.network.node(address)) match {
-            case Some(component: server.network.Component) if component.canBeSeenFrom(owner.node) =>
+          (Option(node.network.node(address)) match {
+            case Some(component: server.network.Component) if component.canBeSeenFrom(node) =>
               val direct = component.isDirect(method)
               if (direct) callCounts.synchronized {
                 val limit = component.limit(method)
@@ -881,7 +936,7 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
                 }
                 counts(method) += 1
               }
-              component.invoke(method, owner, args: _*)
+              component.invoke(method, this, args: _*)
             case _ => throw new Exception("no such component")
           }) match {
             case results: Array[_] =>
@@ -1189,39 +1244,30 @@ class Computer(val owner: tileentity.Computer) extends Persistable with Runnable
         // The pcall *should* never return normally... but check for it nonetheless.
         if (lua.toBoolean(2)) {
           OpenComputers.log.warning("Kernel stopped unexpectedly.")
+          stop()
         }
         else {
           lua.setTotalMemory(Int.MaxValue)
           val error = lua.toString(3)
-          if (error != null)
-            message = Some(error)
-          else
-            message = Some("unknown error")
+          if (error != null) crash(error)
+          else crash("unknown error")
         }
-        switchTo(Computer.State.Stopping)
       })
     }
     catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-        message = Some("kernel panic")
-        state.synchronized(state.push(Computer.State.Stopping))
+        crash("kernel panic")
       case e: LuaGcMetamethodException =>
-        if (e.getMessage != null)
-          message = Some("kernel panic:\n" + e.getMessage)
-        else
-          message = Some("kernel panic:\nerror in garbage collection metamethod")
-        state.synchronized(state.push(Computer.State.Stopping))
+        if (e.getMessage != null) crash("kernel panic:\n" + e.getMessage)
+        else crash("kernel panic:\nerror in garbage collection metamethod")
       case e: LuaMemoryAllocationException =>
-        message = Some("not enough memory")
-        state.synchronized(state.push(Computer.State.Stopping))
+        crash("not enough memory")
       case e: java.lang.Error if e.getMessage == "not enough memory" =>
-        message = Some("not enough memory")
-        state.synchronized(state.push(Computer.State.Stopping))
+        crash("not enough memory")
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
-        message = Some("kernel panic")
-        state.synchronized(state.push(Computer.State.Stopping))
+        crash("kernel panic")
     }
   }
 }

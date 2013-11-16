@@ -8,5 +8,5 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Keyboard)
+  override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
 }

@@ -1,5 +1,6 @@
 package li.cil.oc
 
+import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
 
 object Items {
@@ -17,6 +18,7 @@ object Items {
 
   def init() {
     multi = new item.Delegator(Config.itemId)
+    GameRegistry.registerItem(multi, Config.namespace + "item")
 
     analyzer = new item.Analyzer(multi)
     disk = new item.Disk(multi)

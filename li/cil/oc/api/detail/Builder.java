@@ -10,6 +10,8 @@ public interface Builder<T extends Node> {
 
         ComponentBuilder withComponent(String name, Visibility visibility);
 
+        ConnectorBuilder withConnector();
+
         ConnectorBuilder withConnector(double bufferSize);
     }
 

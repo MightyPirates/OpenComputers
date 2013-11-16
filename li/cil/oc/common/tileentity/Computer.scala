@@ -1,21 +1,20 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Config
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
-import li.cil.oc.{Config, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
-abstract class Computer extends Environment with ComponentInventory with Rotatable with Redstone with Context with Analyzable {
-  val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("computer", Visibility.Neighbors).
-    withConnector().
-    create()
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with Redstone with Analyzable {
+  val computer = if (isRemote) null else new component.Computer(this)
 
-  val instance: component.Computer
+  def node = if (isClient) null else computer.node
+
+  override def isClient = computer == null
 
   private var isRunning = false
 
@@ -47,23 +46,19 @@ abstract class Computer extends Environment with ComponentInventory with Rotatab
       // too, avoiding issues of missing nodes (e.g. in the GPU which would
       // otherwise loose track of its screen).
       if (node != null && node.network != null) {
-        if (instance.isRunning && !node.changeBuffer(-Config.computerCost)) {
-          instance.lastError = "not enough energy"
-          instance.stop()
-        }
-        instance.update()
-
-        if (hasChanged) {
-          hasChanged = false
-          worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-        }
+        computer.update()
       }
 
-      if (isRunning != instance.isRunning) {
-        isOutputEnabled = hasRedstoneCard && instance.isRunning
-        ServerPacketSender.sendComputerState(this, instance.isRunning)
+      if (hasChanged) {
+        hasChanged = false
+        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
       }
-      isRunning = instance.isRunning
+
+      if (isRunning != computer.isRunning) {
+        isOutputEnabled = hasRedstoneCard && computer.isRunning
+        ServerPacketSender.sendComputerState(this, computer.isRunning)
+      }
+      isRunning = computer.isRunning
 
       updateRedstoneInput()
 
@@ -89,104 +84,52 @@ abstract class Computer extends Environment with ComponentInventory with Rotatab
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (instance != null) instance.load(nbt)
-    //    instance.recomputeMemory()
+    if (computer != null) computer.load(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (instance != null) instance.save(nbt)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  def address = node.address
-
-  def isUser(player: String) = instance.isUser(player)
-
-  def signal(name: String, args: AnyRef*) = instance.signal(name, args: _*)
-
-  // ----------------------------------------------------------------------- //
-
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (instance != null) {
-      instance.lastError match {
-        case Some(value) => stats.setString(Config.namespace + "text.Analyzer.LastError", value)
-        case _ =>
-      }
-    }
-    this
-  }
-
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
-    if (isServer) {
-      instance.recomputeMemory()
-      isOutputEnabled = hasRedstoneCard && instance.isRunning
-    }
-  }
-
-  override protected def onRedstoneInputChanged(side: ForgeDirection) {
-    super.onRedstoneInputChanged(side)
-    if (isServer) {
-      instance.signal("redstone_changed", side.ordinal())
-    }
+    if (computer != null) computer.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("start")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(instance.start()))
+    Array(Boolean.box(computer.start()))
 
   @LuaCallback("stop")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(instance.stop()))
+    Array(Boolean.box(computer.stop()))
 
   @LuaCallback("isRunning")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(instance.isRunning))
+    Array(Boolean.box(computer.isRunning))
 
   // ----------------------------------------------------------------------- //
 
-  override def onMessage(message: Message) = {
-    super.onMessage(message)
-    message.data match {
-      case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        instance.signal(name, Seq(message.source.address) ++ args: _*)
-      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
-        if (isUser(player.getCommandSenderName))
-          instance.signal(name, Seq(message.source.address) ++ args: _*)
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    if (isServer) {
+      computer.recomputeMemory()
+      isOutputEnabled = hasRedstoneCard && computer.isRunning
+    }
+  }
+
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    if (isServer) {
+      computer.signal("redstone_changed", Int.box(side.ordinal()))
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    if (computer != null) computer.lastError match {
+      case Some(value) => stats.setString(Config.namespace + "text.Analyzer.LastError", value)
       case _ =>
     }
-  }
-
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node == this.node) {
-      instance.rom.foreach(rom => node.connect(rom.node))
-      instance.tmp.foreach(tmp => node.connect(tmp.node))
-    }
-    else {
-      node match {
-        case component: Component => instance.addComponent(component)
-        case _ =>
-      }
-    }
-  }
-
-  override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      instance.rom.foreach(_.node.remove())
-      instance.tmp.foreach(_.node.remove())
-      instance.stop()
-    }
-    else {
-      node match {
-        case component: Component => instance.removeComponent(component)
-        case _ =>
-      }
-    }
+    computer
   }
 }

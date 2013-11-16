@@ -45,7 +45,9 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
-      player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+      if (!world.isRemote) {
+        player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+      }
       true
     }
     else false

@@ -44,5 +44,5 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   addPlayerInventorySlots(8, 142)
 
   override def canInteractWith(player: EntityPlayer) =
-    super.canInteractWith(player) && robot.isUser(player.getCommandSenderName)
+    super.canInteractWith(player) && robot.computer.isUser(player.getCommandSenderName)
 }

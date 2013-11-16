@@ -1,15 +1,20 @@
 package li.cil.oc.common.component
 
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
 import li.cil.oc.common.tileentity
-import li.cil.oc.common.tileentity.TileEntity
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
 import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class Buffer(val owner: Buffer.Environment) extends Persistable {
+class Buffer(val owner: Buffer.Environment) extends api.network.Environment with Persistable {
+  val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("screen").
+    withConnector().
+    create()
+
   val buffer = new TextBuffer(maxResolution, maxDepth)
 
   def maxResolution = Config.screenResolutionsByTier(owner.tier)
@@ -23,6 +28,8 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
   def lines = buffer.buffer
 
   def color = buffer.color
+
+  // ----------------------------------------------------------------------- //
 
   def depth = buffer.depth
 
@@ -68,6 +75,9 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
     if (w < 1 || w > mw || h < 1 || h > mh)
       throw new IllegalArgumentException("unsupported resolution")
     if (buffer.size = value) {
+      if (node != null) {
+        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
+      }
       owner.onScreenResolutionChange(w, h)
       true
     }
@@ -96,8 +106,16 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
 
   // ----------------------------------------------------------------------- //
 
+  def onConnect(node: Node) {}
+
+  def onDisconnect(node: Node) {}
+
+  def onMessage(message: Message) {}
+
+  // ----------------------------------------------------------------------- //
+
   override def load(nbt: NBTTagCompound) = {
-    buffer.load(nbt.getCompoundTag(Config.namespace + "screen"))
+    buffer.load(nbt.getCompoundTag(Config.namespace + "buffer"))
   }
 
   override def save(nbt: NBTTagCompound) = {
@@ -110,61 +128,108 @@ class Buffer(val owner: Buffer.Environment) extends Persistable {
     // wait for all computers the screen is connected to to finish their current
     // execution and pausing them (which will make them resume in the next tick
     // when their update() runs).
-    if (owner.node.network != null) {
-      for (node <- owner.node.reachableNodes) node.host match {
-        case computer: tileentity.Computer => computer.instance.pause()
+    if (node.network != null) {
+      for (node <- node.reachableNodes) node.host match {
+        case computer: tileentity.Computer => computer.computer.pause()
         case _ =>
       }
     }
 
     val screenNbt = new NBTTagCompound
     buffer.save(screenNbt)
-    nbt.setCompoundTag(Config.namespace + "screen", screenNbt)
+    nbt.setCompoundTag(Config.namespace + "buffer", screenNbt)
   }
 }
 
 object Buffer {
 
-  trait Environment extends TileEntity with api.network.Environment with Persistable {
-    val node = api.Network.newNode(this, Visibility.Network).
-      withComponent("screen").
-      withConnector().
-      create()
+  trait Environment extends tileentity.Environment with Persistable {
+    val buffer = new component.Buffer(this)
 
-    final val instance = new component.Buffer(this)
+    var bufferIsDirty = false
 
     def tier: Int
-
-    def size: Int
 
     // ----------------------------------------------------------------------- //
 
     override def load(nbt: NBTTagCompound) = {
       super.load(nbt)
-      instance.load(nbt)
+      buffer.load(nbt)
     }
 
     override def save(nbt: NBTTagCompound) = {
       super.save(nbt)
-      instance.save(nbt)
+      buffer.save(nbt)
     }
 
     // ----------------------------------------------------------------------- //
 
-    def onScreenColorChange(foreground: Int, background: Int) {}
-
-    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {}
-
-    def onScreenDepthChange(depth: PackedColor.Depth.Value) {}
-
-    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {}
-
-    def onScreenResolutionChange(w: Int, h: Int) {
-      if (node != null)
-        node.sendToReachable("computer.signal", "screen_resized", Int.box(w), Int.box(h))
+    override def onConnect(node: Node) {
+      super.onConnect(node)
+      if (node == this.node) {
+        node.connect(buffer.node)
+      }
     }
 
-    def onScreenSet(col: Int, row: Int, s: String) {}
+    override def onDisconnect(node: Node) {
+      super.onDisconnect(node)
+      if (node == this.node) {
+        buffer.node.remove()
+      }
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    def onScreenColorChange(foreground: Int, background: Int) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenColorChange(this, foreground, background)
+      }
+    }
+
+    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
+      }
+      else markForRenderUpdate()
+    }
+
+    def onScreenDepthChange(depth: PackedColor.Depth.Value) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenDepthChange(this, depth)
+      }
+      else markForRenderUpdate()
+    }
+
+    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
+      }
+      else markForRenderUpdate()
+    }
+
+    def onScreenResolutionChange(w: Int, h: Int) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenResolutionChange(this, w, h)
+      }
+      else markForRenderUpdate()
+    }
+
+    def onScreenSet(col: Int, row: Int, s: String) {
+      if (isServer) {
+        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
+        ServerPacketSender.sendScreenSet(this, col, row, s)
+      }
+      else markForRenderUpdate()
+    }
+
+    protected def markForRenderUpdate() {
+      bufferIsDirty = true
+    }
   }
 
 }

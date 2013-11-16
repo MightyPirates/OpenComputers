@@ -89,7 +89,7 @@ class PacketHandler extends CommonPacketHandler {
   def onScreenBufferResponse(p: PacketParser) =
     p.readTileEntity[Buffer.Environment]() match {
       case Some(t) =>
-        val screen = t.instance
+        val screen = t.buffer
         val w = p.readInt()
         val h = p.readInt()
         screen.resolution = (w, h)
@@ -111,8 +111,8 @@ class PacketHandler extends CommonPacketHandler {
   def onScreenColorChange(p: PacketParser) =
     p.readTileEntity[Buffer.Environment]() match {
       case Some(t) =>
-        t.instance.foreground = p.readInt()
-        t.instance.background = p.readInt()
+        t.buffer.foreground = p.readInt()
+        t.buffer.background = p.readInt()
       case _ => // Invalid packet.
     }
 
@@ -125,13 +125,13 @@ class PacketHandler extends CommonPacketHandler {
         val h = p.readInt()
         val tx = p.readInt()
         val ty = p.readInt()
-        t.instance.copy(col, row, w, h, tx, ty)
+        t.buffer.copy(col, row, w, h, tx, ty)
       case _ => // Invalid packet.
     }
 
   def onScreenDepthChange(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => t.instance.depth = PackedColor.Depth(p.readInt())
+    p.readTileEntity[Buffer.Environment]() match {
+      case Some(t) => t.buffer.depth = PackedColor.Depth(p.readInt())
       case _ => // Invalid packet.
     }
 
@@ -143,7 +143,7 @@ class PacketHandler extends CommonPacketHandler {
         val w = p.readInt()
         val h = p.readInt()
         val c = p.readChar()
-        t.instance.fill(col, row, w, h, c)
+        t.buffer.fill(col, row, w, h, c)
       case _ => // Invalid packet.
     }
 
@@ -154,11 +154,11 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenResolutionChange(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(t) =>
         val w = p.readInt()
         val h = p.readInt()
-        t.instance.resolution = (w, h)
+        t.buffer.resolution = (w, h)
       case _ => // Invalid packet.
     }
 
@@ -168,7 +168,7 @@ class PacketHandler extends CommonPacketHandler {
         val col = p.readInt()
         val row = p.readInt()
         val s = p.readUTF()
-        t.instance.set(col, row, s)
+        t.buffer.set(col, row, s)
       case _ => // Invalid packet.
     }
 }

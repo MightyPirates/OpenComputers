@@ -78,7 +78,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
 
-    val screen = t.instance
+    val screen = t.buffer
     val (w, h) = screen.resolution
     pb.writeInt(w)
     pb.writeInt(h)
@@ -118,7 +118,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenDepthChange(t: Screen, value: PackedColor.Depth.Value) {
+  def sendScreenDepthChange(t: Buffer.Environment, value: PackedColor.Depth.Value) {
     val pb = new PacketBuilder(PacketType.ScreenDepthChange)
 
     pb.writeTileEntity(t)
@@ -140,7 +140,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenPowerChange(t: Screen, hasPower: Boolean) {
+  def sendScreenPowerChange(t: Buffer.Environment, hasPower: Boolean) {
     val pb = new PacketBuilder(PacketType.ScreenPowerChange)
 
     pb.writeTileEntity(t)
@@ -149,7 +149,7 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendScreenResolutionChange(t: Screen, w: Int, h: Int) {
+  def sendScreenResolutionChange(t: Buffer.Environment, w: Int, h: Int) {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
     pb.writeTileEntity(t)

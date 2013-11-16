@@ -6,7 +6,6 @@ import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component.Buffer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.PackedColor
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -14,18 +13,14 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Environment with Buffer.Environment with Rotatable with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
-  var currentGui: Option[gui.Screen] = None
+  // ----------------------------------------------------------------------- //
 
-  /**
-   * Read and reset to false from the tile entity renderer. This is used to
-   * keep rendering a little more efficient by compiling the displayed text
-   * into an OpenGL display list, and only re-compiling that list when the
-   * text/display has actually changed.
-   */
-  var hasChanged = true
+  def node = buffer.node
+
+  var currentGui: Option[gui.Screen] = None
 
   /**
    * Check for multi-block screen option in next update. We do this in the
@@ -51,8 +46,6 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
     ((ox - x).abs, (oy - y).abs)
   }
 
-  def size = width * height
-
   // ----------------------------------------------------------------------- //
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
@@ -68,7 +61,7 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
     super.updateEntity()
     if (isServer) {
       val hadPower = hasPower
-      hasPower = node.changeBuffer(-Config.screenCost)
+      hasPower = buffer.node.changeBuffer(-Config.screenCost)
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
       }
@@ -102,7 +95,7 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
         current.screens.foreach {
           screen =>
             screen.shouldCheckForMultiBlock = false
-            screen.hasChanged = true
+            screen.bufferIsDirty = true
             pending.remove(screen)
             queue += screen
         }
@@ -116,14 +109,14 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
       queue.foreach(screen =>
         if (screen.isOrigin) {
           if (isServer) {
-            screen.node.setVisibility(Visibility.Network)
+            screen.buffer.node.setVisibility(Visibility.Network)
           }
         }
         else {
           if (isServer) {
-            screen.node.setVisibility(Visibility.None)
+            screen.buffer.node.setVisibility(Visibility.None)
           }
-          val s = screen.instance
+          val s = screen.buffer
           val (w, h) = s.resolution
           s.buffer.fill(0, 0, w, h, ' ')
         }
@@ -240,70 +233,8 @@ class Screen(var tier: Int) extends Environment with Buffer.Environment with Rot
     screens.clone().foreach(_.checkMultiBlock())
   }
 
-  override def onScreenColorChange(foreground: Int, background: Int) {
-    super.onScreenColorChange(foreground, background)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenColorChange(this, foreground, background)
-    }
-  }
-
-  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
-    super.onScreenCopy(col, row, w, h, tx, ty)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
-    }
-    else {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-  }
-
-  override def onScreenDepthChange(depth: PackedColor.Depth.Value) {
-    super.onScreenDepthChange(depth)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenDepthChange(this, depth)
-    }
-    else {
-      hasChanged = true
-    }
-  }
-
-  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
-    super.onScreenFill(col, row, w, h, c)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
-    }
-    else {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-  }
-
-  override def onScreenResolutionChange(w: Int, h: Int) = {
-    super.onScreenResolutionChange(w, h)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenResolutionChange(this, w, h)
-    }
-    else {
-      currentGui.foreach(_.changeSize(w, h))
-      hasChanged = true
-    }
-  }
-
-  override def onScreenSet(col: Int, row: Int, s: String) = {
-    super.onScreenSet(col, row, s)
-    if (isServer) {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenSet(this, col, row, s)
-    }
-    else {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
+  override protected def markForRenderUpdate() {
+    super.markForRenderUpdate()
+    currentGui.foreach(_.recompileDisplayLists())
   }
 }

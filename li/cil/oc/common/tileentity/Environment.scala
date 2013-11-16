@@ -6,7 +6,6 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 
 abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment with Persistable {
-
   def world = getWorldObj
 
   def x = xCoord

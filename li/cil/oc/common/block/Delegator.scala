@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
 import java.util
 import li.cil.oc.api.network.Environment
 import li.cil.oc.common.tileentity.Rotatable
@@ -37,7 +36,6 @@ import scala.collection.mutable
 class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerBlock(this, classOf[Item], Config.namespace + "block_" + name)
 
   // ----------------------------------------------------------------------- //
   // SubBlock

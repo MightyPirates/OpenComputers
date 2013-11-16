@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.{OpenComputers, Config}
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -59,7 +59,9 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
     if (!player.isSneaking) {
-      player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
+      if (!world.isRemote) {
+        player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
+      }
       true
     }
     else false
@@ -68,8 +70,8 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   // TODO do we have to manually sync the client since we can only check this on the server side?
   override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Case if !world.isRemote =>
-        computer.isUser(player.getCommandSenderName)
+      case c: tileentity.Case if !world.isRemote =>
+        c.computer.isUser(player.getCommandSenderName)
       case _ => super.onBlockRemovedBy(world, x, y, z, player)
     }
 }

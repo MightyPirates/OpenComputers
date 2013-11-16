@@ -170,21 +170,19 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   // ----------------------------------------------------------------------- //
 
   protected def computeInput(side: ForgeDirection) = {
-    val global = toGlobal(side)
     world.getIndirectPowerLevelTo(
-      x + global.offsetX,
-      y + global.offsetY,
-      z + global.offsetZ,
-      global.ordinal())
+      x + side.offsetX,
+      y + side.offsetY,
+      z + side.offsetZ,
+      side.ordinal())
   }
 
   protected def computeBundledInput(side: ForgeDirection) = {
-    val global = toGlobal(side)
     if (Loader.isModLoaded("RedLogic")) {
       world.getBlockTileEntity(
-        x + global.offsetX,
-        y + global.offsetY,
-        z + global.offsetZ) match {
+        x + side.offsetX,
+        y + side.offsetY,
+        z + side.offsetZ) match {
         case wire: IInsulatedRedstoneWire =>
           var strength: Array[Byte] = null
           for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
@@ -195,7 +193,7 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
         case emitter: IBundledEmitter =>
           var strength: Array[Byte] = null
           for (i <- -1 to 5 if strength == null) {
-            strength = emitter.getBundledCableStrength(i, global.getOpposite.ordinal())
+            strength = emitter.getBundledCableStrength(i, side.getOpposite.ordinal())
           }
           strength
         case _ => null
@@ -210,12 +208,9 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
       world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
     }
     else {
-      val global = toGlobal(side)
-      world.notifyBlockOfNeighborChange(
-        x + global.offsetX,
-        y + global.offsetY,
-        z + global.offsetZ,
-        block.blockID)
+      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      world.notifyBlockOfNeighborChange(nx, ny, nz, block.blockID)
+      world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlockId(nx, ny, nz))
     }
     if (isServer) ServerPacketSender.sendRedstoneState(this)
     else world.markBlockForRenderUpdate(x, y, z)
@@ -230,13 +225,13 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(ForgeDirection.getOrientation(toDirection).getOpposite.ordinal())
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(ForgeDirection.getOrientation(toDirection).ordinal())
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()
 
   @Optional.Method(modid = "RedLogic")
-  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = (_output(ForgeDirection.getOrientation(toDirection).getOpposite.ordinal()) & 0xFF).toShort
+  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = (_output(ForgeDirection.getOrientation(toDirection).ordinal()) & 0xFF).toShort
 
   @Optional.Method(modid = "RedLogic")
   def onRedstoneInputChanged() = checkRedstoneInputChanged()

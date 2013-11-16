@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.common.registry.GameRegistry
 import java.util
 import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -15,7 +14,6 @@ class Delegator(id: Int) extends Item(id) {
   setMaxStackSize(1)
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerItem(this, Config.namespace + "item")
 
   // ----------------------------------------------------------------------- //
   // SubItem

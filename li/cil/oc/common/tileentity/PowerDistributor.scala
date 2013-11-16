@@ -39,7 +39,7 @@ class PowerDistributor extends Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     stats.setString(Config.namespace + "text.Analyzer.TotalEnergy", "%.2f/%.2f".format(globalBuffer, globalBufferSize))
     this
   }

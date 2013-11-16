@@ -2,16 +2,11 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.server.component
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
 
-class Case(isClient: Boolean) extends Computer {
+class Case(isRemote: Boolean) extends Computer(isRemote) {
   def this() = this(false)
-
-  // ----------------------------------------------------------------------- //
-
-  val instance = if (isClient) null else new component.Computer(this)
 
   // ----------------------------------------------------------------------- //
 
