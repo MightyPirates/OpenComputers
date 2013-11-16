@@ -7,10 +7,12 @@ import net.minecraft.world.World
 abstract class GuiHandler extends IGuiHandler {
   override def getServerGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Case =>
+      case computer: tileentity.Case if id == GuiType.Case.id =>
         new container.Case(player.inventory, computer)
-      case drive: tileentity.DiskDrive =>
+      case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
         new container.DiskDrive(player.inventory, drive)
+      case robot: tileentity.Robot if id == GuiType.Robot.id =>
+        new container.Robot(player.inventory, robot)
       case _ => null
     }
 }

@@ -16,8 +16,9 @@ object Icons {
     if (iconRegister.textureType == 1) {
       bySlotType += Slot.Card -> iconRegister.registerIcon(Config.resourceDomain + ":icon_card")
       bySlotType += Slot.HardDiskDrive -> iconRegister.registerIcon(Config.resourceDomain + ":icon_hdd")
-      bySlotType += Slot.Memory -> iconRegister.registerIcon(Config.resourceDomain + ":icon_ram")
       bySlotType += Slot.Power -> iconRegister.registerIcon(Config.resourceDomain + ":icon_power")
+      bySlotType += Slot.Memory -> iconRegister.registerIcon(Config.resourceDomain + ":icon_ram")
+      bySlotType += Slot.Tool -> iconRegister.registerIcon(Config.resourceDomain + ":icon_tool")
     }
   }
 
