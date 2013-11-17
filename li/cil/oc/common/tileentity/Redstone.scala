@@ -52,23 +52,23 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
     this
   }
 
-  def input(side: ForgeDirection) = (_input(side.ordinal()) & 0xFF).toShort
+  def input(side: ForgeDirection) = (_input(toGlobal(side).ordinal()) & 0xFF).toShort
 
   def output(side: ForgeDirection) = (_output(side.ordinal()) & 0xFF).toShort
 
   def output(side: ForgeDirection, value: Short): Unit = if (value != output(side)) {
     _output(side.ordinal()) = (value max 0 min 255).toByte
-    onRedstoneOutputChanged(side)
+    onRedstoneOutputChanged(toGlobal(side))
   }
 
-  def bundledInput(side: ForgeDirection, color: Int) = (_bundledInput(side.ordinal())(color) & 0xFF).toShort
+  def bundledInput(side: ForgeDirection, color: Int) = (_bundledInput(toGlobal(side).ordinal())(color) & 0xFF).toShort
 
   def bundledOutput(side: ForgeDirection, color: Int) =
     (_bundledOutput(side.ordinal())(color) & 0xFF).toShort
 
   def bundledOutput(side: ForgeDirection, color: Int, value: Short): Unit = if (value != bundledOutput(side, color)) {
     _bundledOutput(side.ordinal())(color) = (value max 0 min 255).toByte
-    onRedstoneOutputChanged(side)
+    onRedstoneOutputChanged(toGlobal(side))
   }
 
   def checkRedstoneInputChanged() {
@@ -184,13 +184,13 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(ForgeDirection.getOrientation(toDirection).ordinal())
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal())
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()
 
   @Optional.Method(modid = "RedLogic")
-  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = (_output(ForgeDirection.getOrientation(toDirection).ordinal()) & 0xFF).toShort
+  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = (_output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()) & 0xFF).toShort
 
   @Optional.Method(modid = "RedLogic")
   def onRedstoneInputChanged() = checkRedstoneInputChanged()

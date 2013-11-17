@@ -147,6 +147,8 @@ trait Rotatable extends TileEntity with Persistable {
     if (isServer) {
       ServerPacketSender.sendRotatableState(this)
     }
+    world.markBlockForUpdate(x, y, z)
+    world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
   }
 
   // ----------------------------------------------------------------------- //

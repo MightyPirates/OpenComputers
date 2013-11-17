@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -57,7 +58,11 @@ trait Delegate {
 
   def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {}
 
-  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {}
+  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
+    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
+      case inventory: tileentity.Inventory => inventory.dropAllSlots()
+      case _ => // Ignore.
+    }
 
   def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 

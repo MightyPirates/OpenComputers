@@ -99,26 +99,17 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("start")
-  def start(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.start()))
-
-  @LuaCallback("stop")
-  def stop(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.stop()))
-
-  @LuaCallback("isRunning")
-  def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.isRunning))
-
-  // ----------------------------------------------------------------------- //
-
   override def onInventoryChanged() {
     super.onInventoryChanged()
     if (isServer) {
       computer.recomputeMemory()
       isOutputEnabled = hasRedstoneCard && computer.isRunning
     }
+  }
+
+  override protected def onRotationChanged() {
+    super.onRotationChanged()
+    checkRedstoneInputChanged()
   }
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {

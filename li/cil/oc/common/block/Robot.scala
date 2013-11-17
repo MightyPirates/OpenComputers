@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.{GuiType, tileentity}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.World
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
@@ -12,6 +12,8 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
   override def createTileEntity(world: World) = Some(new tileentity.Robot(world.isRemote))
 
   // ----------------------------------------------------------------------- //
+
+  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
@@ -25,10 +27,10 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
     else false
   }
 
-  //  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
-  //    world.getBlockTileEntity(x, y, z) match {
-  //      case robot: tileentity.Robot => parent.setBlockBounds(robot.bounds)
-  //      case _ => super.setBlockBoundsBasedOnState(world, x, y, z)
-  //    }
-  //  }
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
+    world.getBlockTileEntity(x, y, z) match {
+      case robot: tileentity.Robot => parent.setBlockBounds(0.1f, 0.1f, 0.1f, 0.9f, 0.9f, 0.9f)
+      case _ => super.setBlockBoundsBasedOnState(world, x, y, z)
+    }
+  }
 }

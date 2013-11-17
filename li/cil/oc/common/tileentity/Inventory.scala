@@ -8,7 +8,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 
 trait Inventory extends TileEntity with IInventory with Persistable {
   protected val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
@@ -61,21 +62,36 @@ trait Inventory extends TileEntity with IInventory with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  def dropContent(world: World, x: Int, y: Int, z: Int) {
-    val rng = world.rand
+  def dropSlot(slot: Int, count: Int = getInventoryStackLimit, direction: ForgeDirection = ForgeDirection.UNKNOWN) = {
+    Option(decrStackSize(slot, count)) match {
+      case Some(stack) if stack.stackSize > 0 => spawnStackInWorld(stack, direction); true
+      case _ => false
+    }
+  }
+
+  def dropAllSlots() {
     for (slot <- 0 until getSizeInventory) {
       items(slot) match {
         case Some(stack) if stack.stackSize > 0 =>
           setInventorySlotContents(slot, null)
-          val (tx, ty, tz) = (0.25 + (rng.nextDouble() * 0.5), 0.25 + (rng.nextDouble() * 0.5), 0.25 + (rng.nextDouble() * 0.5))
-          val (vx, vy, vz) = ((rng.nextDouble() - 0.3) * 0.5, (rng.nextDouble() - 0.5) * 0.3, (rng.nextDouble() - 0.5) * 0.3)
-          val entity = new EntityItem(world, x + tx, y + ty, z + tz, stack.copy())
-          entity.setVelocity(vx, vy, vz)
-          entity.delayBeforeCanPickup = 10
-          world.spawnEntityInWorld(entity)
+          spawnStackInWorld(stack, ForgeDirection.UNKNOWN)
         case _ => // Nothing.
       }
     }
+  }
+
+  private def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) {
+    val rng = world.rand
+    val (tx, ty, tz) = (
+      0.1 * rng.nextGaussian + direction.offsetX * 0.45,
+      0.1 * rng.nextGaussian + 0.1,
+      0.1 * rng.nextGaussian + direction.offsetZ * 0.45)
+    val entity = new EntityItem(world, x + 0.5 + tx, y + 0.5 + ty, z + 0.5 + tz, stack.copy())
+    entity.motionX = 0.0125 * rng.nextGaussian + direction.offsetX * 0.03
+    entity.motionY = 0.0125 * rng.nextGaussian + 0.03
+    entity.motionZ = 0.0125 * rng.nextGaussian + direction.offsetZ * 0.03
+    entity.delayBeforeCanPickup = 15
+    world.spawnEntityInWorld(entity)
   }
 
   // ----------------------------------------------------------------------- //

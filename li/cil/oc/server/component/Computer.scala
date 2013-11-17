@@ -156,6 +156,24 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // ----------------------------------------------------------------------- //
 
+  @LuaCallback("start")
+  def start(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(start()))
+
+  @LuaCallback("stop")
+  def stop(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(stop()))
+
+  @LuaCallback(value = "isRunning", direct = true)
+  def isRunning(context: Context, args: Arguments): Array[AnyRef] =
+    Array(Boolean.box(isRunning))
+
+  @LuaCallback(value = "isRobot", direct = true)
+  def isRobot(context: Context, args: Arguments): Array[AnyRef] =
+    Array(java.lang.Boolean.FALSE)
+
+  // ----------------------------------------------------------------------- //
+
   override def update() {
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
@@ -281,6 +299,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   override def onConnect(node: Node) {
     if (node == this.node) {
+      components += this.node.address -> this.node.name
       rom.foreach(rom => node.connect(rom.node))
       tmp.foreach(tmp => node.connect(tmp.node))
     }
@@ -290,7 +309,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         case _ =>
       }
     }
-    owner.onConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -305,7 +323,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         case _ =>
       }
     }
-    owner.onDisconnect(node)
   }
 
   override def onMessage(message: Message) {
@@ -317,6 +334,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
     }
+    // For robots, to allow passing messages between the internal and external
+    // networks.
+    owner.onMessage(message)
   }
 
   // ----------------------------------------------------------------------- //
@@ -329,7 +349,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def removeComponent(component: Component) {
     if (components.contains(component.address)) {
-      components -= component.address
+      components.synchronized(components -= component.address)
       signal("component_removed", component.address, component.name)
     }
     addedComponents -= component
@@ -338,11 +358,12 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   private def processAddedComponents() {
     for (component <- addedComponents) {
       if (component.canBeSeenFrom(node)) {
-        components += component.address -> component.name
+        components.synchronized(components += component.address -> component.name)
         // Skip the signal if we're not initialized yet, since we'd generate a
         // duplicate in the startup script otherwise.
-        if (kernelMemory > 0)
+        if (kernelMemory > 0) {
           signal("component_added", component.address, component.name)
+        }
       }
     }
     addedComponents.clear()
@@ -401,8 +422,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           }
         }
 
-        val componentsNbt = nbt.getTagList("components")
-        components ++= componentsNbt.iterator[NBTTagCompound].map(c =>
+        components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
           c.getString("address") -> c.getString("name"))
 
         signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
@@ -858,7 +878,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       lua.pushScalaFunction(lua => {
         Option(node.network.node(lua.checkString(1))) match {
-          case Some(component: server.network.Component) if component.canBeSeenFrom(node) =>
+          case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
             lua.newTable()
             for (method <- component.methods()) {
               lua.pushString(method)
@@ -882,7 +902,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         val args = parseArguments(lua, 3)
         try {
           (Option(node.network.node(address)) match {
-            case Some(component: server.network.Component) if component.canBeSeenFrom(node) =>
+            case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
               val direct = component.isDirect(method)
               if (direct) callCounts.synchronized {
                 val limit = component.limit(method)

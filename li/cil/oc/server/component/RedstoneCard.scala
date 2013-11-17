@@ -65,7 +65,7 @@ class RedstoneCard(val owner: Redstone) extends ManagedComponent {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
-    owner.toGlobal(ForgeDirection.getOrientation(side))
+    ForgeDirection.getOrientation(side)
   }
 
   private def checkColor(args: Arguments, index: Int): Int = {

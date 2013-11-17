@@ -35,13 +35,6 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
-    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case drive: tileentity.DiskDrive => drive.dropContent(world, x, y, z)
-      case _ => // Ignore.
-    }
-  }
-
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
