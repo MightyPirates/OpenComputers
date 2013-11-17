@@ -158,7 +158,10 @@ object Component {
 
     def checkAny(index: Int) = {
       checkIndex(index, "value")
-      args(index)
+      args(index) match {
+        case Unit | None => null
+        case arg => arg
+      }
     }
 
     def checkBoolean(index: Int) = {
@@ -246,7 +249,7 @@ object Component {
           format(index + 1, want, typeName(have)))
 
     private def typeName(value: AnyRef): String = value match {
-      case null => "nil"
+      case null | Unit | None => "nil"
       case _: java.lang.Boolean => "boolean"
       case _: java.lang.Double => "double"
       case _: java.lang.String => "string"

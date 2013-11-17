@@ -9,7 +9,6 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 
 trait Inventory extends TileEntity with IInventory with Persistable {
   protected val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
@@ -19,7 +18,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
   def getStackInSlot(i: Int) = items(i).orNull
 
   def decrStackSize(slot: Int, amount: Int) = items(slot) match {
-    case Some(stack) if stack.stackSize <= amount =>
+    case Some(stack) if stack.stackSize - amount <= 0 =>
       setInventorySlotContents(slot, null)
       stack
     case Some(stack) =>

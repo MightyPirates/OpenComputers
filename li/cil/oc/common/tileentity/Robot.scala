@@ -39,36 +39,99 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     override def isRobot(context: Context, args: Arguments): Array[AnyRef] =
       Array(java.lang.Boolean.TRUE)
 
-    @LuaCallback(value = "select", direct = true)
+    // ----------------------------------------------------------------------- //
+
+    @LuaCallback("select")
     def select(context: Context, args: Arguments): Array[AnyRef] = {
       // Get or set selected inventory slot.
-      if (args.count > 0) {
-        val slot = args.checkInteger(0)
-        if (slot < 0 || slot > 15) {
-          throw new IllegalArgumentException("invalid slot")
-        }
+      if (args.count > 0 && args.checkAny(0) != null) {
+        val slot = checkSlot(args, 0)
         if (slot != selectedSlot) {
           selectedSlot = slot
-          selectedSlotChanged = true
+          // TODO Update display on client side.
+          // TODO ServerPacketSender.sendRobotSelectedSlotChange(this)
         }
       }
       result(selectedSlot)
     }
 
-    // ----------------------------------------------------------------------- //
+    @LuaCallback("count")
+    def count(context: Context, args: Arguments): Array[AnyRef] =
+      result(stackInSlot(selectedSlot) match {
+        case Some(stack) => stack.stackSize
+        case _ => 0
+      })
 
-    @LuaCallback("attack")
-    def attack(context: Context, args: Arguments): Array[AnyRef] = {
-      // Attack with equipped tool.
+    @LuaCallback("space")
+    def space(context: Context, args: Arguments): Array[AnyRef] =
+      result(stackInSlot(selectedSlot) match {
+        case Some(stack) => getInventoryStackLimit - stack.stackSize
+        case _ => getInventoryStackLimit
+      })
+
+    @LuaCallback("compareTo")
+    def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = checkSlot(args, 0)
+      result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
+        case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
+        case (None, None) => true
+        case _ => false
+      })
+    }
+
+    @LuaCallback("transferTo")
+    def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
+      val slot = checkSlot(args, 0)
+      val count = checkOptionalItemCount(args, 1)
+      if (slot == selectedSlot || count == 0) {
+        result(true)
+      }
+      else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
+        case (Some(from), Some(to)) =>
+          if (haveSameItemType(from, to)) {
+            val space = (getInventoryStackLimit min to.getMaxStackSize) - to.stackSize
+            val amount = count min space min from.stackSize
+            if (amount > 0) {
+              from.stackSize -= amount
+              to.stackSize += amount
+              assert(from.stackSize >= 0)
+              if (from.stackSize == 0) {
+                setInventorySlotContents(actualSlot(selectedSlot), null)
+              }
+              true
+            }
+            else false
+          }
+          else {
+            setInventorySlotContents(actualSlot(slot), from)
+            setInventorySlotContents(actualSlot(selectedSlot), to)
+            true
+          }
+        case (Some(from), None) =>
+          setInventorySlotContents(actualSlot(slot), decrStackSize(actualSlot(selectedSlot), count))
+          true
+        case _ => false
+      })
+    }
+
+    @LuaCallback("drop")
+    def drop(context: Context, args: Arguments): Array[AnyRef] = {
+      val side = checkSideForAction(args, 0)
+      val count = checkOptionalItemCount(args, 1)
+      result(dropSlot(actualSlot(selectedSlot), count, side))
+    }
+
+    @LuaCallback("place")
+    def place(context: Context, args: Arguments): Array[AnyRef] = {
+      // Place block item selected in inventory.
       val side = checkSideForAction(args, 0)
       null
     }
 
-    @LuaCallback("use")
-    def use(context: Context, args: Arguments): Array[AnyRef] = {
-      // Use equipped tool (e.g. dig, chop, till).
+    @LuaCallback("suck")
+    def suck(context: Context, args: Arguments): Array[AnyRef] = {
+      // Pick up items lying around.
       val side = checkSideForAction(args, 0)
-      val sneaky = args.checkBoolean(1)
       null
     }
 
@@ -77,7 +140,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     @LuaCallback("compare")
     def compare(context: Context, args: Arguments): Array[AnyRef] = {
       val side = checkSideForAction(args, 0)
-      items(actuallySelectedSlot) match {
+      stackInSlot(selectedSlot) match {
         case Some(stack) => Option(stack.getItem) match {
           case Some(item: ItemBlock) =>
             val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
@@ -116,26 +179,18 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
     // ----------------------------------------------------------------------- //
 
-    @LuaCallback("drop")
-    def drop(context: Context, args: Arguments): Array[AnyRef] = {
-      val count = if (args.count > 0) {
-        args.checkInteger(0) max 0 min getInventoryStackLimit
-      }
-      else getInventoryStackLimit
-      result(dropSlot(actuallySelectedSlot, count, facing))
-    }
-
-    @LuaCallback("place")
-    def place(context: Context, args: Arguments): Array[AnyRef] = {
-      // Place block item selected in inventory.
+    @LuaCallback("attack")
+    def attack(context: Context, args: Arguments): Array[AnyRef] = {
+      // Attack with equipped tool.
       val side = checkSideForAction(args, 0)
       null
     }
 
-    @LuaCallback("suck")
-    def collect(context: Context, args: Arguments): Array[AnyRef] = {
-      // Pick up items lying around.
+    @LuaCallback("use")
+    def use(context: Context, args: Arguments): Array[AnyRef] = {
+      // Use equipped tool (e.g. dig, chop, till).
       val side = checkSideForAction(args, 0)
+      val sneaky = args.checkBoolean(1)
       null
     }
 
@@ -152,12 +207,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     def turn(context: Context, args: Arguments): Array[AnyRef] = {
       // Turn in the specified direction.
       val clockwise = args.checkBoolean(0)
-      if (clockwise) {
-        rotate(ForgeDirection.UP)
-      }
-      else {
-        rotate(ForgeDirection.DOWN)
-      }
+      if (clockwise) rotate(ForgeDirection.UP)
+      else rotate(ForgeDirection.DOWN)
       result(true)
     }
 
@@ -182,6 +233,26 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
         }
       }
       else None
+    }
+
+    private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
+      stackA.itemID == stackB.itemID &&
+        (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
+
+    private def stackInSlot(slot: Int) = items(actualSlot(slot))
+
+    private def checkOptionalItemCount(args: Arguments, n: Int) =
+      if (args.count > n && args.checkAny(n) != null) {
+        args.checkInteger(n) max 0 min getInventoryStackLimit
+      }
+      else getInventoryStackLimit
+
+    private def checkSlot(args: Arguments, n: Int) = {
+      val slot = args.checkInteger(n) - 1
+      if (slot < 0 || slot > 15) {
+        throw new IllegalArgumentException("invalid slot")
+      }
+      slot
     }
 
     private def checkSideForAction(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
@@ -211,9 +282,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   var selectedSlot = 0
 
-  var selectedSlotChanged = false
-
-  def actuallySelectedSlot = selectedSlot + 3
+  def actualSlot(n: Int) = n + 3
 
   // ----------------------------------------------------------------------- //
 
@@ -249,11 +318,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       distributor.changeBuffer(10) // just for testing
       distributor.update()
       gpu.update()
-
-      if (selectedSlotChanged) {
-        selectedSlotChanged = false
-        // TODO ServerPacketSender.sendRobotSelectedSlotChange(this)
-      }
     }
   }
 
