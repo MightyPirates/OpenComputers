@@ -33,11 +33,11 @@ object PacketSender {
     }
   }
 
-  def sendPowerState(t: PowerDistributor, player: Option[Player] = None) {
+  def sendPowerState(t: PowerInformation, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.PowerStateResponse)
 
     pb.writeTileEntity(t)
-    pb.writeDouble(t.average)
+    pb.writeDouble(t.globalPower)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

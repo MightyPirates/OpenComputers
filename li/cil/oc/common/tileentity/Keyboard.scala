@@ -1,6 +1,8 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.Config
 import li.cil.oc.server.component
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 
 class Keyboard(isRemote: Boolean) extends Environment with Rotatable {
@@ -15,14 +17,14 @@ class Keyboard(isRemote: Boolean) extends Environment with Rotatable {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (isServer) {
-      keyboard.node.load(nbt)
+      keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (isServer) {
-      keyboard.node.save(nbt)
+      nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
     }
   }
 }

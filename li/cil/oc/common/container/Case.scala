@@ -1,52 +1,22 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.api
-import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
-import net.minecraft.inventory.Slot
-import net.minecraft.item.ItemStack
 
 class Case(playerInventory: InventoryPlayer, `case`: tileentity.Case) extends Player(playerInventory, `case`) {
-  addSlotToContainer(new Slot(`case`, getInventory.size, 58, 17) {
-    setBackgroundIcon(Icons.get(api.driver.Slot.Power))
-
-    override def isItemValid(item: ItemStack) = {
-      `case`.isItemValidForSlot(0, item)
-    }
-  })
+  addSlotToContainer(58, 17, api.driver.Slot.Power)
 
   for (i <- 0 to 2) {
-    val index = getInventory.size
-    addSlotToContainer(new Slot(`case`, index, 80, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.get(api.driver.Slot.Card))
-
-      override def isItemValid(item: ItemStack) = {
-        `case`.isItemValidForSlot(index, item)
-      }
-    })
+    addSlotToContainer(80, 17 + i * slotSize, api.driver.Slot.Card)
   }
 
   for (i <- 0 to 1) {
-    val index = getInventory.size
-    addSlotToContainer(new Slot(`case`, index, 102, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.get(api.driver.Slot.Memory))
-
-      override def isItemValid(item: ItemStack) = {
-        `case`.isItemValidForSlot(index, item)
-      }
-    })
+    addSlotToContainer(102, 17 + i * slotSize, api.driver.Slot.Memory)
   }
 
   for (i <- 0 to 1) {
-    val index = getInventory.size
-    addSlotToContainer(new Slot(`case`, index, 124, 17 + i * slotSize) {
-      setBackgroundIcon(Icons.get(api.driver.Slot.HardDiskDrive))
-
-      override def isItemValid(item: ItemStack) = {
-        `case`.isItemValidForSlot(index, item)
-      }
-    })
+    addSlotToContainer(124, 17 + i * slotSize, api.driver.Slot.HardDiskDrive)
   }
 
   // Show the player's inventory.

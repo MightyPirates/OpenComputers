@@ -63,8 +63,8 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onPowerStateResponse(p: PacketParser) =
-    p.readTileEntity[PowerDistributor]() match {
-      case Some(t) => t.average = p.readDouble()
+    p.readTileEntity[PowerInformation]() match {
+      case Some(t) => t.globalPower = p.readDouble()
       case _ => // Invalid packet.
     }
 

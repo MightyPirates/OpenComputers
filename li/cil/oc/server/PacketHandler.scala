@@ -57,31 +57,31 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onKeyDown(p: PacketParser) =
-    p.readTileEntity[Environment]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(s: Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
         s.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
-      case Some(e) => e.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
   def onKeyUp(p: PacketParser) =
-    p.readTileEntity[Environment]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(s: Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
         s.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
-      case Some(e) => e.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
   def onClipboard(p: PacketParser) =
-    p.readTileEntity[Environment]() match {
+    p.readTileEntity[Buffer.Environment]() match {
       case Some(s: Screen) =>
         val value = p.readUTF()
         s.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
-      case Some(e) => e.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
+      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
       case _ => // Invalid packet.
     }
 }

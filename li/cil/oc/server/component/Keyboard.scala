@@ -1,7 +1,6 @@
 package li.cil.oc.server.component
 
 import cpw.mods.fml.common.IPlayerTracker
-import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Node, Visibility, Message}
 import li.cil.oc.common.tileentity.Environment
@@ -13,7 +12,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(owner: Environment) extends api.network.Environment {
+class Keyboard(owner: Environment) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
@@ -34,19 +33,19 @@ class Keyboard(owner: Environment) extends api.network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def onConnect(node: Node) {
+  override def onConnect(node: Node) {
     if (node == this.node) {
       MinecraftForge.EVENT_BUS.register(this)
     }
   }
 
-  def onDisconnect(node: Node) {
+  override def onDisconnect(node: Node) {
     if (node == this.node) {
       MinecraftForge.EVENT_BUS.unregister(this)
     }
   }
 
-  def onMessage(message: Message) = {
+  override def onMessage(message: Message) = {
     message.data match {
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p)) {

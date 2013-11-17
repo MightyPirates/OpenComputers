@@ -207,16 +207,18 @@ abstract class GraphicsCard extends ManagedComponent {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey(Config.namespace + "gpu.screen")) {
-      screenAddress = Some(nbt.getString(Config.namespace + "gpu.screen"))
+
+    if (nbt.hasKey("screen")) {
+      screenAddress = Some(nbt.getString("screen"))
       screenInstance = None
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+
     if (screenAddress.isDefined) {
-      nbt.setString(Config.namespace + "gpu.screen", screenAddress.get)
+      nbt.setString("screen", screenAddress.get)
     }
   }
 }

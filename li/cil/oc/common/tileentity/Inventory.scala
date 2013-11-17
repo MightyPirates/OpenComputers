@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 trait Inventory extends TileEntity with IInventory with Persistable {
@@ -82,34 +83,27 @@ trait Inventory extends TileEntity with IInventory with Persistable {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    val inventoryNbt = nbt.getTagList(Config.namespace + "inventory.items")
-    for (i <- 0 until inventoryNbt.tagCount) {
-      val slotNbt = inventoryNbt.tagAt(i).asInstanceOf[NBTTagCompound]
+    nbt.getTagList(Config.namespace + "items").foreach[NBTTagCompound](slotNbt => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        val item = ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item"))
-        items(slot) = Some(item)
+        items(slot) = Some(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
       }
-    }
+    })
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
-    val inventoryNbt = new NBTTagList()
-    items.zipWithIndex collect {
-      case (Some(stack), slot) => (stack, slot)
-    } foreach {
-      case (stack, slot) => {
-        val slotNbt = new NBTTagCompound()
-        slotNbt.setByte("slot", slot.toByte)
-        val itemNbt = new NBTTagCompound()
-        stack.writeToNBT(itemNbt)
-        slotNbt.setCompoundTag("item", itemNbt)
-        inventoryNbt.appendTag(slotNbt)
-      }
-    }
-    nbt.setTag(Config.namespace + "inventory.items", inventoryNbt)
+    nbt.setNewTagList(Config.namespace + "items",
+      items.zipWithIndex collect {
+        case (Some(stack), slot) => (stack, slot)
+      } map {
+        case (stack, slot) => {
+          val slotNbt = new NBTTagCompound()
+          slotNbt.setByte("slot", slot.toByte)
+          slotNbt.setNewCompoundTag("item", stack.writeToNBT)
+        }
+      })
   }
 
   // ----------------------------------------------------------------------- //

@@ -41,7 +41,7 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
         }
       }
       components collect {
-        case Some(component) => node.connect(component.node)
+        case Some(component) => connectItemNode(component.node)
       }
     }
   }
@@ -81,7 +81,7 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
         case Some(component) =>
           components(slot) = Some(component)
           component.load(driver.nbt(item))
-          node.connect(component.node)
+          connectItemNode(component.node)
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.
@@ -102,5 +102,9 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
           component.save(driver.nbt(item)))
       case _ => // Nothing to do.
     }
+  }
+
+  protected def connectItemNode(node: Node) {
+    this.node.connect(node)
   }
 }

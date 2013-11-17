@@ -39,6 +39,20 @@ object RenderState {
     }
   }
 
+  def enableLighting() {
+    GL11.glEnable(GL11.GL_LIGHTING)
+    if (arb) {
+      ARBMultitexture.glActiveTextureARB(OpenGlHelper.lightmapTexUnit)
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      ARBMultitexture.glActiveTextureARB(OpenGlHelper.defaultTexUnit)
+    }
+    else {
+      GL13.glActiveTexture(OpenGlHelper.lightmapTexUnit)
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      GL13.glActiveTexture(OpenGlHelper.defaultTexUnit)
+    }
+  }
+
   def makeItBlend() {
     GL11.glEnable(GL11.GL_BLEND)
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)

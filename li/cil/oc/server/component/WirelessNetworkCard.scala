@@ -86,13 +86,13 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey(Config.namespace + "modem.strength")) {
-      strength = nbt.getDouble(Config.namespace + "modem.strength")
+    if (nbt.hasKey("modem")) {
+      strength = nbt.getDouble("strength")
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble(Config.namespace + "modem.strength", strength)
+    nbt.setDouble("strength", strength)
   }
 }

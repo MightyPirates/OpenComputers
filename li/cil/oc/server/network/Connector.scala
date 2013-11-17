@@ -3,7 +3,7 @@ package li.cil.oc.server.network
 import li.cil.oc.Config
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.common.tileentity.PowerDistributor
+import li.cil.oc.server.component.PowerDistributor
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
@@ -51,14 +51,15 @@ trait Connector extends Node with network.Connector with Persistable {
   override def onConnect(node: ImmutableNode) {
     if (node == this) findDistributor()
     else if (distributor.isEmpty) node.host match {
-      case distributor: PowerDistributor => this.distributor = Some(distributor)
+      case distributor: PowerDistributor =>
+        this.distributor = Some(distributor)
       case _ =>
     }
     super.onConnect(node)
   }
 
   override def onDisconnect(node: ImmutableNode) {
-    if (node != this && distributor.exists(_ == node.host)) findDistributor()
+    if (node != this && distributor.exists(_ == node)) findDistributor()
     super.onDisconnect(node)
   }
 
@@ -70,12 +71,12 @@ trait Connector extends Node with network.Connector with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = nbt.getDouble(Config.namespace + "connector.buffer") max 0 min localBufferSize
+    localBuffer = nbt.getDouble("buffer") max 0 min localBufferSize
     dirty = true
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setDouble(Config.namespace + "connector.buffer", localBuffer)
+    nbt.setDouble("buffer", localBuffer)
   }
 }

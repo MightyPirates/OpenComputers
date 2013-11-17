@@ -7,11 +7,11 @@ import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
-import li.cil.oc.api.Persistable
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.entity.player.EntityPlayer
@@ -24,7 +24,7 @@ import scala.collection.mutable
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
 
-class Computer(val owner: tileentity.Computer) extends Environment with Context with Persistable with Runnable {
+class Computer(val owner: tileentity.Computer) extends ManagedComponent with Context with Runnable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector().
@@ -156,7 +156,7 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
 
   // ----------------------------------------------------------------------- //
 
-  def update() {
+  override def update() {
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their
@@ -279,7 +279,7 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
 
   // ----------------------------------------------------------------------- //
 
-  def onConnect(node: Node) {
+  override def onConnect(node: Node) {
     if (node == this.node) {
       rom.foreach(rom => node.connect(rom.node))
       tmp.foreach(tmp => node.connect(tmp.node))
@@ -293,7 +293,7 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
     owner.onConnect(node)
   }
 
-  def onDisconnect(node: Node) {
+  override def onDisconnect(node: Node) {
     if (node == this.node) {
       stop()
       rom.foreach(_.node.remove())
@@ -308,7 +308,7 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
     owner.onDisconnect(node)
   }
 
-  def onMessage(message: Message) {
+  override def onMessage(message: Message) {
     message.data match {
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
         signal(name, Seq(message.source.address) ++ args: _*)
@@ -365,26 +365,19 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) = this.synchronized {
+  override def load(nbt: NBTTagCompound) = this.synchronized {
     assert(state.top == Computer.State.Stopped)
     assert(future.isEmpty)
-
-    val computerNbt = nbt.getCompoundTag(Config.namespace + "computer")
-
+    assert(users.isEmpty)
+    assert(signals.isEmpty)
     state.clear()
-    val stateNbt = computerNbt.getTagList("state")
-    (0 until stateNbt.tagCount).
-      map(stateNbt.tagAt).
-      map(_.asInstanceOf[NBTTagInt]).
-      foreach(s => state.push(Computer.State(s.data)))
 
-    val usersNbt = computerNbt.getTagList("users")
-    (0 until usersNbt.tagCount).
-      map(usersNbt.tagAt).
-      map(_.asInstanceOf[NBTTagString]).
-      foreach(u => users += u.data)
+    super.load(nbt)
 
-    if (state.top != Computer.State.Stopped && init()) {
+    nbt.getTagList("state").foreach[NBTTagInt](s => state.push(Computer.State(s.data)))
+    nbt.getTagList("users").foreach[NBTTagString](u => users += u.data)
+
+    if (state.size > 0 && state.top != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -393,14 +386,14 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
         // on. First, clear the stack, meaning the current kernel.
         lua.setTop(0)
 
-        unpersist(computerNbt.getByteArray("kernel"))
+        unpersist(nbt.getByteArray("kernel"))
         if (!lua.isThread(1)) {
           // This shouldn't really happen, but there's a chance it does if
           // the save was corrupt (maybe someone modified the Lua files).
           throw new IllegalArgumentException("Invalid kernel.")
         }
         if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
-          unpersist(computerNbt.getByteArray("stack"))
+          unpersist(nbt.getByteArray("stack"))
           if (!(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
             // Same as with the above, should not really happen normally, but
             // could for the same reasons.
@@ -408,17 +401,11 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
           }
         }
 
-        val componentsNbt = computerNbt.getTagList("components")
-        components ++= (0 until componentsNbt.tagCount).
-          map(componentsNbt.tagAt).
-          map(_.asInstanceOf[NBTTagCompound]).
-          map(c => c.getString("address") -> c.getString("name"))
+        val componentsNbt = nbt.getTagList("components")
+        components ++= componentsNbt.iterator[NBTTagCompound].map(c =>
+          c.getString("address") -> c.getString("name"))
 
-        val signalsNbt = computerNbt.getTagList("signals")
-        signals ++= (0 until signalsNbt.tagCount).
-          map(signalsNbt.tagAt).
-          map(_.asInstanceOf[NBTTagCompound]).
-          map(signalNbt => {
+        signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
           val argsNbt = signalNbt.getCompoundTag("args")
           val argsLength = argsNbt.getInteger("length")
           new Computer.Signal(signalNbt.getString("name"),
@@ -432,21 +419,13 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
             }.toArray)
         })
 
-        rom.foreach(rom => {
-          val romNbt = computerNbt.getCompoundTag("rom")
-          rom.node.load(romNbt)
-          rom.load(romNbt)
-        })
-        tmp.foreach(tmp => {
-          val tmpNbt = computerNbt.getCompoundTag("tmp")
-          tmp.node.load(tmpNbt)
-          tmp.load(tmpNbt)
-        })
-        kernelMemory = computerNbt.getInteger("kernelMemory")
-        timeStarted = computerNbt.getLong("timeStarted")
-        cpuTime = computerNbt.getLong("cpuTime")
-        if (computerNbt.hasKey("message")) {
-          message = Some(computerNbt.getString("message"))
+        rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
+        tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
+        kernelMemory = nbt.getInteger("kernelMemory")
+        timeStarted = nbt.getLong("timeStarted")
+        cpuTime = nbt.getLong("cpuTime")
+        if (nbt.hasKey("message")) {
+          message = Some(nbt.getString("message"))
         }
 
         // Limit memory again.
@@ -466,26 +445,17 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
     else close() // Clean up in case we got a weird state stack.
   }
 
-  def save(nbt: NBTTagCompound): Unit = this.synchronized {
+  override def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state.top != Computer.State.Running) // Lock on 'this' should guarantee this.
     assert(state.top != Computer.State.Stopping) // Only set while executor is running.
+
+    super.save(nbt)
 
     // Make sure the component list is up-to-date.
     processAddedComponents()
 
-    val computerNbt = new NBTTagCompound()
-
-    val stateNbt = new NBTTagList()
-    for (state <- state) {
-      stateNbt.appendTag(new NBTTagInt(null, state.id))
-    }
-    computerNbt.setTag("state", stateNbt)
-
-    val usersNbt = new NBTTagList()
-    for (user <- users) {
-      usersNbt.appendTag(new NBTTagString(null, user))
-    }
-    computerNbt.setTag("users", usersNbt)
+    nbt.setNewTagList("state", state.map(_.id))
+    nbt.setNewTagList("users", users)
 
     if (state.top != Computer.State.Stopped) {
       // Unlimit memory while persisting.
@@ -495,12 +465,12 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
         // Try persisting Lua, because that's what all of the rest depends on.
         // Save the kernel state (which is always at stack index one).
         assert(lua.isThread(1))
-        computerNbt.setByteArray("kernel", persist(1))
+        nbt.setByteArray("kernel", persist(1))
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
         if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
           assert(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-          computerNbt.setByteArray("stack", persist(2))
+          nbt.setByteArray("stack", persist(2))
         }
 
         val componentsNbt = new NBTTagList()
@@ -510,56 +480,43 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
           componentNbt.setString("name", name)
           componentsNbt.appendTag(componentNbt)
         }
-        computerNbt.setTag("components", componentsNbt)
+        nbt.setTag("components", componentsNbt)
 
         val signalsNbt = new NBTTagList()
         for (s <- signals.iterator) {
           val signalNbt = new NBTTagCompound()
           signalNbt.setString("name", s.name)
-          val args = new NBTTagCompound()
-          args.setInteger("length", s.args.length)
-          s.args.zipWithIndex.foreach {
-            case (Unit, i) => args.setByte("arg" + i, -1)
-            case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
-            case (arg: Double, i) => args.setDouble("arg" + i, arg)
-            case (arg: String, i) => args.setString("arg" + i, arg)
-            case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
-          }
-          signalNbt.setCompoundTag("args", args)
+          signalNbt.setNewCompoundTag("args", args => {
+            args.setInteger("length", s.args.length)
+            s.args.zipWithIndex.foreach {
+              case (Unit, i) => args.setByte("arg" + i, -1)
+              case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
+              case (arg: Double, i) => args.setDouble("arg" + i, arg)
+              case (arg: String, i) => args.setString("arg" + i, arg)
+              case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
+            }
+          })
           signalsNbt.appendTag(signalNbt)
         }
-        computerNbt.setTag("signals", signalsNbt)
+        nbt.setTag("signals", signalsNbt)
 
-        val romNbt = new NBTTagCompound()
-        rom.foreach(rom => {
-          rom.save(romNbt)
-          rom.node.save(romNbt)
-        })
-        computerNbt.setCompoundTag("rom", romNbt)
+        rom.foreach(rom => nbt.setNewCompoundTag("rom", rom.save))
+        tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
 
-        val tmpNbt = new NBTTagCompound()
-        tmp.foreach(tmp => {
-          tmp.save(tmpNbt)
-          tmp.node.save(tmpNbt)
-        })
-        computerNbt.setCompoundTag("tmp", tmpNbt)
-
-        computerNbt.setInteger("kernelMemory", kernelMemory)
-        computerNbt.setLong("timeStarted", timeStarted)
-        computerNbt.setLong("cpuTime", cpuTime)
-        message.foreach(computerNbt.setString("message", _))
+        nbt.setInteger("kernelMemory", kernelMemory)
+        nbt.setLong("timeStarted", timeStarted)
+        nbt.setLong("cpuTime", cpuTime)
+        message.foreach(nbt.setString("message", _))
       } catch {
         case e: LuaRuntimeException => {
           OpenComputers.log.warning("Could not persist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-          computerNbt.setInteger("state", Computer.State.Stopped.id)
+          nbt.removeTag("state")
         }
       }
 
       // Limit memory again.
       recomputeMemory()
     }
-
-    nbt.setCompoundTag(Config.namespace + "computer", computerNbt)
   }
 
   private def persist(index: Int): Array[Byte] = {
@@ -1086,7 +1043,7 @@ class Computer(val owner: tileentity.Computer) extends Environment with Context 
   }
 
   private def close() = state.synchronized(
-    if (state.top != Computer.State.Stopped) {
+    if (state.size == 0 || state.top != Computer.State.Stopped) {
       state.clear()
       state.push(Computer.State.Stopped)
       lua.setTotalMemory(Integer.MAX_VALUE)

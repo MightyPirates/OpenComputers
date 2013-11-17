@@ -4,6 +4,7 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.component
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
 import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
@@ -115,7 +116,8 @@ class Buffer(val owner: Buffer.Environment) extends api.network.Environment with
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
-    buffer.load(nbt.getCompoundTag(Config.namespace + "buffer"))
+    node.load(nbt.getCompoundTag("node"))
+    buffer.load(nbt.getCompoundTag("buffer"))
   }
 
   override def save(nbt: NBTTagCompound) = {
@@ -135,9 +137,8 @@ class Buffer(val owner: Buffer.Environment) extends api.network.Environment with
       }
     }
 
-    val screenNbt = new NBTTagCompound
-    buffer.save(screenNbt)
-    nbt.setCompoundTag(Config.namespace + "buffer", screenNbt)
+    nbt.setNewCompoundTag("node", node.save)
+    nbt.setNewCompoundTag("buffer", buffer.save)
   }
 }
 
@@ -160,22 +161,6 @@ object Buffer {
     override def save(nbt: NBTTagCompound) = {
       super.save(nbt)
       buffer.save(nbt)
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    override def onConnect(node: Node) {
-      super.onConnect(node)
-      if (node == this.node) {
-        node.connect(buffer.node)
-      }
-    }
-
-    override def onDisconnect(node: Node) {
-      super.onDisconnect(node)
-      if (node == this.node) {
-        buffer.node.remove()
-      }
     }
 
     // ----------------------------------------------------------------------- //

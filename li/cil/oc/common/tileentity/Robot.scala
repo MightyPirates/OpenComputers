@@ -1,29 +1,43 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Config
+import li.cil.oc.api
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender, gui}
 import li.cil.oc.common.component.Buffer
+import li.cil.oc.server
 import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
-class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environment {
+class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environment with PowerInformation {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
 
-  val gpu = new GraphicsCard.Tier1 {
-    override val maxResolution = (44, 14)
-  }
-  val keyboard = new component.Keyboard(this)
-
   var currentGui: Option[gui.Robot] = None
+
+  override val node = api.Network.newNode(this, Visibility.None).create()
+
+  override val buffer = new Buffer(this) {
+    override def maxResolution = (44, 14)
+  }
+  val (battery, distributor, gpu, keyboard) = if (isServer) {
+    val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
+    val distributor = new component.PowerDistributor(this)
+    val gpu = new GraphicsCard.Tier1 {
+      override val maxResolution = (44, 14)
+    }
+    val keyboard = new component.Keyboard(this)
+    (battery, distributor, gpu, keyboard)
+  }
+  else (null, null, null, null)
 
   // ----------------------------------------------------------------------- //
 
@@ -90,7 +104,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   override def updateEntity() {
     super.updateEntity()
-    gpu.update()
+    if (isServer) {
+      distributor.changeBuffer(10) // just for testing
+      distributor.update()
+      gpu.update()
+    }
   }
 
   override def validate() {
@@ -110,22 +128,42 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   // ----------------------------------------------------------------------- //
 
+  //  override def onMessage(message: Message) {
+  //    if (message.source.network == node.network) {
+  //      computer.node.network.sendToReachable(message.source, message.name, message.data: _*)
+  //    }
+  //    else {
+  //      node.network.sendToReachable(message.source, message.name, message.data: _*)
+  //    }
+  //  }
+
   override def onConnect(node: Node) {
-    super.onConnect(node)
     if (node == this.node) {
-      node.connect(gpu.node)
-      node.connect(buffer.node)
-      node.connect(keyboard.node)
+      server.network.Network.create(computer.node)
+
+      computer.node.connect(buffer.node)
+      computer.node.connect(distributor.node)
+      computer.node.connect(gpu.node)
+      distributor.node.connect(battery)
+      buffer.node.connect(keyboard.node)
     }
+    super.onConnect(node)
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      gpu.node.remove()
+      battery.remove()
       buffer.node.remove()
+      computer.node.remove()
+      distributor.node.remove()
+      gpu.node.remove()
       keyboard.node.remove()
     }
+  }
+
+  override protected def connectItemNode(node: Node) {
+    computer.node.connect(node)
   }
 
   // ----------------------------------------------------------------------- //
@@ -133,28 +171,20 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (isServer) {
-      buffer.node.load(nbt.getCompoundTag(Config.namespace + "buffer"))
+      battery.load(nbt.getCompoundTag(Config.namespace + "battery"))
       buffer.load(nbt.getCompoundTag(Config.namespace + "buffer"))
       gpu.load(nbt.getCompoundTag(Config.namespace + "gpu"))
-      keyboard.node.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
+      keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (isServer) {
-      val bufferNbt = new NBTTagCompound()
-      buffer.node.save(bufferNbt)
-      buffer.save(bufferNbt)
-      nbt.setCompoundTag(Config.namespace + "buffer", bufferNbt)
-
-      val gpuNbt = new NBTTagCompound()
-      gpu.save(gpuNbt)
-      nbt.setCompoundTag(Config.namespace + "gpu", gpuNbt)
-
-      val keyboardNbt = new NBTTagCompound()
-      keyboard.node.save(keyboardNbt)
-      nbt.setCompoundTag(Config.namespace + "keyboard", keyboardNbt)
+      nbt.setNewCompoundTag(Config.namespace + "battery", battery.save)
+      nbt.setNewCompoundTag(Config.namespace + "buffer", buffer.save)
+      nbt.setNewCompoundTag(Config.namespace + "gpu", gpu.save)
+      nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
     }
   }
 
@@ -173,7 +203,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
     case (0, Some(driver)) => driver.slot(item) == Slot.Tool
-    case (1 | 2, Some(driver)) => driver.slot(item) == Slot.Card
+    case (1, Some(driver)) => driver.slot(item) == Slot.Card
+    case (2, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
     case (3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11, _) => true // Normal inventory.
     case _ => false // Invalid slot.
   }

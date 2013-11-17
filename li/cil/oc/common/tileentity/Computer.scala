@@ -4,6 +4,7 @@ import li.cil.oc.Config
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
@@ -84,12 +85,16 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (computer != null) computer.load(nbt)
+    if (isServer) {
+      computer.load(nbt.getCompoundTag(Config.namespace + "computer"))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null) computer.save(nbt)
+    if (isServer) {
+      nbt.setNewCompoundTag(Config.namespace + "computer", computer.save)
+    }
   }
 
   // ----------------------------------------------------------------------- //

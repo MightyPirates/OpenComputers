@@ -143,12 +143,12 @@ class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analy
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Config.namespace + "screen.tier")
+    tier = nbt.getByte(Config.namespace + "tier")
     super.readFromNBT(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    nbt.setByte(Config.namespace + "screen.tier", tier.toByte)
+    nbt.setByte(Config.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
   }
 

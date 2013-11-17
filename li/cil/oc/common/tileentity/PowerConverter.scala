@@ -5,6 +5,7 @@ import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
@@ -63,14 +64,14 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (Loader.isModLoaded("BuildCraft|Energy")) {
-      getPowerProvider.readFromNBT(nbt)
+      getPowerProvider.readFromNBT(nbt.getCompoundTag(Config.namespace + "bc"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (Loader.isModLoaded("BuildCraft|Energy")) {
-      getPowerProvider.writeToNBT(nbt)
+      nbt.setNewCompoundTag(Config.namespace + "bc", getPowerProvider.writeToNBT)
     }
   }
 

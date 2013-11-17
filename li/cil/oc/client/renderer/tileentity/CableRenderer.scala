@@ -132,7 +132,6 @@ object CableRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPushMatrix()
     GL11.glTranslated(x, y, z)
-    GL11.glColor3f(1, 1, 1)
 
     bindTexture(texture)
     GL11.glCallList(displayLists + cable.neighbors)

@@ -5,9 +5,10 @@ import cpw.mods.fml.common.{Loader, Optional}
 import li.cil.oc.Config
 import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
-import net.minecraft.nbt.{NBTTagByte, NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagByteArray, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 
 @Optional.InterfaceList(Array(
@@ -104,67 +105,25 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    val inputNbt = nbt.getTagList(Config.namespace + "redstone.input")
-    for (i <- 0 until (_input.length min inputNbt.tagCount)) {
-      _input(i) = inputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
-    }
+    nbt.getByteArray(Config.namespace + "rs.input").copyToArray(_input)
+    nbt.getByteArray(Config.namespace + "rs.output").copyToArray(_output)
 
-    val outputNbt = nbt.getTagList(Config.namespace + "redstone.output")
-    for (i <- 0 until (_output.length min outputNbt.tagCount)) {
-      _output(i) = outputNbt.tagAt(i).asInstanceOf[NBTTagByte].data
+    nbt.getTagList(Config.namespace + "rs.bundledInput").iterator[NBTTagByteArray].zipWithIndex.foreach {
+      case (input, side) => input.byteArray.copyToArray(_bundledInput(side))
     }
-
-    val bundledInputNbt = nbt.getTagList(Config.namespace + "redstone.bundledInput")
-    for (i <- 0 until (_bundledInput.length min bundledInputNbt.tagCount)) {
-      val bundleNbt = bundledInputNbt.tagAt(i).asInstanceOf[NBTTagList]
-      for (j <- 0 until (_bundledInput(i).length min bundleNbt.tagCount())) {
-        _bundledInput(i)(j) = bundleNbt.tagAt(j).asInstanceOf[NBTTagByte].data
-      }
-    }
-
-    val bundledOutputNbt = nbt.getTagList(Config.namespace + "redstone.bundledOutput")
-    for (i <- 0 until (_bundledOutput.length min bundledOutputNbt.tagCount)) {
-      val bundleNbt = bundledOutputNbt.tagAt(i).asInstanceOf[NBTTagList]
-      for (j <- 0 until (_bundledOutput(i).length min bundleNbt.tagCount())) {
-        _bundledOutput(i)(j) = bundleNbt.tagAt(j).asInstanceOf[NBTTagByte].data
-      }
+    nbt.getTagList(Config.namespace + "rs.bundledOutput").iterator[NBTTagByteArray].zipWithIndex.foreach {
+      case (input, side) => input.byteArray.copyToArray(_bundledOutput(side))
     }
   }
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
 
-    val inputNbt = new NBTTagList()
-    for (i <- 0 until _input.length) {
-      inputNbt.appendTag(new NBTTagByte(null, _input(i)))
-    }
-    nbt.setTag(Config.namespace + "redstone.input", inputNbt)
+    nbt.setByteArray(Config.namespace + "rs.input", _input)
+    nbt.setByteArray(Config.namespace + "rs.output", _output)
 
-    val outputNbt = new NBTTagList()
-    for (i <- 0 until _output.length) {
-      outputNbt.appendTag(new NBTTagByte(null, _output(i)))
-    }
-    nbt.setTag(Config.namespace + "redstone.output", outputNbt)
-
-    val bundledInputNbt = new NBTTagList()
-    for (i <- 0 until _bundledInput.length) {
-      val bundleNbt = new NBTTagList()
-      for (j <- 0 until _bundledInput(i).length) {
-        bundleNbt.appendTag(new NBTTagByte(null, _bundledInput(i)(j)))
-      }
-      bundledInputNbt.appendTag(bundleNbt)
-    }
-    nbt.setTag(Config.namespace + "redstone.bundledInput", bundledInputNbt)
-
-    val bundledOutputNbt = new NBTTagList()
-    for (i <- 0 until _bundledOutput.length) {
-      val bundleNbt = new NBTTagList()
-      for (j <- 0 until _bundledOutput(i).length) {
-        bundleNbt.appendTag(new NBTTagByte(null, _bundledOutput(i)(j)))
-      }
-      bundledOutputNbt.appendTag(bundleNbt)
-    }
-    nbt.setTag(Config.namespace + "redstone.bundledOutput", bundledOutputNbt)
+    nbt.setNewTagList(Config.namespace + "rs.bundledInput", _bundledInput.view)
+    nbt.setNewTagList(Config.namespace + "rs.bundledOutput", _bundledOutput.view)
   }
 
   // ----------------------------------------------------------------------- //

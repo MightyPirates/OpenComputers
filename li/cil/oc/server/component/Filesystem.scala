@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.Some
@@ -228,6 +229,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
+
     val ownersNbt = nbt.getTagList("owners")
     (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
       val address = ownerNbt.getString("address")
@@ -245,6 +247,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+
     val ownersNbt = new NBTTagList()
     for ((address, handles) <- owners) {
       val ownerNbt = new NBTTagCompound()
@@ -258,9 +261,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     }
     nbt.setTag("owners", ownersNbt)
 
-    val fsNbt = new NBTTagCompound()
-    fileSystem.save(fsNbt)
-    nbt.setCompoundTag("fs", fsNbt)
+    nbt.setNewCompoundTag("fs", fileSystem.save)
   }
 
   // ----------------------------------------------------------------------- //

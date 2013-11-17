@@ -259,6 +259,8 @@ object Network extends api.detail.NetworkAPI {
       case _ => // Invalid block.
     }
 
+  def create(node: ImmutableNode): Unit = new Network(node.asInstanceOf[MutableNode])
+
   private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
     Option(Block.blocksList(world.getBlockId(x, y, z))) match {
       case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>

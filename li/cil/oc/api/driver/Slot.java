@@ -8,6 +8,11 @@ package li.cil.oc.api.driver;
  */
 public enum Slot {
     /**
+     * Invalid slot type.
+     */
+    None,
+
+    /**
      * Extension cards such as graphics cards or redstone cards.
      */
     Card,

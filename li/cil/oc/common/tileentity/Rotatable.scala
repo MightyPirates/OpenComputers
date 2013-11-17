@@ -154,16 +154,16 @@ trait Rotatable extends TileEntity with Persistable {
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "rotatable.pitch"))
-    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "rotatable.yaw"))
+    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "pitch"))
+    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "yaw"))
     updateTranslation()
   }
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
 
-    nbt.setInteger(Config.namespace + "rotatable.pitch", _pitch.ordinal)
-    nbt.setInteger(Config.namespace + "rotatable.yaw", _yaw.ordinal)
+    nbt.setInteger(Config.namespace + "pitch", _pitch.ordinal)
+    nbt.setInteger(Config.namespace + "yaw", _yaw.ordinal)
   }
 
   // ----------------------------------------------------------------------- //
