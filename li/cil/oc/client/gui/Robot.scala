@@ -14,26 +14,16 @@ import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with Buffer {
-  xSize = 236
-  ySize = 222
+  xSize = 256
+  ySize = 242
 
   protected val background = new ResourceLocation(Config.resourceDomain, "textures/gui/robot.png")
 
   protected val buffer = robot.buffer
 
-  private val bufferWidth = 222.0
+  private val bufferWidth = 242.0
   private val bufferHeight = 128.0
   private val bufferMargin = BufferRenderer.innerMargin
-
-  override def initGui() {
-    super.initGui()
-    robot.currentGui = Some(this)
-  }
-
-  override def onGuiClosed() = {
-    super.onGuiClosed()
-    robot.currentGui = None
-  }
 
   override def drawSlotInventory(slot: Slot) {
     RenderState.makeItBlend()

@@ -3,7 +3,7 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api
-import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
+import li.cil.oc.api.network.{Node => ImmutableNode, Environment, Visibility}
 import li.cil.oc.server.network.{Node => MutableNode}
 import net.minecraft.block.Block
 import net.minecraft.world.{IBlockAccess, World}
@@ -259,7 +259,14 @@ object Network extends api.detail.NetworkAPI {
       case _ => // Invalid block.
     }
 
-  def create(node: ImmutableNode): Unit = new Network(node.asInstanceOf[MutableNode])
+  def joinNewNetwork(node: ImmutableNode): Unit = {
+    if (node != null) {
+      if (node.network != null) {
+        throw new IllegalArgumentException("Node must not be in a network.")
+      }
+      new Network(node.asInstanceOf[MutableNode])
+    }
+  }
 
   private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
     Option(Block.blocksList(world.getBlockId(x, y, z))) match {

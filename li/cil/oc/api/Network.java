@@ -3,6 +3,7 @@ package li.cil.oc.api;
 import li.cil.oc.api.detail.Builder;
 import li.cil.oc.api.detail.NetworkAPI;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import net.minecraft.world.World;
 
@@ -27,6 +28,20 @@ public final class Network {
      */
     public static void joinOrCreateNetwork(World world, int x, int y, int z) {
         if (instance != null) instance.joinOrCreateNetwork(world, x, y, z);
+    }
+
+    /**
+     * Creates a new network with the specified node as its initial node.
+     * <p/>
+     * This can be used to create networks that are not bound to any tile
+     * entity. For example, this is used to create the internal networks of
+     * robots.
+     *
+     * @param node the node to create the network for.
+     * @throws IllegalArgumentException if the node already is in a network.
+     */
+    public static void joinNewNetwork(Node node) {
+        if (instance != null) instance.joinNewNetwork(node);
     }
 
     /**

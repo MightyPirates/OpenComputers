@@ -5,19 +5,20 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
-  addSlotToContainer(176 + 0 * slotSize, 200, api.driver.Slot.Tool)
-  addSlotToContainer(176 + 1 * slotSize, 200, api.driver.Slot.Card)
-  addSlotToContainer(176 + 2 * slotSize, 200, api.driver.Slot.HardDiskDrive)
+  addSlotToContainer(178 + 0 * slotSize, 218, api.driver.Slot.Tool)
+  addSlotToContainer(178 + 1 * slotSize, 218, api.driver.Slot.Card)
+  addSlotToContainer(178 + 2 * slotSize, 218, api.driver.Slot.Card)
+  addSlotToContainer(178 + 3 * slotSize, 218, api.driver.Slot.HardDiskDrive)
 
-  for (i <- 0 to 2) {
+  for (i <- 0 to 3) {
     val y = 142 + i * slotSize
-    for (j <- 0 to 2) {
-      val x = 176 + j * slotSize
+    for (j <- 0 to 3) {
+      val x = 178 + j * slotSize
       addSlotToContainer(x, y)
     }
   }
 
-  addPlayerInventorySlots(8, 142)
+  addPlayerInventorySlots(8, 160)
 
   override def canInteractWith(player: EntityPlayer) =
     super.canInteractWith(player) && robot.computer.isUser(player.getCommandSenderName)

@@ -1,10 +1,9 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Config
 import li.cil.oc.api.network.{Analyzable, Visibility}
-import li.cil.oc.client.gui
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component.Buffer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -13,14 +12,10 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends Buffer with Rotatable with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
   // ----------------------------------------------------------------------- //
-
-  def node = buffer.node
-
-  var currentGui: Option[gui.Screen] = None
 
   /**
    * Check for multi-block screen option in next update. We do this in the
@@ -38,6 +33,15 @@ class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analy
 
   // ----------------------------------------------------------------------- //
 
+  def checkMultiBlock() {
+    shouldCheckForMultiBlock = true
+    width = 1
+    height = 1
+    origin = this
+    screens.clear()
+    screens += this
+  }
+
   def isOrigin = origin == this
 
   def localPosition = {
@@ -45,15 +49,6 @@ class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analy
     val (ox, oy, _) = project(origin)
     ((ox - x).abs, (oy - y).abs)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
-
-  def compare(that: Screen) =
-    if (x != that.x) x - that.x
-    else if (y != that.y) y - that.y
-    else z - that.z
 
   // ----------------------------------------------------------------------- //
 
@@ -154,14 +149,46 @@ class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analy
 
   // ----------------------------------------------------------------------- //
 
-  def checkMultiBlock() {
-    shouldCheckForMultiBlock = true
-    width = 1
-    height = 1
-    origin = this
-    screens.clear()
-    screens += this
+  @SideOnly(Side.CLIENT)
+  override def getRenderBoundingBox =
+    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
+    else {
+      val (sx, sy, sz) = unproject(width, height, 1)
+      val ox = xCoord + (if (sx < 0) 1 else 0)
+      val oy = yCoord + (if (sy < 0) 1 else 0)
+      val oz = zCoord + (if (sz < 0) 1 else 0)
+      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
+        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
+      b
+    }
+
+  @SideOnly(Side.CLIENT)
+  override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
+
+  override def onRotationChanged() {
+    super.onRotationChanged()
+    screens.clone().foreach(_.checkMultiBlock())
   }
+
+  @SideOnly(Side.CLIENT)
+  override protected def markForRenderUpdate() {
+    super.markForRenderUpdate()
+    currentGui.foreach(_.recompileDisplayLists())
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def compare(that: Screen) =
+    if (x != that.x) x - that.x
+    else if (y != that.y) y - that.y
+    else z - that.z
+
+  // ----------------------------------------------------------------------- //
 
   private def tryMerge() = {
     val (x, y, z) = project(origin)
@@ -207,34 +234,5 @@ class Screen(var tier: Int) extends Buffer.Environment with Rotatable with Analy
   private def unproject(x: Int, y: Int, z: Int) = {
     def dot(f: ForgeDirection) = f.offsetX * x + f.offsetY * y + f.offsetZ * z
     (dot(toLocal(ForgeDirection.EAST)), dot(toLocal(ForgeDirection.UP)), dot(toLocal(ForgeDirection.SOUTH)))
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def getRenderBoundingBox =
-    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
-    else {
-      val (sx, sy, sz) = unproject(width, height, 1)
-      val ox = xCoord + (if (sx < 0) 1 else 0)
-      val oy = yCoord + (if (sy < 0) 1 else 0)
-      val oz = zCoord + (if (sz < 0) 1 else 0)
-      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
-      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
-        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
-      b
-    }
-
-  override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
-
-  // ----------------------------------------------------------------------- //
-
-  override def onRotationChanged() {
-    super.onRotationChanged()
-    screens.clone().foreach(_.checkMultiBlock())
-  }
-
-  override protected def markForRenderUpdate() {
-    super.markForRenderUpdate()
-    currentGui.foreach(_.recompileDisplayLists())
   }
 }

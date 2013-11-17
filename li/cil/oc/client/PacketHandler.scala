@@ -2,7 +2,6 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.PackedColor
@@ -87,7 +86,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenBufferResponse(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         val screen = t.buffer
         val w = p.readInt()
@@ -109,7 +108,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenColorChange(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         t.buffer.foreground = p.readInt()
         t.buffer.background = p.readInt()
@@ -117,7 +116,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenCopy(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()
@@ -130,13 +129,13 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenDepthChange(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) => t.buffer.depth = PackedColor.Depth(p.readInt())
       case _ => // Invalid packet.
     }
 
   def onScreenFill(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()
@@ -154,7 +153,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenResolutionChange(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         val w = p.readInt()
         val h = p.readInt()
@@ -163,7 +162,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onScreenSet(p: PacketParser) =
-    p.readTileEntity[Buffer.Environment]() match {
+    p.readTileEntity[Buffer]() match {
       case Some(t) =>
         val col = p.readInt()
         val row = p.readInt()

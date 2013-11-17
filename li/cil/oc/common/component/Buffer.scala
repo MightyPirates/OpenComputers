@@ -1,16 +1,14 @@
 package li.cil.oc.common.component
 
 import li.cil.oc.api.network.{Message, Node, Visibility}
-import li.cil.oc.common.component
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
 import li.cil.oc.{api, Config}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class Buffer(val owner: Buffer.Environment) extends api.network.Environment with Persistable {
+class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with Persistable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -140,81 +138,4 @@ class Buffer(val owner: Buffer.Environment) extends api.network.Environment with
     nbt.setNewCompoundTag("node", node.save)
     nbt.setNewCompoundTag("buffer", buffer.save)
   }
-}
-
-object Buffer {
-
-  trait Environment extends tileentity.Environment with Persistable {
-    val buffer = new component.Buffer(this)
-
-    var bufferIsDirty = false
-
-    def tier: Int
-
-    // ----------------------------------------------------------------------- //
-
-    override def load(nbt: NBTTagCompound) = {
-      super.load(nbt)
-      buffer.load(nbt)
-    }
-
-    override def save(nbt: NBTTagCompound) = {
-      super.save(nbt)
-      buffer.save(nbt)
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    def onScreenColorChange(foreground: Int, background: Int) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenColorChange(this, foreground, background)
-      }
-    }
-
-    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
-      }
-      else markForRenderUpdate()
-    }
-
-    def onScreenDepthChange(depth: PackedColor.Depth.Value) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenDepthChange(this, depth)
-      }
-      else markForRenderUpdate()
-    }
-
-    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
-      }
-      else markForRenderUpdate()
-    }
-
-    def onScreenResolutionChange(w: Int, h: Int) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenResolutionChange(this, w, h)
-      }
-      else markForRenderUpdate()
-    }
-
-    def onScreenSet(col: Int, row: Int, s: String) {
-      if (isServer) {
-        world.markTileEntityChunkModified(x, y, z, this.asInstanceOf[net.minecraft.tileentity.TileEntity])
-        ServerPacketSender.sendScreenSet(this, col, row, s)
-      }
-      else markForRenderUpdate()
-    }
-
-    protected def markForRenderUpdate() {
-      bufferIsDirty = true
-    }
-  }
-
 }

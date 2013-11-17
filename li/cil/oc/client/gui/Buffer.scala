@@ -33,10 +33,12 @@ trait Buffer extends GuiScreen {
     MonospaceFontRenderer.init(Minecraft.getMinecraft.renderEngine)
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
+    buffer.owner.currentGui = Some(this)
   }
 
   override def onGuiClosed() = {
     super.onGuiClosed()
+    buffer.owner.currentGui = None
     for ((code, char) <- pressedKeys) {
       PacketSender.sendKeyUp(buffer.owner, char, code)
     }

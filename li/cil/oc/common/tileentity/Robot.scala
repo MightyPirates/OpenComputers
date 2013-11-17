@@ -1,12 +1,12 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Config
 import li.cil.oc.api
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
-import li.cil.oc.client.{PacketSender => ClientPacketSender, gui}
-import li.cil.oc.common.component.Buffer
-import li.cil.oc.server
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common
 import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.driver.Registry
@@ -16,23 +16,21 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
-class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environment with PowerInformation {
+class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
   def this() = this(false)
 
   // ----------------------------------------------------------------------- //
 
-  var currentGui: Option[gui.Robot] = None
-
   override val node = api.Network.newNode(this, Visibility.None).create()
 
-  override val buffer = new Buffer(this) {
-    override def maxResolution = (44, 14)
+  override val buffer = new common.component.Buffer(this) {
+    override def maxResolution = (48, 14)
   }
   val (battery, distributor, gpu, keyboard) = if (isServer) {
     val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
     val distributor = new component.PowerDistributor(this)
     val gpu = new GraphicsCard.Tier1 {
-      override val maxResolution = (44, 14)
+      override val maxResolution = (48, 14)
     }
     val keyboard = new component.Keyboard(this)
     (battery, distributor, gpu, keyboard)
@@ -128,46 +126,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   // ----------------------------------------------------------------------- //
 
-  //  override def onMessage(message: Message) {
-  //    if (message.source.network == node.network) {
-  //      computer.node.network.sendToReachable(message.source, message.name, message.data: _*)
-  //    }
-  //    else {
-  //      node.network.sendToReachable(message.source, message.name, message.data: _*)
-  //    }
-  //  }
-
-  override def onConnect(node: Node) {
-    if (node == this.node) {
-      server.network.Network.create(computer.node)
-
-      computer.node.connect(buffer.node)
-      computer.node.connect(distributor.node)
-      computer.node.connect(gpu.node)
-      distributor.node.connect(battery)
-      buffer.node.connect(keyboard.node)
-    }
-    super.onConnect(node)
-  }
-
-  override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      battery.remove()
-      buffer.node.remove()
-      computer.node.remove()
-      distributor.node.remove()
-      gpu.node.remove()
-      keyboard.node.remove()
-    }
-  }
-
-  override protected def connectItemNode(node: Node) {
-    computer.node.connect(node)
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (isServer) {
@@ -190,6 +148,47 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   // ----------------------------------------------------------------------- //
 
+  //  override def onMessage(message: Message) {
+  //    if (message.source.network == node.network) {
+  //      computer.node.network.sendToReachable(message.source, message.name, message.data: _*)
+  //    }
+  //    else {
+  //      node.network.sendToReachable(message.source, message.name, message.data: _*)
+  //    }
+  //  }
+
+  override def onConnect(node: Node) {
+    if (node == this.node) {
+      api.Network.joinNewNetwork(computer.node)
+
+      computer.node.connect(buffer.node)
+      computer.node.connect(distributor.node)
+      computer.node.connect(gpu.node)
+      distributor.node.connect(battery)
+      buffer.node.connect(keyboard.node)
+    }
+    super.onConnect(node)
+  }
+
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      battery.remove()
+      buffer.node.remove()
+      computer.node.remove()
+      distributor.node.remove()
+      gpu.node.remove()
+      keyboard.node.remove()
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def connectItemNode(node: Node) {
+    computer.node.connect(node)
+  }
+
+  @SideOnly(Side.CLIENT)
   override protected def markForRenderUpdate() {
     super.markForRenderUpdate()
     currentGui.foreach(_.recompileDisplayLists())
@@ -199,13 +198,13 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer.Environmen
 
   def getInvName = Config.namespace + "container.Robot"
 
-  def getSizeInventory = 12
+  def getSizeInventory = 20
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
     case (0, Some(driver)) => driver.slot(item) == Slot.Tool
-    case (1, Some(driver)) => driver.slot(item) == Slot.Card
-    case (2, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
-    case (3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11, _) => true // Normal inventory.
+    case (1 | 2, Some(driver)) => driver.slot(item) == Slot.Card
+    case (3, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
+    case (i, _) if 4 until 20 contains i => true // Normal inventory.
     case _ => false // Invalid slot.
   }
 }

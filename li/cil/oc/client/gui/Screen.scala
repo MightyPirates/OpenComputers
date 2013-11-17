@@ -13,16 +13,6 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
 
   private var x, y = 0
 
-  override def initGui() {
-    super.initGui()
-    screen.origin.currentGui = Some(this)
-  }
-
-  override def onGuiClosed() = {
-    super.onGuiClosed()
-    screen.origin.currentGui = None
-  }
-
   def drawBuffer() {
     GL11.glTranslatef(x, y, 0)
     BufferRenderer.drawBackground()
