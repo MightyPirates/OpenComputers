@@ -16,6 +16,20 @@ import scala.reflect._
 
 class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
+  def selectedSlot = robot.selectedSlot
+
+  def actualSlot(n: Int) = robot.actualSlot(n)
+
+  def world = robot.world
+
+  def x = robot.x
+
+  def y = robot.y
+
+  def z = robot.z
+
+  // ----------------------------------------------------------------------- //
+
   override def isRobot(context: Context, args: Arguments): Array[AnyRef] =
     Array(java.lang.Boolean.TRUE)
 
@@ -25,24 +39,24 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def select(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count > 0 && args.checkAny(0) != null) {
       val slot = checkSlot(args, 0)
-      if (slot != robot.selectedSlot) {
+      if (slot != selectedSlot) {
         robot.selectedSlot = slot
         ServerPacketSender.sendRobotSelectedSlotState(robot)
       }
     }
-    result(robot.selectedSlot)
+    result(selectedSlot)
   }
 
   @LuaCallback("count")
   def count(context: Context, args: Arguments): Array[AnyRef] =
-    result(stackInSlot(robot.selectedSlot) match {
+    result(stackInSlot(selectedSlot) match {
       case Some(stack) => stack.stackSize
       case _ => 0
     })
 
   @LuaCallback("space")
   def space(context: Context, args: Arguments): Array[AnyRef] =
-    result(stackInSlot(robot.selectedSlot) match {
+    result(stackInSlot(selectedSlot) match {
       case Some(stack) => robot.getInventoryStackLimit - stack.stackSize
       case _ => robot.getInventoryStackLimit
     })
@@ -50,7 +64,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("compareTo")
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
-    result((stackInSlot(robot.selectedSlot), stackInSlot(slot)) match {
+    result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
       case (None, None) => true
       case _ => false
@@ -61,10 +75,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
     val count = checkOptionalItemCount(args, 1)
-    if (slot == robot.selectedSlot || count == 0) {
+    if (slot == selectedSlot || count == 0) {
       result(true)
     }
-    else result((stackInSlot(robot.selectedSlot), stackInSlot(slot)) match {
+    else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(from), Some(to)) =>
         if (haveSameItemType(from, to)) {
           val space = (robot.getInventoryStackLimit min to.getMaxStackSize) - to.stackSize
@@ -74,19 +88,19 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             to.stackSize += amount
             assert(from.stackSize >= 0)
             if (from.stackSize == 0) {
-              robot.setInventorySlotContents(robot.actualSlot(robot.selectedSlot), null)
+              robot.setInventorySlotContents(actualSlot(selectedSlot), null)
             }
             true
           }
           else false
         }
         else {
-          robot.setInventorySlotContents(robot.actualSlot(slot), from)
-          robot.setInventorySlotContents(robot.actualSlot(robot.selectedSlot), to)
+          robot.setInventorySlotContents(actualSlot(slot), from)
+          robot.setInventorySlotContents(actualSlot(selectedSlot), to)
           true
         }
       case (Some(from), None) =>
-        robot.setInventorySlotContents(robot.actualSlot(slot), robot.decrStackSize(robot.actualSlot(robot.selectedSlot), count))
+        robot.setInventorySlotContents(actualSlot(slot), robot.decrStackSize(actualSlot(selectedSlot), count))
         true
       case _ => false
     })
@@ -97,14 +111,30 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val side = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
-    result(robot.dropSlot(robot.actualSlot(robot.selectedSlot), count, side))
+    result(robot.dropSlot(actualSlot(selectedSlot), count, side))
   }
 
   @LuaCallback("place")
   def place(context: Context, args: Arguments): Array[AnyRef] = {
-    // Place block item selected in inventory.
-    val side = checkSideForAction(args, 0)
-    null
+    val lookSide = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
+    val player = robot.player(lookSide)
+    val stack = player.robotInventory.selectedItemStack
+    if (stack == null || stack.stackSize == 0) {
+      result(false)
+    }
+    else {
+      player.setSneaking(sneaky)
+      val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
+      val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
+      val ok = player.placeBlock(player.robotInventory.selectedItemStack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+      player.setSneaking(false)
+      if (stack.stackSize <= 0) {
+        robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
+      }
+      result(ok)
+    }
   }
 
   @LuaCallback("suck")
@@ -116,7 +146,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     for (entity <- entitiesOnSide[EntityItem](side) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
       val stack = entity.getEntityItem
       val size = stack.stackSize
-      entity.onCollideWithPlayer(robot.player)
+      entity.onCollideWithPlayer(robot.player())
       if (stack.stackSize < size || entity.isDead) return result(true)
     }
     result(false)
@@ -127,12 +157,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("compare")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
-    stackInSlot(robot.selectedSlot) match {
+    stackInSlot(selectedSlot) match {
       case Some(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
-          val (bx, by, bz) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-          val idMatches = item.getBlockID == robot.world.getBlockId(bx, by, bz)
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == robot.world.getBlockMetadata(bx, by, bz)
+          val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+          val idMatches = item.getBlockID == world.getBlockId(bx, by, bz)
+          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(bx, by, bz)
           return result(idMatches && subTypeMatches)
         case _ =>
       }
@@ -144,10 +174,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("detect")
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
-    val (bx, by, bz) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    val id = robot.world.getBlockId(bx, by, bz)
+    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
-    if (id == 0 || block == null || block.isAirBlock(robot.world, bx, by, bz)) {
+    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
       closestLivingEntity(side) match {
         case Some(entity) => result(true, "entity")
         case _ => result(false, "air")
@@ -156,7 +186,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     else if (FluidRegistry.lookupFluidForBlock(block) != null) {
       result(false, "liquid")
     }
-    else if (block.isBlockReplaceable(robot.world, bx, by, bz)) {
+    else if (block.isBlockReplaceable(world, bx, by, bz)) {
       result(false, "replaceable")
     }
     else {
@@ -166,19 +196,25 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("attack")
+  @LuaCallback("swing")
   def attack(context: Context, args: Arguments): Array[AnyRef] = {
-    // Attack with equipped tool.
+    // Swing the equipped tool (left click).
     val side = checkSideForAction(args, 0)
     null
   }
 
   @LuaCallback("use")
   def use(context: Context, args: Arguments): Array[AnyRef] = {
-    // Use equipped tool (e.g. dig, chop, till).
-    val side = checkSideForAction(args, 0)
-    val sneaky = args.checkBoolean(1)
-    null
+    val lookSide = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
+    val player = robot.player(lookSide)
+    player.setSneaking(sneaky)
+    val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
+    val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
+    val ok = player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+    player.setSneaking(false)
+    result(ok)
   }
 
   // ----------------------------------------------------------------------- //
@@ -205,7 +241,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     entitiesOnSide[EntityLivingBase](side).
       foldLeft((Double.PositiveInfinity, None: Option[EntityLivingBase])) {
       case ((bestDistance, bestEntity), entity: EntityLivingBase) =>
-        val distance = entity.getDistanceSq(robot.x + 0.5, robot.y + 0.5, robot.z + 0.5)
+        val distance = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5)
         if (distance < bestDistance) (distance, Some(entity))
         else (bestDistance, bestEntity)
       case (best, _) => best
@@ -216,12 +252,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   private def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val (bx, by, bz) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    val id = robot.world.getBlockId(bx, by, bz)
+    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
-    if (id == 0 || block == null || block.isAirBlock(robot.world, bx, by, bz)) {
+    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
       val bounds = AxisAlignedBB.getAABBPool.getAABB(bx, by, bz, bx + 1, by + 1, bz + 1)
-      robot.world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
+      world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
     }
     else Iterable.empty
   }
@@ -230,7 +266,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     stackA.itemID == stackB.itemID &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
-  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(robot.actualSlot(slot)))
+  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))
+
+  // ----------------------------------------------------------------------- //
 
   private def checkOptionalItemCount(args: Arguments, n: Int) =
     if (args.count > n && args.checkAny(n) != null) {
@@ -256,7 +294,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val direction = ForgeDirection.getOrientation(side)
-    if (allowed contains direction) robot.toGlobal(direction)
+    if (allowed.isEmpty || (allowed contains direction)) robot.toGlobal(direction)
     else throw new IllegalArgumentException("unsupported side")
   }
 }

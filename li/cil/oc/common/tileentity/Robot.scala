@@ -15,6 +15,7 @@ import li.cil.oc.util.RobotPlayer
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
 class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
@@ -26,7 +27,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     withComponent("computer", Visibility.Neighbors).
     create()
 
-  lazy val player = new RobotPlayer(this)
   override val buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
@@ -41,6 +41,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     (battery, distributor, gpu, keyboard)
   }
   else (null, null, null, null)
+
+  private lazy val player_ = new RobotPlayer(this)
+
+  def player(pitch: ForgeDirection = facing) = {
+    assert(isServer)
+    player_.updatePositionAndRotation(pitch)
+    player_
+  }
 
   var selectedSlot = 0
 
@@ -183,7 +191,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   override def getInventoryStackLimit = 64
 
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
-    case (0, Some(driver)) => driver.slot(item) == Slot.Tool
+    case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(item) == Slot.Card
     case (2, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
     case (i, _) if 3 until getSizeInventory contains i => true // Normal inventory.

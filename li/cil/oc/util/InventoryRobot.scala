@@ -13,7 +13,9 @@ class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
 
   def selectedItemStack = robot.getStackInSlot(selectedSlot)
 
-  def inventorySlots = (robot.actualSlot(robot.selectedSlot) until getSizeInventory) ++ (0 until robot.actualSlot(robot.selectedSlot))
+  def firstInventorySlot = robot.actualSlot(0)
+
+  def inventorySlots = (robot.actualSlot(robot.selectedSlot) until getSizeInventory) ++ (firstInventorySlot until robot.actualSlot(robot.selectedSlot))
 
   override def getCurrentItem = getStackInSlot(0)
 
@@ -39,13 +41,13 @@ class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
 
   override def consumeInventoryItem(itemId: Int) = false
 
-  override def hasItem(itemId: Int) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.itemID == itemId)
+  override def hasItem(itemId: Int) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.itemID == itemId)
 
   override def addItemStackToInventory(stack: ItemStack) = {
     if (stack == null || stack.stackSize == 0) false
     else if (stack.isItemDamaged || (stack.stackSize == 1 && stack.getMaxStackSize == 1)) {
       val slot = getFirstEmptyStackAccepting(stack)
-      if (slot >= 0) {
+      if (slot >= firstInventorySlot) {
         setInventorySlotContents(slot, stack.splitStack(1))
         true
       }
@@ -57,7 +59,7 @@ class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
         while (stack.stackSize > 0) {
           if (stack.getMaxStackSize == 1) {
             val slot = getFirstEmptyStackAccepting(stack)
-            if (slot >= 0) {
+            if (slot >= firstInventorySlot) {
               setInventorySlotContents(slot, stack.splitStack(1))
             }
             else break()
@@ -71,7 +73,7 @@ class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
                   (!existing.getHasSubtypes || existing.getItemDamage == stack.getItemDamage) &&
                   (existing.stackSize < (existing.getMaxStackSize min getInventoryStackLimit))
               }).getOrElse(getFirstEmptyStackAccepting(stack))
-            if (slot >= 0) {
+            if (slot >= firstInventorySlot) {
               if (getStackInSlot(slot) == null) {
                 val amount = stack.stackSize min (getInventoryStackLimit min stack.getMaxStackSize)
                 setInventorySlotContents(slot, stack.splitStack(amount))
@@ -128,7 +130,7 @@ class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
 
   override def onInventoryChanged() = robot.onInventoryChanged()
 
-  override def hasItemStack(stack: ItemStack) = (0 until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
+  override def hasItemStack(stack: ItemStack) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 
   override def isItemValidForSlot(slot: Int, item: ItemStack) = robot.isItemValidForSlot(slot, item)
 

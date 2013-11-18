@@ -963,7 +963,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
             lua.pushNil()
             lua.pushString("i/o error")
             3
-          case _: Throwable =>
+          case e: Throwable =>
+            OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
             lua.pushBoolean(true)
             lua.pushNil()
             lua.pushString("unknown error")
