@@ -5,14 +5,10 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.Block
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{ItemStack, ItemBlock}
-import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
-import scala.collection.convert.WrapAsScala._
-import scala.reflect._
 
 class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
@@ -112,8 +108,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
 
-    // TODO player.dropitem with blah
     result(robot.dropSlot(actualSlot(selectedSlot), count, side))
+    // This also works, but throws the items a little too far.
+    // result(robot.player().dropPlayerItemWithRandomChoice(robot.decrStackSize(actualSlot(selectedSlot), count), false) != null)
   }
 
   @LuaCallback("place")
@@ -147,7 +144,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val side = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
-    for (entity <- entitiesOnSide[EntityItem](side) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+    for (entity <- robot.player().entitiesOnSide[EntityItem](side) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
       val stack = entity.getEntityItem
       val size = stack.stackSize
       entity.onCollideWithPlayer(robot.player())
@@ -182,7 +179,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
     if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      closestLivingEntity(side) match {
+      robot.player().closestLivingEntity(side) match {
         case Some(entity) => result(true, "entity")
         case _ => result(false, "air")
       }
@@ -203,8 +200,15 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("swing")
   def attack(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
-    val side = checkSideForAction(args, 0)
-    null
+    val lookSide = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
+    if (side.getOpposite == lookSide) {
+      throw new IllegalArgumentException("invalid side")
+    }
+    val player = robot.player(lookSide)
+    val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
+    result(player.clickBlock(bx, by, bz, side.getOpposite.ordinal))
+    //robot.player().attackTargetEntityWithCurrentItem(entity)
   }
 
   @LuaCallback("use")
@@ -242,31 +246,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   // ----------------------------------------------------------------------- //
-
-  private def closestLivingEntity(side: ForgeDirection) = {
-    entitiesOnSide[EntityLivingBase](side).
-      foldLeft((Double.PositiveInfinity, None: Option[EntityLivingBase])) {
-      case ((bestDistance, bestEntity), entity: EntityLivingBase) =>
-        val distance = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5)
-        if (distance < bestDistance) (distance, Some(entity))
-        else (bestDistance, bestEntity)
-      case (best, _) => best
-    } match {
-      case (_, Some(entity)) => Some(entity)
-      case _ => None
-    }
-  }
-
-  private def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-    val id = world.getBlockId(bx, by, bz)
-    val block = Block.blocksList(id)
-    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      val bounds = AxisAlignedBB.getAABBPool.getAABB(bx, by, bz, bx + 1, by + 1, bz + 1)
-      world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
-    }
-    else Iterable.empty
-  }
 
   private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
     stackA.itemID == stackB.itemID &&
