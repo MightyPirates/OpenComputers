@@ -10,6 +10,7 @@ import li.cil.oc.common
 import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
@@ -48,8 +49,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
         val slot = checkSlot(args, 0)
         if (slot != selectedSlot) {
           selectedSlot = slot
-          // TODO Update display on client side.
-          // TODO ServerPacketSender.sendRobotSelectedSlotChange(this)
+          ServerPacketSender.sendRobotSelectedSlotState(Robot.this)
         }
       }
       result(selectedSlot)
@@ -326,6 +326,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     if (isClient) {
       ClientPacketSender.sendRotatableStateRequest(this)
       ClientPacketSender.sendScreenBufferRequest(this)
+      ClientPacketSender.sendRobotSelectedSlotRequest(this)
     }
   }
 

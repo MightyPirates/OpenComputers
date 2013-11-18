@@ -59,6 +59,18 @@ object PacketSender {
     }
   }
 
+  def sendRobotSelectedSlotState(t: Robot, player: Option[Player] = None) {
+    val pb = new PacketBuilder(PacketType.RobotSelectedSlotResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.selectedSlot)
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
   def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RotatableStateResponse)
 

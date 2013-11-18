@@ -16,6 +16,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
       case PacketType.PowerStateRequest => onPowerStateRequest(p)
       case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
+      case PacketType.RobotSelectedSlotRequest => onRobotSelectedSlotRequest(p)
       case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
       case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.KeyDown => onKeyDown(p)
@@ -39,6 +40,12 @@ class PacketHandler extends CommonPacketHandler {
   def onRedstoneStateRequest(p: PacketParser) =
     p.readTileEntity[Redstone]() match {
       case Some(t) => PacketSender.sendRedstoneState(t, Option(p.player))
+      case _ => // Invalid packet.
+    }
+
+  def onRobotSelectedSlotRequest(p: PacketParser) =
+    p.readTileEntity[Robot]() match {
+      case Some(t) => PacketSender.sendRobotSelectedSlotState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 

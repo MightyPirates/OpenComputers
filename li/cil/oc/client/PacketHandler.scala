@@ -27,6 +27,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
+      case PacketType.RobotSelectedSlotResponse => onRobotSelectedSlotResponse(p)
       case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
       case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
       case PacketType.ScreenColorChange => onScreenColorChange(p)
@@ -74,6 +75,12 @@ class PacketHandler extends CommonPacketHandler {
         for (d <- ForgeDirection.VALID_DIRECTIONS) {
           t.output(d, p.readByte())
         }
+      case _ => // Invalid packet.
+    }
+
+  def onRobotSelectedSlotResponse(p: PacketParser) =
+    p.readTileEntity[Robot]() match {
+      case Some(t) => t.selectedSlot = p.readInt()
       case _ => // Invalid packet.
     }
 

@@ -29,6 +29,14 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendRobotSelectedSlotRequest(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotSelectedSlotRequest)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToServer()
+  }
+
   def sendRotatableStateRequest(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableStateRequest)
 
