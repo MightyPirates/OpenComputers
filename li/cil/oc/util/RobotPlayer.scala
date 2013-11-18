@@ -2,7 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity.Robot
-import net.minecraft.block.Block
+import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
 import net.minecraft.entity.{EntityLivingBase, Entity}
@@ -14,6 +14,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.{ForgeDirection, FakePlayer}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.{Event, ForgeEventFactory}
+import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
@@ -22,10 +23,12 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
+  yOffset = 0.5f
+  eyeHeight = 0f
+  setSize(1, 1)
+
   val robotInventory = new InventoryRobot(this)
   inventory = robotInventory
-  yOffset = 1f
-  setSize(1, 1)
 
   def world = robot.worldObj
 
@@ -154,10 +157,15 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
 
     val blockId = world.getBlockId(x, y, z)
     val block = Block.blocksList(blockId)
-    if (block != null && event.useBlock != Event.Result.DENY) {
+    val mayBreakBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
+    val canBreakBlock = mayBreakBlock &&
+      !block.isAirBlock(world, x, y, z) &&
+      FluidRegistry.lookupFluidForBlock(block) == null &&
+      !block.isInstanceOf[BlockFluid]
+    if (canBreakBlock) {
       block.onBlockClicked(world, x, y, z, this)
       world.extinguishFire(this, x, y, z, side)
-      if (blockId > 0) {
+      if (block.canEntityDestroy(world, x, y, z, this)) {
         if (world.worldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
           return false
         }
@@ -171,9 +179,13 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
         world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
 
         if (stack != null) {
+          val oldDamage = stack.getItemDamage
           stack.onBlockDestroyed(world, blockId, x, y, z, this)
           if (stack.stackSize == 0) {
             destroyCurrentEquippedItem()
+          }
+          else if (stack.isItemStackDamageable && getRNG.nextDouble() >= Config.itemDamageChance) {
+            stack.setItemDamage(oldDamage)
           }
         }
 

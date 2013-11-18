@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.block.Block
+import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.{ItemStack, ItemBlock}
 import net.minecraftforge.common.ForgeDirection
@@ -184,7 +184,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case _ => result(false, "air")
       }
     }
-    else if (FluidRegistry.lookupFluidForBlock(block) != null) {
+    else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
       result(false, "liquid")
     }
     else if (block.isBlockReplaceable(world, bx, by, bz)) {
@@ -212,7 +212,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   @LuaCallback("use")
-  def use(context: Context, args: Arguments): Array[AnyRef] = {
+  def use(context: Context, args: Arguments): Array[AnyRef] = try {
     val lookSide = checkSideForAction(args, 0)
     val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
     if (side.getOpposite == lookSide) {
@@ -223,9 +223,13 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     player.setSneaking(sneaky)
     val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
     val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
+    robot.disableCollisions = true
     val ok = player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
     player.setSneaking(false)
     result(ok)
+  }
+  finally {
+    robot.disableCollisions = false
   }
 
   // ----------------------------------------------------------------------- //

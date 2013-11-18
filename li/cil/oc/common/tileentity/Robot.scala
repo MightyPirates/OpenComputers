@@ -52,6 +52,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   var selectedSlot = 0
 
+  var disableCollisions = false
+
   // ----------------------------------------------------------------------- //
 
   def tier = 0

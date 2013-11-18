@@ -29,7 +29,9 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
     world.getBlockTileEntity(x, y, z) match {
-      case robot: tileentity.Robot => parent.setBlockBounds(0.1f, 0.1f, 0.1f, 0.9f, 0.9f, 0.9f)
+      case robot: tileentity.Robot =>
+        if (robot.disableCollisions) parent.setBlockBounds(Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN)
+        else parent.setBlockBounds(0.1f, 0.1f, 0.1f, 0.9f, 0.9f, 0.9f)
       case _ => super.setBlockBoundsBasedOnState(world, x, y, z)
     }
   }
