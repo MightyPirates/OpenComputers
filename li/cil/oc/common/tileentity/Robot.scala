@@ -10,18 +10,12 @@ import li.cil.oc.common
 import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.block.Block
+import li.cil.oc.util.RobotPlayer
 import net.minecraft.client.Minecraft
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
-import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
-import scala.collection.convert.WrapAsScala._
 
 class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
   def this() = this(false)
@@ -32,243 +26,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     withComponent("computer", Visibility.Neighbors).
     create()
 
+  lazy val player = new RobotPlayer(this)
   override val buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
-  override val computer = if (isRemote) null
-  else new component.Computer(this) {
-    override def isRobot(context: Context, args: Arguments): Array[AnyRef] =
-      Array(java.lang.Boolean.TRUE)
-
-    // ----------------------------------------------------------------------- //
-
-    @LuaCallback("select")
-    def select(context: Context, args: Arguments): Array[AnyRef] = {
-      // Get or set selected inventory slot.
-      if (args.count > 0 && args.checkAny(0) != null) {
-        val slot = checkSlot(args, 0)
-        if (slot != selectedSlot) {
-          selectedSlot = slot
-          ServerPacketSender.sendRobotSelectedSlotState(Robot.this)
-        }
-      }
-      result(selectedSlot)
-    }
-
-    @LuaCallback("count")
-    def count(context: Context, args: Arguments): Array[AnyRef] =
-      result(stackInSlot(selectedSlot) match {
-        case Some(stack) => stack.stackSize
-        case _ => 0
-      })
-
-    @LuaCallback("space")
-    def space(context: Context, args: Arguments): Array[AnyRef] =
-      result(stackInSlot(selectedSlot) match {
-        case Some(stack) => getInventoryStackLimit - stack.stackSize
-        case _ => getInventoryStackLimit
-      })
-
-    @LuaCallback("compareTo")
-    def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
-      val slot = checkSlot(args, 0)
-      result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-        case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
-        case (None, None) => true
-        case _ => false
-      })
-    }
-
-    @LuaCallback("transferTo")
-    def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
-      val slot = checkSlot(args, 0)
-      val count = checkOptionalItemCount(args, 1)
-      if (slot == selectedSlot || count == 0) {
-        result(true)
-      }
-      else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-        case (Some(from), Some(to)) =>
-          if (haveSameItemType(from, to)) {
-            val space = (getInventoryStackLimit min to.getMaxStackSize) - to.stackSize
-            val amount = count min space min from.stackSize
-            if (amount > 0) {
-              from.stackSize -= amount
-              to.stackSize += amount
-              assert(from.stackSize >= 0)
-              if (from.stackSize == 0) {
-                setInventorySlotContents(actualSlot(selectedSlot), null)
-              }
-              true
-            }
-            else false
-          }
-          else {
-            setInventorySlotContents(actualSlot(slot), from)
-            setInventorySlotContents(actualSlot(selectedSlot), to)
-            true
-          }
-        case (Some(from), None) =>
-          setInventorySlotContents(actualSlot(slot), decrStackSize(actualSlot(selectedSlot), count))
-          true
-        case _ => false
-      })
-    }
-
-    @LuaCallback("drop")
-    def drop(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = checkSideForAction(args, 0)
-      val count = checkOptionalItemCount(args, 1)
-      result(dropSlot(actualSlot(selectedSlot), count, side))
-    }
-
-    @LuaCallback("place")
-    def place(context: Context, args: Arguments): Array[AnyRef] = {
-      // Place block item selected in inventory.
-      val side = checkSideForAction(args, 0)
-      null
-    }
-
-    @LuaCallback("suck")
-    def suck(context: Context, args: Arguments): Array[AnyRef] = {
-      // Pick up items lying around.
-      val side = checkSideForAction(args, 0)
-      null
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    @LuaCallback("compare")
-    def compare(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = checkSideForAction(args, 0)
-      stackInSlot(selectedSlot) match {
-        case Some(stack) => Option(stack.getItem) match {
-          case Some(item: ItemBlock) =>
-            val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-            val idMatches = item.getBlockID == world.getBlockId(bx, by, bz)
-            val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(bx, by, bz)
-            return result(idMatches && subTypeMatches)
-          case _ =>
-        }
-        case _ =>
-      }
-      result(false)
-    }
-
-    @LuaCallback("detect")
-    def detect(context: Context, args: Arguments): Array[AnyRef] = {
-      val side = checkSideForAction(args, 0)
-      val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      val id = world.getBlockId(bx, by, bz)
-      val block = Block.blocksList(id)
-      if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-        closestEntity(side) match {
-          case Some(entity) => result(true, "entity")
-          case _ => result(false, "air")
-        }
-      }
-      else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-        result(false, "liquid")
-      }
-      else if (block.isBlockReplaceable(world, bx, by, bz)) {
-        result(false, "replaceable")
-      }
-      else {
-        result(true, "solid")
-      }
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    @LuaCallback("attack")
-    def attack(context: Context, args: Arguments): Array[AnyRef] = {
-      // Attack with equipped tool.
-      val side = checkSideForAction(args, 0)
-      null
-    }
-
-    @LuaCallback("use")
-    def use(context: Context, args: Arguments): Array[AnyRef] = {
-      // Use equipped tool (e.g. dig, chop, till).
-      val side = checkSideForAction(args, 0)
-      val sneaky = args.checkBoolean(1)
-      null
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    @LuaCallback("move")
-    def move(context: Context, args: Arguments): Array[AnyRef] = {
-      // Try to move in the specified direction.
-      val side = checkSideForMovement(args, 0)
-      null
-    }
-
-    @LuaCallback("turn")
-    def turn(context: Context, args: Arguments): Array[AnyRef] = {
-      // Turn in the specified direction.
-      val clockwise = args.checkBoolean(0)
-      if (clockwise) rotate(ForgeDirection.UP)
-      else rotate(ForgeDirection.DOWN)
-      result(true)
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    private def closestEntity(side: ForgeDirection) = {
-      val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      val id = world.getBlockId(bx, by, bz)
-      val block = Block.blocksList(id)
-      if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-        val bounds = AxisAlignedBB.getAABBPool.getAABB(bx, by, bz, bx + 1, by + 1, bz + 1)
-        val entities = world.getEntitiesWithinAABB(classOf[EntityLivingBase], bounds)
-        entities.foldLeft((Double.PositiveInfinity, None: Option[EntityLivingBase])) {
-          case ((bestDistance, bestEntity), entity: EntityLivingBase) =>
-            val distance = entity.getDistanceSq(x + 0.5, y + 0.5, z + 0.5)
-            if (distance < bestDistance) (distance, Some(entity))
-            else (bestDistance, bestEntity)
-          case (best, _) => best
-        } match {
-          case (_, Some(entity)) => Some(entity)
-          case _ => None
-        }
-      }
-      else None
-    }
-
-    private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-      stackA.itemID == stackB.itemID &&
-        (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
-
-    private def stackInSlot(slot: Int) = items(actualSlot(slot))
-
-    private def checkOptionalItemCount(args: Arguments, n: Int) =
-      if (args.count > n && args.checkAny(n) != null) {
-        args.checkInteger(n) max 0 min getInventoryStackLimit
-      }
-      else getInventoryStackLimit
-
-    private def checkSlot(args: Arguments, n: Int) = {
-      val slot = args.checkInteger(n) - 1
-      if (slot < 0 || slot > 15) {
-        throw new IllegalArgumentException("invalid slot")
-      }
-      slot
-    }
-
-    private def checkSideForAction(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
-
-    private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH)
-
-    private def checkSide(args: Arguments, n: Int, allowed: ForgeDirection*) = {
-      val side = args.checkInteger(n)
-      if (side < 0 || side > 5) {
-        throw new IllegalArgumentException("invalid side")
-      }
-      val direction = ForgeDirection.getOrientation(side)
-      if (allowed contains direction) toGlobal(direction)
-      else throw new IllegalArgumentException("unsupported side")
-    }
-  }
+  override val computer = if (isRemote) null else new component.Robot(this)
   val (battery, distributor, gpu, keyboard) = if (isServer) {
     val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
     val distributor = new component.PowerDistributor(this)
@@ -282,8 +44,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   var selectedSlot = 0
 
-  def actualSlot(n: Int) = n + 3
-
   // ----------------------------------------------------------------------- //
 
   def tier = 0
@@ -291,6 +51,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   //def bounds =
 
   override def installedMemory = 64 * 1024
+
+  def actualSlot(n: Int) = n + 3
 
   // ----------------------------------------------------------------------- //
 
