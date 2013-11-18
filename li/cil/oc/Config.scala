@@ -16,12 +16,32 @@ object Config {
 
   // ----------------------------------------------------------------------- //
 
+  var blockRenderId = 0
+
+  // ----------------------------------------------------------------------- //
+
+  var blockId = 3650
+  var blockSpecialId = 3651
+  var itemId = 4600
+
+  // ----------------------------------------------------------------------- //
+  // client
+
+  var maxScreenTextRenderDistance = 10.0
+  var screenTextFadeStartDistance = 8.0
+  var textLinearFiltering = false
+
+  // ----------------------------------------------------------------------- //
+  // power
+
   var ignorePower = false
 
+  // power.buffer
   var bufferConverter = 100.0
   var bufferCapacitor = 50.0
   var bufferPowerSupply = 50.0
 
+  // power.cost
   var computerCost = 1.0
   var gpuFillCost = 1.0 / 100
   var gpuClearCost = 1.0 / 400
@@ -34,23 +54,9 @@ object Config {
   var wirelessCostPerRange = 1.0 / 20.0
 
   // ----------------------------------------------------------------------- //
+  // server
 
-  var blockRenderId = 0
-
-  // ----------------------------------------------------------------------- //
-
-  var blockId = 3650
-  var blockSpecialId = 3651
-  var itemId = 4600
-
-  // ----------------------------------------------------------------------- //
-
-  var maxScreenTextRenderDistance = 10.0
-  var screenTextFadeStartDistance = 8.0
-  var textLinearFiltering = false
-
-  // ----------------------------------------------------------------------- //
-
+  // server.computer
   var baseMemory = 0
   var canComputersBeOwned = true
   var maxUsernameLength = 32
@@ -59,15 +65,24 @@ object Config {
   var threads = 4
   var timeout = 3.0
 
+  // server.filesystem
   var fileCost = 512
   var filesBuffered = true
   var maxHandles = 16
   var maxReadBuffer = 8 * 1024
 
+  // server.misc
   var commandUser = "OpenComputers"
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var maxWirelessRange = 400.0
+
+  // ----------------------------------------------------------------------- //
+  // robot
+
+  var callOnItemUseFirst = false
+  var allowActivateBlocks = true
+  var canAttackPlayers = false
 
   // ----------------------------------------------------------------------- //
 

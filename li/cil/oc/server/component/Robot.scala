@@ -111,6 +111,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val side = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
+
+    // TODO player.dropitem with blah
     result(robot.dropSlot(actualSlot(selectedSlot), count, side))
   }
 
@@ -118,6 +120,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def place(context: Context, args: Arguments): Array[AnyRef] = {
     val lookSide = checkSideForAction(args, 0)
     val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
+    if (side.getOpposite == lookSide) {
+      throw new IllegalArgumentException("invalid side")
+    }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val player = robot.player(lookSide)
     val stack = player.robotInventory.selectedItemStack
@@ -139,7 +144,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   @LuaCallback("suck")
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
-    // Pick up items lying around.
     val side = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
@@ -207,6 +211,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def use(context: Context, args: Arguments): Array[AnyRef] = {
     val lookSide = checkSideForAction(args, 0)
     val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
+    if (side.getOpposite == lookSide) {
+      throw new IllegalArgumentException("invalid side")
+    }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val player = robot.player(lookSide)
     player.setSneaking(sneaky)
@@ -228,7 +235,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
-    // Turn in the specified direction.
     val clockwise = args.checkBoolean(0)
     if (clockwise) robot.rotate(ForgeDirection.UP)
     else robot.rotate(ForgeDirection.DOWN)
