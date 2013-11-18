@@ -12,7 +12,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.{Vec3, AxisAlignedBB}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -138,6 +138,16 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
     }
 
   override def canProvidePower = true
+
+  override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.collisionRayTrace(world, x, y, z, origin, direction)
+      case _ => super.collisionRayTrace(world, x, y, z, origin, direction)
+    }
+
+  // Allow delegates to fall back to the default implementation.
+  def superCollisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    super.collisionRayTrace(world, x, y, z, origin, direction)
 
   override def createTileEntity(world: World, metadata: Int): TileEntity =
     subBlock(metadata) match {

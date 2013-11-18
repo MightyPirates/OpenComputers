@@ -17,11 +17,11 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
-
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
+  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 

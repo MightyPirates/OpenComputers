@@ -198,7 +198,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("swing")
-  def attack(context: Context, args: Arguments): Array[AnyRef] = {
+  def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
     val lookSide = checkSideForAction(args, 0)
     val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
@@ -212,7 +212,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   @LuaCallback("use")
-  def use(context: Context, args: Arguments): Array[AnyRef] = try {
+  def use(context: Context, args: Arguments): Array[AnyRef] = {
     val lookSide = checkSideForAction(args, 0)
     val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
     if (side.getOpposite == lookSide) {
@@ -223,13 +223,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     player.setSneaking(sneaky)
     val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
     val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
-    robot.disableCollisions = true
     val ok = player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
     player.setSneaking(false)
     result(ok)
-  }
-  finally {
-    robot.disableCollisions = false
   }
 
   // ----------------------------------------------------------------------- //

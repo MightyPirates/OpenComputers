@@ -52,8 +52,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   var selectedSlot = 0
 
-  var disableCollisions = false
-
   // ----------------------------------------------------------------------- //
 
   def tier = 0
@@ -201,7 +199,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
 
   override protected def onItemAdded(slot: Int, item: ItemStack) {
-    if (slot >= 0 && slot < 3) {
+    if (slot > 0 && slot < 3) {
       super.onItemAdded(slot, item)
     }
   }
