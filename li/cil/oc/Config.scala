@@ -80,7 +80,6 @@ object Config {
   // ----------------------------------------------------------------------- //
   // robot
 
-  var callOnItemUseFirst = false
   var allowActivateBlocks = true
   var canAttackPlayers = false
   var itemDamageRate = 0.05
@@ -368,6 +367,36 @@ object Config {
       "ranges - like, you know, more than the loaded area.\n" +
       "See also: `wirelessCostPerRange`.").
       getDouble(maxWirelessRange) max 0
+
+    // --------------------------------------------------------------------- //
+
+    config.getCategory("robot").
+      setComment("Robot related settings, what they may do and general balancing.")
+
+    allowActivateBlocks = config.get("robot", "allowActivateBlocks", allowActivateBlocks, "" +
+      "Whether robots may 'activate' blocks in the world. This includes\n" +
+      "pressing buttons and flipping switches, for example. Disable this if\n" +
+      "it causes problems with some mod (but let me know!) or if you think\n" +
+      "this feature is too over-powered.").
+      getBoolean(allowActivateBlocks)
+
+    canAttackPlayers = config.get("robot", "canAttackPlayers", canAttackPlayers, "" +
+      "Whether robots may damage players if they get in their way. This\n" +
+      "includes all 'player' entities, which may be more than just real\n" +
+      "players in the game.").
+      getBoolean(canAttackPlayers)
+
+    itemDamageRate = config.get("robot", "itemDamageRate", itemDamageRate, "" +
+      "The rate at which items used as tools by robots take damage. A value\n" +
+      "of one means that items lose durability as quickly as when they are\n" +
+      "used by a real player. A value of zero means they will not lose any\n" +
+      "durability at all. This only applies to items that can actually be\n" +
+      "damaged (such as swords, pickaxes, axes and shovels).\n" +
+      "Note that this actually is the *chance* of an item losing durability\n" +
+      "when it is used. Or in other words, it's the inverse chance that the\n" +
+      "item will be automatically repaired for the damage it just took\n" +
+      "immediately after it was used.").
+      getDouble(itemDamageRate) max 0 min 1
 
     // --------------------------------------------------------------------- //
 

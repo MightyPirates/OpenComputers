@@ -83,9 +83,8 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
         val stack = getCurrentEquippedItem
         val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
         super.attackTargetEntityWithCurrentItem(entity)
-        if (stack != null && stack.stackSize > 0 && stack.isItemStackDamageable && getRNG.nextDouble() >= Config.itemDamageRate) {
-          val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
-          stack.setItemDamage(oldDamage + addedDamage)
+        if (stack != null && stack.stackSize > 0) {
+          tryRepair(stack, oldDamage)
         }
     }
   }
@@ -98,7 +97,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
 
     val stack = inventory.getCurrentItem
     val item = if (stack != null) stack.getItem else null
-    if (Config.callOnItemUseFirst) {
+    if (!PortalGun.isPortalGun(stack)) {
       if (item != null && item.onItemUseFirst(stack, this, world, x, y, z, side, hitX, hitY, hitZ)) {
         if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
         if (stack.stackSize <= 0) inventory.setInventorySlotContents(0, null)
@@ -139,7 +138,9 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
   }
 
   private def tryUseItem(stack: ItemStack) =
-    stack != null && stack.stackSize > 0 && stack.getMaxItemUseDuration <= 0 && {
+    stack != null && stack.stackSize > 0 &&
+      stack.getMaxItemUseDuration <= 0 &&
+      (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
       val newStack = stack.useItemRightClick(world, this)
@@ -207,9 +208,8 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
           if (stack.stackSize == 0) {
             destroyCurrentEquippedItem()
           }
-          else if (stack.isItemStackDamageable && getRNG.nextDouble() >= Config.itemDamageRate) {
-            val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
-            stack.setItemDamage(oldDamage + addedDamage)
+          else {
+            tryRepair(stack, oldDamage)
           }
         }
 
@@ -231,6 +231,19 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
       }
     }
     false
+  }
+
+  private def tryRepair(stack: ItemStack, oldDamage: Int) {
+    val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
+    val shouldRepair = needsRepairing && getRNG.nextDouble() >= Config.itemDamageRate
+    if (shouldRepair) {
+      // If an item takes a lot of damage at once we don't necessarily want to
+      // make *all* of that damage go away. Instead we scale it according to
+      // our damage probability. This makes sure we don't discard massive
+      // damage spikes (e.g. on axes when using the treecapitator mod or such).
+      val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
+      stack.setItemDamage(oldDamage + addedDamage)
+    }
   }
 
   // ----------------------------------------------------------------------- //
