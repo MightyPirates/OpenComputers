@@ -6,7 +6,7 @@ package li.cil.oc.api.network;
  */
 public interface Context {
     /**
-     * The network address of the computer that called the function.
+     * The network address of the computer.
      */
     String address();
 
@@ -41,6 +41,99 @@ public interface Context {
      * @return whether the player with the specified name may use the computer.
      */
     boolean isUser(String player);
+
+    /**
+     * Whether the computer is currently in a running state, i.e. it is neither
+     * paused, stopping or stopped.
+     * <p/>
+     * The computer thread may or may not be running while the computer is in
+     * this state. The computer will accept signals while in this state.
+     */
+    boolean isRunning();
+
+    /**
+     * Whether the computer is currently in a paused state.
+     * <p/>
+     * The computer thread is not running while the computer is in this state.
+     * The computer will accept signals while in this state.
+     */
+    boolean isPaused();
+
+    /**
+     * Starts the computer.
+     * <p/>
+     * The computer will enter a <em>starting</em> state, in which it will start
+     * accepting signals. The computer will start executing in the next server
+     * tick.
+     * <p/>
+     * If this is called while the computer is in a paused state it will set the
+     * remaining pause time to zero, but it will <em>not</em> immediately resume
+     * the computer. The computer will continue with what it did before it was
+     * paused in the next server tick.
+     * <p/>
+     * If this is called while the computer is in a non-paused and non-stopped
+     * state it will do nothing and return <tt>false</tt>.
+     *
+     * @return <tt>true</tt> if the computer switched to a running state.
+     */
+    boolean start();
+
+    /**
+     * Pauses the computer for the specified duration.
+     * <p/>
+     * If this is called from a <em>direct</em> callback the computer will only
+     * pause after the current task has completed, possibly leading to no pause
+     * at all. If this is called from a <em>non-direct</em> callback the
+     * computer will be paused for the specified duration before the call
+     * returns. Use this to add artificial delays, e.g. for expensive or
+     * powerful operations (say, scanning blocks surrounding a computer).
+     * <p/>
+     * <b>Important</b>: if this is called from the <em>server thread</em> while
+     * the executor thread is running this will <em>block</em> until the
+     * computer finishes its current task. The pause will be applied after that.
+     * This is usually a bad thing to do, since it may lag the game, but can be
+     * handy to synchronize the computer thread to the server thread. For
+     * example, this is used when saving screens, which are controlled mostly
+     * via direct callbacks.<br/>
+     * <b>However</b>, if the computer is already in a paused state
+     * and the call would not lead to a longer pause this will immediately
+     * return <tt>false</tt>, <em>without</em> blocking.
+     * <p/>
+     * Note that the computer still accepts signals while in paused state, so
+     * it is generally better to avoid long pauses, to avoid a signal queue
+     * overflow, which would lead to some signals being dropped.
+     * <p/>
+     * Also note that the time left to spend paused is stored in game ticks, so
+     * the time resolution is actually quite limited.
+     * <p/>
+     * If this is called while the computer is in a paused, stopping or stopped
+     * state this will do nothing and return <tt>false</tt>.
+     *
+     * @param seconds the number of seconds to pause the computer for.
+     * @return <tt>true</tt> if the computer switched to the paused state.
+     */
+    boolean pause(double seconds);
+
+    /**
+     * Stops the computer.
+     * <p/>
+     * The computer will enter a <em>stopping</em> state, in which it will not
+     * accept new signals. It will be fully stopped in the next server tick. It
+     * is not possible to return to a running state from a stopping state. If
+     * start is called while in a stopping state the computer will be rebooted.
+     * <p/>
+     * If this is called from a callback, the callback will still finish, but
+     * its result will be discarded. If this is called from the server thread
+     * while the executor thread is running the computer in the background, it
+     * will finish its current work and the computer will be stopped in some
+     * future server tick after it has completed.
+     * <p/>
+     * If this is called while the computer is in a stopping or stopped state
+     * this will do nothing and return <tt>false</tt>.
+     *
+     * @return <tt>true</tt> if the computer switched to the stopping state.
+     */
+    boolean stop();
 
     /**
      * Push a signal into the computer.

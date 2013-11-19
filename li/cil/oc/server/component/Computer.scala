@@ -68,6 +68,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   private var sleepUntil = 0.0 // Real-world time [ms].
 
+  private var remainingPause = 0 // Ticks left to wait before resuming.
+
   private var message: Option[String] = None // For error messages.
 
   // ----------------------------------------------------------------------- //
@@ -85,50 +87,69 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // ----------------------------------------------------------------------- //
 
-  def isRunning = state.synchronized(state.top != Computer.State.Stopped)
-
-  def isStopping = state.synchronized(state.top == Computer.State.Stopping)
-
-  def start() = state.synchronized(node.network != null &&
-    state.top == Computer.State.Stopped &&
-    owner.installedMemory > 0 &&
-    init() && {
-    // Initial state. Will be switched to State.Yielded in the next update().
-    switchTo(Computer.State.Starting)
-
-    // Remember when we started, for os.clock().
-    timeStarted = owner.world.getWorldTime
-
-    // Mark state change in owner, to send it to clients.
-    owner.markAsChanged()
-
-    // All green, computer started successfully.
-    node.sendToReachable("computer.started")
-    true
-  })
-
-  def pause() = if (state.synchronized(isRunning && !isStopping)) {
-    this.synchronized(if (!isStopping) state.push(Computer.State.Paused))
-  }
-
-  def stop() = state.synchronized(state.top match {
-    case Computer.State.Stopped | Computer.State.Stopping => false
-    case _ => state.push(Computer.State.Stopping); true
-  })
-
-  def crash(message: String) = {
-    this.message = Option(message)
-    stop()
-  }
-
-  // ----------------------------------------------------------------------- //
-
   def address = node.address
 
   def isUser(player: String) = !Config.canComputersBeOwned ||
     users.isEmpty || users.contains(player) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
+
+  def isRunning = state.synchronized(state.top != Computer.State.Stopped && state.top != Computer.State.Stopping)
+
+  def isPaused = state.synchronized(state.top == Computer.State.Paused && remainingPause > 0)
+
+  def start() = state.synchronized(state.top match {
+    case Computer.State.Stopped if owner.installedMemory > 0 && init() =>
+      switchTo(Computer.State.Starting)
+      timeStarted = owner.world.getWorldTime
+      node.sendToReachable("computer.started")
+      true
+    case Computer.State.Paused if remainingPause > 0 =>
+      remainingPause = 0
+      true
+    case Computer.State.Stopping =>
+      switchTo(Computer.State.Restarting)
+      true
+    case _ =>
+      false
+  })
+
+  def pause(seconds: Double): Boolean = {
+    val ticksToPause = (seconds * 20).toInt max 0
+    def shouldPause(state: Computer.State.Value) = state match {
+      case Computer.State.Stopping | Computer.State.Stopped => false
+      case Computer.State.Paused if ticksToPause <= remainingPause => false
+      case _ => true
+    }
+    if (shouldPause(state.synchronized(state.top))) {
+      // Check again when we get the lock, might have changed since.
+      this.synchronized(state.synchronized(if (shouldPause(state.top)) {
+        if (state.top != Computer.State.Paused) {
+          if (state.top == Computer.State.Running) {
+            state.pop()
+          }
+          state.push(Computer.State.Paused)
+        }
+        remainingPause = ticksToPause
+        owner.markAsChanged()
+        return true
+      }))
+    }
+    false
+  }
+
+  def stop() = state.synchronized(state.top match {
+    case Computer.State.Stopped | Computer.State.Stopping =>
+      false
+    case _ =>
+      state.push(Computer.State.Stopping)
+      true
+  })
+
+  protected def crash(message: String) = {
+    this.message = Option(message)
+    stop()
+  }
 
   def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
     case Computer.State.Stopped | Computer.State.Stopping => false
@@ -160,15 +181,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   @LuaCallback("start")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(start()))
+    result(start())
 
   @LuaCallback("stop")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(stop()))
+    result(stop())
 
   @LuaCallback(value = "isRunning", direct = true)
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(isRunning))
+    result(isRunning)
 
   // ----------------------------------------------------------------------- //
 
@@ -189,18 +210,24 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
     // Update world time for time().
     worldTime = owner.world.getWorldTime
-    if (isRunning) {
-      // We can have rollbacks from '/time set'. Avoid getting negative uptimes.
-      timeStarted = timeStarted min worldTime
-    }
 
-    // Clear direct call limits.
+    // We can have rollbacks from '/time set'. Avoid getting negative uptimes.
+    timeStarted = timeStarted min worldTime
+
+    // Reset direct call limits.
     callCounts.synchronized(callCounts.clear())
 
     // Make sure we have enough power.
-    if (isRunning && !isStopping && !node.changeBuffer(-Config.computerCost)) {
-      crash("not enough energy")
-    }
+    state.synchronized(state.top match {
+      case Computer.State.Paused |
+           Computer.State.Restarting |
+           Computer.State.Stopping |
+           Computer.State.Stopped => // No power consumption.
+      case _ =>
+        if (!node.changeBuffer(-Config.computerCost)) {
+          crash("not enough energy")
+        }
+    })
 
     // Check if we should switch states. These are all the states in which we're
     // guaranteed that the executor thread isn't running anymore.
@@ -209,12 +236,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       case Computer.State.Starting => {
         verifyComponents()
         switchTo(Computer.State.Yielded)
-      }
-      // Resuming after being loaded.
-      case Computer.State.Resuming if System.currentTimeMillis() >= sleepUntil => {
-        verifyComponents()
-        state.pop()
-        switchTo(state.top) // Trigger execution if necessary.
       }
       // Computer is rebooting.
       case Computer.State.Restarting => {
@@ -229,8 +250,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       }
       // Resume in case we paused  because the game was paused.
       case Computer.State.Paused => {
-        state.pop()
-        switchTo(state.top) // Trigger execution if necessary.
+        if (remainingPause > 0) {
+          remainingPause -= 1
+        }
+        else {
+          verifyComponents() // In case we're resuming after loading.
+          state.pop()
+          switchTo(state.top) // Trigger execution if necessary.
+        }
       }
       // Perform a synchronized call (message sending).
       case Computer.State.SynchronizedCall => {
@@ -255,11 +282,16 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           lua.checkType(2, LuaType.TABLE)
           // Nothing should have been able to trigger a future.
           assert(future.isEmpty)
-          // If the call lead to stop() being called we stop right now,
-          // otherwise we return the result to our executor.
-          if (state.top != Computer.State.Stopping) {
-            assert(state.top == Computer.State.Running)
-            switchTo(Computer.State.SynchronizedReturn)
+          // Check if the callback called pause() or stop().
+          state.top match {
+            case Computer.State.Running =>
+              switchTo(Computer.State.SynchronizedReturn)
+            case Computer.State.Paused =>
+              state.pop()
+              state.push(Computer.State.SynchronizedReturn)
+              state.push(Computer.State.Paused)
+            case Computer.State.Stopping => // Nothing to do, we'll die anyway.
+            case _ => throw new AssertionError()
           }
         } catch {
           case _: LuaMemoryAllocationException =>
@@ -307,6 +339,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         case _ =>
       }
     }
+    // For computers, to generate the components in their inventory.
+    owner.onConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -321,6 +355,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         case _ =>
       }
     }
+    // For computers, to save the components in their inventory.
+    owner.onDisconnect(node)
   }
 
   override def onMessage(message: Message) {
@@ -442,6 +478,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         kernelMemory = nbt.getInteger("kernelMemory")
         timeStarted = nbt.getLong("timeStarted")
         cpuTime = nbt.getLong("cpuTime")
+        remainingPause = nbt.getInteger("remainingPause")
         if (nbt.hasKey("message")) {
           message = Some(nbt.getString("message"))
         }
@@ -450,9 +487,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         recomputeMemory()
 
         // Delay execution for a second to allow the world around us to settle.
-        sleepUntil = System.currentTimeMillis() + 1000 * Config.startupDelay
-        if (state.top != Computer.State.Resuming) // Maybe saved while resuming?
-          state.push(Computer.State.Resuming)
+        pause(Config.startupDelay)
       } catch {
         case e: LuaRuntimeException => {
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
@@ -524,6 +559,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         nbt.setInteger("kernelMemory", kernelMemory)
         nbt.setLong("timeStarted", timeStarted)
         nbt.setLong("cpuTime", cpuTime)
+        nbt.setInteger("remainingPause", remainingPause)
         message.foreach(nbt.setString("message", _))
       } catch {
         case e: LuaRuntimeException => {
@@ -1097,6 +1133,10 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       sleepUntil = 0
       future = Some(Computer.Executor.pool.submit(this))
     }
+
+    // Mark state change in owner, to send it to clients.
+    owner.markAsChanged()
+
     result
   }
 
@@ -1176,45 +1216,49 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         assert(isRunning)
         // Intermediate state in some cases. Satisfies the assert in execute().
         future = None
-        // Check if someone called stop() in the meantime.
-        if (state.top != Computer.State.Stopping) {
-          // If we get one function it must be a wrapper for a synchronized
-          // call. The protocol is that a closure is pushed that is then called
-          // from the main server thread, and returns a table, which is in turn
-          // passed to the originating coroutine.yield().
-          if (results == 1 && lua.isFunction(2)) {
-            switchTo(Computer.State.SynchronizedCall)
-          }
-          // Check if we are shutting down, and if so if we're rebooting. This
-          // is signalled by boolean values, where `false` means shut down,
-          // `true` means reboot (i.e shutdown then start again).
-          else if (results == 1 && lua.isBoolean(2)) {
-            if (lua.toBoolean(2)) switchTo(Computer.State.Restarting)
-            else switchTo(Computer.State.Stopping)
-          }
-          else {
-            // If we have a single number, that's how long we may wait before
-            // resuming the state again. Note that the sleep may be interrupted
-            // early if a signal arrives in the meantime. If we have something
-            // else we just process the next signal or wait for one.
-            val sleep =
-              if (results == 1 && lua.isNumber(2)) lua.toNumber(2) * 1000
-              else Double.PositiveInfinity
-            lua.pop(results)
-            signals.synchronized {
-              // Immediately check for signals to allow processing more than one
-              // signal per game tick.
-              if (signals.isEmpty) {
-                switchTo(Computer.State.Sleeping)
-                sleepUntil = System.currentTimeMillis + sleep
-              } else {
-                switchTo(Computer.State.Yielded)
+        // Check if someone called pause() or stop() in the meantime.
+        state.top match {
+          case Computer.State.Running =>
+            // If we get one function it must be a wrapper for a synchronized
+            // call. The protocol is that a closure is pushed that is then called
+            // from the main server thread, and returns a table, which is in turn
+            // passed to the originating coroutine.yield().
+            if (results == 1 && lua.isFunction(2)) {
+              switchTo(Computer.State.SynchronizedCall)
+            }
+            // Check if we are shutting down, and if so if we're rebooting. This
+            // is signalled by boolean values, where `false` means shut down,
+            // `true` means reboot (i.e shutdown then start again).
+            else if (results == 1 && lua.isBoolean(2)) {
+              if (lua.toBoolean(2)) switchTo(Computer.State.Restarting)
+              else switchTo(Computer.State.Stopping)
+            }
+            else {
+              // If we have a single number, that's how long we may wait before
+              // resuming the state again. Note that the sleep may be interrupted
+              // early if a signal arrives in the meantime. If we have something
+              // else we just process the next signal or wait for one.
+              val sleep =
+                if (results == 1 && lua.isNumber(2)) lua.toNumber(2) * 1000
+                else Double.PositiveInfinity
+              lua.pop(results)
+              signals.synchronized {
+                // Immediately check for signals to allow processing more than one
+                // signal per game tick.
+                if (signals.isEmpty) {
+                  switchTo(Computer.State.Sleeping)
+                  sleepUntil = System.currentTimeMillis + sleep
+                } else {
+                  switchTo(Computer.State.Yielded)
+                }
               }
             }
-          }
-
-          // State has inevitably changed, mark as changed to save again.
-          owner.markAsChanged()
+          case Computer.State.Paused =>
+            state.pop()
+            state.push(Computer.State.Yielded)
+            state.push(Computer.State.Paused)
+          case Computer.State.Stopping => // Nothing to do, we'll die anyway.
+          case _ => throw new AssertionError()
         }
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
@@ -1268,17 +1312,11 @@ object Computer {
     /** Booting up, doing the first run to initialize the kernel and libs. */
     val Starting = Value("Starting")
 
-    /** Resuming to run after being loaded, waiting for the world to settle. */
-    val Resuming = Value("Resuming")
-
     /** Computer is currently rebooting. */
     val Restarting = Value("Restarting")
 
     /** The computer is currently shutting down. */
     val Stopping = Value("Stopping")
-
-    /** The computer is running but yielding for a longer amount of time. */
-    val Sleeping = Value("Sleeping")
 
     /** The computer is paused and waiting for the game to resume. */
     val Paused = Value("Paused")
@@ -1291,6 +1329,9 @@ object Computer {
 
     /** The computer will resume as soon as possible. */
     val Yielded = Value("Yielded")
+
+    /** The computer is yielding for a longer amount of time. */
+    val Sleeping = Value("Sleeping")
 
     /** The computer is up and running, executing Lua code. */
     val Running = Value("Running")
