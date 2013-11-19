@@ -10,7 +10,16 @@ import net.minecraftforge.common.ForgeDirection
 class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
   val unlocalizedName = "Robot"
 
-  override def createTileEntity(world: World) = Some(new tileentity.Robot(world.isRemote))
+  var moving = new ThreadLocal[Option[tileentity.Robot]] {
+    override protected def initialValue = None
+  }
+
+  override def createTileEntity(world: World) = {
+    moving.get match {
+      case Some(robot) => Some(robot)
+      case _ => Some(new tileentity.Robot(world.isRemote))
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -46,5 +55,11 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
       true
     }
     else false
+  }
+
+  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {
+    if (moving.get.isEmpty) {
+      super.onBlockPreDestroy(world, x, y, z)
+    }
   }
 }

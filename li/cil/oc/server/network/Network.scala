@@ -247,7 +247,7 @@ object Network extends api.detail.NetworkAPI {
       case Some(node: MutableNode) => {
         for (side <- ForgeDirection.VALID_DIRECTIONS) {
           getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case Some(neighbor) =>
+            case Some(neighbor: MutableNode) if neighbor != node =>
               if (neighbor.network != null) {
                 neighbor.connect(node)
               }

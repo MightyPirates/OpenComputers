@@ -127,9 +127,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val count = checkOptionalItemCount(args, 1)
     // TODO inventory, if available
 
-    result(robot.dropSlot(actualSlot(selectedSlot), count, facing))
-    // This also works, but throws the items a little too far.
-    // result(robot.player().dropPlayerItemWithRandomChoice(robot.decrStackSize(actualSlot(selectedSlot), count), false) != null)
+    // Don't drop using the fake player because he throws too far.
+    if (robot.dropSlot(actualSlot(selectedSlot), count, facing)) {
+      context.pause(Config.dropDelay)
+      result(true)
+    }
+    else result(false)
   }
 
   @LuaCallback("place")
@@ -160,6 +163,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       if (stack.stackSize <= 0) {
         robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
       }
+      if (what) {
+        context.pause(Config.placeDelay)
+      }
       result(what)
     }
   }
@@ -173,7 +179,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       val stack = entity.getEntityItem
       val size = stack.stackSize
       entity.onCollideWithPlayer(robot.player())
-      if (stack.stackSize < size || entity.isDead) return result(true)
+      if (stack.stackSize < size || entity.isDead) {
+        context.pause(Config.suckDelay)
+        return result(true)
+      }
     }
     result(false)
   }
@@ -183,24 +192,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("detect")
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
-    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-    val id = world.getBlockId(bx, by, bz)
-    val block = Block.blocksList(id)
-    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      robot.player().closestLivingEntity(side) match {
-        case Some(entity) => result(true, "entity")
-        case _ => result(false, "air")
-      }
-    }
-    else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
-      result(false, "liquid")
-    }
-    else if (block.isBlockReplaceable(world, bx, by, bz)) {
-      result(false, "replaceable")
-    }
-    else {
-      result(true, "solid")
-    }
+    val (something, what) = blockContent(side)
+    result(something, what)
   }
 
   // ----------------------------------------------------------------------- //
@@ -219,9 +212,13 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
             player.attackTargetEntityWithCurrentItem(hit.entityHit)
+            context.pause(Config.swingDelay)
             result(true, "entity")
           case EnumMovingObjectType.TILE =>
             val broke = player.clickBlock(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+            if (broke) {
+              context.pause(Config.swingDelay)
+            }
             result(broke, "block")
         }
         what
@@ -229,6 +226,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         player.closestLivingEntity(facing) match {
           case Some(entity) =>
             player.attackTargetEntityWithCurrentItem(entity)
+            context.pause(Config.swingDelay)
             result(true, "entity")
           case _ =>
             result(false)
@@ -247,9 +245,15 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val player = robot.player(facing, side)
     def activationResult(activationType: ActivationType.Value): Array[AnyRef] =
       activationType match {
-        case ActivationType.BlockActivated => result(true, "block_activated")
-        case ActivationType.ItemPlaced => result(true, "item_placed")
-        case ActivationType.ItemUsed => result(true, "item_used")
+        case ActivationType.BlockActivated =>
+          context.pause(Config.useDelay)
+          result(true, "block_activated")
+        case ActivationType.ItemPlaced =>
+          context.pause(Config.useDelay)
+          result(true, "item_placed")
+        case ActivationType.ItemUsed =>
+          context.pause(Config.useDelay)
+          result(true, "item_used")
         case _ => result(false)
       }
     player.setSneaking(sneaky)
@@ -269,7 +273,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
           player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         } else ActivationType.None) match {
           case ActivationType.None =>
-            if (player.useEquippedItem()) result(true, "item_used")
+            if (player.useEquippedItem()) {
+              context.pause(Config.useDelay)
+              result(true, "item_used")
+            }
             else result(false)
           case activationType => activationResult(activationType)
         }
@@ -290,44 +297,60 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
   }
 
-  def pick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
-    val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-    val (hx, hy, hz) = (0.5 + side.offsetX * range, 0.5 + side.offsetY * range, 0.5 + side.offsetZ * range)
-    val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
-    val target = Vec3.createVectorHelper(bx + hx, by + hy, bz + hz)
-    world.clip(origin, target)
-  }
-
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("move")
   def move(context: Context, args: Arguments): Array[AnyRef] = {
-    // Try to move in the specified direction.
-    val side = checkSideForMovement(args, 0)
-    null
+    val direction = checkSideForMovement(args, 0)
+    val (something, what) = blockContent(direction)
+    if (something) {
+      result(false, what)
+    }
+    else {
+      val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
+      if (robot.move(nx, ny, nz)) {
+        robot.animateMove(direction, Config.moveDelay)
+        context.pause(Config.moveDelay)
+        result(true)
+      }
+      else {
+        result(false)
+      }
+    }
   }
 
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
+    val oldFacing = robot.facing
     if (clockwise) robot.rotate(ForgeDirection.UP)
     else robot.rotate(ForgeDirection.DOWN)
+    robot.animateTurn(oldFacing, 0.4)
+    context.pause(Config.turnDelay)
     result(true)
   }
 
   // ----------------------------------------------------------------------- //
 
-  private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.itemID == stackB.itemID &&
-      (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
-
-  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))
-
-  private def clickParamsFromHit(hit: MovingObjectPosition) = {
-    (hit.blockX, hit.blockY, hit.blockZ,
-      (hit.hitVec.xCoord - hit.blockX).toFloat,
-      (hit.hitVec.yCoord - hit.blockY).toFloat,
-      (hit.hitVec.zCoord - hit.blockZ).toFloat)
+  private def blockContent(side: ForgeDirection) = {
+    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    val id = world.getBlockId(bx, by, bz)
+    val block = Block.blocksList(id)
+    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
+      robot.player().closestLivingEntity(side) match {
+        case Some(entity) => (true, "entity")
+        case _ => (false, "air")
+      }
+    }
+    else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
+      (false, "liquid")
+    }
+    else if (block.isBlockReplaceable(world, bx, by, bz)) {
+      (false, "replaceable")
+    }
+    else {
+      (true, "solid")
+    }
   }
 
   private def clickParamsFromFacing(facing: ForgeDirection, side: ForgeDirection) = {
@@ -338,6 +361,29 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       0.5f - side.offsetY * 0.5f,
       0.5f - side.offsetZ * 0.5f)
   }
+
+  private def pick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
+    val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+    val (hx, hy, hz) = (0.5 + side.offsetX * range, 0.5 + side.offsetY * range, 0.5 + side.offsetZ * range)
+    val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
+    val target = Vec3.createVectorHelper(bx + hx, by + hy, bz + hz)
+    world.clip(origin, target)
+  }
+
+  private def clickParamsFromHit(hit: MovingObjectPosition) = {
+    (hit.blockX, hit.blockY, hit.blockZ,
+      (hit.hitVec.xCoord - hit.blockX).toFloat,
+      (hit.hitVec.yCoord - hit.blockY).toFloat,
+      (hit.hitVec.zCoord - hit.blockZ).toFloat)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
+    stackA.itemID == stackB.itemID &&
+      (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
+
+  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))
 
   // ----------------------------------------------------------------------- //
 
@@ -357,7 +403,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   private def checkSideForAction(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
-  private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH)
+  private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
   private def checkSide(args: Arguments, n: Int, allowed: ForgeDirection*) = {
     val side = args.checkInteger(n)

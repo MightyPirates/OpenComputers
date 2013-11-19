@@ -1,22 +1,21 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.Config
-import li.cil.oc.api
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common
-import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot.Player
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Blocks, Config, api, common}
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
+import scala.collection.convert.WrapAsScala._
 
 class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
   def this() = this(false)
@@ -42,7 +41,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
   else (null, null, null, null)
 
+  var selectedSlot = 0
+
   private lazy val player_ = new Player(this)
+
+  // ----------------------------------------------------------------------- //
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
     assert(isServer)
@@ -50,35 +53,71 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     player_
   }
 
-  var selectedSlot = 0
+  def actualSlot(n: Int) = n + 3
 
-  // ----------------------------------------------------------------------- //
+  def move(nx: Int, ny: Int, nz: Int) = {
+    val (ox, oy, oz) = (x, y, z)
+    // Setting this will make the tile entity created via the following call
+    // to setBlock to re-use our "real" instance as the inner object, instead
+    // of creating a new one.
+    Blocks.robot.moving.set(Some(this))
+    // Do *not* immediately send the change to clients to allow checking if it
+    // worked before the client is notified so that we can use the same trick on
+    // the client by sending a corresponding packet. This also saves us from
+    // having to send the complete state again (e.g. screen buffer) each move.
+    val blockId = world.getBlockId(nx, ny, nz)
+    val metadata = world.getBlockMetadata(nx, ny, nz)
+    val created = world.setBlock(nx, ny, nz, getBlockType.blockID, getBlockMetadata, 1)
+    if (created) {
+      assert(world.getBlockTileEntity(nx, ny, nz) == this)
+      assert(x == nx && y == ny && z == nz)
+      if (isServer) {
+        ServerPacketSender.sendRobotMove(this, ox, oy, oz)
+        world.setBlock(ox, oy, oz, 0, 0, 1)
+        for (neighbor <- node.neighbors) {
+          node.disconnect(neighbor)
+        }
+        api.Network.joinOrCreateNetwork(world, nx, ny, nz)
+      }
+      else {
+        if (blockId > 0) {
+          world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+        }
+        world.markBlockForUpdate(x, y, z)
+        world.setBlockToAir(ox, oy, oz)
+      }
+      assert(!isInvalid)
+    }
+    Blocks.robot.moving.set(None)
+    if (created) {
+      checkRedstoneInputChanged()
+    }
+    created
+  }
+
+  def animateMove(direction: ForgeDirection, duration: Double) {}
+
+  def animateTurn(oldFacing: ForgeDirection, duration: Double) {}
+
+  override def installedMemory = 64 * 1024
 
   def tier = 0
 
   //def bounds =
 
-  override def installedMemory = 64 * 1024
-
-  def actualSlot(n: Int) = n + 3
-
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("start")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.start()))
+    result(computer.start())
 
   @LuaCallback("stop")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.stop()))
+    result(computer.stop())
 
   @LuaCallback(value = "isRunning", direct = true)
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    Array(Boolean.box(computer.isRunning))
-
-  @LuaCallback(value = "isRobot", direct = true)
-  def isRobot(context: Context, args: Arguments): Array[AnyRef] =
-    Array(java.lang.Boolean.TRUE)
+    result(computer.isRunning)
 
   // ----------------------------------------------------------------------- //
 
@@ -92,24 +131,27 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
 
   override def validate() {
-    super.validate()
-    if (isServer) {
-      items(0) match {
-        case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-        case _ =>
+    if (Blocks.robot.moving.get.isEmpty) {
+      super.validate()
+      if (isServer) {
+        items(0) match {
+          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+          case _ =>
+        }
       }
-    }
-    else {
-      ClientPacketSender.sendRotatableStateRequest(this)
-      ClientPacketSender.sendScreenBufferRequest(this)
-      ClientPacketSender.sendRobotSelectedSlotRequest(this)
+      else {
+        ClientPacketSender.sendScreenBufferRequest(this)
+        ClientPacketSender.sendRobotSelectedSlotRequest(this)
+      }
     }
   }
 
   override def invalidate() {
-    super.invalidate()
-    if (currentGui.isDefined) {
-      Minecraft.getMinecraft.displayGuiScreen(null)
+    if (Blocks.robot.moving.get.isEmpty) {
+      super.invalidate()
+      if (currentGui.isDefined) {
+        Minecraft.getMinecraft.displayGuiScreen(null)
+      }
     }
   }
 
@@ -140,16 +182,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def onMessage(message: Message) {
-    if (message.source.network == node.network) {
-      //computer.node.network.sendToReachable(message.source, message.name, message.data: _*)
-    }
-    else {
-      assert(message.source.network == computer.node.network)
-      //node.network.sendToReachable(message.source, message.name, message.data: _*)
-    }
-  }
 
   override def onConnect(node: Node) {
     if (node == this.node) {

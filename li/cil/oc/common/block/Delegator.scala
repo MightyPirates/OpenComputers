@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.api.network.Environment
 import li.cil.oc.common.tileentity.Rotatable
 import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.block.Block
@@ -95,14 +94,7 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     subBlock(metadata) match {
-      case Some(subBlock) => {
-        world.getBlockTileEntity(x, y, z) match {
-          case environment: Environment if environment.node != null =>
-            environment.node.remove()
-          case _ => // Nothing special to do.
-        }
-        subBlock.breakBlock(world, x, y, z, blockId)
-      }
+      case Some(subBlock) => subBlock.breakBlock(world, x, y, z, blockId)
       case _ => // Invalid but avoid match error.
     }
     super.breakBlock(world, x, y, z, blockId, metadata)

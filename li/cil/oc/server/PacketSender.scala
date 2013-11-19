@@ -59,6 +59,22 @@ object PacketSender {
     }
   }
 
+  def sendRobotMove(t: Robot, ox: Int, oy: Int, oz: Int) {
+    val pb = new PacketBuilder(PacketType.RobotMove)
+
+    // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
+    pb.writeInt(t.world.provider.dimensionId)
+    pb.writeInt(ox)
+    pb.writeInt(oy)
+    pb.writeInt(oz)
+
+    pb.writeInt(t.x)
+    pb.writeInt(t.y)
+    pb.writeInt(t.z)
+
+    pb.sendToAllPlayers()
+  }
+
   def sendRobotSelectedSlotState(t: Robot, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RobotSelectedSlotResponse)
 

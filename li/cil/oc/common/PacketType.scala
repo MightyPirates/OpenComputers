@@ -10,6 +10,7 @@ object PacketType extends Enumeration {
   val RedstoneStateRequest = Value("RedstoneStateRequest")
   val RedstoneStateResponse = Value("RedstoneStateResponse")
 
+  val RobotMove = Value("RobotMove")
   val RobotSelectedSlotRequest = Value("RobotSelectedSlotRequest")
   val RobotSelectedSlotResponse = Value("RobotSelectedSlotResponse")
 

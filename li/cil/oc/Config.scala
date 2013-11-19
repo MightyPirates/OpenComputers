@@ -86,6 +86,18 @@ object Config {
   var itemDamageRate = 0.05
 
   // ----------------------------------------------------------------------- //
+  // robot.delays
+
+  var dropDelay = 0.1
+  var moveDelay = 0.4
+  var placeDelay = 0.3
+  var suckDelay = 0.1
+  var swingDelay = 0.4
+  var turnDelay = 0.4
+  var useDelay = 0.4
+
+
+  // ----------------------------------------------------------------------- //
 
   def load(file: File) = {
     val config = new net.minecraftforge.common.Configuration(file)
