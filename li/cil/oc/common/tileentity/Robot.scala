@@ -93,7 +93,13 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   override def validate() {
     super.validate()
-    if (isClient) {
+    if (isServer) {
+      items(0) match {
+        case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+        case _ =>
+      }
+    }
+    else {
       ClientPacketSender.sendRotatableStateRequest(this)
       ClientPacketSender.sendScreenBufferRequest(this)
       ClientPacketSender.sendRobotSelectedSlotRequest(this)
@@ -198,8 +204,18 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     case _ => false // Invalid slot.
   }
 
+  override protected def onItemRemoved(slot: Int, item: ItemStack) {
+    super.onItemRemoved(slot, item)
+    if (slot == 0) {
+      player_.getAttributeMap.removeAttributeModifiers(item.getAttributeModifiers)
+    }
+  }
+
   override protected def onItemAdded(slot: Int, item: ItemStack) {
-    if (slot > 0 && slot < 3) {
+    if (slot == 0) {
+      player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+    }
+    else if (slot == 1 || slot == 2) {
       super.onItemAdded(slot, item)
     }
   }

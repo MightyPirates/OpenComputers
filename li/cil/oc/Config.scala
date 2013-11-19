@@ -83,7 +83,7 @@ object Config {
   var callOnItemUseFirst = false
   var allowActivateBlocks = true
   var canAttackPlayers = false
-  var itemDamageChance = 0.05
+  var itemDamageRate = 0.05
 
   // ----------------------------------------------------------------------- //
 

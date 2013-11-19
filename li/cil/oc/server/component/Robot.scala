@@ -3,9 +3,11 @@ package li.cil.oc.server.component
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ActivationType
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.{ItemStack, ItemBlock}
+import net.minecraft.util.{EnumMovingObjectType, Vec3}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
@@ -40,7 +42,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         ServerPacketSender.sendRobotSelectedSlotState(robot)
       }
     }
-    result(selectedSlot)
+    result(selectedSlot + 1)
   }
 
   @LuaCallback("count")
@@ -200,32 +202,91 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("swing")
   def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
-    val lookSide = checkSideForAction(args, 0)
-    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
-    if (side.getOpposite == lookSide) {
+    val facing = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else facing
+    if (side.getOpposite == facing) {
       throw new IllegalArgumentException("invalid side")
     }
-    val player = robot.player(lookSide)
-    val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
-    result(player.clickBlock(bx, by, bz, side.getOpposite.ordinal))
-    //robot.player().attackTargetEntityWithCurrentItem(entity)
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
+    val player = robot.player(facing)
+    Option(simulateClick(facing, side, 0.49)) match {
+      case Some(hit) =>
+        player.setSneaking(sneaky)
+        val what = hit.typeOfHit match {
+          case EnumMovingObjectType.ENTITY =>
+            player.attackTargetEntityWithCurrentItem(hit.entityHit)
+            result(true, "entity")
+          case EnumMovingObjectType.TILE =>
+            val broke = player.clickBlock(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+            result(broke, "block")
+        }
+        player.setSneaking(false)
+        what
+      case _ =>
+        player.closestLivingEntity(facing) match {
+          case Some(entity) =>
+            player.attackTargetEntityWithCurrentItem(entity)
+            result(true, "entity")
+          case _ =>
+            result(false)
+        }
+    }
   }
 
   @LuaCallback("use")
   def use(context: Context, args: Arguments): Array[AnyRef] = {
-    val lookSide = checkSideForAction(args, 0)
-    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
-    if (side.getOpposite == lookSide) {
+    val facing = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else facing
+    if (side.getOpposite == facing) {
       throw new IllegalArgumentException("invalid side")
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val player = robot.player(lookSide)
-    player.setSneaking(sneaky)
-    val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
-    val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
-    val ok = player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
-    player.setSneaking(false)
-    result(ok)
+    val player = robot.player(facing)
+    Option(simulateClick(facing, side, 0.51)) match {
+      case Some(hit) =>
+        player.setSneaking(sneaky)
+        val what = hit.typeOfHit match {
+          case EnumMovingObjectType.ENTITY =>
+            // TODO Is there any practical use for this? Most of the stuff related to this is still 'obfuscated'...
+            result(false, "entity")
+          case EnumMovingObjectType.TILE =>
+            val (hx, hy, hz) = (
+              (hit.hitVec.xCoord - hit.blockX).toFloat,
+              (hit.hitVec.yCoord - hit.blockY).toFloat,
+              (hit.hitVec.zCoord - hit.blockZ).toFloat)
+            player.activateBlockOrUseItem(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit, hx, hy, hz) match {
+              case ActivationType.BlockActivated => result(true, "block_activated")
+              case ActivationType.ItemPlaced => result(true, "item_placed")
+              case ActivationType.ItemUsed => result(true, "item_used")
+              case _ => result(false)
+            }
+        }
+        player.setSneaking(false)
+        what
+      case _ =>
+        if (player.useEquippedItem()) result(true, "item_used")
+        else result(false)
+    }
+  }
+
+  @LuaCallback("durability")
+  def durability(context: Context, args: Arguments): Array[AnyRef] = {
+    Option(robot.getStackInSlot(0)) match {
+      case Some(item) =>
+        if (item.isItemStackDamageable) {
+          result(item.getMaxDamage - item.getItemDamage)
+        }
+        else result(Unit, "tool cannot be damaged")
+      case _ => result(Unit, "no tool equipped")
+    }
+  }
+
+  def simulateClick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
+    val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
+    val (hx, hy, hz) = (0.5 + side.offsetX * range, 0.5 + side.offsetY * range, 0.5 + side.offsetZ * range)
+    val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
+    val target = Vec3.createVectorHelper(bx + hx, by + hy, bz + hz)
+    world.clip(origin, target)
   }
 
   // ----------------------------------------------------------------------- //
