@@ -44,9 +44,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   private lazy val player_ = new RobotPlayer(this)
 
-  def player(pitch: ForgeDirection = facing) = {
+  def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
     assert(isServer)
-    player_.updatePositionAndRotation(pitch)
+    player_.updatePositionAndRotation(facing, side)
     player_
   }
 

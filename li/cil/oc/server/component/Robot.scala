@@ -140,7 +140,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val player = robot.player(facing)
+    val player = robot.player(facing, side)
     val stack = player.robotInventory.selectedItemStack
     if (stack == null || stack.stackSize == 0) {
       result(false, "nothing selected")
@@ -213,7 +213,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     if (side.getOpposite == facing) {
       throw new IllegalArgumentException("invalid side")
     }
-    val player = robot.player(facing)
+    val player = robot.player(facing, side)
     Option(pick(facing, side, 0.49)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
@@ -244,7 +244,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val player = robot.player(facing)
+    val player = robot.player(facing, side)
     def activationResult(activationType: ActivationType.Value): Array[AnyRef] =
       activationType match {
         case ActivationType.BlockActivated => result(true, "block_activated")

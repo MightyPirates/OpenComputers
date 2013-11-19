@@ -2,14 +2,14 @@ package li.cil.oc.util
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity.Robot
-import net.minecraft.block.{BlockFluid, Block}
+import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
 import net.minecraft.entity.{EntityLivingBase, Entity}
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.{AxisAlignedBB, DamageSource, ChunkCoordinates}
+import net.minecraft.util.{Vec3, AxisAlignedBB, DamageSource, ChunkCoordinates}
 import net.minecraft.world.World
 import net.minecraftforge.common.{ForgeDirection, FakePlayer}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
@@ -36,18 +36,17 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
 
   // ----------------------------------------------------------------------- //
 
-  def updatePositionAndRotation(pitch: ForgeDirection) {
-    val offsetToGetPistonsToBePlacedProperly = pitch.offsetY * 0.83
-    setLocationAndAngles(
-      robot.x + 0.5,
-      robot.y - offsetToGetPistonsToBePlacedProperly,
-      robot.z + 0.5,
-      robot.yaw match {
-        case ForgeDirection.WEST => 90
-        case ForgeDirection.NORTH => 180
-        case ForgeDirection.EAST => 270
-        case _ => 0
-      }, pitch.offsetY * -90)
+  def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
+    // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
+    val direction = Vec3.createVectorHelper(
+      facing.offsetX + side.offsetX * 0.5 + robot.facing.offsetX * 0.01,
+      facing.offsetY + side.offsetY * 0.5 + robot.facing.offsetY * 0.01,
+      facing.offsetZ + side.offsetZ * 0.5 + robot.facing.offsetZ * 0.01).normalize()
+    val yaw = Math.toDegrees(-Math.atan2(direction.xCoord, direction.zCoord)).toFloat
+    val pitch = Math.toDegrees(-Math.atan2(direction.yCoord, Math.sqrt((direction.xCoord * direction.xCoord) + (direction.zCoord * direction.zCoord)))).toFloat * 0.99f
+    setLocationAndAngles(robot.x + 0.5, robot.y, robot.z + 0.5, yaw, pitch)
+    prevRotationPitch = rotationPitch
+    prevRotationYaw = rotationYaw
   }
 
   def closestLivingEntity(side: ForgeDirection) = {
@@ -114,7 +113,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
     }
 
     if (stack != null) {
-      val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+      val didPlace = tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
       if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
       if (stack.stackSize <= 0) inventory.setInventorySlotContents(0, null)
       if (didPlace) {
@@ -160,7 +159,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
     }
 
     event.useBlock == Event.Result.DENY || {
-      val result = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+      val result = tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
       if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
       result
     }
@@ -243,6 +242,22 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
       stack.setItemDamage(oldDamage + addedDamage)
     }
   }
+
+  private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
+    setPosition(posX, posY - fakeEyeHeight, posZ)
+    val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+    setPosition(posX, posY + fakeEyeHeight, posZ)
+    didPlace
+  }
+
+  private def isSomeKindOfPiston(stack: ItemStack) =
+    stack.getItem match {
+      case itemBlock: ItemBlock if itemBlock.getBlockID > 0 =>
+        val block = Block.blocksList(itemBlock.getBlockID)
+        block != null && block.isInstanceOf[BlockPistonBase]
+      case _ => false
+    }
 
   // ----------------------------------------------------------------------- //
 
