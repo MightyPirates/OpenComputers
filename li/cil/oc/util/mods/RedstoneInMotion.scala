@@ -1,4 +1,4 @@
-package li.cil.oc.util
+package li.cil.oc.util.mods
 
 import java.lang.reflect.InvocationTargetException
 import scala.language.existentials

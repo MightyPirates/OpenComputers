@@ -3,8 +3,8 @@ package li.cil.oc.server.component
 import li.cil.oc.Config
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.component.robot.ActivationType
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ActivationType
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.{ItemStack, ItemBlock}

@@ -9,9 +9,9 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common
 import li.cil.oc.server.component
 import li.cil.oc.server.component.GraphicsCard
+import li.cil.oc.server.component.robot.Player
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.RobotPlayer
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -42,7 +42,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
   else (null, null, null, null)
 
-  private lazy val player_ = new RobotPlayer(this)
+  private lazy val player_ = new Player(this)
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
     assert(isServer)

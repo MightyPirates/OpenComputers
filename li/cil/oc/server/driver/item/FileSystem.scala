@@ -6,7 +6,7 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{Disk, HardDiskDrive}
 import li.cil.oc.common.tileentity.DiskDrive
-import li.cil.oc.util.ComputerCraft
+import li.cil.oc.util.mods.ComputerCraft
 import li.cil.oc.{Config, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound

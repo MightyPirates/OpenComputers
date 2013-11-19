@@ -1,4 +1,4 @@
-package li.cil.oc.util
+package li.cil.oc.util.mods
 
 import cpw.mods.fml.common.Loader
 import dan200.computer.api.{IWritableMount, IMount, IMedia}

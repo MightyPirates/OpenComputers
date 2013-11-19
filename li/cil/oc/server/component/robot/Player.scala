@@ -1,7 +1,8 @@
-package li.cil.oc.util
+package li.cil.oc.server.component.robot
 
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity.Robot
+import li.cil.oc.util.mods.PortalGun
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
@@ -19,7 +20,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") {
+class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -27,7 +28,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
   eyeHeight = 0f
   setSize(1, 1)
 
-  val robotInventory = new InventoryRobot(this)
+  val robotInventory = new Inventory(this)
   inventory = robotInventory
 
   def world = robot.worldObj

@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.util.RedstoneInMotion
+import li.cil.oc.util.mods.RedstoneInMotion
 import net.minecraft.nbt.NBTTagCompound
 
 class Carriage(controller: AnyRef) extends ManagedComponent {

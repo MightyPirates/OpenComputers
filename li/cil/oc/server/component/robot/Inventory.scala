@@ -1,4 +1,4 @@
-package li.cil.oc.util
+package li.cil.oc.server.component.robot
 
 import net.minecraft.block.Block
 import net.minecraft.entity.player.InventoryPlayer
@@ -6,7 +6,7 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagList
 import scala.util.control.Breaks._
 
-class InventoryRobot(player: RobotPlayer) extends InventoryPlayer(player) {
+class Inventory(player: Player) extends InventoryPlayer(player) {
   val robot = player.robot
 
   def selectedSlot = robot.actualSlot(robot.selectedSlot)

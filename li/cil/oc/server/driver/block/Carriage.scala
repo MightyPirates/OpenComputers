@@ -2,7 +2,7 @@ package li.cil.oc.server.driver.block
 
 import li.cil.oc.api.driver
 import li.cil.oc.server.component
-import li.cil.oc.util.RedstoneInMotion
+import li.cil.oc.util.mods.RedstoneInMotion
 import net.minecraft.world.World
 
 object Carriage extends driver.Block {
