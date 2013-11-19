@@ -77,12 +77,16 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
   // ----------------------------------------------------------------------- //
 
   override def attackTargetEntityWithCurrentItem(entity: Entity) {
-    val stack = getCurrentEquippedItem
-    val oldDamage = getCurrentEquippedItem.getItemDamage
-    super.attackTargetEntityWithCurrentItem(entity)
-    if (stack.stackSize > 0 && stack.isItemStackDamageable && getRNG.nextDouble() >= Config.itemDamageRate) {
-      val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
-      stack.setItemDamage(oldDamage + addedDamage)
+    entity match {
+      case player: EntityPlayer if !canAttackPlayer(player) => // Avoid player damage.
+      case _ =>
+        val stack = getCurrentEquippedItem
+        val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
+        super.attackTargetEntityWithCurrentItem(entity)
+        if (stack != null && stack.stackSize > 0 && stack.isItemStackDamageable && getRNG.nextDouble() >= Config.itemDamageRate) {
+          val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
+          stack.setItemDamage(oldDamage + addedDamage)
+        }
     }
   }
 
@@ -137,7 +141,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
   private def tryUseItem(stack: ItemStack) =
     stack != null && stack.stackSize > 0 && stack.getMaxItemUseDuration <= 0 && {
       val oldSize = stack.stackSize
-      val oldDamage = stack.getItemDamage
+      val oldDamage = if (stack != null) stack.getItemDamage else 0
       val newStack = stack.useItemRightClick(world, this)
       val stackChanged = newStack != stack || (newStack != null && (newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage))
       stackChanged && {
