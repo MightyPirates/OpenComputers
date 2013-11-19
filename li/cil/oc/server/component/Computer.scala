@@ -81,6 +81,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def lastError = message
 
+  def isRobot = false
+
   // ----------------------------------------------------------------------- //
 
   def isRunning = state.synchronized(state.top != Computer.State.Stopped)
@@ -167,10 +169,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   @LuaCallback(value = "isRunning", direct = true)
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     Array(Boolean.box(isRunning))
-
-  @LuaCallback(value = "isRobot", direct = true)
-  def isRobot(context: Context, args: Arguments): Array[AnyRef] =
-    Array(java.lang.Boolean.FALSE)
 
   // ----------------------------------------------------------------------- //
 
@@ -734,27 +732,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setField(-2, "uptime")
 
-      // Allow the system to read how much memory it uses and has available.
-      lua.pushScalaFunction(lua => {
-        lua.pushInteger(lua.getTotalMemory - kernelMemory)
-        1
-      })
-      lua.setField(-2, "totalMemory")
-
-      lua.pushScalaFunction(lua => {
-        // This is *very* unlikely, but still: avoid this getting larger than
-        // what we report as the total memory.
-        lua.pushInteger(lua.getFreeMemory min (lua.getTotalMemory - kernelMemory))
-        1
-      })
-      lua.setField(-2, "freeMemory")
-
-      lua.pushScalaFunction(lua => {
-        lua.pushBoolean(signal(lua.checkString(1), parseArguments(lua, 2): _*))
-        1
-      })
-      lua.setField(-2, "pushSignal")
-
       // Allow the computer to figure out its own id in the component network.
       lua.pushScalaFunction(lua => {
         Option(node.address) match {
@@ -764,6 +741,34 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         1
       })
       lua.setField(-2, "address")
+
+      // Are we a robot? (No this is not a CAPTCHA.)
+      lua.pushScalaFunction(lua => {
+        lua.pushBoolean(isRobot)
+        1
+      })
+      lua.setField(-2, "isRobot")
+
+      lua.pushScalaFunction(lua => {
+        // This is *very* unlikely, but still: avoid this getting larger than
+        // what we report as the total memory.
+        lua.pushInteger(lua.getFreeMemory min (lua.getTotalMemory - kernelMemory))
+        1
+      })
+      lua.setField(-2, "freeMemory")
+
+      // Allow the system to read how much memory it uses and has available.
+      lua.pushScalaFunction(lua => {
+        lua.pushInteger(lua.getTotalMemory - kernelMemory)
+        1
+      })
+      lua.setField(-2, "totalMemory")
+
+      lua.pushScalaFunction(lua => {
+        lua.pushBoolean(signal(lua.checkString(1), parseArguments(lua, 2): _*))
+        1
+      })
+      lua.setField(-2, "pushSignal")
 
       // And it's ROM address.
       lua.pushScalaFunction(lua => {

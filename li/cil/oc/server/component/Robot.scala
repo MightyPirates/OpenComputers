@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Config
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -7,7 +8,7 @@ import li.cil.oc.util.ActivationType
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.{ItemStack, ItemBlock}
-import net.minecraft.util.{EnumMovingObjectType, Vec3}
+import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType, Vec3}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
@@ -28,8 +29,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   // ----------------------------------------------------------------------- //
 
-  override def isRobot(context: Context, args: Arguments): Array[AnyRef] =
-    Array(java.lang.Boolean.TRUE)
+  override def isRobot = true
 
   // ----------------------------------------------------------------------- //
 
@@ -104,59 +104,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     })
   }
 
-  @LuaCallback("drop")
-  def drop(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSideForAction(args, 0)
-    val count = checkOptionalItemCount(args, 1)
-    // TODO inventory, if available
-
-    result(robot.dropSlot(actualSlot(selectedSlot), count, side))
-    // This also works, but throws the items a little too far.
-    // result(robot.player().dropPlayerItemWithRandomChoice(robot.decrStackSize(actualSlot(selectedSlot), count), false) != null)
-  }
-
-  @LuaCallback("place")
-  def place(context: Context, args: Arguments): Array[AnyRef] = {
-    val lookSide = checkSideForAction(args, 0)
-    val side = if (args.isInteger(1)) checkSide(args, 1) else lookSide
-    if (side.getOpposite == lookSide) {
-      throw new IllegalArgumentException("invalid side")
-    }
-    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val player = robot.player(lookSide)
-    val stack = player.robotInventory.selectedItemStack
-    if (stack == null || stack.stackSize == 0) {
-      result(false)
-    }
-    else {
-      player.setSneaking(sneaky)
-      val (bx, by, bz) = (x + lookSide.offsetX, y + lookSide.offsetY, z + lookSide.offsetZ)
-      val (hx, hy, hz) = (0.5f + side.offsetX * 0.5f, 0.5f + side.offsetY * 0.5f, 0.5f + side.offsetZ * 0.5f)
-      val ok = player.placeBlock(player.robotInventory.selectedItemStack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
-      player.setSneaking(false)
-      if (stack.stackSize <= 0) {
-        robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
-      }
-      result(ok)
-    }
-  }
-
-  @LuaCallback("suck")
-  def suck(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSideForAction(args, 0)
-    val count = checkOptionalItemCount(args, 1)
-    // TODO inventory, if available
-    for (entity <- robot.player().entitiesOnSide[EntityItem](side) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-      val stack = entity.getEntityItem
-      val size = stack.stackSize
-      entity.onCollideWithPlayer(robot.player())
-      if (stack.stackSize < size || entity.isDead) return result(true)
-    }
-    result(false)
-  }
-
-  // ----------------------------------------------------------------------- //
-
   @LuaCallback("compare")
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
@@ -173,6 +120,65 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     result(false)
   }
+
+  @LuaCallback("drop")
+  def drop(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val count = checkOptionalItemCount(args, 1)
+    // TODO inventory, if available
+
+    result(robot.dropSlot(actualSlot(selectedSlot), count, facing))
+    // This also works, but throws the items a little too far.
+    // result(robot.player().dropPlayerItemWithRandomChoice(robot.decrStackSize(actualSlot(selectedSlot), count), false) != null)
+  }
+
+  @LuaCallback("place")
+  def place(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val side = if (args.isInteger(1)) checkSide(args, 1) else facing
+    if (side.getOpposite == facing) {
+      throw new IllegalArgumentException("invalid side")
+    }
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
+    val player = robot.player(facing)
+    val stack = player.robotInventory.selectedItemStack
+    if (stack == null || stack.stackSize == 0) {
+      result(false, "nothing selected")
+    }
+    else {
+      player.setSneaking(sneaky)
+      val what = Option(pick(facing, side, 0.51)) match {
+        case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
+          val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
+          player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
+        case None if Config.canPlaceInAir && player.closestLivingEntity(facing).isEmpty =>
+          val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
+          player.placeBlock(stack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+        case _ => false
+      }
+      player.setSneaking(false)
+      if (stack.stackSize <= 0) {
+        robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
+      }
+      result(what)
+    }
+  }
+
+  @LuaCallback("suck")
+  def suck(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForAction(args, 0)
+    val count = checkOptionalItemCount(args, 1)
+    // TODO inventory, if available
+    for (entity <- robot.player().entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+      val stack = entity.getEntityItem
+      val size = stack.stackSize
+      entity.onCollideWithPlayer(robot.player())
+      if (stack.stackSize < size || entity.isDead) return result(true)
+    }
+    result(false)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @LuaCallback("detect")
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
@@ -207,11 +213,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     if (side.getOpposite == facing) {
       throw new IllegalArgumentException("invalid side")
     }
-    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val player = robot.player(facing)
-    Option(simulateClick(facing, side, 0.49)) match {
+    Option(pick(facing, side, 0.49)) match {
       case Some(hit) =>
-        player.setSneaking(sneaky)
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
             player.attackTargetEntityWithCurrentItem(hit.entityHit)
@@ -220,7 +224,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             val broke = player.clickBlock(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
             result(broke, "block")
         }
-        player.setSneaking(false)
         what
       case _ =>
         player.closestLivingEntity(facing) match {
@@ -242,31 +245,37 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val player = robot.player(facing)
-    Option(simulateClick(facing, side, 0.51)) match {
+    def activationResult(activationType: ActivationType.Value): Array[AnyRef] =
+      activationType match {
+        case ActivationType.BlockActivated => result(true, "block_activated")
+        case ActivationType.ItemPlaced => result(true, "item_placed")
+        case ActivationType.ItemUsed => result(true, "item_used")
+        case _ => result(false)
+      }
+    player.setSneaking(sneaky)
+    val what = Option(pick(facing, side, 0.51)) match {
       case Some(hit) =>
-        player.setSneaking(sneaky)
-        val what = hit.typeOfHit match {
+        hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
             // TODO Is there any practical use for this? Most of the stuff related to this is still 'obfuscated'...
             result(false, "entity")
           case EnumMovingObjectType.TILE =>
-            val (hx, hy, hz) = (
-              (hit.hitVec.xCoord - hit.blockX).toFloat,
-              (hit.hitVec.yCoord - hit.blockY).toFloat,
-              (hit.hitVec.zCoord - hit.blockZ).toFloat)
-            player.activateBlockOrUseItem(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit, hx, hy, hz) match {
-              case ActivationType.BlockActivated => result(true, "block_activated")
-              case ActivationType.ItemPlaced => result(true, "item_placed")
-              case ActivationType.ItemUsed => result(true, "item_used")
-              case _ => result(false)
-            }
+            val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
+            activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz))
         }
-        player.setSneaking(false)
-        what
       case _ =>
-        if (player.useEquippedItem()) result(true, "item_used")
-        else result(false)
+        (if (Config.canPlaceInAir) {
+          val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
+          player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+        } else ActivationType.None) match {
+          case ActivationType.None =>
+            if (player.useEquippedItem()) result(true, "item_used")
+            else result(false)
+          case activationType => activationResult(activationType)
+        }
     }
+    player.setSneaking(false)
+    what
   }
 
   @LuaCallback("durability")
@@ -281,7 +290,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
   }
 
-  def simulateClick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
+  def pick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
     val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
     val (hx, hy, hz) = (0.5 + side.offsetX * range, 0.5 + side.offsetY * range, 0.5 + side.offsetZ * range)
     val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
@@ -313,6 +322,22 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))
+
+  private def clickParamsFromHit(hit: MovingObjectPosition) = {
+    (hit.blockX, hit.blockY, hit.blockZ,
+      (hit.hitVec.xCoord - hit.blockX).toFloat,
+      (hit.hitVec.yCoord - hit.blockY).toFloat,
+      (hit.hitVec.zCoord - hit.blockZ).toFloat)
+  }
+
+  private def clickParamsFromFacing(facing: ForgeDirection, side: ForgeDirection) = {
+    (x + facing.offsetX + side.offsetX,
+      y + facing.offsetY + side.offsetY,
+      z + facing.offsetZ + side.offsetZ,
+      0.5f - side.offsetX * 0.5f,
+      0.5f - side.offsetY * 0.5f,
+      0.5f - side.offsetZ * 0.5f)
+  }
 
   // ----------------------------------------------------------------------- //
 

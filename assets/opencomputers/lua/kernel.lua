@@ -234,6 +234,7 @@ sandbox = {
 -- Start of non-standard stuff.
 
     address = os.address,
+    isRobot = os.isRobot,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     uptime = os.uptime,

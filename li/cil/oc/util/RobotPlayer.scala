@@ -160,9 +160,7 @@ class RobotPlayer(val robot: Robot) extends FakePlayer(robot.world, "OpenCompute
     }
 
     event.useBlock == Event.Result.DENY || {
-      val direction = ForgeDirection.getOrientation(side).getOpposite
-      val (onX, onY, onZ) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
-      val result = stack.tryPlaceItemIntoWorld(this, world, onX, onY, onZ, side, hitX, hitY, hitZ)
+      val result = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
       if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
       result
     }

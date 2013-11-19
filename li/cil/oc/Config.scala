@@ -82,6 +82,7 @@ object Config {
 
   var allowActivateBlocks = true
   var canAttackPlayers = false
+  var canPlaceInAir = false
   var itemDamageRate = 0.05
 
   // ----------------------------------------------------------------------- //
@@ -385,6 +386,16 @@ object Config {
       "includes all 'player' entities, which may be more than just real\n" +
       "players in the game.").
       getBoolean(canAttackPlayers)
+
+    canPlaceInAir = config.get("robot", "canPlaceInAir", canPlaceInAir, "" +
+      "Whether robots may place blocks in thin air, i.e. without a reference\n" +
+      "point (as is required for real players). Set this to true to emulate\n" +
+      "ComputerCraft's Turtles' behavior. When left false robots have to\n" +
+      "target an existing block face to place another block. For example,\n" +
+      "if the robots stands on a perfect plain, you have to call\n" +
+      "`robot.place(sides.down)` to place a block, instead of just\n" +
+      "`robot.place()`, which will default to `robot.place(sides.front)`.").
+      getBoolean(canPlaceInAir)
 
     itemDamageRate = config.get("robot", "itemDamageRate", itemDamageRate, "" +
       "The rate at which items used as tools by robots take damage. A value\n" +
