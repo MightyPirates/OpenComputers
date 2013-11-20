@@ -59,7 +59,7 @@ object PacketSender {
     }
   }
 
-  def sendRobotMove(t: Robot, ox: Int, oy: Int, oz: Int) {
+  def sendRobotMove(t: Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
     val pb = new PacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
@@ -67,19 +67,32 @@ object PacketSender {
     pb.writeInt(ox)
     pb.writeInt(oy)
     pb.writeInt(oz)
-
-    pb.writeInt(t.x)
-    pb.writeInt(t.y)
-    pb.writeInt(t.z)
+    pb.writeDirection(direction)
 
     pb.sendToAllPlayers()
   }
 
-  def sendRobotSelectedSlotState(t: Robot, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.RobotSelectedSlotResponse)
+  def sendRobotSelectedSlotChange(t: Robot, player: Option[Player] = None) {
+    val pb = new PacketBuilder(PacketType.RobotSelectedSlotChange)
 
     pb.writeTileEntity(t)
     pb.writeInt(t.selectedSlot)
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
+  def sendRobotState(t: Robot, player: Option[Player] = None) {
+    val pb = new PacketBuilder(PacketType.RobotStateResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.selectedSlot)
+    pb.writeInt(t.animationTicksTotal)
+    pb.writeInt(t.animationTicksLeft)
+    pb.writeDirection(t.moveDirection)
+    pb.writeDirection(t.turnOldFacing)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

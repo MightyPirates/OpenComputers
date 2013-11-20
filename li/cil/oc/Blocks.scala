@@ -17,6 +17,7 @@ object Blocks {
   var powerDistributor: PowerDistributor = null
   var powerSupply: PowerConverter = null
   var robot: Robot = null
+  var robotAfterimage: RobotAfterimage = null
   var screen1, screen2, screen3: Screen = null
 
   def init() {
@@ -53,5 +54,6 @@ object Blocks {
 
     capacitor = new Capacitor(blockSimple)
     robot = new Robot(blockSpecial)
+    robotAfterimage = new RobotAfterimage(blockSpecial)
   }
 }

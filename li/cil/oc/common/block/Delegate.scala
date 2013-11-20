@@ -15,6 +15,8 @@ import net.minecraftforge.common.ForgeDirection
 trait Delegate {
   val unlocalizedName: String
 
+  val showInItemList = true
+
   // ----------------------------------------------------------------------- //
   // Block
   // ----------------------------------------------------------------------- //

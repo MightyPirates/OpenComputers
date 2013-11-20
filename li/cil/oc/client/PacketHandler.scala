@@ -28,7 +28,8 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
       case PacketType.RobotMove => onRobotMove(p)
-      case PacketType.RobotSelectedSlotResponse => onRobotSelectedSlotResponse(p)
+      case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
+      case PacketType.RobotStateResponse => onRobotStateResponse(p)
       case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
       case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
       case PacketType.ScreenColorChange => onScreenColorChange(p)
@@ -81,13 +82,24 @@ class PacketHandler extends CommonPacketHandler {
 
   def onRobotMove(p: PacketParser) =
     p.readTileEntity[Robot]() match {
-      case Some(t) => t.move(p.readInt(), p.readInt(), p.readInt())
+      case Some(t) => t.move(p.readDirection())
       case _ => // Invalid packet.
     }
 
-  def onRobotSelectedSlotResponse(p: PacketParser) =
+  def onRobotSelectedSlotChange(p: PacketParser) =
     p.readTileEntity[Robot]() match {
       case Some(t) => t.selectedSlot = p.readInt()
+      case _ => // Invalid packet.
+    }
+
+  def onRobotStateResponse(p: PacketParser) =
+    p.readTileEntity[Robot]() match {
+      case Some(t) =>
+        t.selectedSlot = p.readInt()
+        t.animationTicksTotal = p.readInt()
+        t.animationTicksLeft = p.readInt()
+        t.moveDirection = p.readDirection()
+        t.turnOldFacing = p.readDirection()
       case _ => // Invalid packet.
     }
 

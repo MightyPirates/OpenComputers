@@ -29,7 +29,10 @@ abstract class Computer extends Delegate {
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
-        world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].computer.start()
+        world.getBlockTileEntity(x, y, z) match {
+          case t: tileentity.Computer if !t.computer.isPaused => t.computer.start()
+          case _ =>
+        }
       }
     }
     super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)

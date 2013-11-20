@@ -39,7 +39,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       val slot = checkSlot(args, 0)
       if (slot != selectedSlot) {
         robot.selectedSlot = slot
-        ServerPacketSender.sendRobotSelectedSlotState(robot)
+        ServerPacketSender.sendRobotSelectedSlotChange(robot)
       }
     }
     result(selectedSlot + 1)
@@ -308,9 +308,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       result(false, what)
     }
     else {
-      val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
-      if (robot.move(nx, ny, nz)) {
-        robot.animateMove(direction, Config.moveDelay)
+      if (robot.move(direction)) {
         context.pause(Config.moveDelay)
         result(true)
       }

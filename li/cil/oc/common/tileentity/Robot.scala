@@ -45,6 +45,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   private lazy val player_ = new Player(this)
 
+  var animationTicksLeft = 0
+
+  var animationTicksTotal = 0
+
+  var moveDirection = ForgeDirection.UNKNOWN
+
+  var turnOldFacing = ForgeDirection.UNKNOWN
+
   // ----------------------------------------------------------------------- //
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
@@ -55,8 +63,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   def actualSlot(n: Int) = n + 3
 
-  def move(nx: Int, ny: Int, nz: Int) = {
+  def move(direction: ForgeDirection) = {
     val (ox, oy, oz) = (x, y, z)
+    val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
     // Setting this will make the tile entity created via the following call
     // to setBlock to re-use our "real" instance as the inner object, instead
     // of creating a new one.
@@ -71,39 +80,60 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     if (created) {
       assert(world.getBlockTileEntity(nx, ny, nz) == this)
       assert(x == nx && y == ny && z == nz)
+      world.setBlock(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, Blocks.robotAfterimage.blockId, 1)
+      assert(Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
       if (isServer) {
-        ServerPacketSender.sendRobotMove(this, ox, oy, oz)
-        world.setBlock(ox, oy, oz, 0, 0, 1)
+        ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
         for (neighbor <- node.neighbors) {
           node.disconnect(neighbor)
         }
         api.Network.joinOrCreateNetwork(world, nx, ny, nz)
       }
       else {
+        // On the client this is called from the packet handler code, leading
+        // to the entity being added directly to the list of loaded tile
+        // entities, without any additional checks - so we get a duplicate.
+        val duplicate = world.loadedTileEntityList.remove(world.loadedTileEntityList.size - 1)
+        assert(duplicate == this)
         if (blockId > 0) {
           world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
         }
-        world.markBlockForUpdate(x, y, z)
-        world.setBlockToAir(ox, oy, oz)
+        world.markBlockForUpdate(ox, oy, oz)
+        world.markBlockForUpdate(nx, ny, nz)
       }
       assert(!isInvalid)
     }
     Blocks.robot.moving.set(None)
     if (created) {
+      animateMove(direction, Config.moveDelay)
       checkRedstoneInputChanged()
     }
     created
   }
 
-  def animateMove(direction: ForgeDirection, duration: Double) {}
+  def isAnimatingMove = animationTicksLeft > 0 && moveDirection != ForgeDirection.UNKNOWN
 
-  def animateTurn(oldFacing: ForgeDirection, duration: Double) {}
+  def isAnimatingTurn = animationTicksLeft > 0 && turnOldFacing != ForgeDirection.UNKNOWN
+
+  def animateMove(direction: ForgeDirection, duration: Double) {
+    animationTicksTotal = (duration * 20).toInt
+    animationTicksLeft = animationTicksTotal
+    moveDirection = direction
+    turnOldFacing = ForgeDirection.UNKNOWN
+  }
+
+  def animateTurn(oldFacing: ForgeDirection, duration: Double) {
+    animationTicksTotal = (duration * 20).toInt
+    animationTicksLeft = animationTicksTotal
+    moveDirection = ForgeDirection.UNKNOWN
+    turnOldFacing = oldFacing
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def installedMemory = 64 * 1024
 
   def tier = 0
-
-  //def bounds =
 
   // ----------------------------------------------------------------------- //
 
@@ -122,6 +152,18 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
+    if (animationTicksLeft > 0) {
+      animationTicksLeft -= 1
+      if (animationTicksLeft == 0) {
+        val (ox, oy, oz) = (x - moveDirection.offsetX, y - moveDirection.offsetY, z - moveDirection.offsetZ)
+        if (Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage)) {
+          world.setBlockToAir(ox, oy, oz)
+        }
+      }
+      if (isClient) {
+        world.markBlockForRenderUpdate(x, y, z)
+      }
+    }
     super.updateEntity()
     if (isServer) {
       distributor.changeBuffer(10) // just for testing
@@ -141,7 +183,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       }
       else {
         ClientPacketSender.sendScreenBufferRequest(this)
-        ClientPacketSender.sendRobotSelectedSlotRequest(this)
+        ClientPacketSender.sendRobotStateRequest(this)
       }
     }
   }
@@ -167,6 +209,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
     }
     selectedSlot = nbt.getInteger(Config.namespace + "selectedSlot")
+    animationTicksTotal = nbt.getInteger(Config.namespace + "animationTicksTotal")
+    animationTicksLeft = nbt.getInteger(Config.namespace + "animationTicksLeft")
+    moveDirection = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "moveDirection"))
+    turnOldFacing = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "turnOldFacing"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -179,6 +225,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
     }
     nbt.setInteger(Config.namespace + "selectedSlot", selectedSlot)
+    if (isAnimatingMove || isAnimatingTurn) {
+      nbt.setInteger(Config.namespace + "animationTicksTotal", animationTicksTotal)
+      nbt.setInteger(Config.namespace + "animationTicksLeft", animationTicksLeft)
+      nbt.setInteger(Config.namespace + "moveDirection", moveDirection.ordinal)
+      nbt.setInteger(Config.namespace + "turnOldFacing", turnOldFacing.ordinal)
+    }
   }
 
   // ----------------------------------------------------------------------- //

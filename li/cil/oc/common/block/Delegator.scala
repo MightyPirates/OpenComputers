@@ -191,7 +191,7 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subBlocks.length).
+    (0 until subBlocks.length).filter(id => subBlocks(id).showInItemList).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
