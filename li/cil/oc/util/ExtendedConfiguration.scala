@@ -17,6 +17,11 @@ object ExtendedConfiguration {
       config.get(category, name, default, wrapComment(category, comment)).getInt(default)
     }
 
+    def fetch(path: String, default: Float, comment: String) = {
+      val (category, name) = parse(path)
+      config.get(category, name, default, wrapComment(category, comment)).getDouble(default).toFloat
+    }
+
     def fetch(path: String, default: Double, comment: String) = {
       val (category, name) = parse(path)
       config.get(category, name, default, wrapComment(category, comment)).getDouble(default)

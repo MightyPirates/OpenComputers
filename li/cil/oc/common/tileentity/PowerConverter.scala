@@ -23,15 +23,6 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   private def demand = node.globalBufferSize - node.globalBuffer
 
   // ----------------------------------------------------------------------- //
-  // Energy conversion ratios, Mode -> Internal
-
-  val ratioIndustrialCraft = 2
-
-  val ratioBuildCraft = 5
-
-  val ratioUniversalElectricity = 5
-
-  // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
@@ -40,7 +31,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
         loadIC2()
       }
       if (demand > 0 && Loader.isModLoaded("BuildCraft|Energy")) {
-        node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat / ratioBuildCraft, true) * ratioBuildCraft)
+        node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat / Config.ratioBuildCraft, true) * Config.ratioBuildCraft)
       }
     }
   }
@@ -109,7 +100,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     // We try to avoid requesting energy when we need less than what we get with
     // a single packet. However, if our buffer gets dangerously low we will ask
     // for energy even if there's the danger of wasting some energy.
-    if (demand >= lastPacketSize * ratioIndustrialCraft || demand > node.localBufferSize * 0.5) {
+    if (demand >= lastPacketSize * Config.ratioIndustrialCraft2 || demand > node.localBufferSize * 0.5) {
       demand
     } else 0
   }
@@ -117,7 +108,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   @Optional.Method(modid = "IC2")
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
     lastPacketSize = amount
-    node.changeBuffer(amount * ratioIndustrialCraft)
+    node.changeBuffer(amount * Config.ratioIndustrialCraft2)
     0
   }
 
@@ -131,7 +122,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     if (node != null && powerHandler.isEmpty) {
       val handler = new PowerHandler(this, PowerHandler.Type.STORAGE)
       if (handler != null) {
-        handler.configure(1, 320, Float.MaxValue, node.localBufferSize.toFloat / ratioBuildCraft)
+        handler.configure(1, 320, Float.MaxValue, node.localBufferSize.toFloat / Config.ratioBuildCraft)
         handler.configurePowerPerdition(0, 0)
         powerHandler = Some(handler)
       }
@@ -159,12 +150,12 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
 
   def getVoltage = 120f
 
-  def getRequest(direction: ForgeDirection) = demand.toFloat / ratioUniversalElectricity
+  def getRequest(direction: ForgeDirection) = demand.toFloat / Config.ratioUniversalElectricity
 
   def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
     if (receive != null) {
       if (doReceive) {
-        node.changeBuffer(receive.getWatts * ratioUniversalElectricity)
+        node.changeBuffer(receive.getWatts * Config.ratioUniversalElectricity)
       }
       receive.getWatts
     } else 0

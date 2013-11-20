@@ -36,6 +36,9 @@ object Config {
   // power
 
   var ignorePower = false
+  var ratioIndustrialCraft2 = 2.0f
+  var ratioBuildCraft = 5.0f
+  var ratioUniversalElectricity = 0.05f
 
   // power.buffer
   var bufferConverter = 100.0
@@ -157,6 +160,18 @@ object Config {
         |simply make the check 'is there enough energy' succeed unconditionally.
         |Note that buffers are still filled and emptied following the usual rules,
         |there just is no failure case anymore.""".stripMargin)
+
+    ratioIndustrialCraft2 = config.fetch("power.ratioIndustrialCraft2", ratioIndustrialCraft2,
+      """|Conversion ratio for IndustrialCraft2's EU. This is how many internal
+        |energy units one EU generates.""".stripMargin)
+
+    ratioBuildCraft = config.fetch("power.ratioBuildCraft", ratioBuildCraft,
+      """|Conversion ratio for BuildCraft's MJ. This is how many internal
+        |energy units one MJ generates.""".stripMargin)
+
+    ratioUniversalElectricity = config.fetch("power.ratioUniversalElectricity", ratioUniversalElectricity,
+      """|Conversion ratio for Universal Electricity's Joules. This is how many
+        |internal energy units one Joule generates.""".stripMargin)
 
     // --------------------------------------------------------------------- //
 
