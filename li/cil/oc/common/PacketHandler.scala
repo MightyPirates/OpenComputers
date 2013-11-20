@@ -63,7 +63,13 @@ abstract class PacketHandler extends IPacketHandler {
 
     def readDirection() = ForgeDirection.getOrientation(readInt())
 
-    def readItemStack() = ItemStack.loadItemStackFromNBT(readNBT().asInstanceOf[NBTTagCompound])
+    def readItemStack() = {
+      val haveStack = readBoolean()
+      if (haveStack) {
+        ItemStack.loadItemStackFromNBT(readNBT().asInstanceOf[NBTTagCompound])
+      }
+      else null
+    }
 
     def readNBT() = NBTBase.readNamedTag(this)
   }

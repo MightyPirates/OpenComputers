@@ -23,7 +23,13 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
 
-  def writeItemStack(stack: ItemStack) = writeNBT(stack.writeToNBT(new NBTTagCompound()))
+  def writeItemStack(stack: ItemStack) = {
+    val haveStack = stack != null && stack.stackSize > 0
+    writeBoolean(haveStack)
+    if (haveStack) {
+      writeNBT(stack.writeToNBT(new NBTTagCompound()))
+    }
+  }
 
   def writeNBT(nbt: NBTBase) = NBTBase.writeNamedTag(nbt, this)
 

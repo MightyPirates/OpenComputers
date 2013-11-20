@@ -2,60 +2,87 @@ package li.cil.oc.client.renderer.tileentity
 
 import java.util.logging.Level
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{OpenGlHelper, Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.{Vec3, ResourceLocation}
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.util.RenderState
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val texture = new ResourceLocation(Config.resourceDomain, "textures/blocks/robot.png")
 
   private val displayList = GLAllocation.generateDisplayLists(1)
 
-  private val gap = 1.0 / 28.0
-  private val gt = 0.5 + gap
-  private val gb = 0.5 - gap
+  private val gap = 1.0f / 28.0f
+  private val gt = 0.5f + gap
+  private val gb = 0.5f - gap
+
+  private def normal(v: Vec3) {
+    val n = v.normalize()
+    GL11.glNormal3f(n.xCoord.toFloat, n.yCoord.toFloat, n.zCoord.toFloat)
+  }
 
   def compileList() {
     val t = Tessellator.instance
 
-    val size = 0.4
-    val l = 0.5 - size
-    val h = 0.5 + size
+    val size = 0.4f
+    val l = 0.5f - size
+    val h = 0.5f + size
 
     GL11.glNewList(displayList, GL11.GL_COMPILE)
 
-    t.startDrawing(GL11.GL_TRIANGLE_FAN)
-    t.addVertexWithUV(0.5, 1, 0.5, 0.25, 0.25)
-    t.addVertexWithUV(l, gt, h, 0, 0.5)
-    t.addVertexWithUV(h, gt, h, 0.5, 0.5)
-    t.addVertexWithUV(h, gt, l, 0.5, 0)
-    t.addVertexWithUV(l, gt, l, 0, 0)
-    t.addVertexWithUV(l, gt, h, 0, 0.5)
-    t.draw()
+    GL11.glBegin(GL11.GL_TRIANGLE_FAN)
+    GL11.glTexCoord2f(0.25f, 0.25f)
+    GL11.glVertex3f(0.5f, 1, 0.5f)
+    GL11.glTexCoord2f(0, 0.5f)
+    GL11.glVertex3f(l, gt, h)
+    normal(Vec3.createVectorHelper(0, 0.2, 1))
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3f(h, gt, h)
+    normal(Vec3.createVectorHelper(1, 0.2, 0))
+    GL11.glTexCoord2f(0.5f, 0)
+    GL11.glVertex3f(h, gt, l)
+    normal(Vec3.createVectorHelper(0, 0.2, -1))
+    GL11.glTexCoord2f(0, 0)
+    GL11.glVertex3f(l, gt, l)
+    normal(Vec3.createVectorHelper(-1, 0.2, 0))
+    GL11.glTexCoord2f(0, 0.5f)
+    GL11.glVertex3f(l, gt, h)
+    GL11.glEnd()
 
     t.startDrawingQuads()
+    t.setNormal(0, -1, 0)
     t.addVertexWithUV(l, gt, h, 0, 1)
     t.addVertexWithUV(l, gt, l, 0, 0.5)
     t.addVertexWithUV(h, gt, l, 0.5, 0.5)
     t.addVertexWithUV(h, gt, h, 0.5, 1)
     t.draw()
 
-    t.startDrawing(GL11.GL_TRIANGLE_FAN)
-    t.addVertexWithUV(0.5, 0.03, 0.5, 0.75, 0.25)
-    t.addVertexWithUV(l, gb, l, 0.5, 0)
-    t.addVertexWithUV(h, gb, l, 1, 0)
-    t.addVertexWithUV(h, gb, h, 1, 0.5)
-    t.addVertexWithUV(l, gb, h, 0.5, 0.5)
-    t.addVertexWithUV(l, gb, l, 0.5, 0)
-    t.draw()
+    GL11.glBegin(GL11.GL_TRIANGLE_FAN)
+    GL11.glTexCoord2f(0.75f, 0.25f)
+    GL11.glVertex3f(0.5f, 0.03f, 0.5f)
+    GL11.glTexCoord2f(0.5f, 0)
+    GL11.glVertex3f(l, gb, l)
+    normal(Vec3.createVectorHelper(0, -0.2, 1))
+    GL11.glTexCoord2f(1, 0)
+    GL11.glVertex3f(h, gb, l)
+    normal(Vec3.createVectorHelper(1, -0.2, 0))
+    GL11.glTexCoord2f(1, 0.5f)
+    GL11.glVertex3f(h, gb, h)
+    normal(Vec3.createVectorHelper(0, -0.2, -1))
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3f(l, gb, h)
+    normal(Vec3.createVectorHelper(-1, -0.2, 0))
+    GL11.glTexCoord2f(0.5f, 0)
+    GL11.glVertex3f(l, gb, l)
+    GL11.glEnd()
 
     t.startDrawingQuads()
+    t.setNormal(0, 1, 0)
     t.addVertexWithUV(l, gb, l, 0, 0.5)
     t.addVertexWithUV(l, gb, h, 0, 1)
     t.addVertexWithUV(h, gb, h, 0.5, 1)
@@ -71,13 +98,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f
-
-    {
-      val l = robot.world.getLightBrightnessForSkyBlocks(robot.x, robot.y, robot.z, 0)
-      val l1 = l % 65536
-      val l2 = l / 65536
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1, l2)
-    }
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
@@ -102,29 +122,29 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       case _ => // No yaw.
     }
 
-    GL11.glTranslated(-0.5, -0.5, -0.5)
+    GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
     val timeJitter = robot.hashCode
     val hover =
-      if (robot.isOn) Math.sin(timeJitter + worldTime / 20.0) * 0.03
-      else -0.03
-    GL11.glTranslated(0, hover, 0)
+      if (robot.isOn) (Math.sin(timeJitter + worldTime / 20.0) * 0.03).toFloat
+      else -0.03f
+    GL11.glTranslatef(0, hover, 0)
 
     bindTexture(texture)
     GL11.glCallList(displayList)
 
-    val size = 0.3
-    val l = 0.5 - size
-    val h = 0.5 + size
-    val vStep = 1.0 / 32.0
+    val size = 0.3f
+    val l = 0.5f - size
+    val h = 0.5f + size
+    val vStep = 1.0f / 32.0f
 
-    val strip = timeJitter + worldTime / 20.0
+    val strip = timeJitter + worldTime / 20.0f
     val offsetV = ((strip - strip.toInt) * 16).toInt * vStep
     val (u0, u1, v0, v1) = {
       if (robot.isOn)
-        (0.5, 1.0, 0.5 + offsetV, 0.5 + vStep + offsetV)
+        (0.5f, 1f, 0.5f + offsetV, 0.5f + vStep + offsetV)
       else
-        (0.25 - vStep, 0.25 + vStep, 0.75 - vStep, 0.75 + vStep)
+        (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
     RenderState.disableLighting()
@@ -155,11 +175,11 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     robot.equippedItem match {
       case Some(stack) =>
         GL11.glDisable(GL11.GL_CULL_FACE)
-        GL11.glTranslated(0.1, 0.25, 0.75)
-        GL11.glScaled(0.4, 0.4, -0.4)
+        GL11.glTranslatef(0.1f, 0.25f, 0.75f)
+        GL11.glScalef(0.4f, 0.4f, -0.4f)
         if (robot.isAnimatingSwing) {
           val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-          GL11.glRotated(Math.sin(remaining * Math.PI) * 45, -1, 0, 0)
+          GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, -1, 0, 0)
         }
         GL11.glRotatef(-30, 1, 0, 0)
         GL11.glRotatef(40, 0, 1, 0)
