@@ -12,7 +12,7 @@ import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.{Vec3, AxisAlignedBB, DamageSource, ChunkCoordinates}
 import net.minecraft.world.World
-import net.minecraftforge.common.{ForgeHooks, MinecraftForge, ForgeDirection, FakePlayer}
+import net.minecraftforge.common.{ForgeHooks, ForgeDirection, FakePlayer}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
@@ -180,57 +180,64 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
     val blockId = world.getBlockId(x, y, z)
     val block = Block.blocksList(blockId)
     val metadata = world.getBlockMetadata(x, y, z)
-    val mayBreakBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
-    val canBreakBlock = mayBreakBlock &&
+    val mayClickBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
+    val canClickBlock = mayClickBlock &&
       !block.isAirBlock(world, x, y, z) &&
       FluidRegistry.lookupFluidForBlock(block) == null &&
       !block.isInstanceOf[BlockFluid]
-    if (canBreakBlock) {
-      block.onBlockClicked(world, x, y, z, this)
-      world.extinguishFire(this, x, y, z, side)
-      if (block.canEntityDestroy(world, x, y, z, this)) {
-        if (world.worldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
-          return false
-        }
+    if (!canClickBlock) {
+      return false
+    }
 
-        if (!ForgeHooks.canHarvestBlock(block, this, metadata)) {
-          return false
-        }
+    block.onBlockClicked(world, x, y, z, this)
+    world.extinguishFire(this, x, y, z, side)
 
-        val stack = getCurrentEquippedItem
-        if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
-          return false
-        }
+    val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
+    val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
+    if (!canDestroyBlock) {
+      return false
+    }
 
-        world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
+    if (world.worldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
+      return false
+    }
 
-        if (stack != null) {
-          val oldDamage = stack.getItemDamage
-          stack.onBlockDestroyed(world, blockId, x, y, z, this)
-          if (stack.stackSize == 0) {
-            destroyCurrentEquippedItem()
-          }
-          else {
-            tryRepair(stack, oldDamage)
-          }
-        }
+    if (!ForgeHooks.canHarvestBlock(block, this, metadata)) {
+      return false
+    }
 
-        val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
-        block.onBlockHarvested(world, x, y, z, metadata, this)
-        if (block.removeBlockByPlayer(world, this, x, y, z)) {
-          block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
-          if (block.canHarvestBlock(this, metadata)) {
-            block.harvestBlock(world, this, x, y, z, metadata)
-            val itemsAfter = entitiesInBlock[EntityItem](x, y, z)
-            val itemsDropped = itemsAfter -- itemsBefore
-            for (drop <- itemsDropped) {
-              drop.delayBeforeCanPickup = 0
-              drop.onCollideWithPlayer(this)
-            }
-          }
-          return true
+    val stack = getCurrentEquippedItem
+    if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
+      return false
+    }
+
+    world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
+
+    if (stack != null) {
+      val oldDamage = stack.getItemDamage
+      stack.onBlockDestroyed(world, blockId, x, y, z, this)
+      if (stack.stackSize == 0) {
+        destroyCurrentEquippedItem()
+      }
+      else {
+        tryRepair(stack, oldDamage)
+      }
+    }
+
+    val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
+    block.onBlockHarvested(world, x, y, z, metadata, this)
+    if (block.removeBlockByPlayer(world, this, x, y, z)) {
+      block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
+      if (block.canHarvestBlock(this, metadata)) {
+        block.harvestBlock(world, this, x, y, z, metadata)
+        val itemsAfter = entitiesInBlock[EntityItem](x, y, z)
+        val itemsDropped = itemsAfter -- itemsBefore
+        for (drop <- itemsDropped) {
+          drop.delayBeforeCanPickup = 0
+          drop.onCollideWithPlayer(this)
         }
       }
+      return true
     }
     false
   }
