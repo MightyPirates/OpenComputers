@@ -5,7 +5,8 @@ import cpw.mods.fml.common.network.Player
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import li.cil.oc.common.tileentity.TileEntity
-import net.minecraft.nbt.NBTBase
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.{NBTTagCompound, NBTBase}
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraftforge.common.ForgeDirection
 
@@ -22,9 +23,13 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
 
+  def writeItemStack(stack: ItemStack) = writeNBT(stack.writeToNBT(new NBTTagCompound()))
+
   def writeNBT(nbt: NBTBase) = NBTBase.writeNamedTag(nbt, this)
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
+
+  def sendToNearbyPlayers(t: TileEntity, range: Double = 64) = PacketDispatcher.sendPacketToAllAround(t.x, t.y, t.z, range, t.world.provider.dimensionId, packet)
 
   def sendToPlayer(player: Player) = PacketDispatcher.sendPacketToPlayer(packet, player)
 

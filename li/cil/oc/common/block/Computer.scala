@@ -17,14 +17,6 @@ abstract class Computer extends Delegate {
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
 
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) = {
-    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer => computer.computer.stop()
-      case _ => // Ignore.
-    }
-    super.onBlockPreDestroy(world, x, y, z)
-  }
-
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {

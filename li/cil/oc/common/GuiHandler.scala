@@ -11,8 +11,8 @@ abstract class GuiHandler extends IGuiHandler {
         new container.Case(player.inventory, computer)
       case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
         new container.DiskDrive(player.inventory, drive)
-      case robot: tileentity.Robot if id == GuiType.Robot.id =>
-        new container.Robot(player.inventory, robot)
+      case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
+        new container.Robot(player.inventory, proxy.robot)
       case _ => null
     }
 }

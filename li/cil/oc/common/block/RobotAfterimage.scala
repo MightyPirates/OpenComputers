@@ -53,7 +53,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (rx, ry, rz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
       world.getBlockTileEntity(rx, ry, rz) match {
-        case robot: tileentity.Robot if robot.isAnimatingMove && robot.moveDirection == side => return Some(robot)
+        case proxy: tileentity.RobotProxy if proxy.robot.isAnimatingMove && proxy.robot.moveDirection == side => return Some(proxy.robot)
         case _ =>
       }
     }

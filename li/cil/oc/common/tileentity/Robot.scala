@@ -11,39 +11,43 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Config, api, common}
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
-import scala.collection.convert.WrapAsScala._
 
 class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
   def this() = this(false)
 
+  var proxy: RobotProxy = _
+
   // ----------------------------------------------------------------------- //
 
-  override val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("computer", Visibility.Neighbors).
-    create()
+  override def node = if (isClient) null else computer.node
 
-  override val buffer = new common.component.Buffer(this) {
+  override val buffer_ = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
-  override val computer = if (isRemote) null else new component.Robot(this)
+  override val computer_ = if (isRemote) null else new component.Robot(this)
   val (battery, distributor, gpu, keyboard) = if (isServer) {
     val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
     val distributor = new component.PowerDistributor(this)
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
     }
-    val keyboard = new component.Keyboard(this)
+    val keyboard = new component.Keyboard(this) {
+      override def isUseableByPlayer(p: EntityPlayer) =
+        world.getBlockTileEntity(x, y, z) == proxy &&
+          p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+    }
     (battery, distributor, gpu, keyboard)
   }
   else (null, null, null, null)
 
   var selectedSlot = 0
 
-  private lazy val player_ = new Player(this)
+  var equippedItem: Option[ItemStack] = None
 
   var animationTicksLeft = 0
 
@@ -51,12 +55,15 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   var moveDirection = ForgeDirection.UNKNOWN
 
-  var turnOldFacing = ForgeDirection.UNKNOWN
+  var swingingTool = false
+
+  var turnAxis = 0
+
+  private lazy val player_ = new Player(this)
 
   // ----------------------------------------------------------------------- //
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
-    assert(isServer)
     player_.updatePositionAndRotation(facing, side)
     player_
   }
@@ -66,70 +73,96 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   def move(direction: ForgeDirection) = {
     val (ox, oy, oz) = (x, y, z)
     val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
-    // Setting this will make the tile entity created via the following call
-    // to setBlock to re-use our "real" instance as the inner object, instead
-    // of creating a new one.
-    Blocks.robot.moving.set(Some(this))
-    // Do *not* immediately send the change to clients to allow checking if it
-    // worked before the client is notified so that we can use the same trick on
-    // the client by sending a corresponding packet. This also saves us from
-    // having to send the complete state again (e.g. screen buffer) each move.
     val blockId = world.getBlockId(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
-    val created = world.setBlock(nx, ny, nz, getBlockType.blockID, getBlockMetadata, 1)
-    if (created) {
-      assert(world.getBlockTileEntity(nx, ny, nz) == this)
-      assert(x == nx && y == ny && z == nz)
-      world.setBlock(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, Blocks.robotAfterimage.blockId, 1)
-      assert(Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
-      if (isServer) {
-        ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
-        for (neighbor <- node.neighbors) {
-          node.disconnect(neighbor)
+    try {
+      // Setting this will make the tile entity created via the following call
+      // to setBlock to re-use our "real" instance as the inner object, instead
+      // of creating a new one.
+      Blocks.robotProxy.moving.set(Some(this))
+      // Do *not* immediately send the change to clients to allow checking if it
+      // worked before the client is notified so that we can use the same trick on
+      // the client by sending a corresponding packet. This also saves us from
+      // having to send the complete state again (e.g. screen buffer) each move.
+      val created = world.setBlock(nx, ny, nz, Blocks.robotProxy.parent.blockID, Blocks.robotProxy.blockId, 1)
+      if (created) {
+        assert(world.getBlockTileEntity(nx, ny, nz) == proxy)
+        assert(x == nx && y == ny && z == nz)
+        world.setBlock(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, Blocks.robotAfterimage.blockId, 1)
+        assert(Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
+        if (isServer) {
+          ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
         }
-        api.Network.joinOrCreateNetwork(world, nx, ny, nz)
-      }
-      else {
-        // On the client this is called from the packet handler code, leading
-        // to the entity being added directly to the list of loaded tile
-        // entities, without any additional checks - so we get a duplicate.
-        val duplicate = world.loadedTileEntityList.remove(world.loadedTileEntityList.size - 1)
-        assert(duplicate == this)
-        if (blockId > 0) {
-          world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+        else {
+          // If we broke some replaceable block (like grass) play its break sound.
+          if (blockId > 0) {
+            world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+          }
+          world.markBlockForRenderUpdate(ox, oy, oz)
+          world.markBlockForRenderUpdate(nx, ny, nz)
         }
-        world.markBlockForUpdate(ox, oy, oz)
-        world.markBlockForUpdate(nx, ny, nz)
+        assert(!isInvalid)
       }
-      assert(!isInvalid)
+      if (created) {
+        // Here instead of Lua callback so that it gets triggered on client.
+        animateMove(direction, Config.moveDelay)
+        checkRedstoneInputChanged()
+      }
+      created
     }
-    Blocks.robot.moving.set(None)
-    if (created) {
-      animateMove(direction, Config.moveDelay)
-      checkRedstoneInputChanged()
+    finally {
+      Blocks.robotProxy.moving.set(None)
     }
-    created
   }
 
   def isAnimatingMove = animationTicksLeft > 0 && moveDirection != ForgeDirection.UNKNOWN
 
-  def isAnimatingTurn = animationTicksLeft > 0 && turnOldFacing != ForgeDirection.UNKNOWN
+  def isAnimatingSwing = animationTicksLeft > 0 && swingingTool
 
-  def animateMove(direction: ForgeDirection, duration: Double) {
-    animationTicksTotal = (duration * 20).toInt
-    animationTicksLeft = animationTicksTotal
-    moveDirection = direction
-    turnOldFacing = ForgeDirection.UNKNOWN
+  def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
+
+  def animateMove(direction: ForgeDirection, duration: Double) =
+    setAnimateMove(direction, (duration * 20).toInt)
+
+  def animateSwing(duration: Double) = {
+    setAnimateSwing((duration * 20).toInt)
+    ServerPacketSender.sendRobotAnimateSwing(this)
   }
 
-  def animateTurn(oldFacing: ForgeDirection, duration: Double) {
-    animationTicksTotal = (duration * 20).toInt
+  def animateTurn(clockwise: Boolean, duration: Double) = {
+    setAnimateTurn(if (clockwise) 1 else -1, (duration * 20).toInt)
+    ServerPacketSender.sendRobotAnimateTurn(this)
+  }
+
+  def setAnimateMove(direction: ForgeDirection, ticks: Int) {
+    animationTicksTotal = ticks
+    prepareForAnimation()
+    moveDirection = direction
+  }
+
+  def setAnimateSwing(ticks: Int) {
+    animationTicksTotal = ticks
+    prepareForAnimation()
+    swingingTool = true
+  }
+
+  def setAnimateTurn(axis: Int, ticks: Int) {
+    animationTicksTotal = ticks
+    prepareForAnimation()
+    turnAxis = axis
+  }
+
+  private def prepareForAnimation() {
     animationTicksLeft = animationTicksTotal
     moveDirection = ForgeDirection.UNKNOWN
-    turnOldFacing = oldFacing
+    swingingTool = false
+    turnAxis = 0
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def getRenderBoundingBox =
+    getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(0.5, 0.5, 0.5)
 
   override def installedMemory = 64 * 1024
 
@@ -137,21 +170,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("start")
-  def start(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.start())
-
-  @LuaCallback("stop")
-  def stop(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.stop())
-
-  @LuaCallback(value = "isRunning", direct = true)
-  def isRunning(context: Context, args: Arguments): Array[AnyRef] =
-    result(computer.isRunning)
-
-  // ----------------------------------------------------------------------- //
-
   override def updateEntity() {
+    if (node != null && node.network == null) {
+      api.Network.joinNewNetwork(computer.node)
+    }
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
@@ -173,34 +195,29 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
 
   override def validate() {
-    if (Blocks.robot.moving.get.isEmpty) {
-      super.validate()
-      if (isServer) {
-        items(0) match {
-          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-          case _ =>
-        }
+    super.validate()
+    if (isServer) {
+      items(0) match {
+        case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+        case _ =>
       }
-      else {
-        ClientPacketSender.sendScreenBufferRequest(this)
-        ClientPacketSender.sendRobotStateRequest(this)
-      }
+    }
+    else {
+      ClientPacketSender.sendScreenBufferRequest(this)
+      ClientPacketSender.sendRobotStateRequest(this)
     }
   }
 
   override def invalidate() {
-    if (Blocks.robot.moving.get.isEmpty) {
-      super.invalidate()
-      if (currentGui.isDefined) {
-        Minecraft.getMinecraft.displayGuiScreen(null)
-      }
+    super.invalidate()
+    if (currentGui.isDefined) {
+      Minecraft.getMinecraft.displayGuiScreen(null)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
     if (isServer) {
       battery.load(nbt.getCompoundTag(Config.namespace + "battery"))
       buffer.load(nbt.getCompoundTag(Config.namespace + "buffer"))
@@ -211,12 +228,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     selectedSlot = nbt.getInteger(Config.namespace + "selectedSlot")
     animationTicksTotal = nbt.getInteger(Config.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Config.namespace + "animationTicksLeft")
-    moveDirection = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "moveDirection"))
-    turnOldFacing = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "turnOldFacing"))
+    if (animationTicksLeft > 0) {
+      moveDirection = ForgeDirection.getOrientation(nbt.getByte(Config.namespace + "moveDirection"))
+      swingingTool = nbt.getBoolean(Config.namespace + "swingingTool")
+      turnAxis = nbt.getByte(Config.namespace + "turnAxis")
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
     if (isServer) {
       nbt.setNewCompoundTag(Config.namespace + "battery", battery.save)
       nbt.setNewCompoundTag(Config.namespace + "buffer", buffer.save)
@@ -225,27 +244,26 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
     }
     nbt.setInteger(Config.namespace + "selectedSlot", selectedSlot)
-    if (isAnimatingMove || isAnimatingTurn) {
+    if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Config.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Config.namespace + "animationTicksLeft", animationTicksLeft)
-      nbt.setInteger(Config.namespace + "moveDirection", moveDirection.ordinal)
-      nbt.setInteger(Config.namespace + "turnOldFacing", turnOldFacing.ordinal)
+      nbt.setByte(Config.namespace + "moveDirection", moveDirection.ordinal.toByte)
+      nbt.setBoolean(Config.namespace + "swingingTool", swingingTool)
+      nbt.setByte(Config.namespace + "turnAxis", turnAxis.toByte)
     }
   }
 
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
+    super.onConnect(node)
     if (node == this.node) {
-      api.Network.joinNewNetwork(computer.node)
-
       computer.node.connect(buffer.node)
       computer.node.connect(distributor.node)
       computer.node.connect(gpu.node)
       distributor.node.connect(battery)
       buffer.node.connect(keyboard.node)
     }
-    super.onConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -280,6 +298,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   override def getInventoryStackLimit = 64
 
+  override def isUseableByPlayer(player: EntityPlayer) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: RobotProxy if t == proxy => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+      case _ => false
+    }
+
   def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(item) == Slot.Card
@@ -288,19 +312,38 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     case _ => false // Invalid slot.
   }
 
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    if (isServer) {
+      computer.signal("inventory_changed")
+    }
+  }
+
   override protected def onItemRemoved(slot: Int, item: ItemStack) {
     super.onItemRemoved(slot, item)
-    if (slot == 0) {
-      player_.getAttributeMap.removeAttributeModifiers(item.getAttributeModifiers)
+    if (isServer) {
+      if (slot == 0) {
+        player_.getAttributeMap.removeAttributeModifiers(item.getAttributeModifiers)
+        ServerPacketSender.sendRobotEquippedItemChange(this)
+      }
+      else if (slot >= actualSlot(0)) {
+        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
     }
   }
 
   override protected def onItemAdded(slot: Int, item: ItemStack) {
-    if (slot == 0) {
-      player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-    }
-    else if (slot == 1 || slot == 2) {
-      super.onItemAdded(slot, item)
+    if (isServer) {
+      if (slot == 0) {
+        player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+        ServerPacketSender.sendRobotEquippedItemChange(this)
+      }
+      else if (slot == 1 || slot == 2) {
+        super.onItemAdded(slot, item)
+      }
+      else if (slot >= actualSlot(0)) {
+        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
     }
   }
 }

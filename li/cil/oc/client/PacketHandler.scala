@@ -27,6 +27,9 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
+      case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
+      case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
+      case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RobotStateResponse => onRobotStateResponse(p)
@@ -80,26 +83,46 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRobotAnimateSwing(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.setAnimateSwing(p.readInt())
+      case _ => // Invalid packet.
+    }
+
+  def onRobotAnimateTurn(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.setAnimateTurn(p.readByte(), p.readInt())
+      case _ => // Invalid packet.
+    }
+
+  def onRobotEquippedItemChange(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.equippedItem = Option(p.readItemStack())
+      case _ => // Invalid packet.
+    }
+
   def onRobotMove(p: PacketParser) =
-    p.readTileEntity[Robot]() match {
-      case Some(t) => t.move(p.readDirection())
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.move(p.readDirection())
       case _ => // Invalid packet.
     }
 
   def onRobotSelectedSlotChange(p: PacketParser) =
-    p.readTileEntity[Robot]() match {
-      case Some(t) => t.selectedSlot = p.readInt()
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.selectedSlot = p.readInt()
       case _ => // Invalid packet.
     }
 
   def onRobotStateResponse(p: PacketParser) =
-    p.readTileEntity[Robot]() match {
+    p.readTileEntity[RobotProxy]() match {
       case Some(t) =>
-        t.selectedSlot = p.readInt()
-        t.animationTicksTotal = p.readInt()
-        t.animationTicksLeft = p.readInt()
-        t.moveDirection = p.readDirection()
-        t.turnOldFacing = p.readDirection()
+        t.robot.selectedSlot = p.readInt()
+        t.robot.equippedItem = Option(p.readItemStack())
+        t.robot.animationTicksTotal = p.readInt()
+        t.robot.animationTicksLeft = p.readInt()
+        t.robot.moveDirection = p.readDirection()
+        t.robot.swingingTool = p.readBoolean()
+        t.robot.turnAxis = p.readByte()
       case _ => // Invalid packet.
     }
 

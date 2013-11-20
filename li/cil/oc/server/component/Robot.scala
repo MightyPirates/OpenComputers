@@ -165,6 +165,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       }
       if (what) {
         context.pause(Config.placeDelay)
+        robot.animateSwing(Config.placeDelay)
       }
       result(what)
     }
@@ -207,17 +208,21 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val player = robot.player(facing, side)
+    def triggerDelay() = {
+      context.pause(Config.swingDelay)
+      robot.animateSwing(Config.swingDelay)
+    }
     Option(pick(facing, side, Config.swingRange)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
             player.attackTargetEntityWithCurrentItem(hit.entityHit)
-            context.pause(Config.swingDelay)
+            triggerDelay()
             result(true, "entity")
           case EnumMovingObjectType.TILE =>
             val broke = player.clickBlock(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
             if (broke) {
-              context.pause(Config.swingDelay)
+              triggerDelay()
             }
             result(broke, "block")
         }
@@ -226,7 +231,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         player.closestLivingEntity(facing) match {
           case Some(entity) =>
             player.attackTargetEntityWithCurrentItem(entity)
-            context.pause(Config.swingDelay)
+            triggerDelay()
             result(true, "entity")
           case _ =>
             result(false)
@@ -243,16 +248,20 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val player = robot.player(facing, side)
+    def triggerDelay() {
+      context.pause(Config.useDelay)
+      robot.animateSwing(Config.useDelay)
+    }
     def activationResult(activationType: ActivationType.Value): Array[AnyRef] =
       activationType match {
         case ActivationType.BlockActivated =>
-          context.pause(Config.useDelay)
+          triggerDelay()
           result(true, "block_activated")
         case ActivationType.ItemPlaced =>
-          context.pause(Config.useDelay)
+          triggerDelay()
           result(true, "item_placed")
         case ActivationType.ItemUsed =>
-          context.pause(Config.useDelay)
+          triggerDelay()
           result(true, "item_used")
         case _ => result(false)
       }
@@ -275,7 +284,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         } else ActivationType.None) match {
           case ActivationType.None =>
             if (player.useEquippedItem()) {
-              context.pause(Config.useDelay)
+              triggerDelay()
               result(true, "item_used")
             }
             else result(false)
@@ -321,10 +330,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    val oldFacing = robot.facing
     if (clockwise) robot.rotate(ForgeDirection.UP)
     else robot.rotate(ForgeDirection.DOWN)
-    robot.animateTurn(oldFacing, 0.4)
+    robot.animateTurn(clockwise, Config.turnDelay)
     context.pause(Config.turnDelay)
     result(true)
   }

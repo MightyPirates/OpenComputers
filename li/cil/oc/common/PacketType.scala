@@ -1,37 +1,40 @@
 package li.cil.oc.common
 
 object PacketType extends Enumeration {
-  val ComputerStateRequest = Value("ComputerStateRequest")
-  val ComputerStateResponse = Value("ComputerStateResponse")
+  val ComputerStateRequest,
+  ComputerStateResponse,
 
-  val PowerStateRequest = Value("PowerStateRequest")
-  val PowerStateResponse = Value("PowerStateResponse")
+  PowerStateRequest,
+  PowerStateResponse,
 
-  val RedstoneStateRequest = Value("RedstoneStateRequest")
-  val RedstoneStateResponse = Value("RedstoneStateResponse")
+  RedstoneStateRequest,
+  RedstoneStateResponse,
 
-  val RobotMove = Value("RobotMove")
-  val RobotSelectedSlotChange = Value("RobotSelectedSlotChange")
-  val RobotStateRequest = Value("RobotSelectedSlotRequest")
-  val RobotStateResponse = Value("RobotStateResponse")
+  RobotAnimateSwing,
+  RobotAnimateTurn,
+  RobotEquippedItemChange,
+  RobotMove,
+  RobotSelectedSlotChange,
+  RobotStateRequest,
+  RobotStateResponse,
 
-  val RotatableStateRequest = Value("RotatableStateRequest")
-  val RotatableStateResponse = Value("RotatableStateResponse")
+  RotatableStateRequest,
+  RotatableStateResponse,
 
-  val ScreenBufferRequest = Value("ScreenBufferRequest")
-  val ScreenBufferResponse = Value("ScreenBufferResponse")
+  ScreenBufferRequest,
+  ScreenBufferResponse,
 
-  val ScreenColorChange = Value("ScreenColorChange")
-  val ScreenCopy = Value("ScreenCopy")
-  val ScreenDepthChange = Value("ScreenDepthChange")
-  val ScreenFill = Value("ScreenFill")
-  val ScreenPowerChange = Value("ScreenPowerChange")
-  val ScreenResolutionChange = Value("ScreenResolutionChange")
-  val ScreenSet = Value("ScreenSet")
+  ScreenColorChange,
+  ScreenCopy,
+  ScreenDepthChange,
+  ScreenFill,
+  ScreenPowerChange,
+  ScreenResolutionChange,
+  ScreenSet,
 
-  val KeyDown = Value("KeyDown")
-  val KeyUp = Value("KeyUp")
-  val Clipboard = Value("Clipboard")
+  KeyDown,
+  KeyUp,
+  Clipboard,
 
-  val Analyze = Value("Analyze")
+  Analyze = Value
 }

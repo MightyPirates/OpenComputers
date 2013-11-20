@@ -154,9 +154,9 @@ class Screen(var tier: Int) extends Buffer with Rotatable with Analyzable with O
     if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
     else {
       val (sx, sy, sz) = unproject(width, height, 1)
-      val ox = xCoord + (if (sx < 0) 1 else 0)
-      val oy = yCoord + (if (sy < 0) 1 else 0)
-      val oz = zCoord + (if (sz < 0) 1 else 0)
+      val ox = x + (if (sx < 0) 1 else 0)
+      val oy = y + (if (sy < 0) 1 else 0)
+      val oz = z + (if (sz < 0) 1 else 0)
       val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
       b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
         b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
@@ -227,7 +227,7 @@ class Screen(var tier: Int) extends Buffer with Rotatable with Analyzable with O
   }
 
   private def project(t: Screen) = {
-    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.xCoord + f.offsetY * s.yCoord + f.offsetZ * s.zCoord
+    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.x + f.offsetY * s.y + f.offsetZ * s.z
     (dot(toGlobal(ForgeDirection.EAST), t), dot(toGlobal(ForgeDirection.UP), t), dot(toGlobal(ForgeDirection.SOUTH), t))
   }
 

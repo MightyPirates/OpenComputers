@@ -6,7 +6,8 @@ import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
-import net.minecraft.nbt.NBTBase
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.{NBTTagCompound, NBTBase}
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
@@ -61,6 +62,8 @@ abstract class PacketHandler extends IPacketHandler {
     }
 
     def readDirection() = ForgeDirection.getOrientation(readInt())
+
+    def readItemStack() = ItemStack.loadItemStackFromNBT(readNBT().asInstanceOf[NBTTagCompound])
 
     def readNBT() = NBTBase.readNamedTag(this)
   }

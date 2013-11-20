@@ -125,7 +125,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
   def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val cable = t.asInstanceOf[Cable]
 
-    val l = t.getWorldObj.getLightBrightnessForSkyBlocks(t.xCoord, t.yCoord, t.zCoord, 0)
+    val l = t.getWorldObj.getLightBrightnessForSkyBlocks(cable.x, cable.y, cable.z, 0)
     val l1 = l % 65536
     val l2 = l / 65536
     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1, l2)

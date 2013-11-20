@@ -63,7 +63,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
-    pb.writeInt(t.world.provider.dimensionId)
+    pb.writeInt(t.proxy.world.provider.dimensionId)
     pb.writeInt(ox)
     pb.writeInt(oy)
     pb.writeInt(oz)
@@ -72,27 +72,54 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendRobotSelectedSlotChange(t: Robot, player: Option[Player] = None) {
+  def sendRobotAnimateSwing(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotAnimateSwing)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeInt(t.animationTicksTotal)
+
+    pb.sendToNearbyPlayers(t.proxy)
+  }
+
+  def sendRobotAnimateTurn(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotAnimateTurn)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeByte(t.turnAxis)
+    pb.writeInt(t.animationTicksTotal)
+
+    pb.sendToNearbyPlayers(t.proxy)
+  }
+
+  def sendRobotEquippedItemChange(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotEquippedItemChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeItemStack(t.getStackInSlot(0))
+
+    pb.sendToAllPlayers()
+  }
+
+  def sendRobotSelectedSlotChange(t: Robot) {
     val pb = new PacketBuilder(PacketType.RobotSelectedSlotChange)
 
-    pb.writeTileEntity(t)
+    pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
-    }
+    pb.sendToAllPlayers()
   }
 
   def sendRobotState(t: Robot, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RobotStateResponse)
 
-    pb.writeTileEntity(t)
+    pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
+    pb.writeItemStack(t.getStackInSlot(0))
     pb.writeInt(t.animationTicksTotal)
     pb.writeInt(t.animationTicksLeft)
     pb.writeDirection(t.moveDirection)
-    pb.writeDirection(t.turnOldFacing)
+    pb.writeBoolean(t.swingingTool)
+    pb.writeByte(t.turnAxis)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

@@ -69,7 +69,7 @@ class Keyboard(owner: Environment) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  private def isUseableByPlayer(p: EntityPlayer) =
+  def isUseableByPlayer(p: EntityPlayer) =
     owner.world.getBlockTileEntity(owner.x, owner.y, owner.z) == owner &&
       p.getDistanceSq(owner.x + 0.5, owner.y + 0.5, owner.z + 0.5) <= 64
 }

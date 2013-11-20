@@ -16,7 +16,7 @@ object Blocks {
   var keyboard: Keyboard = null
   var powerDistributor: PowerDistributor = null
   var powerSupply: PowerConverter = null
-  var robot: Robot = null
+  var robotProxy: RobotProxy = null
   var robotAfterimage: RobotAfterimage = null
   var screen1, screen2, screen3: Screen = null
 
@@ -35,7 +35,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Config.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Config.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Config.namespace + "power_distributor")
-    GameRegistry.registerTileEntity(classOf[tileentity.Robot], Config.namespace + "robot")
+    GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Config.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Config.namespace + "screen")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -53,7 +53,7 @@ object Blocks {
     screen3 = new Screen.Tier3(blockSimple)
 
     capacitor = new Capacitor(blockSimple)
-    robot = new Robot(blockSpecial)
+    robotProxy = new RobotProxy(blockSpecial)
     robotAfterimage = new RobotAfterimage(blockSpecial)
   }
 }

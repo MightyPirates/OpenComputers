@@ -7,7 +7,7 @@ import net.minecraft.util.{AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
-class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
+class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
   val unlocalizedName = "Robot"
 
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
@@ -16,8 +16,8 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
 
   override def createTileEntity(world: World) = {
     moving.get match {
-      case Some(robot) => Some(robot)
-      case _ => Some(new tileentity.Robot(world.isRemote))
+      case Some(robot) => Some(new tileentity.RobotProxy(robot))
+      case _ => Some(new tileentity.RobotProxy(new tileentity.Robot(world.isRemote)))
     }
   }
 
@@ -35,14 +35,14 @@ class Robot(val parent: SpecialDelegator) extends Computer with SpecialDelegate 
 
   override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = parent.getCollisionBoundingBoxFromPool(world, x, y, z)
-    bounds.offset(x, y, z)
     if (bounds.isVecInside(origin)) null
     else super.collisionRayTrace(world, x, y, z, origin, direction)
   }
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
     world.getBlockTileEntity(x, y, z) match {
-      case robot: tileentity.Robot =>
+      case proxy: tileentity.RobotProxy =>
+        val robot = proxy.robot
         val bounds = AxisAlignedBB.getBoundingBox(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
         if (robot.isAnimatingMove) {
           val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble

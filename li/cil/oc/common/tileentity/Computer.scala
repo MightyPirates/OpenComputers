@@ -11,7 +11,9 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
 abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with Redstone with Analyzable {
-  val computer = if (isRemote) null else new component.Computer(this)
+  protected val computer_ = if (isRemote) null else new component.Computer(this)
+
+  def computer = computer_
 
   def node = if (isClient) null else computer.node
 
@@ -52,7 +54,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
       if (hasChanged) {
         hasChanged = false
-        worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
+        world.markTileEntityChunkModified(x, y, z, this)
       }
 
       if (isRunning != computer.isRunning) {
