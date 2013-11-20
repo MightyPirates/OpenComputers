@@ -17,8 +17,8 @@ class Item(id: Int) extends ItemBlock(id) {
   override def getUnlocalizedName = Config.namespace + "block"
 
   override def getUnlocalizedName(item: ItemStack) =
-    Block.blocksList(item.itemID) match {
-      case multiBlock: Delegator[_] => Config.namespace + "block." + multiBlock.getUnlocalizedName(item.getItemDamage)
+    Block.blocksList(getBlockID) match {
+      case delegator: Delegator[_] => Config.namespace + "block." + delegator.getUnlocalizedName(item.getItemDamage)
       case block => block.getUnlocalizedName
     }
 

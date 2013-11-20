@@ -29,7 +29,7 @@ class Delegator(id: Int) extends Item(id) {
 
   def subItem(item: ItemStack): Option[Delegate] =
     subItem(item.getItemDamage) match {
-      case Some(subItem) if item.itemID == this.itemID => Some(subItem)
+      case Some(subItem) if item.getItem == this => Some(subItem)
       case _ => None
     }
 

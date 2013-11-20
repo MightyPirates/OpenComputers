@@ -150,7 +150,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     else {
       player.setSneaking(sneaky)
-      val what = Option(pick(facing, side, 0.51)) match {
+      val what = Option(pick(facing, side, Config.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
@@ -207,7 +207,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val player = robot.player(facing, side)
-    Option(pick(facing, side, 0.49)) match {
+    Option(pick(facing, side, Config.swingRange)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
@@ -257,11 +257,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case _ => result(false)
       }
     player.setSneaking(sneaky)
-    val what = Option(pick(facing, side, 0.51)) match {
+    val what = Option(pick(facing, side, Config.useAndPlaceRange)) match {
       case Some(hit) =>
         hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
             // TODO Is there any practical use for this? Most of the stuff related to this is still 'obfuscated'...
+            // TODO I think this is used for shearing sheep, for example... needs looking into.
             result(false, "entity")
           case EnumMovingObjectType.TILE =>
             val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
@@ -380,7 +381,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   // ----------------------------------------------------------------------- //
 
   private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.itemID == stackB.itemID &&
+    stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))

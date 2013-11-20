@@ -48,7 +48,7 @@ object FileSystem extends Item {
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(nbt(item))
     Option(oc.api.FileSystem.asManagedEnvironment(oc.api.FileSystem.
-      fromSaveDirectory(address, capacity, Config.filesBuffered), new ItemLabel(item))) match {
+      fromSaveDirectory(address, capacity, Config.bufferChanges), new ItemLabel(item))) match {
       case Some(environment) =>
         environment.node.asInstanceOf[oc.server.network.Node].address = address
         environment

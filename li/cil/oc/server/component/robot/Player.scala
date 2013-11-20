@@ -12,7 +12,7 @@ import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.{Vec3, AxisAlignedBB, DamageSource, ChunkCoordinates}
 import net.minecraft.world.World
-import net.minecraftforge.common.{ForgeDirection, FakePlayer}
+import net.minecraftforge.common.{ForgeHooks, MinecraftForge, ForgeDirection, FakePlayer}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
@@ -179,6 +179,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
 
     val blockId = world.getBlockId(x, y, z)
     val block = Block.blocksList(blockId)
+    val metadata = world.getBlockMetadata(x, y, z)
     val mayBreakBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
     val canBreakBlock = mayBreakBlock &&
       !block.isAirBlock(world, x, y, z) &&
@@ -192,12 +193,15 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
           return false
         }
 
+        if (!ForgeHooks.canHarvestBlock(block, this, metadata)) {
+          return false
+        }
+
         val stack = getCurrentEquippedItem
         if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
           return false
         }
 
-        val metadata = world.getBlockMetadata(x, y, z)
         world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
 
         if (stack != null) {

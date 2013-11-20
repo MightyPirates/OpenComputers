@@ -18,7 +18,7 @@ trait Item extends api.driver.Item {
   }
 
   protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =
-    stack.itemID == Items.multi.itemID && (Items.multi.subItem(stack) match {
+    stack.getItem == Items.multi && (Items.multi.subItem(stack) match {
       case None => false
       case Some(subItem) => items.contains(subItem)
     })

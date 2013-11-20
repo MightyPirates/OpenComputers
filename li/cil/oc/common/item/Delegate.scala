@@ -33,6 +33,6 @@ trait Delegate {
 
   def registerIcons(iconRegister: IconRegister) {}
 
-  def equals(item: ItemStack) =
-    item != null && item.itemID == parent.itemID && parent.subItem(item).exists(_.itemId == itemId)
+  def equals(stack: ItemStack) =
+    stack != null && stack.getItem == parent && parent.subItem(stack).exists(_ == this)
 }

@@ -6,7 +6,7 @@ import li.cil.oc.api.driver.Slot
 import net.minecraft.item.ItemStack
 
 object Memory extends Item with driver.Memory {
-  def amount(item: ItemStack) = if (item.itemID == Items.multi.itemID) Items.multi.subItem(item) match {
+  def amount(stack: ItemStack) = if (stack.getItem == Items.multi) Items.multi.subItem(stack) match {
     case Some(memory: li.cil.oc.common.item.Memory) => memory.kiloBytes * 1024
     case _ => 0
   } else 0
