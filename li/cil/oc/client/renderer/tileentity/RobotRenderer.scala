@@ -138,7 +138,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     val h = 0.5f + size
     val vStep = 1.0f / 32.0f
 
-    val strip = timeJitter + worldTime / 20.0f
+    val strip = timeJitter + worldTime / 20.0
     val offsetV = ((strip - strip.toInt) * 16).toInt * vStep
     val (u0, u1, v0, v1) = {
       if (robot.isOn)

@@ -5,6 +5,7 @@ import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.util.PackedColor
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
@@ -91,11 +92,11 @@ object PacketSender {
     pb.sendToNearbyPlayers(t.proxy)
   }
 
-  def sendRobotEquippedItemChange(t: Robot) {
+  def sendRobotEquippedItemChange(t: Robot, stack: ItemStack) {
     val pb = new PacketBuilder(PacketType.RobotEquippedItemChange)
 
     pb.writeTileEntity(t.proxy)
-    pb.writeItemStack(t.getStackInSlot(0))
+    pb.writeItemStack(stack)
 
     pb.sendToAllPlayers()
   }

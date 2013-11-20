@@ -17,6 +17,12 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
+// Implementation note: this tile entity is never directly added to the world.
+// It is always wrapped by a `RobotProxy` tile entity, which forwards any
+// necessary calls to this class. This is done to make moves efficient: when a
+// robot moves we only create a new proxy tile entity, hook the instance of this
+// class that was held by the old proxy to it and can then safely forget the
+// old proxy, which will be cleaned up by Minecraft like any other tile entity.
 class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
   def this() = this(false)
 
@@ -172,7 +178,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   override def updateEntity() {
     if (node != null && node.network == null) {
-      api.Network.joinNewNetwork(computer.node)
+      api.Network.joinNewNetwork(node)
     }
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
@@ -280,10 +286,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   // ----------------------------------------------------------------------- //
 
-  override protected def connectItemNode(node: Node) {
-    computer.node.connect(node)
-  }
-
   @SideOnly(Side.CLIENT)
   override protected def markForRenderUpdate() {
     super.markForRenderUpdate()
@@ -324,7 +326,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     if (isServer) {
       if (slot == 0) {
         player_.getAttributeMap.removeAttributeModifiers(item.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this)
+        ServerPacketSender.sendRobotEquippedItemChange(this, null)
       }
       else if (slot >= actualSlot(0)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -336,7 +338,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
     if (isServer) {
       if (slot == 0) {
         player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this)
+        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(0))
       }
       else if (slot == 1 || slot == 2) {
         super.onItemAdded(slot, item)

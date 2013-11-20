@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import mods.immibis.redlogic.api.wiring.IWire
@@ -13,6 +14,12 @@ import net.minecraftforge.common.ForgeDirection
 
 class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer with PowerInformation {
   def this() = this(new Robot(false))
+
+  // ----------------------------------------------------------------------- //
+
+  override val node = api.Network.newNode(this, Visibility.Network).
+    withComponent("robot", Visibility.Neighbors).
+    create()
 
   // ----------------------------------------------------------------------- //
 
@@ -30,17 +37,69 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer 
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = robot.onAnalyze(stats, player, side, hitX, hitY, hitZ)
+  override def updateEntity() {
+    if (node != null && node.network == null) {
+      Network.joinOrCreateNetwork(world, x, y, z)
+    }
+    robot.updateEntity()
+  }
 
-  // ----------------------------------------------------------------------- //
+  override def validate() {
+    super.validate()
+    val firstProxy = robot.proxy == null
+    robot.proxy = this
+    robot.worldObj = worldObj
+    robot.xCoord = xCoord
+    robot.yCoord = yCoord
+    robot.zCoord = zCoord
+    if (firstProxy) {
+      robot.validate()
+    }
+  }
 
-  override val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("computer", Visibility.Neighbors).
-    create()
+  override def invalidate() {
+    super.invalidate()
+    if (robot.proxy == this) {
+      robot.invalidate()
+    }
+  }
+
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    if (robot.proxy == this) {
+      robot.onChunkUnload()
+    }
+  }
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    robot.readFromNBT(nbt)
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    robot.writeToNBT(nbt)
+  }
+
+  override def save(nbt: NBTTagCompound) = robot.save(nbt)
+
+  override def load(nbt: NBTTagCompound) = robot.load(nbt)
+
+  override def getMaxRenderDistanceSquared = robot.getMaxRenderDistanceSquared
+
+  override def getRenderBoundingBox = robot.getRenderBoundingBox
+
+  override def shouldRenderInPass(pass: Int) = robot.shouldRenderInPass(pass)
+
+  override def onInventoryChanged() = robot.onInventoryChanged()
 
   override def isClient = robot.isClient
 
   override def isServer = robot.isServer
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = robot.onAnalyze(stats, player, side, hitX, hitY, hitZ)
 
   // ----------------------------------------------------------------------- //
 
@@ -137,69 +196,6 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer 
   def getSizeInventory = robot.getSizeInventory
 
   def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
-
-  // ----------------------------------------------------------------------- //
-
-  override def canUpdate = robot.canUpdate
-
-  override def updateEntity() = robot.updateEntity()
-
-  override def validate() {
-    super.validate()
-    val firstProxy = robot.proxy == null
-    robot.proxy = this
-    robot.worldObj = worldObj
-    robot.xCoord = xCoord
-    robot.yCoord = yCoord
-    robot.zCoord = zCoord
-    if (firstProxy) {
-      robot.validate()
-    }
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    if (robot.proxy == this) {
-      robot.invalidate()
-    }
-  }
-
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    if (robot.proxy == this) {
-      robot.onChunkUnload()
-    }
-  }
-
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    robot.readFromNBT(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    robot.writeToNBT(nbt)
-  }
-
-  override def save(nbt: NBTTagCompound) = robot.save(nbt)
-
-  override def load(nbt: NBTTagCompound) = robot.load(nbt)
-
-  override def getMaxRenderDistanceSquared = robot.getMaxRenderDistanceSquared
-
-  override def getRenderBoundingBox = robot.getRenderBoundingBox
-
-  override def shouldRenderInPass(pass: Int) = robot.shouldRenderInPass(pass)
-
-  override def onInventoryChanged() = robot.onInventoryChanged()
-
-  // ----------------------------------------------------------------------- //
-
-  override def onMessage(message: Message) = robot.onMessage(message)
-
-  override def onConnect(node: Node) = robot.onConnect(node)
-
-  override def onDisconnect(node: Node) = robot.onDisconnect(node)
 
   // ----------------------------------------------------------------------- //
 

@@ -327,6 +327,17 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // ----------------------------------------------------------------------- //
 
+  override def onMessage(message: Message) {
+    message.data match {
+      case Array(name: String, args@_*) if message.name == "computer.signal" =>
+        signal(name, Seq(message.source.address) ++ args: _*)
+      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
+        if (isUser(player.getCommandSenderName))
+          signal(name, Seq(message.source.address) ++ args: _*)
+      case _ =>
+    }
+  }
+
   override def onConnect(node: Node) {
     if (node == this.node) {
       components += this.node.address -> this.node.name
@@ -357,20 +368,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     }
     // For computers, to save the components in their inventory.
     owner.onDisconnect(node)
-  }
-
-  override def onMessage(message: Message) {
-    message.data match {
-      case Array(name: String, args@_*) if message.name == "computer.signal" =>
-        signal(name, Seq(message.source.address) ++ args: _*)
-      case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
-        if (isUser(player.getCommandSenderName))
-          signal(name, Seq(message.source.address) ++ args: _*)
-      case _ =>
-    }
-    // For robots, to allow passing messages between the internal and external
-    // networks.
-    owner.onMessage(message)
   }
 
   // ----------------------------------------------------------------------- //
@@ -1349,7 +1346,7 @@ object Computer {
         }
 
         def newThread(r: Runnable): Thread = {
-          val name = OpenComputers.getClass.getSimpleName + "-" + threadNumber.getAndIncrement
+          val name = "OpenComputers-" + threadNumber.getAndIncrement
           val thread = new Thread(group, r, name)
           if (!thread.isDaemon)
             thread.setDaemon(true)
