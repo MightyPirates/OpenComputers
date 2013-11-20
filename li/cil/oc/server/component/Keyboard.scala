@@ -61,7 +61,9 @@ class Keyboard(owner: Environment) extends ManagedComponent {
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p)) {
-          node.sendToReachable("computer.checked_signal", p, "clipboard", value, p.getCommandSenderName)
+          for (line <- value.linesWithSeparators) {
+            node.sendToReachable("computer.checked_signal", p, "clipboard", line, p.getCommandSenderName)
+          }
         }
       case _ =>
     }

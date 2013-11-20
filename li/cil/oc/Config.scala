@@ -63,6 +63,7 @@ object Config {
   // server.computer
   var baseMemory = 0
   var canComputersBeOwned = true
+  var maxClipboard = 1024
   var maxUsernameLength = 32
   var maxUsers = 16
   var startupDelay = 0.5
@@ -267,6 +268,12 @@ object Config {
         |are treated as if they were in the user list of every computer, i.e.
         |no restrictions apply to them.[nl]
         |See also: `maxUsers` and `maxUsernameLength`.""".stripMargin)
+
+    maxClipboard = config.fetch("server.computer.maxClipboard", maxClipboard,
+      """|The maximum length of a string that may be pasted. This is used to
+        |limit the size of the data sent to the server when the user tries
+        |to paste a string from the clipboard (Shift+Ins on a screen with a
+        |keyboard).""".stripMargin)
 
     maxUsernameLength = config.fetch("server.computer.maxUsernameLength", maxUsernameLength,
       """|Sanity check for username length for users registered with computers.

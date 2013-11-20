@@ -102,7 +102,11 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
 
   override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
 
-  override def damageDropped(metadata: Int) = metadata
+  override def damageDropped(metadata: Int) =
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.damageDropped
+      case _ => super.damageDropped(metadata)
+    }
 
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {

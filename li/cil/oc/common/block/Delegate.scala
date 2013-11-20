@@ -17,6 +17,8 @@ trait Delegate {
 
   val showInItemList = true
 
+  def blockId: Int
+
   // ----------------------------------------------------------------------- //
   // Block
   // ----------------------------------------------------------------------- //
@@ -36,6 +38,8 @@ trait Delegate {
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
+
+  def damageDropped = blockId
 
   def getRenderColor = 0xFFFFFF
 

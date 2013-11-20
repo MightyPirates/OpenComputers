@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.Blocks
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
@@ -14,9 +15,11 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
     super.breakBlock(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {
       case Some(robot) => world.setBlockToAir(robot.x, robot.y, robot.z)
-      case _ =>
+      case _ => // Probably broken by the robot we represent.
     }
   }
+
+  override def damageDropped = Blocks.robotProxy.blockId
 
   override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
 
