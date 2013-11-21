@@ -1,11 +1,12 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.ClientRegistry
+import cpw.mods.fml.client.registry.{RenderingRegistry, ClientRegistry}
 import cpw.mods.fml.common.event.FMLInitializationEvent
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.OpenComputers
+import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
@@ -16,6 +17,9 @@ private[oc] class Proxy extends CommonProxy {
     super.init(e)
 
     NetworkRegistry.instance.registerGuiHandler(OpenComputers, GuiHandler)
+
+    BlockRenderer.getRenderId = RenderingRegistry.getNextAvailableRenderId
+    RenderingRegistry.registerBlockHandler(BlockRenderer)
 
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)

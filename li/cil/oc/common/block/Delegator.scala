@@ -10,14 +10,14 @@ import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{Vec3, AxisAlignedBB}
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
+import li.cil.oc.client.renderer.block.BlockRenderer
 
 /**
  * Block proxy for all real block implementations.
@@ -51,10 +51,17 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     blockId
   }
 
+  def subBlock(stack: ItemStack): Option[Child] =
+    stack.getItem match {
+      case block: ItemBlock if Block.blocksList(block.getBlockID) == this =>
+        subBlock(block.getMetadata(stack.getItemDamage))
+      case _ => None
+    }
+
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     subBlock(world.getBlockMetadata(x, y, z))
 
-  def subBlock(metadata: Int) =
+  def subBlock(metadata: Int): Option[Child] =
     metadata match {
       case blockId if blockId >= 0 && blockId < subBlocks.length => Some(subBlocks(blockId))
       case _ => None
@@ -201,7 +208,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
-  override def getRenderType = Config.blockRenderId
+  override def getRenderType = BlockRenderer.getRenderId
 
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
@@ -302,6 +309,28 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => subBlock.setBlockBoundsBasedOnState(world, x, y, z)
       case _ =>
     }
+}
+
+object Delegator {
+  def subBlock(block: Block, metadata: Int): Option[Delegate] =
+    block match {
+      case delegator: Delegator[_] => delegator.subBlock(metadata)
+      case _ => None
+    }
+
+  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Delegate] = {
+    val blockId = world.getBlockId(x, y, z)
+    if (blockId > 0) subBlock(Block.blocksList(blockId), world.getBlockMetadata(x, y, z))
+    else None
+  }
+
+  def subBlock(stack: ItemStack): Option[Delegate] =
+    if (stack != null) stack.getItem match {
+      case block: ItemBlock =>
+        subBlock(Block.blocksList(block.getBlockID), block.getMetadata(stack.getItemDamage))
+      case _ => None
+    }
+    else None
 }
 
 class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)

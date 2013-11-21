@@ -28,12 +28,12 @@ object CableRenderer extends TileEntitySpecialRenderer {
     val translations = Array(Array(lb, 0, 0), Array(0, lb, 0), Array(0, 0, lb))
     val offsets = Array(Array(s, 0, 0), Array(0, s, 0), Array(0, 0, s))
     val normals = Array(
-      Array(ForgeDirection.WEST, ForgeDirection.EAST, ForgeDirection.NORTH, ForgeDirection.SOUTH),
-      Array(ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.EAST, ForgeDirection.WEST),
+      Array(ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.SOUTH, ForgeDirection.NORTH),
+      Array(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.EAST),
       Array(ForgeDirection.UP, ForgeDirection.DOWN, ForgeDirection.WEST, ForgeDirection.EAST),
-      Array(ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN, ForgeDirection.UP),
-      Array(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.DOWN, ForgeDirection.UP),
-      Array(ForgeDirection.UP, ForgeDirection.DOWN, ForgeDirection.SOUTH, ForgeDirection.NORTH)
+      Array(ForgeDirection.WEST, ForgeDirection.EAST, ForgeDirection.DOWN, ForgeDirection.UP),
+      Array(ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.DOWN, ForgeDirection.UP),
+      Array(ForgeDirection.UP, ForgeDirection.DOWN, ForgeDirection.NORTH, ForgeDirection.SOUTH)
     )
     def normal(side: ForgeDirection, n: Int) {
       val v = normals(side.ordinal())(n)
@@ -52,7 +52,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
         else 0
 
         t.startDrawingQuads()
-        t.setNormal(side.offsetX, side.offsetY, side.offsetZ)
+        t.setNormal(side.offsetX, side.offsetY, -side.offsetZ)
         val (tx, ty, tz, u, v) = side match {
           case ForgeDirection.WEST => (Array.fill(4)(z), t2, t1, uv1.reverse, uv2)
           case ForgeDirection.EAST => (Array.fill(4)(1 - z), t1, t2, uv2, uv1)
@@ -122,15 +122,16 @@ object CableRenderer extends TileEntitySpecialRenderer {
 
   compileLists()
 
+  def renderCable(neighbors: Int) {
+    bindTexture(texture)
+    GL11.glCallList(displayLists + neighbors)
+  }
+
   def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val cable = t.asInstanceOf[Cable]
 
-    GL11.glPushMatrix()
     GL11.glTranslated(x, y, z)
-
-    bindTexture(texture)
-    GL11.glCallList(displayLists + cable.neighbors)
-
-    GL11.glPopMatrix()
+    renderCable(cable.neighbors)
+    GL11.glTranslated(-x, -y, -z)
   }
 }

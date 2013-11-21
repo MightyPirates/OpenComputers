@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{Vec3, ResourceLocation}
+import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
@@ -94,6 +95,55 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
   compileList()
 
+  def renderChassis(powered: Boolean = false, offset: Double = 0) {
+    val size = 0.3f
+    val l = 0.5f - size
+    val h = 0.5f + size
+    val vStep = 1.0f / 32.0f
+
+    val offsetV = ((offset - offset.toInt) * 16).toInt * vStep
+    val (u0, u1, v0, v1) = {
+      if (powered)
+        (0.5f, 1f, 0.5f + offsetV, 0.5f + vStep + offsetV)
+      else
+        (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
+    }
+
+    bindTexture(texture)
+    GL11.glCallList(displayList)
+
+    if (MinecraftForgeClient.getRenderPass == 0) {
+      RenderState.disableLighting()
+    }
+
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(l, gt, l, u0, v0)
+    t.addVertexWithUV(l, gb, l, u0, v1)
+    t.addVertexWithUV(l, gb, h, u1, v1)
+    t.addVertexWithUV(l, gt, h, u1, v0)
+
+    t.addVertexWithUV(l, gt, h, u0, v0)
+    t.addVertexWithUV(l, gb, h, u0, v1)
+    t.addVertexWithUV(h, gb, h, u1, v1)
+    t.addVertexWithUV(h, gt, h, u1, v0)
+
+    t.addVertexWithUV(h, gt, h, u0, v0)
+    t.addVertexWithUV(h, gb, h, u0, v1)
+    t.addVertexWithUV(h, gb, l, u1, v1)
+    t.addVertexWithUV(h, gt, l, u1, v0)
+
+    t.addVertexWithUV(h, gt, l, u0, v0)
+    t.addVertexWithUV(h, gb, l, u0, v1)
+    t.addVertexWithUV(l, gb, l, u1, v1)
+    t.addVertexWithUV(l, gt, l, u1, v0)
+    t.draw()
+
+    if (MinecraftForgeClient.getRenderPass == 0) {
+      RenderState.enableLighting()
+    }
+  }
+
   def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
@@ -130,47 +180,10 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       else -0.03f
     GL11.glTranslatef(0, hover, 0)
 
-    bindTexture(texture)
-    GL11.glCallList(displayList)
-
-    val size = 0.3f
-    val l = 0.5f - size
-    val h = 0.5f + size
-    val vStep = 1.0f / 32.0f
-
-    val strip = timeJitter + worldTime / 20.0
-    val offsetV = ((strip - strip.toInt) * 16).toInt * vStep
-    val (u0, u1, v0, v1) = {
-      if (robot.isOn)
-        (0.5f, 1f, 0.5f + offsetV, 0.5f + vStep + offsetV)
-      else
-        (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
+    if (MinecraftForgeClient.getRenderPass == 0) {
+      val offset = timeJitter + worldTime / 20.0
+      renderChassis(robot.isOn, offset)
     }
-
-    RenderState.disableLighting()
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(l, gt, l, u0, v0)
-    t.addVertexWithUV(l, gb, l, u0, v1)
-    t.addVertexWithUV(l, gb, h, u1, v1)
-    t.addVertexWithUV(l, gt, h, u1, v0)
-
-    t.addVertexWithUV(l, gt, h, u0, v0)
-    t.addVertexWithUV(l, gb, h, u0, v1)
-    t.addVertexWithUV(h, gb, h, u1, v1)
-    t.addVertexWithUV(h, gt, h, u1, v0)
-
-    t.addVertexWithUV(h, gt, h, u0, v0)
-    t.addVertexWithUV(h, gb, h, u0, v1)
-    t.addVertexWithUV(h, gb, l, u1, v1)
-    t.addVertexWithUV(h, gt, l, u1, v0)
-
-    t.addVertexWithUV(h, gt, l, u0, v0)
-    t.addVertexWithUV(h, gb, l, u0, v1)
-    t.addVertexWithUV(l, gb, l, u1, v1)
-    t.addVertexWithUV(l, gt, l, u1, v0)
-    t.draw()
-    RenderState.enableLighting()
 
     robot.equippedItem match {
       case Some(stack) =>
@@ -184,7 +197,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         GL11.glRotatef(-30, 1, 0, 0)
         GL11.glRotatef(40, 0, 1, 0)
         try {
-          RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, 0)
+          RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
         }
         catch {
           case e: Throwable =>

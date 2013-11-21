@@ -6,7 +6,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB, Icon}
+import net.minecraft.util.{Vec3, AxisAlignedBB, Icon}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -19,6 +19,12 @@ trait Delegate {
 
   def blockId: Int
 
+  def parent: Delegator[_]
+
+  def setBlock(world: World, x: Int, y: Int, z: Int, flags: Int) = {
+    world.setBlock(x, y, z, parent.blockID, blockId, flags)
+  }
+
   // ----------------------------------------------------------------------- //
   // Block
   // ----------------------------------------------------------------------- //
@@ -29,7 +35,8 @@ trait Delegate {
 
   def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
 
-  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3): MovingObjectPosition
+  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
 
   def createTileEntity(world: World): Option[TileEntity] = None
 
@@ -77,7 +84,8 @@ trait Delegate {
 
   def registerIcons(iconRegister: IconRegister) {}
 
-  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int)
+  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
 
   // ----------------------------------------------------------------------- //
 
@@ -92,12 +100,6 @@ trait SimpleDelegate extends Delegate {
   val parent: SimpleDelegator
 
   val blockId = parent.add(this)
-
-  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
-    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
-
-  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
 }
 
 trait SpecialDelegate extends Delegate {
@@ -107,13 +109,7 @@ trait SpecialDelegate extends Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
-    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
-
   def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
-
-  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
 
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     !world.isBlockOpaqueCube(x, y, z)

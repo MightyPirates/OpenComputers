@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot.Player
 import li.cil.oc.server.driver.Registry
@@ -91,12 +92,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
-      val created = world.setBlock(nx, ny, nz, Blocks.robotProxy.parent.blockID, Blocks.robotProxy.blockId, 1)
+      val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1)
       if (created) {
         assert(world.getBlockTileEntity(nx, ny, nz) == proxy)
         assert(x == nx && y == ny && z == nz)
-        world.setBlock(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, Blocks.robotAfterimage.blockId, 1)
-        assert(Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
+        Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
+        assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         if (isServer) {
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
         }
@@ -167,6 +168,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def shouldRenderInPass(pass: Int) = true
 
   override def getRenderBoundingBox =
     getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(0.5, 0.5, 0.5)
