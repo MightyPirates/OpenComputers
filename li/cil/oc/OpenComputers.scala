@@ -14,7 +14,7 @@ import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
 
 @Mod(modid = "OpenComputers", name = "OpenComputers", version = "0.0.0",
-  dependencies = "required-after:Forge@[9.11.1.940,);after:BuildCraft|Energy;after:RedLogic;after:IC2;after:ComputerCraft",
+  dependencies = "required-after:Forge@[9.11.1.940,);after:BuildCraft|Energy;after:ComputerCraft;after:IC2;after:MineFactoryReloaded;after:RedLogic",
   modLanguage = "scala")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
