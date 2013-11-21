@@ -15,7 +15,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val computer = tileEntity.asInstanceOf[Case]
-    if (computer.isOn) {
+    if (computer.isRunning) {
       GL11.glPushAttrib(0xFFFFFF)
 
       RenderState.disableLighting()

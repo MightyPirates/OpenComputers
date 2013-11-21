@@ -189,13 +189,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val timeJitter = robot.hashCode
     val hover =
-      if (robot.isOn) (Math.sin(timeJitter + worldTime / 20.0) * 0.03).toFloat
+      if (robot.isRunning) (Math.sin(timeJitter + worldTime / 20.0) * 0.03).toFloat
       else -0.03f
     GL11.glTranslatef(0, hover, 0)
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot.isOn, offset)
+      renderChassis(robot.isRunning, offset)
     }
 
     robot.equippedItem match {

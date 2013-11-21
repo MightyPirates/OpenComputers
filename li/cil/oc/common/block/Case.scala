@@ -21,7 +21,7 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     getIcon(localSide, world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Case => computer.isOn
+      case computer: tileentity.Case => computer.isRunning
       case _ => false
     })
   }

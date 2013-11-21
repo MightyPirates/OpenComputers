@@ -16,11 +16,11 @@ import scala.collection.{immutable, mutable}
 trait Component extends api.network.Component with Persistable {
   val name: String
 
-  def visibility = visibility_
+  def visibility = _visibility
 
   private lazy val callbacks = Component.callbacks(host.getClass)
 
-  private var visibility_ = Visibility.None
+  private var _visibility = Visibility.None
 
   def setVisibility(value: Visibility) = {
     if (value.ordinal() > reachability.ordinal()) {
@@ -28,7 +28,7 @@ trait Component extends api.network.Component with Persistable {
         "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
     if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
-      if (network != null) visibility_ match {
+      if (network != null) _visibility match {
         case Visibility.Neighbors => value match {
           case Visibility.Network => addTo(reachableNodes)
           case Visibility.None => removeFrom(neighbors)
@@ -47,7 +47,7 @@ trait Component extends api.network.Component with Persistable {
           case _ =>
         }
       }
-      visibility_ = value
+      _visibility = value
     }
   }
 
@@ -94,13 +94,13 @@ trait Component extends api.network.Component with Persistable {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (nbt.hasKey(Config.namespace + "component.visibility")) {
-      visibility_ = Visibility.values()(nbt.getInteger(Config.namespace + "component.visibility"))
+      _visibility = Visibility.values()(nbt.getInteger(Config.namespace + "component.visibility"))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger(Config.namespace + "component.visibility", visibility_.ordinal())
+    nbt.setInteger(Config.namespace + "component.visibility", _visibility.ordinal())
   }
 }
 

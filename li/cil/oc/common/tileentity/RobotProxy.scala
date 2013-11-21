@@ -214,9 +214,9 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def computer = robot.computer
 
-  override def isOn = robot.isOn
+  override def isRunning = robot.isRunning
 
-  override def isOn_=(value: Boolean) = robot.isOn_=(value)
+  override def isRunning_=(value: Boolean) = robot.isRunning_=(value)
 
   override def markAsChanged() = robot.markAsChanged()
 

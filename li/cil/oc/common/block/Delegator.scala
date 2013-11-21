@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import cpw.mods.fml.common.{Loader, Optional}
 import java.util
+import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
 import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.block.Block
@@ -17,7 +18,6 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
-import li.cil.oc.client.renderer.block.BlockRenderer
 
 /**
  * Block proxy for all real block implementations.
@@ -134,13 +134,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.canConnectRedstone(
-        world, x, y, z, toLocal(world, x, y, z, side match {
+        world, x, y, z, side match {
           case -1 => ForgeDirection.UP
           case 0 => ForgeDirection.NORTH
           case 1 => ForgeDirection.EAST
           case 2 => ForgeDirection.SOUTH
           case 3 => ForgeDirection.WEST
-        }))
+        })
       case _ => false
     }
 
@@ -235,15 +235,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.isProvidingStrongPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case Some(subBlock) => subBlock.isProvidingStrongPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
       case _ => 0
     }
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.isProvidingWeakPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case Some(subBlock) => subBlock.isProvidingWeakPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
       case _ => 0
     }
 

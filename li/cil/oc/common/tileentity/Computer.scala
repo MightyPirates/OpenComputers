@@ -11,24 +11,24 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
 abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with Redstone with Analyzable {
-  protected val computer_ = if (isRemote) null else new component.Computer(this)
+  protected val _computer = if (isRemote) null else new component.Computer(this)
 
-  def computer = computer_
+  def computer = _computer
 
   def node = if (isClient) null else computer.node
 
   override def isClient = computer == null
 
-  private var isRunning = false
+  private var _isRunning = false
 
   private var hasChanged = false
 
   // ----------------------------------------------------------------------- //
 
-  def isOn = isRunning
+  def isRunning = _isRunning
 
-  def isOn_=(value: Boolean) = {
-    isRunning = value
+  def isRunning_=(value: Boolean) = {
+    _isRunning = value
     world.markBlockForRenderUpdate(x, y, z)
     this
   }
@@ -57,11 +57,11 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
         world.markTileEntityChunkModified(x, y, z, this)
       }
 
-      if (isRunning != computer.isRunning) {
+      if (_isRunning != computer.isRunning) {
         isOutputEnabled = hasRedstoneCard && computer.isRunning
         ServerPacketSender.sendComputerState(this, computer.isRunning)
       }
-      isRunning = computer.isRunning
+      _isRunning = computer.isRunning
 
       updateRedstoneInput()
 

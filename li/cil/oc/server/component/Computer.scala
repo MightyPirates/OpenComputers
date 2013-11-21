@@ -256,6 +256,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         else {
           verifyComponents() // In case we're resuming after loading.
           state.pop()
+          // TODO Assertion of "no future" in switchTo can fail when coming from here, why?
           switchTo(state.top) // Trigger execution if necessary.
         }
       }

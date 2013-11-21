@@ -34,10 +34,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def node = if (isClient) null else computer.node
 
-  override val buffer_ = new common.component.Buffer(this) {
+  override val _buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
-  override val computer_ = if (isRemote) null else new component.Robot(this)
+  override val _computer = if (isRemote) null else new component.Robot(this)
   val (battery, distributor, gpu, keyboard) = if (isServer) {
     val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
     val distributor = new component.PowerDistributor(this)

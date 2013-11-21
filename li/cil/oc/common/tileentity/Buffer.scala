@@ -9,21 +9,21 @@ import li.cil.oc.util.{PackedColor, Persistable}
 import net.minecraft.nbt.NBTTagCompound
 
 trait Buffer extends Environment with Persistable {
-  protected val buffer_ = new component.Buffer(this)
+  protected val _buffer = new component.Buffer(this)
 
-  protected var bufferIsDirty_ = false
+  protected var _bufferIsDirty = false
 
-  protected var currentGui_ = None: Option[gui.Buffer]
+  protected var _currentGui = None: Option[gui.Buffer]
 
-  def buffer = buffer_
+  def buffer = _buffer
 
-  def bufferIsDirty = bufferIsDirty_
+  def bufferIsDirty = _bufferIsDirty
 
-  def bufferIsDirty_=(value: Boolean) = bufferIsDirty_ = value
+  def bufferIsDirty_=(value: Boolean) = _bufferIsDirty = value
 
-  def currentGui = currentGui_
+  def currentGui = _currentGui
 
-  def currentGui_=(value: Option[gui.Buffer]) = currentGui_ = value
+  def currentGui_=(value: Option[gui.Buffer]) = _currentGui = value
 
   def node: Node = buffer.node
 
