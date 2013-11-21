@@ -9,13 +9,19 @@ abstract class Computer extends Delegate {
   override def hasTileEntity = true
 
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].isOutputEnabled
+    world.getBlockTileEntity(x, y, z) match {
+      case computer: tileentity.Computer => computer.isOutputEnabled
+      case _ => false
+    }
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     isProvidingWeakPower(world, x, y, z, side)
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.Computer].output(side)
+    world.getBlockTileEntity(x, y, z) match {
+      case computer: tileentity.Computer => computer.output(side)
+      case _ => super.isProvidingWeakPower(world, x, y, z, side)
+    }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {

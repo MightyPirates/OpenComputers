@@ -28,7 +28,7 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
 
   private val _bundledOutput = Array.fill[Array[Byte]](6)(Array.fill[Byte](16)(0))
 
-  private var _isOutputEnabled = true
+  private var _isOutputEnabled = false
 
   private var _shouldUpdateInput = true
 

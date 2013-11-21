@@ -32,6 +32,11 @@ object ExtendedConfiguration {
       config.get(category, name, default, wrapComment(category, comment)).getString
     }
 
+    def fetch(path: String, default: Array[Int], comment: String) = {
+      val (category, name) = parse(path)
+      config.get(category, name, default, wrapComment(category, comment)).getIntList
+    }
+
     private def parse(path: String) = {
       val (category, name) = path.splitAt(path.lastIndexOf("."))
       (category, name.substring(1))

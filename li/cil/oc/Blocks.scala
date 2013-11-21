@@ -6,7 +6,9 @@ import li.cil.oc.common.tileentity
 
 object Blocks {
   var blockSimple: SimpleDelegator = null
+  var blockSimpleWithRedstone: SimpleDelegator = null
   var blockSpecial: SpecialDelegator = null
+  var blockSpecialWithRedstone: SpecialDelegator = null
 
   var adapter: Adapter = null
   var cable: Cable = null
@@ -21,11 +23,19 @@ object Blocks {
   var screen1, screen2, screen3: Screen = null
 
   def init() {
-    blockSimple = new SimpleDelegator(Config.blockId, "simple")
-    blockSpecial = new SpecialDelegator(Config.blockSpecialId, "special")
+    blockSimple = new SimpleDelegator(Config.blockId1)
+    blockSimpleWithRedstone = new SimpleDelegator(Config.blockId2) {
+      override def canProvidePower = true
+    }
+    blockSpecial = new SpecialDelegator(Config.blockId3)
+    blockSpecialWithRedstone = new SpecialDelegator(Config.blockId4) {
+      override def canProvidePower = true
+    }
 
-    GameRegistry.registerBlock(blockSimple, classOf[Item], Config.namespace + "block_simple")
-    GameRegistry.registerBlock(blockSpecial, classOf[Item], Config.namespace + "block_special")
+    GameRegistry.registerBlock(blockSimple, classOf[Item], Config.namespace + "simple")
+    GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Config.namespace + "simple_redstone")
+    GameRegistry.registerBlock(blockSpecial, classOf[Item], Config.namespace + "special")
+    GameRegistry.registerBlock(blockSpecialWithRedstone, classOf[Item], Config.namespace + "special_redstone")
 
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Config.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Config.namespace + "cable")
@@ -43,17 +53,16 @@ object Blocks {
     // must not be changed since that order determines their actual IDs.
     adapter = new Adapter(blockSimple)
     cable = new Cable(blockSpecial)
-    computer = new Case(blockSimple)
+    capacitor = new Capacitor(blockSimple)
+    computer = new Case(blockSimpleWithRedstone)
     diskDrive = new DiskDrive(blockSimple)
     keyboard = new Keyboard(blockSpecial)
     powerDistributor = new PowerDistributor(blockSimple)
     powerSupply = new PowerConverter(blockSimple)
+    robotAfterimage = new RobotAfterimage(blockSpecial)
+    robotProxy = new RobotProxy(blockSpecialWithRedstone)
     screen1 = new Screen.Tier1(blockSimple)
     screen2 = new Screen.Tier2(blockSimple)
     screen3 = new Screen.Tier3(blockSimple)
-
-    capacitor = new Capacitor(blockSimple)
-    robotProxy = new RobotProxy(blockSpecial)
-    robotAfterimage = new RobotAfterimage(blockSpecial)
   }
 }

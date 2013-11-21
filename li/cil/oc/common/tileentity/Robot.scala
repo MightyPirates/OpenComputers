@@ -7,7 +7,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot.Player
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
+import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Config, api, common}
 import net.minecraft.client.Minecraft
@@ -170,10 +170,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   override def getRenderBoundingBox =
     getBlockType.getCollisionBoundingBoxFromPool(world, x, y, z).expand(0.5, 0.5, 0.5)
 
-  override def installedMemory = 64 * 1024
-
-  def tier = 0
-
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
@@ -285,6 +281,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def installedMemory = 64 * 1024
+
+  def tier = 0
+
+  override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
 
   @SideOnly(Side.CLIENT)
   override protected def markForRenderUpdate() {

@@ -32,7 +32,7 @@ import scala.collection.mutable
  * (i.e. "up" will always be up relative to the block itself. So if it's
  * rotated up may actually be west).
  */
-class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Material.iron) {
+class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
 
@@ -134,8 +134,6 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
         }))
       case _ => false
     }
-
-  override def canProvidePower = true
 
   override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
     subBlock(world, x, y, z) match {
@@ -304,9 +302,9 @@ class Delegator[Child <: Delegate](id: Int, name: String) extends Block(id, Mate
     }
 }
 
-class SimpleDelegator(id: Int, name: String) extends Delegator[SimpleDelegate](id, name)
+class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
 
-class SpecialDelegator(id: Int, name: String) extends Delegator[SpecialDelegate](id, name) {
+class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
   override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case Some(subBlock) => subBlock.isBlockSolid(world, x, y, z, ForgeDirection.getOrientation(side))

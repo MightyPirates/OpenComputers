@@ -21,8 +21,10 @@ object Config {
 
   // ----------------------------------------------------------------------- //
 
-  var blockId = 3650
-  var blockSpecialId = 3651
+  var blockId1 = 3650
+  var blockId2 = 3651
+  var blockId3 = 3652
+  var blockId4 = 3653
   var itemId = 4600
 
   // ----------------------------------------------------------------------- //
@@ -68,7 +70,7 @@ object Config {
   var maxUsers = 16
   var startupDelay = 0.5
   var threads = 4
-  var timeout = 3.0
+  var timeout = 1.0
 
   // server.filesystem
   var fileCost = 512
@@ -110,13 +112,12 @@ object Config {
 
     // --------------------------------------------------------------------- //
 
-    blockId = config.getBlock("block", blockId,
-      "The block ID used for simple blocks.").
-      getInt(blockId)
-
-    blockSpecialId = config.getBlock("blockSpecial", blockSpecialId,
-      "The block ID used for special blocks.").
-      getInt(blockSpecialId)
+    val Array(a, b, c, d) = config.fetch("block.ids", Array(blockId1, blockId2, blockId3, blockId4),
+      """List of block IDs the mod uses for different types of blocks.""")
+    blockId1 = a
+    blockId2 = b
+    blockId3 = c
+    blockId4 = d
 
     itemId = config.getItem("item", itemId,
       "The item ID used for all non-stackable items.").
