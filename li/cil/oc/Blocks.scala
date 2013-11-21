@@ -24,13 +24,9 @@ object Blocks {
 
   def init() {
     blockSimple = new SimpleDelegator(Config.blockId1)
-    blockSimpleWithRedstone = new SimpleDelegator(Config.blockId2) {
-      override def canProvidePower = true
-    }
+    blockSimpleWithRedstone = new SimpleRedstoneDelegator(Config.blockId2)
     blockSpecial = new SpecialDelegator(Config.blockId3)
-    blockSpecialWithRedstone = new SpecialDelegator(Config.blockId4) {
-      override def canProvidePower = true
-    }
+    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Config.blockId4)
 
     GameRegistry.registerBlock(blockSimple, classOf[Item], Config.namespace + "simple")
     GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Config.namespace + "simple_redstone")

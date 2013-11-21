@@ -111,13 +111,17 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer 
 
   override def output(side: ForgeDirection) = robot.output(side)
 
-  override def output(side: ForgeDirection, value: Short) = robot.output(side, value)
+  override def output(side: ForgeDirection, value: Int) = robot.output(side, value)
 
   override def bundledInput(side: ForgeDirection, color: Int) = robot.bundledInput(side, color)
 
+  override def rednetInput(side: ForgeDirection, color: Int, value: Int) = robot.rednetInput(side, color, value)
+
+  override def bundledOutput(side: ForgeDirection) = robot.bundledOutput(side)
+
   override def bundledOutput(side: ForgeDirection, color: Int) = robot.bundledOutput(side, color)
 
-  override def bundledOutput(side: ForgeDirection, color: Int, value: Short) = robot.bundledOutput(side, color, value)
+  override def bundledOutput(side: ForgeDirection, color: Int, value: Int) = robot.bundledOutput(side, color, value)
 
   override def checkRedstoneInputChanged() = robot.checkRedstoneInputChanged()
 

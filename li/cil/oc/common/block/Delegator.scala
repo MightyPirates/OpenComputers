@@ -1,7 +1,8 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.{Loader, Optional}
 import java.util
-import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.common.tileentity
 import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -15,6 +16,7 @@ import net.minecraft.util.{Vec3, AxisAlignedBB}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
 
 /**
@@ -64,27 +66,27 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: Rotatable => tileEntity.facing
+      case tileEntity: tileentity.Rotatable => tileEntity.facing
       case _ => ForgeDirection.UNKNOWN
     }
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable =>
+      case rotatable: tileentity.Rotatable =>
         rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable =>
+      case rotatable: tileentity.Rotatable =>
         rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable => rotatable.toLocal(value)
+      case rotatable: tileentity.Rotatable => rotatable.toLocal(value)
       case _ => value
     }
 
@@ -283,7 +285,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable if rotatable.rotate(axis) =>
+      case rotatable: tileentity.Rotatable if rotatable.rotate(axis) =>
         world.markBlockForRenderUpdate(x, y, z)
         true
       case _ => false
@@ -322,4 +324,56 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
       case _ => super.shouldSideBeRendered(world, x, y, z, side)
     }
   }
+}
+
+@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = "MineFactoryReloaded")
+trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnectableRedNet {
+  def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
+
+  def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => t.bundledOutput(side, color)
+      case _ => 0
+    }
+
+  def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => t.bundledOutput(side)
+      case _ => Array.fill(16)(0)
+    }
+
+  def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
+
+  def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => for (color <- 0 until 16) {
+        t.rednetInput(side, color, inputValues(color))
+      }
+      case _ =>
+    }
+
+  abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
+    if (Loader.isModLoaded("MineFactoryReloaded")) {
+      world.getBlockTileEntity(x, y, z) match {
+        case t: tileentity.Redstone => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          Block.blocksList(world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)) match {
+            case block: IRedNetNetworkContainer =>
+            case _ => for (color <- 0 until 16) {
+              t.rednetInput(side, color, 0)
+            }
+          }
+        }
+        case _ =>
+      }
+    }
+    super.onNeighborBlockChange(world, x, y, z, blockId)
+  }
+}
+
+class SimpleRedstoneDelegator(id: Int) extends SimpleDelegator(id) with RedstoneDelegator[SimpleDelegate] {
+  override def canProvidePower = true
+}
+
+class SpecialRedstoneDelegator(id: Int) extends SpecialDelegator(id) with RedstoneDelegator[SpecialDelegate] {
+  override def canProvidePower = true
 }

@@ -11,6 +11,8 @@ object ExtendedNBT {
 
   implicit def toNbt(value: Int) = new NBTTagInt(null, value)
 
+  implicit def toNbt(value: Array[Int]) = new NBTTagIntArray(null, value)
+
   implicit def toNbt(value: Long) = new NBTTagLong(null, value)
 
   implicit def toNbt(value: Float) = new NBTTagFloat(null, value)
@@ -26,6 +28,8 @@ object ExtendedNBT {
   implicit def shortIterableToNbt(value: Iterable[Short]) = value.map(toNbt)
 
   implicit def intIterableToNbt(value: Iterable[Int]) = value.map(toNbt)
+
+  implicit def intArrayIterableToNbt(value: Iterable[Array[Int]]) = value.map(toNbt)
 
   implicit def longIterableToNbt(value: Iterable[Long]) = value.map(toNbt)
 
