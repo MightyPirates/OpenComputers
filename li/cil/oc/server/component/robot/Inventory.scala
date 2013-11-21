@@ -90,13 +90,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
           }
         }
       }
-      if (stack.stackSize < originalSize) {
-        // This emulates behavior of the player's inventory, where surplus
-        // items from a collected stack vanish (yes, they do, yes, it sucks).
-        stack.stackSize = 0
-        true
-      }
-      else false
+      stack.stackSize < originalSize
     }
   }
 

@@ -215,9 +215,31 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
+    def trySuckFromInventory(inventory: IInventory, filter: (Int) => Boolean) = {
+      var success = false
+      for (slot <- 0 until inventory.getSizeInventory if !success && filter(slot)) {
+        val stack = inventory.getStackInSlot(slot)
+        if (stack != null) {
+          val maxStackSize = robot.getInventoryStackLimit min stack.getMaxStackSize
+          val amount = maxStackSize min stack.stackSize min count
+          val sucked = stack.splitStack(amount)
+          success = robot.player().inventory.addItemStackToInventory(sucked)
+          stack.stackSize += sucked.stackSize
+          if (stack.stackSize == 0) {
+            inventory.setInventorySlotContents(slot, null)
+          }
+        }
+      }
+      if (success) {
+        inventory.onInventoryChanged()
+      }
+      result(success)
+    }
     world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-      case inventory: ISidedInventory => // TODO
-      case inventory: IInventory => // TODO
+      case inventory: ISidedInventory =>
+        trySuckFromInventory(inventory, (slot) => inventory.canExtractItem(slot, inventory.getStackInSlot(slot), facing.getOpposite.ordinal()))
+      case inventory: IInventory =>
+        trySuckFromInventory(inventory, (slot) => true)
       case _ =>
         for (entity <- robot.player().entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
           val stack = entity.getEntityItem
@@ -228,8 +250,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             return result(true)
           }
         }
+        result(false)
     }
-    result(false)
   }
 
   // ----------------------------------------------------------------------- //
