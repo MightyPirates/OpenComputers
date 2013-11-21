@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL11
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val texture = new ResourceLocation(Config.resourceDomain, "textures/blocks/robot.png")
 
-  private val displayList = GLAllocation.generateDisplayLists(1)
+  private val displayList = GLAllocation.generateDisplayLists(2)
 
   private val gap = 1.0f / 28.0f
   private val gt = 0.5f + gap
@@ -63,6 +63,10 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     t.addVertexWithUV(h, gt, h, 0.5, 1)
     t.draw()
 
+    GL11.glEndList()
+
+    GL11.glNewList(displayList + 1, GL11.GL_COMPILE)
+
     GL11.glBegin(GL11.GL_TRIANGLE_FAN)
     GL11.glTexCoord2f(0.75f, 0.25f)
     GL11.glVertex3f(0.5f, 0.03f, 0.5f)
@@ -89,13 +93,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     t.addVertexWithUV(h, gb, h, 0.5, 1)
     t.addVertexWithUV(h, gb, l, 0.5, 0.5)
     t.draw()
-
+    
     GL11.glEndList()
   }
 
   compileList()
 
-  def renderChassis(powered: Boolean = false, offset: Double = 0) {
+  def renderChassis(isRunning: Boolean = false, offset: Double = 0) {
     val size = 0.3f
     val l = 0.5f - size
     val h = 0.5f + size
@@ -103,41 +107,50 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     val offsetV = ((offset - offset.toInt) * 16).toInt * vStep
     val (u0, u1, v0, v1) = {
-      if (powered)
+      if (isRunning)
         (0.5f, 1f, 0.5f + offsetV, 0.5f + vStep + offsetV)
       else
         (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
     bindTexture(texture)
+    if (!isRunning) {
+      GL11.glTranslatef(0, -2 * gap, 0)
+    }
     GL11.glCallList(displayList)
+    if (!isRunning) {
+      GL11.glTranslatef(0, 2 * gap, 0)
+    }
+    GL11.glCallList(displayList + 1)
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       RenderState.disableLighting()
     }
 
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(l, gt, l, u0, v0)
-    t.addVertexWithUV(l, gb, l, u0, v1)
-    t.addVertexWithUV(l, gb, h, u1, v1)
-    t.addVertexWithUV(l, gt, h, u1, v0)
+    if (isRunning) {
+      val t = Tessellator.instance
+      t.startDrawingQuads()
+      t.addVertexWithUV(l, gt, l, u0, v0)
+      t.addVertexWithUV(l, gb, l, u0, v1)
+      t.addVertexWithUV(l, gb, h, u1, v1)
+      t.addVertexWithUV(l, gt, h, u1, v0)
 
-    t.addVertexWithUV(l, gt, h, u0, v0)
-    t.addVertexWithUV(l, gb, h, u0, v1)
-    t.addVertexWithUV(h, gb, h, u1, v1)
-    t.addVertexWithUV(h, gt, h, u1, v0)
+      t.addVertexWithUV(l, gt, h, u0, v0)
+      t.addVertexWithUV(l, gb, h, u0, v1)
+      t.addVertexWithUV(h, gb, h, u1, v1)
+      t.addVertexWithUV(h, gt, h, u1, v0)
 
-    t.addVertexWithUV(h, gt, h, u0, v0)
-    t.addVertexWithUV(h, gb, h, u0, v1)
-    t.addVertexWithUV(h, gb, l, u1, v1)
-    t.addVertexWithUV(h, gt, l, u1, v0)
+      t.addVertexWithUV(h, gt, h, u0, v0)
+      t.addVertexWithUV(h, gb, h, u0, v1)
+      t.addVertexWithUV(h, gb, l, u1, v1)
+      t.addVertexWithUV(h, gt, l, u1, v0)
 
-    t.addVertexWithUV(h, gt, l, u0, v0)
-    t.addVertexWithUV(h, gb, l, u0, v1)
-    t.addVertexWithUV(l, gb, l, u1, v1)
-    t.addVertexWithUV(l, gt, l, u1, v0)
-    t.draw()
+      t.addVertexWithUV(h, gt, l, u0, v0)
+      t.addVertexWithUV(h, gb, l, u0, v1)
+      t.addVertexWithUV(l, gb, l, u1, v1)
+      t.addVertexWithUV(l, gt, l, u1, v0)
+      t.draw()
+    }
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       RenderState.enableLighting()
