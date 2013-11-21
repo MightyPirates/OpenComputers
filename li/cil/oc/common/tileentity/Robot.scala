@@ -12,6 +12,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Config, api, common}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
@@ -23,7 +24,7 @@ import scala.Some
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with PowerInformation {
+class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation {
   def this() = this(false)
 
   var proxy: RobotProxy = _
@@ -282,40 +283,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = 64 * 1024
-
-  def tier = 0
-
-  override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
-
-  @SideOnly(Side.CLIENT)
-  override protected def markForRenderUpdate() {
-    super.markForRenderUpdate()
-    currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  def getInvName = Config.namespace + "container.Robot"
-
-  def getSizeInventory = 19
-
-  override def getInventoryStackLimit = 64
-
-  override def isUseableByPlayer(player: EntityPlayer) =
-    world.getBlockTileEntity(x, y, z) match {
-      case t: RobotProxy if t == proxy => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-      case _ => false
-    }
-
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
-    case (0, _) => true // Allow anything in the tool slot.
-    case (1, Some(driver)) => driver.slot(item) == Slot.Card
-    case (2, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
-    case (i, _) if 3 until getSizeInventory contains i => true // Normal inventory.
-    case _ => false // Invalid slot.
-  }
-
   override def onInventoryChanged() {
     super.onInventoryChanged()
     if (isServer) {
@@ -350,4 +317,57 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with Buffer with Power
       }
     }
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def installedMemory = 64 * 1024
+
+  def tier = 0
+
+  override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
+
+  @SideOnly(Side.CLIENT)
+  override protected def markForRenderUpdate() {
+    super.markForRenderUpdate()
+    currentGui.foreach(_.recompileDisplayLists())
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def getInvName = Config.namespace + "container.Robot"
+
+  def getSizeInventory = 19
+
+  override def getInventoryStackLimit = 64
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: RobotProxy if t == proxy => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+      case _ => false
+    }
+
+  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
+    case (0, _) => true // Allow anything in the tool slot.
+    case (1, Some(driver)) => driver.slot(item) == Slot.Card
+    case (2, Some(driver)) => driver.slot(item) == Slot.HardDiskDrive
+    case (i, _) if 3 until getSizeInventory contains i => true // Normal inventory.
+    case _ => false // Invalid slot.
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def canExtractItem(slot: Int, stack: ItemStack, side: Int) =
+    getAccessibleSlotsFromSide(side).contains(slot)
+
+  def canInsertItem(slot: Int, stack: ItemStack, side: Int) =
+    getAccessibleSlotsFromSide(side).contains(slot) &&
+      isItemValidForSlot(slot, stack)
+
+  def getAccessibleSlotsFromSide(side: Int) =
+    toLocal(ForgeDirection.getOrientation(side)) match {
+      case ForgeDirection.WEST => Array(0)
+      case ForgeDirection.EAST => Array(1)
+      case ForgeDirection.NORTH => Array(2)
+      case _ => (3 until getSizeInventory).toArray
+    }
 }

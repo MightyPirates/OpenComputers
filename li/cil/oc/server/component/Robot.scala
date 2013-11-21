@@ -7,6 +7,7 @@ import li.cil.oc.server.component.robot.ActivationType
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
 import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType, Vec3}
 import net.minecraftforge.common.ForgeDirection
@@ -125,12 +126,51 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
-    // TODO inventory, if available
-
-    // Don't drop using the fake player because he throws too far.
-    if (robot.dropSlot(actualSlot(selectedSlot), count, facing)) {
-      context.pause(Config.dropDelay)
-      result(true)
+    val dropped = robot.decrStackSize(actualSlot(selectedSlot), count)
+    if (dropped != null && dropped.stackSize > 0) {
+      def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
+        var success = false
+        val maxStackSize = inventory.getInventoryStackLimit min dropped.getMaxStackSize
+        val shouldTryMerge = !dropped.isItemStackDamageable && dropped.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
+        if (shouldTryMerge) {
+          for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && filter(slot)) {
+            val existing = inventory.getStackInSlot(slot)
+            val shouldMerge = existing != null && existing.stackSize < maxStackSize &&
+              existing.isItemEqual(dropped) && ItemStack.areItemStackTagsEqual(existing, dropped)
+            if (shouldMerge) {
+              val space = maxStackSize - existing.stackSize
+              val amount = space min dropped.stackSize
+              assert(amount > 0)
+              success = true
+              existing.stackSize += amount
+              dropped.stackSize -= amount
+            }
+          }
+        }
+        def canDropIntoSlot(slot: Int) = filter(slot) && inventory.isItemValidForSlot(slot, dropped) && inventory.getStackInSlot(slot) == null
+        for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && canDropIntoSlot(slot)) {
+          val amount = maxStackSize min dropped.stackSize
+          inventory.setInventorySlotContents(slot, dropped.splitStack(amount))
+          success = true
+        }
+        if (success) {
+          inventory.onInventoryChanged()
+        }
+        robot.player().inventory.addItemStackToInventory(dropped)
+        result(success)
+      }
+      world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+        case inventory: ISidedInventory =>
+          tryDropIntoInventory(inventory, (slot) => inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal()))
+        case inventory: IInventory =>
+          tryDropIntoInventory(inventory, (slot) => true)
+        case _ =>
+          // Don't drop using the fake player because he throws too far.
+          // TODO make player's drop redirect to our dropSlot
+          robot.spawnStackInWorld(dropped, facing)
+          context.pause(Config.dropDelay)
+          result(true)
+      }
     }
     else result(false)
   }
@@ -175,15 +215,19 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
-    // TODO inventory, if available
-    for (entity <- robot.player().entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-      val stack = entity.getEntityItem
-      val size = stack.stackSize
-      entity.onCollideWithPlayer(robot.player())
-      if (stack.stackSize < size || entity.isDead) {
-        context.pause(Config.suckDelay)
-        return result(true)
-      }
+    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+      case inventory: ISidedInventory => // TODO
+      case inventory: IInventory => // TODO
+      case _ =>
+        for (entity <- robot.player().entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+          val stack = entity.getEntityItem
+          val size = stack.stackSize
+          entity.onCollideWithPlayer(robot.player())
+          if (stack.stackSize < size || entity.isDead) {
+            context.pause(Config.suckDelay)
+            return result(true)
+          }
+        }
     }
     result(false)
   }

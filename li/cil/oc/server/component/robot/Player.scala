@@ -273,9 +273,11 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
 
   // ----------------------------------------------------------------------- //
 
-  override def swingItem() {
-    // TODO animation
-  }
+  override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
+
+  override def closeScreen() {}
+
+  override def swingItem() {}
 
   override def canAttackPlayer(player: EntityPlayer) =
     Config.canAttackPlayers && super.canAttackPlayer(player)
@@ -290,9 +292,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
 
   override def setItemInUse(stack: ItemStack, maxItemUseDuration: Int) {}
 
-  override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
-
-  override def closeScreen() {}
+  override def isEntityInvulnerable = true
 
   override def heal(amount: Float) {}
 
@@ -301,6 +301,10 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
   override def setDead() = isDead = true
 
   override def onDeath(source: DamageSource) {}
+
+  override def onUpdate() {}
+
+  override def onLivingUpdate() {}
 
   override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
 

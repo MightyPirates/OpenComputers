@@ -79,7 +79,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     }
   }
 
-  private def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) {
+  def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) {
     val rng = world.rand
     val (tx, ty, tz) = (
       0.1 * rng.nextGaussian + direction.offsetX * 0.45,

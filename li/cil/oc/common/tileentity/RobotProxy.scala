@@ -8,11 +8,12 @@ import li.cil.oc.client.gui
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer with PowerInformation {
+class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation {
   def this() = this(new Robot(false))
 
   // ----------------------------------------------------------------------- //
@@ -200,6 +201,14 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with Buffer 
   def getSizeInventory = robot.getSizeInventory
 
   def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
+
+  // ----------------------------------------------------------------------- //
+
+  def canExtractItem(slot: Int, stack: ItemStack, side: Int) = robot.canExtractItem(slot, stack, side)
+
+  def canInsertItem(slot: Int, stack: ItemStack, side: Int) = robot.canInsertItem(slot, stack, side)
+
+  def getAccessibleSlotsFromSide(side: Int) = robot.getAccessibleSlotsFromSide(side)
 
   // ----------------------------------------------------------------------- //
 
