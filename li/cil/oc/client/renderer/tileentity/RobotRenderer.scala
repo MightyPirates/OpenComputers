@@ -200,7 +200,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     robot.equippedItem match {
       case Some(stack) =>
-        GL11.glDisable(GL11.GL_CULL_FACE)
         GL11.glTranslatef(0.1f, 0.25f, 0.75f)
         GL11.glScalef(0.4f, 0.4f, -0.4f)
         if (robot.isAnimatingSwing) {
@@ -217,7 +216,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             OpenComputers.log.log(Level.WARNING, "Failed rendering equipped item.", e)
             robot.equippedItem = None
         }
-        GL11.glEnable(GL11.GL_CULL_FACE)
       case _ =>
     }
 
