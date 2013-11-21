@@ -165,9 +165,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case inventory: IInventory =>
           tryDropIntoInventory(inventory, (slot) => true)
         case _ =>
-          // Don't drop using the fake player because he throws too far.
-          // TODO make player's drop redirect to our dropSlot
-          robot.spawnStackInWorld(dropped, facing)
+          robot.player().dropPlayerItemWithRandomChoice(dropped, inPlace = false)
           context.pause(Config.dropDelay)
           result(true)
       }

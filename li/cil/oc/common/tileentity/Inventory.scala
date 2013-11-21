@@ -79,7 +79,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     }
   }
 
-  def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) {
+  def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) = {
     val rng = world.rand
     val (tx, ty, tz) = (
       0.1 * rng.nextGaussian + direction.offsetX * 0.45,
@@ -91,6 +91,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     entity.motionZ = 0.0125 * rng.nextGaussian + direction.offsetZ * 0.03
     entity.delayBeforeCanPickup = 15
     world.spawnEntityInWorld(entity)
+    entity
   }
 
   // ----------------------------------------------------------------------- //

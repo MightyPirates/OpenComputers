@@ -242,6 +242,9 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
     false
   }
 
+  override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
+    robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else robot.facing)
+
   private def tryRepair(stack: ItemStack, oldDamage: Int) {
     val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
     val shouldRepair = needsRepairing && getRNG.nextDouble() >= Config.itemDamageRate
