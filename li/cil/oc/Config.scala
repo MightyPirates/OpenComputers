@@ -53,7 +53,7 @@ object Config {
   var hddReadCost = 1.0 / 1600.0
   var hddWriteCost = 1.0 / 800.0
   var powerSupplyCost = -1.25
-  var screenCost = 0.2
+  var screenCost = 0.1
   var wirelessCostPerRange = 1.0 / 20.0
 
   // ----------------------------------------------------------------------- //

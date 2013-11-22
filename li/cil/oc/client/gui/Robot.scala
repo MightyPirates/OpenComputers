@@ -31,6 +31,12 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val inventoryX = 176
   private val inventoryY = 140
 
+  private val powerX = 8
+  private val powerY = 142
+
+  private val powerWidth = 160
+  private val powerHeight = 12
+
   private val selectionSize = 20
   private val selectionsStates = 17
   private val selectionStepV = 1 / selectionsStates.toDouble
@@ -48,9 +54,18 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     BufferRenderer.drawText()
   }
 
+  protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
+    if (isPointInRegion(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
+      val tooltip = new java.util.ArrayList[String]
+      tooltip.add("Power: %d%%".format((robot.globalPower * 100).toInt))
+      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+    }
+  }
+
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     mc.renderEngine.bindTexture(background)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
+    drawPowerLevel()
     drawSelection()
   }
 
@@ -75,12 +90,33 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
     val x = guiLeft + inventoryX + (robot.selectedSlot % 4) * (selectionSize - 2)
     val y = guiTop + inventoryY + (robot.selectedSlot / 4) * (selectionSize - 2)
+
     val t = Tessellator.instance
     t.startDrawingQuads()
     t.addVertexWithUV(x, y, zLevel, 0, offsetV)
     t.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
     t.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
     t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
+    t.draw()
+  }
+
+  private def drawPowerLevel() {
+    val level = robot.globalPower
+
+    val u0 = 0
+    val u1 = powerWidth / 256.0 * level
+    val v0 = 1 - powerHeight / 256.0
+    val v1 = 1
+    val x = guiLeft + powerX
+    val y = guiTop + powerY
+    val w = powerWidth * level
+
+    val t = Tessellator.instance
+    t.startDrawingQuads()
+    t.addVertexWithUV(x, y, zLevel, u0, v0)
+    t.addVertexWithUV(x, y + powerHeight, zLevel, u0, v1)
+    t.addVertexWithUV(x + w, y + powerHeight, zLevel, u1, v1)
+    t.addVertexWithUV(x + w, y, zLevel, u1, v0)
     t.draw()
   }
 }

@@ -17,6 +17,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   // ----------------------------------------------------------------------- //
 
+  val pixelCost = {
+    val (w, h) = Config.screenResolutionsByTier(0)
+    Config.screenCost / (w * h)
+  }
+
   /**
    * Check for multi-block screen option in next update. We do this in the
    * update to avoid unnecessary checks on chunk unload.
@@ -28,6 +33,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   var origin = this
 
   val screens = mutable.Set(this)
+
+  var litPixels = -1
 
   var hasPower = true
 
@@ -59,8 +66,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
+      if (litPixels < 0) {
+        litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
+      }
       val hadPower = hasPower
-      hasPower = buffer.node.changeBuffer(-Config.screenCost)
+      hasPower = buffer.node.changeBuffer(-(Config.screenCost + pixelCost * litPixels))
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
       }
@@ -172,11 +182,31 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin.node
 
   override def onRotationChanged() {
     super.onRotationChanged()
     screens.clone().foreach(_.checkMultiBlock())
+  }
+
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+    super.onScreenCopy(col, row, w, h, tx, ty)
+    litPixels = -1
+  }
+
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    super.onScreenFill(col, row, w, h, c)
+    litPixels = -1
+  }
+
+  override def onScreenResolutionChange(w: Int, h: Int) {
+    super.onScreenResolutionChange(w, h)
+    litPixels = -1
+  }
+
+  override def onScreenSet(col: Int, row: Int, s: String) {
+    super.onScreenSet(col, row, s)
+    litPixels = -1
   }
 
   @SideOnly(Side.CLIENT)

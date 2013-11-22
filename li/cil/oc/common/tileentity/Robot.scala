@@ -194,7 +194,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
     super.updateEntity()
     if (isServer) {
-      distributor.changeBuffer(10) // just for testing
+      distributor.changeBuffer(1) // just for testing
       distributor.update()
       gpu.update()
     }

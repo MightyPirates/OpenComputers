@@ -2,14 +2,14 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Config
-import li.cil.oc.api.network.Component
-import li.cil.oc.api.network.{Analyzable, Connector, Environment}
+import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
 
 class Analyzer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Analyzer"
@@ -22,25 +22,30 @@ class Analyzer(val parent: Delegator) extends Delegate {
           analyzeNode(stats, analyzable.onAnalyze(stats, player, side, hitX, hitY, hitZ), player)
         }
         true
-      case environment: Environment =>
+      case host: SidedEnvironment =>
         if (!world.isRemote) {
-          analyzeNode(new NBTTagCompound(), environment, player)
+          analyzeNode(new NBTTagCompound(), host.sidedNode(ForgeDirection.getOrientation(side)), player)
+        }
+        true
+      case host: Environment =>
+        if (!world.isRemote) {
+          analyzeNode(new NBTTagCompound(), host.node, player)
         }
         true
       case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
   }
 
-  private def analyzeNode(stats: NBTTagCompound, environment: Environment, player: EntityPlayer) = if (environment != null) {
-    environment.node match {
+  private def analyzeNode(stats: NBTTagCompound, node: Node, player: EntityPlayer) = if (node != null) {
+    node match {
       case connector: Connector if connector.localBufferSize > 0 => stats.setString(Config.namespace + "text.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
       case _ =>
     }
-    environment.node match {
+    node match {
       case component: Component => stats.setString(Config.namespace + "text.Analyzer.ComponentName", component.name)
       case _ =>
     }
-    val address = environment.node.address()
+    val address = node.address()
     stats.setString(Config.namespace + "text.Analyzer.Address", address)
     PacketSender.sendAnalyze(stats, address, player.asInstanceOf[Player])
   }

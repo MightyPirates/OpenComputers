@@ -10,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * This has to be implemented by a {@link net.minecraft.tileentity.TileEntity},
  * else it will have no effect.
  */
-public interface Analyzable extends Environment {
+public interface Analyzable {
     /**
      * Called when a player uses the analyzer tool on the tile entity's block.
      * <p/>
@@ -48,5 +48,5 @@ public interface Analyzable extends Environment {
      * @return the environment to display node information for, usually the
      *         environment itself (i.e. just return <tt>this</tt>).
      */
-    Environment onAnalyze(NBTTagCompound stats, EntityPlayer player, int side, float hitX, float hitY, float hitZ);
+    Node onAnalyze(NBTTagCompound stats, EntityPlayer player, int side, float hitX, float hitY, float hitZ);
 }

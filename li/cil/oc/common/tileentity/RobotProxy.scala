@@ -42,6 +42,9 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(this)
     }
+    if (isClient) {
+      robot.globalPower = globalPower
+    }
     robot.updateEntity()
   }
 
@@ -100,7 +103,10 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = robot.onAnalyze(stats, player, side, hitX, hitY, hitZ)
+  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    robot.onAnalyze(stats, player, side, hitX, hitY, hitZ)
+    node
+  }
 
   // ----------------------------------------------------------------------- //
 
