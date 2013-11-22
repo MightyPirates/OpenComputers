@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.{api, OpenComputers, Config}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -32,6 +32,12 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.DiskDrive)
+
+  override def update(world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive => api.Network.joinOrCreateNetwork(drive)
+      case _ =>
+    }
 
   // ----------------------------------------------------------------------- //
 

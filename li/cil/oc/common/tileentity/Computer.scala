@@ -44,30 +44,31 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def updateEntity() {
     if (isServer) {
-      // If we're not yet in a network we were just loaded from disk. We skip
-      // the update this round to allow other tile entities to join the network,
-      // too, avoiding issues of missing nodes (e.g. in the GPU which would
-      // otherwise loose track of its screen).
+      // If we're not yet in a network we might have just been loaded from disk,
+      // meaning there may be other tile entities that also have not re-joined
+      // the network. We skip the update this round to allow other tile entities
+      // to join the network, too, avoiding issues of missing nodes (e.g. in the
+      // GPU which would otherwise loose track of its screen).
       if (node != null && node.network != null) {
         computer.update()
-      }
 
-      if (hasChanged) {
-        hasChanged = false
-        world.markTileEntityChunkModified(x, y, z, this)
-      }
+        if (hasChanged) {
+          hasChanged = false
+          world.markTileEntityChunkModified(x, y, z, this)
+        }
 
-      if (_isRunning != computer.isRunning) {
-        isOutputEnabled = hasRedstoneCard && computer.isRunning
-        ServerPacketSender.sendComputerState(this, computer.isRunning)
-      }
-      _isRunning = computer.isRunning
+        if (_isRunning != computer.isRunning) {
+          isOutputEnabled = hasRedstoneCard && computer.isRunning
+          ServerPacketSender.sendComputerState(this, computer.isRunning)
+        }
+        _isRunning = computer.isRunning
 
-      updateRedstoneInput()
+        updateRedstoneInput()
 
-      for (component <- components) component match {
-        case Some(environment) => environment.update()
-        case _ => // Empty.
+        for (component <- components) component match {
+          case Some(environment) => environment.update()
+          case _ => // Empty.
+        }
       }
     }
 

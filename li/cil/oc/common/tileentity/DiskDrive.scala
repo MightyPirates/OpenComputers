@@ -4,7 +4,7 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Component, Visibility}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.{api, Config}
+import li.cil.oc.{Blocks, api, Config}
 import net.minecraft.item.ItemStack
 
 class DiskDrive extends Environment with ComponentInventory with Rotatable {
@@ -12,11 +12,14 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable {
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = false
+
   override def validate() = {
     super.validate()
     if (isClient) {
       ClientPacketSender.sendRotatableStateRequest(this)
     }
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //

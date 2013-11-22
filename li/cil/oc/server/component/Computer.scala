@@ -496,7 +496,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   override def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state.top != Computer.State.Running) // Lock on 'this' should guarantee this.
-    assert(state.top != Computer.State.Stopping) // Only set while executor is running.
 
     super.save(nbt)
 

@@ -251,13 +251,7 @@ object Network extends api.detail.NetworkAPI {
               tileEntity.yCoord + side.offsetY,
               tileEntity.zCoord + side.offsetZ)
             getNetworkNode(tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz), side.getOpposite) match {
-              case Some(neighbor: MutableNode) if neighbor != node =>
-                if (node.network != null) {
-                  node.connect(neighbor)
-                }
-                else if (neighbor.network != null) {
-                  neighbor.connect(node)
-                }
+              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null => neighbor.connect(node)
               case _ => // Ignore.
             }
             if (node.network == null) {

@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Blocks, Config}
 import net.minecraft.nbt.NBTTagCompound
 
 class Keyboard(isRemote: Boolean) extends Environment with Rotatable {
@@ -13,6 +13,13 @@ class Keyboard(isRemote: Boolean) extends Environment with Rotatable {
   def node = if (isClient) null else keyboard.node
 
   override def isClient = keyboard == null
+
+  override def canUpdate = false
+
+  override def validate() {
+    super.validate()
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
+  }
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
