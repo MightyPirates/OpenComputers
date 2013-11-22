@@ -29,6 +29,7 @@ object Config {
   var maxScreenTextRenderDistance = 10.0
   var screenTextFadeStartDistance = 8.0
   var textLinearFiltering = false
+  var rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //
   // power
@@ -64,7 +65,7 @@ object Config {
   var maxClipboard = 1024
   var maxUsernameLength = 32
   var maxUsers = 16
-  var startupDelay = 0.5
+  var startupDelay = 0.25
   var threads = 4
   var timeout = 1.0
 
@@ -79,6 +80,7 @@ object Config {
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var maxWirelessRange = 400.0
+  var rTreeMaxEntries = 10
 
   // ----------------------------------------------------------------------- //
   // robot

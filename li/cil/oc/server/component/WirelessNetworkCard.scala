@@ -68,6 +68,11 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   // ----------------------------------------------------------------------- //
 
+  override def update() {
+    super.update()
+    WirelessNetwork.update(this)
+  }
+
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
@@ -78,7 +83,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      WirelessNetwork.remove(this)
+      val removed = WirelessNetwork.remove(this)
+      assert(removed)
     }
   }
 
@@ -86,9 +92,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("modem")) {
-      strength = nbt.getDouble("strength")
-    }
+    strength = nbt.getDouble("strength")
   }
 
   override def save(nbt: NBTTagCompound) {

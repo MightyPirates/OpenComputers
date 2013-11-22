@@ -286,13 +286,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
-    if (isServer) {
-      computer.signal("inventory_changed")
-    }
-  }
-
   override protected def onItemRemoved(slot: Int, item: ItemStack) {
     super.onItemRemoved(slot, item)
     if (isServer) {
@@ -312,7 +305,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
         ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(0))
       }
-      else if (slot == 1 || slot == 2) {
+      else if (isComponentSlot(slot)) {
         super.onItemAdded(slot, item)
       }
       else if (slot >= actualSlot(0)) {
@@ -320,6 +313,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       }
     }
   }
+
+  override protected def isComponentSlot(slot: Int) = slot == 1 || slot == 2
 
   // ----------------------------------------------------------------------- //
 

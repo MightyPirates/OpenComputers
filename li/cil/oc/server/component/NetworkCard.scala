@@ -84,7 +84,7 @@ class NetworkCard extends ManagedComponent {
     super.load(nbt)
 
     assert(openPorts.isEmpty)
-    openPorts ++ nbt.getTagList("openPorts").iterator[NBTTagInt].map(_.data)
+    openPorts ++= nbt.getTagList("openPorts").iterator[NBTTagInt].map(_.data)
   }
 
   override def save(nbt: NBTTagCompound) {

@@ -1,15 +1,13 @@
 package li.cil.oc.util
 
+import li.cil.oc.Config
 import li.cil.oc.server.component.WirelessNetworkCard
 import net.minecraft.block.Block
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
 object WirelessNetwork {
-  MinecraftForge.EVENT_BUS.register(this)
-
   val dimensions = mutable.Map.empty[Int, RTree[WirelessNetworkCard]]
 
   @ForgeSubscribe
@@ -27,13 +25,32 @@ object WirelessNetwork {
   }
 
   def add(card: WirelessNetworkCard) {
-    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](4)((card) => (card.owner.xCoord, card.owner.yCoord, card.owner.zCoord))).add(card)
+    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](Config.rTreeMaxEntries)((card) => (card.owner.xCoord + 0.5, card.owner.yCoord + 0.5, card.owner.zCoord + 0.5))).add(card)
   }
 
-  def remove(card: WirelessNetworkCard) {
+  def update(card: WirelessNetworkCard) {
+    dimensions.get(dimension(card)) match {
+      case Some(tree) =>
+        tree(card) match {
+          case Some((x, y, z)) =>
+            val (dx, dy, dz) = (
+              (card.owner.xCoord + 0.5 - x).abs,
+              (card.owner.yCoord + 0.5 - y).abs,
+              (card.owner.zCoord + 0.5 - z).abs)
+            if (dx > 0.5 || dy > 0.5 || dz > 0.5) {
+              tree.remove(card)
+              tree.add(card)
+            }
+          case _ =>
+        }
+      case _ =>
+    }
+  }
+
+  def remove(card: WirelessNetworkCard) = {
     dimensions.get(dimension(card)) match {
       case Some(set) => set.remove(card)
-      case _ =>
+      case _ => false
     }
   }
 

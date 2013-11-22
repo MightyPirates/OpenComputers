@@ -28,7 +28,7 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
     if (node == this.node) {
       for ((stack, slot) <- items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
-      } if components(slot).isEmpty) {
+      } if components(slot).isEmpty && isComponentSlot(slot)) {
         components(slot) = Registry.driverFor(stack) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, this)) match {
@@ -75,7 +75,7 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
 
   def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) = if (isServer) {
+  override protected def onItemAdded(slot: Int, item: ItemStack) = if (isServer && isComponentSlot(slot)) {
     Registry.driverFor(item) match {
       case Some(driver) => Option(driver.createEnvironment(item, this)) match {
         case Some(component) =>
@@ -103,6 +103,8 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
       case _ => // Nothing to do.
     }
   }
+
+  protected def isComponentSlot(slot: Int) = true
 
   protected def connectItemNode(node: Node) {
     this.node.connect(node)

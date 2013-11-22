@@ -1,175 +1,186 @@
 package li.cil.oc.util
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
-class RTree[Data](val maxEntries: Int)(implicit val coordinate: Data => (Double, Double, Double)) {
+class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, Double, Double)) {
+  if (M < 2) throw new IllegalArgumentException("maxEntries must be larger or equal to 2.")
 
-  if (maxEntries < 1) throw new IllegalArgumentException("maxEntries must be larger or equal to 1.")
+  // Used for quick checks whether values are in the tree, e.g. for updates.
+  private val entries = mutable.Map.empty[Data, Leaf]
 
-  private val minEntries = maxEntries / 2
+  private val m = (M / 2) max 1
 
-  private var root: Node = new Leaf()
+  private var root = new NonLeaf()
 
-  def add(value: Data) = root.add(new Entry(new Point(value), value)) match {
-    case node1 if node1 != root =>
-      val node2 = root
-      val newRoot = new NonLeaf()
-      newRoot.nodes += node1
-      newRoot.nodes += node2
-      root = newRoot
-    case _ =>
-  }
+  def apply(value: Data): Option[(Double, Double, Double)] =
+    entries.get(value).fold(None: Option[(Double, Double, Double)])(position => Some(position.bounds.min.asTuple))
 
-  def remove(value: Data) = root.remove(value) match {
-    case Some(result) if result => root = new Leaf()
-    case _ =>
-  }
+  // Allows debug rendering of the tree.
+  def allBounds = root.allBounds(0)
 
-  def query(from: (Double, Double, Double), to: (Double, Double, Double)) = root.query(new Point(from), new Point(to))
-
-  private class Entry(val point: Point, val data: Data) extends Splittable {
-    def min = point
-
-    def max = point
-  }
-
-  private abstract class Node extends Splittable {
-    var min: Point = Point.PositiveInfinity
-
-    var max: Point = Point.NegativeInfinity
-
-    def add(entry: Entry): Node
-
-    def remove(value: Data): Option[Boolean]
-
-    def query(from: Point, to: Point): Iterable[Data]
-
-    protected def split[Child <: Splittable : ClassTag](list: mutable.Set[Child], value: Child, constructor: (Iterable[Child]) => Node): Node = {
-      list += value
-      if (list.size > maxEntries) {
-        val (set1, min1, max1, set2, min2, max2) = Splittable.split(list.toArray)
-
-        list.clear()
-        list ++= set1
-        min = min1
-        max = max1
-
-        val newNode = constructor(set2)
-        newNode.min = min2
-        newNode.max = max2
-        newNode
-      } else {
-        min = min min value.min
-        max = max max value.max
-        this
-      }
+  def add(value: Data): Boolean = {
+    val replaced = remove(value)
+    val entry = new Leaf(value, new Point(value))
+    entries += value -> entry
+    root.add(entry) match {
+      case newNode if newNode != root => root = new NonLeaf(newNode, root)
+      case _ =>
     }
+    !replaced
+  }
+
+  def remove(value: Data): Boolean =
+    entries.remove(value) match {
+      case Some(node) =>
+        val change = root.remove(node)
+        assert(change == Some(node) || change == Some(root))
+        root.children.headOption match {
+          case Some(nonLeaf: NonLeaf) if root.children.size == 1 =>
+            root = nonLeaf
+          case _ =>
+            root.bounds = Rectangle.around(root.children)
+        }
+        true
+      case _ => false
+    }
+
+  def query(from: (Double, Double, Double), to: (Double, Double, Double)) =
+    root.query(new Rectangle(new Point(from), new Point(to)))
+
+  private abstract class Node {
+    def bounds: Rectangle
+
+    def allBounds(level: Int) = Iterable((bounds.asTuple, level))
+
+    def isLeaf = true
+
+    def add(value: Node): Node
+
+    def remove(value: Node): Option[Node]
+
+    def query(query: Rectangle): Iterable[Data]
   }
 
   private class NonLeaf extends Node {
-    val nodes = mutable.Set.empty[Node]
+    def this(nodes: Node*) = {
+      this()
+      for (child <- nodes) {
+        children += child
+        bounds = bounds.including(child.bounds)
+      }
+    }
 
-    def add(entry: Entry): Node = {
-      var bestChild: Node = null
+    val children = mutable.Set.empty[Node]
+
+    var bounds = new Rectangle(Point.PositiveInfinity, Point.NegativeInfinity)
+
+    override def allBounds(level: Int) = super.allBounds(level) ++ children.map(_.allBounds(level + 1)).flatten
+
+    override def isLeaf = children.headOption.exists(_.isInstanceOf[Leaf])
+
+    def add(value: Node): Node = {
+      assert(value != this)
+      uncheckedAdd(value)
+      if (children.size > M) {
+        split()
+      }
+      else {
+        bounds = bounds.including(value.bounds)
+        this
+      }
+    }
+
+    private def uncheckedAdd(value: Node) {
+      var bestChild: Option[Node] = null
       var bestGrowth = Double.PositiveInfinity
       var bestVolume = Double.PositiveInfinity
-      for (child <- nodes) {
-        val oldVolume = Point.volume(child.min, child.max)
-        val volume = Point.volume(child.min min entry.min, child.max max entry.max)
+      for (child <- children if !child.isLeaf || value.isInstanceOf[Leaf]) {
+        val oldVolume = child.bounds.volume
+        val volume = child.bounds.including(value.bounds).volume
         val growth = volume - oldVolume
         if (growth < bestGrowth || (growth == bestGrowth && volume < bestVolume)) {
-          bestChild = child
+          bestChild = Some(child)
           bestGrowth = growth
           bestVolume = volume
         }
       }
-
-      split[Node](nodes, bestChild.add(entry), (set) => new NonLeaf() {
-        nodes ++= set
-      })
+      bestChild match {
+        case Some(child) =>
+          children += child.add(value)
+        case _ =>
+          // Empty root or node while inserting children of removing child node.
+          children += value
+      }
     }
 
-    def remove(value: Data): Option[Boolean] = {
-      for (node <- nodes) {
-        node.remove(value) match {
-          case Some(result) =>
-            return if (result) {
-              nodes.remove(node)
-              Some(nodes.size == 0)
+    def remove(value: Node): Option[Node] = {
+      if (bounds.intersects(value.bounds)) for (child <- children) {
+        child.remove(value) match {
+          case Some(change) =>
+            if (change == child) {
+              // Underflow after removing node or child was the node to remove.
+              children -= child
+              child match {
+                case node: NonLeaf =>
+                  for (child <- node.children) {
+                    uncheckedAdd(child)
+                  }
+                  if (children.size > M) {
+                    // Escalate overflow.
+                    return Some(split())
+                  }
+                case leaf: Leaf => assert(leaf == value)
+              }
+              if (children.size < m) {
+                // Escalate underflow.
+                return Some(this)
+              }
+              // Done handling tree adjustment, bubble result up.
+              bounds = Rectangle.around(children)
+              return Some(value)
             }
-            else None
+            else if (change == value) {
+              // Removal, bubble result up.
+              bounds = Rectangle.around(children)
+              return Some(value)
+            }
+            else {
+              // Overflow due to split after underflow.
+              assert(change.isInstanceOf[NonLeaf])
+              uncheckedAdd(change)
+              if (children.size > M) {
+                // Escalate overflow.
+                return Some(split())
+              }
+              else {
+                // Done handling tree adjustment, bubble result up.
+                bounds = Rectangle.around(children)
+                return Some(value)
+              }
+            }
           case _ =>
         }
       }
       None
     }
 
-    def query(from: Point, to: Point) =
-      if (from.x <= max.x && from.y <= max.y && from.z <= max.z && to.x >= min.x && to.y >= min.y && to.z >= min.z)
-        nodes.foldRight(Iterable.empty[Data])((child, result) => result ++ child.query(from, to))
+    def query(query: Rectangle) =
+      if (query.intersects(bounds))
+        children.foldRight(Iterable.empty[Data])((child, result) => result ++ child.query(query))
       else Iterable.empty[Data]
-  }
 
-  private class Leaf extends Node {
-    val entries: mutable.Set[Entry] = mutable.Set.empty
-
-    def add(entry: Entry): Node = {
-      remove(entry.data) // Avoid duplicates.
-      split[Entry](entries, entry, (set) => new Leaf() {
-        entries ++= set
-      })
-    }
-
-    def remove(value: Data) =
-      entries.find(_.data == value) match {
-        case Some(entry) =>
-          entries.remove(entry)
-          Some(entries.size == 0)
-        case _ => None
-      }
-
-    def query(from: Point, to: Point) = entries.filter(entry => from.x <= entry.max.x && from.y <= entry.max.y && from.z <= entry.max.z && to.x >= entry.min.x && to.y >= entry.min.y && to.z >= entry.min.z).map(_.data)
-  }
-
-  private class Point(val x: Double, val y: Double, val z: Double) {
-    def this(p: (Double, Double, Double)) = this(p._1, p._2, p._3)
-
-    def min(other: Point) = new Point(x min other.x, y min other.y, z min other.z)
-
-    def max(other: Point) = new Point(x max other.x, y max other.y, z max other.z)
-  }
-
-  private object Point {
-    val NegativeInfinity = new Point(Double.NegativeInfinity, Double.NegativeInfinity, Double.NegativeInfinity)
-    val PositiveInfinity = new Point(Double.PositiveInfinity, Double.PositiveInfinity, Double.PositiveInfinity)
-
-    def volume(p1: Point, p2: Point) = {
-      val sx = (p2.x - p1.x).abs
-      val sy = (p2.y - p1.y).abs
-      val sz = (p2.z - p1.z).abs
-      sx * sy * sz
-    }
-  }
-
-  private trait Splittable {
-    def min: Point
-
-    def max: Point
-  }
-
-  private object Splittable {
-    def split[T <: Splittable](values: Array[T]) = {
-      var seed1: Option[T] = None
-      var seed2: Option[T] = None
+    private def split() = {
+      val values = children.toArray
+      var seed1: Option[Node] = None
+      var seed2: Option[Node] = None
       var worst = Double.NegativeInfinity
       for (i <- 0 until values.length) {
         val si = values(i)
-        for (j <- 0 until values.length) {
+        for (j <- i + 1 until values.length) {
           val sj = values(j)
-          val vol1 = Point.volume(si.min, si.max)
-          val vol2 = Point.volume(sj.min, sj.max)
-          val vol = Point.volume(si.min min sj.min, si.max max sj.max)
+          val vol1 = si.bounds.volume
+          val vol2 = sj.bounds.volume
+          val vol = si.bounds.including(sj.bounds).volume
           val d = vol - vol1 - vol2
           if (d > worst) {
             seed1 = Some(si)
@@ -180,28 +191,28 @@ class RTree[Data](val maxEntries: Int)(implicit val coordinate: Data => (Double,
       }
       (seed1, seed2) match {
         case (Some(s1), Some(s2)) =>
-          val r1 = new SplitResult(mutable.Set(s1), s1.min, s1.max)
-          val r2 = new SplitResult(mutable.Set(s2), s2.min, s2.max)
+          val r1 = new SplitResult(mutable.Set(s1), s1.bounds)
+          val r2 = new SplitResult(mutable.Set(s2), s2.bounds)
 
           val list = mutable.Set.empty ++ values
           list -= s1
           list -= s2
           while (!list.isEmpty) {
-            if (minEntries - r1.set.size >= list.size) {
-              r1.set ++= list
+            if (m - r1.set.size >= list.size) {
+              list.foreach(r1.add)
               list.clear()
             }
-            else if (minEntries - r2.set.size >= list.size) {
-              r2.set ++= list
+            else if (m - r2.set.size >= list.size) {
+              list.foreach(r2.add)
               list.clear()
             }
             else {
-              var bestValue: Option[T] = None
+              var bestValue: Option[Node] = None
               var r = r1
               var best = Double.NegativeInfinity
               for (value <- list) {
-                val newVol1 = Point.volume(r1.min min value.min, r1.max max value.max)
-                val newVol2 = Point.volume(r2.min min value.min, r2.max max value.max)
+                val newVol1 = r1.volumeIncluding(value)
+                val newVol2 = r2.volumeIncluding(value)
                 val growth1 = newVol1 - r1.volume
                 val growth2 = newVol2 - r2.volume
                 val d = (growth2 - growth1).abs
@@ -214,23 +225,94 @@ class RTree[Data](val maxEntries: Int)(implicit val coordinate: Data => (Double,
               bestValue match {
                 case Some(value) =>
                   list -= value
-                  r.set += value
-                  r.min = r.min min value.min
-                  r.max = r.max max value.max
-                  r.volume = Point.volume(r.min, r.max)
+                  r.add(value)
                 case _ => throw new AssertionError()
               }
             }
           }
 
-          (r1.set, r1.min, r1.max, r2.set, r2.min, r2.max)
+          children.clear()
+          children ++= r1.set
+          bounds = r1.bounds
+
+          val LL = new NonLeaf()
+          LL.children ++= r2.set
+          LL.bounds = r2.bounds
+          LL
         case _ => throw new AssertionError()
       }
     }
   }
 
-  private class SplitResult[T](val set: mutable.Set[T], var min: Point, var max: Point) {
-    var volume: Double = Point.volume(min, max)
+  private class Leaf(val data: Data, point: Point) extends Node {
+    val bounds = new Rectangle(point, point)
+
+    def entries = Iterable(this)
+
+    def add(value: Node) = value
+
+    def remove(value: Node) =
+      if (value == this) Some(this)
+      else None
+
+    def query(query: Rectangle) =
+      if (query.intersects(bounds)) Iterable(data)
+      else Iterable.empty
+  }
+
+  private class Point(val x: Double, val y: Double, val z: Double) {
+    def this(p: (Double, Double, Double)) = this(p._1, p._2, p._3)
+
+    def min(other: Point) = new Point(x min other.x, y min other.y, z min other.z)
+
+    def max(other: Point) = new Point(x max other.x, y max other.y, z max other.z)
+
+    def asTuple = (x, y, z)
+  }
+
+  private object Point {
+    val NegativeInfinity = new Point(Double.NegativeInfinity, Double.NegativeInfinity, Double.NegativeInfinity)
+    val PositiveInfinity = new Point(Double.PositiveInfinity, Double.PositiveInfinity, Double.PositiveInfinity)
+  }
+
+  private class Rectangle(val min: Point, val max: Point) {
+    def including(value: Rectangle) = new Rectangle(value.min min min, value.max max max)
+
+    def intersects(value: Rectangle) =
+      value.min.x <= max.x && value.min.y <= max.y && value.min.z <= max.z &&
+        value.max.x >= min.x && value.max.y >= min.y && value.max.z >= min.z
+
+    def volume = {
+      val sx = max.x - min.x
+      val sy = max.y - min.y
+      val sz = max.z - min.z
+      sx * sy * sz
+    }
+
+    def asTuple = ((min.x, min.y, min.z), (max.x, max.y, max.z))
+  }
+
+  private object Rectangle {
+    def around(values: Iterable[Node]) = {
+      var min = Point.PositiveInfinity
+      var max = Point.NegativeInfinity
+      for (value <- values) {
+        min = value.bounds.min min min
+        max = value.bounds.max max max
+      }
+      new Rectangle(min, max)
+    }
+  }
+
+  private class SplitResult(val set: mutable.Set[Node], var bounds: Rectangle) {
+    def add(value: Node) {
+      set += value
+      bounds = bounds.including(value.bounds)
+    }
+
+    def volume = bounds.volume
+
+    def volumeIncluding(value: Node) = bounds.including(value.bounds).volume
   }
 
 }

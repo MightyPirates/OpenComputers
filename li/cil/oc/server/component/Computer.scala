@@ -74,12 +74,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // ----------------------------------------------------------------------- //
 
-  def recomputeMemory() = state.synchronized(if (lua != null) {
-    lua.setTotalMemory(Int.MaxValue)
-    lua.gc(LuaState.GcAction.COLLECT, 0)
-    if (kernelMemory > 0)
-      lua.setTotalMemory(kernelMemory + owner.installedMemory)
-  })
+  def recomputeMemory() = Option(lua) match {
+    case Some(l) =>
+      l.setTotalMemory(Int.MaxValue)
+      l.gc(LuaState.GcAction.COLLECT, 0)
+      if (kernelMemory > 0) {
+        l.setTotalMemory(kernelMemory + owner.installedMemory)
+      }
+    case _ =>
+  }
 
   def lastError = message
 

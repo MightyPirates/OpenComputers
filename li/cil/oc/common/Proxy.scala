@@ -7,6 +7,8 @@ import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
+import li.cil.oc.util.WirelessNetwork
+import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -34,6 +36,7 @@ class Proxy {
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     GameRegistry.registerPlayerTracker(Keyboard)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
