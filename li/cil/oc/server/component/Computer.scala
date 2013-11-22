@@ -125,9 +125,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       // Check again when we get the lock, might have changed since.
       this.synchronized(state.synchronized(if (shouldPause(state.top)) {
         if (state.top != Computer.State.Paused) {
-          if (state.top == Computer.State.Running) {
-            state.pop()
-          }
+          assert(!state.contains(Computer.State.Paused))
           state.push(Computer.State.Paused)
         }
         remainingPause = ticksToPause
@@ -256,7 +254,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         else {
           verifyComponents() // In case we're resuming after loading.
           state.pop()
-          // TODO Assertion of "no future" in switchTo can fail when coming from here, why?
           switchTo(state.top) // Trigger execution if necessary.
         }
       }
@@ -288,7 +285,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
             case Computer.State.Running =>
               switchTo(Computer.State.SynchronizedReturn)
             case Computer.State.Paused =>
-              state.pop()
+              state.pop() // Paused
+              state.pop() // Running, no switchTo to avoid new future.
               state.push(Computer.State.SynchronizedReturn)
               state.push(Computer.State.Paused)
             case Computer.State.Stopping => // Nothing to do, we'll die anyway.
@@ -1211,7 +1209,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       // Check if the kernel is still alive.
       state.synchronized(if (lua.status(1) == LuaState.YIELD) {
-        assert(isRunning)
         // Intermediate state in some cases. Satisfies the assert in execute().
         future = None
         // Check if someone called pause() or stop() in the meantime.
@@ -1252,11 +1249,13 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               }
             }
           case Computer.State.Paused =>
-            state.pop()
+            state.pop() // Paused
+            state.pop() // Running, no switchTo to avoid new future.
             state.push(Computer.State.Yielded)
             state.push(Computer.State.Paused)
           case Computer.State.Stopping => // Nothing to do, we'll die anyway.
-          case _ => throw new AssertionError()
+          case _ => throw new AssertionError(
+            "Invalid state in executor post-processing.")
         }
       }
       // The kernel thread returned. If it threw we'd we in the catch below.
