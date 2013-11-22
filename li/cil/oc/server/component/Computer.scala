@@ -425,7 +425,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
     super.load(nbt)
 
-    nbt.getTagList("state").foreach[NBTTagInt](s => state.push(Computer.State(s.data)))
+    state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Computer.State(s.data)))
     nbt.getTagList("users").foreach[NBTTagString](u => users += u.data)
 
     if (state.size > 0 && state.top != Computer.State.Stopped && init()) {

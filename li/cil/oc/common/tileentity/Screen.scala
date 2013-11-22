@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Config
-import li.cil.oc.api.network.{Analyzable, Visibility}
+import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
@@ -12,7 +12,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Buffer with Rotatable with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
   // ----------------------------------------------------------------------- //
@@ -30,6 +30,10 @@ class Screen(var tier: Int) extends Buffer with Rotatable with Analyzable with O
   val screens = mutable.Set(this)
 
   var hasPower = true
+
+  def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
+
+  def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
 
   // ----------------------------------------------------------------------- //
 

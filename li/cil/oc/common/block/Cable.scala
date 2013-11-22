@@ -1,6 +1,6 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.api.network.Environment
+import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
@@ -62,7 +62,11 @@ object Cable {
     var result = 0
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-        case environment: Environment => result |= side.flag
+        case host: SidedEnvironment =>
+          if (host.canConnect(side.getOpposite)) {
+            result |= side.flag
+          }
+        case host: Environment => result |= side.flag
         case _ =>
       }
     }

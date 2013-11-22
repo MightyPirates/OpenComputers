@@ -3,7 +3,7 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api
-import li.cil.oc.api.network.{Node => ImmutableNode, Environment, Visibility}
+import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.server.network.{Node => MutableNode}
 import net.minecraft.block.Block
 import net.minecraft.world.{IBlockAccess, World}
@@ -243,38 +243,41 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
 object Network extends api.detail.NetworkAPI {
   override def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int): Unit =
-    if (!world.isRemote) getNetworkNode(world, x, y, z) match {
-      case Some(node: MutableNode) => {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case Some(neighbor: MutableNode) if neighbor != node =>
-              if (neighbor.network != null) {
-                neighbor.connect(node)
-              }
-            case _ => // Ignore.
-          }
+    if (!world.isRemote) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        getNetworkNode(world, x, y, z, side) match {
+          case Some(node: MutableNode) =>
+            getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) match {
+              case Some(neighbor: MutableNode) if neighbor != node =>
+                if (node.network != null) {
+                  node.connect(neighbor)
+                }
+                else if (neighbor.network != null) {
+                  neighbor.connect(node)
+                }
+              case _ => // Ignore.
+            }
+            if (node.network == null) {
+              joinNewNetwork(node)
+            }
+          case _ => // No node for this side or bad environment.
         }
-        if (node.network == null) new Network(node)
       }
-      case _ => // Invalid block.
     }
 
-  def joinNewNetwork(node: ImmutableNode): Unit = {
-    if (node != null) {
-      if (node.network != null) {
-        throw new IllegalArgumentException("Node must not be in a network.")
-      }
-      new Network(node.asInstanceOf[MutableNode])
-    }
+  def joinNewNetwork(node: ImmutableNode): Unit = node match {
+    case mutableNode: MutableNode if mutableNode.network == null =>
+      new Network(mutableNode)
+    case _ =>
   }
 
-  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-      case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
-        world.getBlockTileEntity(x, y, z) match {
-          case host: Environment => Some(host.node)
-          case _ => None
-        }
+      case Some(block) => world.getBlockTileEntity(x, y, z) match {
+        case host: SidedEnvironment => Option(host.sidedNode(side))
+        case host: Environment => Some(host.node)
+        case _ => None
+      }
       case _ => None
     }
 
