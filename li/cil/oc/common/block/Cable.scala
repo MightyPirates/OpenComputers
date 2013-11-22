@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.api
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
 import net.minecraft.util.AxisAlignedBB
@@ -14,6 +15,12 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Cable)
+
+  override def update(world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case cable: tileentity.Cable => api.Network.joinOrCreateNetwork(cable)
+      case _ =>
+    }
 
   // ----------------------------------------------------------------------- //
 

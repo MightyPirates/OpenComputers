@@ -1,7 +1,5 @@
 package li.cil.oc.api.network;
 
-import net.minecraft.world.World;
-
 /**
  * The environment of a node.
  * <p/>
@@ -14,26 +12,40 @@ import net.minecraft.world.World;
  * as mentioned above, you will have to provide a driver that creates a managed
  * environment for the block you wish to connect instead.
  * <p/>
- * If a tile entity implements this interface, it will automatically be added
- * and removed from the network when its chunk is loaded and unloaded. What you
- * will have to ensure is that it is added/removed to/from its network when
- * the corresponding block is added/removed (e.g. placed or broken by the
- * player). When a block is added to the world, you should always use
- * {@link li.cil.oc.api.Network#joinOrCreateNetwork(World, int, int, int)},
- * which will take care of all the heavy lifting for you. For removing it, use
- * {@link Network#remove(li.cil.oc.api.network.Node)} of your node's network,
- * passing along your node, i.e. <tt>node.network.remove(node);</tt>
+ * To get some more control over which sides of your block may connect to a
+ * network, see {@link SidedEnvironment}.
+ * <p/>
+ * When a tile entity implements this interface a good way of connecting and
+ * disconnecting is the following pattern:
+ * <pre>
+ *     void updateEntity() {
+ *         super.updateEntity()
+ *         if (node != null && node.network == null) {
+ *             api.Network.joinOrCreateNetwork(this);
+ *         }
+ *     }
+ *
+ *     void onChunkUnload() {
+ *         super.onChunkUnload()
+ *         if (node != null) node.remove()
+ *     }
+ *
+ *     void invalidate() {
+ *         super.invalidate()
+ *         if (node != null) node.remove()
+ *     }
+ * </pre>
  * <p/>
  * Item environments are always managed, so you will always have to provide a
  * driver for items that should interact with the component network.
  * <p/>
  * To interact with environments from Lua you will have to do two things:
- * <ul>
- * <ol>Make the environment's {@link #node()} a {@link Component} and ensure
- * its {@link Component#visibility()} is set to a value where it can
- * be seen by computers in the network.</ol>
- * <ol>Annotate methods in the environment as {@link LuaCallback}s.</ol>
- * </ul>
+ * <ol>
+ * <li>Make the environment's {@link #node} a {@link Component} and ensure
+ * its {@link Component#visibility} is set to a value where it can
+ * be seen by computers in the network.</li>
+ * <li>Annotate methods in the environment as {@link LuaCallback}s.</li>
+ * </ol>
  */
 public interface Environment {
     /**
@@ -50,9 +62,6 @@ public interface Environment {
      * This is called when a node is added to a network.
      * <p/>
      * This is also called for the node itself, if it was added to the network.
-     * For example, after a tile entity with a node was placed, this method
-     * will be called on it after its node has been connected to an existing
-     * network or created a new network.
      * <p/>
      * At this point the node's network is never <tt>null</tt> and you can use
      * it to query it for other nodes. Use this to perform initialization logic,
@@ -75,8 +84,9 @@ public interface Environment {
     /**
      * This is the generic message handler.
      * <p/>
-     * It is called whenever this environments Node receives a message that was
-     * sent via one of the <tt>send</tt> methods in the {@link Network}.
+     * It is called whenever this environments {@link Node} receives a message
+     * that was sent via one of the <tt>send</tt> methods in the {@link Network}
+     * or the <tt>Node</tt> itself.
      *
      * @param message the message to handle.
      */

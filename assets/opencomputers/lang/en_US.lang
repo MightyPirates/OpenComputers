@@ -8,6 +8,7 @@ oc:block.PowerConverter.name=Power Converter
 oc:block.PowerDistributor.name=Power Distributor
 oc:block.Robot.name=Robot
 oc:block.RobotAfterimage.name=Robot
+oc:block.Router.name=Router
 oc:block.ScreenAdvanced.name=Advanced Screen
 oc:block.ScreenBasic.name=Basic Screen
 oc:block.ScreenProfessional.name=Professional Screen

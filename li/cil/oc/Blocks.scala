@@ -20,6 +20,7 @@ object Blocks {
   var powerSupply: PowerConverter = null
   var robotProxy: RobotProxy = null
   var robotAfterimage: RobotAfterimage = null
+  var router: Router = null
   var screen1, screen2, screen3: Screen = null
 
   def init() {
@@ -42,6 +43,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Config.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Config.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Config.namespace + "robot")
+    GameRegistry.registerTileEntity(classOf[tileentity.Router], Config.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Config.namespace + "screen")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
@@ -60,5 +62,7 @@ object Blocks {
     screen1 = new Screen.Tier1(blockSimple)
     screen2 = new Screen.Tier2(blockSimple)
     screen3 = new Screen.Tier3(blockSimple)
+
+    router = new Router(blockSimple)
   }
 }

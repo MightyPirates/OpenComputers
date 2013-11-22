@@ -5,8 +5,7 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.server.network.{Node => MutableNode}
-import net.minecraft.block.Block
-import net.minecraft.world.{IBlockAccess, World}
+import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -242,12 +241,16 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
-  override def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int): Unit =
-    if (!world.isRemote) {
+  override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
+    if (!tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        getNetworkNode(world, x, y, z, side) match {
+        getNetworkNode(tileEntity, side) match {
           case Some(node: MutableNode) =>
-            getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) match {
+            val (nx, ny, nz) = (
+              tileEntity.xCoord + side.offsetX,
+              tileEntity.yCoord + side.offsetY,
+              tileEntity.zCoord + side.offsetZ)
+            getNetworkNode(tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz), side.getOpposite) match {
               case Some(neighbor: MutableNode) if neighbor != node =>
                 if (node.network != null) {
                   node.connect(neighbor)
@@ -271,13 +274,10 @@ object Network extends api.detail.NetworkAPI {
     case _ =>
   }
 
-  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-      case Some(block) => world.getBlockTileEntity(x, y, z) match {
-        case host: SidedEnvironment => Option(host.sidedNode(side))
-        case host: Environment => Some(host.node)
-        case _ => None
-      }
+  private def getNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case host: SidedEnvironment => Option(host.sidedNode(side))
+      case host: Environment => Some(host.node)
       case _ => None
     }
 

@@ -23,7 +23,7 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
   override def updateEntity() {
     super.updateEntity()
     if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(world, x, y, z)
+      Network.joinOrCreateNetwork(this)
     }
   }
 

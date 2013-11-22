@@ -1,6 +1,7 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.Config
+import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.util.Icon
@@ -17,8 +18,8 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":router_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":router_top")
 
     icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":router_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
@@ -31,4 +32,10 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Router)
+
+  override def update(world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case router: tileentity.Router => api.Network.joinOrCreateNetwork(router)
+      case _ =>
+    }
 }

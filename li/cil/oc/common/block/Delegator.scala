@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import cpw.mods.fml.common.{Loader, Optional}
 import java.util
+import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
 import li.cil.oc.{Config, CreativeTab}
@@ -305,6 +306,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ =>
+    }
+
+  override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.update(world, x, y, z)
       case _ =>
     }
 }

@@ -40,7 +40,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def updateEntity() {
     if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(world, x, y, z)
+      Network.joinOrCreateNetwork(this)
     }
     robot.updateEntity()
   }

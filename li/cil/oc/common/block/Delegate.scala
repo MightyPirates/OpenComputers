@@ -87,6 +87,8 @@ trait Delegate {
   def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     parent.setBlockBounds(0, 0, 0, 1, 1, 1)
 
+  def update(world: World, x: Int, y: Int, z: Int) = {}
+
   // ----------------------------------------------------------------------- //
 
   private val validRotations = Array(
