@@ -78,54 +78,63 @@ function term.read(history)
   checkArg(1, history, "table", "nil")
   history = history or {}
   table.insert(history, "")
-  local offsetX = term.getCursor() - 1
-  local scrollX, scrollY = 0, #history
+  local offset = term.getCursor() - 1
+  local scrollX, scrollY = 0, #history - 1
 
   local function getCursor()
     local cx, cy = term.getCursor()
-    return cx - offsetX + scrollX, scrollY
+    return cx - offset + scrollX, 1 + scrollY
   end
 
-  local function setCursor(cbx, cby)
-    local w = component.gpu.getResolution()
+  local function line()
+    local cbx, cby = getCursor()
+    return history[cby]
+  end
+
+  local function setCursor(nbx, nby)
+    local w, h = component.gpu.getResolution()
     local cx, cy = term.getCursor()
-    local ncx, ncy = cbx + offsetX - scrollX, cy
 
-    -- TODO generalize with y scrolling and make it a helper in the text lib?
+    scrollY = nby - 1
 
-    scrollY = cby or scrollY
-
+    local ncx = nbx + offset - scrollX
     if ncx > w then
-      local sx = cbx - (w - offsetX)
+      local sx = nbx - (w - offset)
       local dx = math.abs(scrollX - sx)
       scrollX = sx
-      component.gpu.copy(1 + offsetX + dx, cy, w - offsetX - dx, 1, -dx, 0)
-      local str = unicode.sub(history[scrollY], cbx - (dx - 1), cbx)
+      component.gpu.copy(1 + offset + dx, cy, w - offset - dx, 1, -dx, 0)
+      local str = unicode.sub(line(), nbx - (dx - 1), nbx)
       str = text.pad(str, dx)
       component.gpu.set(1 + (w - dx), cy, str)
-    end
-
-    if ncx < 1 + offsetX then
-      local sx = cbx - 1
+    elseif ncx < 1 + offset then
+      local sx = nbx - 1
       local dx = math.abs(scrollX - sx)
       scrollX = sx
-      component.gpu.copy(1 + offsetX, cy, w - offsetX - dx, 1, dx, 0)
-      local str = unicode.sub(history[scrollY], cbx, cbx + dx)
-      str = text.pad(str, dx)
-      component.gpu.set(1 + offsetX, cy, str)
+      component.gpu.copy(1 + offset, cy, w - offset - dx, 1, dx, 0)
+      local str = unicode.sub(line(), nbx, nbx + dx)
+      --str = text.pad(str, dx)
+      component.gpu.set(1 + offset, cy, str)
     end
 
-    term.setCursor(cbx - scrollX + offsetX, ncy)
+    term.setCursor(nbx - scrollX + offset, cy)
+  end
+
+  local function copyIfNecessary()
+    local cbx, cby = getCursor()
+    if cby ~= #history then
+      history[#history] = line()
+      setCursor(cbx, #history)
+    end
   end
 
   local function redraw()
     local cx, cy = term.getCursor()
-    local bx, by = 1 + scrollX, scrollY
-    local w = component.gpu.getResolution()
-    local l = w - offsetX
+    local bx, by = 1 + scrollX, 1 + scrollY
+    local w, h = component.gpu.getResolution()
+    local l = w - offset
     local str = unicode.sub(history[by], bx, bx + l)
     str = text.pad(str, l)
-    component.gpu.set(1 + offsetX, cy, str)
+    component.gpu.set(1 + offset, cy, str)
   end
 
   local function home()
@@ -135,15 +144,7 @@ function term.read(history)
 
   local function ende()
     local cbx, cby = getCursor()
-    setCursor(unicode.len(history[cby]) + 1, cby)
-  end
-
-  local function enter()
-    local cbx, cby = getCursor()
-    if cby ~= #history then -- bring entry to front
-      history[#history] = history[cby]
-      table.remove(history, cby)
-    end
+    setCursor(unicode.len(line()) + 1, cby)
   end
 
   local function left()
@@ -157,7 +158,7 @@ function term.read(history)
   local function right(n)
     n = n or 1
     local cbx, cby = getCursor()
-    local be = unicode.len(history[cby]) + 1
+    local be = unicode.len(line()) + 1
     if cbx < be then
       setCursor(math.min(be, cbx + n), cby)
     end
@@ -166,7 +167,7 @@ function term.read(history)
   local function up()
     local cbx, cby = getCursor()
     if cby > 1 then
-      setCursor(1, cby - 1)
+      setCursor(cbx, cby - 1)
       redraw()
       ende()
     end
@@ -175,31 +176,23 @@ function term.read(history)
   local function down()
     local cbx, cby = getCursor()
     if cby < #history then
-      setCursor(1, cby + 1)
+      setCursor(cbx, cby + 1)
       redraw()
       ende()
-    end
-  end
-
-  local function copyIfNecessary()
-    local cbx, cby = getCursor()
-    if cby ~= #history then
-      history[#history] = history[cby]
-      setCursor(cbx, #history)
     end
   end
 
   local function delete()
     copyIfNecessary()
     local cbx, cby = getCursor()
-    if cbx <= unicode.len(history[cby]) then
-      history[cby] = unicode.sub(history[cby], 1, cbx - 1) ..
-                     unicode.sub(history[cby], cbx + 1)
+    if cbx <= unicode.len(line()) then
+      history[cby] = unicode.sub(line(), 1, cbx - 1) ..
+                     unicode.sub(line(), cbx + 1)
       local cx, cy = term.getCursor()
-      local w = component.gpu.getResolution()
+      local w, h = component.gpu.getResolution()
       component.gpu.copy(cx + 1, cy, w - cx, 1, -1, 0)
       local br = cbx + (w - cx)
-      local char = unicode.sub(history[cby], br, br)
+      local char = unicode.sub(line(), br, br)
       if not char or unicode.len(char) == 0 then
         char = " "
       end
@@ -211,14 +204,14 @@ function term.read(history)
     copyIfNecessary()
     local cx, cy = term.getCursor()
     local cbx, cby = getCursor()
-    local w = component.gpu.getResolution()
-    history[cby] = unicode.sub(history[cby], 1, cbx - 1) ..
+    local w, h = component.gpu.getResolution()
+    history[cby] = unicode.sub(line(), 1, cbx - 1) ..
                    value ..
-                   unicode.sub(history[cby], cbx)
+                   unicode.sub(line(), cbx)
     local len = unicode.len(value)
-    local scroll = w - cx - len
-    if scroll > 0 then
-      component.gpu.copy(cx, cy, scroll, 1, len, 0)
+    local sx = w - cx - len
+    if sx > 0 then
+      component.gpu.copy(cx, cy, sx, 1, len, 0)
     end
     component.gpu.set(cx, cy, value)
     right(len)
@@ -243,12 +236,15 @@ function term.read(history)
     elseif code == keyboard.keys.down then
       down()
     elseif code == keyboard.keys.enter then
-      enter()
+      local cbx, cby = getCursor()
+      if cby ~= #history then -- bring entry to front
+        history[#history] = line()
+        table.remove(history, cby)
+      end
       return true, history[#history] .. "\n"
     elseif keyboard.isControlDown() then
-      local cbx, cby = getCursor()
       if code == keyboard.keys.d then
-        if history[cby] == "" then
+        if line() == "" then
           history[#history] = ""
           return true, nil
         end
@@ -269,10 +265,10 @@ function term.read(history)
     local cbx, cby = getCursor()
     local l = value:find("\n", 1, true)
     if l then
-      history[cby] = unicode.sub(history[cby], 1, cbx - 1)
+      history[cby] = unicode.sub(line(), 1, cbx - 1)
       redraw()
       insert(unicode.sub(value, 1, l - 1))
-      return true, history[cby] .. "\n"
+      return true, line() .. "\n"
     else
       insert(value)
       term.setCursorBlink(true)
