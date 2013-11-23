@@ -46,7 +46,7 @@ local function setCursor(nbx, nby)
     scrollY = sy
     component.gpu.copy(1, 1 + dy, w, h - dy, 0, -dy)
     for by = nby - (dy - 1), nby do
-      local str = text.pad(buffer[by], w)
+      local str = text.pad(unicode.sub(buffer[by], 1 + scrollX), w)
       component.gpu.set(1, by - scrollY, str)
     end
   elseif ncy < 1 then
@@ -55,7 +55,7 @@ local function setCursor(nbx, nby)
     scrollY = sy
     component.gpu.copy(1, 1, w, h - dy, 0, dy)
     for by = nby, nby + (dy - 1) do
-      local str = text.pad(buffer[by], w)
+      local str = text.pad(unicode.sub(buffer[by], 1 + scrollX), w)
       component.gpu.set(1, by - scrollY, str)
     end
   end
