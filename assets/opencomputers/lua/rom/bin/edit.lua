@@ -26,6 +26,19 @@ local scrollX, scrollY = 0, 0
 
 -------------------------------------------------------------------------------
 
+local function setStatus(value)
+  if not value then
+    value = string.format([["%s" %dL]], fs.name(filename), #buffer)
+  end
+  local w, h = component.gpu.getResolution()
+  component.gpu.set(1, h, text.padRight(unicode.sub(value, 1, w - 10), w - 10))
+end
+
+local function getSize()
+  local w, h = component.gpu.getResolution()
+  return w, h - 1
+end
+
 local function getCursor()
   local cx, cy = term.getCursor()
   return cx + scrollX, cy + scrollY
@@ -37,7 +50,7 @@ local function line()
 end
 
 local function setCursor(nbx, nby)
-  local w, h = component.gpu.getResolution()
+  local w, h = getSize()
 
   local ncy = nby - scrollY
   if ncy > h then
@@ -46,7 +59,7 @@ local function setCursor(nbx, nby)
     scrollY = sy
     component.gpu.copy(1, 1 + dy, w, h - dy, 0, -dy)
     for by = nby - (dy - 1), nby do
-      local str = text.pad(unicode.sub(buffer[by], 1 + scrollX), w)
+      local str = text.padRight(unicode.sub(buffer[by], 1 + scrollX), w)
       component.gpu.set(1, by - scrollY, str)
     end
   elseif ncy < 1 then
@@ -55,7 +68,7 @@ local function setCursor(nbx, nby)
     scrollY = sy
     component.gpu.copy(1, 1, w, h - dy, 0, dy)
     for by = nby, nby + (dy - 1) do
-      local str = text.pad(unicode.sub(buffer[by], 1 + scrollX), w)
+      local str = text.padRight(unicode.sub(buffer[by], 1 + scrollX), w)
       component.gpu.set(1, by - scrollY, str)
     end
   end
@@ -68,7 +81,7 @@ local function setCursor(nbx, nby)
     component.gpu.copy(1 + dx, 1, w - dx, h, -dx, 0)
     for by = 1 + scrollY, math.min(h + scrollY, #buffer) do
       local str = unicode.sub(buffer[by], nbx - (dx - 1), nbx)
-      str = text.pad(str, dx)
+      str = text.padRight(str, dx)
       component.gpu.set(1 + (w - dx), by - scrollY, str)
     end
   elseif ncx < 1 then
@@ -78,12 +91,13 @@ local function setCursor(nbx, nby)
     component.gpu.copy(1, 1, w - dx, h, dx, 0)
     for by = 1 + scrollY, math.min(h + scrollY, #buffer) do
       local str = unicode.sub(buffer[by], nbx, nbx + dx)
-      --str = text.pad(str, dx)
+      --str = text.padRight(str, dx)
       component.gpu.set(1, by - scrollY, str)
     end
   end
 
   term.setCursor(nbx - scrollX, nby - scrollY)
+  component.gpu.set(w - 9, h + 1, text.padLeft(string.format("%d,%d", nby, nbx), 10))
 end
 
 local function home()
@@ -142,7 +156,7 @@ end
 local function delete()
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = component.gpu.getResolution()
+  local w, h = getSize()
   if cbx <= unicode.len(line()) then
     buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                   unicode.sub(line(), cbx + 1)
@@ -158,16 +172,17 @@ local function delete()
     buffer[cby] = buffer[cby] .. append
     component.gpu.set(cx, cy, append)
     if cy < h then
-      component.gpu.copy(1, cy + 2, w, h - (cy - 2), 0, -1)
-      component.gpu.set(1, h, text.pad(buffer[cby + (h - cy)], w))
+      component.gpu.copy(1, cy + 2, w, h - (cy + 1), 0, -1)
+      component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
     end
+    setStatus()
   end
 end
 
 local function insert(value)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = component.gpu.getResolution()
+  local w, h = getSize()
   buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                 value ..
                 unicode.sub(line(), cbx)
@@ -183,17 +198,18 @@ end
 local function enter()
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
-  local w, h = component.gpu.getResolution()
+  local w, h = getSize()
   table.insert(buffer, cby + 1, unicode.sub(buffer[cby], cbx))
   buffer[cby] = unicode.sub(buffer[cby], 1, cbx - 1)
   component.gpu.fill(cx, cy, w - (cx - 1), 1, " ")
   if cy < h then
     if cy < h - 1 then
-      component.gpu.copy(1, cy + 1, w, h - (cy - 1), 0, 1)
+      component.gpu.copy(1, cy + 1, w, h - (cy + 1), 0, 1)
     end
-    component.gpu.set(1, cy + 1, text.pad(buffer[cby + 1], w))
+    component.gpu.set(1, cy + 1, text.padRight(buffer[cby + 1], w))
   end
   setCursor(1, cby + 1)
+  setStatus()
 end
 
 local function onKeyDown(char, code)
@@ -261,7 +277,7 @@ end
 do
   local f = io.open(filename)
   if f then
-    local w, h = component.gpu.getResolution()
+    local w, h = getSize()
     for line in f:lines() do
       table.insert(buffer, line)
       if #buffer <= h then
@@ -272,6 +288,8 @@ do
   else
     table.insert(buffer, "")
   end
+  setCursor(1, 1)
+  setStatus()
 end
 
 while running do

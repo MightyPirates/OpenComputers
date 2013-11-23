@@ -104,7 +104,7 @@ function term.read(history)
       scrollX = sx
       component.gpu.copy(1 + offset + dx, cy, w - offset - dx, 1, -dx, 0)
       local str = unicode.sub(line(), nbx - (dx - 1), nbx)
-      str = text.pad(str, dx)
+      str = text.padRight(str, dx)
       component.gpu.set(1 + (w - dx), cy, str)
     elseif ncx < 1 + offset then
       local sx = nbx - 1
@@ -112,7 +112,7 @@ function term.read(history)
       scrollX = sx
       component.gpu.copy(1 + offset, cy, w - offset - dx, 1, dx, 0)
       local str = unicode.sub(line(), nbx, nbx + dx)
-      --str = text.pad(str, dx)
+      --str = text.padRight(str, dx)
       component.gpu.set(1 + offset, cy, str)
     end
 
@@ -133,7 +133,7 @@ function term.read(history)
     local w, h = component.gpu.getResolution()
     local l = w - offset
     local str = unicode.sub(history[by], bx, bx + l)
-    str = text.pad(str, l)
+    str = text.padRight(str, l)
     component.gpu.set(1 + offset, cy, str)
   end
 
