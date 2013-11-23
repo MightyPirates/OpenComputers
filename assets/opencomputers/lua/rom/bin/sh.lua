@@ -27,7 +27,7 @@ while true do
     while #history > 10 do
       table.remove(history, 1)
     end
-    command = string.trim(command)
+    command = text.trim(command)
     if command == "exit" then
       return
     elseif command ~= "" then

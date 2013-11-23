@@ -11,4 +11,19 @@ function text.detab(value, tabWidth)
   return value:gsub("([^\n]-)\t", rep)
 end
 
+function text.pad(value, length)
+  checkArg(1, value, "string", "nil")
+  checkArg(2, length, "number")
+  if not value or unicode.len(value) == 0 then
+    return string.rep(" ", length)
+  else
+    return value .. string.rep(" ", length - unicode.len(value))
+  end
+end
+
+function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
+  local from = string.match(value, "^%s*()")
+  return from > #value and "" or string.match(value, ".*%S", from)
+end
+
 _G.text = text

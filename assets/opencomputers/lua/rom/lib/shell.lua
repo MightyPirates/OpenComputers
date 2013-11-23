@@ -35,7 +35,7 @@ local function findFile(name, ext)
     local found, where = findIn("/")
     if found then return where end
   else
-    local found, where = findIn(shell.cwd())
+    local found, where = findIn(shell.getWorkingDirectory())
     if found then return where end
     for _, p in ipairs(path) do
       local found, where = findIn(p)
@@ -47,32 +47,33 @@ end
 
 -------------------------------------------------------------------------------
 
-function shell.alias(alias, ...)
+function shell.getAlias(alias)
+  return aliases[alias]
+end
+
+function shell.setAlias(alias, value)
   checkArg(1, alias, "string")
-  local result = aliases[alias]
-  local args = table.pack(...)
-  if args.n > 0 then
-    checkArg(2, args[1], "string", "nil")
-    aliases[alias] = args[1]
-  end
-  return result
+  checkArg(2, value, "string", "nil")
+  aliases[alias] = value
 end
 
 function shell.aliases()
   return pairs(aliases)
 end
 
-function shell.cwd(dir)
-  if dir then
-    checkArg(1, dir, "string")
-    dir = fs.canonical(dir) .. "/"
-    if fs.isDirectory(dir) then
-      cwd = dir
-    else
-      return nil, "not a directory"
-    end
-  end
+function shell.getWorkingDirectory()
   return cwd
+end
+
+function shell.setWorkingDirectory(dir)
+  checkArg(1, dir, "string")
+  dir = fs.canonical(dir) .. "/"
+  if fs.isDirectory(dir) then
+    cwd = dir
+    return true
+  else
+    return nil, "not a directory"
+  end
 end
 
 function shell.execute(program, ...)
@@ -134,21 +135,20 @@ function shell.parse(...)
   return args, options
 end
 
-function shell.path(...)
-  local result = table.concat(path, ":")
-  local args = table.pack(...)
-  if args.n > 0 then
-    checkArg(1, args[1], "string")
-    path = {}
-    for p in string:gmatch(args[1], "[^:]") do
-      p = fs.canonical(string.trim(p))
-      if unicode.sub(p, 1, 1) ~= "/" then
-        p = "/" .. p
-      end
-      table.insert(path, p)
+function shell.getPath()
+  return table.concat(path, ":")
+end
+
+function shell.setPath(value)
+  checkArg(1, value, "string")
+  path = {}
+  for p in string:gmatch(value, "[^:]") do
+    p = fs.canonical(text.trim(p))
+    if unicode.sub(p, 1, 1) ~= "/" then
+      p = "/" .. p
     end
+    table.insert(path, p)
   end
-  return result
 end
 
 function shell.resolve(path, ext)
@@ -164,7 +164,7 @@ function shell.resolve(path, ext)
     if unicode.sub(path, 1, 1) == "/" then
       return fs.canonical(path)
     else
-      return fs.concat(shell.cwd(), path)
+      return fs.concat(shell.getWorkingDirectory(), path)
     end
   end
 end

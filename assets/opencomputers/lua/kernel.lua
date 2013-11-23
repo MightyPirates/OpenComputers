@@ -143,13 +143,7 @@ sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper,
-    uchar = string.uchar,
-
-    trim = function(s) -- from http://lua-users.org/wiki/StringTrim
-      local from = string.match(s, "^%s*()")
-      return from > #s and "" or string.match(s, ".*%S", from)
-    end
+    upper = string.upper
   },
 
   table = {

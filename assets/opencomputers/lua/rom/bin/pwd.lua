@@ -1,1 +1,1 @@
-print(shell.cwd())
+print(shell.getWorkingDirectory())

@@ -11,7 +11,7 @@ os.execute = function(command)
     if head == oldHead then -- say no to infinite recursion, live longer
       command = nil
     else
-      command = shell.alias(head)
+      command = shell.getAlias(head)
     end
   until command == nil
   local args = {}

@@ -1,7 +1,7 @@
 local removing = {}
 local primaries = {}
 
-local function tryGetPrimary(self, key)
+local function tryGetPrimary(_, key)
   if component.isAvailable(key) then
     return primaries[key]
   end
