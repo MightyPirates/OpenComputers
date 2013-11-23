@@ -34,3 +34,4 @@ oc:text.Analyzer.ComponentName=Komponentenname
 oc:text.Analyzer.LastError=Letzter Fehler
 oc:text.Analyzer.StoredEnergy=Gespeicherte Energie
 oc:text.Analyzer.TotalEnergy=Insgesamt gespeicherte Energie
+oc:text.Robot.Power=Energie

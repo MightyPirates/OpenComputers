@@ -11,7 +11,7 @@ import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -58,7 +58,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     if (isPointInRegion(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add("Power: %d%% (%d/%d)".format((robot.globalPower * 100).toInt, (robot.globalPower * Config.bufferRobot).toInt, Config.bufferRobot.toInt))
+      val format = StatCollector.translateToLocal(Config.namespace + "text.Robot.Power") + ": %d%% (%d/%d)"
+      tooltip.add(format.format(
+        (robot.globalPower * 100).toInt,
+        (robot.globalPower * Config.bufferRobot).toInt,
+        Config.bufferRobot.toInt))
       drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       GL11.glPopAttrib()
     }
