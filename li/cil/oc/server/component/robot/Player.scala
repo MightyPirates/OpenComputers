@@ -89,7 +89,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
     }
   }
 
-  def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): ActivationType.Value = {
+  def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
     if (event.isCanceled || event.useBlock == Event.Result.DENY) {
       return ActivationType.None
@@ -121,7 +121,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
         return ActivationType.ItemPlaced
       }
 
-      if (tryUseItem(stack)) {
+      if (tryUseItem(stack, duration)) {
         return ActivationType.ItemUsed
       }
     }
@@ -129,22 +129,32 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
     ActivationType.None
   }
 
-  def useEquippedItem() = {
+  def useEquippedItem(duration: Double) = {
     val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1)
     if (!event.isCanceled && event.useItem != Event.Result.DENY) {
-      tryUseItem(getCurrentEquippedItem)
+      tryUseItem(getCurrentEquippedItem, duration)
     }
     else false
   }
 
-  private def tryUseItem(stack: ItemStack) =
+  private def tryUseItem(stack: ItemStack, duration: Double) = {
+    clearItemInUse()
     stack != null && stack.stackSize > 0 &&
-      stack.getMaxItemUseDuration <= 0 &&
+      (Config.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
       (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
+      val heldTicks = 0 max stack.getMaxItemUseDuration min (duration * 20).toInt
       val newStack = stack.useItemRightClick(world, this)
+      if (isUsingItem) {
+        getItemInUse.onPlayerStoppedUsing(world, this, getItemInUse.getMaxItemUseDuration - heldTicks)
+        clearItemInUse()
+      }
+      robot.computer.pause(heldTicks / 20.0)
       val stackChanged = newStack != stack || (newStack != null && (newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage))
+      if (newStack == stack && stack.stackSize > 0) {
+        tryRepair(stack, oldDamage)
+      }
       stackChanged && {
         if (newStack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, newStack)
         if (newStack.stackSize > 0) inventory.setInventorySlotContents(0, newStack)
@@ -152,6 +162,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
         true
       }
     }
+  }
 
   def placeBlock(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
@@ -276,6 +287,12 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
 
   // ----------------------------------------------------------------------- //
 
+  override def addExhaustion(amount: Float) {
+    if (Config.robotExhaustionCost > 0) {
+      robot.distributor.changeBuffer(-Config.robotExhaustionCost * amount)
+    }
+  }
+
   override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
 
   override def closeScreen() {}
@@ -292,8 +309,6 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
   override def attackEntityAsMob(entity: Entity) = false
 
   override def attackEntityFrom(source: DamageSource, damage: Float) = false
-
-  override def setItemInUse(stack: ItemStack, maxItemUseDuration: Int) {}
 
   override def isEntityInvulnerable = true
 

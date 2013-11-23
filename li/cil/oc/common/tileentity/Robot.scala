@@ -39,7 +39,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
   override val _computer = if (isRemote) null else new component.Robot(this)
   val (battery, distributor, gpu, keyboard) = if (isServer) {
-    val battery = api.Network.newNode(this, Visibility.Network).withConnector(10000).create()
+    val battery = api.Network.newNode(this, Visibility.Network).
+      withConnector(Config.bufferRobot).
+      create()
     val distributor = new component.PowerDistributor(this)
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
@@ -194,7 +196,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
     super.updateEntity()
     if (isServer) {
-      distributor.changeBuffer(1) // just for testing
+      if (computer.isRunning && !computer.isPaused) {
+        // TODO just for testing... until we have charging stations
+        distributor.changeBuffer(Config.robotCost + 0.1)
+        distributor.changeBuffer(Config.computerCost - Config.robotCost)
+      }
       distributor.update()
       gpu.update()
     }

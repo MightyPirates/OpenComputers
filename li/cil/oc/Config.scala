@@ -40,9 +40,11 @@ object Config {
   var ratioUniversalElectricity = 0.05f
 
   // power.buffer
+  var bufferCapacitor = 500.0
   var bufferConverter = 100.0
-  var bufferCapacitor = 50.0
+  var bufferChargingStation = 50000.0 // TODO
   var bufferPowerSupply = 50.0
+  var bufferRobot = 10000.0
 
   // power.cost
   var computerCost = 1.0
@@ -53,6 +55,10 @@ object Config {
   var hddReadCost = 1.0 / 1600.0
   var hddWriteCost = 1.0 / 800.0
   var powerSupplyCost = -1.25
+  var robotExhaustionCost = 1.0
+  var robotCost = 0.25
+  var robotMoveCost = 10.0
+  var robotTurnCost = 1.0
   var screenCost = 0.1
   var wirelessCostPerRange = 1.0 / 20.0
 
@@ -80,12 +86,13 @@ object Config {
   var maxScreenHeight = 6
   var maxScreenWidth = 8
   var maxWirelessRange = 400.0
-  var rTreeMaxEntries = 10
+  var rTreeMaxEntries = 10 // TODO config?
 
   // ----------------------------------------------------------------------- //
   // robot
 
   var allowActivateBlocks = true
+  var allowUseItemsWithDuration = true
   var canAttackPlayers = false
   var canPlaceInAir = false
   var itemDamageRate = 0.05
@@ -176,44 +183,47 @@ object Config {
     // --------------------------------------------------------------------- //
 
     bufferCapacitor = config.fetch("power.buffer.capacitor", bufferCapacitor,
-      """|The amount of energy a capacitor can store.""".stripMargin) max 0
+      """The amount of energy a capacitor can store.""") max 0
 
     bufferConverter = config.fetch("power.buffer.converter", bufferConverter,
-      """|The amount of energy a power converter can store.""".stripMargin) max 0
+      """The amount of energy a power converter can store.""") max 0
 
     bufferPowerSupply = config.fetch("power.buffer.powerSupply", bufferPowerSupply,
-      """|The amount of energy a power supply can store.""".stripMargin) max 0
+      """The amount of energy a power supply can store.""") max 0
+
+    bufferRobot = config.fetch("power.buffer.robot", bufferRobot,
+      """The amount of power robots can store in their internal buffer.""") max 0
 
     // --------------------------------------------------------------------- //
 
     computerCost = config.fetch("power.cost.computer", computerCost,
-      """|The amount of energy a computer consumes per tick when running.""".stripMargin) max 0
+      """The amount of energy a computer consumes per tick when running.""")
 
     gpuFillCost = config.fetch("power.cost.gpuFill", gpuFillCost,
       """|Energy it takes to change a single 'pixel' via the fill command. This
-        |means the total cost of the fill command will be its area times this.""".stripMargin) max 0
+        |means the total cost of the fill command will be its area times this.""".stripMargin)
 
     gpuClearCost = config.fetch("power.cost.gpuClear", gpuClearCost,
       """|Energy it takes to change a single 'pixel' to blank using the fill
         |command. This means the total cost of the fill command will be its
-        |area times this.""".stripMargin) max 0
+        |area times this.""".stripMargin)
 
     gpuCopyCost = config.fetch("power.cost.gpuCopy", gpuCopyCost,
       """|Energy it takes to move a single 'pixel' via the copy command. This
-        |means the total cost of the copy command will be its area times this.""".stripMargin) max 0
+        |means the total cost of the copy command will be its area times this.""".stripMargin)
 
     gpuSetCost = config.fetch("power.cost.gpuSet", gpuSetCost,
       """|Energy it takes to change a single 'pixel' via the set command. For
         |calls to set with a string, this means the total cost will be the
-        |string length times this.""".stripMargin) max 0
+        |string length times this.""".stripMargin)
 
     hddReadCost = config.fetch("power.cost.hddRead", hddReadCost,
       """|Energy it takes read a single byte from a file system. Note that non
         |I/O operations on file systems such as `list` or `getFreeSpace` do
-        |*not* consume power.""".stripMargin) max 0
+        |*not* consume power.""".stripMargin)
 
     hddWriteCost = config.fetch("power.cost.hddWrite", hddWriteCost,
-      """|Energy it takes to write a single byte to a file system.""".stripMargin) max 0
+      """Energy it takes to write a single byte to a file system.""")
 
     powerSupplyCost = config.fetch("power.cost.powerSupply", powerSupplyCost,
       """|The amount of energy a power supply (item) produces per tick. This is
@@ -221,6 +231,26 @@ object Config {
         |back into the network. This is slightly more than what a computer
         |consumes per tick. It's meant as an easy way to powering a small
         |setup, mostly for testing.""".stripMargin)
+
+    robotExhaustionCost = config.fetch("power.cost.robotExhaustion", robotExhaustionCost,
+      """|The conversion rate of exhaustion from using items to energy consumed.
+        |Zero means exhaustion does not require energy, one is a one to one
+        |conversion. For example, breaking a block generates 0.025 exhaustion,
+        |attacking an entity generates 0.3 exhaustion.""".stripMargin)
+
+    robotCost = config.fetch("power.cost.robot", robotCost,
+      """|The amount of energy a robot consumes per tick when running. This is
+        |per default less than a normal computer uses because... well... they
+        |are better optimized? It balances out due to the cost for movement,
+        |interaction and whatnot, and the fact that robots cannot connect to
+        |component networks directly, so they are no replacements for normal
+        |computers.""".stripMargin)
+
+    robotMoveCost = config.fetch("power.cost.robotMove", robotMoveCost,
+      """The amount of energy it takes a robot to move a single block.""")
+
+    robotTurnCost = config.fetch("power.cost.robotTurn", robotTurnCost,
+      """The amount of energy it takes a robot to perform a 90 degree turn.""")
 
     screenCost = config.fetch("power.cost.screen", screenCost,
       """|The amount of energy a screen consumes per displayed character per
@@ -230,7 +260,7 @@ object Config {
         |will restore the previously displayed text (with any changes possibly
         |made in the meantime). Note that for multi-block screens *each*
         |screen that is part of it will consume this amount of energy per
-        |tick.""".stripMargin) max 0
+        |tick.""".stripMargin)
 
     wirelessCostPerRange = config.fetch("power.cost.wirelessStrength", wirelessCostPerRange,
       """|The amount of energy it costs to send a signal with strength one,
@@ -384,6 +414,15 @@ object Config {
         |it causes problems with some mod (but let me know!) or if you think
         |this feature is too over-powered.""".stripMargin)
 
+    allowUseItemsWithDuration = config.fetch("robot.allowUseItemsWithDuration", allowUseItemsWithDuration,
+      """|Whether robots may use items for a specifiable duration. This allows
+        |robots to use items such as bows, for which the right mouse button
+        |has to be held down for a longer period of time. For robots this works
+        |slightly different: the item is told it was used for the specified
+        |duration immediately, but the robot will not resume execution until
+        |the time that the item was supposedly being used has elapsed. This
+        |way robots cannot rapidly fire critical shots with a bow, for example.""".stripMargin)
+
     canAttackPlayers = config.fetch("robot.canAttackPlayers", canAttackPlayers,
       """|Whether robots may damage players if they get in their way. This
         |includes all 'player' entities, which may be more than just real
@@ -436,7 +475,7 @@ object Config {
       """|The time in seconds to pause execution after a robot issued a
         |successful move command. Note that this essentially determines how
         |fast robots can move around, since this also determines the length of
-        |the move animation.""".stripMargin) max 0.1
+        |the move animation.""".stripMargin) max 0.05
 
     placeDelay = config.fetch("robot.delays.place", placeDelay,
       """|The time in seconds to pause execution after a robot successfully
@@ -456,14 +495,17 @@ object Config {
       """|The time in seconds to pause execution after a robot turned either
         |left or right. Note that this essentially determines hw fast robots
         |can turn around, since this also determines the length of the turn
-        |animation.""".stripMargin) max 0.1
+        |animation.""".stripMargin) max 0.05
 
     useDelay = config.fetch("robot.delays.use", useDelay,
       """|The time in seconds to pause execution after a robot successfully
         |used an equipped tool (or it's 'hands' if nothing is equipped).
         |Successful in this case means that it either used the equipped item,
         |for example bone meal, or that it activated a block, for example by
-        |pushing a button.""".stripMargin) max 0
+        |pushing a button.[nl]
+        |Note that if an item is used for a specific amount of time, like when
+        |shooting a bow, the maximum of this and the duration of the item use
+        |is taken.""".stripMargin) max 0
 
     // --------------------------------------------------------------------- //
 

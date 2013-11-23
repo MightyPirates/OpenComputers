@@ -39,7 +39,16 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def decrementAnimations() {}
 
-  override def consumeInventoryItem(itemId: Int) = false
+  override def consumeInventoryItem(itemId: Int): Boolean = {
+    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.itemID == itemId && stack.stackSize > 0) {
+      stack.stackSize -= 1
+      if (stack.stackSize <= 0) {
+        setInventorySlotContents(slot, null)
+      }
+      return true
+    }
+    false
+  }
 
   override def hasItem(itemId: Int) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.itemID == itemId)
 

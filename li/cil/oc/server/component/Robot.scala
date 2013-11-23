@@ -311,6 +311,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       throw new IllegalArgumentException("invalid side")
     }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
+    val duration =
+      if (args.isDouble(3)) args.checkDouble(3)
+      else 0.0
     val player = robot.player(facing, side)
     def triggerDelay() {
       context.pause(Config.useDelay)
@@ -339,15 +342,15 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             result(false, "entity")
           case EnumMovingObjectType.TILE =>
             val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-            activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz))
+            activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         }
       case _ =>
         (if (Config.canPlaceInAir) {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
-          player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+          player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
         } else ActivationType.None) match {
           case ActivationType.None =>
-            if (player.useEquippedItem()) {
+            if (player.useEquippedItem(duration)) {
               triggerDelay()
               result(true, "item_used")
             }
@@ -381,12 +384,16 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       result(false, what)
     }
     else {
-      if (robot.move(direction)) {
+      if (!robot.distributor.canChangeBuffer(-Config.robotMoveCost)) {
+        result(false, "not enough energy")
+      }
+      else if (robot.move(direction)) {
         context.pause(Config.moveDelay)
+        robot.distributor.changeBuffer(-Config.robotMoveCost)
         result(true)
       }
       else {
-        result(false)
+        result(false, "impossible move")
       }
     }
   }
@@ -394,11 +401,16 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (clockwise) robot.rotate(ForgeDirection.UP)
-    else robot.rotate(ForgeDirection.DOWN)
-    robot.animateTurn(clockwise, Config.turnDelay)
-    context.pause(Config.turnDelay)
-    result(true)
+    if (robot.distributor.changeBuffer(-Config.robotTurnCost)) {
+      if (clockwise) robot.rotate(ForgeDirection.UP)
+      else robot.rotate(ForgeDirection.DOWN)
+      robot.animateTurn(clockwise, Config.turnDelay)
+      context.pause(Config.turnDelay)
+      result(true)
+    }
+    else {
+      result(false, "not enough energy")
+    }
   }
 
   // ----------------------------------------------------------------------- //

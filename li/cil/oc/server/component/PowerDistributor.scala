@@ -1,10 +1,10 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.PowerInformation
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.{Config, api}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -35,6 +35,10 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   def bufferSize(context: Context, args: Arguments): Array[AnyRef] = result(globalBufferSize)
 
   // ----------------------------------------------------------------------- //
+
+  def canChangeBuffer(delta: Double) = {
+    Config.ignorePower || globalBuffer + delta >= 0
+  }
 
   def changeBuffer(delta: Double): Boolean = {
     if (delta != 0) this.synchronized {
@@ -155,7 +159,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
         (acc._1 + c.localBuffer, acc._2 + c.localBufferSize)
       })
     val globalPower = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0
-    val shouldSend = (lastSentState - globalPower).abs > 0.05
+    val shouldSend = (lastSentState - globalPower).abs * globalBufferSize > 1
     for (distributor <- distributors) distributor.synchronized {
       distributor.dirty = false
       distributor.globalBuffer = sumBuffer
