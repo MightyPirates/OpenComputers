@@ -3,7 +3,7 @@ if not term.isAvailable() then
 end
 
 local args, options = shell.parse(...)
-if args.n == 0 then
+if #args == 0 then
   print("Usage: edit <filename>")
   return
 end
@@ -28,7 +28,7 @@ local scrollX, scrollY = 0, 0
 
 local function setStatus(value)
   if not value then
-    value = string.format([["%s" %dL]], fs.name(filename), #buffer)
+    value = string.format([["%s" %dL    Menu: [Ctrl] ]], fs.name(filename), #buffer)
   end
   local w, h = component.gpu.getResolution()
   component.gpu.set(1, h, text.padRight(unicode.sub(value, 1, w - 10), w - 10))
@@ -257,19 +257,19 @@ end
 local function onClipboard(value)
   term.setCursorBlink(false)
   local cbx, cby = getCursor()
+  local start = 1
   local l = value:find("\n", 1, true)
   if l then
-    -- buffer[cby] = unicode.sub(line(), 1, cbx - 1)
-    -- redraw()
-    -- insert(unicode.sub(value, 1, l - 1))
-    -- return true, line() .. "\n"
-
-    -- TODO insert multiple lines
-  else
-    insert(value)
-    term.setCursorBlink(true)
-    term.setCursorBlink(true) -- force toggle to caret
+    repeat
+      insert(string.sub(value, start, l - 1))
+      enter()
+      start = l + 1
+      l = value:find("\n", start, true)
+    until not l
   end
+  insert(string.sub(value, start))
+  term.setCursorBlink(true)
+  term.setCursorBlink(true) -- force toggle to caret
 end
 
 -------------------------------------------------------------------------------
