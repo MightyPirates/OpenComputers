@@ -53,7 +53,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) {
+  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) = if (t.hasKeyboard) {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
@@ -63,7 +63,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) {
+  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) = if (t.hasKeyboard) {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
@@ -73,7 +73,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendClipboard[T <: Buffer](t: T, value: String) = if (!value.isEmpty) {
+  def sendClipboard[T <: Buffer](t: T, value: String) = if (!value.isEmpty && t.hasKeyboard) {
     val pb = new PacketBuilder(PacketType.Clipboard)
 
     pb.writeTileEntity(t)

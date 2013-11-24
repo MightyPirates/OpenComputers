@@ -29,6 +29,8 @@ trait Buffer extends Environment with Persistable {
 
   def tier: Int
 
+  def hasKeyboard = true
+
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
