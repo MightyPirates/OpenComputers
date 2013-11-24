@@ -33,6 +33,8 @@ class Proxy {
     api.Driver.add(driver.item.PowerSupply)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.WirelessNetworkCard)
+
+    Recipes.init()
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
