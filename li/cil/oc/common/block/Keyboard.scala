@@ -20,6 +20,13 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
       case _ =>
     }
 
+  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int) =
+    ForgeDirection.VALID_DIRECTIONS.
+      map(side => world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).
+      collect {
+      case screen: tileentity.Screen => screen
+    }.exists(_.facing.ordinal() != side)
+
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
   override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0

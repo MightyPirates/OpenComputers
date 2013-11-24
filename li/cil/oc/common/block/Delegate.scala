@@ -33,6 +33,8 @@ trait Delegate {
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int) = true
+
   def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
 
   def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
