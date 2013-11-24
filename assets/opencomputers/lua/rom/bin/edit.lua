@@ -184,9 +184,9 @@ local function insert(value)
                 value ..
                 unicode.sub(line(), cbx)
   local len = unicode.len(value)
-  local scroll = w - cx - len
-  if scroll > 0 then
-    component.gpu.copy(cx, cy, scroll, 1, len, 0)
+  local n = w - (cx - 1) - len
+  if n > 0 then
+    component.gpu.copy(cx, cy, n, 1, len, 0)
   end
   component.gpu.set(cx, cy, value)
   right(len)

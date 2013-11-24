@@ -1174,20 +1174,25 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         case Computer.State.Yielded =>
           if (kernelMemory == 0) {
             // We're doing the initialization run.
-            lua.pop(lua.resume(1, 0))
-            // Run the garbage collector to get rid of stuff left behind after
-            // the initialization phase to get a good estimate of the base
-            // memory usage the kernel has (including libraries). We remember
-            // that size to grant user-space programs a fixed base amount of
-            // memory, regardless of the memory need of the underlying system
-            // (which may change across releases).
-            lua.gc(LuaState.GcAction.COLLECT, 0)
-            kernelMemory = ((lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory) max 1
-            recomputeMemory()
+            if (lua.resume(1, 0) > 0) {
+              // We expect to get nothing here, if we do we had an error.
+              (0, 0L)
+            }
+            else {
+              // Run the garbage collector to get rid of stuff left behind after
+              // the initialization phase to get a good estimate of the base
+              // memory usage the kernel has (including libraries). We remember
+              // that size to grant user-space programs a fixed base amount of
+              // memory, regardless of the memory need of the underlying system
+              // (which may change across releases).
+              lua.gc(LuaState.GcAction.COLLECT, 0)
+              kernelMemory = ((lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory) max 1
+              recomputeMemory()
 
-            // Fake zero sleep to avoid stopping if there are no signals.
-            lua.pushInteger(0)
-            (1, 0L)
+              // Fake zero sleep to avoid stopping if there are no signals.
+              lua.pushInteger(0)
+              (1, 0L)
+            }
           }
           else (signals.synchronized(if (signals.isEmpty) None else Some(signals.dequeue())) match {
             case Some(signal) =>

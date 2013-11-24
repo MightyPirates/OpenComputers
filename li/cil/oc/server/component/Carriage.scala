@@ -2,8 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import net.minecraft.nbt.NBTTagCompound
 import li.cil.oc.util.mods.RedstoneInMotion
+import net.minecraft.nbt.NBTTagCompound
 
 class Carriage(controller: AnyRef) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).

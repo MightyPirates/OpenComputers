@@ -209,9 +209,9 @@ function term.read(history)
                    value ..
                    unicode.sub(line(), cbx)
     local len = unicode.len(value)
-    local sx = w - cx - len
-    if sx > 0 then
-      component.gpu.copy(cx, cy, sx, 1, len, 0)
+    local n = w - (cx - 1) - len
+    if n > 0 then
+      component.gpu.copy(cx, cy, n, 1, len, 0)
     end
     component.gpu.set(cx, cy, value)
     right(len)
