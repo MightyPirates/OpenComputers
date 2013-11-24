@@ -6,9 +6,22 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.Config
+import net.minecraftforge.common.ForgeDirection
+import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.util.Icon
 
 class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Keyboard"
+  var icon: Icon = null
+
+  override def icon(side: ForgeDirection) = Some(icon)
+
+  override def registerIcons(iconRegister: IconRegister) = {
+    icon = iconRegister.registerIcon(Config.resourceDomain + ":keyboard")
+  }
+
+  //override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   override def hasTileEntity = true
 
