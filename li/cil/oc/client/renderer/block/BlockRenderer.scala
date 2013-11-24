@@ -23,7 +23,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
         GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-      case Some(keyboard: Keyboard) =>
+     // case Some(keyboard: Keyboard) =>
       case Some(proxy: RobotProxy) =>
         GL11.glTranslatef(0, -0.1f, 0)
         GL11.glScalef(1.5f, 1.5f, 1.5f)

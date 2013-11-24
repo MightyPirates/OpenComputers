@@ -111,7 +111,7 @@ trait Rotatable extends TileEntity with Persistable {
   def setFromFacing(value: ForgeDirection) =
     value match {
       case ForgeDirection.DOWN | ForgeDirection.UP =>
-        trySetPitchYaw(value, ForgeDirection.SOUTH)
+        trySetPitchYaw(value, yaw)
       case yaw =>
         trySetPitchYaw(ForgeDirection.NORTH, yaw)
     }

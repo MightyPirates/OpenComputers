@@ -31,8 +31,6 @@ private[oc] class Proxy extends CommonProxy {
       //   RenderingRegistry.registerBlockHandler()
     TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
 
-    Config.blockRenderId =RenderingRegistry.getNextAvailableRenderId
-    RenderingRegistry.registerBlockHandler(KeyboardRenderer)
     MinecraftForge.EVENT_BUS.register(gui.Icons)
   }
 

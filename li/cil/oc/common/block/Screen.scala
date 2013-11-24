@@ -290,15 +290,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   // Block rotation
   // ----------------------------------------------------------------------- //
 
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
-
-  private val validRotations = Array(
-    ForgeDirection.DOWN,
-    ForgeDirection.UP,
-    ForgeDirection.SOUTH,
-    ForgeDirection.WEST,
-    ForgeDirection.NORTH,
-    ForgeDirection.EAST)
+  override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
 }
 
 object Screen {
