@@ -10,9 +10,9 @@ import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.{Vec3, AxisAlignedBB, DamageSource, ChunkCoordinates}
+import net.minecraft.util._
 import net.minecraft.world.World
-import net.minecraftforge.common.{ForgeHooks, ForgeDirection, FakePlayer}
+import net.minecraftforge.common.{ForgeHooks, ForgeDirection}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
@@ -20,7 +20,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") {
+class Player(val robot: Robot) extends EntityPlayer(robot.world, "OpenComputers") {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -337,4 +337,8 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
 
   override def interactWith(entity: Entity) = false // TODO Or do we want this?
+
+  def canCommandSenderUseCommand(i: Int, s: String) = false
+
+  def sendChatToPlayer(message: ChatMessageComponent) {}
 }

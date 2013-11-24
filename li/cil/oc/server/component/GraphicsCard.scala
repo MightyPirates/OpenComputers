@@ -87,11 +87,7 @@ abstract class GraphicsCard extends ManagedComponent {
 
   @LuaCallback(value = "getDepth", direct = true)
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(s.depth match {
-      case PackedColor.Depth.OneBit => 1
-      case PackedColor.Depth.FourBit => 4
-      case PackedColor.Depth.EightBit => 8
-    }))
+    screen(s => result(PackedColor.Depth.bits(s.depth)))
 
   @LuaCallback("setDepth")
   def setDepth(context: Context, args: Arguments): Array[AnyRef] = {

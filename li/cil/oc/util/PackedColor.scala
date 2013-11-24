@@ -4,6 +4,12 @@ object PackedColor {
 
   object Depth extends Enumeration {
     val OneBit, FourBit, EightBit = Value
+
+    def bits(depth: Depth.Value) = depth match {
+      case OneBit => 1
+      case FourBit => 4
+      case EightBit => 8
+    }
   }
 
   private val rMask32 = 0xFF0000

@@ -10,9 +10,17 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import java.util
 
 class Analyzer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Analyzer"
+
+  override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.add("Used to display information about blocks,")
+    tooltip.add("such as their address and component name.")
+    tooltip.add("Also displays the error that caused a computer")
+    tooltip.add("to crash if it did not shut down normally.")
+  }
 
   override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
