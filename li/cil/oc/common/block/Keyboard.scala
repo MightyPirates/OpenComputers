@@ -19,10 +19,9 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def registerIcons(iconRegister: IconRegister) = {
     icon = iconRegister.registerIcon(Config.resourceDomain + ":keyboard")
-
   }
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  //override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   override def hasTileEntity = true
 

@@ -9,6 +9,8 @@ import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
+import li.cil.oc.common.tileentity
+
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -23,7 +25,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
         GL11.glTranslatef(0.5f, 0.5f, 0.5f)
-     // case Some(keyboard: Keyboard) =>
+
       case Some(proxy: RobotProxy) =>
         GL11.glTranslatef(0, -0.1f, 0)
         GL11.glScalef(1.5f, 1.5f, 1.5f)
@@ -51,5 +53,45 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     }
   }
 
-  def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = renderer.renderStandardBlock(block, x, y, z)
+  def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = {
+
+    Delegator.subBlock(block, world.getBlockMetadata(x, y, z)) match {
+      case Some(keyboard: Keyboard) =>
+        world.getBlockTileEntity(x, y, z) match {
+          case teK: tileentity.Keyboard =>
+            if (teK.facing == ForgeDirection.UP || teK.facing == ForgeDirection.DOWN) {
+              teK.yaw match {
+                case ForgeDirection.NORTH =>
+                  renderer.uvRotateTop = 0
+                  renderer.uvRotateBottom = 0
+                case ForgeDirection.EAST =>
+                  renderer.uvRotateTop = 1
+                  renderer.uvRotateBottom = 2
+
+                case ForgeDirection.SOUTH =>
+                  renderer.uvRotateTop = 3
+                  renderer.uvRotateBottom = 3
+                case ForgeDirection.WEST =>
+                  renderer.uvRotateTop = 2
+                  renderer.uvRotateBottom = 1
+                case _ =>
+
+              }
+              if (teK.facing == ForgeDirection.DOWN)   {
+                renderer.flipTexture = true
+              }
+                //
+            }
+            val ret = renderer.renderStandardBlock(block, x, y, z)
+            renderer.uvRotateTop = 0
+            renderer.uvRotateBottom = 0
+            renderer.flipTexture = false
+            ret
+          case _ =>
+            true
+        }
+      case _ => renderer.renderStandardBlock(block, x, y, z)
+    }
+
+  }
 }
