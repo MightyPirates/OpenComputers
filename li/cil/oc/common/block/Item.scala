@@ -1,14 +1,13 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.Config
-import li.cil.oc.common.tileentity.Rotatable
+import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
-/** Used to represent multiblocks when in item form. */
 class Item(id: Int) extends ItemBlock(id) {
   setHasSubtypes(true)
 
@@ -28,9 +27,11 @@ class Item(id: Int) extends ItemBlock(id) {
     if (super.placeBlockAt(item, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.
       world.getBlockTileEntity(x, y, z) match {
-        case rotatable: Rotatable =>
+        case rotatable: tileentity.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
-          rotatable.invertRotation()
+          if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
+            rotatable.invertRotation()
+          }
         case _ => // Ignore.
       }
       true
