@@ -112,7 +112,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int, stack: ItemStack) =
     subBlock(stack) match {
-      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, side)
+      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
       case _ => super.canPlaceBlockOnSide(world, x, y, z, side, stack)
     }
 
@@ -172,10 +172,6 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) = {
     setBlockBoundsBasedOnState(world, x, y, z)
     super.getCollisionBoundingBoxFromPool(world, x, y, z)
-  }
-
-  override def setBlockBoundsForItemRender() {
-    setBlockBounds(0, 0, 0, 1, 1, 1)
   }
 
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
@@ -314,6 +310,22 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ =>
+    }
+
+  override def setBlockBoundsForItemRender() {
+    setBlockBounds(0, 0, 0, 1, 1, 1)
+  }
+
+  def setBlockBoundsForItemRender(metadata: Int): Unit =
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.setBlockBoundsForItemRender()
+      case _ => setBlockBoundsForItemRender()
+    }
+
+  def preItemRender(metadata: Int) =
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.preItemRender()
       case _ =>
     }
 
