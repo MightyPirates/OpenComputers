@@ -91,7 +91,7 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  private val validRotations = Array(
+  protected val validRotations = Array(
     ForgeDirection.SOUTH,
     ForgeDirection.WEST,
     ForgeDirection.NORTH,

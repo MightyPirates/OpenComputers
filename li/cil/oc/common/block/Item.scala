@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
 
 class Item(id: Int) extends ItemBlock(id) {
   setHasSubtypes(true)
@@ -27,6 +28,9 @@ class Item(id: Int) extends ItemBlock(id) {
     if (super.placeBlockAt(item, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.
       world.getBlockTileEntity(x, y, z) match {
+        case keyboard: tileentity.Keyboard =>
+          keyboard.setFromEntityPitchAndYaw(player)
+          keyboard.setFromFacing(ForgeDirection.getOrientation(side))
         case rotatable: tileentity.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
