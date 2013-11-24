@@ -6,6 +6,10 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 
 abstract class ManagedComponent extends ManagedEnvironment {
+  protected var isInvalid = false
+
+  def invalidate() = isInvalid = true
+
   def update() {}
 
   def onMessage(message: Message) {}
@@ -19,7 +23,7 @@ abstract class ManagedComponent extends ManagedEnvironment {
   }
 
   def save(nbt: NBTTagCompound) = {
-    if (node != null) nbt.setNewCompoundTag("node", node.save)
+    if (node != null && !isInvalid) nbt.setNewCompoundTag("node", node.save)
   }
 
   /**

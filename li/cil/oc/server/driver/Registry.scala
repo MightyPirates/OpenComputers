@@ -76,11 +76,11 @@ private[oc] object Registry extends api.detail.DriverAPI {
    * Used when an item component is added to a computer to see if we have a
    * driver for it. If we have one, we'll return it.
    *
-   * @param item the type of item to check for a driver for.
+   * @param stack the type of item to check for a driver for.
    * @return the driver for that item type if we have one.
    */
-  def driverFor(item: ItemStack) =
-    if (item != null) items.find(_.worksWith(item)) match {
+  def driverFor(stack: ItemStack) =
+    if (stack != null) items.find(_.worksWith(stack)) match {
       case None => None
       case Some(driver) => Some(driver)
     }

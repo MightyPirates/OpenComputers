@@ -6,9 +6,9 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object PowerSupply extends Item {
-  override def worksWith(item: ItemStack) = isOneOf(item, Items.psu)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.psu)
 
-  override def createEnvironment(item: ItemStack, container: AnyRef) = new component.PowerSupply()
+  override def createEnvironment(stack: ItemStack, container: AnyRef) = new component.PowerSupply()
 
-  override def slot(item: ItemStack) = Slot.Power
+  override def slot(stack: ItemStack) = Slot.Power
 }

@@ -182,7 +182,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def decrStackSize(slot: Int, amount: Int) = robot.decrStackSize(slot, amount)
 
-  override def setInventorySlotContents(slot: Int, item: ItemStack) = robot.setInventorySlotContents(slot, item)
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(slot, stack)
 
   override def getStackInSlotOnClosing(slot: Int) = robot.getStackInSlotOnClosing(slot)
 

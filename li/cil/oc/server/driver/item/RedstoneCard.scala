@@ -7,13 +7,13 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object RedstoneCard extends Item {
-  override def worksWith(item: ItemStack) = isOneOf(item, Items.rs)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.rs)
 
-  override def createEnvironment(item: ItemStack, container: AnyRef) =
+  override def createEnvironment(stack: ItemStack, container: AnyRef) =
     container match {
       case redstone: Redstone => new component.RedstoneCard(redstone)
       case _ => null
     }
 
-  override def slot(item: ItemStack) = Slot.Card
+  override def slot(stack: ItemStack) = Slot.Card
 }

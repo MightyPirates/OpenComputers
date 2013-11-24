@@ -293,11 +293,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override protected def onItemRemoved(slot: Int, item: ItemStack) {
-    super.onItemRemoved(slot, item)
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
     if (isServer) {
       if (slot == 0) {
-        player_.getAttributeMap.removeAttributeModifiers(item.getAttributeModifiers)
+        player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers)
         ServerPacketSender.sendRobotEquippedItemChange(this, null)
       }
       else if (slot >= actualSlot(0)) {
@@ -306,14 +306,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) {
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
     if (isServer) {
       if (slot == 0) {
-        player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+        player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
         ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(0))
       }
       else if (isComponentSlot(slot)) {
-        super.onItemAdded(slot, item)
+        super.onItemAdded(slot, stack)
       }
       else if (slot >= actualSlot(0)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -345,16 +345,28 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def getInventoryStackLimit = 64
 
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
+    if ((1 to 2 contains slot) && stack != null && stack.stackSize > 1) {
+      super.setInventorySlotContents(slot, stack.splitStack(1))
+      if (isServer) {
+        val p = player()
+        p.inventory.addItemStackToInventory(stack)
+        p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+      }
+    }
+    else super.setInventorySlotContents(slot, stack)
+  }
+
   override def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
       case t: RobotProxy if t == proxy => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false
     }
 
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (1, Some(driver)) => driver.slot(item) == Slot.Card
-    case (2, Some(driver)) => driver.slot(item) == Slot.Disk
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Card
+    case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
     case (i, _) if 3 until getSizeInventory contains i => true // Normal inventory.
     case _ => false // Invalid slot.
   }

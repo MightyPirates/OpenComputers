@@ -6,9 +6,7 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.util.{AxisAlignedBB, Icon}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
@@ -82,10 +80,6 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     AxisAlignedBB.getBoundingBox(
       (x0 min x1) + 0.5f, (y0 min y1) + 0.5f, (z0 min z1) + 0.5f,
       (x0 max x1) + 0.5f, (y0 max y1) + 0.5f, (z0 max z1) + 0.5f)
-  }
-
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {
-    super.onBlockPlacedBy(world, x, y, z, player, item)
   }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =

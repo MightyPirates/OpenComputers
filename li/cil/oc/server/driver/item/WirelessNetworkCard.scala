@@ -7,13 +7,13 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 
 object WirelessNetworkCard extends Item {
-  def worksWith(item: ItemStack) = isOneOf(item, Items.wlan)
+  def worksWith(stack: ItemStack) = isOneOf(stack, Items.wlan)
 
-  override def createEnvironment(item: ItemStack, container: AnyRef) =
+  override def createEnvironment(stack: ItemStack, container: AnyRef) =
     container match {
-      case t: TileEntity => new component.WirelessNetworkCard(t)
+      case owner: TileEntity => new component.WirelessNetworkCard(owner)
       case _ => null
     }
 
-  def slot(item: ItemStack) = Slot.Card
+  def slot(stack: ItemStack) = Slot.Card
 }

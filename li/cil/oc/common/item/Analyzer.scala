@@ -16,11 +16,11 @@ import net.minecraftforge.common.ForgeDirection
 class Analyzer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Analyzer"
 
-  override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
       case analyzable: Analyzable =>
         val stats = new NBTTagCompound()
@@ -38,7 +38,7 @@ class Analyzer(val parent: Delegator) extends Delegate {
           analyzeNode(new NBTTagCompound(), host.node, player)
         }
         true
-      case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
   }
 

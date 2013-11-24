@@ -75,12 +75,12 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
 
   def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) = if (isServer && isComponentSlot(slot)) {
-    Registry.driverFor(item) match {
-      case Some(driver) => Option(driver.createEnvironment(item, this)) match {
+  override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isServer && isComponentSlot(slot)) {
+    Registry.driverFor(stack) match {
+      case Some(driver) => Option(driver.createEnvironment(stack, this)) match {
         case Some(component) =>
           components(slot) = Some(component)
-          component.load(driver.nbt(item))
+          component.load(driver.nbt(stack))
           connectItemNode(component.node)
         case _ => // No environment (e.g. RAM).
       }
@@ -88,7 +88,7 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
     }
   }
 
-  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (isServer) {
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) = if (isServer) {
     // Uninstall component previously in that slot.
     components(slot) match {
       case Some(component) =>
@@ -98,8 +98,8 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
         // being installed into a different computer, even!)
         components(slot) = None
         component.node.remove()
-        Registry.driverFor(item).foreach(driver =>
-          component.save(driver.nbt(item)))
+        Registry.driverFor(stack).foreach(driver =>
+          component.save(driver.nbt(stack)))
       case _ => // Nothing to do.
     }
   }

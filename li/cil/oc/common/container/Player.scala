@@ -110,8 +110,8 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     addSlotToContainer(new Slot(otherInventory, index, x, y) {
       setBackgroundIcon(Icons.get(slot))
 
-      override def isItemValid(item: ItemStack) = {
-        otherInventory.isItemValidForSlot(index, item)
+      override def isItemValid(stack: ItemStack) = {
+        otherInventory.isItemValidForSlot(index, stack)
       }
     })
   }

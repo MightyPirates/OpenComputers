@@ -11,13 +11,18 @@ import net.minecraft.world.World
 import scala.collection.mutable
 
 class Delegator(id: Int) extends Item(id) {
-  setMaxStackSize(1)
   setHasSubtypes(true)
   setCreativeTab(CreativeTab)
 
   // ----------------------------------------------------------------------- //
   // SubItem
   // ----------------------------------------------------------------------- //
+
+  override def getItemStackLimit(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) => subItem.maxStackSize
+      case _ => maxStackSize
+    }
 
   val subItems = mutable.ArrayBuffer.empty[Delegate]
 
@@ -27,9 +32,9 @@ class Delegator(id: Int) extends Item(id) {
     itemId
   }
 
-  def subItem(item: ItemStack): Option[Delegate] =
-    subItem(item.getItemDamage) match {
-      case Some(subItem) if item.getItem == this => Some(subItem)
+  def subItem(stack: ItemStack): Option[Delegate] =
+    subItem(stack.getItemDamage) match {
+      case Some(subItem) if stack.getItem == this => Some(subItem)
       case _ => None
     }
 
@@ -60,7 +65,7 @@ class Delegator(id: Int) extends Item(id) {
       case _ => super.getIconFromDamage(damage)
     }
 
-  override def getRarity(item: ItemStack) = EnumRarity.uncommon
+  override def getRarity(stack: ItemStack) = EnumRarity.uncommon
 
   override def getShareTag = false
 
@@ -71,8 +76,8 @@ class Delegator(id: Int) extends Item(id) {
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
-  override def getUnlocalizedName(item: ItemStack): String =
-    subItem(item) match {
+  override def getUnlocalizedName(stack: ItemStack): String =
+    subItem(stack) match {
       case Some(subItem) => Config.namespace + "item." + subItem.unlocalizedName
       case _ => getUnlocalizedName
     }
@@ -90,22 +95,22 @@ class Delegator(id: Int) extends Item(id) {
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 
-  override def onItemRightClick(item: ItemStack, world: World, player: EntityPlayer): ItemStack =
-    subItem(item) match {
-      case Some(subItem) => subItem.onItemRightClick(item, world, player)
-      case _ => super.onItemRightClick(item, world, player)
+  override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack =
+    subItem(stack) match {
+      case Some(subItem) => subItem.onItemRightClick(stack, world, player)
+      case _ => super.onItemRightClick(stack, world, player)
     }
 
-  override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
-    subItem(item) match {
-      case Some(subItem) => subItem.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
-      case _ => super.onItemUse(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+  override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+    subItem(stack) match {
+      case Some(subItem) => subItem.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
-  override def onItemUseFirst(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
-    subItem(item) match {
-      case Some(subItem) => subItem.onItemUseFirst(item, player, world, x, y, z, side, hitX, hitY, hitZ)
-      case _ => super.onItemUseFirst(item, player, world, x, y, z, side, hitX, hitY, hitZ)
+  override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
+    subItem(stack) match {
+      case Some(subItem) => subItem.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
 
   override def registerIcons(iconRegister: IconRegister) {

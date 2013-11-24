@@ -7,10 +7,10 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 
 object ComputerCraft {
-  def isDisk(item: ItemStack) = Loader.isModLoaded("ComputerCraft") && item.getItem.isInstanceOf[IMedia]
+  def isDisk(stack: ItemStack) = Loader.isModLoaded("ComputerCraft") && stack.getItem.isInstanceOf[IMedia]
 
-  def createDiskMount(item: ItemStack, world: World) = if (isDisk(item)) {
-    item.getItem.asInstanceOf[IMedia].createDataMount(item, world) match {
+  def createDiskMount(stack: ItemStack, world: World) = if (isDisk(stack)) {
+    stack.getItem.asInstanceOf[IMedia].createDataMount(stack, world) match {
       case mount: IWritableMount => oc.api.FileSystem.fromComputerCraft(mount)
       case mount: IMount => oc.api.FileSystem.fromComputerCraft(mount)
       case _ => null

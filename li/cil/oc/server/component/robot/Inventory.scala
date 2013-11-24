@@ -135,7 +135,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def hasItemStack(stack: ItemStack) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 
-  override def isItemValidForSlot(slot: Int, item: ItemStack) = robot.isItemValidForSlot(slot, item)
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
 
   override def copyInventory(from: InventoryPlayer) {}
 }

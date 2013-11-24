@@ -28,14 +28,14 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     case _ => null
   }
 
-  def setInventorySlotContents(slot: Int, item: ItemStack) = {
+  def setInventorySlotContents(slot: Int, stack: ItemStack) = {
     if (items(slot).isDefined) {
       onItemRemoved(slot, items(slot).get)
     }
 
-    items(slot) = Option(item)
-    if (item != null && item.stackSize > getInventoryStackLimit) {
-      item.stackSize = getInventoryStackLimit
+    items(slot) = Option(stack)
+    if (stack != null && stack.stackSize > getInventoryStackLimit) {
+      stack.stackSize = getInventoryStackLimit
     }
 
     if (items(slot).isDefined) {
@@ -124,7 +124,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  protected def onItemAdded(slot: Int, item: ItemStack) {}
+  protected def onItemAdded(slot: Int, stack: ItemStack) {}
 
-  protected def onItemRemoved(slot: Int, item: ItemStack) {}
+  protected def onItemRemoved(slot: Int, stack: ItemStack) {}
 }

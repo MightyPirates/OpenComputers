@@ -93,14 +93,14 @@ trait Component extends api.network.Component with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey(Config.namespace + "component.visibility")) {
-      _visibility = Visibility.values()(nbt.getInteger(Config.namespace + "component.visibility"))
+    if (nbt.hasKey("visibility")) {
+      _visibility = Visibility.values()(nbt.getInteger("visibility"))
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger(Config.namespace + "component.visibility", _visibility.ordinal())
+    nbt.setInteger("visibility", _visibility.ordinal())
   }
 }
 

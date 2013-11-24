@@ -6,11 +6,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends api.driver.Item {
-  def nbt(item: ItemStack) = {
-    if (!item.hasTagCompound) {
-      item.setTagCompound(new NBTTagCompound())
+  def nbt(stack: ItemStack) = {
+    if (!stack.hasTagCompound) {
+      stack.setTagCompound(new NBTTagCompound())
     }
-    val nbt = item.getTagCompound
+    val nbt = stack.getTagCompound
     if (!nbt.hasKey(Config.namespace + "data")) {
       nbt.setCompoundTag(Config.namespace + "data", new NBTTagCompound())
     }

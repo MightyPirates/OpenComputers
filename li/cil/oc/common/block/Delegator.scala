@@ -271,9 +271,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => // Invalid but avoid match error.
     }
 
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) =
+  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.onBlockPlacedBy(world, x, y, z, player, item)
+      case Some(subBlock) => subBlock.onBlockPlacedBy(world, x, y, z, player, stack)
       case _ => // Invalid but avoid match error.
     }
 

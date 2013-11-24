@@ -76,7 +76,7 @@ trait Delegate {
 
   def onBlockAdded(world: World, x: Int, y: Int, z: Int) {}
 
-  def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {}
+  def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {}
 
   def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {

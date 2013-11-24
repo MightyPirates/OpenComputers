@@ -28,13 +28,13 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable {
 
   def getSizeInventory = 1
 
-  def isItemValidForSlot(slot: Int, item: ItemStack) = (slot, Registry.driverFor(item)) match {
-    case (0, Some(driver)) => driver.slot(item) == Slot.Disk
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
     case _ => false
   }
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) {
-    super.onItemAdded(slot, item)
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
     components(slot) match {
       case Some(environment) => environment.node match {
         case component: Component => component.setVisibility(Visibility.Network)

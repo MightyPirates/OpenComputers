@@ -7,10 +7,10 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object GraphicsCard extends Item {
-  override def worksWith(item: ItemStack) = isOneOf(item, Items.gpu1, Items.gpu2, Items.gpu3)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.gpu1, Items.gpu2, Items.gpu3)
 
-  override def createEnvironment(item: ItemStack, container: AnyRef) =
-    Items.multi.subItem(item) match {
+  override def createEnvironment(stack: ItemStack, container: AnyRef) =
+    Items.multi.subItem(stack) match {
       case Some(gpu: common.item.GraphicsCard) => gpu.tier match {
         case 0 => new component.GraphicsCard.Tier1()
         case 1 => new component.GraphicsCard.Tier2()
@@ -20,5 +20,5 @@ object GraphicsCard extends Item {
       case _ => null
     }
 
-  override def slot(item: ItemStack) = Slot.Card
+  override def slot(stack: ItemStack) = Slot.Card
 }
