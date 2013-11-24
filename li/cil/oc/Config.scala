@@ -1,6 +1,7 @@
 package li.cil.oc
 
 import java.io.File
+import cpw.mods.fml.client.registry.RenderingRegistry
 
 object Config {
   val resourceDomain = "opencomputers"
