@@ -52,10 +52,4 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   }
 
   def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = renderer.renderStandardBlock(block, x, y, z)
-
-  //    Delegator.subBlock(block, world.getBlockMetadata(x, y, z)) match {
-  //      case Some(keyboard: Keyboard) =>
-  //        false
-  //      case _ => renderer.renderStandardBlock(block, x, y, z)
-  //    }
 }

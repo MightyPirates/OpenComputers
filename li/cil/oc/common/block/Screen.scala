@@ -281,8 +281,12 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     if (!player.isSneaking) {
-      player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
-      true
+      world.getBlockTileEntity(x, y, z) match {
+        case screen: tileentity.Screen if screen.hasKeyboard =>
+          player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+          true
+        case _ => false
+      }
     }
     else false
 

@@ -110,6 +110,14 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
 
+  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int, stack: ItemStack) =
+    subBlock(stack) match {
+      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, side)
+      case _ => super.canPlaceBlockOnSide(world, x, y, z, side, stack)
+    }
+
+  override def canBeReplacedByLeaves(world: World, x: Int, y: Int, z: Int) = false
+
   override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
 
   override def damageDropped(metadata: Int) =

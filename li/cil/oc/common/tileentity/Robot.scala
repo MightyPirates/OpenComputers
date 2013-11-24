@@ -275,6 +275,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       computer.node.connect(gpu.node)
       distributor.node.connect(battery)
       buffer.node.connect(keyboard.node)
+      distributor.changeBuffer(distributor.globalBufferSize / 2) // TODO for testing only
     }
   }
 
