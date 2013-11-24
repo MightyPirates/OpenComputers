@@ -1,7 +1,9 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Config, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -13,9 +15,13 @@ import sun.plugin.dom.exception.InvalidStateException
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
-  // ----------------------------------------------------------------------- //
-  // Rendering stuff
-  // ----------------------------------------------------------------------- //
+  def tier: Int
+
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    val (w, h) = Config.screenResolutionsByTier(tier)
+    val depth = PackedColor.Depth.bits(Config.screenDepthsByTier(tier))
+    tooltip.addAll(Tooltip.get("Screen", w, h, depth))
+  }
 
   object Icons {
     var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: Icon
@@ -269,13 +275,11 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
 
   // ----------------------------------------------------------------------- //
-  // Tile entity
-  // ----------------------------------------------------------------------- //
 
   override def hasTileEntity = true
 
-  // ----------------------------------------------------------------------- //
-  // Interaction
+  override def createTileEntity(world: World) = Some(new tileentity.Screen(tier))
+
   // ----------------------------------------------------------------------- //
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
@@ -291,8 +295,6 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     else false
 
   // ----------------------------------------------------------------------- //
-  // Block rotation
-  // ----------------------------------------------------------------------- //
 
   override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
 }
@@ -302,25 +304,25 @@ object Screen {
   class Tier1(parent: SimpleDelegator) extends Screen(parent) {
     val unlocalizedName = "ScreenBasic"
 
-    override def getRenderColor = 0x7F7F7F
+    def tier = 0
 
-    override def createTileEntity(world: World) = Some(new tileentity.Screen(0))
+    override def getRenderColor = 0x7F7F7F
   }
 
   class Tier2(parent: SimpleDelegator) extends Screen(parent) {
     val unlocalizedName = "ScreenAdvanced"
 
-    override def getRenderColor = 0xFFFF66
+    def tier = 1
 
-    override def createTileEntity(world: World) = Some(new tileentity.Screen(1))
+    override def getRenderColor = 0xFFFF66
   }
 
   class Tier3(parent: SimpleDelegator) extends Screen(parent) {
     val unlocalizedName = "ScreenProfessional"
 
-    override def getRenderColor = 0x66FFFF
+    def tier = 2
 
-    override def createTileEntity(world: World) = Some(new tileentity.Screen(2))
+    override def getRenderColor = 0x66FFFF
   }
 
 }

@@ -1,8 +1,10 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.Config
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -14,7 +16,12 @@ import org.lwjgl.opengl.GL11
 
 class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Keyboard"
+
   var icon: Icon = null
+
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
 
   override def icon(side: ForgeDirection) = Some(icon)
 

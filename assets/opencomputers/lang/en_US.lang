@@ -9,7 +9,7 @@
 # [f] = White and [e] = Yellow
 # 
 # Available format specifiers are:
-# [k] = Obfuscated, [l] = Bold, [m] = StrikeThrough, [n] = Underline and
+# [k] = Obfuscated, [l] = Bold, [m] = Strikethrough, [n] = Underline and
 # [o] = Italic
 #
 # Use [r] to reset any formatting.
@@ -59,8 +59,20 @@ oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks 
 oc:tooltip.Analyzer=Used to display information about blocks, such as their [f]address[7] and [f]component name[7].[nl] Also displays the error that caused a computer to crash if it did not shut down normally.
 oc:tooltip.Cable=A cheap way of connecting blocks.
 oc:tooltip.Capacitor=Stores energy for later use. Can be filled and emptied very quickly.
+oc:tooltip.Case=The Computer Case is the basic building block for computers and houses the computer's RAM, extension cards and hard disks.
+oc:tooltip.DiskDrive=Allows reading and writing floppies.
+oc:tooltip.DiskDrive.CC=ComputerCraft floppies are [a]supported[7].
 oc:tooltip.GraphicsCard=Used to change what's displayed on screens.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].[nl] Operations/tick: [f]%s[7].
+oc:tooltip.Keyboard=Can be attached to screens to allow typing on them.
+oc:tooltip.PowerConverter=Converts power from other mods to the internal energy type. Conversion rates:
+oc:tooltip.PowerConverter.IC2=[f]IndustrialCraft² EU[7]: [a]%s:%s[7].
+oc:tooltip.PowerConverter.BC=[f]Buildcraft MJ[7]: [a]%s:%s[7].
+oc:tooltip.PowerConverter.UE=[f]Universal Electricity Joules[7]: [a]%s:%s[7].
+oc:tooltip.PowerDistributor=Distributes energy inside the network. You will need one of these per network. Adding more than one has no effect.
 oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
 oc:tooltip.RedstoneCard.RedLogic=RedLogic is [a]supported[7].
 oc:tooltip.RedstoneCard.RedNet=RedNet is [a]supported[7].
+oc:tooltip.Robot=Unlike computers, [m]turtles[r][7] robots can move around and interact with the world much like a player can. They can [o]not[r][7] interact with external components, however!
+oc:tooltip.Router=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
+oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Computer.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. Make sure to set the [f]signal strength[7] or no wireless packet will be sent!

@@ -1,18 +1,47 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import cpw.mods.fml.common.Loader
 
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerConverter"
 
+  private val icons = Array.fill[Icon](6)(null)
+
   // ----------------------------------------------------------------------- //
 
-  private val icons = Array.fill[Icon](6)(null)
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+    if (Loader.isModLoaded("IC2")) {
+      val ratio = Config.ratioIndustrialCraft2
+      val (a, b) =
+        if (ratio > 1) (1f, ratio.ceil)
+        else ((1f / ratio).ceil, 1f)
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".IC2", a.toInt, b.toInt))
+    }
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
+      val ratio = Config.ratioBuildCraft
+      val (a, b) =
+        if (ratio > 1) (1f, ratio.ceil)
+        else ((1f / ratio).ceil, 1f)
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".BC", a.toInt, b.toInt))
+    }
+    {
+      val ratio = Config.ratioUniversalElectricity
+      val (a, b) =
+        if (ratio > 1) (1f, ratio.ceil)
+        else ((1f / ratio).ceil, 1f)
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".UE", a.toInt, b.toInt))
+    }
+  }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 

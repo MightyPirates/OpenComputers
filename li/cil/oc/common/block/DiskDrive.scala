@@ -1,6 +1,9 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Loader
+import java.util
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.util.Tooltip
 import li.cil.oc.{api, OpenComputers, Config}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -11,9 +14,16 @@ import net.minecraftforge.common.ForgeDirection
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "DiskDrive"
 
+  private val icons = Array.fill[Icon](6)(null)
+
   // ----------------------------------------------------------------------- //
 
-  private val icons = Array.fill[Icon](6)(null)
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+    if (Loader.isModLoaded("ComputerCraft")) {
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".CC"))
+    }
+  }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 

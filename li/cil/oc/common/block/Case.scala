@@ -1,6 +1,8 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Config}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -8,7 +10,6 @@ import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import java.util
 
 class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   val unlocalizedName = "Case"
@@ -21,7 +22,7 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   // ----------------------------------------------------------------------- //
 
   override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    //tooltip.add("")
+    tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {

@@ -13,9 +13,9 @@ class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
 
   override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Config.screenResolutionsByTier(tier)
+    val depth = PackedColor.Depth.bits(Config.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get(baseName,
-      w, h,
-      PackedColor.Depth.bits(Config.screenDepthsByTier(tier)),
+      w, h, depth,
       tier match {
         case 0 => "1/1/4/2/2"
         case 1 => "2/4/8/4/4"

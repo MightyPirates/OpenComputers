@@ -1,9 +1,12 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.Config
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -11,9 +14,13 @@ import net.minecraftforge.common.ForgeDirection
 class Router(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Router"
 
+  private val icons = Array.fill[Icon](6)(null)
+
   // ----------------------------------------------------------------------- //
 
-  private val icons = Array.fill[Icon](6)(null)
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
