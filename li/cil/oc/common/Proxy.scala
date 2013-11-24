@@ -37,6 +37,8 @@ class Proxy {
 
     GameRegistry.registerPlayerTracker(Keyboard)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+
+    Recipes.init()
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {

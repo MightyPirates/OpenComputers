@@ -13,7 +13,7 @@ object Blocks {
   var adapter: Adapter = null
   var cable: Cable = null
   var capacitor: Capacitor = null
-  var computer: Case = null
+  var computerCase: Case = null
   var diskDrive: DiskDrive = null
   var keyboard: Keyboard = null
   var powerDistributor: PowerDistributor = null
@@ -52,7 +52,7 @@ object Blocks {
     adapter = new Adapter(blockSimple)
     cable = new Cable(blockSpecial)
     capacitor = new Capacitor(blockSimple)
-    computer = new Case(blockSimpleWithRedstone)
+    computerCase = new Case(blockSimpleWithRedstone)
     diskDrive = new DiskDrive(blockSimple)
     keyboard = new Keyboard(blockSpecial)
     powerDistributor = new PowerDistributor(blockSimple)
