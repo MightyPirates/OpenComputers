@@ -10,27 +10,23 @@ object Items {
   var disk: item.Disk = null
   var gpu1, gpu2, gpu3: item.GraphicsCard = null
   var hdd1, hdd2, hdd3: item.HardDiskDrive = null
-  var card :item.Card = null
   var lan: item.NetworkCard = null
   var psu: item.PowerSupply = null
   var ram1, ram2, ram3: item.Memory = null
   var rs: item.RedstoneCard = null
   var wlan: item.WirelessNetworkCard = null
-  var ironCutter :item.IronCutter = null
-  var platineBody:item.PlatineBody = null
-  var platine : item.Platine = null
 
+  var card: item.Card = null
+  var circuitBoardBody: item.PlatineBody = null
+  var circuitBoard: item.Platine = null
+  var ironCutter: item.IronCutter = null
 
   def init() {
     multi = new item.Delegator(Config.itemId)
     GameRegistry.registerItem(multi, Config.namespace + "item")
 
     analyzer = new item.Analyzer(multi)
-    card = new item.Card(multi)
     disk = new item.Disk(multi)
-    ironCutter = new item.IronCutter(multi)
-    platineBody = new item.PlatineBody(multi)
-    platine = new item.Platine(multi)
     gpu1 = new item.GraphicsCard(multi, 0)
     gpu2 = new item.GraphicsCard(multi, 1)
     gpu3 = new item.GraphicsCard(multi, 2)
@@ -44,5 +40,10 @@ object Items {
     ram3 = new item.Memory(multi, 2)
     rs = new item.RedstoneCard(multi)
     wlan = new item.WirelessNetworkCard(multi)
+
+    card = new item.Card(multi)
+    circuitBoardBody = new item.PlatineBody(multi)
+    circuitBoard = new item.Platine(multi)
+    ironCutter = new item.IronCutter(multi)
   }
 }
