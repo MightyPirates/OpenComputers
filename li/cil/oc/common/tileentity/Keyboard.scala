@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Config}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.entity.player.EntityPlayer
 
 class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable {
   def this() = this(false)
@@ -28,6 +29,9 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
   override def validate() {
     super.validate()
     world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
+    if (isClient) {
+      ClientPacketSender.sendRotatableStateRequest(this)
+    }
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {

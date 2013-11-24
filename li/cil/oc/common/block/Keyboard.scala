@@ -68,7 +68,13 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     super.onBlockPlacedBy(world, x, y, z, player, item)
   }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) = super.onNeighborBlockChange(world, x, y, z, blockId)
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.ordinal()) => // Can stay.
+      case _ =>
+        parent.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
+        world.setBlockToAir(x, y, z)
+    }
 
   override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
 }
