@@ -42,7 +42,7 @@ object Config {
   // power.buffer
   var bufferCapacitor = 500.0
   var bufferConverter = 100.0
-  var bufferChargingStation = 50000.0 // TODO
+  var bufferChargingStation = 50000.0 // TODO implement
   var bufferPowerSupply = 50.0
   var bufferRobot = 10000.0
 
@@ -71,6 +71,7 @@ object Config {
   var maxClipboard = 1024
   var maxUsernameLength = 32
   var maxUsers = 16
+  var ramSizes = Array(64, 128, 256)
   var startupDelay = 0.25
   var threads = 4
   var timeout = 1.0
@@ -78,6 +79,7 @@ object Config {
   // server.filesystem
   var fileCost = 512
   var bufferChanges = true
+  var hddSizes = Array(2048, 4096, 8192)
   var maxHandles = 16
   var maxReadBuffer = 8 * 1024
 
@@ -316,6 +318,14 @@ object Config {
         |amounts of memory by registering an unlimited number of users.
         |See also: `canComputersBeOwned`.""".stripMargin) max 0
 
+    ramSizes = (config.fetch("server.computer.ramSizes", ramSizes,
+      """|The sizes of the three tiers of RAM, in kilobytes. If this list is
+        |longer than three entries, the remaining ones will be ignored. If the
+        |list is shorter it will be filled up with the default values, assuming
+        |the given values (if any) are the lower tiers.""".stripMargin).
+      map(_ max 0).padTo(3, Int.MinValue), ramSizes).zipped.
+      map((a, b) => if (a >= 0) a else b)
+
     startupDelay = config.fetch("server.computer.startupDelay", startupDelay,
       """|The time in seconds to wait after a computer has been restored before
         |it continues to run. This is meant to allow the world around the
@@ -357,6 +367,14 @@ object Config {
         |the game crashes. The price is slightly higher memory consumption,
         |since all loaded files have to be kept in memory (loaded as in when
         |the hard drive is in a computer).""".stripMargin)
+
+    hddSizes = (config.fetch("server.computer.hddSizes", hddSizes,
+      """|The sizes of the three tiers of hard drives, in kilobytes. If this
+        |list is longer than three entries, the remaining ones will be ignored.
+        |If the list is shorter it will be filled up with the default values,
+        |assuming the given values (if any) are the lower tiers.""".stripMargin).
+      map(_ max 0).padTo(3, Int.MinValue), hddSizes).zipped.
+      map((a, b) => if (a >= 0) a else b)
 
     maxHandles = config.fetch("server.filesystem.maxHandles", maxHandles,
       """|The maximum number of file handles any single computer may have open

@@ -27,9 +27,6 @@ local scrollX, scrollY = 0, 0
 -------------------------------------------------------------------------------
 
 local function setStatus(value)
-  if not value then
-    value = string.format([["%s" %dL    Menu: [Ctrl] ]], fs.name(filename), #buffer)
-  end
   local w, h = component.gpu.getResolution()
   component.gpu.set(1, h, text.padRight(unicode.sub(value, 1, w - 10), w - 10))
 end
@@ -175,7 +172,7 @@ local function delete()
       component.gpu.copy(1, cy + 2, w, h - (cy + 1), 0, -1)
       component.gpu.set(1, h, text.padRight(buffer[cby + (h - cy)], w))
     end
-    setStatus()
+    setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
   end
 end
 
@@ -193,6 +190,7 @@ local function insert(value)
   end
   component.gpu.set(cx, cy, value)
   right(len)
+  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
 end
 
 local function enter()
@@ -209,7 +207,7 @@ local function enter()
     component.gpu.set(1, cy + 1, text.padRight(buffer[cby + 1], w))
   end
   setCursor(1, cby + 1)
-  setStatus()
+  setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
 end
 
 local function onKeyDown(char, code)
@@ -237,13 +235,27 @@ local function onKeyDown(char, code)
   elseif keyboard.isControlDown() then
     local cbx, cby = getCursor()
     if code == keyboard.keys.s and not readonly then
-      local f = io.open(filename, "w")
-      for _, line in ipairs(buffer) do
-        f:write(line)
-        f:write("\n")
+      local new = not fs.exists(filename)
+      local f, reason = io.open(filename, "w")
+      if f then
+        local chars = 0
+        for _, line in ipairs(buffer) do
+          f:write(line)
+          f:write("\n")
+          chars = chars + unicode.len(line)
+        end
+        f:close()
+        local format
+        if new then
+          format = [["%s" [New] %dL,%dC written]]
+        else
+          format = [["%s" %dL,%dC written]]
+        end
+        setStatus(string.format(format, fs.name(filename), #buffer, chars))
+      else
+        setStatus(reason)
       end
-      f:close()
-    elseif code == keyboard.keys.w then
+    elseif code == keyboard.keys.w or code == keyboard.keys.c or code == keyboard.keys.x then
       -- TODO ask to save if changed
       running = false
     end
@@ -278,18 +290,27 @@ do
   local f = io.open(filename)
   if f then
     local w, h = getSize()
+    local chars = 0
     for line in f:lines() do
       table.insert(buffer, line)
+      chars = chars + unicode.len(line)
       if #buffer <= h then
         component.gpu.set(1, #buffer, line)
       end
     end
     f:close()
+    local format
+    if readonly then
+      format = [["%s" [readonly] %dL,%dC]]
+    else
+      format = [["%s" [New File] %dL,%dC]]
+    end
+    setStatus(string.format(format, fs.name(filename), #buffer, chars))
   else
     table.insert(buffer, "")
+    setStatus(string.format([["%s" [New File] ]], fs.name(filename)))
   end
   setCursor(1, 1)
-  setStatus()
 end
 
 while running do

@@ -29,7 +29,7 @@ object FileSystem extends Item {
         case _ => null
       }
     } else Items.multi.subItem(item) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(item, hdd.megaBytes * 1024 * 1024)
+      case Some(hdd: HardDiskDrive) => createEnvironment(item, hdd.kiloBytes * 1024)
       case Some(disk: Disk) => createEnvironment(item, 512 * 1024)
       case _ => null
     }

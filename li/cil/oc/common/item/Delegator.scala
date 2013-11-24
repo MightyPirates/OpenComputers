@@ -77,6 +77,15 @@ class Delegator(id: Int) extends Item(id) {
       case _ => getUnlocalizedName
     }
 
+  override def getItemDisplayName(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) => subItem.getItemDisplayName(stack) match {
+        case Some(name) => name
+        case _ => super.getItemDisplayName(stack)
+      }
+      case _ => super.getItemDisplayName(stack)
+    }
+
   override def getUnlocalizedName: String = Config.namespace + "item"
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false

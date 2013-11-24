@@ -21,6 +21,8 @@ trait Delegate {
 
   def addInformation(item: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
 
+  def getItemDisplayName(stack: ItemStack): Option[String] = None
+
   def icon: Option[Icon] = _icon
 
   protected def icon_=(value: Icon) = _icon = Option(value)
