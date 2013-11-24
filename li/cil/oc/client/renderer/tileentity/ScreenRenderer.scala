@@ -5,7 +5,7 @@ import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Config
-import li.cil.oc.client.gui.MonospaceFontRenderer
+import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -24,9 +24,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   /** We cache the display lists for the screens we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(5, TimeUnit.SECONDS).
+    expireAfterAccess(2, TimeUnit.SECONDS).
     removalListener(this).
-    asInstanceOf[CacheBuilder[Screen, Int]].build[Screen, Int]()
+    asInstanceOf[CacheBuilder[Screen, Int]].
+    build[Screen, Int]()
 
   /** Used to pass the current screen along to call(). */
   private var screen: Screen = null
@@ -37,18 +38,21 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     screen = t.asInstanceOf[Screen]
-    if (!screen.isOrigin)
+    if (!screen.isOrigin || !screen.hasPower) {
       return
+    }
 
     val distance = playerDistanceSq()
-    if (distance > maxRenderDistanceSq)
+    if (distance > maxRenderDistanceSq) {
       return
+    }
 
     // Crude check whether screen text can be seen by the local player based
     // on the player's position -> angle relative to screen.
     val screenFacing = screen.facing.getOpposite
-    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0)
+    if (screenFacing.offsetX * (x + 0.5) + screenFacing.offsetY * (y + 0.5) + screenFacing.offsetZ * (z + 0.5) < 0) {
       return
+    }
 
     GL11.glPushAttrib(0xFFFFFF)
 
@@ -60,25 +64,23 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     if (distance > fadeDistanceSq) {
-      RenderState.setBlendAlpha(0f max
-        (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
+      RenderState.setBlendAlpha(0f max (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
     }
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
     val list = cache.get(screen, this)
-    compile(list)
-    GL11.glCallList(list)
+    compileOrDraw(list)
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
   }
 
-  private def compile(list: Int) = if (screen.hasChanged) {
-    screen.hasChanged = false
+  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
+    screen.bufferIsDirty = false
     val (sx, sy) = (screen.width, screen.height)
     val (tw, th) = (sx * 16f, sy * 16f)
 
-    GL11.glNewList(list, GL11.GL_COMPILE)
+    GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 
     screen.yaw match {
       case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
@@ -107,7 +109,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     val isy = sy - (4.5f / 16)
 
     // Scale based on actual buffer size.
-    val (resX, resY) = screen.instance.resolution
+    val (resX, resY) = screen.buffer.resolution
     val sizeX = resX * MonospaceFontRenderer.fontWidth
     val sizeY = resY * MonospaceFontRenderer.fontHeight
     val scaleX = isx / sizeX
@@ -130,12 +132,15 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for ((line, i) <- screen.instance.lines.zipWithIndex) {
-      MonospaceFontRenderer.drawString(line, 0, i * MonospaceFontRenderer.fontHeight)
+    for (((line, color), i) <- screen.buffer.lines.zip(screen.buffer.color).zipWithIndex) {
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
     }
 
     GL11.glEndList()
+
+    true
   }
+  else GL11.glCallList(list)
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
@@ -188,13 +193,13 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   def call = {
     val list = GLAllocation.generateDisplayLists(1)
-    screen.hasChanged = true // Force compilation.
-    compile(list)
+    screen.bufferIsDirty = true // Force compilation.
     list
   }
 
-  def onRemoval(e: RemovalNotification[TileEntity, Int]) =
+  def onRemoval(e: RemovalNotification[TileEntity, Int]) {
     GLAllocation.deleteDisplayLists(e.getValue)
+  }
 
   // ----------------------------------------------------------------------- //
   // ITickHandler

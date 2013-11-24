@@ -4,11 +4,10 @@ import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
@@ -16,45 +15,36 @@ import universalelectricity.core.electricity.ElectricityPack
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
-class PowerConverter extends Rotatable with Environment with IEnergySink with IPowerReceptor with IElectrical {
+class PowerConverter extends Environment with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Config.bufferConverter).
     create()
 
-  private def demand = node.bufferSize - node.buffer
-
-  // ----------------------------------------------------------------------- //
-  // Energy conversion ratios, Mode -> Internal
-
-  val ratioIndustrialCraft = 2
-
-  val ratioBuildCraft = 5
-
-  val ratioUniversalElectricity = 5
+  private def demand = node.globalBufferSize - node.globalBuffer
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-    }
-    if (!worldObj.isRemote) {
+    if (isServer) {
       if (Loader.isModLoaded("IC2")) {
         loadIC2()
       }
       if (demand > 0 && Loader.isModLoaded("BuildCraft|Energy")) {
-        node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat / ratioBuildCraft, true) * ratioBuildCraft)
+        node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat / Config.ratioBuildCraft, true) * Config.ratioBuildCraft)
       }
     }
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    unload()
+    if (Loader.isModLoaded("IC2")) {
+      unloadIC2()
+    }
   }
 
-  def unload() {
+  override def invalidate() {
+    super.invalidate()
     if (Loader.isModLoaded("IC2")) {
       unloadIC2()
     }
@@ -64,18 +54,16 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (node != null) node.load(nbt)
-
-    if (Loader.isModLoaded("BuildCraft|Energy"))
-      getPowerProvider.readFromNBT(nbt)
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
+      getPowerProvider.readFromNBT(nbt.getCompoundTag(Config.namespace + "bc"))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (node != null) node.save(nbt)
-
-    if (Loader.isModLoaded("BuildCraft|Energy"))
-      getPowerProvider.writeToNBT(nbt)
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
+      nbt.setNewCompoundTag(Config.namespace + "bc", getPowerProvider.writeToNBT)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -102,25 +90,25 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
   }
 
   @Optional.Method(modid = "IC2")
-  override def acceptsEnergyFrom(emitter: TileEntity, direction: ForgeDirection) = true
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = true
 
   @Optional.Method(modid = "IC2")
-  override def getMaxSafeInput = Integer.MAX_VALUE
+  def getMaxSafeInput = Integer.MAX_VALUE
 
   @Optional.Method(modid = "IC2")
-  override def demandedEnergyUnits = {
+  def demandedEnergyUnits = {
     // We try to avoid requesting energy when we need less than what we get with
     // a single packet. However, if our buffer gets dangerously low we will ask
     // for energy even if there's the danger of wasting some energy.
-    if (demand >= lastPacketSize * ratioIndustrialCraft || demand > node.bufferSize * 0.5) {
+    if (demand >= lastPacketSize * Config.ratioIndustrialCraft2 || demand > node.localBufferSize * 0.5) {
       demand
     } else 0
   }
 
   @Optional.Method(modid = "IC2")
-  override def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
+  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
     lastPacketSize = amount
-    node.changeBuffer(amount * ratioIndustrialCraft)
+    node.changeBuffer(amount * Config.ratioIndustrialCraft2)
     0
   }
 
@@ -134,7 +122,7 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
     if (node != null && powerHandler.isEmpty) {
       val handler = new PowerHandler(this, PowerHandler.Type.STORAGE)
       if (handler != null) {
-        handler.configure(1, 320, Float.MaxValue, node.bufferSize.toFloat / ratioBuildCraft)
+        handler.configure(1, 320, Float.MaxValue, node.localBufferSize.toFloat / Config.ratioBuildCraft)
         handler.configurePowerPerdition(0, 0)
         powerHandler = Some(handler)
       }
@@ -162,12 +150,12 @@ class PowerConverter extends Rotatable with Environment with IEnergySink with IP
 
   def getVoltage = 120f
 
-  def getRequest(direction: ForgeDirection) = demand.toFloat / ratioUniversalElectricity
+  def getRequest(direction: ForgeDirection) = demand.toFloat / Config.ratioUniversalElectricity
 
   def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
     if (receive != null) {
       if (doReceive) {
-        node.changeBuffer(receive.getWatts * ratioUniversalElectricity)
+        node.changeBuffer(receive.getWatts * Config.ratioUniversalElectricity)
       }
       receive.getWatts
     } else 0

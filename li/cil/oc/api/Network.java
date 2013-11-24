@@ -3,8 +3,9 @@ package li.cil.oc.api;
 import li.cil.oc.api.detail.Builder;
 import li.cil.oc.api.detail.NetworkAPI;
 import li.cil.oc.api.network.Environment;
+import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
-import net.minecraft.world.World;
+import net.minecraft.tileentity.TileEntity;
 
 /**
  * This class provides factories networks and nodes.
@@ -20,13 +21,24 @@ public final class Network {
      * Tries to add a tile entity network node at the specified coordinates to
      * adjacent networks.
      *
-     * @param world the world the tile entity lives in.
-     * @param x     the X coordinate of the tile entity.
-     * @param y     the Y coordinate of the tile entity.
-     * @param z     the Z coordinate of the tile entity.
+     * @param tileEntity the tile entity to initialize.
      */
-    public static void joinOrCreateNetwork(World world, int x, int y, int z) {
-        if (instance != null) instance.joinOrCreateNetwork(world, x, y, z);
+    public static void joinOrCreateNetwork(TileEntity tileEntity) {
+        if (instance != null) instance.joinOrCreateNetwork(tileEntity);
+    }
+
+    /**
+     * Creates a new network with the specified node as its initial node.
+     * <p/>
+     * This can be used to create networks that are not bound to any tile
+     * entity. For example, this is used to create the internal networks of
+     * robots.
+     *
+     * @param node the node to create the network for.
+     * @throws IllegalArgumentException if the node already is in a network.
+     */
+    public static void joinNewNetwork(Node node) {
+        if (instance != null) instance.joinNewNetwork(node);
     }
 
     /**

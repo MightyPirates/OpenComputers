@@ -28,7 +28,7 @@ if options.b then
   if type(color) == "string" then
     color = colors[color]
   end
-  if #args > 1 then
+  if #args > 2 then
     local value = args[3]
     if tonumber(value) then
       value = tonumber(value)

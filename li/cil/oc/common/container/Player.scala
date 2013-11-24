@@ -1,5 +1,7 @@
 package li.cil.oc.common.container
 
+import li.cil.oc.api
+import li.cil.oc.client.gui.Icons
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
@@ -101,6 +103,17 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
       }
     }
     somethingChanged
+  }
+
+  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None) {
+    val index = getInventory.size
+    addSlotToContainer(new Slot(otherInventory, index, x, y) {
+      setBackgroundIcon(Icons.get(slot))
+
+      override def isItemValid(item: ItemStack) = {
+        otherInventory.isItemValidForSlot(index, item)
+      }
+    })
   }
 
   /** Render player inventory at the specified coordinates. */

@@ -2,11 +2,11 @@ package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
-import java.lang.reflect.InvocationTargetException
-import li.cil.oc.api
+import java.lang.reflect.{Method, InvocationTargetException}
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
-import li.cil.oc.server.component.Computer
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
@@ -16,11 +16,11 @@ import scala.collection.{immutable, mutable}
 trait Component extends api.network.Component with Persistable {
   val name: String
 
-  def visibility = visibility_
+  def visibility = _visibility
 
-  private lazy val luaCallbacks = Component.callbacks(host.getClass)
+  private lazy val callbacks = Component.callbacks(host.getClass)
 
-  private var visibility_ = Visibility.None
+  private var _visibility = Visibility.None
 
   def setVisibility(value: Visibility) = {
     if (value.ordinal() > reachability.ordinal()) {
@@ -28,7 +28,7 @@ trait Component extends api.network.Component with Persistable {
         "' node with reachability '" + reachability + "'. It will be limited to the node's reachability.")
     }
     if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) {
-      if (network != null) visibility_ match {
+      if (network != null) _visibility match {
         case Visibility.Neighbors => value match {
           case Visibility.Network => addTo(reachableNodes)
           case Visibility.None => removeFrom(neighbors)
@@ -47,7 +47,7 @@ trait Component extends api.network.Component with Persistable {
           case _ =>
         }
       }
-      visibility_ = value
+      _visibility = value
     }
   }
 
@@ -58,49 +58,59 @@ trait Component extends api.network.Component with Persistable {
   }
 
   private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: Computer.Environment => computer.instance.addComponent(this)
+    case computer: tileentity.Computer => computer.computer.addComponent(this)
     case _ =>
   })
 
   private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: Computer.Environment => computer.instance.removeComponent(this)
+    case computer: tileentity.Computer => computer.computer.removeComponent(this)
     case _ =>
   })
 
   // ----------------------------------------------------------------------- //
 
-  def methods() = luaCallbacks.keySet
+  def methods = callbacks.keySet
 
-  def invoke(method: String, context: Context, arguments: AnyRef*) = {
-    luaCallbacks.get(method) match {
-      case Some((_, callback)) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
+  def invoke(method: String, context: Context, arguments: AnyRef*) =
+    callbacks.get(method) match {
+      case Some(callback) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
       case _ => throw new NoSuchMethodException()
     }
-  }
 
-  def isAsynchronous(method: String) = luaCallbacks(method)._1
+  def isDirect(method: String) =
+    callbacks.get(method) match {
+      case Some(callback) => callbacks(method).direct
+      case _ => throw new NoSuchMethodException()
+    }
+
+  def limit(method: String) =
+    callbacks.get(method) match {
+      case Some(callback) => callbacks(method).limit
+      case _ => throw new NoSuchMethodException()
+    }
 
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.component.visibility"))
-      visibility_ = Visibility.values()(nbt.getInteger("oc.component.visibility"))
+    if (nbt.hasKey(Config.namespace + "component.visibility")) {
+      _visibility = Visibility.values()(nbt.getInteger(Config.namespace + "component.visibility"))
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setInteger("oc.component.visibility", visibility_.ordinal())
+    nbt.setInteger(Config.namespace + "component.visibility", _visibility.ordinal())
   }
 }
 
 object Component {
-  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]]
+  private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
   def callbacks(clazz: Class[_]) = cache.getOrElseUpdate(clazz, analyze(clazz))
 
   private def analyze(clazz: Class[_]) = {
-    val callbacks = mutable.Map.empty[String, (Boolean, (AnyRef, Context, Arguments) => Array[AnyRef])]
+    val callbacks = mutable.Map.empty[String, Callback]
     var c = clazz
     while (c != classOf[Object]) {
       val ms = c.getDeclaredMethods
@@ -120,11 +130,8 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-            callbacks += a.value ->(a.direct(), (o: AnyRef, c: Context, a: Arguments) => try {
-              m.invoke(o, c, a).asInstanceOf[Array[AnyRef]]
-            } catch {
-              case e: InvocationTargetException => throw e.getCause
-            })
+
+            callbacks += a.value -> new Callback(m, a.direct, a.limit)
           }
         }
       )
@@ -136,6 +143,14 @@ object Component {
 
   // ----------------------------------------------------------------------- //
 
+  class Callback(val method: Method, val direct: Boolean, val limit: Int) {
+    def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = try {
+      method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
+    } catch {
+      case e: InvocationTargetException => throw e.getCause
+    }
+  }
+
   class VarArgs(val args: Seq[AnyRef]) extends Arguments {
     def iterator() = args.iterator
 
@@ -143,7 +158,10 @@ object Component {
 
     def checkAny(index: Int) = {
       checkIndex(index, "value")
-      args(index)
+      args(index) match {
+        case Unit | None => null
+        case arg => arg
+      }
     }
 
     def checkBoolean(index: Int) = {
@@ -231,7 +249,7 @@ object Component {
           format(index + 1, want, typeName(have)))
 
     private def typeName(value: AnyRef): String = value match {
-      case null => "nil"
+      case null | Unit | None => "nil"
       case _: java.lang.Boolean => "boolean"
       case _: java.lang.Double => "double"
       case _: java.lang.String => "string"

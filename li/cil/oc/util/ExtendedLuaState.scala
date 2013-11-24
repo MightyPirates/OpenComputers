@@ -7,7 +7,7 @@ object ExtendedLuaState {
 
   implicit def extendLuaState(state: LuaState) = new ExtendedLuaState(state)
 
-  class ExtendedLuaState(state: LuaState) {
+  class ExtendedLuaState(val state: LuaState) {
     def pushScalaFunction(f: (LuaState) => Int) = state.pushJavaFunction(new JavaFunction {
       override def invoke(state: LuaState) = f(state)
     })

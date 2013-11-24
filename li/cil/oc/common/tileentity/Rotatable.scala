@@ -1,15 +1,15 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.Config
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.Persistable
 import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
-abstract class Rotatable extends TileEntity {
+trait Rotatable extends TileEntity with Persistable {
   // ----------------------------------------------------------------------- //
   // Lookup tables
   // ----------------------------------------------------------------------- //
@@ -127,33 +127,45 @@ abstract class Rotatable extends TileEntity {
     case _ => _yaw
   }
 
+  def rotate(axis: ForgeDirection) = {
+    val (newPitch, newYaw) = facing.getRotation(axis) match {
+      case value@(ForgeDirection.UP | ForgeDirection.DOWN) =>
+        if (value == pitch) (value, yaw.getRotation(axis))
+        else (value, yaw)
+      case value => (ForgeDirection.NORTH, value)
+    }
+    trySetPitchYaw(newPitch, newYaw)
+  }
+
   def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
 
   def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
 
   // ----------------------------------------------------------------------- //
 
-  protected def onRotationChanged() {}
+  protected def onRotationChanged() {
+    if (isServer) {
+      ServerPacketSender.sendRotatableState(this)
+    }
+    world.markBlockForUpdate(x, y, z)
+    world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
+  }
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) = {
-    super.readFromNBT(nbt)
-    _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
-    _yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
+  override def load(nbt: NBTTagCompound) = {
+    super.load(nbt)
+
+    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "pitch"))
+    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "yaw"))
     updateTranslation()
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = {
-    super.writeToNBT(nbt)
-    nbt.setInteger("pitch", _pitch.ordinal)
-    nbt.setInteger("yaw", _yaw.ordinal)
-  }
+  override def save(nbt: NBTTagCompound) = {
+    super.save(nbt)
 
-  override def validate() = {
-    super.validate()
-    if (worldObj.isRemote)
-      ClientPacketSender.sendRotatableStateRequest(this)
+    nbt.setInteger(Config.namespace + "pitch", _pitch.ordinal)
+    nbt.setInteger(Config.namespace + "yaw", _yaw.ordinal)
   }
 
   // ----------------------------------------------------------------------- //
@@ -164,25 +176,29 @@ abstract class Rotatable extends TileEntity {
     if (cachedTranslation != newTranslation) {
       cachedTranslation = newTranslation
       cachedInverseTranslation = invert(cachedTranslation)
-      if (worldObj != null && !worldObj.isRemote) {
-        ServerPacketSender.sendRotatableState(this)
+      if (world != null) {
+        onRotationChanged()
       }
-      onRotationChanged()
     }
   }
 
   /** Validates new values against the allowed rotations as set in our block. */
   private def trySetPitchYaw(pitch: ForgeDirection, yaw: ForgeDirection) = {
-    val block = Block.blocksList(worldObj.getBlockId(xCoord, yCoord, zCoord))
+    var changed = false
+    val block = Block.blocksList(world.getBlockId(x, y, z))
     if (block != null) {
-      val valid = block.getValidRotations(worldObj, xCoord, yCoord, zCoord)
-      if (valid.contains(pitch))
+      val valid = block.getValidRotations(world, x, y, z)
+      if (valid.contains(pitch)) {
+        changed = true
         _pitch = pitch
-      if (valid.contains(yaw))
+      }
+      if (valid.contains(yaw)) {
+        changed = true
         _yaw = yaw
+      }
       updateTranslation()
     }
-    this
+    changed
   }
 
   private def invert(t: Array[ForgeDirection]) =

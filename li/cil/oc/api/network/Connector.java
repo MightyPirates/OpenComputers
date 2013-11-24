@@ -26,34 +26,49 @@ package li.cil.oc.api.network;
  */
 public interface Connector extends Node {
     /**
-     * The size of the buffer.
+     * The energy stored in the local buffer.
      */
-    double bufferSize();
+    double localBuffer();
 
     /**
-     * The power stored in the buffer.
+     * The size of the local buffer.
      */
-    double buffer();
+    double localBufferSize();
 
     /**
-     * Try to apply the specified delta to the buffer.
+     * The accumulative energy stored across all buffers in the node's network.
+     */
+    double globalBuffer();
+
+    /**
+     * The accumulative size of all buffers in the node's network.
+     */
+    double globalBufferSize();
+
+    /**
+     * Try to apply the specified delta to the <em>global</em> buffer.
      * <p/>
      * This can be used to apply reactionary power changes. For example, a
-     * screen may require a certain amount of power to refresh its display when
+     * screen may require a certain amount of energy to refresh its display when
      * a program tries to display text on it. For running costs just apply the
      * same delta each tick.
      * <p/>
-     * For negative values, if there is not enough power stored in the buffer
-     * this will return <tt>false</tt>, and the operation depending on the power
-     * should fail.
+     * For negative values, if there is not enough energy stored in the buffer
+     * this will return <tt>false</tt>, and the operation depending on that
+     * energy should fail - what energy there is will still be consumed, though!
      * <p/>
-     * For positive values, if there is a buffer overflow due to the added power
-     * the surplus will be lost and this will return <tt>false</tt>.
+     * For positive values, if there is a buffer overflow due to the added
+     * energy the surplus will be lost and this will return <tt>false</tt>.
      * <p/>
-     * If there is enough power or no overflow this will return <tt>true</tt>.
+     * If there is enough energy or no overflow this will return <tt>true</tt>.
+     * <p/>
+     * Keep in mind that this change is applied to the <em>global</em> buffer,
+     * i.e. energy from multiple buffers may be consumed / multiple buffers may
+     * be filled. The buffer for which this method is called (i.e. this node
+     * instance) will be prioritized, though.
      *
-     * @param delta the amount of power to consume or make available.
-     * @return whether the power could be consumed or stored.
+     * @param delta the amount of energy to consume or make available.
+     * @return whether the energy could be consumed or stored.
      */
     boolean changeBuffer(double delta);
 }

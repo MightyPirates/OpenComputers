@@ -2,7 +2,8 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.nbt.{NBTTagInt, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -16,13 +17,13 @@ class NetworkCard extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("open")
-  def open(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.add(port))
   }
 
   @LuaCallback("close")
-  def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def close(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 0) {
       openPorts.clear()
       result(true)
@@ -34,7 +35,7 @@ class NetworkCard extends ManagedComponent {
   }
 
   @LuaCallback(value = "isOpen", direct = true)
-  def isOpen(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  def isOpen(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.contains(port))
   }
@@ -66,13 +67,13 @@ class NetworkCard extends ManagedComponent {
     }
   }
 
-  override def onMessage(message: Message) = this.synchronized {
+  override def onMessage(message: Message) = {
     super.onMessage(message)
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()
     if (message.name == "network.message") message.data match {
       case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        node.sendToReachable("computer.signal", Seq("network_message", message.source.address, Int.box(port), Int.box(-1)) ++ args: _*)
+        node.sendToReachable("computer.signal", Seq("modem_message", message.source.address, Int.box(port)) ++ args: _*)
       case _ =>
     }
   }
@@ -81,21 +82,15 @@ class NetworkCard extends ManagedComponent {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    if (nbt.hasKey("oc.net.openPorts")) {
-      val openPortsNbt = nbt.getTagList("oc.net.openPorts")
-      (0 until openPortsNbt.tagCount).
-        map(openPortsNbt.tagAt).
-        map(_.asInstanceOf[NBTTagInt]).
-        foreach(portNbt => openPorts.add(portNbt.data))
-    }
+
+    assert(openPorts.isEmpty)
+    openPorts ++= nbt.getTagList("openPorts").iterator[NBTTagInt].map(_.data)
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    val openPortsNbt = new NBTTagList()
-    for (port <- openPorts)
-      openPortsNbt.appendTag(new NBTTagInt(null, port))
-    nbt.setTag("oc.net.openPorts", openPortsNbt)
+
+    nbt.setNewTagList("openPorts", openPorts)
   }
 
   // ----------------------------------------------------------------------- //

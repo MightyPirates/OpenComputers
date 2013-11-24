@@ -2,10 +2,9 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
+import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
@@ -13,7 +12,7 @@ import scala.collection.mutable
 import scala.{Array, Some}
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Adapter extends Rotatable with Environment with IPeripheral {
+class Adapter extends Environment with IPeripheral {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -24,10 +23,6 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
-      neighborChanged()
-    }
     for (block <- blocks) block match {
       case Some((environment, _)) => environment.update()
       case _ => // Empty.
@@ -36,21 +31,21 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
-      val (x, y, z) = (xCoord + d.offsetX, yCoord + d.offsetY, zCoord + d.offsetZ)
-      driver.Registry.driverFor(worldObj, x, y, z) match {
+      val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
+      driver.Registry.driverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
             if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
-              val environment = newDriver.createEnvironment(worldObj, x, y, z)
+              val environment = newDriver.createEnvironment(world, x, y, z)
               blocks(d.ordinal()) = Some((environment, newDriver))
               blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
               node.connect(environment.node)
             } // else: the more things change, the more they stay the same.
           case _ =>
             // A challenger appears.
-            val environment = newDriver.createEnvironment(worldObj, x, y, z)
+            val environment = newDriver.createEnvironment(world, x, y, z)
             blocks(d.ordinal()) = Some((environment, newDriver))
             blocksData(d.ordinal()) match {
               case Some(data) if data.name == environment.getClass.getName =>
@@ -115,9 +110,8 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    node.load(nbt)
 
-    val blocksNbt = nbt.getTagList("oc.adapter.blocks")
+    val blocksNbt = nbt.getTagList(Config.namespace + "adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
       map(blocksNbt.tagAt).
       map(_.asInstanceOf[NBTTagCompound]).
@@ -132,7 +126,6 @@ class Adapter extends Rotatable with Environment with IPeripheral {
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    node.save(nbt)
 
     val blocksNbt = new NBTTagList()
     for (i <- 0 until blocks.length) {
@@ -149,7 +142,7 @@ class Adapter extends Rotatable with Environment with IPeripheral {
       }
       blocksNbt.appendTag(blockNbt)
     }
-    nbt.setTag("oc.adapter.blocks", blocksNbt)
+    nbt.setTag(Config.namespace + "adapter.blocks", blocksNbt)
   }
 
   // ----------------------------------------------------------------------- //

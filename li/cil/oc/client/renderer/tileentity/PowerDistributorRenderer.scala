@@ -13,13 +13,13 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
   private val sideOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/power_distributor_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
-    val balancer = tileEntity.asInstanceOf[tileentity.PowerDistributor]
-    if (balancer.average > 0) {
+    val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
+    if (distributor.globalPower > 0) {
       GL11.glPushAttrib(0xFFFFFF)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
-      RenderState.setBlendAlpha(balancer.average.toFloat)
+      RenderState.setBlendAlpha(distributor.globalPower.toFloat)
 
       GL11.glPushMatrix()
 

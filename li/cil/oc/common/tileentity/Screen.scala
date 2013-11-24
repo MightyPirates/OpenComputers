@@ -1,53 +1,32 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Config
-import li.cil.oc.api.Network
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.client.gui
+import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component.Screen.{Environment => ScreenEnvironment}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.client.Minecraft
 
-class ScreenTier1 extends Screen {
-  protected def tier = 0
-}
+class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with Analyzable with Ordered[Screen] {
+  def this() = this(0)
 
-class ScreenTier2 extends Screen {
-  protected def tier = 1
-}
+  // ----------------------------------------------------------------------- //
 
-class ScreenTier3 extends Screen {
-  protected def tier = 2
-}
-
-abstract class Screen extends Rotatable with ScreenEnvironment {
-  var currentGui: Option[gui.Screen] = None
-
-  /**
-   * Read and reset to false from the tile entity renderer. This is used to
-   * keep rendering a little more efficient by compiling the displayed text
-   * into an OpenGL display list, and only re-compiling that list when the
-   * text/display has actually changed.
-   */
-  var hasChanged = true
+  val pixelCost = {
+    val (w, h) = Config.screenResolutionsByTier(0)
+    Config.screenCost / (w * h)
+  }
 
   /**
    * Check for multi-block screen option in next update. We do this in the
    * update to avoid unnecessary checks on chunk unload.
    */
-  private var shouldCheckForMultiBlock = true
-
-  private val ordering = new Ordering[Screen] {
-    def compare(a: Screen, b: Screen) =
-      if (a.xCoord != b.xCoord) a.xCoord - b.xCoord
-      else if (a.yCoord != b.yCoord) a.yCoord - b.yCoord
-      else a.zCoord - b.zCoord
-  }
+  var shouldCheckForMultiBlock = true
 
   var width, height = 1
 
@@ -55,7 +34,24 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
 
   val screens = mutable.Set(this)
 
+  var litPixels = -1
+
+  var hasPower = true
+
+  def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
+
+  def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
+
   // ----------------------------------------------------------------------- //
+
+  def checkMultiBlock() {
+    shouldCheckForMultiBlock = true
+    width = 1
+    height = 1
+    origin = this
+    screens.clear()
+    screens += this
+  }
 
   def isOrigin = origin == this
 
@@ -67,44 +63,24 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    super.load(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    super.save(nbt)
-  }
-
-  override def validate() {
-    super.validate()
-    if (worldObj.isRemote) ClientPacketSender.sendScreenBufferRequest(this)
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    if (currentGui.isDefined) Minecraft.getMinecraft.displayGuiScreen(null)
-    screens.clone().foreach(_.checkMultiBlock())
-  }
-
-  override def onRotationChanged() = screens.clone().foreach(_.checkMultiBlock())
-
-  // ----------------------------------------------------------------------- //
-
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+    if (isServer) {
+      if (litPixels < 0) {
+        litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
+      }
+      val hadPower = hasPower
+      hasPower = buffer.node.changeBuffer(-(Config.screenCost + pixelCost * litPixels))
+      if (hasPower != hadPower) {
+        ServerPacketSender.sendScreenPowerChange(this, hasPower)
+      }
     }
     if (shouldCheckForMultiBlock) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
       // differing between the two. This also saves us from having to save
       // any multi-block specific state information.
-      // We use a very primitive hash for the coordinates, which should be
-      // good enough for... "normal" screen sizes.
-      val pending = mutable.SortedSet(this)(ordering)
+      val pending = mutable.SortedSet(this)
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
@@ -128,37 +104,125 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
         current.screens.foreach {
           screen =>
             screen.shouldCheckForMultiBlock = false
-            screen.hasChanged = true
+            screen.bufferIsDirty = true
             pending.remove(screen)
             queue += screen
         }
-        val bounds = current.origin.getRenderBoundingBox
-        worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
-          bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
+        if (isClient) {
+          val bounds = current.origin.getRenderBoundingBox
+          worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+            bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
+        }
       }
       // Update visibility after everything is done, to avoid noise.
       queue.foreach(screen =>
         if (screen.isOrigin) {
-          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.Network)
+          if (isServer) {
+            screen.buffer.node.setVisibility(Visibility.Network)
+          }
         }
         else {
-          if (!worldObj.isRemote) screen.node.setVisibility(Visibility.None)
-          val s = screen.instance
+          if (isServer) {
+            screen.buffer.node.setVisibility(Visibility.None)
+          }
+          val s = screen.buffer
           val (w, h) = s.resolution
-          s.fill(0, 0, w, h, ' ')
+          s.buffer.fill(0, 0, w, h, ' ')
         }
       )
     }
   }
 
-  def checkMultiBlock() {
-    shouldCheckForMultiBlock = true
-    width = 1
-    height = 1
-    origin = this
-    screens.clear()
-    screens += this
+  override def validate() {
+    super.validate()
+    if (isClient) {
+      ClientPacketSender.sendRotatableStateRequest(this)
+      ClientPacketSender.sendScreenBufferRequest(this)
+    }
   }
+
+  override def invalidate() {
+    super.invalidate()
+    if (currentGui.isDefined) {
+      Minecraft.getMinecraft.displayGuiScreen(null)
+    }
+    screens.clone().foreach(_.checkMultiBlock())
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    tier = nbt.getByte(Config.namespace + "tier")
+    super.readFromNBT(nbt)
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    nbt.setByte(Config.namespace + "tier", tier.toByte)
+    super.writeToNBT(nbt)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def getRenderBoundingBox =
+    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
+    else {
+      val (sx, sy, sz) = unproject(width, height, 1)
+      val ox = x + (if (sx < 0) 1 else 0)
+      val oy = y + (if (sy < 0) 1 else 0)
+      val oz = z + (if (sz < 0) 1 else 0)
+      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
+        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
+      b
+    }
+
+  @SideOnly(Side.CLIENT)
+  override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin.node
+
+  override def onRotationChanged() {
+    super.onRotationChanged()
+    screens.clone().foreach(_.checkMultiBlock())
+  }
+
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+    super.onScreenCopy(col, row, w, h, tx, ty)
+    litPixels = -1
+  }
+
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+    super.onScreenFill(col, row, w, h, c)
+    litPixels = -1
+  }
+
+  override def onScreenResolutionChange(w: Int, h: Int) {
+    super.onScreenResolutionChange(w, h)
+    litPixels = -1
+  }
+
+  override def onScreenSet(col: Int, row: Int, s: String) {
+    super.onScreenSet(col, row, s)
+    litPixels = -1
+  }
+
+  @SideOnly(Side.CLIENT)
+  override protected def markForRenderUpdate() {
+    super.markForRenderUpdate()
+    currentGui.foreach(_.recompileDisplayLists())
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def compare(that: Screen) =
+    if (x != that.x) x - that.x
+    else if (y != that.y) y - that.y
+    else z - that.z
+
+  // ----------------------------------------------------------------------- //
 
   private def tryMerge() = {
     val (x, y, z) = project(origin)
@@ -197,79 +261,12 @@ abstract class Screen extends Rotatable with ScreenEnvironment {
   }
 
   private def project(t: Screen) = {
-    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.xCoord + f.offsetY * s.yCoord + f.offsetZ * s.zCoord
+    def dot(f: ForgeDirection, s: Screen) = f.offsetX * s.x + f.offsetY * s.y + f.offsetZ * s.z
     (dot(toGlobal(ForgeDirection.EAST), t), dot(toGlobal(ForgeDirection.UP), t), dot(toGlobal(ForgeDirection.SOUTH), t))
   }
 
   private def unproject(x: Int, y: Int, z: Int) = {
     def dot(f: ForgeDirection) = f.offsetX * x + f.offsetY * y + f.offsetZ * z
     (dot(toLocal(ForgeDirection.EAST)), dot(toLocal(ForgeDirection.UP)), dot(toLocal(ForgeDirection.SOUTH)))
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def getRenderBoundingBox =
-    if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
-    else {
-      val (sx, sy, sz) = unproject(width, height, 1)
-      val ox = xCoord + (if (sx < 0) 1 else 0)
-      val oy = yCoord + (if (sy < 0) 1 else 0)
-      val oz = zCoord + (if (sz < 0) 1 else 0)
-      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
-      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
-        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
-      b
-    }
-
-  override def getMaxRenderDistanceSquared = if (isOrigin) super.getMaxRenderDistanceSquared else 0
-
-  // ----------------------------------------------------------------------- //
-
-  override def onScreenResolutionChange(w: Int, h: Int) = {
-    super.onScreenResolutionChange(w, h)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.changeSize(w, h))
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenResolutionChange(this, w, h)
-    }
-  }
-
-  override def onScreenSet(col: Int, row: Int, s: String) = {
-    super.onScreenSet(col, row, s)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenSet(this, col, row, s)
-    }
-  }
-
-  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = {
-    super.onScreenFill(col, row, w, h, c)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenFill(this, col, row, w, h, c)
-    }
-  }
-
-  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = {
-    super.onScreenCopy(col, row, w, h, tx, ty)
-    if (worldObj.isRemote) {
-      currentGui.foreach(_.updateText())
-      hasChanged = true
-    }
-    else {
-      worldObj.markTileEntityChunkModified(xCoord, yCoord, zCoord, this)
-      ServerPacketSender.sendScreenCopy(this, col, row, w, h, tx, ty)
-    }
   }
 }

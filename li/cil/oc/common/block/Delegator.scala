@@ -1,23 +1,23 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
+import cpw.mods.fml.common.{Loader, Optional}
 import java.util
-import li.cil.oc.Config
-import li.cil.oc.CreativeTab
-import li.cil.oc.api.network.Environment
-import li.cil.oc.common.tileentity.Rotatable
+import java.util.Random
+import li.cil.oc.client.renderer.block.BlockRenderer
+import li.cil.oc.common.tileentity
+import li.cil.oc.{Config, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.util.{Vec3, AxisAlignedBB}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
 
 /**
@@ -34,13 +34,10 @@ import scala.collection.mutable
  * sides are also translated into local coordinate space for the sub block
  * (i.e. "up" will always be up relative to the block itself. So if it's
  * rotated up may actually be west).
- * - Component network logic for adding / removing blocks from the component
- * network when they are placed / removed.
  */
 class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
-  GameRegistry.registerBlock(this, classOf[Item], "oc.block." + id)
 
   // ----------------------------------------------------------------------- //
   // SubBlock
@@ -55,10 +52,17 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     blockId
   }
 
+  def subBlock(stack: ItemStack): Option[Child] =
+    stack.getItem match {
+      case block: ItemBlock if Block.blocksList(block.getBlockID) == this =>
+        subBlock(block.getMetadata(stack.getItemDamage))
+      case _ => None
+    }
+
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     subBlock(world.getBlockMetadata(x, y, z))
 
-  def subBlock(metadata: Int) =
+  def subBlock(metadata: Int): Option[Child] =
     metadata match {
       case blockId if blockId >= 0 && blockId < subBlocks.length => Some(subBlocks(blockId))
       case _ => None
@@ -70,27 +74,27 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: Rotatable => tileEntity.facing
+      case tileEntity: tileentity.Rotatable => tileEntity.facing
       case _ => ForgeDirection.UNKNOWN
     }
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable =>
+      case rotatable: tileentity.Rotatable =>
         rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable =>
+      case rotatable: tileentity.Rotatable =>
         rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: Rotatable => rotatable.toLocal(value)
+      case rotatable: tileentity.Rotatable => rotatable.toLocal(value)
       case _ => value
     }
 
@@ -100,18 +104,19 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     subBlock(metadata) match {
-      case Some(subBlock) => {
-        world.getBlockTileEntity(x, y, z) match {
-          case environment: Environment if environment.node != null =>
-            environment.node.remove()
-          case _ => // Nothing special to do.
-        }
-        subBlock.breakBlock(world, x, y, z, blockId)
-      }
+      case Some(subBlock) => subBlock.breakBlock(world, x, y, z, blockId)
       case _ => // Invalid but avoid match error.
     }
     super.breakBlock(world, x, y, z, blockId, metadata)
   }
+
+  override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
+
+  override def damageDropped(metadata: Int) =
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.damageDropped
+      case _ => super.damageDropped(metadata)
+    }
 
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {
@@ -130,17 +135,25 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.canConnectRedstone(
-        world, x, y, z, toLocal(world, x, y, z, side match {
+        world, x, y, z, side match {
           case -1 => ForgeDirection.UP
           case 0 => ForgeDirection.NORTH
           case 1 => ForgeDirection.EAST
           case 2 => ForgeDirection.SOUTH
           case 3 => ForgeDirection.WEST
-        }))
+        })
       case _ => false
     }
 
-  override def canProvidePower = true
+  override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.collisionRayTrace(world, x, y, z, origin, direction)
+      case _ => super.collisionRayTrace(world, x, y, z, origin, direction)
+    }
+
+  // Allow delegates to fall back to the default implementation.
+  def superCollisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    super.collisionRayTrace(world, x, y, z, origin, direction)
 
   override def createTileEntity(world: World, metadata: Int): TileEntity =
     subBlock(metadata) match {
@@ -148,12 +161,14 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => null
     }
 
-  override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
-    subBlock(world, x, y, z) match {
-      // TODO Rotate to world space if we have a Rotatable?
-      case Some(subBlock) => subBlock.getCollisionBoundingBoxFromPool(world, x, y, z)
-      case _ => super.getCollisionBoundingBoxFromPool(world, x, y, z)
-    }
+  override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) = {
+    setBlockBoundsBasedOnState(world, x, y, z)
+    super.getCollisionBoundingBoxFromPool(world, x, y, z)
+  }
+
+  override def setBlockBoundsForItemRender() {
+    setBlockBounds(0, 0, 0, 1, 1, 1)
+  }
 
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
@@ -190,16 +205,16 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subBlocks.length).
+    (0 until subBlocks.length).filter(id => subBlocks(id).showInItemList).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
-  override def getRenderType = Config.blockRenderId
+  override def getRenderType = BlockRenderer.getRenderId
 
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.unlocalizedName
-      case _ => "oc.block"
+      case _ => Config.namespace + "block"
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
@@ -221,71 +236,17 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.isProvidingStrongPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case Some(subBlock) => subBlock.isProvidingStrongPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
       case _ => 0
     }
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.isProvidingWeakPower(
-        world, x, y, z, toLocal(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite))
+      case Some(subBlock) => subBlock.isProvidingWeakPower(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
       case _ => 0
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    // Helper method to detect items that can be used to rotate blocks, such as
-    // wrenches. This structural type is compatible with the BuildCraft wrench
-    // interface.
-    def canWrench = {
-      if (player.getCurrentEquippedItem != null)
-        try {
-          player.getCurrentEquippedItem.getItem.asInstanceOf[ {
-            def canWrench(player: EntityPlayer, x: Int, y: Int, z: Int): Boolean
-          }].canWrench(player, x, y, z)
-        }
-        catch {
-          case _: Throwable => false
-        }
-      else
-        false
-    }
-
-    // Get valid rotations to skip rotating if there's only one.
-    val valid = getValidRotations(world, x, y, z)
-    if (valid.length > 1 && canWrench)
-      world.getBlockTileEntity(x, y, z) match {
-        case rotatable: Rotatable => {
-          if (player.isSneaking) {
-            // Rotate pitch. Get the valid pitch rotations.
-            val validPitch = valid.collect {
-              case direction if direction == ForgeDirection.DOWN || direction == ForgeDirection.UP => direction
-              case direction if direction != ForgeDirection.UNKNOWN => ForgeDirection.NORTH
-            }
-            // Check if there's more than one, and if so set to the next one.
-            if (validPitch.length > 1) {
-              // Can rotate, indicate that to the player. Note that the actual
-              // rotation logic is performed in rotateBlock.
-              return true
-            }
-          }
-          else {
-            // Rotate yaw. Get the valid yaw rotations.
-            val validYaw = valid.collect {
-              case direction if direction != ForgeDirection.DOWN && direction != ForgeDirection.UP && direction != ForgeDirection.UNKNOWN => direction
-            }
-            // Check if there's more than one, and if so set to the next one.
-            if (validYaw.length > 1) {
-              // Can rotate, indicate that to the player. Note that the actual
-              // rotation logic is performed in rotateBlock.
-              return true
-            }
-          }
-        }
-        case _ => // Cannot rotate this block.
-      }
-
-    // No rotating tool in hand or can't rotate: activate the block.
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.onBlockActivated(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
@@ -328,12 +289,53 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => true
     }) && super.removeBlockByPlayer(world, player, x, y, z)
 
-  override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) = {
-    val newFacing = getFacing(world, x, y, z).getRotation(axis)
-    if (getValidRotations(world, x, y, z).contains(newFacing))
-      setFacing(world, x, y, z, newFacing)
-    else false
+  override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z) match {
+      case rotatable: tileentity.Rotatable if rotatable.rotate(axis) =>
+        world.markBlockForRenderUpdate(x, y, z)
+        true
+      case _ => false
+    }
+
+  def setBlockBounds(bounds: AxisAlignedBB) {
+    setBlockBounds(
+      bounds.minX.toFloat, bounds.minY.toFloat, bounds.minZ.toFloat,
+      bounds.maxX.toFloat, bounds.maxY.toFloat, bounds.maxZ.toFloat)
   }
+
+  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ =>
+    }
+
+  override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.update(world, x, y, z)
+      case _ =>
+    }
+}
+
+object Delegator {
+  def subBlock(block: Block, metadata: Int): Option[Delegate] =
+    block match {
+      case delegator: Delegator[_] => delegator.subBlock(metadata)
+      case _ => None
+    }
+
+  def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Delegate] = {
+    val blockId = world.getBlockId(x, y, z)
+    if (blockId > 0) subBlock(Block.blocksList(blockId), world.getBlockMetadata(x, y, z))
+    else None
+  }
+
+  def subBlock(stack: ItemStack): Option[Delegate] =
+    if (stack != null) stack.getItem match {
+      case block: ItemBlock =>
+        subBlock(Block.blocksList(block.getBlockID), block.getMetadata(stack.getItemDamage))
+      case _ => None
+    }
+    else None
 }
 
 class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
@@ -349,9 +351,63 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
 
   override def renderAsNormalBlock = false
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
-    subBlock(world.getBlockMetadata(x, y, z)) match {
-      case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, ForgeDirection.getOrientation(side))
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = {
+    val direction = ForgeDirection.getOrientation(side)
+    subBlock(world.getBlockMetadata(x - direction.offsetX, y - direction.offsetY, z - direction.offsetZ)) match {
+      case Some(subBlock) => subBlock.shouldSideBeRendered(world, x, y, z, direction)
       case _ => super.shouldSideBeRendered(world, x, y, z, side)
     }
+  }
+}
+
+@Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = "MineFactoryReloaded")
+trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnectableRedNet {
+  def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
+
+  def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => t.bundledOutput(side, color)
+      case _ => 0
+    }
+
+  def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => t.bundledOutput(side)
+      case _ => Array.fill(16)(0)
+    }
+
+  def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
+
+  def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: tileentity.Redstone => for (color <- 0 until 16) {
+        t.rednetInput(side, color, inputValues(color))
+      }
+      case _ =>
+    }
+
+  abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
+    if (Loader.isModLoaded("MineFactoryReloaded")) {
+      world.getBlockTileEntity(x, y, z) match {
+        case t: tileentity.Redstone => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          Block.blocksList(world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)) match {
+            case block: IRedNetNetworkContainer =>
+            case _ => for (color <- 0 until 16) {
+              t.rednetInput(side, color, 0)
+            }
+          }
+        }
+        case _ =>
+      }
+    }
+    super.onNeighborBlockChange(world, x, y, z, blockId)
+  }
+}
+
+class SimpleRedstoneDelegator(id: Int) extends SimpleDelegator(id) with RedstoneDelegator[SimpleDelegate] {
+  override def canProvidePower = true
+}
+
+class SpecialRedstoneDelegator(id: Int) extends SpecialDelegator(id) with RedstoneDelegator[SpecialDelegate] {
+  override def canProvidePower = true
 }

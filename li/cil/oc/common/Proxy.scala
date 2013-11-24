@@ -3,11 +3,11 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
-import li.cil.oc.common.tileentity.Keyboard
-import li.cil.oc.server.component.Computer
+import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
+import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -23,26 +23,24 @@ class Proxy {
     Blocks.init()
     Items.init()
 
-    api.Driver.add(driver.Carriage)
-    api.Driver.add(driver.CommandBlock)
-    api.Driver.add(driver.FileSystem)
-    api.Driver.add(driver.GraphicsCard)
-    api.Driver.add(driver.Memory)
-    api.Driver.add(driver.NetworkCard)
-    // api.Driver.add(driver.Peripheral) // Can cause severe issues (deadlocks).
-    api.Driver.add(driver.PowerSupply)
-    api.Driver.add(driver.RedstoneCard)
-    api.Driver.add(driver.WirelessNetworkCard)
+    api.Driver.add(driver.block.Carriage)
+    api.Driver.add(driver.block.CommandBlock)
+    // api.Driver.add(driver.block.Peripheral) // Can cause severe issues (deadlocks).
 
-    MinecraftForge.EVENT_BUS.register(Computer)
-    MinecraftForge.EVENT_BUS.register(network.Network)
+    api.Driver.add(driver.item.FileSystem)
+    api.Driver.add(driver.item.GraphicsCard)
+    api.Driver.add(driver.item.Memory)
+    api.Driver.add(driver.item.NetworkCard)
+    api.Driver.add(driver.item.PowerSupply)
+    api.Driver.add(driver.item.RedstoneCard)
+    api.Driver.add(driver.item.WirelessNetworkCard)
+
     GameRegistry.registerPlayerTracker(Keyboard)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
-    // Lock the driver registry to avoid drivers being added after computers
-    // may have already started up. This makes sure the driver API won't change
-    // over the course of a game, since that could lead to weird effects.
+    // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
   }
 }

@@ -48,18 +48,31 @@ trait Node extends api.network.Node with Persistable {
   def sendToReachable(name: String, data: AnyRef*) =
     if (network != null) network.sendToReachable(this, name, data: _*)
 
-  private def isInSameNetwork(other: ImmutableNode) =
-    network != null && network == other.network
+  private def isInSameNetwork(other: ImmutableNode) = network != null && network == other.network
+
+  // ----------------------------------------------------------------------- //
+
+  def onConnect(node: ImmutableNode) {
+    host.onConnect(node)
+  }
+
+  def onDisconnect(node: ImmutableNode) {
+    host.onDisconnect(node)
+  }
 
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
-    if (nbt.hasKey("oc.node.address"))
-      address = nbt.getString("oc.node.address")
+    super.load(nbt)
+    if (nbt.hasKey("address")) {
+      address = nbt.getString("address")
+    }
   }
 
   override def save(nbt: NBTTagCompound) = {
-    if (address != null)
-      nbt.setString("oc.node.address", address)
+    super.save(nbt)
+    if (address != null) {
+      nbt.setString("address", address)
+    }
   }
 }

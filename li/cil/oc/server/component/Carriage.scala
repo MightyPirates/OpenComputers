@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.util.RedstoneInMotion
+import li.cil.oc.util.mods.RedstoneInMotion
 import net.minecraft.nbt.NBTTagCompound
 
 class Carriage(controller: AnyRef) extends ManagedComponent {
@@ -23,28 +23,33 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(value = "move", direct = true)
-  def move(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("move")
+  def move(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = if (args.count > 1) args.checkBoolean(1) else false
     shouldMove = true
+    context.pause(0.1)
     result(true)
   }
 
-  @LuaCallback(value = "simulate", direct = true)
-  def simulate(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("simulate")
+  def simulate(context: Context, args: Arguments): Array[AnyRef] = {
+    // IMPORTANT: we have to do the simulation asynchronously, too, because
+    // that may also try to persist the computer that called us, and it must
+    // not be running when we do that.
     direction = checkDirection(args)
     simulating = true
     shouldMove = true
+    context.pause(0.1)
     result(true)
   }
 
-  @LuaCallback(value = "getAnchored", direct = true)
+  @LuaCallback("getAnchored")
   def getAnchored(context: Context, args: Arguments): Array[AnyRef] =
-    this.synchronized(result(anchored))
+    result(anchored)
 
-  @LuaCallback(value = "setAnchored", direct = true)
-  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("setAnchored")
+  def setAnchored(context: Context, args: Arguments): Array[AnyRef] = {
     anchored = args.checkBoolean(0)
     result(anchored)
   }
@@ -72,19 +77,19 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   override def update() {
     super.update()
-    if (shouldMove) this.synchronized {
+    if (shouldMove) {
       shouldMove = false
       moving = true
       try {
-        RedstoneInMotion.move(controller, direction, simulating, anchored)
-        if (simulating || anchored) {
+        val (ok, reason) = RedstoneInMotion.move(controller, direction, simulating, anchored)
+        if (!ok || simulating || anchored) {
           // We won't get re-connected, so we won't send in onConnect. Do it here.
-          node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(true))
+          node.sendToReachable("computer.signal", Seq("carriage_moved", Boolean.box(ok)) ++ reason: _*)
         }
       }
       catch {
         case e: Throwable =>
-          node.sendToReachable("computer.signal", "carriage_moved", Unit, Option(e.getMessage).getOrElse(e.toString))
+          node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(false), Option(e.getMessage).getOrElse(e.toString))
       }
       finally {
         moving = false
@@ -104,7 +109,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
     nbt.setBoolean("moving", moving)
     nbt.setBoolean("anchored", anchored)

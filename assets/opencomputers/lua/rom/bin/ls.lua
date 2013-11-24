@@ -13,15 +13,28 @@ for i = 1, #dirs do
   if not list then
     print(reason)
   else
+    local function setColor(c)
+      if component.gpu.getForeground() ~= c then
+        component.gpu.setForeground(c)
+      end
+    end
     for f in list do
+      if f:sub(-1) == "/" then
+        setColor(0x99CCFF)
+      elseif f:sub(-4) == ".lua" then
+        setColor(0x00FF00)
+      else
+        setColor(0xFFFFFF)
+      end
       if options.a or f:sub(1, 1) ~= "." then
+        io.write(f .. "\t")
         if options.l then
-          print(f, fs.size(fs.concat(path, f)))
-        else
-          io.write(f .. "\t")
+          setColor(0xFFFFFF)
+          print(fs.size(fs.concat(path, f)))
         end
       end
     end
+    setColor(0xFFFFFF)
     if not options.l then
       print()
     end

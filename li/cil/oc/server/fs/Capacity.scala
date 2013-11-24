@@ -40,7 +40,7 @@ trait Capacity extends OutputStreamFileSystem {
     super.save(nbt)
 
     // For the tooltip.
-    nbt.setLong("oc.capacity.used", used)
+    nbt.setLong("capacity.used", used)
   }
 
   // ----------------------------------------------------------------------- //

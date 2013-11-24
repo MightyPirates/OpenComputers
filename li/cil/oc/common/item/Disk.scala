@@ -12,10 +12,11 @@ class Disk(val parent: Delegator) extends Delegate {
   override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     super.addInformation(item, player, tooltip, advanced)
 
-    if (item.hasTagCompound) {
-      val nbt = item.getTagCompound
-      if (nbt.hasKey("oc.fs.label"))
-        tooltip.add(nbt.getString("oc.fs.label"))
+    if (item.hasTagCompound && item.getTagCompound.hasKey(Config.namespace + "data")) {
+      val nbt = item.getTagCompound.getCompoundTag(Config.namespace + "data")
+      if (nbt.hasKey(Config.namespace + "fs.label")) {
+        tooltip.add(nbt.getString(Config.namespace + "fs.label"))
+      }
     }
   }
 

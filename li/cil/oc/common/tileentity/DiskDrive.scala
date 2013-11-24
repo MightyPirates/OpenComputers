@@ -1,45 +1,30 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Component, Visibility}
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.driver.Registry
-import net.minecraft.entity.player.EntityPlayer
+import li.cil.oc.{Blocks, api, Config}
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Rotatable with Environment with ComponentInventory {
+class DiskDrive extends Environment with ComponentInventory with Rotatable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  def world = worldObj
-
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
-    super.updateEntity()
-    if (node != null && node.network == null) {
-      Network.joinOrCreateNetwork(worldObj, xCoord, yCoord, zCoord)
+  override def canUpdate = false
+
+  override def validate() = {
+    super.validate()
+    if (isClient) {
+      ClientPacketSender.sendRotatableStateRequest(this)
     }
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    if (node != null) node.load(nbt)
-    load(nbt)
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    if (node != null) node.save(nbt)
-    save(nbt)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  def getInvName = "oc.container.DiskDrive"
+  def getInvName = Config.namespace + "container.DiskDrive"
 
   def getSizeInventory = 1
 
@@ -47,10 +32,6 @@ class DiskDrive extends Rotatable with Environment with ComponentInventory {
     case (0, Some(driver)) => driver.slot(item) == Slot.Disk
     case _ => false
   }
-
-  def isUseableByPlayer(player: EntityPlayer) =
-    worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) == this &&
-      player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 64
 
   override protected def onItemAdded(slot: Int, item: ItemStack) {
     super.onItemAdded(slot, item)

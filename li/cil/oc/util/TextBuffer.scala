@@ -1,8 +1,6 @@
 package li.cil.oc.util
 
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTTagList
-import net.minecraft.nbt.NBTTagString
+import net.minecraft.nbt._
 
 /**
  * This stores chars in a 2D-Array and provides some manipulation functions.
@@ -12,8 +10,52 @@ import net.minecraft.nbt.NBTTagString
  * relatively fast updates, given a smart algorithm (using copy()/fill()
  * instead of set()ing everything).
  */
-class TextBuffer(var width: Int, var height: Int) {
-  def this(size: (Int, Int)) = this(size._1, size._2)
+class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Depth.Value) extends Persistable {
+  def this(size: (Int, Int), depth: PackedColor.Depth.Value) = this(size._1, size._2, depth)
+
+  private var _depth = initialDepth
+
+  private var _foreground = 0xFFFFFF
+
+  private var _background = 0x000000
+
+  private var packed = PackedColor.pack(_foreground, _background, _depth)
+
+  def foreground = _foreground
+
+  def foreground_=(value: Int) = {
+    _foreground = value
+    packed = PackedColor.pack(_foreground, _background, _depth)
+  }
+
+  def background = _background
+
+  def background_=(value: Int) = {
+    _background = value
+    packed = PackedColor.pack(_foreground, _background, _depth)
+  }
+
+  def depth = _depth
+
+  def depth_=(value: PackedColor.Depth.Value) = {
+    if (depth != value) {
+      for (row <- 0 until height) {
+        val rowColor = color(row)
+        for (col <- 0 until width) {
+          val packed = rowColor(col)
+          val fg = PackedColor.unpackForeground(packed, _depth)
+          val bg = PackedColor.unpackBackground(packed, _depth)
+          rowColor(col) = PackedColor.pack(fg, bg, value)
+        }
+      }
+      _depth = value
+      packed = PackedColor.pack(_foreground, _background, _depth)
+      true
+    }
+    else false
+  }
+
+  var color = Array.fill(height, width)(packed)
 
   var buffer = Array.fill(height, width)(' ')
 
@@ -32,10 +74,13 @@ class TextBuffer(var width: Int, var height: Int) {
     val (w, h) = (iw max 1, ih max 1)
     if (width != w || height != h) {
       val newBuffer = Array.fill(h, w)(' ')
-      (0 until (h min height)) foreach {
-        y => Array.copy(buffer(y), 0, newBuffer(y), 0, w min width)
-      }
+      val newColor = Array.fill(h, w)(packed)
+      (0 until (h min height)).foreach(y => {
+        Array.copy(buffer(y), 0, newBuffer(y), 0, w min width)
+        Array.copy(color(y), 0, newColor(y), 0, w min width)
+      })
       buffer = newBuffer
+      color = newColor
       width = w
       height = h
       true
@@ -52,10 +97,12 @@ class TextBuffer(var width: Int, var height: Int) {
     else {
       var changed = false
       val line = buffer(row)
+      val lineColor = color(row)
       for (x <- col until ((col + s.length) min width)) if (x >= 0) {
         val c = s(x - col)
-        changed = changed || (line(x) != c)
+        changed = changed || (line(x) != c) || (lineColor(x) != packed)
         line(x) = c
+        lineColor(x) = packed
       }
       changed
     }
@@ -68,9 +115,11 @@ class TextBuffer(var width: Int, var height: Int) {
     var changed = false
     for (y <- (row max 0) until ((row + h) min height)) {
       val line = buffer(y)
+      val lineColor = color(y)
       for (x <- (col max 0) until ((col + w) min width)) {
-        changed = changed || (line(x) != c)
+        changed = changed || (line(x) != c) || (lineColor(x) != packed)
         line(x) = c
+        lineColor(x) = packed
       }
     }
     changed
@@ -97,13 +146,16 @@ class TextBuffer(var width: Int, var height: Int) {
     var changed = false
     for (ny <- dy0 to dy1 by sy) {
       val nl = buffer(ny)
+      val nc = color(ny)
       ny - ty match {
         case oy if oy >= 0 && oy < height =>
           val ol = buffer(oy)
+          val oc = color(oy)
           for (nx <- dx0 to dx1 by sx) nx - tx match {
             case ox if ox >= 0 && ox < width => {
-              changed = changed || (nl(nx) != ol(ox))
+              changed = changed || (nl(nx) != ol(ox)) || (nc(nx) != oc(ox))
               nl(nx) = ol(ox)
+              nc(nx) = oc(ox)
             }
             case _ => /* Got no source column. */
           }
@@ -113,24 +165,52 @@ class TextBuffer(var width: Int, var height: Int) {
     changed
   }
 
-  def readFromNBT(nbt: NBTTagCompound): Unit = {
+  override def load(nbt: NBTTagCompound): Unit = {
     val w = nbt.getInteger("width")
     val h = nbt.getInteger("height")
     size = (w, h)
+
     val b = nbt.getTagList("buffer")
-    for (i <- 0 until (h min b.tagCount())) {
-      set(0, i, b.tagAt(i).asInstanceOf[NBTTagString].data)
+    for (i <- 0 until (h min b.tagCount)) {
+      val line = b.tagAt(i).asInstanceOf[NBTTagString].data
+      set(0, i, line)
+    }
+
+    _depth = PackedColor.Depth(nbt.getInteger("depth"))
+    foreground = nbt.getInteger("foreground")
+    background = nbt.getInteger("background")
+
+    val c = nbt.getTagList("color")
+    for (i <- 0 until h) {
+      val rowColor = color(i)
+      for (j <- 0 until w) {
+        rowColor(j) = c.tagAt(j + i * w).asInstanceOf[NBTTagShort].data
+      }
     }
   }
 
-  def writeToNBT(nbt: NBTTagCompound): Unit = {
+  override def save(nbt: NBTTagCompound): Unit = {
     nbt.setInteger("width", width)
     nbt.setInteger("height", height)
-    val b = new NBTTagList
+
+    val b = new NBTTagList()
     for (i <- 0 until height) {
-      b.appendTag(new NBTTagString("", String.valueOf(buffer(i))))
+      b.appendTag(new NBTTagString(null, String.valueOf(buffer(i))))
     }
     nbt.setTag("buffer", b)
+
+    nbt.setInteger("depth", _depth.id)
+    nbt.setInteger("foreground", _foreground)
+    nbt.setInteger("background", _background)
+
+    val c = new NBTTagList()
+    for (i <- 0 until height) {
+      val rowColor = color(i)
+      for (j <- 0 until width) {
+        c.appendTag(new NBTTagShort(null, rowColor(j)))
+      }
+    }
+    nbt.setTag("color", c)
   }
 
   override def toString = {

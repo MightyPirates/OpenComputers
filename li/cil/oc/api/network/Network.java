@@ -33,6 +33,10 @@ package li.cil.oc.api.network;
  * nodes of the other network(s), when a network is split (all pairs).</li>
  * </ul>
  * <p/>
+ * Note that network access is <em>not</em> thread safe! Networks should only
+ * be accessed from the main server thread.
+ *
+ * <p/>
  * IMPORTANT: do *not* implement this interface yourself and create
  * instances of your own network implementation; this will lead to
  * incompatibilities with the built-in network implementation (which can only

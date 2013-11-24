@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Config
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
@@ -9,7 +10,7 @@ class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDriv
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     fontRenderer.drawString(
-      StatCollector.translateToLocal("oc.container.DiskDrive"),
+      StatCollector.translateToLocal(Config.namespace + "container.DiskDrive"),
       8, 6, 0x404040)
   }
 }

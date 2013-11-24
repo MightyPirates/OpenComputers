@@ -1,6 +1,5 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.{Config, OpenComputers}
@@ -11,36 +10,6 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import sun.plugin.dom.exception.InvalidStateException
-
-class ScreenTier1(parent: SimpleDelegator) extends Screen(parent) {
-  val unlocalizedName = "ScreenBasic"
-
-  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier1], "oc.screen0")
-
-  override def getRenderColor = 0x7F7F7F
-
-  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier1)
-}
-
-class ScreenTier2(parent: SimpleDelegator) extends Screen(parent) {
-  val unlocalizedName = "ScreenAdvanced"
-
-  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier2], "oc.screen1")
-
-  override def getRenderColor = 0xFFFF66
-
-  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier2)
-}
-
-class ScreenTier3(parent: SimpleDelegator) extends Screen(parent) {
-  val unlocalizedName = "ScreenProfessional"
-
-  GameRegistry.registerTileEntity(classOf[tileentity.ScreenTier3], "oc.screen2")
-
-  override def getRenderColor = 0x66FFFF
-
-  override def createTileEntity(world: World) = Some(new tileentity.ScreenTier3)
-}
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
@@ -330,4 +299,32 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     ForgeDirection.WEST,
     ForgeDirection.NORTH,
     ForgeDirection.EAST)
+}
+
+object Screen {
+
+  class Tier1(parent: SimpleDelegator) extends Screen(parent) {
+    val unlocalizedName = "ScreenBasic"
+
+    override def getRenderColor = 0x7F7F7F
+
+    override def createTileEntity(world: World) = Some(new tileentity.Screen(0))
+  }
+
+  class Tier2(parent: SimpleDelegator) extends Screen(parent) {
+    val unlocalizedName = "ScreenAdvanced"
+
+    override def getRenderColor = 0xFFFF66
+
+    override def createTileEntity(world: World) = Some(new tileentity.Screen(1))
+  }
+
+  class Tier3(parent: SimpleDelegator) extends Screen(parent) {
+    val unlocalizedName = "ScreenProfessional"
+
+    override def getRenderColor = 0x66FFFF
+
+    override def createTileEntity(world: World) = Some(new tileentity.Screen(2))
+  }
+
 }

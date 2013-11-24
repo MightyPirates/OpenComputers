@@ -3,23 +3,19 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api
-import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
+import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.server.network.{Node => MutableNode}
-import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.event.ForgeSubscribe
-import net.minecraftforge.event.world.ChunkEvent
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) {
+private class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) {
   def this(node: MutableNode) = {
     this()
     addNew(node)
-    node.host.onConnect(node)
+    node.onConnect(node)
   }
 
   private lazy val wrapper = new Network.Wrapper(this)
@@ -28,7 +24,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def connect(nodeA: MutableNode, nodeB: MutableNode) = this.synchronized {
+  def connect(nodeA: MutableNode, nodeB: MutableNode) = {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot connect a node to itself.")
 
@@ -51,9 +47,9 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
         assert(!oldNodeB.edges.exists(_.isBetween(oldNodeA, oldNodeB)))
         Network.Edge(oldNodeA, oldNodeB)
         if (oldNodeA.data.reachability == Visibility.Neighbors)
-          oldNodeB.data.host.onConnect(oldNodeA.data)
+          oldNodeB.data.onConnect(oldNodeA.data)
         if (oldNodeB.data.reachability == Visibility.Neighbors)
-          oldNodeA.data.host.onConnect(oldNodeB.data)
+          oldNodeA.data.onConnect(oldNodeB.data)
         true
       }
       else false // That connection already exists.
@@ -62,7 +58,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
     else add(oldNodeB, nodeA)
   }
 
-  def disconnect(nodeA: MutableNode, nodeB: MutableNode) = this.synchronized {
+  def disconnect(nodeA: MutableNode, nodeB: MutableNode) = {
     if (nodeA == nodeB) throw new IllegalArgumentException(
       "Cannot disconnect a node from itself.")
 
@@ -79,16 +75,16 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       case Some(edge) => {
         handleSplit(edge.remove())
         if (edge.left.data.reachability == Visibility.Neighbors)
-          edge.right.data.host.onDisconnect(edge.left.data)
+          edge.right.data.onDisconnect(edge.left.data)
         if (edge.right.data.reachability == Visibility.Neighbors)
-          edge.left.data.host.onDisconnect(edge.right.data)
+          edge.left.data.onDisconnect(edge.right.data)
         true
       }
       case _ => false // That connection doesn't exists.
     }
   }
 
-  def remove(node: MutableNode) = this.synchronized {
+  def remove(node: MutableNode) = {
     data.remove(node.address) match {
       case Some(entry) => {
         node.network = null
@@ -99,7 +95,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
           case Visibility.Network => subGraphs.map(_.values.map(_.data)).flatten
         })
         handleSplit(subGraphs)
-        targets.foreach(_.host.onDisconnect(node))
+        targets.foreach(_.asInstanceOf[MutableNode].onDisconnect(node))
         true
       }
       case _ => false
@@ -108,14 +104,14 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def node(address: String) = this.synchronized {
+  def node(address: String) = {
     data.get(address) match {
       case Some(node) => node.data
       case _ => null
     }
   }
 
-  def nodes: Iterable[ImmutableNode] = this.synchronized(data.values.map(_.data))
+  def nodes: Iterable[ImmutableNode] = data.values.map(_.data)
 
   def nodes(reference: ImmutableNode): Iterable[ImmutableNode] = {
     val referenceNeighbors = neighbors(reference).toSet
@@ -123,7 +119,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       (node.reachability == Visibility.Neighbors && referenceNeighbors.contains(node))))
   }
 
-  def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = this.synchronized {
+  def neighbors(node: ImmutableNode): Iterable[ImmutableNode] = {
     data.get(node.address) match {
       case Some(n) =>
         assert(n.data == node)
@@ -134,7 +130,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 
   // ----------------------------------------------------------------------- //
 
-  def sendToAddress(source: ImmutableNode, target: String, name: String, args: AnyRef*) = this.synchronized {
+  def sendToAddress(source: ImmutableNode, target: String, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     data.get(target) match {
@@ -144,13 +140,13 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
     }
   }
 
-  def sendToNeighbors(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
+  def sendToNeighbors(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, neighbors(source).filter(_.reachability != Visibility.None), name, args: _*)
   }
 
-  def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = this.synchronized {
+  def sendToReachable(source: ImmutableNode, name: String, args: AnyRef*) = {
     if (source.network != wrapper)
       throw new IllegalArgumentException("Source node must be in this network.")
     send(source, nodes(source), name, args: _*)
@@ -212,7 +208,7 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
       Network.Edge(oldNode, node(addedNode))
     }
 
-    for ((node, nodes) <- connects) nodes.foreach(_.host.onConnect(node))
+    for ((node, nodes) <- connects) nodes.foreach(_.asInstanceOf[MutableNode].onConnect(node))
 
     true
   }
@@ -232,8 +228,8 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
         for (indexB <- (indexA + 1) until subGraphs.length) {
           val nodesB = nodes(indexB)
           val visibleNodesB = visibleNodes(indexB)
-          visibleNodesA.foreach(node => nodesB.foreach(_.host.onDisconnect(node)))
-          visibleNodesB.foreach(node => nodesA.foreach(_.host.onDisconnect(node)))
+          visibleNodesA.foreach(node => nodesB.foreach(_.onDisconnect(node)))
+          visibleNodesB.foreach(node => nodesA.foreach(_.onDisconnect(node)))
         }
       }
     }
@@ -245,30 +241,37 @@ class Network private(private val data: mutable.Map[String, Network.Vertex] = mu
 }
 
 object Network extends api.detail.NetworkAPI {
-  override def joinOrCreateNetwork(world: World, x: Int, y: Int, z: Int): Unit =
-    if (!world.isRemote) getNetworkNode(world, x, y, z) match {
-      case Some(node: MutableNode) => {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          getNetworkNode(world, x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-            case Some(neighbor) =>
-              if (neighbor.network != null) {
-                neighbor.connect(node)
-              }
-            case _ => // Ignore.
-          }
+  override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
+    if (!tileEntity.getWorldObj.isRemote) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        getNetworkNode(tileEntity, side) match {
+          case Some(node: MutableNode) =>
+            val (nx, ny, nz) = (
+              tileEntity.xCoord + side.offsetX,
+              tileEntity.yCoord + side.offsetY,
+              tileEntity.zCoord + side.offsetZ)
+            getNetworkNode(tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz), side.getOpposite) match {
+              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null => neighbor.connect(node)
+              case _ => // Ignore.
+            }
+            if (node.network == null) {
+              joinNewNetwork(node)
+            }
+          case _ => // No node for this side or bad environment.
         }
-        if (node.network == null) new Network(node)
       }
-      case _ => // Invalid block.
     }
 
-  private def getNetworkNode(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-      case Some(block) if block.hasTileEntity(world.getBlockMetadata(x, y, z)) =>
-        world.getBlockTileEntity(x, y, z) match {
-          case host: Environment => Some(host.node)
-          case _ => None
-        }
+  def joinNewNetwork(node: ImmutableNode): Unit = node match {
+    case mutableNode: MutableNode if mutableNode.network == null =>
+      new Network(mutableNode)
+    case _ =>
+  }
+
+  private def getNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case host: SidedEnvironment => Option(host.sidedNode(side))
+      case host: Environment => Some(host.node)
       case _ => None
     }
 
@@ -283,6 +286,8 @@ object Network extends api.detail.NetworkAPI {
 
     def withConnector(bufferSize: Double) = new Network.ConnectorBuilder(_host, _reachability, bufferSize)
 
+    def withConnector() = withConnector(0)
+
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode {
       val host = _host
       val reachability = _reachability
@@ -292,6 +297,8 @@ object Network extends api.detail.NetworkAPI {
 
   class ComponentBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility) extends api.detail.Builder.ComponentBuilder {
     def withConnector(bufferSize: Double) = new Network.ComponentConnectorBuilder(_host, _reachability, _name, _visibility, bufferSize)
+
+    def withConnector() = withConnector(0)
 
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Component {
       val host = _host
@@ -310,7 +317,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Connector {
       val host = _host
       val reachability = _reachability
-      val bufferSize = _bufferSize
+      val localBufferSize = _bufferSize
     }
     else null
   }
@@ -320,24 +327,10 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      val bufferSize = _bufferSize
+      val localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  @ForgeSubscribe
-  def onChunkUnload(e: ChunkEvent.Unload) =
-    onUnload(e.world, e.getChunk.chunkTileEntityMap.values.asScala.map(_.asInstanceOf[TileEntity]))
-
-  private def onUnload(w: World, tileEntities: Iterable[TileEntity]) = if (!w.isRemote) {
-    // TODO add a more efficient batch remove operation? something along the lines of if #remove > #nodes*factor remove all, re-add remaining?
-    tileEntities.
-      filter(_.isInstanceOf[Environment]).
-      map(_.asInstanceOf[Environment]).
-      foreach(t => t.node.remove())
   }
 
   // ----------------------------------------------------------------------- //
@@ -401,8 +394,7 @@ object Network extends api.detail.NetworkAPI {
     def disconnect(nodeA: ImmutableNode, nodeB: ImmutableNode) =
       network.disconnect(nodeA.asInstanceOf[MutableNode], nodeB.asInstanceOf[MutableNode])
 
-    def remove(node: ImmutableNode) =
-      network.remove(node.asInstanceOf[MutableNode])
+    def remove(node: ImmutableNode) = network.remove(node.asInstanceOf[MutableNode])
 
     def node(address: String) = network.node(address)
 

@@ -1,12 +1,12 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.Icon
+import net.minecraft.util.{Vec3, AxisAlignedBB, Icon}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -14,6 +14,16 @@ import net.minecraftforge.common.ForgeDirection
 /** The base class on which all our blocks are built. */
 trait Delegate {
   val unlocalizedName: String
+
+  val showInItemList = true
+
+  def blockId: Int
+
+  def parent: Delegator[_]
+
+  def setBlock(world: World, x: Int, y: Int, z: Int, flags: Int) = {
+    world.setBlock(x, y, z, parent.blockID, blockId, flags)
+  }
 
   // ----------------------------------------------------------------------- //
   // Block
@@ -25,13 +35,18 @@ trait Delegate {
 
   def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
 
+  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
+
   def createTileEntity(world: World): Option[TileEntity] = None
 
   def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int,
                               worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
+
+  def damageDropped = blockId
 
   def getRenderColor = 0xFFFFFF
 
@@ -57,13 +72,22 @@ trait Delegate {
 
   def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, item: ItemStack) {}
 
-  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {}
+  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
+    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
+      case inventory: tileentity.Inventory => inventory.dropAllSlots()
+      case _ => // Ignore.
+    }
 
   def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 
   def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
   def registerIcons(iconRegister: IconRegister) {}
+
+  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+
+  def update(world: World, x: Int, y: Int, z: Int) = {}
 
   // ----------------------------------------------------------------------- //
 
@@ -90,5 +114,5 @@ trait SpecialDelegate extends Delegate {
   def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.isBlockOpaqueCube(x, y, z)
+    !world.isBlockOpaqueCube(x, y, z)
 }

@@ -1,11 +1,8 @@
 package li.cil.oc.client
 
-import li.cil.oc.api.network.Environment
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
-import li.cil.oc.common.tileentity.{PowerDistributor, Computer, Rotatable, Screen}
-import li.cil.oc.server.component.Redstone
-import net.minecraft.tileentity.TileEntity
+import li.cil.oc.common.tileentity._
 
 object PacketSender {
   def sendComputerStateRequest(t: Computer) {
@@ -24,8 +21,16 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendRedstoneStateRequest(t: TileEntity with Redstone) {
+  def sendRedstoneStateRequest(t: Redstone) {
     val pb = new PacketBuilder(PacketType.RedstoneStateRequest)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToServer()
+  }
+
+  def sendRobotStateRequest(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotStateRequest)
 
     pb.writeTileEntity(t)
 
@@ -40,7 +45,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendScreenBufferRequest(t: Screen) {
+  def sendScreenBufferRequest(t: Buffer) {
     val pb = new PacketBuilder(PacketType.ScreenBufferRequest)
 
     pb.writeTileEntity(t)
@@ -48,7 +53,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
+  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     pb.writeTileEntity(t)
@@ -58,7 +63,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyUp[T <: TileEntity with Environment](t: T, char: Char, code: Int) {
+  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     pb.writeTileEntity(t)
@@ -68,11 +73,11 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendClipboard[T <: TileEntity with Environment](t: T, value: String) = if (!value.isEmpty) {
+  def sendClipboard[T <: Buffer](t: T, value: String) = if (!value.isEmpty) {
     val pb = new PacketBuilder(PacketType.Clipboard)
 
     pb.writeTileEntity(t)
-    pb.writeUTF(value)
+    pb.writeUTF(value.substring(0, value.length min 1024))
 
     pb.sendToServer()
   }

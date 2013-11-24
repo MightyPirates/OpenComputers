@@ -30,6 +30,6 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
     else
       context.address
     entity.setCommandSenderName(name)
-    result(entity.executeCommandOnPowered(entity.worldObj) != 0)
+    result(entity.executeCommandOnPowered(entity.worldObj))
   }
 }

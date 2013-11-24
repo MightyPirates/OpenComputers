@@ -73,7 +73,7 @@ public interface Item {
      * child tag of the items own tag compound, it will not be saved otherwise.
      * Use this in the unlikely case that the default name collides with
      * something. The built-in components use a child tag-compound with the name
-     * "oc.node".
+     * "oc:node".
      *
      * @param item the item to get the child tag from.
      * @return the tag to use for saving and loading.

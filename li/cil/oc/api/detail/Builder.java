@@ -10,10 +10,14 @@ public interface Builder<T extends Node> {
 
         ComponentBuilder withComponent(String name, Visibility visibility);
 
+        ConnectorBuilder withConnector();
+
         ConnectorBuilder withConnector(double bufferSize);
     }
 
     static interface ComponentBuilder extends Builder<Component> {
+        ComponentConnectorBuilder withConnector();
+
         ComponentConnectorBuilder withConnector(double bufferSize);
     }
 

@@ -14,7 +14,7 @@ local line = nil
 while true do
   local w, h = component.primary("gpu").getResolution()
   term.clear()
-  term.cursorBlink(false)
+  term.setCursorBlink(false)
   local i = 1
   while i < h do
     if not line then
@@ -32,14 +32,14 @@ while true do
     end
     i = i + 1
   end
-  term.cursor(1, h)
+  term.setCursor(1, h)
   term.write(":")
-  term.cursorBlink(true)
+  term.setCursorBlink(true)
   while true do
     local event, address, char, code = coroutine.yield("key_down")
     if component.isPrimary(address) then
       if code == keyboard.keys.q then
-        term.cursorBlink(false)
+        term.setCursorBlink(false)
         term.clearLine()
         return
       elseif code == keyboard.keys.space then

@@ -59,12 +59,13 @@ end
 
 -------------------------------------------------------------------------------
 
-function filesystem.autorun(enabled)
-  if enabled ~= nil then
-    checkArg(1, enabled, "boolean")
-    isAutorunEnabled = enabled
-  end
+function filesystem.isAutorunEnabled(value)
   return isAutorunEnabled
+end
+
+function filesystem.setAutorunEnabled(value)
+  checkArg(1, value, "boolean")
+  isAutorunEnabled = value
 end
 
 function filesystem.canonical(path)

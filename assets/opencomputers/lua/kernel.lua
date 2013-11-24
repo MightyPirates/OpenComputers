@@ -13,7 +13,11 @@ local function invoke(direct, ...)
   local result
   if direct then
     result = table.pack(component.invoke(...))
-  else
+    if result.n == 0 then -- limit for direct calls reached
+      result = nil
+    end
+  end
+  if not result then
     local args = table.pack(...) -- for access in closure
     result = select(1, coroutine.yield(function()
       return table.pack(component.invoke(table.unpack(args, 1, args.n)))
@@ -87,9 +91,6 @@ sandbox = {
     create = coroutine.create,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
       checkArg(1, co, "thread")
-      if co == coroutine.running() then
-        return nil, "cannot resume non-suspended coroutine"
-      end
       local args = table.pack(...)
       while true do -- for consecutive sysyields
         debug.sethook(co, checkDeadline, "", 10000)
@@ -142,13 +143,7 @@ sandbox = {
     rep = string.rep,
     reverse = string.reverse,
     sub = string.sub,
-    upper = string.upper,
-    uchar = string.uchar,
-
-    trim = function(s) -- from http://lua-users.org/wiki/StringTrim
-      local from = string.match(s, "^%s*()")
-      return from > #s and "" or string.match(s, ".*%S", from)
-    end
+    upper = string.upper
   },
 
   table = {
@@ -233,6 +228,7 @@ sandbox = {
 -- Start of non-standard stuff.
 
     address = os.address,
+    isRobot = os.isRobot,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     uptime = os.uptime,
@@ -263,7 +259,7 @@ sandbox = {
         (type(timeout) == "number" and timeout or math.huge)
       repeat
         local signal = table.pack(coroutine.yield(deadline - os.uptime()))
-        if signal.n > 0 then -- not a "blind" resume?
+        if signal.n > 0 then
           return table.unpack(signal, 1, signal.n)
         end
       until os.uptime() >= deadline
@@ -294,12 +290,13 @@ sandbox = {
         return nil, reason
       end
       local proxy = {address = address, type = type}
-      local methods = component.methods(address)
-      if methods then
-        for method, direct in pairs(methods) do
-          proxy[method] = function(...)
-            return invoke(direct, address, method, ...)
-          end
+      local methods, reason = component.methods(address)
+      if not methods then
+        return nil, reason
+      end
+      for method, direct in pairs(methods) do
+        proxy[method] = function(...)
+          return invoke(direct, address, method, ...)
         end
       end
       return proxy

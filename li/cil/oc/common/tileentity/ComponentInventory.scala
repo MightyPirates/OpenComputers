@@ -1,21 +1,19 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
+import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.world.World
 
-trait ComponentInventory extends Inventory with Environment with Persistable {
+trait ComponentInventory extends Inventory with network.Environment with Persistable {
   protected val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
-
-  def world: World
 
   // ----------------------------------------------------------------------- //
 
-  def installedMemory = inventory.foldLeft(0)((sum, stack) => sum + (stack match {
+  def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.driverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
@@ -25,12 +23,12 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
+  abstract override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      for ((stack, slot) <- inventory.zipWithIndex collect {
+      for ((stack, slot) <- items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
-      } if components(slot).isEmpty) {
+      } if components(slot).isEmpty && isComponentSlot(slot)) {
         components(slot) = Registry.driverFor(stack) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, this)) match {
@@ -43,12 +41,12 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
         }
       }
       components collect {
-        case Some(component) => node.connect(component.node)
+        case Some(component) => connectItemNode(component.node)
       }
     }
   }
 
-  override def onDisconnect(node: Node) {
+  abstract override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
       components collect {
@@ -60,7 +58,7 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
   // ----------------------------------------------------------------------- //
 
   override def save(nbt: NBTTagCompound) = {
-    inventory.zipWithIndex collect {
+    items.zipWithIndex collect {
       case (Some(stack), slot) => (stack, slot)
     } foreach {
       case (stack, slot) => components(slot) match {
@@ -77,20 +75,20 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
 
   def getInventoryStackLimit = 1
 
-  override protected def onItemAdded(slot: Int, item: ItemStack) = if (!world.isRemote) {
+  override protected def onItemAdded(slot: Int, item: ItemStack) = if (isServer && isComponentSlot(slot)) {
     Registry.driverFor(item) match {
       case Some(driver) => Option(driver.createEnvironment(item, this)) match {
         case Some(component) =>
           components(slot) = Some(component)
           component.load(driver.nbt(item))
-          node.connect(component.node)
+          connectItemNode(component.node)
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.
     }
   }
 
-  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (!world.isRemote) {
+  override protected def onItemRemoved(slot: Int, item: ItemStack) = if (isServer) {
     // Uninstall component previously in that slot.
     components(slot) match {
       case Some(component) =>
@@ -104,5 +102,11 @@ trait ComponentInventory extends Inventory with Environment with Persistable {
           component.save(driver.nbt(item)))
       case _ => // Nothing to do.
     }
+  }
+
+  protected def isComponentSlot(slot: Int) = true
+
+  protected def connectItemNode(node: Node) {
+    this.node.connect(node)
   }
 }

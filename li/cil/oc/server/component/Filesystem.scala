@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Config, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.Some
@@ -11,6 +12,7 @@ import scala.collection.mutable
 class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
+    withConnector().
     create()
 
   private val owners = mutable.Map.empty[String, mutable.Set[Int]]
@@ -18,11 +20,10 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   // ----------------------------------------------------------------------- //
 
   @LuaCallback(value = "getLabel", direct = true)
-  def getLabel(context: Context, args: Arguments): Array[AnyRef] =
-    this.synchronized(result(label.getLabel))
+  def getLabel(context: Context, args: Arguments): Array[AnyRef] = result(label.getLabel)
 
-  @LuaCallback(value = "setLabel", direct = true)
-  def setLabel(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+  @LuaCallback("setLabel")
+  def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
     if (label == null) throw new Exception("filesystem does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
     else label.setLabel(args.checkString(0))
@@ -30,8 +31,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback(value = "isReadOnly", direct = true)
-  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] =
+  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isReadOnly)
+  }
 
   @LuaCallback(value = "spaceTotal", direct = true)
   def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = {
@@ -42,32 +44,38 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
       result(space)
   }
 
-  @LuaCallback("spaceUsed")
-  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] =
+  @LuaCallback(value = "spaceUsed", direct = true)
+  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.spaceUsed)
+  }
 
-  @LuaCallback("exists")
-  def exists(context: Context, args: Arguments): Array[AnyRef] =
+  @LuaCallback(value = "exists", direct = true)
+  def exists(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.exists(clean(args.checkString(0))))
+  }
 
-  @LuaCallback("size")
-  def size(context: Context, args: Arguments): Array[AnyRef] =
+  @LuaCallback(value = "size", direct = true)
+  def size(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.size(clean(args.checkString(0))))
+  }
 
-  @LuaCallback("isDirectory")
-  def isDirectory(context: Context, args: Arguments): Array[AnyRef] =
+  @LuaCallback(value = "isDirectory", direct = true)
+  def isDirectory(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isDirectory(clean(args.checkString(0))))
+  }
 
-  @LuaCallback("lastModified")
-  def lastModified(context: Context, args: Arguments): Array[AnyRef] =
+  @LuaCallback(value = "lastModified", direct = true)
+  def lastModified(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.lastModified(clean(args.checkString(0))))
+  }
 
   @LuaCallback("list")
-  def list(context: Context, args: Arguments): Array[AnyRef] =
+  def list(context: Context, args: Arguments): Array[AnyRef] = {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) => Array(list)
       case _ => null
     }
+  }
 
   @LuaCallback("makeDirectory")
   def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = {
@@ -84,8 +92,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("rename")
-  def rename(context: Context, args: Arguments): Array[AnyRef] =
+  def rename(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
+  }
 
   @LuaCallback("close")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
@@ -102,7 +111,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   }
 
   @LuaCallback("open")
-  def open(context: Context, args: Arguments): Array[AnyRef] =
+  def open(context: Context, args: Arguments): Array[AnyRef] = {
     if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
       throw new IOException("too many open handles")
     else {
@@ -114,6 +123,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
       }
       result(handle)
     }
+  }
 
   @LuaCallback("read")
   def read(context: Context, args: Arguments): Array[AnyRef] = {
@@ -134,6 +144,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
+          if (!node.changeBuffer(-Config.hddReadCost * bytes.length)) {
+            throw new IOException("not enough energy")
+          }
           result(bytes)
         }
         else {
@@ -166,6 +179,9 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
+    if (!node.changeBuffer(-Config.hddWriteCost * value.length)) {
+      throw new IOException("not enough energy")
+    }
     checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) => file.write(value); result(true)
@@ -180,12 +196,13 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     message.data match {
       case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
         owners.get(message.source.address) match {
-          case Some(set) =>
+          case Some(set) => {
             set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
               case Some(file) => file.close()
               case _ => // Invalid handle... huh.
             })
             set.clear()
+          }
           case _ => // Computer had no open files.
         }
       case _ =>
@@ -212,6 +229,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
+
     val ownersNbt = nbt.getTagList("owners")
     (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
       val address = ownerNbt.getString("address")
@@ -229,6 +247,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+
     val ownersNbt = new NBTTagList()
     for ((address, handles) <- owners) {
       val ownerNbt = new NBTTagCompound()
@@ -242,9 +261,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     }
     nbt.setTag("owners", ownersNbt)
 
-    val fsNbt = new NBTTagCompound()
-    fileSystem.save(fsNbt)
-    nbt.setCompoundTag("fs", fsNbt)
+    nbt.setNewCompoundTag("fs", fileSystem.save)
   }
 
   // ----------------------------------------------------------------------- //

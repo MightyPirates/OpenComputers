@@ -4,6 +4,10 @@ import cpw.mods.fml.common.network.IPacketHandler
 import cpw.mods.fml.common.network.Player
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+import java.util.logging.Level
+import li.cil.oc.OpenComputers
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.{NBTTagCompound, NBTBase}
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
@@ -14,7 +18,15 @@ import scala.reflect.classTag
 abstract class PacketHandler extends IPacketHandler {
   /** Top level dispatcher based on packet type. */
   def onPacketData(manager: INetworkManager, packet: Packet250CustomPayload, player: Player) {
-    dispatch(new PacketParser(packet, player))
+    // Don't crash on badly formatted packets (may have been altered by a
+    // malicious client, in which case we don't want to allow it to kill the
+    // server like this). Just spam the log a bit... ;)
+    try {
+      dispatch(new PacketParser(packet, player))
+    } catch {
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Received a badly formatted packet.", e)
+    }
   }
 
   /**
@@ -50,6 +62,16 @@ abstract class PacketHandler extends IPacketHandler {
     }
 
     def readDirection() = ForgeDirection.getOrientation(readInt())
+
+    def readItemStack() = {
+      val haveStack = readBoolean()
+      if (haveStack) {
+        ItemStack.loadItemStackFromNBT(readNBT().asInstanceOf[NBTTagCompound])
+      }
+      else null
+    }
+
+    def readNBT() = NBTBase.readNamedTag(this)
   }
 
 }

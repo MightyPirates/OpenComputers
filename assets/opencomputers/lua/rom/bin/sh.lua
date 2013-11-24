@@ -16,7 +16,9 @@ while true do
     end
   end
   while term.isAvailable() do
+    local foreground = component.gpu.setForeground(0xFF0000)
     term.write("# ")
+    component.gpu.setForeground(foreground)
     local command = term.read(history)
     if not command then
       print("exit")
@@ -25,7 +27,7 @@ while true do
     while #history > 10 do
       table.remove(history, 1)
     end
-    command = string.trim(command)
+    command = text.trim(command)
     if command == "exit" then
       return
     elseif command ~= "" then
