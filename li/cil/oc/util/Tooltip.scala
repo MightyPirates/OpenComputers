@@ -1,37 +1,41 @@
 package li.cil.oc.util
 
-import net.minecraft.util.EnumChatFormatting
+import li.cil.oc.Config
+import net.minecraft.util.StatCollector
+import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
 
 object Tooltip {
-
-  val Reset = "\u00A7" + EnumChatFormatting.RESET.func_96298_a // 'r'
-
-  object Color {
-    val Aqua = "\u00A7" + EnumChatFormatting.AQUA.func_96298_a // 'b'
-    val Black = "\u00A7" + EnumChatFormatting.BLACK.func_96298_a // '0'
-    val Blue = "\u00A7" + EnumChatFormatting.BLUE.func_96298_a // '9'
-    val DarkAqua = "\u00A7" + EnumChatFormatting.DARK_AQUA.func_96298_a // '3'
-    val DarkBlue = "\u00A7" + EnumChatFormatting.DARK_BLUE.func_96298_a // '1'
-    val DarkGray = "\u00A7" + EnumChatFormatting.DARK_GRAY.func_96298_a // '8'
-    val DarkGreen = "\u00A7" + EnumChatFormatting.DARK_GREEN.func_96298_a // '2'
-    val DarkPurple = "\u00A7" + EnumChatFormatting.DARK_PURPLE.func_96298_a // '5'
-    val DarkRed = "\u00A7" + EnumChatFormatting.DARK_RED.func_96298_a // '4'
-    val Gold = "\u00A7" + EnumChatFormatting.GOLD.func_96298_a // '6'
-    val Gray = "\u00A7" + EnumChatFormatting.GRAY.func_96298_a // '7'
-    val Green = "\u00A7" + EnumChatFormatting.GREEN.func_96298_a // 'a'
-    val LightPurple = "\u00A7" + EnumChatFormatting.LIGHT_PURPLE.func_96298_a // 'd'
-    val Red = "\u00A7" + EnumChatFormatting.RED.func_96298_a // 'c'
-    val White = "\u00A7" + EnumChatFormatting.WHITE.func_96298_a // 'f'
-    val Yellow = "\u00A7" + EnumChatFormatting.YELLOW.func_96298_a // 'e'
+  def get(name: String, args: Any*): java.util.List[String] = {
+    val tooltip = StatCollector.translateToLocal(Config.namespace + "tooltip." + name).format(args.map(_.toString): _*)
+    val regex = """(\[[0123456789abcdefklmnor]\])""".r
+    val nl = """\[nl\]"""
+    val lines = mutable.ArrayBuffer.empty[String]
+    tooltip.split(nl).foreach(line => {
+      val formatted = regex.replaceAllIn(line.trim, m => "\u00A7" + m.group(1).charAt(1)).stripLineEnd
+      var start = 0
+      var end = 0
+      var count = 0
+      var formats = 0
+      for (c <- formatted.trim) {
+        if (c == '\u00A7') {
+          formats += 1
+        }
+        else if (c == ' ') {
+          end = count
+        }
+        count += 1
+        if (count - formats > 50 && end > 0) {
+          lines += formatted.substring(start, start + end)
+          count -= end + 1
+          start += end + 1
+          end = 0
+        }
+      }
+      if (start < formatted.length) {
+        lines += formatted.substring(start)
+      }
+    })
+    lines
   }
-
-  object Format {
-    val Obfuscated = "\u00A7" + EnumChatFormatting.OBFUSCATED.func_96298_a // 'k'
-    val Bold = "\u00A7" + EnumChatFormatting.BOLD.func_96298_a // 'l'
-    val StrikeThrough = "\u00A7" + EnumChatFormatting.STRIKETHROUGH.func_96298_a // 'm'
-    val Underline = "\u00A7" + EnumChatFormatting.UNDERLINE.func_96298_a // 'n'
-    val Italic = "\u00A7" + EnumChatFormatting.ITALIC.func_96298_a // 'o'
-  }
-
-  def format(value: String, format: String) = format + value + Reset + Color.Gray
 }

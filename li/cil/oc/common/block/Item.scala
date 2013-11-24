@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.Config
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
@@ -11,6 +12,14 @@ import net.minecraftforge.common.ForgeDirection
 
 class Item(id: Int) extends ItemBlock(id) {
   setHasSubtypes(true)
+
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+    super.addInformation(stack, player, tooltip, advanced)
+    Block.blocksList(getBlockID) match {
+      case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), player, tooltip.asInstanceOf[util.List[String]], advanced)
+      case _ =>
+    }
+  }
 
   override def getMetadata(itemDamage: Int) = itemDamage
 

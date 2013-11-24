@@ -1,3 +1,4 @@
+# Blocks
 oc:block.Adapter.name=Adapter
 oc:block.Cable.name=Kabel
 oc:block.Capacitor.name=Kondensator
@@ -12,8 +13,12 @@ oc:block.Router.name=Router
 oc:block.ScreenAdvanced.name=Hochwertiger Bildschirm
 oc:block.ScreenBasic.name=Einfacher Bildschirm
 oc:block.ScreenProfessional.name=Professioneller Bildschirm
+
+# Containers
 oc:container.Case=Computer
 oc:container.DiskDrive=Diskettenlaufwerk
+
+# Items
 oc:item.Analyzer.name=Messgerät
 oc:item.Disk.name=Diskette
 oc:item.GraphicsCardAdvanced.name=Hochwertige Grafikkarte
@@ -31,3 +36,14 @@ oc:text.Analyzer.LastError=Letzter Fehler
 oc:text.Analyzer.StoredEnergy=Gespeicherte Energie
 oc:text.Analyzer.TotalEnergy=Insgesamt gespeicherte Energie
 oc:text.Robot.Power=Energie
+
+# Tooltips
+oc:tooltip.Adapter=Erlaubt es Blöcke anzusteuern die keine Komponentenblöcke sind, wie etwa reguläre Minecraft Blöcke oder Blöcke anderer Mods.
+oc:tooltip.Analyzer=Erlaubt es Informationen über Blöcke anzuzeigen, wie zum Bleistift ihre [f]Adresse[7] und ihren [f]Komponentennamen[7].[nl] Erlaubt zudem den Fehler anzuzeigen der zu einem Computerabsturz geführt hat, falls der Computer nicht regulär heruntergefahren wurde.
+oc:tooltip.Cable=Ein billiger Weg verschiedene Blöcke miteinander zu verbinden.
+oc:tooltip.Capacitor=Speichert Energie für spätere Verwendung. Kann extrem schnell befüllt und entlehrt werden.
+oc:tooltip.GraphicsCard=Erlaubt es den angezeigten Inhalt von Bildschirmen zu ändern.[nl] Höchstauflösung: [f]%sx%s[7].[nl] Maximale Farbtiefe: [f]%s[7].[nl] Operationen/Tick: [f]%s[7].
+oc:tooltip.RedstoneCard=Erlaubt das Lesen und Ausgeben von Redstonesignalen um den Computer oder Roboter herum.
+oc:tooltip.RedstoneCard.RedLogic=RedLogic wird [a]unterstützt[7].
+oc:tooltip.RedstoneCard.RedNet=RedNet wird [a]unterstützt[7].
+oc:tooltip.WirelessNetworkCard=Erlaubt das drahtlose Senden von Netzwerknachrichten, zusätzlich zu normalen. Drahtlose Nachrichten werden nur gesendet, wenn eine [f]Signalstärke[7] festgelegt wurde!

@@ -43,10 +43,10 @@ class Delegator(id: Int) extends Item(id) {
   // Item
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
-    super.addInformation(item, player, tooltip, advanced)
-    subItem(item) match {
-      case Some(subItem) => subItem.addInformation(item, player, tooltip.asInstanceOf[util.List[String]], advanced)
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
+    super.addInformation(stack, player, tooltip, advanced)
+    subItem(stack) match {
+      case Some(subItem) => subItem.addInformation(stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
       case _ => // Nothing to add.
     }
   }

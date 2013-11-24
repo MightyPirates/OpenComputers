@@ -4,8 +4,8 @@
   "name": "OpenComputers",
   "version": "0.0.0",
   "credits" : "Inspired by ComputerCraft",
-  "authors": ["Sangar"],
-  "description": "This mod adds modular computers that can be programmed in Lua.",
+  "authors": ["Florian 'Sangar' Nücke"],
+  "description": "This mod adds modular computers and robots that can be programmed in Lua.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png"
 }
 ]

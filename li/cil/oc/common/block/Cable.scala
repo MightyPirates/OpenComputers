@@ -1,14 +1,23 @@
 package li.cil.oc.common.block
 
+import java.util
 import li.cil.oc.api
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Cable"
+
+  // ----------------------------------------------------------------------- //
+
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -32,12 +41,12 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
+  // ----------------------------------------------------------------------- //
+
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
     world.markBlockForRenderUpdate(x, y, z)
     super.onNeighborBlockChange(world, x, y, z, blockId)
   }
-
-  // ----------------------------------------------------------------------- //
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
     parent.setBlockBounds(Cable.bounds(world, x, y, z))

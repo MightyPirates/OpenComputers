@@ -31,6 +31,8 @@ trait Delegate {
   // Block
   // ----------------------------------------------------------------------- //
 
+  def addInformation(player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+
   def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false

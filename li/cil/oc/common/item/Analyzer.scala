@@ -17,10 +17,7 @@ class Analyzer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Analyzer"
 
   override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.add("Used to display information about blocks,")
-    tooltip.add("such as their " + Tooltip.format("address", Tooltip.Color.White) + " and " + Tooltip.format("component name", Tooltip.Color.White) + ".")
-    tooltip.add("Also displays the error that caused a computer")
-    tooltip.add("to crash if it did not shut down normally.")
+    tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
   override def onItemUse(item: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {

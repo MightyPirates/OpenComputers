@@ -102,6 +102,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // Block
   // ----------------------------------------------------------------------- //
 
+  def addInformation(metadata: Int, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    subBlock(metadata) match {
+      case Some(subBlock) => subBlock.addInformation(player, tooltip, advanced)
+      case _ =>
+    }
+  }
+
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.breakBlock(world, x, y, z, blockId)

@@ -1,3 +1,21 @@
+# This is the english master file for localizations. It will always be the most
+# up-to-date version, so other localizations should be based on this one.
+#
+# Note that tooltips can be formatted using "tags".
+# Available colors are:
+# [b] = Aqua, [0] = Black, [9] = Blue, [3] = DarkAqua, [1] = DarkBlue,
+# [8] = DarkGray, [2] = DarkGreen, [5] = DarkPurple, [4] = DarkRed,
+# [6] = Gold, [7] = Gray, [a] = Green, [d] = LightPurple, [c] = Red,
+# [f] = White and [e] = Yellow
+# 
+# Available format specifiers are:
+# [k] = Obfuscated, [l] = Bold, [m] = StrikeThrough, [n] = Underline and
+# [o] = Italic
+#
+# Use [r] to reset any formatting.
+# Use [nl] to for a line break.
+
+# Blocks
 oc:block.Adapter.name=Adapter
 oc:block.Cable.name=Cable
 oc:block.Capacitor.name=Capacitor
@@ -12,8 +30,12 @@ oc:block.Router.name=Router
 oc:block.ScreenAdvanced.name=Advanced Screen
 oc:block.ScreenBasic.name=Basic Screen
 oc:block.ScreenProfessional.name=Professional Screen
+
+# Containers
 oc:container.Case=Computer
 oc:container.DiskDrive=Disk Drive
+
+# Items
 oc:item.Analyzer.name=Analyzer
 oc:item.Disk.name=Floppy Disk
 oc:item.GraphicsCardAdvanced.name=Advanced Graphics Card
@@ -31,3 +53,14 @@ oc:text.Analyzer.LastError=Last error
 oc:text.Analyzer.StoredEnergy=Stored energy
 oc:text.Analyzer.TotalEnergy=Total stored energy
 oc:text.Robot.Power=Power
+
+# Tooltips
+oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
+oc:tooltip.Analyzer=Used to display information about blocks, such as their [f]address[7] and [f]component name[7].[nl] Also displays the error that caused a computer to crash if it did not shut down normally.
+oc:tooltip.Cable=A cheap way of connecting blocks.
+oc:tooltip.Capacitor=Stores energy for later use. Can be filled and emptied very quickly.
+oc:tooltip.GraphicsCard=Used to change what's displayed on screens.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].[nl] Operations/tick: [f]%s[7].
+oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
+oc:tooltip.RedstoneCard.RedLogic=RedLogic is [a]supported[7].
+oc:tooltip.RedstoneCard.RedNet=RedNet is [a]supported[7].
+oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. Make sure to set the [f]signal strength[7] or no wireless packet will be sent!

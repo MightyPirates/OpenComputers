@@ -8,15 +8,20 @@ import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import java.util
 
 class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   val unlocalizedName = "Case"
 
-  // ----------------------------------------------------------------------- //
-
   private object Icons {
     val on = Array.fill[Icon](6)(null)
     val off = Array.fill[Icon](6)(null)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    //tooltip.add("")
   }
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {

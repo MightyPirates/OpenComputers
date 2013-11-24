@@ -12,13 +12,12 @@ class RedstoneCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "RedstoneCard"
 
   override def addInformation(item: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.add("Allows reading and emitting redstone signals")
-    tooltip.add("around the computer or robot.")
+    tooltip.addAll(Tooltip.get(unlocalizedName))
     if (Loader.isModLoaded("RedLogic")) {
-      tooltip.add("RedLogic is " + Tooltip.format("supported", Tooltip.Color.Green) + ".")
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".RedLogic"))
     }
     if (Loader.isModLoaded("MineFactoryReloaded")) {
-      tooltip.add("RedNet is " + Tooltip.format("supported", Tooltip.Color.Green) + ".")
+      tooltip.addAll(Tooltip.get(unlocalizedName + ".RedNet"))
     }
   }
 
