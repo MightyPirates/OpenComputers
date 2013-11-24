@@ -15,6 +15,8 @@ trait Delegate {
 
   private var _icon: Option[Icon] = None
 
+  def itemStack = new ItemStack(parent, 1, itemId)
+
   // ----------------------------------------------------------------------- //
   // Item
   // ----------------------------------------------------------------------- //

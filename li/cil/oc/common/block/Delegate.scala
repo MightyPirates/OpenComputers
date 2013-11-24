@@ -25,6 +25,8 @@ trait Delegate {
     world.setBlock(x, y, z, parent.blockID, blockId, flags)
   }
 
+  def itemStack = new ItemStack(parent, 1, damageDropped)
+
   // ----------------------------------------------------------------------- //
   // Block
   // ----------------------------------------------------------------------- //
