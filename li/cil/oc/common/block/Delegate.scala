@@ -35,7 +35,7 @@ trait Delegate {
 
   def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int) = true
+  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
 
@@ -90,6 +90,12 @@ trait Delegate {
 
   def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+
+  def setBlockBoundsForItemRender(): Unit = parent.setBlockBoundsForItemRender()
+
+  def preItemRender() {}
+
+  def postItemRender() {}
 
   def update(world: World, x: Int, y: Int, z: Int) = {}
 
