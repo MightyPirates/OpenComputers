@@ -209,7 +209,7 @@ class Player(val robot: Robot) extends FakePlayer(robot.world, "OpenComputers") 
       return false
     }
 
-    if (world.worldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
+    if (world.getWorldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
       return false
     }
 
