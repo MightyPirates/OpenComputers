@@ -75,4 +75,5 @@ oc:tooltip.RedstoneCard.RedNet=RedNet is [a]supported[7].
 oc:tooltip.Robot=Unlike computers, [m]turtles[r][7] robots can move around and interact with the world much like a player can. They can [o]not[r][7] interact with external components, however!
 oc:tooltip.Router=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
 oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Computer.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].
+oc:tooltip.TooLong=Hold shift for a detailed tooltip.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. Make sure to set the [f]signal strength[7] or no wireless packet will be sent!

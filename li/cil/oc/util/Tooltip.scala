@@ -15,7 +15,7 @@ object Tooltip {
       !Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
-      else Seq("Hold shift for a detailed tooltip.")
+      else Seq(StatCollector.translateToLocal(Config.namespace + "tooltip.TooLong"))
     }
     else {
       val regex = """(\[[0123456789abcdefklmnor]\])""".r

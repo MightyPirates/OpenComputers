@@ -43,6 +43,7 @@ trait Delegate {
     if (player.isSneaking) {
       if (stack.hasTagCompound && stack.getTagCompound.hasKey(Config.namespace + "data")) {
         stack.setTagCompound(null)
+        player.swingItem()
       }
     }
     stack
