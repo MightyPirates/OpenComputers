@@ -5,6 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
@@ -73,6 +74,20 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
       case _ =>
         parent.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
         world.setBlockToAir(x, y, z)
+    }
+
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+    world.getBlockTileEntity(x, y, z) match {
+      case keyboard: tileentity.Keyboard =>
+        val (sx, sy, sz) = (
+          x + keyboard.facing.getOpposite.offsetX,
+          y + keyboard.facing.getOpposite.offsetY,
+          z + keyboard.facing.getOpposite.offsetZ)
+        Delegator.subBlock(world, sx, sy, sz) match {
+          case Some(screen: Screen) => screen.onBlockActivated(world, sx, sy, sz, player, keyboard.facing.getOpposite, 0, 0, 0)
+          case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+        }
+      case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
     }
 
   override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
