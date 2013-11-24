@@ -27,8 +27,6 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
-    //ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Keyboard], KeyboardRenderer)
-      //   RenderingRegistry.registerBlockHandler()
     TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
 
     MinecraftForge.EVENT_BUS.register(gui.Icons)

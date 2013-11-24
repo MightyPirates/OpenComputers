@@ -3,14 +3,13 @@ package li.cil.oc.client.renderer.block
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
 import li.cil.oc.common.block.{RobotProxy, Keyboard, Cable, Delegator}
+import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.common.tileentity
-
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -54,7 +53,6 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   }
 
   def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = {
-
     Delegator.subBlock(block, world.getBlockMetadata(x, y, z)) match {
       case Some(keyboard: Keyboard) =>
         world.getBlockTileEntity(x, y, z) match {
@@ -77,10 +75,9 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
                 case _ =>
 
               }
-              if (teK.facing == ForgeDirection.DOWN)   {
+              if (teK.facing == ForgeDirection.DOWN) {
                 renderer.flipTexture = true
               }
-                //
             }
             val ret = renderer.renderStandardBlock(block, x, y, z)
             renderer.uvRotateTop = 0
@@ -92,6 +89,5 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         }
       case _ => renderer.renderStandardBlock(block, x, y, z)
     }
-
   }
 }

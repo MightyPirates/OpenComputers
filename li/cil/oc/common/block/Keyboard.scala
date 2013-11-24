@@ -1,15 +1,14 @@
 package li.cil.oc.common.block
 
+import li.cil.oc.Config
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.Config
-import net.minecraftforge.common.ForgeDirection
-import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.util.Icon
 
 class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Keyboard"
@@ -21,7 +20,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     icon = iconRegister.registerIcon(Config.resourceDomain + ":keyboard")
   }
 
-  //override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   override def hasTileEntity = true
 

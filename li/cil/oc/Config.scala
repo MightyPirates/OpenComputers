@@ -1,7 +1,6 @@
 package li.cil.oc
 
 import java.io.File
-import cpw.mods.fml.client.registry.RenderingRegistry
 import li.cil.oc.util.ExtendedConfiguration._
 import li.cil.oc.util.PackedColor
 
