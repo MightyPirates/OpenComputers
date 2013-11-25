@@ -1,5 +1,6 @@
 package li.cil.oc.util
 
+import java.util.regex.Matcher
 import net.minecraftforge.common.Configuration
 import scala.language.implicitConversions
 
@@ -46,7 +47,7 @@ object ExtendedConfiguration {
       val indent = 1 + category.count(_ == '.')
       val wrapRegEx = ("""(.{1,""" + (78 - indent * 4 - 2) + """})(\s|\z)""").r
       val cleaned = comment.replace("\r\n", " ").replace("\n", " ").replace("\r", " ").replace("[nl]", "\n").trim()
-      wrapRegEx.replaceAllIn(cleaned, m => m.group(1).trim() + "\n").stripLineEnd
+      wrapRegEx.replaceAllIn(Matcher.quoteReplacement(cleaned), m => m.group(1).trim() + "\n").stripLineEnd
     }
   }
 

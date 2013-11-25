@@ -98,6 +98,7 @@ object Config {
   var canAttackPlayers = false
   var canPlaceInAir = false
   var itemDamageRate = 0.05
+  var nameFormat = "$player$.robot"
   var swingRange = 0.49
   var useAndPlaceRange = 0.65
 
@@ -465,6 +466,18 @@ object Config {
         |when it is used. Or in other words, it's the inverse chance that the
         |item will be automatically repaired for the damage it just took
         |immediately after it was used.""".stripMargin) max 0 min 1
+
+    nameFormat = config.fetch("robot.nameFormat", nameFormat,
+      """|The name format to use for robots. The substring '$player$' is replaced
+        |with the name of the player that owns the robot, so for the first robot
+        |placed this will be the name of the player that placed it. This is
+        |transitive, i.e. when a robot in turn places a robot, that robot's
+        |owner, too will be the owner of the placing robot.[nl]
+        |The substring $random$ will be replaced with a random number in the
+        |interval [1, 0xFFFFFF], which may be useful if you need to
+        |differentiate individual robots.[nl]
+        |If a robot is placed by something that is not a player, e.g. by some
+        |block from another mod, the name will default to 'OpenComputers'.""".stripMargin)
 
     swingRange = config.fetch("robot.swingRange", swingRange,
       """|The 'range' of robots when swinging an equipped tool (left click).

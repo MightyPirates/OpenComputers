@@ -3,8 +3,11 @@ package li.cil.oc.common.block
 import java.util
 import li.cil.oc.OpenComputers
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.server.component.robot
 import li.cil.oc.util.Tooltip
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.util.{AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
@@ -76,6 +79,17 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
       true
     }
     else false
+  }
+
+  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
+    super.onBlockPlacedBy(world, x, y, z, entity, stack)
+    (entity, world.getBlockTileEntity(x, y, z)) match {
+      case (player: robot.Player, proxy: tileentity.RobotProxy) =>
+        proxy.robot.owner = player.robot.owner
+      case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
+        proxy.robot.owner = player.getCommandSenderName
+      case _ =>
+    }
   }
 
   override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {

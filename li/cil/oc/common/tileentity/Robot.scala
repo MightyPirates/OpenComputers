@@ -55,6 +55,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
   else (null, null, null, null)
 
+  var owner = "OpenComputers"
+
   var selectedSlot = 0
 
   var equippedItem: Option[ItemStack] = None
@@ -72,6 +74,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   private lazy val player_ = new Player(this)
 
   // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    stats.setString(Config.namespace + "text.Analyzer.RobotOwner", owner)
+    stats.setString(Config.namespace + "text.Analyzer.RobotName", player_.getCommandSenderName)
+    super.onAnalyze(stats, player, side, hitX, hitY, hitZ)
+  }
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {
     player_.updatePositionAndRotation(facing, side)
@@ -237,6 +245,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       gpu.load(nbt.getCompoundTag(Config.namespace + "gpu"))
       keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
     }
+    if (nbt.hasKey(Config.namespace + "owner")) {
+      owner = nbt.getString(Config.namespace + "owner")
+    }
     selectedSlot = nbt.getInteger(Config.namespace + "selectedSlot")
     animationTicksTotal = nbt.getInteger(Config.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Config.namespace + "animationTicksLeft")
@@ -248,13 +259,13 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    if (isServer) {
-      nbt.setNewCompoundTag(Config.namespace + "battery", battery.save)
-      nbt.setNewCompoundTag(Config.namespace + "buffer", buffer.save)
-      nbt.setNewCompoundTag(Config.namespace + "distributor", distributor.save)
-      nbt.setNewCompoundTag(Config.namespace + "gpu", gpu.save)
-      nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
-    }
+    assert(isServer)
+    nbt.setNewCompoundTag(Config.namespace + "battery", battery.save)
+    nbt.setNewCompoundTag(Config.namespace + "buffer", buffer.save)
+    nbt.setNewCompoundTag(Config.namespace + "distributor", distributor.save)
+    nbt.setNewCompoundTag(Config.namespace + "gpu", gpu.save)
+    nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
+    nbt.setString(Config.namespace + "owner", owner)
     nbt.setInteger(Config.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Config.namespace + "animationTicksTotal", animationTicksTotal)

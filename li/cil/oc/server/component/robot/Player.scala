@@ -20,7 +20,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: Robot) extends EntityPlayer(robot.world, "OpenComputers") {
+class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true

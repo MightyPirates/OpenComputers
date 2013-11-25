@@ -48,12 +48,12 @@ class PacketHandler extends CommonPacketHandler {
   def onAnalyze(p: PacketParser) = {
     val player = p.player.asInstanceOf[EntityPlayer]
     val stats = p.readNBT().asInstanceOf[NBTTagCompound]
-    for (tag <- stats.getTags.map(_.asInstanceOf[NBTBase])) {
-      player.addChatMessage(StatCollector.translateToLocal(tag.getName) + ": " + (tag match {
+    stats.getTags.map(_.asInstanceOf[NBTBase]).map(tag => {
+      ("§6" + StatCollector.translateToLocal(tag.getName) + "§f: " + (tag match {
         case value: NBTTagString => value.data
         case _ => "ERROR: invalid value type. Stat values must be strings."
-      }))
-    }
+      })).trim
+    }).toArray.sorted.foreach(player.addChatMessage)
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)

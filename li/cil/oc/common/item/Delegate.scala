@@ -21,8 +21,6 @@ trait Delegate {
   def createItemStack(amount: Int = 1) = new ItemStack(parent, amount, itemId)
 
   // ----------------------------------------------------------------------- //
-  // Item
-  // ----------------------------------------------------------------------- //
 
   def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Config.namespace + "data")) {
