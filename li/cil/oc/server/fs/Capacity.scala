@@ -27,12 +27,16 @@ trait Capacity extends OutputStreamFileSystem {
     else false
   }
 
-  override def makeDirectory(path: String) =
+  override def makeDirectory(path: String) = {
+    if (capacity - used < Config.fileCost) {
+      throw new io.IOException("not enough space")
+    }
     if (super.makeDirectory(path)) {
       used += Config.fileCost
       true
     }
     else false
+  }
 
   // ----------------------------------------------------------------------- //
 
