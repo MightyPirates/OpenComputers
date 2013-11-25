@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
 import net.minecraft.block.Block
@@ -156,16 +156,16 @@ trait Rotatable extends TileEntity with Persistable {
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "pitch"))
-    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Config.namespace + "yaw"))
+    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
+    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
     updateTranslation()
   }
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
 
-    nbt.setInteger(Config.namespace + "pitch", _pitch.ordinal)
-    nbt.setInteger(Config.namespace + "yaw", _yaw.ordinal)
+    nbt.setInteger(Settings.namespace + "pitch", _pitch.ordinal)
+    nbt.setInteger(Settings.namespace + "yaw", _yaw.ordinal)
   }
 
   // ----------------------------------------------------------------------- //

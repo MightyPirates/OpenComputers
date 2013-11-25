@@ -12,7 +12,7 @@ import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
-    Config.load(e.getSuggestedConfigurationFile)
+    Settings.load(e.getSuggestedConfigurationFile)
 
     Blocks.init()
     Items.init()

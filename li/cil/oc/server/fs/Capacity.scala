@@ -1,7 +1,7 @@
 package li.cil.oc.server.fs
 
 import java.io
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.NBTTagCompound
 
@@ -19,7 +19,7 @@ trait Capacity extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override def delete(path: String) = {
-    val freed = Config.fileCost + size(path)
+    val freed = Settings.get.fileCost + size(path)
     if (super.delete(path)) {
       used -= freed
       true
@@ -28,11 +28,11 @@ trait Capacity extends OutputStreamFileSystem {
   }
 
   override def makeDirectory(path: String) = {
-    if (capacity - used < Config.fileCost) {
+    if (capacity - used < Settings.get.fileCost) {
       throw new io.IOException("not enough space")
     }
     if (super.makeDirectory(path)) {
-      used += Config.fileCost
+      used += Settings.get.fileCost
       true
     }
     else false
@@ -57,7 +57,7 @@ trait Capacity extends OutputStreamFileSystem {
         else
           0 // Append, no immediate changes.
       else
-        Config.fileCost // File creation.
+        Settings.get.fileCost // File creation.
     super.openOutputStream(path, mode) match {
       case None => None
       case Some(stream) =>
@@ -69,7 +69,7 @@ trait Capacity extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   private def computeSize(path: String): Long =
-    Config.fileCost +
+    Settings.get.fileCost +
       size(path) +
       (if (isDirectory(path))
         list(path).foldLeft(0L)((acc, child) => acc + computeSize(path + child))

@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
@@ -89,14 +89,14 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (isServer) {
-      computer.load(nbt.getCompoundTag(Config.namespace + "computer"))
+      computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (isServer) {
-      nbt.setNewCompoundTag(Config.namespace + "computer", computer.save)
+      nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }
 
@@ -126,7 +126,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Node = {
     if (computer != null) computer.lastError match {
-      case Some(value) => stats.setString(Config.namespace + "text.Analyzer.LastError", value)
+      case Some(value) => stats.setString(Settings.namespace + "text.Analyzer.LastError", value)
       case _ =>
     }
     computer.node

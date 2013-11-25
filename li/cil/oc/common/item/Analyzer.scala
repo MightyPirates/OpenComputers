@@ -2,7 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.common.network.Player
 import java.util
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
@@ -44,21 +44,21 @@ class Analyzer(val parent: Delegator) extends Delegate {
 
   private def analyzeNode(stats: NBTTagCompound, node: Node, player: EntityPlayer) = if (node != null) {
     node match {
-      case connector: Connector if connector.localBufferSize > 0 => stats.setString(Config.namespace + "text.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
+      case connector: Connector if connector.localBufferSize > 0 => stats.setString(Settings.namespace + "text.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
       case _ =>
     }
     node match {
-      case component: Component => stats.setString(Config.namespace + "text.Analyzer.ComponentName", component.name)
+      case component: Component => stats.setString(Settings.namespace + "text.Analyzer.ComponentName", component.name)
       case _ =>
     }
     val address = node.address()
-    stats.setString(Config.namespace + "text.Analyzer.Address", address)
+    stats.setString(Settings.namespace + "text.Analyzer.Address", address)
     PacketSender.sendAnalyze(stats, address, player.asInstanceOf[Player])
   }
 
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Config.resourceDomain + ":analyzer")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":analyzer")
   }
 }

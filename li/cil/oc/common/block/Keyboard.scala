@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
@@ -24,7 +24,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   override def icon(side: ForgeDirection) = Some(icon)
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icon = iconRegister.registerIcon(Config.resourceDomain + ":keyboard")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":keyboard")
   }
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true

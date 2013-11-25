@@ -2,9 +2,6 @@ package li.cil.oc.server.component
 
 import com.naef.jnlua._
 import java.io.{FileNotFoundException, IOException}
-import java.lang.Thread.UncaughtExceptionHandler
-import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import li.cil.oc.api
 import li.cil.oc.api.network._
@@ -12,8 +9,8 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.util.{ThreadPoolFactory, GameTimeFormatter, LuaStateFactory}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
@@ -31,7 +28,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     create()
 
   val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromClass(OpenComputers.getClass, Config.resourceDomain, "lua/rom"), "rom"))
+    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"), "rom"))
 
   val tmp = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromMemory(512 * 1024), "tmpfs"))
@@ -49,8 +46,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   private val users = mutable.Set.empty[String]
 
   private val signals = new mutable.Queue[Computer.Signal]
-
-  private var future: Option[Future[_]] = None
 
   private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
 
@@ -92,7 +87,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def address = node.address
 
-  def isUser(player: String) = !Config.canComputersBeOwned ||
+  def isUser(player: String) = !Settings.get.canComputersBeOwned ||
     users.isEmpty || users.contains(player) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
@@ -225,7 +220,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
            Computer.State.Stopping |
            Computer.State.Stopped => // No power consumption.
       case _ =>
-        if (!node.changeBuffer(-Config.computerCost)) {
+        if (!node.changeBuffer(-Settings.get.computerCost)) {
           crash("not enough energy")
         }
     })
@@ -262,7 +257,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       }
       // Perform a synchronized call (message sending).
       case Computer.State.SynchronizedCall => {
-        assert(future.isEmpty)
         // These three asserts are all guaranteed by run().
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
@@ -281,8 +275,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           // to the coroutine.yield() that triggered the call.
           lua.call(0, 1)
           lua.checkType(2, LuaType.TABLE)
-          // Nothing should have been able to trigger a future.
-          assert(future.isEmpty)
           // Check if the callback called pause() or stop().
           state.top match {
             case Computer.State.Running =>
@@ -317,7 +309,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     state.synchronized(state.top) match {
       // Computer is shutting down.
       case Computer.State.Stopping => this.synchronized(state.synchronized {
-        assert(future.isEmpty)
         close()
         rom.foreach(_.node.remove())
         tmp.foreach(_.node.remove())
@@ -421,7 +412,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   override def load(nbt: NBTTagCompound) = this.synchronized {
     assert(state.top == Computer.State.Stopped)
-    assert(future.isEmpty)
     assert(users.isEmpty)
     assert(signals.isEmpty)
     state.clear()
@@ -486,7 +476,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         recomputeMemory()
 
         // Delay execution for a second to allow the world around us to settle.
-        pause(Config.startupDelay)
+        pause(Settings.get.startupDelay)
       } catch {
         case e: LuaRuntimeException => {
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
@@ -832,14 +822,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.setField(-2, "users")
 
       lua.pushScalaFunction(lua => try {
-        if (users.size >= Config.maxUsers)
+        if (users.size >= Settings.get.maxUsers)
           throw new Exception("too many users")
 
         val name = lua.checkString(1)
 
         if (users.contains(name))
           throw new Exception("user exists")
-        if (name.length > Config.maxUsernameLength)
+        if (name.length > Settings.get.maxUsernameLength)
           throw new Exception("username too long")
         if (!MinecraftServer.getServer.getConfigurationManager.getAllUsernames.contains(name))
           throw new Exception("player must be online")
@@ -882,7 +872,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.setGlobal("print")
 
       // How long programs may run without yielding before we stop them.
-      lua.pushNumber(Config.timeout)
+      lua.pushNumber(Settings.get.timeout)
       lua.setGlobal("timeout")
 
       // Component interaction stuff.
@@ -1016,7 +1006,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       initPerms()
 
-      lua.load(classOf[Computer].getResourceAsStream(Config.scriptPath + "kernel.lua"), "=kernel", "t")
+      lua.load(classOf[Computer].getResourceAsStream(Settings.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
 
       // Clear any left-over signals from a previous run.
@@ -1114,7 +1104,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       timeStarted = 0
       cpuTime = 0
       cpuStart = 0
-      future = None
       sleepUntil = 0
 
       // Mark state change in owner, to send it to clients.
@@ -1127,9 +1116,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     val result = state.pop()
     state.push(value)
     if (value == Computer.State.Yielded || value == Computer.State.SynchronizedReturn) {
-      assert(future.isEmpty)
       sleepUntil = 0
-      future = Some(Computer.Executor.pool.submit(this))
+      Computer.threadPool.submit(this)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -1140,8 +1128,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = this.synchronized {
-    future = None
-
     val enterState = state.synchronized {
       if (state.top == Computer.State.Stopped ||
         state.top == Computer.State.Stopping ||
@@ -1186,7 +1172,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               // memory, regardless of the memory need of the underlying system
               // (which may change across releases).
               lua.gc(LuaState.GcAction.COLLECT, 0)
-              kernelMemory = ((lua.getTotalMemory - lua.getFreeMemory) + Config.baseMemory) max 1
+              kernelMemory = lua.getTotalMemory - lua.getFreeMemory max 1
               recomputeMemory()
 
               // Fake zero sleep to avoid stopping if there are no signals.
@@ -1216,8 +1202,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       // Check if the kernel is still alive.
       state.synchronized(if (lua.status(1) == LuaState.YIELD) {
-        // Intermediate state in some cases. Satisfies the assert in execute().
-        future = None
         // Check if someone called pause() or stop() in the meantime.
         state.top match {
           case Computer.State.Running =>
@@ -1341,32 +1325,6 @@ object Computer {
     val Running = Value("Running")
   }
 
-  /** Singleton for requesting executors that run our Lua states. */
-  private object Executor {
-    val pool = Executors.newScheduledThreadPool(Config.threads,
-      new ThreadFactory() {
-        private val threadNumber = new AtomicInteger(1)
-
-        private val group = System.getSecurityManager match {
-          case null => Thread.currentThread().getThreadGroup
-          case s => s.getThreadGroup
-        }
-
-        def newThread(r: Runnable): Thread = {
-          val name = "OpenComputers-" + threadNumber.getAndIncrement
-          val thread = new Thread(group, r, name)
-          if (!thread.isDaemon)
-            thread.setDaemon(true)
-          if (thread.getPriority != Thread.MIN_PRIORITY)
-            thread.setPriority(Thread.MIN_PRIORITY)
-          thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler {
-            def uncaughtException(t: Thread, e: Throwable) {
-              OpenComputers.log.log(Level.WARNING, "Unhandled exception in worker thread.", e)
-            }
-          })
-          thread
-        }
-      })
-  }
+  private val threadPool = ThreadPoolFactory.create("Lua", Settings.get.threads)
 
 }

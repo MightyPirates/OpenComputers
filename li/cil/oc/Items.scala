@@ -22,8 +22,8 @@ object Items {
   var ironCutter: item.IronCutter = null
 
   def init() {
-    multi = new item.Delegator(Config.itemId)
-    GameRegistry.registerItem(multi, Config.namespace + "item")
+    multi = new item.Delegator(Settings.get.itemId)
+    GameRegistry.registerItem(multi, Settings.namespace + "item")
 
     analyzer = new item.Analyzer(multi)
     disk = new item.Disk(multi)

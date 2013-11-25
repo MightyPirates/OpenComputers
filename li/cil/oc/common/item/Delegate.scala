@@ -1,6 +1,6 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -23,8 +23,8 @@ trait Delegate {
   // ----------------------------------------------------------------------- //
 
   def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Config.namespace + "data")) {
-      val data = stack.getTagCompound.getCompoundTag(Config.namespace + "data")
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
+      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
         tooltip.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
       }
@@ -39,7 +39,7 @@ trait Delegate {
 
   def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking) {
-      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Config.namespace + "data")) {
+      if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
         stack.setTagCompound(null)
         player.swingItem()
       }

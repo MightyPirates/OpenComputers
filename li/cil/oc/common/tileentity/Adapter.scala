@@ -4,7 +4,7 @@ import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
@@ -111,7 +111,7 @@ class Adapter extends Environment with IPeripheral {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    val blocksNbt = nbt.getTagList(Config.namespace + "adapter.blocks")
+    val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
       map(blocksNbt.tagAt).
       map(_.asInstanceOf[NBTTagCompound]).
@@ -142,7 +142,7 @@ class Adapter extends Environment with IPeripheral {
       }
       blocksNbt.appendTag(blockNbt)
     }
-    nbt.setTag(Config.namespace + "adapter.blocks", blocksNbt)
+    nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
   }
 
   // ----------------------------------------------------------------------- //

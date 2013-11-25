@@ -249,7 +249,7 @@ function filesystem.list(path)
   if node.fs then
     result, reason = node.fs.list(rest or "")
     if not result then
-      return nil, reason
+      return nil, reason or "no such directory"
     end
   else
     result = {}

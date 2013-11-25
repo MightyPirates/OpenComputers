@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.server.component.WirelessNetworkCard
 import net.minecraft.block.Block
 import net.minecraftforge.event.ForgeSubscribe
@@ -25,7 +25,7 @@ object WirelessNetwork {
   }
 
   def add(card: WirelessNetworkCard) {
-    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](Config.rTreeMaxEntries)((card) => (card.owner.xCoord + 0.5, card.owner.yCoord + 0.5, card.owner.zCoord + 0.5))).add(card)
+    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](Settings.get.rTreeMaxEntries)((card) => (card.owner.xCoord + 0.5, card.owner.yCoord + 0.5, card.owner.zCoord + 0.5))).add(card)
   }
 
   def update(card: WirelessNetworkCard) {

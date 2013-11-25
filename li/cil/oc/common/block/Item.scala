@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
@@ -23,11 +23,11 @@ class Item(id: Int) extends ItemBlock(id) {
 
   override def getMetadata(itemDamage: Int) = itemDamage
 
-  override def getUnlocalizedName = Config.namespace + "block"
+  override def getUnlocalizedName = Settings.namespace + "block"
 
   override def getUnlocalizedName(stack: ItemStack) =
     Block.blocksList(getBlockID) match {
-      case delegator: Delegator[_] => Config.namespace + "block." + delegator.getUnlocalizedName(stack.getItemDamage)
+      case delegator: Delegator[_] => Settings.namespace + "block." + delegator.getUnlocalizedName(stack.getItemDamage)
       case block => block.getUnlocalizedName
     }
 

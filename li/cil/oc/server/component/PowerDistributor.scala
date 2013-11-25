@@ -4,7 +4,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.PowerInformation
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -37,7 +37,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   def canChangeBuffer(delta: Double) = {
-    Config.ignorePower || globalBuffer + delta >= 0
+    Settings.get.ignorePower || globalBuffer + delta >= 0
   }
 
   def changeBuffer(delta: Double): Boolean = {

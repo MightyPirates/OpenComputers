@@ -1,7 +1,7 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.common
-import li.cil.oc.{Config, Items, api}
+import li.cil.oc.{Settings, Items, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -11,10 +11,10 @@ trait Item extends api.driver.Item {
       stack.setTagCompound(new NBTTagCompound())
     }
     val nbt = stack.getTagCompound
-    if (!nbt.hasKey(Config.namespace + "data")) {
-      nbt.setCompoundTag(Config.namespace + "data", new NBTTagCompound())
+    if (!nbt.hasKey(Settings.namespace + "data")) {
+      nbt.setCompoundTag(Settings.namespace + "data", new NBTTagCompound())
     }
-    nbt.getCompoundTag(Config.namespace + "data")
+    nbt.getCompoundTag(Settings.namespace + "data")
   }
 
   protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =

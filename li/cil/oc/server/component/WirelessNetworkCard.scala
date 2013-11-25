@@ -1,10 +1,14 @@
 package li.cil.oc.server.component
 
-import java.io.IOException
+import java.io._
+import java.net.{HttpURLConnection, URL}
+import java.util.concurrent.Future
+import java.util.regex.Matcher
 import li.cil.oc.api.network._
-import li.cil.oc.util.WirelessNetwork
-import li.cil.oc.{Config, api}
+import li.cil.oc.util.{ThreadPoolFactory, WirelessNetwork}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
@@ -17,6 +21,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   var strength = 0.0
 
+  var response: Option[Future[_]] = None
+
   // ----------------------------------------------------------------------- //
 
   @LuaCallback(value = "getStrength", direct = true)
@@ -24,7 +30,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   @LuaCallback("setStrength")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
-    strength = args.checkDouble(0) max 0 min Config.maxWirelessRange
+    strength = args.checkDouble(0) max 0 min Settings.get.maxWirelessRange
     result(strength)
   }
 
@@ -32,16 +38,53 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def send(context: Context, args: Arguments) = {
     val address = args.checkString(0)
-    val port = checkPort(args.checkInteger(1))
-    if (strength > 0) {
-      checkPower()
-      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-           if card.node.address == address && card.openPorts.contains(port)) {
-        card.node.sendToReachable("computer.signal",
-          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
-      }
+    if (Settings.get.httpEnabled && isValidInternetRequest(address)) {
+      val post = if (args.isString(1)) Option(args.checkString(1)) else None
+      WirelessNetworkCard.threadPool.submit(new Runnable {
+        def run() = try {
+          val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
+          val url = new URL(address)
+          url.openConnection(proxy) match {
+            case http: HttpURLConnection => try {
+              http.setDoInput(true)
+              if (post.isDefined) {
+                http.setRequestMethod("POST")
+                http.setDoOutput(true)
+
+                val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
+                out.write(post.get)
+                out.close()
+              }
+              else {
+                http.setRequestMethod("GET")
+                http.setDoOutput(false)
+              }
+              context.signal("http_response", address, scala.io.Source.fromInputStream(http.getInputStream).getLines().mkString("\n"))
+            }
+            finally {
+              http.disconnect()
+            }
+            case other => context.signal("http_response", address, Unit, "connection failed")
+          }
+        }
+        catch {
+          case e: Throwable => context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
+        }
+      })
+      result(true)
     }
-    super.send(context, args)
+    else {
+      val port = checkPort(args.checkInteger(1))
+      if (strength > 0) {
+        checkPower()
+        for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
+             if card.node.address == address && card.openPorts.contains(port)) {
+          card.node.sendToReachable("computer.signal",
+            Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+        }
+      }
+      super.send(context, args)
+    }
   }
 
   override def broadcast(context: Context, args: Arguments) = {
@@ -58,11 +101,32 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   }
 
   private def checkPower() {
-    val cost = Config.wirelessCostPerRange
-    if (cost > 0) {
+    val cost = Settings.get.wirelessCostPerRange
+    if (cost > 0 && !Settings.get.ignorePower) {
       if (node.globalBuffer < cost || !node.changeBuffer(-strength * cost)) {
         throw new IOException("not enough energy")
       }
+    }
+  }
+
+  private def isValidInternetRequest(address: String) = {
+    try {
+      val url = new URL(address)
+      val protocol = url.getProtocol
+      if (!protocol.matches("^https?$")) {
+        throw new Exception()
+      }
+      val host = Matcher.quoteReplacement(url.getHost)
+      if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(host.matches)) {
+        throw new Exception()
+      }
+      if (Settings.get.httpHostBlacklist.exists(host.matches)) {
+        throw new Exception()
+      }
+      true
+    }
+    catch {
+      case e: Throwable => false
     }
   }
 
@@ -99,4 +163,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     super.save(nbt)
     nbt.setDouble("strength", strength)
   }
+}
+
+object WirelessNetworkCard {
+  private val threadPool = ThreadPoolFactory.create("HTTP", Settings.get.httpThreads)
 }

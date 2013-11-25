@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer
 
 import li.cil.oc.util.{RenderState, PackedColor}
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
@@ -10,9 +10,9 @@ import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  val font = new ResourceLocation(Config.resourceDomain, "textures/font/chars.png")
+  val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
 
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Config.resourceDomain + "/textures/font/chars.txt")).mkString
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt")).mkString
 
   private var instance: Option[Renderer] = None
 
@@ -93,7 +93,7 @@ object MonospaceFontRenderer {
       }
       draw(cbg, offset, width)
 
-      if (Config.textLinearFiltering) {
+      if (Settings.get.textLinearFiltering) {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
       }
 

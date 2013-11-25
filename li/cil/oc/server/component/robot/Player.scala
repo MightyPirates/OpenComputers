@@ -1,6 +1,6 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.Robot
 import li.cil.oc.util.mods.PortalGun
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
@@ -20,7 +20,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -107,7 +107,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameForm
 
     val blockId = world.getBlockId(x, y, z)
     val block = Block.blocksList(blockId)
-    val canActivate = block != null && Config.allowActivateBlocks
+    val canActivate = block != null && Settings.get.allowActivateBlocks
     val shouldActivate = canActivate && (!isSneaking || (item == null || item.shouldPassSneakingClickToBlock(world, x, y, z)))
     if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ)) {
       return ActivationType.BlockActivated
@@ -140,7 +140,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameForm
   private def tryUseItem(stack: ItemStack, duration: Double) = {
     clearItemInUse()
     stack != null && stack.stackSize > 0 &&
-      (Config.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
+      (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
       (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
@@ -258,13 +258,13 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameForm
 
   private def tryRepair(stack: ItemStack, oldDamage: Int) {
     val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
-    val shouldRepair = needsRepairing && getRNG.nextDouble() >= Config.itemDamageRate
+    val shouldRepair = needsRepairing && getRNG.nextDouble() >= Settings.get.itemDamageRate
     if (shouldRepair) {
       // If an item takes a lot of damage at once we don't necessarily want to
       // make *all* of that damage go away. Instead we scale it according to
       // our damage probability. This makes sure we don't discard massive
       // damage spikes (e.g. on axes when using the treecapitator mod or such).
-      val addedDamage = ((stack.getItemDamage - oldDamage) * Config.itemDamageRate).toInt
+      val addedDamage = ((stack.getItemDamage - oldDamage) * Settings.get.itemDamageRate).toInt
       stack.setItemDamage(oldDamage + addedDamage)
     }
   }
@@ -288,8 +288,8 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameForm
   // ----------------------------------------------------------------------- //
 
   override def addExhaustion(amount: Float) {
-    if (Config.robotExhaustionCost > 0) {
-      robot.distributor.changeBuffer(-Config.robotExhaustionCost * amount)
+    if (Settings.get.robotExhaustionCost > 0) {
+      robot.distributor.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
   }
 
@@ -300,7 +300,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Config.nameForm
   override def swingItem() {}
 
   override def canAttackPlayer(player: EntityPlayer) =
-    Config.canAttackPlayers && super.canAttackPlayer(player)
+    Settings.get.canAttackPlayers && super.canAttackPlayer(player)
 
   override def canEat(value: Boolean) = false
 

@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.robot.ActivationType
@@ -166,7 +166,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
           tryDropIntoInventory(inventory, (slot) => true)
         case _ =>
           robot.player().dropPlayerItemWithRandomChoice(dropped, inPlace = false)
-          context.pause(Config.dropDelay)
+          context.pause(Settings.get.dropDelay)
           result(true)
       }
     }
@@ -188,11 +188,11 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     else {
       player.setSneaking(sneaky)
-      val what = Option(pick(facing, side, Config.useAndPlaceRange)) match {
+      val what = Option(pick(facing, side, Settings.get.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if Config.canPlaceInAir && player.closestLivingEntity(facing).isEmpty =>
+        case None if Settings.get.canPlaceInAir && player.closestLivingEntity(facing).isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(stack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
@@ -202,8 +202,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
       }
       if (what) {
-        context.pause(Config.placeDelay)
-        robot.animateSwing(Config.placeDelay)
+        context.pause(Settings.get.placeDelay)
+        robot.animateSwing(Settings.get.placeDelay)
       }
       result(what)
     }
@@ -244,7 +244,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
           val size = stack.stackSize
           entity.onCollideWithPlayer(robot.player())
           if (stack.stackSize < size || entity.isDead) {
-            context.pause(Config.suckDelay)
+            context.pause(Settings.get.suckDelay)
             return result(true)
           }
         }
@@ -273,10 +273,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     val player = robot.player(facing, side)
     def triggerDelay() = {
-      context.pause(Config.swingDelay)
-      robot.animateSwing(Config.swingDelay)
+      context.pause(Settings.get.swingDelay)
+      robot.animateSwing(Settings.get.swingDelay)
     }
-    Option(pick(facing, side, Config.swingRange)) match {
+    Option(pick(facing, side, Settings.get.swingRange)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
@@ -316,8 +316,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       else 0.0
     val player = robot.player(facing, side)
     def triggerDelay() {
-      context.pause(Config.useDelay)
-      robot.animateSwing(Config.useDelay)
+      context.pause(Settings.get.useDelay)
+      robot.animateSwing(Settings.get.useDelay)
     }
     def activationResult(activationType: ActivationType.Value): Array[AnyRef] =
       activationType match {
@@ -333,7 +333,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case _ => result(false)
       }
     player.setSneaking(sneaky)
-    val what = Option(pick(facing, side, Config.useAndPlaceRange)) match {
+    val what = Option(pick(facing, side, Settings.get.useAndPlaceRange)) match {
       case Some(hit) =>
         hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
@@ -345,7 +345,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         }
       case _ =>
-        (if (Config.canPlaceInAir) {
+        (if (Settings.get.canPlaceInAir) {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
         } else ActivationType.None) match {
@@ -384,12 +384,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       result(false, what)
     }
     else {
-      if (!robot.distributor.canChangeBuffer(-Config.robotMoveCost)) {
+      if (!robot.distributor.canChangeBuffer(-Settings.get.robotMoveCost)) {
         result(false, "not enough energy")
       }
       else if (robot.move(direction)) {
-        context.pause(Config.moveDelay)
-        robot.distributor.changeBuffer(-Config.robotMoveCost)
+        context.pause(Settings.get.moveDelay)
+        robot.distributor.changeBuffer(-Settings.get.robotMoveCost)
         result(true)
       }
       else {
@@ -401,11 +401,11 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.distributor.changeBuffer(-Config.robotTurnCost)) {
+    if (robot.distributor.changeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
-      robot.animateTurn(clockwise, Config.turnDelay)
-      context.pause(Config.turnDelay)
+      robot.animateTurn(clockwise, Settings.get.turnDelay)
+      context.pause(Settings.get.turnDelay)
       result(true)
     }
     else {

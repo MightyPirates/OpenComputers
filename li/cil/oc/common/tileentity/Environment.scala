@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
@@ -42,13 +42,13 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     load(nbt)
-    if (node != null && node.host == this) node.load(nbt.getCompoundTag(Config.namespace + "node"))
+    if (node != null && node.host == this) node.load(nbt.getCompoundTag(Settings.namespace + "node"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     save(nbt)
-    if (node != null && node.host == this) nbt.setNewCompoundTag(Config.namespace + "node", node.save)
+    if (node != null && node.host == this) nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
   }
 
   // ----------------------------------------------------------------------- //

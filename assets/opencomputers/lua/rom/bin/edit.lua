@@ -255,10 +255,15 @@ local function onKeyDown(char, code)
       else
         setStatus(reason)
       end
-    elseif code == keyboard.keys.w or code == keyboard.keys.c or code == keyboard.keys.x then
+    elseif code == keyboard.keys.w or
+           code == keyboard.keys.c or
+           code == keyboard.keys.x or
+    then
       -- TODO ask to save if changed
       running = false
     end
+  elseif readonly and code == keyboard.keys.q then
+    running = false
   elseif not keyboard.isControl(char) and not readonly then
     insert(unicode.char(char))
   end

@@ -1,7 +1,7 @@
 package li.cil.oc.common.item
 
 import java.util
-import li.cil.oc.{Config, CreativeTab}
+import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -78,7 +78,7 @@ class Delegator(id: Int) extends Item(id) {
 
   override def getUnlocalizedName(stack: ItemStack): String =
     subItem(stack) match {
-      case Some(subItem) => Config.namespace + "item." + subItem.unlocalizedName
+      case Some(subItem) => Settings.namespace + "item." + subItem.unlocalizedName
       case _ => getUnlocalizedName
     }
 
@@ -91,7 +91,7 @@ class Delegator(id: Int) extends Item(id) {
       case _ => super.getItemDisplayName(stack)
     }
 
-  override def getUnlocalizedName: String = Config.namespace + "item"
+  override def getUnlocalizedName: String = Settings.namespace + "item"
 
   override def isBookEnchantable(itemA: ItemStack, itemB: ItemStack): Boolean = false
 

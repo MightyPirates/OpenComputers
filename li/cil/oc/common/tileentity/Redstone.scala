@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional.Interface
 import cpw.mods.fml.common.{Loader, Optional}
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -117,17 +117,17 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    nbt.getIntArray(Config.namespace + "rs.input").copyToArray(_input)
-    nbt.getIntArray(Config.namespace + "rs.output").copyToArray(_output)
+    nbt.getIntArray(Settings.namespace + "rs.input").copyToArray(_input)
+    nbt.getIntArray(Settings.namespace + "rs.output").copyToArray(_output)
 
-    nbt.getTagList(Config.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
+    nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
       case (input, side) => input.intArray.copyToArray(_bundledInput(side))
     }
-    nbt.getTagList(Config.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
+    nbt.getTagList(Settings.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
       case (input, side) => input.intArray.copyToArray(_bundledOutput(side))
     }
 
-    nbt.getTagList(Config.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
+    nbt.getTagList(Settings.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
       case (input, side) => input.intArray.copyToArray(_rednetInput(side))
     }
   }
@@ -135,13 +135,13 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
 
-    nbt.setIntArray(Config.namespace + "rs.input", _input)
-    nbt.setIntArray(Config.namespace + "rs.output", _output)
+    nbt.setIntArray(Settings.namespace + "rs.input", _input)
+    nbt.setIntArray(Settings.namespace + "rs.output", _output)
 
-    nbt.setNewTagList(Config.namespace + "rs.bundledInput", _bundledInput.view)
-    nbt.setNewTagList(Config.namespace + "rs.bundledOutput", _bundledOutput.view)
+    nbt.setNewTagList(Settings.namespace + "rs.bundledInput", _bundledInput.view)
+    nbt.setNewTagList(Settings.namespace + "rs.bundledOutput", _bundledOutput.view)
 
-    nbt.setNewTagList(Config.namespace + "rs.rednetInput", _rednetInput.view)
+    nbt.setNewTagList(Settings.namespace + "rs.rednetInput", _rednetInput.view)
   }
 
   // ----------------------------------------------------------------------- //

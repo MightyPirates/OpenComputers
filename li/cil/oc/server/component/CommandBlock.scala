@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
@@ -25,8 +25,8 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
 
   @LuaCallback("run")
   def run(context: Context, args: Arguments): Array[AnyRef] = {
-    val name = if (Config.commandUser != null && !Config.commandUser.isEmpty)
-      Config.commandUser
+    val name = if (Settings.get.commandUser != null && !Settings.get.commandUser.isEmpty)
+      Settings.get.commandUser
     else
       context.address
     entity.setCommandSenderName(name)

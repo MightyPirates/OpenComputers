@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -18,8 +18,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   val pixelCost = {
-    val (w, h) = Config.screenResolutionsByTier(0)
-    Config.screenCost / (w * h)
+    val (w, h) = Settings.screenResolutionsByTier(0)
+    Settings.get.screenCost / (w * h)
   }
 
   /**
@@ -76,7 +76,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
       }
       val hadPower = hasPower
-      hasPower = buffer.node.changeBuffer(-(Config.screenCost + pixelCost * litPixels))
+      hasPower = buffer.node.changeBuffer(-(Settings.get.screenCost + pixelCost * litPixels))
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
       }
@@ -158,12 +158,12 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Config.namespace + "tier")
+    tier = nbt.getByte(Settings.namespace + "tier")
     super.readFromNBT(nbt)
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    nbt.setByte(Config.namespace + "tier", tier.toByte)
+    nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
   }
 
@@ -237,8 +237,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       worldObj.getBlockTileEntity(nx, ny, nz) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
-          val canMergeAlongX = sy == y && s.height == height && s.width + width <= Config.maxScreenWidth
-          val canMergeAlongY = sx == x && s.width == width && s.height + height <= Config.maxScreenHeight
+          val canMergeAlongX = sy == y && s.height == height && s.width + width <= Settings.get.maxScreenWidth
+          val canMergeAlongY = sx == x && s.width == width && s.height + height <= Settings.get.maxScreenHeight
           if (canMergeAlongX || canMergeAlongY) {
             val (newOrigin) =
               if (canMergeAlongX) {

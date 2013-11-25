@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
@@ -9,8 +9,8 @@ import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.opengl.GL11
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
-  protected val slotBackground = new ResourceLocation(Config.resourceDomain, "textures/gui/slot.png")
-  protected val background = new ResourceLocation(Config.resourceDomain, "textures/gui/background.png")
+  protected val slotBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
+  protected val background = new ResourceLocation(Settings.resourceDomain, "textures/gui/background.png")
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(

@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.Buffer
 import li.cil.oc.util.PackedColor
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
@@ -145,7 +145,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val value = args.checkString(2)
 
     screen(s => {
-      if (consumePower(value.length, Config.gpuSetCost)) {
+      if (consumePower(value.length, Settings.get.gpuSetCost)) {
         s.set(x, y, value)
         result(true)
       }
@@ -161,7 +161,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val tx = args.checkInteger(4)
     val ty = args.checkInteger(5)
     screen(s => {
-      if (consumePower(w * h, Config.gpuCopyCost)) {
+      if (consumePower(w * h, Settings.get.gpuCopyCost)) {
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
@@ -177,7 +177,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val value = args.checkString(4)
     if (value.length == 1) screen(s => {
       val c = value.charAt(0)
-      val cost = if (c == ' ') Config.gpuClearCost else Config.gpuFillCost
+      val cost = if (c == ' ') Settings.get.gpuClearCost else Settings.get.gpuFillCost
       if (consumePower(w * h, cost)) {
         s.fill(x, y, w, h, value.charAt(0))
         result(true)
@@ -234,8 +234,8 @@ object GraphicsCard {
   // the save file - a Bad Thing (TM).
 
   class Tier1 extends GraphicsCard {
-    val maxDepth = Config.screenDepthsByTier(0)
-    val maxResolution = Config.screenResolutionsByTier(0)
+    val maxDepth = Settings.screenDepthsByTier(0)
+    val maxResolution = Settings.screenResolutionsByTier(0)
 
     @LuaCallback(value = "copy", direct = true, limit = 1)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
@@ -254,8 +254,8 @@ object GraphicsCard {
   }
 
   class Tier2 extends GraphicsCard {
-    val maxDepth = Config.screenDepthsByTier(1)
-    val maxResolution = Config.screenResolutionsByTier(1)
+    val maxDepth = Settings.screenDepthsByTier(1)
+    val maxResolution = Settings.screenResolutionsByTier(1)
 
     @LuaCallback(value = "copy", direct = true, limit = 2)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
@@ -274,8 +274,8 @@ object GraphicsCard {
   }
 
   class Tier3 extends GraphicsCard {
-    val maxDepth = Config.screenDepthsByTier(2)
-    val maxResolution = Config.screenResolutionsByTier(2)
+    val maxDepth = Settings.screenDepthsByTier(2)
+    val maxResolution = Settings.screenResolutionsByTier(2)
 
     @LuaCallback(value = "copy", direct = true, limit = 4)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)

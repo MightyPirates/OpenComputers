@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import scala.collection.convert.WrapAsJava._
@@ -8,14 +8,14 @@ import scala.collection.mutable
 
 object Tooltip {
   def get(name: String, args: Any*): java.util.List[String] = {
-    val tooltip = StatCollector.translateToLocal(Config.namespace + "tooltip." + name).format(args.map(_.toString): _*)
+    val tooltip = StatCollector.translateToLocal(Settings.namespace + "tooltip." + name).format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")
     val shouldShorten = (isSubTooltip || tooltip.length > 50) &&
       !Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) &&
       !Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
-      else Seq(StatCollector.translateToLocal(Config.namespace + "tooltip.TooLong"))
+      else Seq(StatCollector.translateToLocal(Settings.namespace + "tooltip.TooLong"))
     }
     else {
       val regex = """(\[[0123456789abcdefklmnor]\])""".r

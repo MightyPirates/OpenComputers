@@ -10,7 +10,7 @@ import li.cil.oc.server.component.robot.Player
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Config, api, common}
+import li.cil.oc.{Blocks, Settings, api, common}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
@@ -40,7 +40,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override val _computer = if (isRemote) null else new component.Robot(this)
   val (battery, distributor, gpu, keyboard) = if (isServer) {
     val battery = api.Network.newNode(this, Visibility.Network).
-      withConnector(Config.bufferRobot).
+      withConnector(Settings.get.bufferRobot).
       create()
     val distributor = new component.PowerDistributor(this)
     val gpu = new GraphicsCard.Tier1 {
@@ -76,8 +76,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    stats.setString(Config.namespace + "text.Analyzer.RobotOwner", owner)
-    stats.setString(Config.namespace + "text.Analyzer.RobotName", player_.getCommandSenderName)
+    stats.setString(Settings.namespace + "text.Analyzer.RobotOwner", owner)
+    stats.setString(Settings.namespace + "text.Analyzer.RobotName", player_.getCommandSenderName)
     super.onAnalyze(stats, player, side, hitX, hitY, hitZ)
   }
 
@@ -123,7 +123,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       }
       if (created) {
         // Here instead of Lua callback so that it gets triggered on client.
-        animateMove(direction, Config.moveDelay)
+        animateMove(direction, Settings.get.moveDelay)
         checkRedstoneInputChanged()
       }
       created
@@ -206,8 +206,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (isServer) {
       if (computer.isRunning && !computer.isPaused) {
         // TODO just for testing... until we have charging stations
-        distributor.changeBuffer(Config.robotCost + 0.1)
-        distributor.changeBuffer(Config.computerCost - Config.robotCost)
+        distributor.changeBuffer(Settings.get.robotCost + 0.1)
+        distributor.changeBuffer(Settings.get.computerCost - Settings.get.robotCost)
       }
       distributor.update()
       gpu.update()
@@ -239,40 +239,40 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def readFromNBT(nbt: NBTTagCompound) {
     if (isServer) {
-      battery.load(nbt.getCompoundTag(Config.namespace + "battery"))
-      buffer.load(nbt.getCompoundTag(Config.namespace + "buffer"))
-      distributor.load(nbt.getCompoundTag(Config.namespace + "distributor"))
-      gpu.load(nbt.getCompoundTag(Config.namespace + "gpu"))
-      keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
+      battery.load(nbt.getCompoundTag(Settings.namespace + "battery"))
+      buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
+      distributor.load(nbt.getCompoundTag(Settings.namespace + "distributor"))
+      gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
+      keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
     }
-    if (nbt.hasKey(Config.namespace + "owner")) {
-      owner = nbt.getString(Config.namespace + "owner")
+    if (nbt.hasKey(Settings.namespace + "owner")) {
+      owner = nbt.getString(Settings.namespace + "owner")
     }
-    selectedSlot = nbt.getInteger(Config.namespace + "selectedSlot")
-    animationTicksTotal = nbt.getInteger(Config.namespace + "animationTicksTotal")
-    animationTicksLeft = nbt.getInteger(Config.namespace + "animationTicksLeft")
+    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot")
+    animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
+    animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
-      moveDirection = ForgeDirection.getOrientation(nbt.getByte(Config.namespace + "moveDirection"))
-      swingingTool = nbt.getBoolean(Config.namespace + "swingingTool")
-      turnAxis = nbt.getByte(Config.namespace + "turnAxis")
+      moveDirection = ForgeDirection.getOrientation(nbt.getByte(Settings.namespace + "moveDirection"))
+      swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
+      turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     assert(isServer)
-    nbt.setNewCompoundTag(Config.namespace + "battery", battery.save)
-    nbt.setNewCompoundTag(Config.namespace + "buffer", buffer.save)
-    nbt.setNewCompoundTag(Config.namespace + "distributor", distributor.save)
-    nbt.setNewCompoundTag(Config.namespace + "gpu", gpu.save)
-    nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
-    nbt.setString(Config.namespace + "owner", owner)
-    nbt.setInteger(Config.namespace + "selectedSlot", selectedSlot)
+    nbt.setNewCompoundTag(Settings.namespace + "battery", battery.save)
+    nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
+    nbt.setNewCompoundTag(Settings.namespace + "distributor", distributor.save)
+    nbt.setNewCompoundTag(Settings.namespace + "gpu", gpu.save)
+    nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
+    nbt.setString(Settings.namespace + "owner", owner)
+    nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
-      nbt.setInteger(Config.namespace + "animationTicksTotal", animationTicksTotal)
-      nbt.setInteger(Config.namespace + "animationTicksLeft", animationTicksLeft)
-      nbt.setByte(Config.namespace + "moveDirection", moveDirection.ordinal.toByte)
-      nbt.setBoolean(Config.namespace + "swingingTool", swingingTool)
-      nbt.setByte(Config.namespace + "turnAxis", turnAxis.toByte)
+      nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
+      nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
+      nbt.setByte(Settings.namespace + "moveDirection", moveDirection.ordinal.toByte)
+      nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
+      nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
     }
   }
 
@@ -350,7 +350,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = Config.namespace + "container.Robot"
+  def getInvName = Settings.namespace + "container.Robot"
 
   def getSizeInventory = 19
 

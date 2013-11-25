@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
@@ -16,7 +16,7 @@ class PowerDistributor extends Environment with PowerInformation with Analyzable
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    stats.setString(Config.namespace + "text.Analyzer.TotalEnergy", "%.2f/%.2f".format(distributor.globalBuffer, distributor.globalBufferSize))
+    stats.setString(Settings.namespace + "text.Analyzer.TotalEnergy", "%.2f/%.2f".format(distributor.globalBuffer, distributor.globalBufferSize))
     node
   }
 
@@ -25,13 +25,13 @@ class PowerDistributor extends Environment with PowerInformation with Analyzable
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    distributor.load(nbt.getCompoundTag(Config.namespace + "distributor"))
+    distributor.load(nbt.getCompoundTag(Settings.namespace + "distributor"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
 
-    nbt.setNewCompoundTag(Config.namespace + "distributor", distributor.save)
+    nbt.setNewCompoundTag(Settings.namespace + "distributor", distributor.save)
   }
 
   // ----------------------------------------------------------------------- //

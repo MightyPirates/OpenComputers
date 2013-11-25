@@ -4,7 +4,7 @@ import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListen
 import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
@@ -16,9 +16,9 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
-  private val maxRenderDistanceSq = Config.maxScreenTextRenderDistance * Config.maxScreenTextRenderDistance
+  private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
-  private val fadeDistanceSq = Config.screenTextFadeStartDistance * Config.screenTextFadeStartDistance
+  private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
 
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 

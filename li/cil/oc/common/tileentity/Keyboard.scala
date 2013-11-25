@@ -4,7 +4,7 @@ import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Config}
+import li.cil.oc.{Blocks, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
@@ -37,14 +37,14 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     if (isServer) {
-      keyboard.load(nbt.getCompoundTag(Config.namespace + "keyboard"))
+      keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     if (isServer) {
-      nbt.setNewCompoundTag(Config.namespace + "keyboard", keyboard.save)
+      nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     }
   }
 }

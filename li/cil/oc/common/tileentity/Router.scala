@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{Node, Message, Visibility}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Config, api}
+import li.cil.oc.{Blocks, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
@@ -36,7 +36,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setNewTagList(Config.namespace + "plugs", plugs.map(plug => {
+    nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
       val plugNbt = new NBTTagCompound()
       plug.node.save(plugNbt)
       plugNbt
@@ -45,7 +45,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    nbt.getTagList(Config.namespace + "plugs").iterator[NBTTagCompound].zip(plugs).foreach {
+    nbt.getTagList(Settings.namespace + "plugs").iterator[NBTTagCompound].zip(plugs).foreach {
       case (plugNbt, plug) => plug.node.load(plugNbt)
     }
   }

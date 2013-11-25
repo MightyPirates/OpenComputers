@@ -1,6 +1,6 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 
 class PowerSupply(val parent: Delegator) extends Delegate {
@@ -9,6 +9,6 @@ class PowerSupply(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Config.resourceDomain + ":psu")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":psu")
   }
 }

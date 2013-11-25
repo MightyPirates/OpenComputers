@@ -3,10 +3,10 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Method, InvocationTargetException}
+import li.cil.oc.api
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
-import li.cil.oc.{Config, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._

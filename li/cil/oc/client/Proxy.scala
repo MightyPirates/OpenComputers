@@ -10,7 +10,7 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
-import li.cil.oc.{Config, OpenComputers}
+import li.cil.oc.{Settings, OpenComputers}
 import net.minecraftforge.common.MinecraftForge
 
 private[oc] class Proxy extends CommonProxy {
@@ -35,7 +35,7 @@ private[oc] class Proxy extends CommonProxy {
   override def postInit(e: FMLPostInitializationEvent) {
     super.postInit(e)
 
-    if (Config.rTreeDebugRenderer) {
+    if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     }
   }

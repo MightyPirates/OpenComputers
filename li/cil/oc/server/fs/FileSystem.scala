@@ -5,7 +5,7 @@ import java.io
 import java.util.zip.ZipFile
 import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.DimensionManager
 
 object FileSystem extends api.detail.FileSystemAPI {
@@ -41,7 +41,7 @@ object FileSystem extends api.detail.FileSystemAPI {
   }
 
   override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean) = {
-    val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Config.savePath + root)
+    val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
     path.mkdirs()
     if (path.exists() && path.isDirectory) {
       if (buffered) new BufferedFileSystem(path, capacity)

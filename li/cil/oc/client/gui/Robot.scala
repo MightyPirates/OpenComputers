@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.common.container
@@ -19,8 +19,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   xSize = 256
   ySize = 242
 
-  private val background = new ResourceLocation(Config.resourceDomain, "textures/gui/robot.png")
-  private val selection = new ResourceLocation(Config.resourceDomain, "textures/gui/robot_selection.png")
+  private val background = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
+  private val selection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
 
   protected val buffer = robot.buffer
 
@@ -58,11 +58,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     if (isPointInRegion(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
       val tooltip = new java.util.ArrayList[String]
-      val format = StatCollector.translateToLocal(Config.namespace + "text.Robot.Power") + ": %d%% (%d/%d)"
+      val format = StatCollector.translateToLocal(Settings.namespace + "text.Robot.Power") + ": %d%% (%d/%d)"
       tooltip.add(format.format(
         (robot.globalPower * 100).toInt,
-        (robot.globalPower * Config.bufferRobot).toInt,
-        Config.bufferRobot.toInt))
+        (robot.globalPower * Settings.get.bufferRobot).toInt,
+        Settings.get.bufferRobot.toInt))
       drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       GL11.glPopAttrib()
     }

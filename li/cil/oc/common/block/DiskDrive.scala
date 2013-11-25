@@ -4,7 +4,7 @@ import cpw.mods.fml.common.Loader
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{api, OpenComputers, Config}
+import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -28,11 +28,11 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":disk_drive_side")
-    icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":disk_drive_front")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disk_drive_side")
+    icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":disk_drive_front")
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }

@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
 import net.minecraft.util.Icon
 import net.minecraftforge.client.event.TextureStitchEvent
@@ -14,12 +14,12 @@ object Icons {
   def onItemIconRegister(e: TextureStitchEvent.Pre) {
     val iconRegister = e.map
     if (iconRegister.textureType == 1) {
-      bySlotType += Slot.Card -> iconRegister.registerIcon(Config.resourceDomain + ":icon_card")
-      bySlotType += Slot.Disk -> iconRegister.registerIcon(Config.resourceDomain + ":icon_disk")
-      bySlotType += Slot.HardDiskDrive -> iconRegister.registerIcon(Config.resourceDomain + ":icon_hdd")
-      bySlotType += Slot.Power -> iconRegister.registerIcon(Config.resourceDomain + ":icon_power")
-      bySlotType += Slot.Memory -> iconRegister.registerIcon(Config.resourceDomain + ":icon_ram")
-      bySlotType += Slot.Tool -> iconRegister.registerIcon(Config.resourceDomain + ":icon_tool")
+      bySlotType += Slot.Card -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_card")
+      bySlotType += Slot.Disk -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_disk")
+      bySlotType += Slot.HardDiskDrive -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_hdd")
+      bySlotType += Slot.Power -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_power")
+      bySlotType += Slot.Memory -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_ram")
+      bySlotType += Slot.Tool -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tool")
     }
   }
 

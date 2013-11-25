@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -10,7 +10,7 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
-  private val sideOn = new ResourceLocation(Config.resourceDomain, "textures/blocks/power_distributor_on.png")
+  private val sideOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/power_distributor_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]

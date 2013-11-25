@@ -3,7 +3,7 @@ package li.cil.oc.server.component
 import dan200.computer.api.{IMount, IWritableMount, IComputerAccess, IPeripheral}
 import li.cil.oc.api.network._
 import li.cil.oc.server.network.{Node => MutableNode}
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -61,7 +61,7 @@ class Peripheral(peripheral: IPeripheral) extends ManagedComponent with ICompute
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    val addressesNbt = nbt.getCompoundTag(Config.namespace + "peripheral.addresses")
+    val addressesNbt = nbt.getCompoundTag(Settings.namespace + "peripheral.addresses")
     for (tag <- addressesNbt.getTags) tag match {
       case addressNbt: NBTTagString =>
         mountAddresses += addressNbt.getName -> addressNbt.data
@@ -76,7 +76,7 @@ class Peripheral(peripheral: IPeripheral) extends ManagedComponent with ICompute
     for ((location, env) <- mounts) {
       addressesNbt.setString(location, env.node.address)
     }
-    nbt.setCompoundTag(Config.namespace + "peripheral.addresses", addressesNbt)
+    nbt.setCompoundTag(Settings.namespace + "peripheral.addresses", addressesNbt)
   }
 
   // ----------------------------------------------------------------------- //

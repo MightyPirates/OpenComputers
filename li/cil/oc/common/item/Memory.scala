@@ -1,13 +1,13 @@
 package li.cil.oc.common.item
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.item.ItemStack
 
 class Memory(val parent: Delegator, val tier: Int) extends Delegate {
   val unlocalizedName = "Memory"
 
-  val kiloBytes = Config.ramSizes(tier)
+  val kiloBytes = Settings.get.ramSizes(tier)
 
   override def getItemDisplayName(stack: ItemStack) =
     Some(parent.getItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))
@@ -15,6 +15,6 @@ class Memory(val parent: Delegator, val tier: Int) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Config.resourceDomain + ":ram" + tier)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":ram" + tier)
   }
 }

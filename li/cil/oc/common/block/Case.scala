@@ -3,7 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -38,19 +38,19 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
     Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
+    Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
     Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.on(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.UP.ordinal)
 
-    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_back")
-    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_back_on")
+    Icons.off(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_back")
+    Icons.on(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_back_on")
 
-    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_front")
+    Icons.off(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_front")
     Icons.on(ForgeDirection.SOUTH.ordinal) = Icons.off(ForgeDirection.SOUTH.ordinal)
 
-    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_side")
-    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_side_on")
+    Icons.off(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_side")
+    Icons.on(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_side_on")
     Icons.off(ForgeDirection.EAST.ordinal) = Icons.off(ForgeDirection.WEST.ordinal)
     Icons.on(ForgeDirection.EAST.ordinal) = Icons.on(ForgeDirection.WEST.ordinal)
   }

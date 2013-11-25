@@ -4,7 +4,7 @@ import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Config, api}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import scala.Some
 import scala.collection.mutable
@@ -112,7 +112,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   @LuaCallback("open")
   def open(context: Context, args: Arguments): Array[AnyRef] = {
-    if (owners.get(context.address).fold(false)(_.size >= Config.maxHandles))
+    if (owners.get(context.address).fold(false)(_.size >= Settings.get.maxHandles))
       throw new IOException("too many open handles")
     else {
       val path = args.checkString(0)
@@ -133,7 +133,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         // Limit size of read buffer to avoid crazy allocations.
-        val buffer = new Array[Byte](n min Config.maxReadBuffer)
+        val buffer = new Array[Byte](n min Settings.get.maxReadBuffer)
         val read = file.read(buffer)
         if (read >= 0) {
           val bytes =
@@ -144,7 +144,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
-          if (!node.changeBuffer(-Config.hddReadCost * bytes.length)) {
+          if (!node.changeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
           result(bytes)
@@ -179,7 +179,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
-    if (!node.changeBuffer(-Config.hddWriteCost * value.length)) {
+    if (!node.changeBuffer(-Settings.get.hddWriteCost * value.length)) {
       throw new IOException("not enough energy")
     }
     checkOwner(context.address, handle)

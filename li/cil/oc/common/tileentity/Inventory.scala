@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
@@ -99,7 +99,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    nbt.getTagList(Config.namespace + "items").foreach[NBTTagCompound](slotNbt => {
+    nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
         items(slot) = Some(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
@@ -110,7 +110,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
-    nbt.setNewTagList(Config.namespace + "items",
+    nbt.setNewTagList(Settings.namespace + "items",
       items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
       } map {

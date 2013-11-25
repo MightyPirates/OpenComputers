@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.gui
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.util.{RenderState, PackedColor}
 import net.minecraft.client.renderer.texture.TextureManager
@@ -13,7 +13,7 @@ object BufferRenderer {
 
   val innerMargin = 1
 
-  private val borders = new ResourceLocation(Config.resourceDomain, "textures/gui/borders.png")
+  private val borders = new ResourceLocation(Settings.resourceDomain, "textures/gui/borders.png")
 
   private var textureManager: Option[TextureManager] = None
 

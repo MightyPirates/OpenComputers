@@ -4,7 +4,7 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
-import li.cil.oc.{api, Config}
+import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
@@ -16,9 +16,9 @@ class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with 
 
   val buffer = new TextBuffer(maxResolution, maxDepth)
 
-  def maxResolution = Config.screenResolutionsByTier(owner.tier)
+  def maxResolution = Settings.screenResolutionsByTier(owner.tier)
 
-  def maxDepth = Config.screenDepthsByTier(owner.tier)
+  def maxDepth = Settings.screenDepthsByTier(owner.tier)
 
   // ----------------------------------------------------------------------- //
 

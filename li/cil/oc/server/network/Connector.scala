@@ -1,6 +1,6 @@
 package li.cil.oc.server.network
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import li.cil.oc.server.component.PowerDistributor
@@ -43,7 +43,7 @@ trait Connector extends Node with network.Connector with Persistable {
       dirty ||= (localBuffer != oldBuffer)
       remaining
     }
-    distributor.fold(remaining == 0)(_.changeBuffer(remaining)) || Config.ignorePower
+    distributor.fold(remaining == 0)(_.changeBuffer(remaining)) || Settings.get.ignorePower
   } else true
 
   // ----------------------------------------------------------------------- //

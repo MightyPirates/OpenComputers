@@ -7,7 +7,7 @@ import java.io.FileOutputStream
 import java.nio.channels.Channels
 import li.cil.oc.server.component.Computer
 import li.cil.oc.util.ExtendedLuaState._
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.{OpenComputers, Settings}
 import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
@@ -50,7 +50,7 @@ object LuaStateFactory {
         OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
         break()
     }
-    val libPath = "/assets/" + Config.resourceDomain + "/lib/"
+    val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
 
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")

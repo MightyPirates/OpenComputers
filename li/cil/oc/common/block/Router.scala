@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
@@ -25,10 +25,10 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":router_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":router_side")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":router_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)

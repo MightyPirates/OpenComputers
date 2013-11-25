@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.driver.Registry
 import net.minecraft.item.ItemStack
@@ -10,7 +10,7 @@ class Case(isRemote: Boolean) extends Computer(isRemote) {
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = Config.namespace + "container.Case"
+  def getInvName = Settings.namespace + "container.Case"
 
   def getSizeInventory = 8
 

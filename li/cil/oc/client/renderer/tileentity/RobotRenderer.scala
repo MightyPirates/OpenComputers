@@ -3,7 +3,7 @@ package li.cil.oc.client.renderer.tileentity
 import java.util.logging.Level
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import li.cil.oc.{OpenComputers, Config}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
@@ -14,7 +14,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object RobotRenderer extends TileEntitySpecialRenderer {
-  private val texture = new ResourceLocation(Config.resourceDomain, "textures/blocks/robot.png")
+  private val texture = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
 
   private val displayList = GLAllocation.generateDisplayLists(2)
 

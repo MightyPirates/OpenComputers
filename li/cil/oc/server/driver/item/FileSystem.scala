@@ -7,7 +7,7 @@ import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{Disk, HardDiskDrive}
 import li.cil.oc.common.tileentity.DiskDrive
 import li.cil.oc.util.mods.ComputerCraft
-import li.cil.oc.{Config, Items}
+import li.cil.oc.{Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -48,7 +48,7 @@ object FileSystem extends Item {
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(nbt(stack))
     Option(oc.api.FileSystem.asManagedEnvironment(oc.api.FileSystem.
-      fromSaveDirectory(address, capacity, Config.bufferChanges), new ItemLabel(stack))) match {
+      fromSaveDirectory(address, capacity, Settings.get.bufferChanges), new ItemLabel(stack))) match {
       case Some(environment) =>
         environment.node.asInstanceOf[oc.server.network.Node].address = address
         environment
@@ -57,7 +57,9 @@ object FileSystem extends Item {
   }
 
   private def addressFromTag(tag: NBTTagCompound) =
-    if (tag.hasKey(Config.namespace + "node.address")) tag.getString(Config.namespace + "node.address")
+    if (tag.hasKey("node") && tag.getCompoundTag("node").hasKey("address")) {
+      tag.getCompoundTag("node").getString("address")
+    }
     else java.util.UUID.randomUUID().toString
 
   private class ComputerCraftLabel(val stack: ItemStack) extends Label {
@@ -72,12 +74,12 @@ object FileSystem extends Item {
 
   private class ItemLabel(val stack: ItemStack) extends Label {
     def getLabel =
-      if (nbt(stack).hasKey(Config.namespace + "fs.label"))
-        nbt(stack).getString(Config.namespace + "fs.label")
+      if (nbt(stack).hasKey(Settings.namespace + "fs.label"))
+        nbt(stack).getString(Settings.namespace + "fs.label")
       else null
 
     def setLabel(value: String) {
-      nbt(stack).setString(Config.namespace + "fs.label",
+      nbt(stack).setString(Settings.namespace + "fs.label",
         if (value.length > 16) value.substring(0, 16) else value)
     }
   }

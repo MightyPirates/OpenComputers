@@ -1,7 +1,7 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Config
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
@@ -24,10 +24,10 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":case_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":capacitor_top")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":capacitor_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Config.resourceDomain + ":capacitor")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":capacitor")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)

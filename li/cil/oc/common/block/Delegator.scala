@@ -5,7 +5,7 @@ import java.util
 import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Config, CreativeTab}
+import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
@@ -225,7 +225,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.unlocalizedName
-      case _ => Config.namespace + "block"
+      case _ => Settings.namespace + "block"
     }
 
   override def getValidRotations(world: World, x: Int, y: Int, z: Int) =
