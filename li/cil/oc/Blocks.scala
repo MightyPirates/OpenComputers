@@ -13,6 +13,7 @@ object Blocks {
   var adapter: Adapter = null
   var cable: Cable = null
   var capacitor: Capacitor = null
+  var charger: Charger = null
   var computerCase: Case = null
   var diskDrive: DiskDrive = null
   var keyboard: Keyboard = null
@@ -38,6 +39,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
+    GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
@@ -64,5 +66,6 @@ object Blocks {
     screen3 = new Screen.Tier3(blockSimple)
 
     router = new Router(blockSimple)
+    charger = new Charger(blockSimpleWithRedstone)
   }
 }

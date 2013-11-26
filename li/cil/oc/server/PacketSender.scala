@@ -37,7 +37,8 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.PowerStateResponse)
 
     pb.writeTileEntity(t)
-    pb.writeDouble(t.globalPower)
+    pb.writeDouble(t.globalBuffer)
+    pb.writeDouble(t.globalBufferSize)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

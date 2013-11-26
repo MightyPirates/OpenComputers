@@ -32,7 +32,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onPowerStateRequest(p: PacketParser) =
-    p.readTileEntity[PowerDistributor]() match {
+    p.readTileEntity[PowerInformation]() match {
       case Some(t) => PacketSender.sendPowerState(t, Option(p.player))
       case _ => // Invalid packet.
     }

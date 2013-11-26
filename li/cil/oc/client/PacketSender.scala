@@ -13,7 +13,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendPowerStateRequest(t: PowerDistributor) {
+  def sendPowerStateRequest(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerStateRequest)
 
     pb.writeTileEntity(t)

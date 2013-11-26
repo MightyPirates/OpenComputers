@@ -57,6 +57,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var owner = "OpenComputers"
 
+  var globalBuffer = 0.0
+
+  var globalBufferSize = 0.0
+
   var selectedSlot = 0
 
   var equippedItem: Option[ItemStack] = None
@@ -204,11 +208,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
     super.updateEntity()
     if (isServer) {
-      if (computer.isRunning && !computer.isPaused) {
-        // TODO just for testing... until we have charging stations
-        battery.changeBuffer(Settings.get.robotCost + 0.1)
-        battery.changeBuffer(Settings.get.computerCost - Settings.get.robotCost)
-      }
       distributor.update()
       gpu.update()
     }
@@ -223,8 +222,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       }
     }
     else {
-      ClientPacketSender.sendScreenBufferRequest(this)
+      ClientPacketSender.sendPowerStateRequest(this)
       ClientPacketSender.sendRobotStateRequest(this)
+      ClientPacketSender.sendScreenBufferRequest(this)
     }
   }
 
@@ -259,7 +259,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    assert(isServer)
     nbt.setNewCompoundTag(Settings.namespace + "battery", battery.save)
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "distributor", distributor.save)

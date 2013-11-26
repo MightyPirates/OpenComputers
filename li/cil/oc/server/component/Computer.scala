@@ -214,17 +214,18 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     callCounts.synchronized(callCounts.clear())
 
     // Make sure we have enough power.
+    val cost = if (isRobot) Settings.get.robotCost else Settings.get.computerCost
     state.synchronized(state.top match {
       case Computer.State.Paused |
            Computer.State.Restarting |
            Computer.State.Stopping |
            Computer.State.Stopped => // No power consumption.
       case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
-        if (!node.tryChangeBuffer(-Settings.get.computerCost * Settings.get.sleepCostFactor)) {
+        if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
           crash("not enough energy")
         }
       case _ =>
-        if (!node.tryChangeBuffer(-Settings.get.computerCost)) {
+        if (!node.tryChangeBuffer(-cost)) {
           crash("not enough energy")
         }
     })

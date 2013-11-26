@@ -23,6 +23,7 @@ object Items {
 
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
+
     GameRegistry.registerItem(multi, Settings.namespace + "item")
 
     analyzer = new item.Analyzer(multi)

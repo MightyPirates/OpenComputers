@@ -60,9 +60,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       val tooltip = new java.util.ArrayList[String]
       val format = StatCollector.translateToLocal(Settings.namespace + "text.Robot.Power") + ": %d%% (%d/%d)"
       tooltip.add(format.format(
-        (robot.globalPower * 100).toInt,
-        (robot.globalPower * Settings.get.bufferRobot).toInt,
-        Settings.get.bufferRobot.toInt))
+        ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
+        robot.globalBuffer.toInt,
+        robot.globalBufferSize.toInt))
       drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       GL11.glPopAttrib()
     }
@@ -107,7 +107,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   private def drawPowerLevel() {
-    val level = robot.globalPower
+    val level = robot.globalBuffer / robot.globalBufferSize
 
     val u0 = 0
     val u1 = powerWidth / 256.0 * level

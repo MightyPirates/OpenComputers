@@ -46,6 +46,7 @@ class Charger extends Environment with Redstone {
   }
 
   def onNeighborChanged() {
+    checkRedstoneInputChanged()
     ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ))).collect {
       case (side, proxy: RobotProxy) => robots(side) = Some(proxy)
     }

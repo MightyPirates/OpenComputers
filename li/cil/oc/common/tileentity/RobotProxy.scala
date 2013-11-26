@@ -42,9 +42,6 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
     if (node != null && node.network == null) {
       Network.joinOrCreateNetwork(this)
     }
-    if (isClient) {
-      robot.globalPower = globalPower
-    }
     robot.updateEntity()
   }
 
@@ -241,4 +238,14 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   override def currentGui_=(value: Option[gui.Buffer]) = robot.currentGui = value
 
   def tier = robot.tier
+
+  // ----------------------------------------------------------------------- //
+
+  def globalBuffer = robot.globalBuffer
+
+  def globalBuffer_=(value: Double) = robot.globalBuffer = value
+
+  def globalBufferSize = robot.globalBufferSize
+
+  def globalBufferSize_=(value: Double) = robot.globalBufferSize = value
 }

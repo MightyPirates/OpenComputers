@@ -2,6 +2,7 @@ package li.cil.oc.common.container
 
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
@@ -18,6 +19,14 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   }
 
   addPlayerInventorySlots(8, 160)
+
+  var lastSentBuffer = -1
+
+  override def detectAndSendChanges() {
+    if ((robot.globalBuffer - lastSentBuffer).abs > 1) {
+      ServerPacketSender.sendPowerState(robot)
+    }
+  }
 
   override def canInteractWith(player: EntityPlayer) =
     super.canInteractWith(player) && robot.computer.canInteract(player.getCommandSenderName)

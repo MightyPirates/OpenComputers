@@ -11,6 +11,10 @@ import net.minecraft.nbt.NBTTagCompound
 class PowerDistributor extends Environment with PowerInformation with Analyzable {
   val distributor = new component.PowerDistributor(this)
 
+  var globalBuffer = 0.0
+
+  var globalBufferSize = 0.0
+
   def node = distributor.node
 
   // ----------------------------------------------------------------------- //
