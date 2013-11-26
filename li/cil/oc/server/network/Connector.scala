@@ -49,7 +49,9 @@ trait Connector extends Node with network.Connector with Persistable {
   def setLocalBufferSize(size: Double) {
     val remaining = this.synchronized {
       localBufferSize = size max 0
-      (localBuffer - localBufferSize) max 0
+      val surplus = (localBuffer - localBufferSize) max 0
+      localBuffer = localBuffer min localBufferSize
+      surplus
     }
     distributor.foreach(_.changeBuffer(remaining))
   }
