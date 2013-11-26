@@ -40,7 +40,7 @@ public interface Context {
      * @param player the name of the player to check for.
      * @return whether the player with the specified name may use the computer.
      */
-    boolean isUser(String player);
+    boolean canInteract(String player);
 
     /**
      * Whether the computer is currently in a running state, i.e. it is neither

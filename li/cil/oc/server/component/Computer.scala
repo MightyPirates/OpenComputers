@@ -87,7 +87,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def address = node.address
 
-  def isUser(player: String) = !Settings.get.canComputersBeOwned ||
+  def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     users.isEmpty || users.contains(player) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
@@ -329,7 +329,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       case Array(name: String, args@_*) if message.name == "computer.signal" =>
         signal(name, Seq(message.source.address) ++ args: _*)
       case Array(player: EntityPlayer, name: String, args@_*) if message.name == "computer.checked_signal" =>
-        if (isUser(player.getCommandSenderName))
+        if (canInteract(player.getCommandSenderName))
           signal(name, Seq(message.source.address) ++ args: _*)
       case _ =>
     }

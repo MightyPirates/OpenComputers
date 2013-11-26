@@ -77,7 +77,7 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
       case c: tileentity.Case if !world.isRemote =>
-        c.computer.isUser(player.getCommandSenderName)
+        c.computer.canInteract(player.getCommandSenderName)
       case _ => super.onBlockRemovedBy(world, x, y, z, player)
     }
 }

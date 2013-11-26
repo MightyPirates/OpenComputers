@@ -28,7 +28,7 @@ abstract class Computer extends Delegate {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         world.getBlockTileEntity(x, y, z) match {
-          case t: tileentity.Computer if !t.computer.isPaused => t.computer.start()
+          case t: tileentity.Computer if !t.computer.isPaused && t.computer.canInteract(player.getCommandSenderName) => t.computer.start()
           case _ =>
         }
       }
