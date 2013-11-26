@@ -75,14 +75,13 @@ class Settings(config: Config) {
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
   val bufferCapacitorAdjacencyBonus = config.getDouble("power.buffer.capacitorAdjacencyBonus") max 0
-  val bufferConverter = config.getDouble("power.buffer.converter") max 0
   val bufferChargingStation = 50000.0
-  val bufferPowerSupply = 50.0
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
   val robotCost = config.getDouble("power.cost.robot") max 0
+  val sleepCostFactor = config.getDouble("power.cost.sleepFactor") max 0
   val screenCost = config.getDouble("power.cost.screen") max 0
   val hddReadCost = config.getDouble("power.cost.hddRead") max 0
   val hddWriteCost = config.getDouble("power.cost.hddWrite") max 0
@@ -90,7 +89,6 @@ class Settings(config: Config) {
   val gpuFillCost = config.getDouble("power.cost.gpuFill") max 0
   val gpuClearCost = config.getDouble("power.cost.gpuClear") max 0
   val gpuCopyCost = config.getDouble("power.cost.gpuCopy") max 0
-  val powerSupplyCost = -1.25
   val robotTurnCost = config.getDouble("power.cost.robotTurn") max 0
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0

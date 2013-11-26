@@ -219,6 +219,10 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
            Computer.State.Restarting |
            Computer.State.Stopping |
            Computer.State.Stopped => // No power consumption.
+      case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
+        if (!node.changeBuffer(-Settings.get.computerCost * Settings.get.sleepCostFactor)) {
+          crash("not enough energy")
+        }
       case _ =>
         if (!node.changeBuffer(-Settings.get.computerCost)) {
           crash("not enough energy")
@@ -1249,7 +1253,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
             "Invalid state in executor post-processing.")
         }
       }
-      // The kernel thread returned. If it threw we'd we in the catch below.
+      // The kernel thread returned. If it threw we'd be in the catch below.
       else {
         assert(lua.isThread(1))
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).

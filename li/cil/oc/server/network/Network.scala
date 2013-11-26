@@ -317,7 +317,7 @@ object Network extends api.detail.NetworkAPI {
     def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Connector {
       val host = _host
       val reachability = _reachability
-      val localBufferSize = _bufferSize
+      var localBufferSize = _bufferSize
     }
     else null
   }
@@ -327,7 +327,7 @@ object Network extends api.detail.NetworkAPI {
       val host = _host
       val reachability = _reachability
       val name = _name
-      val localBufferSize = _bufferSize
+      var localBufferSize = _bufferSize
       setVisibility(_visibility)
     }
     else null

@@ -17,10 +17,10 @@ import universalelectricity.core.electricity.ElectricityPack
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
 class PowerConverter extends Environment with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
-    withConnector(Settings.get.bufferConverter).
+    withConnector().
     create()
 
-  private def demand = node.globalBufferSize - node.globalBuffer
+  private def demand = if (Settings.get.ignorePower) 0.0 else node.globalBufferSize - node.globalBuffer
 
   // ----------------------------------------------------------------------- //
 
@@ -31,7 +31,9 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
         loadIC2()
       }
       if (demand > 0 && Loader.isModLoaded("BuildCraft|Energy")) {
-        node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat / Settings.get.ratioBuildCraft, true) * Settings.get.ratioBuildCraft)
+        val wantInMJ = demand.toFloat / Settings.get.ratioBuildCraft
+        val gotInMJ = getPowerProvider.useEnergy(1, wantInMJ, true)
+        node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
       }
     }
   }
@@ -73,6 +75,8 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
 
   private var lastPacketSize = 0.0
 
+  private val maxPacketSize = 4096 * Settings.get.ratioIndustrialCraft2
+
   @Optional.Method(modid = "IC2")
   def loadIC2() {
     if (!isIC2Loaded) {
@@ -90,7 +94,7 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   }
 
   @Optional.Method(modid = "IC2")
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = true
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = !Settings.get.ignorePower
 
   @Optional.Method(modid = "IC2")
   def getMaxSafeInput = Integer.MAX_VALUE
@@ -100,16 +104,18 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
     // We try to avoid requesting energy when we need less than what we get with
     // a single packet. However, if our buffer gets dangerously low we will ask
     // for energy even if there's the danger of wasting some energy.
-    if (demand >= lastPacketSize * Settings.get.ratioIndustrialCraft2 || demand > node.localBufferSize * 0.5) {
-      demand
-    } else 0
+    if (Settings.get.ignorePower || demand < lastPacketSize && demand < maxPacketSize) 0
+    else demand / Settings.get.ratioIndustrialCraft2
   }
 
   @Optional.Method(modid = "IC2")
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
-    lastPacketSize = amount
-    node.changeBuffer(amount * Settings.get.ratioIndustrialCraft2)
-    0
+    if (Settings.get.ignorePower) amount
+    else {
+      lastPacketSize = amount * Settings.get.ratioIndustrialCraft2
+      node.changeBuffer(lastPacketSize)
+      0
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -120,9 +126,9 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   @Optional.Method(modid = "BuildCraft|Energy")
   def getPowerProvider = {
     if (node != null && powerHandler.isEmpty) {
-      val handler = new PowerHandler(this, PowerHandler.Type.STORAGE)
+      val handler = new PowerHandler(this, PowerHandler.Type.MACHINE)
       if (handler != null) {
-        handler.configure(1, 320, Float.MaxValue, node.localBufferSize.toFloat / Settings.get.ratioBuildCraft)
+        handler.configure(1, 320, Float.MaxValue, 640)
         handler.configurePowerPerdition(0, 0)
         powerHandler = Some(handler)
       }
@@ -146,11 +152,14 @@ class PowerConverter extends Environment with IEnergySink with IPowerReceptor wi
   // ----------------------------------------------------------------------- //
   // Universal Electricity
 
-  def canConnect(direction: ForgeDirection) = true
+  def canConnect(direction: ForgeDirection) = !Settings.get.ignorePower
 
   def getVoltage = 120f
 
-  def getRequest(direction: ForgeDirection) = demand.toFloat / Settings.get.ratioUniversalElectricity
+  def getRequest(direction: ForgeDirection) = {
+    if (Settings.get.ignorePower) 0
+    else demand.toFloat / Settings.get.ratioUniversalElectricity
+  }
 
   def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
     if (receive != null) {

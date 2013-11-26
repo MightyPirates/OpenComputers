@@ -1,9 +1,9 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{api, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Icon
@@ -40,4 +40,20 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Capacitor)
+
+  // ----------------------------------------------------------------------- //
+
+  override def update(world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case capacitor: tileentity.Capacitor =>
+        api.Network.joinOrCreateNetwork(capacitor)
+        capacitor.recomputeCapacity(updateSecondGradeNeighbors = true)
+      case _ =>
+    }
+
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
+      case _ =>
+    }
 }

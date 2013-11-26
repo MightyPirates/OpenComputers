@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
 trait Connector extends Node with network.Connector with Persistable {
-  val localBufferSize: Double
+  var localBufferSize: Double
 
   var localBuffer = 0.0
 
@@ -46,20 +46,38 @@ trait Connector extends Node with network.Connector with Persistable {
     distributor.fold(remaining == 0)(_.changeBuffer(remaining)) || Settings.get.ignorePower
   } else true
 
+  def setLocalBufferSize(size: Double) {
+    val remaining = this.synchronized {
+      localBufferSize = size max 0
+      (localBuffer - localBufferSize) max 0
+    }
+    distributor.foreach(_.changeBuffer(remaining))
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: ImmutableNode) {
-    if (node == this) findDistributor()
-    else if (distributor.isEmpty) node.host match {
-      case distributor: PowerDistributor =>
-        this.distributor = Some(distributor)
-      case _ =>
+    if (node == this) {
+      findDistributor()
+    }
+    else if (distributor.isEmpty) {
+      node.host match {
+        case distributor: PowerDistributor =>
+          this.distributor = Some(distributor)
+        case _ =>
+      }
     }
     super.onConnect(node)
   }
 
   override def onDisconnect(node: ImmutableNode) {
-    if (node != this && distributor.exists(_ == node)) findDistributor()
+    if (node == this) {
+      setLocalBufferSize(0)
+      distributor = None
+    }
+    else if (distributor.exists(_ == node)) {
+      findDistributor()
+    }
     super.onDisconnect(node)
   }
 

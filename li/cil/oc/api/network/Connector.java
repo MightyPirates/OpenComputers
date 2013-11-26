@@ -71,4 +71,21 @@ public interface Connector extends Node {
      * @return whether the energy could be consumed or stored.
      */
     boolean changeBuffer(double delta);
+
+    /**
+     * Change the size of the connectors local buffer.
+     * <p/>
+     * If the size is reduced, any superfluous energy is distributed across
+     * other connectors' buffers in the network, if possible. Any surplus
+     * energy that cannot be stored in other buffers will be lost.
+     * <p/>
+     * Note that this automatically called when the connector is disconnected
+     * from its network to set its buffer size to zero and distribute its
+     * energy to other connectors in the network.
+     *
+     * @param size the new size of the local buffer. Note that this is capped
+     *             to a minimum of zero, i.e. if a negative value is passed the
+     *             size will be set to zero.
+     */
+    void setLocalBufferSize(double size);
 }
