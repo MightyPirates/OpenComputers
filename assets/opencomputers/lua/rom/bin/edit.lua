@@ -130,20 +130,22 @@ local function right(n)
   end
 end
 
-local function up()
+local function up(n)
+  n = n or 1
   local cbx, cby = getCursor()
   if cby > 1 then
-    setCursor(cbx, cby - 1)
+    setCursor(cbx, math.max(cby - n, 1))
     if getCursor() > unicode.len(line()) then
       ende()
     end
   end
 end
 
-local function down()
+local function down(n)
+  n = n or 1
   local cbx, cby = getCursor()
   if cby < #buffer then
-    setCursor(cbx, cby + 1)
+    setCursor(cbx, math.min(cby + n, #buffer))
     if getCursor() > unicode.len(line()) then
       ende()
     end
@@ -230,6 +232,12 @@ local function onKeyDown(char, code)
     up()
   elseif code == keyboard.keys.down then
     down()
+  elseif code == keyboard.keys.pageUp then
+    local w, h = getSize()
+    up(h - 1)
+  elseif code == keyboard.keys.pageDown then
+    local w, h = getSize()
+    down(h - 1)
   elseif code == keyboard.keys.enter and not readonly then
     enter()
   elseif keyboard.isControlDown() then
@@ -257,7 +265,7 @@ local function onKeyDown(char, code)
       end
     elseif code == keyboard.keys.w or
            code == keyboard.keys.c or
-           code == keyboard.keys.x or
+           code == keyboard.keys.x
     then
       -- TODO ask to save if changed
       running = false
