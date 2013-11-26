@@ -6,8 +6,10 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
 class Capacitor extends Environment {
+  // Start with maximum theoretical capacity, gets reduced after validation.
+  // This is done so that we don't lose energy while loading.
   val node = api.Network.newNode(this, Visibility.Network).
-    withConnector(Settings.get.bufferCapacitor).
+    withConnector(maxCapacity).
     create()
 
   override def canUpdate = false
@@ -66,4 +68,6 @@ class Capacitor extends Environment {
   }
 
   private def indirectNeighbors = ForgeDirection.VALID_DIRECTIONS.map(side => (x + side.offsetX * 2, y + side.offsetY * 2, z + side.offsetZ * 2))
+
+  private def maxCapacity = Settings.get.bufferCapacitor + Settings.get.bufferCapacitorAdjacencyBonus * 9
 }
