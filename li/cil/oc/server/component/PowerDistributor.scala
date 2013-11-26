@@ -18,7 +18,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   var globalBufferSize = 0.0
 
-  private var lastSentBuffer = 0.0
+  private var lastSentRatio = 0.0
 
   private val buffers = mutable.Set.empty[Connector]
 
@@ -170,7 +170,8 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
     // Only send updates if the state changed by more than 5%, more won't be
     // noticeable "from the outside" anyway. We send more frequent updates in
     // the gui/container of a block that needs it (like robots).
-    val shouldSend = (lastSentBuffer - sumBuffer).abs > globalBufferSize * (5.0 / 100.0)
+    val fillRatio = sumBuffer / sumBufferSize
+    val shouldSend = (lastSentRatio - fillRatio).abs > (5.0 / 100.0)
     for (distributor <- distributors) distributor.synchronized {
       distributor.dirty = false
       distributor.globalBuffer = sumBuffer
@@ -178,8 +179,8 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
       distributor.owner.globalBuffer = sumBuffer
       distributor.owner.globalBufferSize = sumBufferSize
       if (shouldSend) {
-        distributor.lastSentBuffer = sumBuffer
-        ServerPacketSender.sendPowerState(owner)
+        distributor.lastSentRatio = fillRatio
+        ServerPacketSender.sendPowerState(distributor.owner)
       }
     }
   }

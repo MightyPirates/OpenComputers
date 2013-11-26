@@ -13,16 +13,22 @@ import net.minecraftforge.common.ForgeDirection
 class Charger(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Charger"
 
-  var icon: Icon = null
+  private val icons = Array.fill[Icon](6)(null)
 
   override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  override def icon(side: ForgeDirection) = Some(icon)
+  override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":charger")
+    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
+    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
+
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":charger")
+    icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+    icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
   override def hasTileEntity = true
