@@ -103,7 +103,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   private def checkPower() {
     val cost = Settings.get.wirelessCostPerRange
     if (cost > 0 && !Settings.get.ignorePower) {
-      if (node.globalBuffer < cost || !node.changeBuffer(-strength * cost)) {
+      if (!node.tryChangeBuffer(-strength * cost)) {
         throw new IOException("not enough energy")
       }
     }

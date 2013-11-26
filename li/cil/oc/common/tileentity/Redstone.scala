@@ -51,7 +51,7 @@ trait Redstone extends TileEntity with network.Environment with Rotatable with P
   }
 
   def checkRedstoneInputChanged() {
-    shouldUpdateInput = true
+    shouldUpdateInput = isServer
   }
 
   // ----------------------------------------------------------------------- //

@@ -384,15 +384,15 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       result(false, what)
     }
     else {
-      if (!robot.distributor.canChangeBuffer(-Settings.get.robotMoveCost)) {
+      if (!robot.battery.tryChangeBuffer(-Settings.get.robotMoveCost)) {
         result(false, "not enough energy")
       }
       else if (robot.move(direction)) {
         context.pause(Settings.get.moveDelay)
-        robot.distributor.changeBuffer(-Settings.get.robotMoveCost)
         result(true)
       }
       else {
+        robot.battery.changeBuffer(Settings.get.robotMoveCost)
         result(false, "impossible move")
       }
     }
@@ -401,7 +401,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.distributor.changeBuffer(-Settings.get.robotTurnCost)) {
+    if (robot.battery.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)

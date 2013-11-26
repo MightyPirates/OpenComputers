@@ -144,7 +144,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
               Array.copy(buffer, 0, bytes, 0, read)
               bytes
             }
-          if (!node.changeBuffer(-Settings.get.hddReadCost * bytes.length)) {
+          if (!node.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
           result(bytes)
@@ -179,7 +179,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
-    if (!node.changeBuffer(-Settings.get.hddWriteCost * value.length)) {
+    if (!node.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
       throw new IOException("not enough energy")
     }
     checkOwner(context.address, handle)

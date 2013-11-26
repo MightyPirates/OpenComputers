@@ -71,11 +71,11 @@ class Settings(config: Config) {
   val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
   val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
+  val chargeRate = config.getDouble("power.chargerChargeRate")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
   val bufferCapacitorAdjacencyBonus = config.getDouble("power.buffer.capacitorAdjacencyBonus") max 0
-  val bufferChargingStation = 50000.0
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
 
   // power.cost

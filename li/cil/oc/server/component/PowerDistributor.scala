@@ -36,52 +36,61 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  def canChangeBuffer(delta: Double) = {
-    Settings.get.ignorePower || globalBuffer + delta >= 0
-  }
-
-  def changeBuffer(delta: Double): Boolean = {
-    if (delta != 0) this.synchronized {
-      val oldBuffer = globalBuffer
-      globalBuffer = (globalBuffer + delta) max 0 min globalBufferSize
-      if (globalBuffer != oldBuffer) {
-        dirty = true
-        if (delta < 0) {
-          var remaining = -delta
-          for (connector <- buffers) {
-            connector.synchronized(if (connector.localBuffer > 0) {
-              connector.dirty = true
-              if (connector.localBuffer < remaining) {
-                remaining -= connector.localBuffer
-                connector.localBuffer = 0
-              }
-              else {
-                connector.localBuffer -= remaining
-                return true
-              }
-            })
-          }
-        }
-        else if (delta > 0) {
-          var remaining = delta
-          for (connector <- buffers) {
-            connector.synchronized(if (connector.localBuffer < connector.localBufferSize) {
-              connector.dirty = true
-              val space = connector.localBufferSize - connector.localBuffer
-              if (space < remaining) {
-                remaining -= space
-                connector.localBuffer = connector.localBufferSize
-              }
-              else {
-                connector.localBuffer += remaining
-                return true
-              }
-            })
-          }
-        }
+  def changeBuffer(delta: Double): Double = {
+    if (delta == 0) {
+      return 0
+    }
+    if (Settings.get.ignorePower) {
+      if (delta < 0) {
+        return 0
+      }
+      else /* if (delta > 0) */ {
+        return delta
       }
     }
-    false
+    this.synchronized {
+      val oldBuffer = globalBuffer
+      globalBuffer = (globalBuffer + delta) max 0 min globalBufferSize
+      if (globalBuffer == oldBuffer) {
+        return delta
+      }
+      dirty = true
+      if (delta < 0) {
+        var remaining = -delta
+        for (connector <- buffers) {
+          if (connector.localBuffer > 0) {
+            connector.dirty = true
+            if (connector.localBuffer < remaining) {
+              remaining -= connector.localBuffer
+              connector.localBuffer = 0
+            }
+            else {
+              connector.localBuffer -= remaining
+              return 0
+            }
+          }
+        }
+        remaining
+      }
+      else /* if (delta > 0) */ {
+        var remaining = delta
+        for (connector <- buffers) {
+          if (connector.localBuffer < connector.localBufferSize) {
+            connector.dirty = true
+            val space = connector.localBufferSize - connector.localBuffer
+            if (space < remaining) {
+              remaining -= space
+              connector.localBuffer = connector.localBufferSize
+            }
+            else {
+              connector.localBuffer += remaining
+              return 0
+            }
+          }
+        }
+        remaining
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //

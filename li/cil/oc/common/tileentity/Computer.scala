@@ -117,9 +117,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    if (isServer) {
-      computer.signal("redstone_changed", Int.box(side.ordinal()))
-    }
+    computer.signal("redstone_changed", Int.box(side.ordinal()))
   }
 
   // ----------------------------------------------------------------------- //

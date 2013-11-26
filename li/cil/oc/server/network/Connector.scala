@@ -25,10 +25,21 @@ trait Connector extends Node with network.Connector with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  def changeBuffer(delta: Double) = if (delta != 0) {
-    val remaining = this.synchronized {
+  def changeBuffer(delta: Double): Double = {
+    if (delta == 0) {
+      return 0
+    }
+    if (Settings.get.ignorePower) {
+      if (delta < 0) {
+        return 0
+      }
+      else /* if (delta > 0) */ {
+        return delta
+      }
+    }
+    def change() = {
       val oldBuffer = localBuffer
-      localBuffer = localBuffer + delta
+      localBuffer += delta
       val remaining = if (localBuffer < 0) {
         val remaining = localBuffer
         localBuffer = 0
@@ -43,17 +54,53 @@ trait Connector extends Node with network.Connector with Persistable {
       dirty ||= (localBuffer != oldBuffer)
       remaining
     }
-    distributor.fold(remaining == 0)(_.changeBuffer(remaining)) || Settings.get.ignorePower
-  } else true
+    this.synchronized(distributor match {
+      case Some(d) => d.synchronized(d.changeBuffer(change()))
+      case _ => change()
+    })
+  }
+
+  def tryChangeBuffer(delta: Double): Boolean = {
+    if (delta == 0) {
+      return true
+    }
+    if (Settings.get.ignorePower) {
+      if (delta < 0) {
+        return true
+      }
+      else /* if (delta > 0) */ {
+        return false
+      }
+    }
+    this.synchronized(distributor match {
+      case Some(d) => d.synchronized {
+        val newGlobalBuffer = globalBuffer + delta
+        newGlobalBuffer >= 0 && newGlobalBuffer <= globalBufferSize && d.changeBuffer(delta) == 0
+      }
+      case _ =>
+        val newLocalBuffer = localBuffer + delta
+        if (newLocalBuffer < 0 || newLocalBuffer > localBufferSize) {
+          false
+        }
+        else {
+          localBuffer = newLocalBuffer
+          true
+        }
+    })
+  }
 
   def setLocalBufferSize(size: Double) {
-    val remaining = this.synchronized {
-      localBufferSize = size max 0
-      val surplus = (localBuffer - localBufferSize) max 0
-      localBuffer = localBuffer min localBufferSize
-      surplus
-    }
-    distributor.foreach(_.changeBuffer(remaining))
+    this.synchronized(distributor match {
+      case Some(d) => d.synchronized {
+        localBufferSize = size max 0
+        val surplus = (localBuffer - localBufferSize) max 0
+        localBuffer = localBuffer min localBufferSize
+        d.changeBuffer(surplus)
+      }
+      case _ =>
+        localBufferSize = size max 0
+        localBuffer = localBuffer min localBufferSize
+    })
   }
 
   // ----------------------------------------------------------------------- //
@@ -64,8 +111,7 @@ trait Connector extends Node with network.Connector with Persistable {
     }
     else if (distributor.isEmpty) {
       node.host match {
-        case distributor: PowerDistributor =>
-          this.distributor = Some(distributor)
+        case d: PowerDistributor => this.synchronized(distributor = Some(d))
         case _ =>
       }
     }
@@ -73,7 +119,7 @@ trait Connector extends Node with network.Connector with Persistable {
   }
 
   override def onDisconnect(node: ImmutableNode) {
-    if (node == this) {
+    if (node == this) this.synchronized {
       setLocalBufferSize(0)
       distributor = None
     }
@@ -84,7 +130,7 @@ trait Connector extends Node with network.Connector with Persistable {
   }
 
   private def findDistributor() = {
-    distributor = reachableNodes.find(_.host.isInstanceOf[PowerDistributor]).fold(None: Option[PowerDistributor])(n => Some(n.host.asInstanceOf[PowerDistributor]))
+    this.synchronized(distributor = reachableNodes.find(_.host.isInstanceOf[PowerDistributor]).fold(None: Option[PowerDistributor])(n => Some(n.host.asInstanceOf[PowerDistributor])))
   }
 
   // ----------------------------------------------------------------------- //

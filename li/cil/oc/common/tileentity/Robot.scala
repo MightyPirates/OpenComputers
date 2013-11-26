@@ -206,8 +206,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (isServer) {
       if (computer.isRunning && !computer.isPaused) {
         // TODO just for testing... until we have charging stations
-        distributor.changeBuffer(Settings.get.robotCost + 0.1)
-        distributor.changeBuffer(Settings.get.computerCost - Settings.get.robotCost)
+        battery.changeBuffer(Settings.get.robotCost + 0.1)
+        battery.changeBuffer(Settings.get.computerCost - Settings.get.robotCost)
       }
       distributor.update()
       gpu.update()
@@ -286,7 +286,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       computer.node.connect(gpu.node)
       distributor.node.connect(battery)
       buffer.node.connect(keyboard.node)
-      distributor.changeBuffer(distributor.globalBufferSize / 2) // TODO for testing only
     }
   }
 

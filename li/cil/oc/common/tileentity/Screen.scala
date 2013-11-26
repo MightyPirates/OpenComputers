@@ -76,7 +76,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
       }
       val hadPower = hasPower
-      hasPower = buffer.node.changeBuffer(-(Settings.get.screenCost + pixelCost * litPixels))
+      val neededPower = Settings.get.screenCost + pixelCost * litPixels
+      hasPower = buffer.node.tryChangeBuffer(-neededPower)
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
       }

@@ -220,11 +220,11 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
            Computer.State.Stopping |
            Computer.State.Stopped => // No power consumption.
       case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
-        if (!node.changeBuffer(-Settings.get.computerCost * Settings.get.sleepCostFactor)) {
+        if (!node.tryChangeBuffer(-Settings.get.computerCost * Settings.get.sleepCostFactor)) {
           crash("not enough energy")
         }
       case _ =>
-        if (!node.changeBuffer(-Settings.get.computerCost)) {
+        if (!node.tryChangeBuffer(-Settings.get.computerCost)) {
           crash("not enough energy")
         }
     })
@@ -493,6 +493,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   override def save(nbt: NBTTagCompound): Unit = this.synchronized {
     assert(state.top != Computer.State.Running) // Lock on 'this' should guarantee this.
+
+    // Make sure we don't continue running until everything has saved.
+    pause(0.05)
 
     super.save(nbt)
 

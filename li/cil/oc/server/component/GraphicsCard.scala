@@ -182,12 +182,14 @@ abstract class GraphicsCard extends ManagedComponent {
         s.fill(x, y, w, h, value.charAt(0))
         result(true)
       }
-      else result(false)
+      else {
+        result(false)
+      }
     })
     else throw new Exception("invalid fill value")
   }
 
-  private def consumePower(n: Double, cost: Double) = node.changeBuffer(-n * cost)
+  private def consumePower(n: Double, cost: Double) = node.tryChangeBuffer(-n * cost)
 
   // ----------------------------------------------------------------------- //
 

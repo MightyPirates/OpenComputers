@@ -53,24 +53,30 @@ public interface Connector extends Node {
      * a program tries to display text on it. For running costs just apply the
      * same delta each tick.
      * <p/>
-     * For negative values, if there is not enough energy stored in the buffer
-     * this will return <tt>false</tt>, and the operation depending on that
-     * energy should fail - what energy there is will still be consumed, though!
+     * If the specified delta cannot be completely applied to the buffer, the
+     * remaining delta will be returned. This means that for negative values
+     * a part of the energy will have been consumed, though.
      * <p/>
-     * For positive values, if there is a buffer overflow due to the added
-     * energy the surplus will be lost and this will return <tt>false</tt>.
-     * <p/>
-     * If there is enough energy or no overflow this will return <tt>true</tt>.
+     * If there is enough energy or no overflow this will return <tt>0</tt>.
      * <p/>
      * Keep in mind that this change is applied to the <em>global</em> buffer,
      * i.e. energy from multiple buffers may be consumed / multiple buffers may
      * be filled. The buffer for which this method is called (i.e. this node
      * instance) will be prioritized, though.
      *
-     * @param delta the amount of energy to consume or make available.
-     * @return whether the energy could be consumed or stored.
+     * @param delta the amount of energy to consume or store.
+     * @return the remainder of the delta that could not be applied.
      */
-    boolean changeBuffer(double delta);
+    double changeBuffer(double delta);
+
+    /**
+     * Like {@link #changeBuffer}, but will only store/consume the specified
+     * amount of energy if there is enough capacity/energy available.
+     *
+     * @param delta the amount of energy to consume or store.
+     * @return <tt>true</tt> if the energy was successfully consumed or stored.
+     */
+    boolean tryChangeBuffer(double delta);
 
     /**
      * Change the size of the connectors local buffer.
