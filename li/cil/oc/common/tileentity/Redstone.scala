@@ -5,13 +5,10 @@ import cpw.mods.fml.common.{Loader, Optional}
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
-import net.minecraft.block.Block
-import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 
 @Optional.InterfaceList(Array(
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = "RedLogic"),
@@ -20,21 +17,14 @@ import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
-trait Redstone extends TileEntity with network.Environment with Rotatable with Persistable
-with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmitter with IRedstoneUpdatable {
-  private val _input = Array.fill(6)(-1)
+trait Redstone extends TileEntity with network.Environment with Rotatable with Persistable with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
+  protected val _input = Array.fill(6)(-1)
 
-  private val _output = Array.fill(6)(0)
+  protected val _output = Array.fill(6)(0)
 
-  private val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
+  protected var _isOutputEnabled = false
 
-  private val _rednetInput = Array.fill(6)(Array.fill(16)(-1))
-
-  private val _bundledOutput = Array.fill(6)(Array.fill(16)(0))
-
-  private var _isOutputEnabled = false
-
-  private var shouldUpdateInput = true
+  protected var shouldUpdateInput = true
 
   def isOutputEnabled = _isOutputEnabled
 
@@ -44,11 +34,6 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
       if (!isOutputEnabled) {
         for (i <- 0 until _output.length) {
           _output(i) = 0
-        }
-        for (i <- 0 until _bundledOutput.length) {
-          for (j <- 0 until _bundledOutput(i).length) {
-            _bundledOutput(i)(j) = 0
-          }
         }
       }
       onRedstoneOutputChanged(ForgeDirection.UNKNOWN)
@@ -65,24 +50,6 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
     onRedstoneOutputChanged(side)
   }
 
-  def bundledInput(side: ForgeDirection, color: Int) =
-    _bundledInput(side.ordinal())(color) max _rednetInput(side.ordinal())(color)
-
-  def rednetInput(side: ForgeDirection, color: Int, value: Int) =
-    if (_rednetInput(side.ordinal())(color) != value) {
-      onRedstoneInputChanged(side)
-      _rednetInput(side.ordinal())(color) = value
-    }
-
-  def bundledOutput(side: ForgeDirection) = _bundledOutput(toLocal(side).ordinal())
-
-  def bundledOutput(side: ForgeDirection, color: Int): Int = bundledOutput(side)(color)
-
-  def bundledOutput(side: ForgeDirection, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
-    _bundledOutput(toLocal(side).ordinal())(color) = value
-    onRedstoneOutputChanged(side)
-  }
-
   def checkRedstoneInputChanged() {
     shouldUpdateInput = true
   }
@@ -93,19 +60,10 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
     if (shouldUpdateInput) {
       shouldUpdateInput = false
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val (oldInput, oldBundledInput) = (_input(side.ordinal()), _bundledInput(side.ordinal()))
-        val (newInput, newBundledInput) = (computeInput(side), computeBundledInput(side))
+        val oldInput = _input(side.ordinal())
+        val newInput = computeInput(side)
         _input(side.ordinal()) = newInput
-        var changed = oldInput >= 0 && input(side) != oldInput
-        if (newBundledInput != null) for (color <- 0 until 16) {
-          changed = changed || oldBundledInput(color) != newBundledInput(color)
-          oldBundledInput(color) = newBundledInput(color)
-        }
-        else for (color <- 0 until 16) {
-          changed = changed || oldBundledInput(color) != 0
-          oldBundledInput(color) = 0
-        }
-        if (changed) {
+        if (oldInput >= 0 && input(side) != oldInput) {
           onRedstoneInputChanged(side)
         }
       }
@@ -119,17 +77,6 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
 
     nbt.getIntArray(Settings.namespace + "rs.input").copyToArray(_input)
     nbt.getIntArray(Settings.namespace + "rs.output").copyToArray(_output)
-
-    nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledInput(side))
-    }
-    nbt.getTagList(Settings.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledOutput(side))
-    }
-
-    nbt.getTagList(Settings.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_rednetInput(side))
-    }
   }
 
   override def save(nbt: NBTTagCompound) = {
@@ -137,11 +84,6 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
 
     nbt.setIntArray(Settings.namespace + "rs.input", _input)
     nbt.setIntArray(Settings.namespace + "rs.output", _output)
-
-    nbt.setNewTagList(Settings.namespace + "rs.bundledInput", _bundledInput.view)
-    nbt.setNewTagList(Settings.namespace + "rs.bundledOutput", _bundledOutput.view)
-
-    nbt.setNewTagList(Settings.namespace + "rs.rednetInput", _rednetInput.view)
   }
 
   // ----------------------------------------------------------------------- //
@@ -170,55 +112,16 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
     vanilla max redLogic
   }
 
-  protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
-    if (Loader.isModLoaded("RedLogic")) {
-      world.getBlockTileEntity(
-        x + side.offsetX,
-        y + side.offsetY,
-        z + side.offsetZ) match {
-        case wire: IInsulatedRedstoneWire =>
-          var strength: Array[Int] = null
-          for (face <- -1 to 5 if wire.wireConnectsInDirection(face, side.ordinal()) && strength == null) {
-            strength = Array.fill(16)(0)
-            strength(wire.getInsulatedWireColour) = wire.getEmittedSignalStrength(face, side.ordinal())
-          }
-          strength
-        case emitter: IBundledEmitter =>
-          var strength: Array[Int] = null
-          for (i <- -1 to 5 if strength == null) {
-            strength = Option(emitter.getBundledCableStrength(i, side.getOpposite.ordinal())).fold(null: Array[Int])(_.map(_ & 0xFF))
-          }
-          strength
-        case _ => null
-      }
-    } else null
-  }
-
   protected def onRedstoneInputChanged(side: ForgeDirection) {}
 
   protected def onRedstoneOutputChanged(side: ForgeDirection) {
     if (side == ForgeDirection.UNKNOWN) {
       world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
-      if (Loader.isModLoaded("MineFactoryReloaded")) {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-          Block.blocksList(world.getBlockId(nx, ny, nz)) match {
-            case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
-            case _ =>
-          }
-        }
-      }
     }
     else {
       val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
       world.notifyBlockOfNeighborChange(nx, ny, nz, block.blockID)
       world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlockId(nx, ny, nz))
-      if (Loader.isModLoaded("MineFactoryReloaded")) {
-        Block.blocksList(world.getBlockId(nx, ny, nz)) match {
-          case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
-          case _ =>
-        }
-      }
     }
     if (isServer) ServerPacketSender.sendRedstoneState(this)
     else world.markBlockForRenderUpdate(x, y, z)
@@ -231,12 +134,6 @@ with IConnectable with IBundledEmitter with IBundledUpdatable with IRedstoneEmit
 
   @Optional.Method(modid = "RedLogic")
   def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
-
-  @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).map(value => (value max 0 min 255).toByte)
-
-  @Optional.Method(modid = "RedLogic")
-  def onBundledInputChanged() = checkRedstoneInputChanged()
 
   @Optional.Method(modid = "RedLogic")
   def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort

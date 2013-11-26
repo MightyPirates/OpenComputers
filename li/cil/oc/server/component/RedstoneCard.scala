@@ -32,42 +32,12 @@ class RedstoneCard(val owner: Redstone) extends ManagedComponent {
     result(owner.output(side))
   }
 
-  @LuaCallback(value = "getBundledInput", direct = true)
-  def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    val color = checkColor(args, 1)
-    result(owner.bundledInput(side, color))
-  }
-
-  @LuaCallback(value = "getBundledOutput", direct = true)
-  def getBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    val color = checkColor(args, 1)
-    result(owner.bundledOutput(side, color))
-  }
-
-  @LuaCallback("setBundledOutput")
-  def setBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
-    val side = checkSide(args, 0)
-    val color = checkColor(args, 1)
-    val value = args.checkInteger(2)
-    owner.bundledOutput(side, color, value)
-    result(owner.bundledOutput(side, color))
-  }
-
   // ----------------------------------------------------------------------- //
 
-  private def checkSide(args: Arguments, index: Int) = {
+  protected def checkSide(args: Arguments, index: Int) = {
     val side = args.checkInteger(index)
     if (side < 0 || side > 5)
       throw new IllegalArgumentException("invalid side")
     owner.toGlobal(ForgeDirection.getOrientation(side))
-  }
-
-  private def checkColor(args: Arguments, index: Int): Int = {
-    val color = args.checkInteger(index)
-    if (color < 0 || color > 15)
-      throw new IllegalArgumentException("invalid color")
-    color
   }
 }

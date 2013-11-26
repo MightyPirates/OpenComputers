@@ -77,7 +77,7 @@ trait Connector extends Node with network.Connector with Persistable {
       setLocalBufferSize(0)
       distributor = None
     }
-    else if (distributor.exists(_ == node)) {
+    else if (distributor.exists(_ == node.host)) {
       findDistributor()
     }
     super.onDisconnect(node)

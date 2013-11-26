@@ -10,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with Redstone with Analyzable {
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstone with Analyzable {
   protected val _computer = if (isRemote) null else new component.Computer(this)
 
   def computer = _computer
