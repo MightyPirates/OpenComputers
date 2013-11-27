@@ -22,11 +22,23 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendComputerState(t: TileEntity, value: Boolean, player: Option[Player] = None) {
+  def sendChargerState(t: Charger, player: Option[Player] = None) {
+    val pb = new PacketBuilder(PacketType.ChargerStateResponse)
+
+    pb.writeTileEntity(t)
+    pb.writeDouble(t.chargeSpeed)
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
+  def sendComputerState(t: Computer, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ComputerStateResponse)
 
     pb.writeTileEntity(t)
-    pb.writeBoolean(value)
+    pb.writeBoolean(t.isRunning)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

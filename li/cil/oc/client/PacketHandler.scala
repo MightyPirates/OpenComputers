@@ -25,6 +25,7 @@ class PacketHandler extends CommonPacketHandler {
   override def dispatch(p: PacketParser) =
     p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
+      case PacketType.ChargerStateResponse => onChargerStateResponse(p)
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
       case PacketType.ItemComponentAddress => onItemComponentAddress(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
@@ -47,7 +48,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onAnalyze(p: PacketParser) = {
+  def onAnalyze(p: PacketParser) {
     val player = p.player.asInstanceOf[EntityPlayer]
     val stats = p.readNBT().asInstanceOf[NBTTagCompound]
     stats.getTags.map(_.asInstanceOf[NBTBase]).map(tag => {
@@ -62,6 +63,12 @@ class PacketHandler extends CommonPacketHandler {
       player.addChatMessage("Address copied to clipboard.")
     }
   }
+
+  def onChargerStateResponse(p: PacketParser) =
+    p.readTileEntity[Charger]() match {
+      case Some(t) => t.chargeSpeed = p.readDouble()
+      case _ => // Invalid packet.
+    }
 
   def onComputerStateResponse(p: PacketParser) =
     p.readTileEntity[Computer]() match {

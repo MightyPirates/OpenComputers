@@ -5,6 +5,14 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 
 object PacketSender {
+  def sendChargerStateRequest(t: Charger) {
+    val pb = new PacketBuilder(PacketType.ChargerStateRequest)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToServer()
+  }
+
   def sendComputerStateRequest(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerStateRequest)
 

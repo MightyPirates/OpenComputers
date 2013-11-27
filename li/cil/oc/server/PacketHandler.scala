@@ -13,6 +13,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def dispatch(p: PacketParser) =
     p.packetType match {
+      case PacketType.ChargerStateRequest => onChargerStateRequest(p)
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
       case PacketType.PowerStateRequest => onPowerStateRequest(p)
       case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
@@ -25,9 +26,15 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onChargerStateRequest(p: PacketParser) =
+    p.readTileEntity[Charger]() match {
+      case Some(t) => PacketSender.sendChargerState(t, Option(p.player))
+      case _ => // Invalid packet.
+    }
+
   def onComputerStateRequest(p: PacketParser) =
     p.readTileEntity[Computer]() match {
-      case Some(t) => PacketSender.sendComputerState(t, t.isRunning, Option(p.player))
+      case Some(t) => PacketSender.sendComputerState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 

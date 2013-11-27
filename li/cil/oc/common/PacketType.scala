@@ -1,7 +1,11 @@
 package li.cil.oc.common
 
 object PacketType extends Enumeration {
-  val ComputerStateRequest,
+  val
+  ChargerStateRequest,
+  ChargerStateResponse,
+
+  ComputerStateRequest,
   ComputerStateResponse,
 
   ItemComponentAddress,

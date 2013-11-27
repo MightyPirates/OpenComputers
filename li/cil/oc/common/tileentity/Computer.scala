@@ -58,10 +58,10 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
         }
 
         if (_isRunning != computer.isRunning) {
+          _isRunning = computer.isRunning
           isOutputEnabled = hasRedstoneCard && computer.isRunning
-          ServerPacketSender.sendComputerState(this, computer.isRunning)
+          ServerPacketSender.sendComputerState(this)
         }
-        _isRunning = computer.isRunning
 
         updateRedstoneInput()
 
