@@ -1,6 +1,7 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.Settings
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
@@ -25,6 +26,7 @@ class PacketHandler extends CommonPacketHandler {
     p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ComputerStateResponse => onComputerStateResponse(p)
+      case PacketType.ItemComponentAddress => onItemComponentAddress(p)
       case PacketType.PowerStateResponse => onPowerStateResponse(p)
       case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -64,6 +66,32 @@ class PacketHandler extends CommonPacketHandler {
   def onComputerStateResponse(p: PacketParser) =
     p.readTileEntity[Computer]() match {
       case Some(t) => t.isRunning = p.readBoolean()
+      case _ => // Invalid packet.
+    }
+
+  def onItemComponentAddress(p: PacketParser) =
+    p.readTileEntity[ComponentInventory]() match {
+      case Some(t) =>
+        val slot = p.readInt()
+        val id = p.readInt()
+        val damage = p.readInt()
+        val address = p.readUTF()
+        val stack = t.getStackInSlot(slot)
+        if (stack != null && stack.itemID == id && stack.getItemDamage == damage) {
+          if (!stack.hasTagCompound) {
+            stack.setTagCompound(new NBTTagCompound())
+          }
+          val nbt = stack.getTagCompound
+          nbt.setCompoundTag(Settings.namespace + "data", {
+            val data = new NBTTagCompound()
+            data.setCompoundTag("node", {
+              val node = new NBTTagCompound()
+              node.setString("address", address)
+              node
+            })
+            data
+          })
+        }
       case _ => // Invalid packet.
     }
 

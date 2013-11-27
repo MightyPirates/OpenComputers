@@ -4,6 +4,8 @@ object PacketType extends Enumeration {
   val ComputerStateRequest,
   ComputerStateResponse,
 
+  ItemComponentAddress,
+
   PowerStateRequest,
   PowerStateResponse,
 

@@ -4,6 +4,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -82,6 +83,8 @@ trait ComponentInventory extends Inventory with network.Environment with Persist
           components(slot) = Some(component)
           component.load(driver.nbt(stack))
           connectItemNode(component.node)
+          component.save(driver.nbt(stack))
+          ServerPacketSender.sendItemComponentAddress(this, slot, stack)
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.

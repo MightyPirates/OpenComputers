@@ -37,78 +37,63 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
           (0, otherInventory.getSizeInventory, false)
         }
 
-      val stack = slot.getStack
-      val originalStack = stack.copy()
-      if (tryTransferStackInSlot(stack, begin, length, direction)) {
-        if (stack.stackSize == 0) {
-          // We could move everything, clear the slot.
-          slot.putStack(null)
-        }
-        else {
-          // Partial move, signal change.
-          slot.onSlotChanged()
-        }
-
-        if (stack.stackSize != originalStack.stackSize) {
-          slot.onPickupFromSlot(player, stack)
-          return originalStack
-        }
-        // else: Nothing changed.
-      }
-      // else: Merge failed.
+      tryTransferStackInSlot(slot, begin, length, direction)
     }
-    // else: Empty slot.
     null
   }
 
-  private def tryTransferStackInSlot(stack: ItemStack, offset: Int, length: Int, intoPlayerInventory: Boolean) = {
+  private def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
+    val fromStack = from.getStack
     var somethingChanged = false
+
     val step = if (intoPlayerInventory) -1 else 1
     val (begin, end) =
       if (intoPlayerInventory) (offset + length - 1, offset - 1)
       else (offset, offset + length)
-    for (i <- begin until end by step if stack.isStackable && stack.stackSize > 0) {
-      val slot = inventorySlots.get(i).asInstanceOf[Slot]
-      if (slot.getHasStack) {
-        val slotStack = slot.getStack
-        val itemsAreEqual = stack.isItemEqual(slotStack) && ItemStack.areItemStackTagsEqual(stack, slotStack)
-        val slotHasCapacity = slotStack.stackSize < slotStack.getMaxStackSize
+
+    if (fromStack.isStackable) for (i <- begin until end by step if from.getHasStack && from.getStack.stackSize > 0) {
+      val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
+      if (intoSlot.getHasStack) {
+        val intoStack = intoSlot.getStack
+        val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
+        val maxStackSize = fromStack.getMaxStackSize min intoSlot.getSlotStackLimit
+        val slotHasCapacity = intoStack.stackSize < maxStackSize
         if (itemsAreEqual && slotHasCapacity) {
-          val slotWouldOverflow = stack.stackSize + slotStack.stackSize > slotStack.getMaxStackSize
-          if (slotWouldOverflow) {
-            val itemsMoved = slotStack.getMaxStackSize - slotStack.stackSize
-            stack.stackSize -= itemsMoved
-            slotStack.stackSize = slotStack.getMaxStackSize
-            slot.onSlotChanged()
-            somethingChanged = true
-          }
-          else {
-            slotStack.stackSize += stack.stackSize
-            stack.stackSize = 0
-            slot.onSlotChanged()
+          val itemsMoved = (maxStackSize - intoStack.stackSize) min fromStack.stackSize
+          if (itemsMoved > 0) {
+            intoStack.stackSize += from.decrStackSize(itemsMoved).stackSize
+            intoSlot.onSlotChanged()
             somethingChanged = true
           }
         }
       }
     }
-    for (i <- begin until end by step if stack.stackSize > 0) {
-      val slot = inventorySlots.get(i).asInstanceOf[Slot]
-      // The isItemValid is the only reason for the reimplementation of
-      // mergeItemStack... no idea why it doesn't do that itself.
-      if (!slot.getHasStack && slot.isItemValid(stack)) {
-        slot.putStack(stack.copy())
-        stack.stackSize = 0
-        slot.onSlotChanged()
+
+    for (i <- begin until end by step if from.getHasStack && from.getStack.stackSize > 0) {
+      val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
+      if (!intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
+        val maxStackSize = fromStack.getMaxStackSize min intoSlot.getSlotStackLimit
+        val itemsMoved = maxStackSize min fromStack.stackSize
+        intoSlot.putStack(from.decrStackSize(itemsMoved))
         somethingChanged = true
       }
     }
-    somethingChanged
+
+    if (somethingChanged) {
+      from.onSlotChanged()
+    }
   }
 
   def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None) {
     val index = getInventory.size
     addSlotToContainer(new Slot(otherInventory, index, x, y) {
       setBackgroundIcon(Icons.get(slot))
+
+      override def getSlotStackLimit =
+        slot match {
+          case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
+          case _ => 1
+        }
 
       override def isItemValid(stack: ItemStack) = {
         otherInventory.isItemValidForSlot(index, stack)

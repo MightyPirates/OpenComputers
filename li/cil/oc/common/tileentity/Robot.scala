@@ -357,7 +357,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
     if ((1 to 2 contains slot) && stack != null && stack.stackSize > 1) {
       super.setInventorySlotContents(slot, stack.splitStack(1))
-      if (isServer) {
+      if (stack.stackSize > 0 && isServer) {
         val p = player()
         p.inventory.addItemStackToInventory(stack)
         p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
