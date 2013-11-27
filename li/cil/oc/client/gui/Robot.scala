@@ -1,12 +1,15 @@
 package li.cil.oc.client.gui
 
+import java.util
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
@@ -19,8 +22,11 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   xSize = 256
   ySize = 242
 
-  private val background = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
+  private val robotBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
+  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/power.png")
   private val selection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
+
+  protected var powerButton: ImageButton = _
 
   protected val buffer = robot.buffer
 
@@ -31,15 +37,34 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val inventoryX = 176
   private val inventoryY = 140
 
-  private val powerX = 8
+  private val powerX = 28
   private val powerY = 142
 
-  private val powerWidth = 160
+  private val powerWidth = 140
   private val powerHeight = 12
 
   private val selectionSize = 20
   private val selectionsStates = 17
   private val selectionStepV = 1 / selectionsStates.toDouble
+
+  def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+
+  protected override def actionPerformed(button: GuiButton) {
+    if (button.id == 0) {
+      ClientPacketSender.sendComputerPower(robot, !robot.isRunning)
+    }
+  }
+
+  override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
+    powerButton.toggled = robot.isRunning
+    super.drawScreen(mouseX, mouseY, dt)
+  }
+
+  override def initGui() {
+    super.initGui()
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, powerIcon)
+    add(buttonList, powerButton)
+  }
 
   override def drawSlotInventory(slot: Slot) {
     RenderState.makeItBlend()
@@ -69,7 +94,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    mc.renderEngine.bindTexture(background)
+    mc.renderEngine.bindTexture(robotBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
     drawSelection()

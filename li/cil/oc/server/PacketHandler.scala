@@ -4,6 +4,7 @@ import cpw.mods.fml.common.network.Player
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.DimensionManager
 import scala.Some
 
@@ -14,6 +15,7 @@ class PacketHandler extends CommonPacketHandler {
   def dispatch(p: PacketParser) =
     p.packetType match {
       case PacketType.ChargerStateRequest => onChargerStateRequest(p)
+      case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.ComputerStateRequest => onComputerStateRequest(p)
       case PacketType.PowerStateRequest => onPowerStateRequest(p)
       case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
@@ -27,8 +29,21 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onChargerStateRequest(p: PacketParser) =
-    p.readTileEntity[Charger]() match {
-      case Some(t) => PacketSender.sendChargerState(t, Option(p.player))
+    p.readTileEntity[Computer]() match {
+      case Some(t) => PacketSender.sendComputerState(t, Option(p.player))
+      case _ => // Invalid packet.
+    }
+
+  def onComputerPower(p: PacketParser) =
+    p.readTileEntity[Computer]() match {
+      case Some(t) => p.player match {
+        case player: EntityPlayer if t.computer.canInteract(player.getCommandSenderName) =>
+          if (p.readBoolean()) {
+            if (!t.computer.isPaused) t.computer.start()
+          }
+          else t.computer.stop()
+        case _ =>
+      }
       case _ => // Invalid packet.
     }
 

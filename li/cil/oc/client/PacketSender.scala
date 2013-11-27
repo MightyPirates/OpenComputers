@@ -13,6 +13,15 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendComputerPower(t: Computer, power: Boolean) {
+    val pb = new PacketBuilder(PacketType.ComputerPower)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
+
   def sendComputerStateRequest(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerStateRequest)
 

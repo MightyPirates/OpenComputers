@@ -5,6 +5,8 @@ object PacketType extends Enumeration {
   ChargerStateRequest,
   ChargerStateResponse,
 
+  ComputerPower,
+
   ComputerStateRequest,
   ComputerStateResponse,
 

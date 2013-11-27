@@ -1,7 +1,6 @@
 package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.ForgeDirection
 
@@ -22,19 +21,6 @@ abstract class Computer extends Delegate {
       case computer: tileentity.Computer => computer.output(side) max 0 min 15
       case _ => super.isProvidingWeakPower(world, x, y, z, side)
     }
-
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        world.getBlockTileEntity(x, y, z) match {
-          case t: tileentity.Computer if !t.computer.isPaused && t.computer.canInteract(player.getCommandSenderName) => t.computer.start()
-          case _ =>
-        }
-      }
-    }
-    super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
-  }
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {

@@ -71,7 +71,6 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                                 side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
     if (!player.isSneaking) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
