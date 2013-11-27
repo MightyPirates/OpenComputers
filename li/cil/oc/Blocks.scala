@@ -14,7 +14,7 @@ object Blocks {
   var cable: Cable = null
   var capacitor: Capacitor = null
   var charger: Charger = null
-  var computerCase: Case = null
+  var case1, case2, case3: Case = null
   var diskDrive: DiskDrive = null
   var keyboard: Keyboard = null
   var powerDistributor: PowerDistributor = null
@@ -54,18 +54,19 @@ object Blocks {
     adapter = new Adapter(blockSimple)
     cable = new Cable(blockSpecial)
     capacitor = new Capacitor(blockSimple)
-    computerCase = new Case(blockSimpleWithRedstone)
+    case1 = new Case.Tier1(blockSimpleWithRedstone)
+    case2 = new Case.Tier2(blockSimpleWithRedstone)
+    case3 = new Case.Tier3(blockSimpleWithRedstone)
+    charger = new Charger(blockSimpleWithRedstone)
     diskDrive = new DiskDrive(blockSimple)
     keyboard = new Keyboard(blockSpecial)
     powerDistributor = new PowerDistributor(blockSimple)
     powerSupply = new PowerConverter(blockSimple)
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = new RobotProxy(blockSpecialWithRedstone)
+    router = new Router(blockSimple)
     screen1 = new Screen.Tier1(blockSimple)
     screen2 = new Screen.Tier2(blockSimple)
     screen3 = new Screen.Tier3(blockSimple)
-
-    router = new Router(blockSimple)
-    charger = new Charger(blockSimpleWithRedstone)
   }
 }

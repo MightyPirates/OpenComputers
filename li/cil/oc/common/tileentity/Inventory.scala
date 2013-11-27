@@ -11,7 +11,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 trait Inventory extends TileEntity with IInventory with Persistable {
-  protected val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+  protected lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
 

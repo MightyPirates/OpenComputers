@@ -54,7 +54,7 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.computerCase.createItemStack(),
+    GameRegistry.addRecipe(Blocks.case1.createItemStack(),
       "xxx",
       "x x",
       "xxx", 'x': Character, ironStack)

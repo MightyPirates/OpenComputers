@@ -4,7 +4,7 @@ package li.cil.oc.api.driver;
  * List of possible item component types.
  * <p/>
  * This is used to determine which item components may go into which slots in
- * a computer's inventory.
+ * a computer's and robot's inventory.
  */
 public enum Slot {
     /**
@@ -33,12 +33,13 @@ public enum Slot {
     Memory,
 
     /**
-     * Power generating components, such as generators.
+     * Tool slot in robots (equipment slot).
      */
-    Power,
+    Tool,
 
     /**
-     * Tools that can be used by robots.
+     * Upgrade slot for robots. For special robot upgrades such as internal
+     * engines and the like.
      */
-    Tool
+    Upgrade
 }

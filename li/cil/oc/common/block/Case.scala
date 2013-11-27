@@ -11,18 +11,22 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
-  val unlocalizedName = "Case"
+abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
+
+  def tier: Int
+
+  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    val slots = tier match {
+      case 0 => "2/1/1"
+      case 1 => "2/2/2"
+      case 2 => "3/2/3"
+    }
+    tooltip.addAll(Tooltip.get("Case", slots))
+  }
 
   private object Icons {
     val on = Array.fill[Icon](6)(null)
     val off = Array.fill[Icon](6)(null)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
   override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
@@ -57,7 +61,7 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def createTileEntity(world: World) = Some(new tileentity.Case(world.isRemote))
+  override def createTileEntity(world: World) = Some(new tileentity.Case(tier, world.isRemote))
 
   // ----------------------------------------------------------------------- //
 
@@ -79,4 +83,32 @@ class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
         c.computer.canInteract(player.getCommandSenderName)
       case _ => super.onBlockRemovedBy(world, x, y, z, player)
     }
+}
+
+object Case {
+
+  class Tier1(parent: SimpleDelegator) extends Case(parent) {
+    val unlocalizedName = "CaseBasic"
+
+    def tier = 0
+
+    override def getRenderColor = 0x7F7F7F
+  }
+
+  class Tier2(parent: SimpleDelegator) extends Case(parent) {
+    val unlocalizedName = "CaseAdvanced"
+
+    def tier = 1
+
+    override def getRenderColor = 0xFFFF66
+  }
+
+  class Tier3(parent: SimpleDelegator) extends Case(parent) {
+    val unlocalizedName = "CaseProfessional"
+
+    def tier = 2
+
+    override def getRenderColor = 0x66FFFF
+  }
+
 }

@@ -10,5 +10,5 @@ object PowerSupply extends Item {
 
   override def createEnvironment(stack: ItemStack, container: AnyRef) = new component.PowerSupply()
 
-  override def slot(stack: ItemStack) = Slot.Power
+  override def slot(stack: ItemStack) = Slot.Upgrade
 }

@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait ComponentInventory extends Inventory with network.Environment with Persistable {
-  protected val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
+  protected lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
 
