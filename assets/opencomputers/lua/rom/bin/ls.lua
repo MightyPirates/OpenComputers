@@ -18,10 +18,28 @@ for i = 1, #dirs do
         component.gpu.setForeground(c)
       end
     end
+    local lsd = {}
+    local lsf = {}
     for f in list do
       if f:sub(-1) == "/" then
-        setColor(0x99CCFF)
-      elseif f:sub(-4) == ".lua" then
+        table.insert(lsd, f)
+      else
+        table.insert(lsf, f)
+      end
+    end
+    table.sort(lsd)
+    table.sort(lsf)
+    setColor(0x99CCFF)
+    for _, d in ipairs(lsd) do
+      if options.a or d:sub(1, 1) ~= "." then
+        io.write(d .. "\t")
+        if options.l then
+          print()
+        end
+      end
+    end
+    for _, f in ipairs(lsf) do
+      if f:sub(-4) == ".lua" then
         setColor(0x00FF00)
       else
         setColor(0xFFFFFF)
