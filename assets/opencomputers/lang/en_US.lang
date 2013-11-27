@@ -1,18 +1,5 @@
 # This is the english master file for localizations. It will always be the most
 # up-to-date version, so other localizations should be based on this one.
-#
-# Note that tooltips can be formatted using "tags".
-# Available colors are:
-# [b] = Aqua, [0] = Black, [9] = Blue, [3] = DarkAqua, [1] = DarkBlue,
-# [8] = DarkGray, [2] = DarkGreen, [5] = DarkPurple, [4] = DarkRed,
-# [6] = Gold, [7] = Gray, [a] = Green, [d] = LightPurple, [c] = Red,
-# [f] = White and [e] = Yellow
-# 
-# Available format specifiers are:
-# [k] = Obfuscated, [l] = Bold, [m] = Strikethrough, [n] = Underline and
-# [o] = Italic
-#
-# Use [r] to reset any formatting.
 # Use [nl] to for a line break.
 
 # Blocks
@@ -20,6 +7,7 @@ oc:block.Adapter.name=Adapter
 oc:block.Cable.name=Cable
 oc:block.Capacitor.name=Capacitor
 oc:block.Case.name=Case
+oc:block.Charger.name=Charger
 oc:block.DiskDrive.name=Disk Drive
 oc:block.Keyboard.name=Keyboard
 oc:block.PowerConverter.name=Power Converter
@@ -58,24 +46,25 @@ oc:text.Robot.Power=Power
 
 # Tooltips
 oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
-oc:tooltip.Analyzer=Used to display information about blocks, such as their [f]address[7] and [f]component name[7].[nl] Also displays the error that caused a computer to crash if it did not shut down normally.
+oc:tooltip.Analyzer=Used to display information about blocks, such as their §faddress§7 and §fcomponent name§7.[nl] Also displays the error that caused a computer to crash if it did not shut down normally.
 oc:tooltip.Cable=A cheap way of connecting blocks.
 oc:tooltip.Capacitor=Stores energy for later use. Can be filled and emptied very quickly.
 oc:tooltip.Case=The Computer Case is the basic building block for computers and houses the computer's RAM, extension cards and hard disks.
+oc:tooltip.Charger=Transfers energy from capacitors into adjacent robots. The transfer rate depends on the incoming §fredstone signal§7, where no signal means don't charge robots, and maximum strength means charge at full speed.
 oc:tooltip.DiskDrive=Allows reading and writing floppies.
-oc:tooltip.DiskDrive.CC=ComputerCraft floppies are [a]supported[7].
-oc:tooltip.GraphicsCard=Used to change what's displayed on screens.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].[nl] Operations/tick: [f]%s[7].
+oc:tooltip.DiskDrive.CC=ComputerCraft floppies are §asupported§7.
+oc:tooltip.GraphicsCard=Used to change what's displayed on screens.[nl] Maximum resolution: §f%sx%s§7.[nl] Maximum color depth: §f%s§7.[nl] Operations/tick: §f%s§7.
 oc:tooltip.Keyboard=Can be attached to screens to allow typing on them.
 oc:tooltip.PowerConverter=Converts power from other mods to the internal energy type. Conversion rates:
-oc:tooltip.PowerConverter.IC2=[f]IndustrialCraft² EU[7]: [a]%s:%s[7].
-oc:tooltip.PowerConverter.BC=[f]Buildcraft MJ[7]: [a]%s:%s[7].
-oc:tooltip.PowerConverter.UE=[f]Universal Electricity Joules[7]: [a]%s:%s[7].
+oc:tooltip.PowerConverter.IC2=§fIndustrialCraft² EU§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.BC=§fBuildCraft MJ§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.UE=§fUniversal Electricity Joules§7: §a%s:%s§7.
 oc:tooltip.PowerDistributor=Distributes energy inside the network. You will need one of these per network. Adding more than one has no effect.
 oc:tooltip.RedstoneCard=Allows reading and emitting redstone signals around the computer or robot.
-oc:tooltip.RedstoneCard.RedLogic=RedLogic is [a]supported[7].
-oc:tooltip.RedstoneCard.RedNet=RedNet is [a]supported[7].
-oc:tooltip.Robot=Unlike computers, [m]turtles[r][7] robots can move around and interact with the world much like a player can. They can [o]not[r][7] interact with external components, however!
+oc:tooltip.RedstoneCard.RedLogic=RedLogic is §asupported§7.
+oc:tooltip.RedstoneCard.RedNet=RedNet is §asupported§7.
+oc:tooltip.Robot=Unlike computers, §mturtles§r§7 robots can move around and interact with the world much like a player can. They can §onot§r§7 interact with external components, however!
 oc:tooltip.Router=Allows connecting different networks to each other. Only network messages will be passed along, components will not be visible through this. Use this to separate networks while still allowing communication using Network Cards, for example.
-oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Computer.[nl] Maximum resolution: [f]%sx%s[7].[nl] Maximum color depth: [f]%s[7].
+oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Computer.[nl] Maximum resolution: §f%sx%s§7.[nl] Maximum color depth: §f%s§7.
 oc:tooltip.TooLong=Hold shift for a detailed tooltip.
-oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. Make sure to set the [f]signal strength[7] or no wireless packet will be sent!
+oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. Make sure to set the §fsignal strength§7 or no wireless packet will be sent!

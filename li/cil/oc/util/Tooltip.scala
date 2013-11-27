@@ -18,11 +18,10 @@ object Tooltip {
       else Seq(StatCollector.translateToLocal(Settings.namespace + "tooltip.TooLong"))
     }
     else {
-      val regex = """(\[[0123456789abcdefklmnor]\])""".r
       val nl = """\[nl\]"""
       val lines = mutable.ArrayBuffer.empty[String]
       tooltip.split(nl).foreach(line => {
-        val formatted = regex.replaceAllIn(line.trim, m => "§" + m.group(1).charAt(1)).stripLineEnd
+        val formatted = line.trim.stripLineEnd
         var start = 0
         var end = 0
         var count = 0
