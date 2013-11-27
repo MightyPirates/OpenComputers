@@ -227,8 +227,10 @@ sandbox = {
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
-    address = os.address,
     isRobot = os.isRobot,
+    address = os.address,
+    romAddress = os.romAddress,
+    tmpAddress = os.tmpAddress,
     freeMemory = os.freeMemory,
     totalMemory = os.totalMemory,
     uptime = os.uptime,
@@ -346,9 +348,7 @@ local function main()
         local buffer = ""
         repeat
           local data = rom.read(handle)
-          if data then
-            buffer = buffer .. data
-          end
+          buffer = buffer .. (data or "")
         until not data
         rom.close(handle)
         local program, reason = load(buffer, "=" .. file, "t", sandbox)
@@ -357,10 +357,10 @@ local function main()
           if result[1] then
             return table.unpack(result, 2, result.n)
           else
-            error("error initializing lib: " .. result[2])
+            error(result[2])
           end
         else
-          error("error loading lib: " .. reason)
+          error(reason)
         end
       end
     end
@@ -383,19 +383,7 @@ local function main()
     -- Yield once to get a memory baseline.
     coroutine.yield()
 
-    return coroutine.create(load(string.format([[
-      fs.mount("%s", "/")
-      fs.mount("%s", "/tmp")
-      for c, t in component.list() do
-        os.pushSignal("component_added", c, t)
-      end
-      term.clear()
-      while true do
-        local result, reason = os.execute("/bin/sh -v")
-        if not result then
-          print(reason)
-        end
-      end]], os.romAddress(), os.tmpAddress()), "=init", "t", sandbox))
+    return coroutine.create(function() dofile("/init.lua") end)
   end
   local co, args = bootstrap(), {n=0}
   while true do
