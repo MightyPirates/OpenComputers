@@ -31,6 +31,8 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
   val robotInventory = new Inventory(this)
   inventory = robotInventory
 
+  var facing = ForgeDirection.UNKNOWN
+
   def world = robot.worldObj
 
   override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
@@ -38,6 +40,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
   // ----------------------------------------------------------------------- //
 
   def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
+    this.facing = facing
     // Slightly offset in robot's facing to avoid glitches (e.g. Portal Gun).
     val direction = Vec3.createVectorHelper(
       facing.offsetX + side.offsetX * 0.5 + robot.facing.offsetX * 0.01,
@@ -50,7 +53,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     prevRotationYaw = rotationYaw
   }
 
-  def closestLivingEntity(side: ForgeDirection) = {
+  def closestLivingEntity(side: ForgeDirection = facing) = {
     entitiesOnSide[EntityLivingBase](side).
       foldLeft((Double.PositiveInfinity, None: Option[EntityLivingBase])) {
       case ((bestDistance, bestEntity), entity: EntityLivingBase) =>

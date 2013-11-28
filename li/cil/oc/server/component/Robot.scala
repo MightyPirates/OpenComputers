@@ -3,13 +3,13 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.robot.ActivationType
+import li.cil.oc.server.component.robot.{Player, ActivationType}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
-import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType, Vec3}
+import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
@@ -217,11 +217,11 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     }
     else {
       player.setSneaking(sneaky)
-      val what = Option(pick(facing, side, Settings.get.useAndPlaceRange)) match {
+      val what = Option(pick(player, Settings.get.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if Settings.get.canPlaceInAir && player.closestLivingEntity(facing).isEmpty =>
+        case None if Settings.get.canPlaceInAir && player.closestLivingEntity().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(stack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
@@ -305,7 +305,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       context.pause(Settings.get.swingDelay)
       robot.animateSwing(Settings.get.swingDelay)
     }
-    Option(pick(facing, side, Settings.get.swingRange)) match {
+    Option(pick(player, Settings.get.swingRange)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
@@ -321,7 +321,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         }
         what
       case _ =>
-        player.closestLivingEntity(facing) match {
+        player.closestLivingEntity() match {
           case Some(entity) =>
             player.attackTargetEntityWithCurrentItem(entity)
             triggerDelay()
@@ -362,7 +362,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case _ => result(false)
       }
     player.setSneaking(sneaky)
-    val what = Option(pick(facing, side, Settings.get.useAndPlaceRange)) match {
+    val what = Option(pick(player, Settings.get.useAndPlaceRange)) match {
       case Some(hit) =>
         hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
@@ -449,7 +449,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
     if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      robot.player().closestLivingEntity(side) match {
+      robot.player().closestLivingEntity() match {
         case Some(entity) => (true, "entity")
         case _ => (false, "air")
       }
@@ -474,12 +474,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       0.5f - side.offsetZ * 0.5f)
   }
 
-  private def pick(facing: ForgeDirection, side: ForgeDirection, range: Double) = {
-    val (bx, by, bz) = (x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ)
-    val (hx, hy, hz) = (0.5 + side.offsetX * range, 0.5 + side.offsetY * range, 0.5 + side.offsetZ * range)
-    val origin = Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5)
-    val target = Vec3.createVectorHelper(bx + hx, by + hy, bz + hz)
-    world.clip(origin, target)
+  private def pick(player: Player, range: Double) = {
+    val hit = player.rayTrace(range, 1)
+    player.closestLivingEntity() match {
+      case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case _ => hit
+    }
   }
 
   private def clickParamsFromHit(hit: MovingObjectPosition) = {
