@@ -29,8 +29,8 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onChargerStateRequest(p: PacketParser) =
-    p.readTileEntity[Computer]() match {
-      case Some(t) => PacketSender.sendComputerState(t, Option(p.player))
+    p.readTileEntity[Charger]() match {
+      case Some(t) => PacketSender.sendChargerState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 
