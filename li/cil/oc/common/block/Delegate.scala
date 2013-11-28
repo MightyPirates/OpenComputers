@@ -6,7 +6,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{Vec3, AxisAlignedBB, Icon}
+import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB, Icon}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -55,6 +55,8 @@ trait Delegate {
   def damageDropped = blockId
 
   def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = false
+
+  def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = createItemStack()
 
   def getRenderColor = 0xFFFFFF
 

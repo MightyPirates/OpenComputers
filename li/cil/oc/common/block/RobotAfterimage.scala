@@ -5,11 +5,18 @@ import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.MovingObjectPosition
 
 class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "RobotAfterimage"
 
   override val showInItemList = false
+
+  override def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+    findMovingRobot(world, x, y, z) match {
+      case Some(robot) => robot.createItemStack()
+      case _ => null
+    }
 
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
     super.breakBlock(world, x, y, z, blockId)

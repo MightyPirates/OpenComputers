@@ -10,7 +10,7 @@ import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
-import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
+import net.minecraft.util.{Vec3, MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
@@ -504,7 +504,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   private def pick(player: Player, range: Double) = {
-    val hit = player.rayTrace(range, 1)
+    val blockCenter = Vec3.createVectorHelper(player.posX + player.facing.offsetX, player.posY + player.facing.offsetY, player.posZ + player.facing.offsetZ)
+    val realRange = player.getDistance(blockCenter.xCoord + player.side.offsetX * range, blockCenter.yCoord + player.side.offsetY * range, blockCenter.zCoord + player.side.offsetZ * range)
+    val hit = player.rayTrace(realRange, 1)
     player.closestEntity[EntityLivingBase]() match {
       case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit

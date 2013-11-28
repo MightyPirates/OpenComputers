@@ -14,7 +14,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{Vec3, AxisAlignedBB}
+import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
@@ -142,6 +142,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   def dropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {
     dropBlockAsItem_do(world, x, y, z, stack)
   }
+
+  override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.pickBlock(target, world, x, y, z)
+      case _ => super.getPickBlock(target, world, x, y, z)
+    }
 
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {

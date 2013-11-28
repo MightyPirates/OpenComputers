@@ -20,13 +20,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     GL11.glPushMatrix()
     Delegator.subBlock(block, metadata) match {
       case Some(cable: Cable) =>
-        GL11.glTranslatef(0, 0.3f, 0)
         GL11.glScalef(1.6f, 1.6f, 1.6f)
-        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        GL11.glTranslatef(-0.5f, -0.3f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
       case Some(proxy@(_: RobotProxy | _: RobotAfterimage)) =>
-        GL11.glTranslatef(0, -0.1f, 0)
         GL11.glScalef(1.5f, 1.5f, 1.5f)
+        GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
       case _ =>
         val renderFace = Array(

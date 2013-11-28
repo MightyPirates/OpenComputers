@@ -137,6 +137,23 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
+  def createItemStack() = {
+    val stack = Blocks.robotProxy.createItemStack()
+    if (globalBuffer > 1) {
+      stack.setTagCompound(new NBTTagCompound("tag"))
+      stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", globalBuffer.toInt)
+    }
+    stack
+  }
+
+  def parseItemStack(stack: ItemStack) {
+    if (stack.hasTagCompound) {
+      battery.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   def isAnimatingMove = animationTicksLeft > 0 && moveDirection != ForgeDirection.UNKNOWN
 
   def isAnimatingSwing = animationTicksLeft > 0 && swingingTool

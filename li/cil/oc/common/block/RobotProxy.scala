@@ -8,8 +8,7 @@ import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{AxisAlignedBB, Vec3}
+import net.minecraft.util.{MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
@@ -28,6 +27,12 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
     }
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
+
+  override def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy => proxy.robot.createItemStack()
+      case _ => null
+    }
 
   // ----------------------------------------------------------------------- //
 
@@ -90,29 +95,22 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
     super.onBlockPlacedBy(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getBlockTileEntity(x, y, z)) match {
       case (player: robot.Player, proxy: tileentity.RobotProxy) =>
-        Some((proxy, player.robot.owner))
+        Some((proxy.robot, player.robot.owner))
       case (player: EntityPlayer, proxy: tileentity.RobotProxy) =>
-        Some((proxy, player.getCommandSenderName))
+        Some((proxy.robot, player.getCommandSenderName))
       case _ => None
     }) match {
-      case Some((proxy, owner)) =>
-        proxy.robot.owner = owner
-        if (stack.hasTagCompound) {
-          proxy.robot.battery.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
-        }
+      case Some((robot, owner)) =>
+        robot.owner = owner
+        robot.parseItemStack(stack)
       case _ =>
     }
   }
 
   override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy if !player.capabilities.isCreativeMode || proxy.globalBuffer > 0 =>
-        val stack = createItemStack()
-        if (proxy.globalBuffer > 1) {
-          stack.setTagCompound(new NBTTagCompound("tag"))
-          stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", proxy.globalBuffer.toInt)
-        }
-        parent.dropBlockAsItem(world, x, y, z, stack)
+      case proxy: tileentity.RobotProxy if !player.capabilities.isCreativeMode || proxy.globalBuffer > 1 =>
+        parent.dropBlockAsItem(world, x, y, z, proxy.robot.createItemStack())
       case _ =>
     }
     super.onBlockRemovedBy(world, x, y, z, player)
