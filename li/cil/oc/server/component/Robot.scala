@@ -6,7 +6,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.robot.{Player, ActivationType}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
-import net.minecraft.entity.Entity
+import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
@@ -14,6 +14,7 @@ import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
+import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
@@ -306,27 +307,33 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       context.pause(Settings.get.swingDelay)
       robot.animateSwing(Settings.get.swingDelay)
     }
+    def attack(entity: Entity) = {
+      beginConsumeDrops(entity)
+      player.attackTargetEntityWithCurrentItem(entity)
+      endConsumeDrops(entity)
+      triggerDelay()
+      result(true, "entity")
+    }
+    def click(x: Int, y: Int, z: Int, side: Int) = {
+      val broke = player.clickBlock(x, y, z, side)
+      if (broke) {
+        triggerDelay()
+      }
+      result(broke, "block")
+    }
     Option(pick(player, Settings.get.swingRange)) match {
       case Some(hit) =>
         val what = hit.typeOfHit match {
           case EnumMovingObjectType.ENTITY =>
-            player.attackTargetEntityWithCurrentItem(hit.entityHit)
-            triggerDelay()
-            result(true, "entity")
+            attack(hit.entityHit)
           case EnumMovingObjectType.TILE =>
-            val broke = player.clickBlock(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
-            if (broke) {
-              triggerDelay()
-            }
-            result(broke, "block")
+            click(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
         }
         what
-      case _ =>
-        player.closestEntity[Entity]() match {
+      case _ => // Retry with full block bounds, disregarding swing range.
+        player.closestEntity[EntityLivingBase]() match {
           case Some(entity) =>
-            player.attackTargetEntityWithCurrentItem(entity)
-            triggerDelay()
-            result(true, "entity")
+            attack(entity)
           case _ =>
             result(false)
         }
@@ -363,17 +370,19 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case _ => result(false)
       }
     player.setSneaking(sneaky)
+    def interact(entity: Entity) = {
+      beginConsumeDrops(entity)
+      val result = player.interactWith(entity)
+      endConsumeDrops(entity)
+      result
+    }
     val what = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-      case Some(hit) =>
-        hit.typeOfHit match {
-          case EnumMovingObjectType.ENTITY =>
-            // TODO Is there any practical use for this? Most of the stuff related to this is still 'obfuscated'...
-            // TODO I think this is used for shearing sheep, for example... needs looking into.
-            result(false, "entity")
-          case EnumMovingObjectType.TILE =>
-            val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-            activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
-        }
+      case Some(hit) if hit.typeOfHit == EnumMovingObjectType.ENTITY && interact(hit.entityHit) =>
+        triggerDelay()
+        result(true, "item_interacted")
+      case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
+        val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
+        activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
       case _ =>
         (if (Settings.get.canPlaceInAir) {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
@@ -445,6 +454,25 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   // ----------------------------------------------------------------------- //
 
+  private def beginConsumeDrops(entity: Entity) {
+    entity.captureDrops = true
+  }
+
+  private def endConsumeDrops(entity: Entity) {
+    val player = robot.player()
+    entity.captureDrops = false
+    for (drop <- entity.capturedDrops) {
+      val stack = drop.getEntityItem
+      player.inventory.addItemStackToInventory(stack)
+      if (stack.stackSize > 0) {
+        player.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+      }
+    }
+    entity.capturedDrops.clear()
+  }
+
+  // ----------------------------------------------------------------------- //
+
   private def blockContent(side: ForgeDirection) = {
     val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
     val id = world.getBlockId(bx, by, bz)
@@ -477,7 +505,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   private def pick(player: Player, range: Double) = {
     val hit = player.rayTrace(range, 1)
-    player.closestEntity[Entity]() match {
+    player.closestEntity[EntityLivingBase]() match {
       case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }

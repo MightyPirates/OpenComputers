@@ -83,6 +83,16 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     }
   }
 
+  override def interactWith(entity: Entity) = {
+    val stack = getCurrentEquippedItem
+    val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
+    val result = super.interactWith(entity)
+    if (stack != null && stack.stackSize > 0) {
+      tryRepair(stack, oldDamage)
+    }
+    result
+  }
+
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
     if (event.isCanceled || event.useBlock == Event.Result.DENY) {
@@ -329,8 +339,6 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
   override def travelToDimension(dimension: Int) {}
 
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
-
-  override def interactWith(entity: Entity) = false // TODO Or do we want this?
 
   def canCommandSenderUseCommand(i: Int, s: String) = false
 
