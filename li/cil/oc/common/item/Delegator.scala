@@ -1,6 +1,8 @@
 package li.cil.oc.common.item
 
 import java.util
+import li.cil.oc.api.driver.Slot
+import li.cil.oc.server.driver.Registry
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
@@ -65,7 +67,18 @@ class Delegator(id: Int) extends Item(id) {
       case _ => super.getIconFromDamage(damage)
     }
 
-  override def getRarity(stack: ItemStack) = EnumRarity.uncommon
+  override def getRarity(stack: ItemStack): EnumRarity = {
+    Registry.driverFor(stack) match {
+      case Some(driver) => driver.slot(stack) match {
+        case Slot.Card => return EnumRarity.uncommon
+        case Slot.HardDiskDrive => return EnumRarity.rare
+        case Slot.Upgrade => return EnumRarity.epic
+        case _ =>
+      }
+      case _ =>
+    }
+    EnumRarity.common
+  }
 
   override def getShareTag = false
 

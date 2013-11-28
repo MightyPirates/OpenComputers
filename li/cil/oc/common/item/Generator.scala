@@ -11,7 +11,7 @@ class Generator(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Generator"
 
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    tooltip.addAll(Tooltip.get(unlocalizedName, (Settings.get.generatorEfficiency * 100).toInt))
     super.addInformation(stack, player, tooltip, advanced)
   }
 
