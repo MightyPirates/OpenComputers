@@ -14,7 +14,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
     super.breakBlock(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {
-      case Some(robot) => world.setBlockToAir(robot.x, robot.y, robot.z)
+      case Some(robot) if robot.isAnimatingMove => world.setBlockToAir(robot.x, robot.y, robot.z)
       case _ => // Probably broken by the robot we represent.
     }
   }
@@ -52,11 +52,11 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
     }
   }
 
-  private def findMovingRobot(world: IBlockAccess, x: Int, y: Int, z: Int): Option[tileentity.Robot] = {
+  def findMovingRobot(world: IBlockAccess, x: Int, y: Int, z: Int): Option[tileentity.Robot] = {
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (rx, ry, rz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
       world.getBlockTileEntity(rx, ry, rz) match {
-        case proxy: tileentity.RobotProxy if proxy.robot.isAnimatingMove && proxy.robot.moveDirection == side => return Some(proxy.robot)
+        case proxy: tileentity.RobotProxy if proxy.robot.moveDirection == side => return Some(proxy.robot)
         case _ =>
       }
     }

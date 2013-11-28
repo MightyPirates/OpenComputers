@@ -5,7 +5,7 @@ import cpw.mods.fml.common.network.Player
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.util.logging.Level
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTBase}
 import net.minecraft.network.INetworkManager
@@ -55,8 +55,14 @@ abstract class PacketHandler extends IPacketHandler {
         case None => // Invalid dimension.
         case Some(world) =>
           val t = world.getBlockTileEntity(x, y, z)
-          if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass))
+          if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
             return Some(t.asInstanceOf[T])
+          }
+          // Special handling for robot after images to avoid them having to
+          Blocks.robotAfterimage.findMovingRobot(world, x, y, z) match {
+            case Some(robot) if classTag[T].runtimeClass.isAssignableFrom(robot.proxy.getClass) => return Some(robot.proxy.asInstanceOf[T])
+            case _ =>
+          }
       }
       None
     }
