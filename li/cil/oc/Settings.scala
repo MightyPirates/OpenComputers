@@ -72,6 +72,7 @@ class Settings(config: Config) {
   val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
+  val generatorEfficiency = config.getDouble("power.generatorEfficiency")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0

@@ -32,6 +32,35 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   override def isRobot = true
 
+  override def getStackInSelectedSlot = stackInSlot(selectedSlot).orNull
+
+  override def setStackInSelectedSlot(stack: ItemStack): Boolean = {
+    val existingStack = stackInSlot(selectedSlot).orNull
+    if (stack == existingStack) {
+      robot.onInventoryChanged()
+      return true
+    }
+    if (existingStack != null &&
+      !ItemStack.areItemStacksEqual(existingStack, stack) ||
+      !ItemStack.areItemStackTagsEqual(existingStack, stack) ||
+      existingStack.stackSize >= robot.getInventoryStackLimit) {
+      return false
+    }
+    val maxStackSize = stack.getMaxStackSize min robot.getInventoryStackLimit
+    if (existingStack != null) {
+      val space = maxStackSize - existingStack.stackSize
+      val moveCount = stack.stackSize min space
+      existingStack.stackSize += moveCount
+      stack.stackSize -= moveCount
+      robot.onInventoryChanged()
+    }
+    else {
+      val moveCount = stack.stackSize min maxStackSize
+      robot.setInventorySlotContents(selectedSlot, stack.splitStack(moveCount))
+    }
+    true
+  }
+
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("select")

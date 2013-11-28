@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.driver.Registry
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -30,6 +31,13 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     case 1 => 6
     case 2 => 8
   }
+
+  override def isUseableByPlayer(player: EntityPlayer) =
+    world.getBlockTileEntity(x, y, z) match {
+      case t: TileEntity if t == this && computer.canInteract(player.getCommandSenderName) =>
+        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+      case _ => false
+    }
 
   def isItemValidForSlot(slot: Int, stack: ItemStack) = tier match {
     case 0 => (slot, Registry.driverFor(stack)) match {

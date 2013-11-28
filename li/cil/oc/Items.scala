@@ -8,10 +8,10 @@ object Items {
 
   var analyzer: item.Analyzer = null
   var disk: item.Disk = null
+  var generator: item.Generator = null
   var gpu1, gpu2, gpu3: item.GraphicsCard = null
   var hdd1, hdd2, hdd3: item.HardDiskDrive = null
   var lan: item.NetworkCard = null
-  var psu: item.PowerSupply = null
   var ram1, ram2, ram3: item.Memory = null
   var rs: item.RedstoneCard = null
   var wlan: item.WirelessNetworkCard = null
@@ -35,7 +35,7 @@ object Items {
     hdd2 = new item.HardDiskDrive(multi, 1)
     hdd3 = new item.HardDiskDrive(multi, 2)
     lan = new item.NetworkCard(multi)
-    psu = new item.PowerSupply(multi)
+    generator = new item.Generator(multi)
     ram1 = new item.Memory(multi, 0)
     ram2 = new item.Memory(multi, 1)
     ram3 = new item.Memory(multi, 2)

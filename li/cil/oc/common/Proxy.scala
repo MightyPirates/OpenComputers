@@ -30,7 +30,7 @@ class Proxy {
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
-    api.Driver.add(driver.item.PowerSupply)
+    api.Driver.add(driver.item.Generator)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.WirelessNetworkCard)
 

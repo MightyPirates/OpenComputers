@@ -90,7 +90,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     player_
   }
 
-  def actualSlot(n: Int) = n + 3
+  def actualSlot(n: Int) = n + 4
 
   def move(direction: ForgeDirection) = {
     val (ox, oy, oz) = (x, y, z)
@@ -330,7 +330,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override protected def isComponentSlot(slot: Int) = slot == 1 || slot == 2
+  override protected def isComponentSlot(slot: Int) = slot > 0 && slot < actualSlot(0)
 
   // ----------------------------------------------------------------------- //
 
@@ -350,7 +350,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def getInvName = Settings.namespace + "container.Robot"
 
-  def getSizeInventory = 19
+  def getSizeInventory = 20
 
   override def getInventoryStackLimit = 64
 
@@ -368,7 +368,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: RobotProxy if t == proxy => player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+      case t: RobotProxy if t == proxy && computer.canInteract(player.getCommandSenderName) =>
+        player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false
     }
 
@@ -376,7 +377,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
-    case (i, _) if 3 until getSizeInventory contains i => true // Normal inventory.
+    case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade
+    case (i, _) if actualSlot(0) until getSizeInventory contains i => true // Normal inventory.
     case _ => false // Invalid slot.
   }
 
@@ -394,6 +396,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case ForgeDirection.WEST => Array(0)
       case ForgeDirection.EAST => Array(1)
       case ForgeDirection.NORTH => Array(2)
-      case _ => (3 until getSizeInventory).toArray
+      case _ => (actualSlot(3) until getSizeInventory).toArray
     }
 }
