@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network.{Node, Visibility}
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 class Charger extends Environment with Redstone {
@@ -38,21 +39,37 @@ class Charger extends Environment with Redstone {
     }
   }
 
-  override def validate() {
-    super.validate()
-    chargeSpeed = 0.0 max (ForgeDirection.VALID_DIRECTIONS.map(input).max min 15) / 15.0
-    if (isClient) {
-      ClientPacketSender.sendChargerStateRequest(this)
-      ClientPacketSender.sendRedstoneStateRequest(this)
-    }
-  }
-
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
       onNeighborChanged()
     }
   }
+
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    chargeSpeed = nbt.getDouble("chargeSpeed")
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    nbt.setDouble("chargeSpeed", chargeSpeed)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    chargeSpeed = nbt.getDouble("chargeSpeed")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setDouble("chargeSpeed", chargeSpeed)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)

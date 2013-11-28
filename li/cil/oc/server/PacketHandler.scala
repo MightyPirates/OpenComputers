@@ -14,23 +14,10 @@ class PacketHandler extends CommonPacketHandler {
 
   def dispatch(p: PacketParser) =
     p.packetType match {
-      case PacketType.ChargerStateRequest => onChargerStateRequest(p)
       case PacketType.ComputerPower => onComputerPower(p)
-      case PacketType.ComputerStateRequest => onComputerStateRequest(p)
-      case PacketType.PowerStateRequest => onPowerStateRequest(p)
-      case PacketType.RedstoneStateRequest => onRedstoneStateRequest(p)
-      case PacketType.RobotStateRequest => onRobotStateRequest(p)
-      case PacketType.RotatableStateRequest => onRotatableStateRequest(p)
-      case PacketType.ScreenBufferRequest => onScreenBufferRequest(p)
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
-      case _ => // Invalid packet.
-    }
-
-  def onChargerStateRequest(p: PacketParser) =
-    p.readTileEntity[Charger]() match {
-      case Some(t) => PacketSender.sendChargerState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 
@@ -44,42 +31,6 @@ class PacketHandler extends CommonPacketHandler {
           else t.computer.stop()
         case _ =>
       }
-      case _ => // Invalid packet.
-    }
-
-  def onComputerStateRequest(p: PacketParser) =
-    p.readTileEntity[Computer]() match {
-      case Some(t) => PacketSender.sendComputerState(t, Option(p.player))
-      case _ => // Invalid packet.
-    }
-
-  def onPowerStateRequest(p: PacketParser) =
-    p.readTileEntity[PowerInformation]() match {
-      case Some(t) => PacketSender.sendPowerState(t, Option(p.player))
-      case _ => // Invalid packet.
-    }
-
-  def onRedstoneStateRequest(p: PacketParser) =
-    p.readTileEntity[Redstone]() match {
-      case Some(t) => PacketSender.sendRedstoneState(t, Option(p.player))
-      case _ => // Invalid packet.
-    }
-
-  def onRobotStateRequest(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) => PacketSender.sendRobotState(t.robot, Option(p.player))
-      case _ => // Invalid packet.
-    }
-
-  def onRotatableStateRequest(p: PacketParser) =
-    p.readTileEntity[Rotatable]() match {
-      case Some(t) => PacketSender.sendRotatableState(t, Option(p.player))
-      case _ => // Invalid packet.
-    }
-
-  def onScreenBufferRequest(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) => PacketSender.sendScreenBufferState(t, Option(p.player))
       case _ => // Invalid packet.
     }
 

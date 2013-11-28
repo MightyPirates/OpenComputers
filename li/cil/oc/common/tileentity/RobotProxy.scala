@@ -12,6 +12,7 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 
 class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation {
   def this() = this(new Robot(false))
@@ -85,6 +86,11 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   override def save(nbt: NBTTagCompound) = robot.save(nbt)
 
   override def load(nbt: NBTTagCompound) = robot.load(nbt)
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) = robot.readFromNBTForClient(nbt)
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) = robot.writeToNBTForClient(nbt)
 
   override def getMaxRenderDistanceSquared = robot.getMaxRenderDistanceSquared
 

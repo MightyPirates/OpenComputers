@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
@@ -9,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
-trait Rotatable extends TileEntity with Persistable {
+trait Rotatable extends RotationAware with Persistable {
   // ----------------------------------------------------------------------- //
   // Lookup tables
   // ----------------------------------------------------------------------- //
@@ -137,9 +138,9 @@ trait Rotatable extends TileEntity with Persistable {
     trySetPitchYaw(newPitch, newYaw)
   }
 
-  def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
+  override def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
 
-  def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
+  override def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
 
   // ----------------------------------------------------------------------- //
 
@@ -155,7 +156,6 @@ trait Rotatable extends TileEntity with Persistable {
 
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
-
     _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
     _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
     updateTranslation()
@@ -163,9 +163,22 @@ trait Rotatable extends TileEntity with Persistable {
 
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
-
     nbt.setInteger(Settings.namespace + "pitch", _pitch.ordinal)
     nbt.setInteger(Settings.namespace + "yaw", _yaw.ordinal)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
+    _yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
+    updateTranslation()
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setInteger("pitch", _pitch.ordinal)
+    nbt.setInteger("yaw", _yaw.ordinal)
   }
 
   // ----------------------------------------------------------------------- //

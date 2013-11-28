@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional.Interface
 import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -17,7 +18,7 @@ import net.minecraftforge.common.ForgeDirection
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
-trait Redstone extends TileEntity with network.Environment with Rotatable with Persistable with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
+trait Redstone extends RotationAware with network.Environment with Persistable with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
   protected val _input = Array.fill(6)(-1)
 
   protected val _output = Array.fill(6)(0)
@@ -84,6 +85,19 @@ trait Redstone extends TileEntity with network.Environment with Rotatable with P
 
     nbt.setIntArray(Settings.namespace + "rs.input", _input)
     nbt.setIntArray(Settings.namespace + "rs.output", _output)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    isOutputEnabled = nbt.getBoolean("isOutputEnabled")
+    nbt.getIntArray("output").copyToArray(_output)
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("isOutputEnabled", isOutputEnabled)
+    nbt.setIntArray("output", _output)
   }
 
   // ----------------------------------------------------------------------- //

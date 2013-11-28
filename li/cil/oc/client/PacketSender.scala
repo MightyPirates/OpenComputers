@@ -5,67 +5,11 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 
 object PacketSender {
-  def sendChargerStateRequest(t: Charger) {
-    val pb = new PacketBuilder(PacketType.ChargerStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
   def sendComputerPower(t: Computer, power: Boolean) {
     val pb = new PacketBuilder(PacketType.ComputerPower)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(power)
-
-    pb.sendToServer()
-  }
-
-  def sendComputerStateRequest(t: Computer) {
-    val pb = new PacketBuilder(PacketType.ComputerStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
-  def sendPowerStateRequest(t: PowerInformation) {
-    val pb = new PacketBuilder(PacketType.PowerStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
-  def sendRedstoneStateRequest(t: Redstone) {
-    val pb = new PacketBuilder(PacketType.RedstoneStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
-  def sendRobotStateRequest(t: Robot) {
-    val pb = new PacketBuilder(PacketType.RobotStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
-  def sendRotatableStateRequest(t: Rotatable) {
-    val pb = new PacketBuilder(PacketType.RotatableStateRequest)
-
-    pb.writeTileEntity(t)
-
-    pb.sendToServer()
-  }
-
-  def sendScreenBufferRequest(t: Buffer) {
-    val pb = new PacketBuilder(PacketType.ScreenBufferRequest)
-
-    pb.writeTileEntity(t)
 
     pb.sendToServer()
   }

@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -43,12 +42,5 @@ class PowerDistributor extends Environment with PowerInformation with Analyzable
   override def updateEntity() {
     super.updateEntity()
     distributor.update()
-  }
-
-  override def validate() {
-    super.validate()
-    if (isClient) {
-      ClientPacketSender.sendPowerStateRequest(this)
-    }
   }
 }

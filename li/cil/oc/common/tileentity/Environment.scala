@@ -5,6 +5,8 @@ import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.network.INetworkManager
+import net.minecraft.network.packet.Packet132TileEntityData
 import scala.math.ScalaNumber
 
 abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment with Persistable {
@@ -49,6 +51,18 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
     super.writeToNBT(nbt)
     save(nbt)
     if (node != null && node.host == this) nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getDescriptionPacket = {
+    val nbt = new NBTTagCompound()
+    writeToNBTForClient(nbt)
+    if (nbt.hasNoTags) null else new Packet132TileEntityData(x, y, z, -1, nbt)
+  }
+
+  override def onDataPacket(manager: INetworkManager, packet: Packet132TileEntityData) {
+    readFromNBTForClient(packet.data)
   }
 
   // ----------------------------------------------------------------------- //

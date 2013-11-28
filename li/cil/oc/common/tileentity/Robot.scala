@@ -221,11 +221,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         case _ =>
       }
     }
-    else {
-      ClientPacketSender.sendPowerStateRequest(this)
-      ClientPacketSender.sendRobotStateRequest(this)
-      ClientPacketSender.sendScreenBufferRequest(this)
-    }
   }
 
   override def invalidate() {
@@ -272,6 +267,37 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       nbt.setByte(Settings.namespace + "moveDirection", moveDirection.ordinal.toByte)
       nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
       nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
+    }
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    selectedSlot = nbt.getInteger("selectedSlot")
+    if (nbt.hasKey("equipped")) {
+      equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
+    }
+    animationTicksTotal = nbt.getInteger("animationTicksTotal")
+    animationTicksLeft = nbt.getInteger("animationTicksLeft")
+    if (animationTicksLeft > 0) {
+      moveDirection = ForgeDirection.getOrientation(nbt.getByte("moveDirection"))
+      swingingTool = nbt.getBoolean("swingingTool")
+      turnAxis = nbt.getByte("turnAxis")
+    }
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setInteger("selectedSlot", selectedSlot)
+    if (getStackInSlot(0) != null) {
+      nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
+    }
+    if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
+      nbt.setInteger("animationTicksTotal", animationTicksTotal)
+      nbt.setInteger("animationTicksLeft", animationTicksLeft)
+      nbt.setByte("moveDirection", moveDirection.ordinal.toByte)
+      nbt.setBoolean("swingingTool", swingingTool)
+      nbt.setByte("turnAxis", turnAxis.toByte)
     }
   }
 

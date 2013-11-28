@@ -2,36 +2,20 @@ package li.cil.oc.common
 
 object PacketType extends Enumeration {
   val
-  ChargerStateRequest,
-  ChargerStateResponse,
-
-  ComputerPower,
-
-  ComputerStateRequest,
-  ComputerStateResponse,
-
+  // Server -> Client
+  Analyze,
+  ChargerState,
+  ComputerState,
   ItemComponentAddress,
-
-  PowerStateRequest,
-  PowerStateResponse,
-
-  RedstoneStateRequest,
-  RedstoneStateResponse,
-
+  PowerState,
+  RedstoneState,
   RobotAnimateSwing,
   RobotAnimateTurn,
   RobotEquippedItemChange,
   RobotMove,
   RobotSelectedSlotChange,
-  RobotStateRequest,
-  RobotStateResponse,
-
-  RotatableStateRequest,
-  RotatableStateResponse,
-
-  ScreenBufferRequest,
-  ScreenBufferResponse,
-
+  RobotState,
+  RotatableState,
   ScreenColorChange,
   ScreenCopy,
   ScreenDepthChange,
@@ -40,9 +24,9 @@ object PacketType extends Enumeration {
   ScreenResolutionChange,
   ScreenSet,
 
+  // Client -> Server
+  ComputerPower,
   KeyDown,
   KeyUp,
-  Clipboard,
-
-  Analyze = Value
+  Clipboard = Value
 }

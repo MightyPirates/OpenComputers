@@ -25,19 +25,18 @@ class PacketHandler extends CommonPacketHandler {
   override def dispatch(p: PacketParser) =
     p.packetType match {
       case PacketType.Analyze => onAnalyze(p)
-      case PacketType.ChargerStateResponse => onChargerStateResponse(p)
-      case PacketType.ComputerStateResponse => onComputerStateResponse(p)
+      case PacketType.ChargerState => onChargerState(p)
+      case PacketType.ComputerState => onComputerState(p)
       case PacketType.ItemComponentAddress => onItemComponentAddress(p)
-      case PacketType.PowerStateResponse => onPowerStateResponse(p)
-      case PacketType.RedstoneStateResponse => onRedstoneStateResponse(p)
+      case PacketType.PowerState => onPowerState(p)
+      case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
-      case PacketType.RobotStateResponse => onRobotStateResponse(p)
-      case PacketType.RotatableStateResponse => onRotatableStateResponse(p)
-      case PacketType.ScreenBufferResponse => onScreenBufferResponse(p)
+      case PacketType.RobotState => onRobotState(p)
+      case PacketType.RotatableState => onRotatableState(p)
       case PacketType.ScreenColorChange => onScreenColorChange(p)
       case PacketType.ScreenCopy => onScreenCopy(p)
       case PacketType.ScreenDepthChange => onScreenDepthChange(p)
@@ -64,13 +63,13 @@ class PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onChargerStateResponse(p: PacketParser) =
+  def onChargerState(p: PacketParser) =
     p.readTileEntity[Charger]() match {
       case Some(t) => t.chargeSpeed = p.readDouble()
       case _ => // Invalid packet.
     }
 
-  def onComputerStateResponse(p: PacketParser) =
+  def onComputerState(p: PacketParser) =
     p.readTileEntity[Computer]() match {
       case Some(t) => t.isRunning = p.readBoolean()
       case _ => // Invalid packet.
@@ -102,7 +101,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onPowerStateResponse(p: PacketParser) =
+  def onPowerState(p: PacketParser) =
     p.readTileEntity[PowerInformation]() match {
       case Some(t) =>
         t.globalBuffer = p.readDouble()
@@ -110,7 +109,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRedstoneStateResponse(p: PacketParser) =
+  def onRedstoneState(p: PacketParser) =
     p.readTileEntity[Redstone]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
@@ -150,7 +149,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotStateResponse(p: PacketParser) =
+  def onRobotState(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(t) =>
         t.robot.selectedSlot = p.readInt()
@@ -163,33 +162,11 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRotatableStateResponse(p: PacketParser) =
+  def onRotatableState(p: PacketParser) =
     p.readTileEntity[Rotatable]() match {
       case Some(t) =>
         t.pitch = p.readDirection()
         t.yaw = p.readDirection()
-      case _ => // Invalid packet.
-    }
-
-  def onScreenBufferResponse(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        val screen = t.buffer
-        val w = p.readInt()
-        val h = p.readInt()
-        screen.resolution = (w, h)
-        p.readUTF.split('\n').zipWithIndex.foreach {
-          case (line, i) => screen.set(0, i, line)
-        }
-        screen.depth = PackedColor.Depth(p.readInt())
-        screen.foreground = p.readInt()
-        screen.background = p.readInt()
-        for (row <- 0 until h) {
-          val rowColor = screen.color(row)
-          for (col <- 0 until w) {
-            rowColor(col) = p.readShort()
-          }
-        }
       case _ => // Invalid packet.
     }
 

@@ -140,14 +140,6 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     }
   }
 
-  override def validate() {
-    super.validate()
-    if (isClient) {
-      ClientPacketSender.sendRotatableStateRequest(this)
-      ClientPacketSender.sendScreenBufferRequest(this)
-    }
-  }
-
   override def invalidate() {
     super.invalidate()
     if (currentGui.isDefined) {

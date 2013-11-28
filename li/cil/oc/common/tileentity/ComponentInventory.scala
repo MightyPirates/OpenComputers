@@ -5,11 +5,10 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.Persistable
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-trait ComponentInventory extends Inventory with network.Environment with Persistable {
+trait ComponentInventory extends Inventory with network.Environment {
   protected lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //

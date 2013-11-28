@@ -23,7 +23,7 @@ object PacketSender {
   }
 
   def sendChargerState(t: Charger, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.ChargerStateResponse)
+    val pb = new PacketBuilder(PacketType.ChargerState)
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.chargeSpeed)
@@ -35,7 +35,7 @@ object PacketSender {
   }
 
   def sendComputerState(t: Computer, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.ComputerStateResponse)
+    val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isRunning)
@@ -59,7 +59,7 @@ object PacketSender {
   }
 
   def sendPowerState(t: PowerInformation, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.PowerStateResponse)
+    val pb = new PacketBuilder(PacketType.PowerState)
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.globalBuffer)
@@ -72,7 +72,7 @@ object PacketSender {
   }
 
   def sendRedstoneState(t: Redstone, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.RedstoneStateResponse)
+    val pb = new PacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isOutputEnabled)
@@ -136,51 +136,12 @@ object PacketSender {
     pb.sendToAllPlayers()
   }
 
-  def sendRobotState(t: Robot, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.RobotStateResponse)
-
-    pb.writeTileEntity(t.proxy)
-    pb.writeInt(t.selectedSlot)
-    pb.writeItemStack(t.getStackInSlot(0))
-    pb.writeInt(t.animationTicksTotal)
-    pb.writeInt(t.animationTicksLeft)
-    pb.writeDirection(t.moveDirection)
-    pb.writeBoolean(t.swingingTool)
-    pb.writeByte(t.turnAxis)
-
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
-    }
-  }
-
   def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.RotatableStateResponse)
+    val pb = new PacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
     pb.writeDirection(t.pitch)
     pb.writeDirection(t.yaw)
-
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
-    }
-  }
-
-  def sendScreenBufferState(t: Buffer, player: Option[Player] = None) {
-    val pb = new PacketBuilder(PacketType.ScreenBufferResponse)
-
-    pb.writeTileEntity(t)
-
-    val screen = t.buffer
-    val (w, h) = screen.resolution
-    pb.writeInt(w)
-    pb.writeInt(h)
-    pb.writeUTF(screen.text)
-    pb.writeInt(screen.depth.id)
-    pb.writeInt(screen.foreground)
-    pb.writeInt(screen.background)
-    for (cs <- screen.color) for (c <- cs) pb.writeShort(c)
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

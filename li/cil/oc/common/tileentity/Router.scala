@@ -9,18 +9,15 @@ import net.minecraftforge.common.ForgeDirection
 class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedEnvironment {
   private val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
+  // ----------------------------------------------------------------------- //
+
   def canConnect(side: ForgeDirection) = true
 
   def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
 
-  override def canUpdate = false
+  // ----------------------------------------------------------------------- //
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    for (plug <- plugs if plug.node != null) {
-      plug.node.remove()
-    }
-  }
+  override def canUpdate = false
 
   override def validate() {
     super.validate()
@@ -34,6 +31,22 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
     }
   }
 
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    for (plug <- plugs if plug.node != null) {
+      plug.node.remove()
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    nbt.getTagList(Settings.namespace + "plugs").iterator[NBTTagCompound].zip(plugs).foreach {
+      case (plugNbt, plug) => plug.node.load(plugNbt)
+    }
+  }
+
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
@@ -43,12 +56,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
     }))
   }
 
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    nbt.getTagList(Settings.namespace + "plugs").iterator[NBTTagCompound].zip(plugs).foreach {
-      case (plugNbt, plug) => plug.node.load(plugNbt)
-    }
-  }
+  // ----------------------------------------------------------------------- //
 
   private class Plug(val side: ForgeDirection) extends api.network.Environment {
     val node = api.Network.newNode(this, Visibility.Network).create()

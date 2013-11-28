@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -75,15 +75,6 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     super.updateEntity()
   }
 
-  override def validate() = {
-    super.validate()
-    if (isClient) {
-      ClientPacketSender.sendRotatableStateRequest(this)
-      ClientPacketSender.sendComputerStateRequest(this)
-      ClientPacketSender.sendRedstoneStateRequest(this)
-    }
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -98,6 +89,17 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     if (isServer) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    isRunning = nbt.getBoolean("isRunning")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("isRunning", isRunning)
   }
 
   // ----------------------------------------------------------------------- //

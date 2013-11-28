@@ -1,6 +1,8 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraft.block.Block
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
 trait TileEntity {
@@ -17,4 +19,9 @@ trait TileEntity {
   def isClient = world.isRemote
 
   def isServer = !isClient
+
+  @SideOnly(Side.CLIENT)
+  def readFromNBTForClient(nbt: NBTTagCompound) {}
+
+  def writeToNBTForClient(nbt: NBTTagCompound) {}
 }

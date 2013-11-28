@@ -5,10 +5,10 @@ import li.cil.oc.api.network.Node
 import li.cil.oc.client.gui
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.{PackedColor, Persistable}
+import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
-trait Buffer extends Environment with Persistable {
+trait Buffer extends Environment {
   protected val _buffer = new component.Buffer(this)
 
   protected var _bufferIsDirty = false
@@ -41,6 +41,17 @@ trait Buffer extends Environment with Persistable {
   override def save(nbt: NBTTagCompound) = {
     super.save(nbt)
     buffer.save(nbt)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    buffer.buffer.load(nbt)
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    buffer.buffer.save(nbt)
   }
 
   // ----------------------------------------------------------------------- //
