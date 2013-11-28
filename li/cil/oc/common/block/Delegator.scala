@@ -133,6 +133,16 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.damageDropped(metadata)
     }
 
+  override def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, metadata: Int, chance: Float, fortune: Int)   =
+    subBlock(metadata) match {
+      case Some(subBlock) if subBlock.dropBlockAsItemWithChance(world, x, y, z, chance, fortune) => // Delegate took care of it.
+      case _ => super.dropBlockAsItemWithChance(world, x, y, z, metadata, chance, fortune)
+    }
+
+  def dropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {
+    dropBlockAsItem_do(world, x, y, z, stack)
+  }
+
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.getRenderColor

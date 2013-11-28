@@ -31,12 +31,12 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (node != null) node.remove()
+    Option(node).foreach(_.remove)
   }
 
   override def invalidate() {
     super.invalidate()
-    if (node != null) node.remove()
+    Option(node).foreach(_.remove)
   }
 
   // ----------------------------------------------------------------------- //

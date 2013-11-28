@@ -54,6 +54,8 @@ trait Delegate {
 
   def damageDropped = blockId
 
+  def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = false
+
   def getRenderColor = 0xFFFFFF
 
   def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255

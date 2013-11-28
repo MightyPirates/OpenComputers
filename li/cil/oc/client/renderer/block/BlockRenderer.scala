@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
-import li.cil.oc.common.block.{RobotProxy, Cable, Delegator}
+import li.cil.oc.common.block.{RobotAfterimage, RobotProxy, Cable, Delegator}
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
@@ -24,7 +24,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
-      case Some(proxy: RobotProxy) =>
+      case Some(proxy@(_: RobotProxy | _: RobotAfterimage)) =>
         GL11.glTranslatef(0, -0.1f, 0)
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         RobotRenderer.renderChassis()
