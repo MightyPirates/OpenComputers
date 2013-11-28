@@ -16,7 +16,6 @@ import net.minecraftforge.common.{ForgeHooks, ForgeDirection}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
-import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
@@ -53,23 +52,15 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     prevRotationYaw = rotationYaw
   }
 
-  def closestLivingEntity(side: ForgeDirection = facing) = {
-    entitiesOnSide[EntityLivingBase](side).
-      foldLeft((Double.PositiveInfinity, None: Option[EntityLivingBase])) {
-      case ((bestDistance, bestEntity), entity: EntityLivingBase) =>
-        val distance = entity.getDistanceSqToEntity(this)
-        if (distance < bestDistance) (distance, Some(entity))
-        else (bestDistance, bestEntity)
-      case (best, _) => best
-    } match {
-      case (_, Some(entity)) => Some(entity)
-      case _ => None
-    }
+  def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection = facing) = {
+    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
+    val bounds = AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+    Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, bounds, this)).map(_.asInstanceOf[Type])
   }
 
   def entitiesOnSide[Type <: Entity : ClassTag](side: ForgeDirection) = {
-    val (bx, by, bz) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    entitiesInBlock[Type](bx, by, bz)
+    val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
+    entitiesInBlock[Type](x, y, z)
   }
 
   def entitiesInBlock[Type <: Entity : ClassTag](x: Int, y: Int, z: Int) = {

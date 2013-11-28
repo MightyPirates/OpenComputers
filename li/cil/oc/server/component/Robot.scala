@@ -6,6 +6,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.robot.{Player, ActivationType}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
+import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
@@ -221,7 +222,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if Settings.get.canPlaceInAir && player.closestLivingEntity().isEmpty =>
+        case None if Settings.get.canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(stack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
@@ -321,7 +322,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         }
         what
       case _ =>
-        player.closestLivingEntity() match {
+        player.closestEntity[Entity]() match {
           case Some(entity) =>
             player.attackTargetEntityWithCurrentItem(entity)
             triggerDelay()
@@ -449,7 +450,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
     if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      robot.player().closestLivingEntity() match {
+      robot.player().closestEntity[Entity]() match {
         case Some(entity) => (true, "entity")
         case _ => (false, "air")
       }
@@ -476,7 +477,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   private def pick(player: Player, range: Double) = {
     val hit = player.rayTrace(range, 1)
-    player.closestLivingEntity() match {
+    player.closestEntity[Entity]() match {
       case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
