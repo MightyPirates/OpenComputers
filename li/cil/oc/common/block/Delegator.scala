@@ -102,9 +102,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // Block
   // ----------------------------------------------------------------------- //
 
-  def addInformation(metadata: Int, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+  def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     subBlock(metadata) match {
-      case Some(subBlock) => subBlock.addInformation(player, tooltip, advanced)
+      case Some(subBlock) => subBlock.addInformation(stack, player, tooltip, advanced)
       case _ =>
     }
   }
@@ -133,7 +133,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.damageDropped(metadata)
     }
 
-  override def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, metadata: Int, chance: Float, fortune: Int)   =
+  override def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, metadata: Int, chance: Float, fortune: Int) =
     subBlock(metadata) match {
       case Some(subBlock) if subBlock.dropBlockAsItemWithChance(world, x, y, z, chance, fortune) => // Delegate took care of it.
       case _ => super.dropBlockAsItemWithChance(world, x, y, z, metadata, chance, fortune)

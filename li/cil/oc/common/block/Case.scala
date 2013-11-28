@@ -6,6 +6,7 @@ import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -15,7 +16,7 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
 
   def tier: Int
 
-  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val slots = tier match {
       case 0 => "2/1/1"
       case 1 => "2/2/2"

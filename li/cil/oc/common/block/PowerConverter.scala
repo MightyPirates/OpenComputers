@@ -1,15 +1,16 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Loader
 import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import cpw.mods.fml.common.Loader
 
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerConverter"
@@ -18,7 +19,7 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
     if (Loader.isModLoaded("IC2")) {
       val ratio = Settings.get.ratioIndustrialCraft2

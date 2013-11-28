@@ -8,7 +8,7 @@ import net.minecraft.nbt.NBTTagCompound
 trait Item extends api.driver.Item {
   def nbt(stack: ItemStack) = {
     if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound())
+      stack.setTagCompound(new NBTTagCompound("tag"))
     }
     val nbt = stack.getTagCompound
     if (!nbt.hasKey(Settings.namespace + "data")) {

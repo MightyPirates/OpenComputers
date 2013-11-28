@@ -7,6 +7,7 @@ import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -17,7 +18,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   def tier: Int
 
-  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get("Screen", w, h, depth))

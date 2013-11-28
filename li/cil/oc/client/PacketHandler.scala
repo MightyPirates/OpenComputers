@@ -85,7 +85,7 @@ class PacketHandler extends CommonPacketHandler {
         val stack = t.getStackInSlot(slot)
         if (stack != null && stack.itemID == id && stack.getItemDamage == damage) {
           if (!stack.hasTagCompound) {
-            stack.setTagCompound(new NBTTagCompound())
+            stack.setTagCompound(new NBTTagCompound("tag"))
           }
           val nbt = stack.getTagCompound
           nbt.setCompoundTag(Settings.namespace + "data", {

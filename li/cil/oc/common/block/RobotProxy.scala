@@ -22,7 +22,10 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
+      tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")))
+    }
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -95,19 +98,19 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
       case Some((proxy, owner)) =>
         proxy.robot.owner = owner
         if (stack.hasTagCompound) {
-          proxy.robot.battery.changeBuffer(stack.getTagCompound.getDouble(Settings.namespace + "storedEnergy"))
+          proxy.robot.battery.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
         }
       case _ =>
     }
   }
 
   override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    world.getBlockTileEntity(x, y, z) match {
+    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy if !player.capabilities.isCreativeMode || proxy.globalBuffer > 0 =>
         val stack = createItemStack()
-        if (proxy.globalBuffer > 0) {
-          stack.setTagCompound(new NBTTagCompound())
-          stack.getTagCompound.setDouble(Settings.namespace + "storedEnergy", proxy.globalBuffer)
+        if (proxy.globalBuffer > 1) {
+          stack.setTagCompound(new NBTTagCompound("tag"))
+          stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", proxy.globalBuffer.toInt)
         }
         parent.dropBlockAsItem(world, x, y, z, stack)
       case _ =>

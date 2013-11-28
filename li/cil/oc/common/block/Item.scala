@@ -16,7 +16,7 @@ class Item(id: Int) extends ItemBlock(id) {
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     Block.blocksList(getBlockID) match {
-      case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), player, tooltip.asInstanceOf[util.List[String]], advanced)
+      case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
       case _ =>
     }
   }

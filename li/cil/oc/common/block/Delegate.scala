@@ -31,7 +31,7 @@ trait Delegate {
   // Block
   // ----------------------------------------------------------------------- //
 
-  def addInformation(player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+  def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
 
   def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 

@@ -62,6 +62,7 @@ oc:tooltip.RedstoneCard=Erlaubt das Lesen und Ausgeben von Redstonesignalen um d
 oc:tooltip.RedstoneCard.RedLogic=RedLogic wird §aunterstützt§7.
 oc:tooltip.RedstoneCard.RedNet=RedNet wird §aunterstützt§7.
 oc:tooltip.Robot=Im Gegensatz zu normalen Computern können sich §mTurtles§r§7 Roboter in der Welt bewegen und ähnlich wie Spieler mit der Welt interagieren. Sie können jedoch §onicht§r§7 mit externen Komponenten interagieren!
+oc:tooltip.Robot_StoredEnergy=§fGespeicherte Energie§7: §a%s§7.
 oc:tooltip.Router=Erlaubt es mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Router sind nicht sichtbar. Nützlich um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.Screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] Höchstauflösung: §f%sx%s§7.[nl] Maximale Farbtiefe: §f%s§7.
 oc:tooltip.TooLong=Shift gedrückt halten für mehr Infos.
