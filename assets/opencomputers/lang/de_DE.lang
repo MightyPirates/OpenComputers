@@ -23,6 +23,7 @@ oc:container.DiskDrive=Diskettenlaufwerk
 
 # Items
 oc:item.Analyzer.name=Messgerät
+oc:item.Crafting.name=Crafting
 oc:item.Disk.name=Diskette
 oc:item.Generator.name=Generator
 oc:item.GraphicsCardAdvanced.name=Hochwertige Grafikkarte
@@ -49,6 +50,7 @@ oc:tooltip.Cable=Ein billiger Weg verschiedene Blöcke miteinander zu verbinden.
 oc:tooltip.Capacitor=Speichert Energie für spätere Verwendung. Kann extrem schnell befüllt und entlehrt werden.
 oc:tooltip.Case=Das Computergehäuse ist der essentielle Grundbaustein für einen Computer. §fErweiterungskarten§7, §fRAM§7 und §fFestplatten§7 können in einem Gehäuse installiert werden.[nl] Slots: §f%s§7.
 oc:tooltip.Charger=Lädt Roboter mit Energie aus Kondensatoren auf. Die Ladegeschwindigkeit hängt vom eingehenden §fRedstonesignal§7 ab, wobei kein Signal heißt "nicht laden", und ein Signal mit maximaler Stärke heißt "lade schnellstmöglich".
+oc:tooltip.Crafting=Ermöglicht Robotern in dem oberen linken Bereich ihres Inventars zu craften. Gegenstände müssen so angeordnet sein wie sie es in einer Werkbank wären.
 oc:tooltip.DiskDrive=Erlaubt es Disketten zu lesen und zu beschreiben.
 oc:tooltip.DiskDrive.CC=ComputerCraft Disketten werden §aunterstützt§7.
 oc:tooltip.Generator=Kann verwendet werden um unterwegs Energie aus Brennstoffen zu erzeugen. Verbraucht Gegenstände über einen ihrem Brennwert gemäßen Zeitraum.[nl] §fEffizienz§7: §a%s%%§7

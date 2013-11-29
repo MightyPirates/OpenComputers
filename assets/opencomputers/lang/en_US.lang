@@ -27,6 +27,7 @@ oc:container.DiskDrive=Disk Drive
 
 # Items
 oc:item.Analyzer.name=Analyzer
+oc:item.Crafting.name=Crafting
 oc:item.Disk.name=Floppy Disk
 oc:item.Generator.name=Generator
 oc:item.GraphicsCardAdvanced.name=Advanced Graphics Card
@@ -53,6 +54,7 @@ oc:tooltip.Cable=A cheap way of connecting blocks.
 oc:tooltip.Capacitor=Stores energy for later use. Can be filled and emptied very quickly.
 oc:tooltip.Case=The Computer Case is the basic building block for computers and houses the computer's §fextension cards§7, §fRAM§7 and §fhard disks§7.[nl] Slots: §f%s§7.
 oc:tooltip.Charger=Transfers energy from capacitors into adjacent robots. The transfer rate depends on the incoming §fredstone signal§7, where no signal means don't charge robots, and maximum strength means charge at full speed.
+oc:tooltip.Crafting=Enables robots to use the top left area of their inventory for crafting objects. Items have to be aligned as they would be in a crafting table.
 oc:tooltip.DiskDrive=Allows reading and writing floppies.
 oc:tooltip.DiskDrive.CC=ComputerCraft floppies are §asupported§7.
 oc:tooltip.Generator=Can be used to generate energy from fuel on the go. Burns items to generate energy over time, based on their fuel value.[nl] §fEfficiency§7: §a%s%%§7
