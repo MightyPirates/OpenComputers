@@ -41,7 +41,7 @@ class Generator extends ManagedComponent {
         existingStack.stackSize += moveCount
         stack.stackSize -= moveCount
       case _ =>
-        inventory = Some(stack.splitStack(stack.getMaxStackSize min count))
+        inventory = Some(stack.splitStack(stack.stackSize min count))
     }
     player.inventory.setInventorySlotContents(context.selectedSlot, stack)
     result(true)
