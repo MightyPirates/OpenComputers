@@ -20,8 +20,8 @@ public interface Handle {
      * Closes the handle.
      * <p/>
      * For example, if there is an underlying stream, this should close that
-     * stream. Any future calls to {@link #read} or {@link #write} should throw an
-     * <tt>IOException</tt> after this function was called.
+     * stream. Any future calls to {@link #read} or {@link #write} should throw
+     * an <tt>IOException</tt> after this function was called.
      */
     void close();
 

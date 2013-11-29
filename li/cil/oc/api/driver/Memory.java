@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
  */
 public interface Memory extends Item {
     /**
-     * The amount of RAM this component provides, in byte.
+     * The amount of RAM this component provides, in bytes.
      *
      * @param item the item to get the provided memory for.
      * @return the amount of memory the specified component provides.

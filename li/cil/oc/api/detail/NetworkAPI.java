@@ -10,5 +10,5 @@ public interface NetworkAPI {
 
     void joinNewNetwork(Node node);
 
-    Builder.NodeBuilder newNode(Environment host, Visibility visibility);
+    Builder.NodeBuilder newNode(Environment host, Visibility reachability);
 }

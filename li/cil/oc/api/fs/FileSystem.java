@@ -1,27 +1,18 @@
 package li.cil.oc.api.fs;
 
 import li.cil.oc.api.Persistable;
-import li.cil.oc.api.network.Network;
 
 import java.io.FileNotFoundException;
 
 /**
  * Interface for file system driver compatible file systems.
  * <p/>
- * To create a file system from a JAR file or folder (in read-only mode; for
- * example the one containing your mod) use `Filesystem.fromClass`, providing
- * a class from your mod as the first parameter.
- * <p/>
- * To get a network node wrapping a file system and using the default file
- * system driver, use `Filesystem.asNode`.
- * <p/>
- * Alternatively to using the factory methods for file systems in `Filesystem`
- * you are free to implement this interface yourself.
+ * See {@link li.cil.oc.api.FileSystem} for factory methods.
  * <p/>
  * Note that all paths passed here are assumed to be absolute in the underlying
  * file system implementation, meaning they do not contain any "." or "..", and
  * are relative to the root of the file system. When wrapping a file system in
- * a node with the provided factory function this is automatically ensured. If
+ * a node with the provided factory functions this is automatically ensured. If
  * you call any of the functions of a file system directly it is your
  * responsibility to ensure the path has been cleaned up.
  */
@@ -35,9 +26,6 @@ public interface FileSystem extends Persistable {
      * accordingly to enforce true read-only logic (i.e. {@link #open} should
      * not allow opening files in write or append mode, {@link #makeDirectory}
      * and such should do nothing/return false/throw an exception).
-     * <p/>
-     * For file systems made available to the component {@link Network} will
-     * also use this flag to determine whether their label may be changed.
      */
     boolean isReadOnly();
 
@@ -53,8 +41,6 @@ public interface FileSystem extends Persistable {
 
     /**
      * The used storage capacity of the file system, in bytes.
-     * <p/>
-     * For read-only systems this should return zero.
      *
      * @return the used storage space of this file system.
      */
@@ -68,7 +54,8 @@ public interface FileSystem extends Persistable {
      * This function should never throw.
      *
      * @param path the path to check at.
-     * @return true if the path points to a file or directory; false otherwise.
+     * @return <tt>true</tt> if the path points to a file or directory;
+     *         <tt>false</tt> otherwise.
      */
     boolean exists(String path);
 
@@ -117,19 +104,19 @@ public interface FileSystem extends Persistable {
      * Gets a list of all items in the specified folder.
      * <p/>
      * This must return the actual object names in the specified parent folder,
-     * not their full path. For example, for a file at `/home/test`, when doing
-     * `list("/home/")` this should return `["test"]`, *not* `["/home/test"]`.
+     * not their full path. For example, for a file at <tt>/home/test</tt>, when
+     * doing <tt>list("/home/")</tt> this should return <tt>["test"]</tt>,
+     * <em>not</em> <tt>["/home/test"]</tt>.
      * <p/>
      * Sub-folders should be returned with a trailing slash, to indicate that
-     * they are folders. This is primarily intended to avoid Lua programs having
-     * to check which of the entries are folders via calling `isDirectory`, which
-     * would be excruciatingly slow (since each call takes one game tick).
+     * they are folders.
      * <p/>
      * If the folder is empty this should return an empty array.
      *
      * @param path the path to the folder to get the contents of.
-     * @return an array with the names of all objects in that folder; `null` if
-     *         the specified object does not exist or is not a folder.
+     * @return an array with the names of all objects in that folder;
+     *         <tt>null</tt> if the specified object does not exist or is not a
+     *         folder.
      */
     String[] list(String path);
 
@@ -139,26 +126,27 @@ public interface FileSystem extends Persistable {
      * Deletes a file or folder.
      * <p/>
      * This only has to support deleting single files and empty folders. If a
-     * directory is non-empty this may return false. If the target object does
-     * not exists it should return false.
+     * directory is non-empty this may return <tt>false</tt>. If the target
+     * object does not exists it should return <tt>false</tt>.
      * <p/>
      * This is only available for writable file systems. For read-only systems
-     * it should just always return false.
+     * it should always return <tt>false</tt>.
      *
      * @param path the path to the object to delete.
-     * @return true if the object was successfully deleted; false otherwise.
+     * @return <tt>true</tt> if the object was successfully deleted;
+     *         <tt>false</tt> otherwise.
      */
     boolean delete(String path);
 
     /**
      * Create the specified directory.
      * <p/>
-     * This should always only create a single directory. If the parent directory
-     * does not exists it should return false. If the target object already
-     * exists it should also return false.
+     * This should always only create a single directory. If the parent
+     * directory does not exists it should return <tt>false</tt>. If the target
+     * object already exists it should also return <tt>false</tt>.
      * <p/>
      * This is only available for writable file systems. For read-only systems
-     * it should just always return false.
+     * it should always return <tt>false</tt>.
      *
      * @param path the path to the directory to create.
      * @return true if the directory was created; false otherwise.
@@ -169,11 +157,12 @@ public interface FileSystem extends Persistable {
      * Moves / renames a file or folder.
      * <p/>
      * This is only available for writable file systems. For read-only systems
-     * it should just always return false.
+     * it should always return false.
      *
      * @param from the name of the file or folder to move.
      * @param to   the location to move the file or folder to.
-     * @return true if the object was renamed; false otherwise.
+     * @return <tt>true</tt> if the object was renamed;
+     *         <tt>false</tt> otherwise.
      * @throws FileNotFoundException if the source is not a file or folder.
      */
     boolean rename(String from, String to) throws FileNotFoundException;
@@ -185,10 +174,13 @@ public interface FileSystem extends Persistable {
      * intended to be used when initializing a file system to a set of known
      * modification times (for example, this is used when creating a virtual
      * file system from a set of real files).
+     * <p/>
+     * Read-only file systems may ignore this request.
      *
      * @param path the path of the object for which to set the modification time.
      * @param time the time the object was supposedly last modified.
-     * @return whether the modification time was adjusted.
+     * @return <tt>true</tt> if the modification time was adjusted;
+     *         <tt>false</tt> otherwise.
      */
     boolean setLastModified(String path, long time);
 
@@ -199,8 +191,8 @@ public interface FileSystem extends Persistable {
      * <p/>
      * This should create some internal handle to the file, based on the mode
      * specified. A unique ID corresponding to that handle should be returned.
-     * This ID can be used in `file` to get an abstract wrapper for the handle,
-     * and to allow interaction with the file.
+     * This ID can be used in {@link #getHandle} to get an abstract wrapper for
+     * the handle, and to allow interaction with the file.
      * <p/>
      * It is the responsibility of the file system to restore all handles to
      * their previous state when it is reloaded (game loaded for example).
@@ -215,20 +207,22 @@ public interface FileSystem extends Persistable {
     int open(String path, Mode mode) throws FileNotFoundException;
 
     /**
-     * Gets a wrapper for a file previously opened using `open`.
+     * Gets a wrapper for a file previously opened using {@link #open}.
      * <p/>
      * The wrapper allows interaction with the underlying file (stream) based
-     * on the mode it was opened in. See the `File` interface for more details.
+     * on the mode it was opened in. See {@link Handle} for more details.
      * <p/>
-     * If there is no such handle, this should return `None`, but never throw.
+     * If there is no such handle, this should return <tt>null</tt>, but never
+     * throw.
      *
      * @param handle the ID of the handle to get the wrapper for.
-     * @return the wrapper for that handle ID; None if the ID is invalid.
+     * @return the wrapper for that handle ID; <tt>null</tt> if there is no
+     *         handle with the specified ID.
      */
     Handle getHandle(int handle);
 
     /**
-     * Called when the file system is close.
+     * Called when the file system is destroyed.
      * <p/>
      * This should close any open real file handles (e.g. all open I/O streams),
      * but keep any internal state that may have to be persisted, for example
@@ -236,11 +230,11 @@ public interface FileSystem extends Persistable {
      * save any open handles).
      * <p/>
      * When the filesystem is made available as a network node created via
-     * `FileSystem.asNode` this will be called whenever the node is disconnected
-     * from its network. If the node was used to represent an item (which will
-     * be the usual use-case, I imagine) this means the item was removed from
-     * its container (e.g. hard drive from a computer) or the container was
-     * unloaded.
+     * one of the factory functions in {@link li.cil.oc.api.FileSystem} this
+     * will be called whenever the node is disconnected from its network. If
+     * the node was used to represent an item (which will be the usual use-case,
+     * I imagine) this means the item was removed from its container (e.g. hard
+     * drive from a computer) or the container was unloaded.
      */
     void close();
 }

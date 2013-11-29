@@ -19,8 +19,11 @@ public interface Label {
      * Set the new value of this label.
      * <p/>
      * May be set to <tt>null</tt> to clear the label.
+     * <p/>
+     * May throw an exception if the label is read-only.
      *
      * @param value the new label.
+     * @throws IllegalArgumentException if the label is read-only.
      */
     void setLabel(String value);
 }

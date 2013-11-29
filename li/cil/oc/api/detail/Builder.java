@@ -2,6 +2,11 @@ package li.cil.oc.api.detail;
 
 import li.cil.oc.api.network.*;
 
+/**
+ * Used for building {@link Node}s via {@link li.cil.oc.api.Network#newNode}.
+ *
+ * @param <T> the type of the node created by this builder.
+ */
 public interface Builder<T extends Node> {
     T create();
 

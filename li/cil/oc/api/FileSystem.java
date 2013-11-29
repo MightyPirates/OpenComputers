@@ -8,22 +8,27 @@ import li.cil.oc.api.network.ManagedEnvironment;
 
 /**
  * This class provides factory methods for creating file systems that are
- * compatible with the built-in filesystem driver.
+ * compatible with the built-in file system driver.
  * <p/>
  * File systems created this way and wrapped in a managed environment via
- * {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem)} will appear as
- * <tt>filesystem</tt> components in the internal network. Note that the
+ * {@link #asManagedEnvironment} or its overloads will appear as
+ * <tt>filesystem</tt> components in the component network. Note that the
  * component's visibility is set to <tt>Neighbors</tt> per default. If you wish
  * to change the file system's visibility (e.g. like the disk drive does) you
  * must cast the environment's node to {@link li.cil.oc.api.network.Component}
- * and set it accordingly.
+ * and set the visibility to the desired value.
+ * <p/>
+ * Note that these methods should <em>not</em> be called in the pre-init phase,
+ * since the {@link #instance} may not have been initialized at that time. Only
+ * start calling these methods in the init phase or later.
  */
 public final class FileSystem {
     /**
      * Creates a new file system based on the location of a class.
      * <p/>
      * This can be used to wrap a folder in the assets folder of your mod's JAR.
-     * The actual path is built like this: `"/assets/" + domain + "/" + root`.
+     * The actual path is built like this:
+     * <pre>"/assets/" + domain + "/" + root</pre>
      * <p/>
      * If the class is located in a JAR file, this will create a read-only file
      * system based on that JAR file. If the class file is located in the native
@@ -32,10 +37,10 @@ public final class FileSystem {
      * class path (i.e. it'll look for a path constructed as described above).
      * <p/>
      * If the specified path cannot be located, the creation fails and this
-     * returns `None`.
+     * returns <tt>null</tt>.
      *
      * @param clazz  the class whose containing JAR to wrap.
-     * @param domain the mod domain, usually its name.
+     * @param domain the domain, usually your mod's ID.
      * @param root   an optional subdirectory.
      * @return a file system wrapping the specified folder.
      */
@@ -49,11 +54,11 @@ public final class FileSystem {
      * <p/>
      * This will create a folder, if necessary, and create a writable virtual
      * file system based in that folder. The actual path is based in a sub-
-     * folder of the save folder. The actual path is e.g. built like this:
-     * <tt>"saves/" + WORLD_NAME + "/opencomputers/" + root</tt>. Where the first
-     * part may differ, in particular for servers. But you get the idea.
+     * folder of the save folder. The actual path is built like this:
+     * <pre>"saves/" + WORLD_NAME + "/opencomputers/" + root</pre>
+     * The first part may differ, in particular for servers.
      * <p/>
-     * Usually the name will be the name of the node used to represent the
+     * Usually the name will be the address of the node used to represent the
      * file system.
      * <p/>
      * Note that by default file systems are "buffered", meaning that any
@@ -86,12 +91,12 @@ public final class FileSystem {
     }
 
     /**
-     * Creates a new *writable* file system that resides in memory.
+     * Creates a new <em>writable</em> file system that resides in memory.
      * <p/>
      * Any contents created and written on this file system will be lost when
      * the node is removed from the network.
      * <p/>
-     * This is used for computers' `/tmp` mount, for example.
+     * This is used for computers' <tt>/tmp</tt> mount, for example.
      *
      * @param capacity the capacity of the file system.
      * @return a file system residing in memory.
@@ -131,7 +136,7 @@ public final class FileSystem {
      * your own driver. Which will probably be most of the time. If you need
      * more control over the node, implement your own, and connect this one to
      * it. In that case you will have to forward any disk driver messages to the
-     * node, though, since it's visibility is neighbors only.
+     * node, though.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the label of the file system.
@@ -143,8 +148,8 @@ public final class FileSystem {
     }
 
     /**
-     * Does the same thing {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)}
-     * does, but creates a read-only label initialized to the specified value.
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)},
+     * but creates a read-only label initialized to the specified value.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the read-only label of the file system.
@@ -156,9 +161,9 @@ public final class FileSystem {
     }
 
     /**
-     * Does the same thing {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)}
-     * does, but creates an unlabeled file system (i.e. the label can neither
-     * be read nor written).
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label)},
+     * but creates an unlabeled file system (i.e. the label can neither be read
+     * nor written).
      *
      * @param fileSystem the file system to wrap.
      * @return the network node wrapping the file system.

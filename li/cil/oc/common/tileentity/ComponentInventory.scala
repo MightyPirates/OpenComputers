@@ -1,14 +1,18 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.{Item => ItemDriver}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.driver.item.Item
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 trait ComponentInventory extends Inventory with network.Environment {
+  self: MCTileEntity =>
   protected lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
@@ -33,7 +37,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, this)) match {
               case Some(environment) =>
-                environment.load(driver.nbt(stack))
+                environment.load(dataTag(driver, stack))
                 Some(environment)
               case _ => None
             }
@@ -64,7 +68,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       case (stack, slot) => components(slot) match {
         case Some(environment) =>
           // We're guaranteed to have a driver for entries.
-          environment.save(Registry.driverFor(stack).get.nbt(stack))
+          environment.save(dataTag(Registry.driverFor(stack).get, stack))
         case _ => // Nothing special to save.
       }
     }
@@ -80,9 +84,9 @@ trait ComponentInventory extends Inventory with network.Environment {
       case Some(driver) => Option(driver.createEnvironment(stack, this)) match {
         case Some(component) =>
           components(slot) = Some(component)
-          component.load(driver.nbt(stack))
+          component.load(dataTag(driver, stack))
           connectItemNode(component.node)
-          component.save(driver.nbt(stack))
+          component.save(dataTag(driver, stack))
           ServerPacketSender.sendItemComponentAddress(this, slot, stack)
         case _ => // No environment (e.g. RAM).
       }
@@ -101,7 +105,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         component.node.remove()
         Registry.driverFor(stack).foreach(driver =>
-          component.save(driver.nbt(stack)))
+          component.save(dataTag(driver, stack)))
       case _ => // Nothing to do.
     }
   }
@@ -111,4 +115,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   protected def connectItemNode(node: Node) {
     this.node.connect(node)
   }
+
+  private def dataTag(driver: ItemDriver, stack: ItemStack) =
+    Option(driver.dataTag(stack)).getOrElse(Item.dataTag(stack))
 }

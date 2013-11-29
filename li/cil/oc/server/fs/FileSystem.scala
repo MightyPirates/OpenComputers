@@ -66,7 +66,7 @@ object FileSystem extends api.detail.FileSystemAPI {
     asManagedEnvironment(fileSystem, null: Label)
 
   private class ReadOnlyLabel(val label: String) extends Label {
-    def setLabel(value: String) = throw new Exception("label is read only")
+    def setLabel(value: String) = throw new IllegalArgumentException("label is read only")
 
     def getLabel = label
   }

@@ -6,11 +6,12 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.common.tileentity.{BundledRedstone, Redstone}
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object RedstoneCard extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.rs)
 
-  override def createEnvironment(stack: ItemStack, container: AnyRef) =
+  override def createEnvironment(stack: ItemStack, container: MCTileEntity) =
     container match {
       case redstone: BundledRedstone if isBundledRedstoneModAvailable => new component.BundledRedstoneCard(redstone)
       case redstone: Redstone => new component.RedstoneCard(redstone)

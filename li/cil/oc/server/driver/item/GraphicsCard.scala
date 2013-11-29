@@ -5,11 +5,12 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.common
 import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object GraphicsCard extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.gpu1, Items.gpu2, Items.gpu3)
 
-  override def createEnvironment(stack: ItemStack, container: AnyRef) =
+  override def createEnvironment(stack: ItemStack, container: MCTileEntity) =
     Items.multi.subItem(stack) match {
       case Some(gpu: common.item.GraphicsCard) => gpu.tier match {
         case 0 => new component.GraphicsCard.Tier1()

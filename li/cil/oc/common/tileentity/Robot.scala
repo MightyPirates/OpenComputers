@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot.Player

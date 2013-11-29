@@ -6,7 +6,17 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends api.driver.Item {
-  def nbt(stack: ItemStack) = {
+  def dataTag(stack: ItemStack) = Item.dataTag(stack)
+
+  protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =
+    stack.getItem == Items.multi && (Items.multi.subItem(stack) match {
+      case None => false
+      case Some(subItem) => items.contains(subItem)
+    })
+}
+
+object Item {
+  def dataTag(stack: ItemStack) = {
     if (!stack.hasTagCompound) {
       stack.setTagCompound(new NBTTagCompound("tag"))
     }
@@ -16,10 +26,4 @@ trait Item extends api.driver.Item {
     }
     nbt.getCompoundTag(Settings.namespace + "data")
   }
-
-  protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =
-    stack.getItem == Items.multi && (Items.multi.subItem(stack) match {
-      case None => false
-      case Some(subItem) => items.contains(subItem)
-    })
 }
