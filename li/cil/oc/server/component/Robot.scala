@@ -478,7 +478,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   private def pick(player: Player, range: Double) = {
     val blockCenter = Vec3.createVectorHelper(player.posX + player.facing.offsetX, player.posY + player.facing.offsetY, player.posZ + player.facing.offsetZ)
     val realRange = player.getDistance(blockCenter.xCoord + player.side.offsetX * range, blockCenter.yCoord + player.side.offsetY * range, blockCenter.zCoord + player.side.offsetZ * range)
-    val hit = player.rayTrace(realRange, 1)
+    val origin = world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ)
+    val look = player.getLookVec
+    val target = origin.addVector(look.xCoord * realRange, look.yCoord * realRange, look.zCoord * realRange)
+    val hit = world.clip(origin, target)
     player.closestEntity[EntityLivingBase]() match {
       case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit

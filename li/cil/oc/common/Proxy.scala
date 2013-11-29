@@ -25,6 +25,7 @@ class Proxy {
   def init(e: FMLInitializationEvent): Unit = {
     api.Driver.add(driver.block.Carriage)
     api.Driver.add(driver.block.CommandBlock)
+    api.Driver.add(driver.block.NoteBlock)
 
     api.Driver.add(driver.item.Crafting)
     api.Driver.add(driver.item.FileSystem)

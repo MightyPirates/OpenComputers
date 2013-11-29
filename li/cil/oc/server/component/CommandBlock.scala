@@ -13,7 +13,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("getValue")
-  def getValue(context: Context, args: Arguments): Array[AnyRef] = Array(entity.getCommand)
+  def getValue(context: Context, args: Arguments): Array[AnyRef] = result(entity.getCommand)
 
   @LuaCallback("setValue")
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
