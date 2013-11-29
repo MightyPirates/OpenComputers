@@ -33,7 +33,12 @@ trait Inventory extends TileEntity with IInventory with Persistable {
       onItemRemoved(slot, items(slot).get)
     }
 
-    items(slot) = Option(stack)
+    if (stack == null || stack.stackSize <= 0) {
+      items(slot) = None
+    }
+    else {
+      items(slot) = Some(stack)
+    }
     if (stack != null && stack.stackSize > getInventoryStackLimit) {
       stack.stackSize = getInventoryStackLimit
     }

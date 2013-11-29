@@ -1,13 +1,13 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{LuaCallback, Arguments, Context}
+import li.cil.oc.api.network.{RobotContext, LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.robot.{Player, ActivationType}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
-import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
 import net.minecraft.util.{Vec3, MovingObjectPosition, EnumMovingObjectType}
@@ -16,9 +16,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends Computer(robot) {
-
-  def selectedSlot = robot.selectedSlot
+class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotContext {
 
   def actualSlot(n: Int) = robot.actualSlot(n)
 
@@ -34,34 +32,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
 
   override def isRobot = true
 
-  override def getStackInSelectedSlot = stackInSlot(selectedSlot).orNull
+  def selectedSlot = robot.selectedSlot
 
-  override def setStackInSelectedSlot(stack: ItemStack): Boolean = {
-    val existingStack = stackInSlot(selectedSlot).orNull
-    if (stack == existingStack) {
-      robot.onInventoryChanged()
-      return true
-    }
-    if (existingStack != null &&
-      !ItemStack.areItemStacksEqual(existingStack, stack) ||
-      !ItemStack.areItemStackTagsEqual(existingStack, stack) ||
-      existingStack.stackSize >= robot.getInventoryStackLimit) {
-      return false
-    }
-    val maxStackSize = stack.getMaxStackSize min robot.getInventoryStackLimit
-    if (existingStack != null) {
-      val space = maxStackSize - existingStack.stackSize
-      val moveCount = stack.stackSize min space
-      existingStack.stackSize += moveCount
-      stack.stackSize -= moveCount
-      robot.onInventoryChanged()
-    }
-    else {
-      val moveCount = stack.stackSize min maxStackSize
-      robot.setInventorySlotContents(selectedSlot, stack.splitStack(moveCount))
-    }
-    true
-  }
+  def player = robot.player()
 
   // ----------------------------------------------------------------------- //
 
@@ -118,19 +91,19 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
             to.stackSize += amount
             assert(from.stackSize >= 0)
             if (from.stackSize == 0) {
-              robot.setInventorySlotContents(actualSlot(selectedSlot), null)
+              robot.setInventorySlotContents(selectedSlot, null)
             }
             true
           }
           else false
         }
         else {
-          robot.setInventorySlotContents(actualSlot(slot), from)
-          robot.setInventorySlotContents(actualSlot(selectedSlot), to)
+          robot.setInventorySlotContents(slot, from)
+          robot.setInventorySlotContents(selectedSlot, to)
           true
         }
       case (Some(from), None) =>
-        robot.setInventorySlotContents(actualSlot(slot), robot.decrStackSize(actualSlot(selectedSlot), count))
+        robot.setInventorySlotContents(slot, robot.decrStackSize(selectedSlot, count))
         true
       case _ => false
     })
@@ -157,7 +130,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
-    val dropped = robot.decrStackSize(actualSlot(selectedSlot), count)
+    val dropped = robot.decrStackSize(selectedSlot, count)
     if (dropped != null && dropped.stackSize > 0) {
       def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
         var success = false
@@ -187,7 +160,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         if (success) {
           inventory.onInventoryChanged()
         }
-        robot.player().inventory.addItemStackToInventory(dropped)
+        player.inventory.addItemStackToInventory(dropped)
         result(success)
       }
       world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
@@ -196,7 +169,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
         case inventory: IInventory =>
           tryDropIntoInventory(inventory, (slot) => true)
         case _ =>
-          robot.player().dropPlayerItemWithRandomChoice(dropped, inPlace = false)
+          player.dropPlayerItemWithRandomChoice(dropped, inPlace = false)
           context.pause(Settings.get.dropDelay)
           result(true)
       }
@@ -252,7 +225,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
           val maxStackSize = robot.getInventoryStackLimit min stack.getMaxStackSize
           val amount = maxStackSize min stack.stackSize min count
           val sucked = stack.splitStack(amount)
-          success = robot.player().inventory.addItemStackToInventory(sucked)
+          success = player.inventory.addItemStackToInventory(sucked)
           stack.stackSize += sucked.stackSize
           if (stack.stackSize == 0) {
             inventory.setInventorySlotContents(slot, null)
@@ -270,10 +243,10 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
       case inventory: IInventory =>
         trySuckFromInventory(inventory, (slot) => true)
       case _ =>
-        for (entity <- robot.player().entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+        for (entity <- player.entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
           val stack = entity.getEntityItem
           val size = stack.stackSize
-          entity.onCollideWithPlayer(robot.player())
+          entity.onCollideWithPlayer(player)
           if (stack.stackSize < size || entity.isDead) {
             context.pause(Settings.get.suckDelay)
             return result(true)
@@ -459,7 +432,6 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
   }
 
   private def endConsumeDrops(entity: Entity) {
-    val player = robot.player()
     entity.captureDrops = false
     for (drop <- entity.capturedDrops) {
       val stack = drop.getEntityItem
@@ -478,7 +450,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     val id = world.getBlockId(bx, by, bz)
     val block = Block.blocksList(id)
     if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      robot.player().closestEntity[Entity]() match {
+      player.closestEntity[Entity]() match {
         case Some(entity) => (true, "entity")
         case _ => (false, "air")
       }
@@ -526,7 +498,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
-  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(actualSlot(slot)))
+  private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))
 
   // ----------------------------------------------------------------------- //
 
@@ -541,7 +513,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) {
     if (slot < 0 || slot > 15) {
       throw new IllegalArgumentException("invalid slot")
     }
-    slot
+    actualSlot(slot)
   }
 
   private def checkSideForAction(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)

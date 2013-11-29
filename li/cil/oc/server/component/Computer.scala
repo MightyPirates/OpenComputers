@@ -12,7 +12,6 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ThreadPoolFactory, GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import scala.Array.canBuildFrom
@@ -173,10 +172,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       }
     }
   })
-
-  def getStackInSelectedSlot: ItemStack = null
-
-  def setStackInSelectedSlot(stack: ItemStack) = false
 
   // ----------------------------------------------------------------------- //
 

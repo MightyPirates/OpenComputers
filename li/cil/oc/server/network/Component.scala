@@ -4,7 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Method, InvocationTargetException}
 import li.cil.oc.api
-import li.cil.oc.api.network.{LuaCallback, Arguments, Context, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
@@ -117,7 +117,7 @@ object Component {
 
       ms.filter(_.isAnnotationPresent(classOf[LuaCallback])).foreach(m =>
         if (m.getParameterTypes.size != 2 ||
-          m.getParameterTypes()(0) != classOf[Context] ||
+          (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
           m.getParameterTypes()(1) != classOf[Arguments]) {
           throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
         }
@@ -130,7 +130,6 @@ object Component {
             throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
           }
           else if (!callbacks.contains(a.value)) {
-
             callbacks += a.value -> new Callback(m, a.direct, a.limit)
           }
         }

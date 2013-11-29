@@ -9,13 +9,13 @@ import scala.util.control.Breaks._
 class Inventory(player: Player) extends InventoryPlayer(player) {
   val robot = player.robot
 
-  def selectedSlot = robot.actualSlot(robot.selectedSlot)
+  def selectedSlot = robot.selectedSlot
 
   def selectedItemStack = robot.getStackInSlot(selectedSlot)
 
   def firstInventorySlot = robot.actualSlot(0)
 
-  def inventorySlots = (robot.actualSlot(robot.selectedSlot) until getSizeInventory) ++ (firstInventorySlot until robot.actualSlot(robot.selectedSlot))
+  def inventorySlots = (robot.selectedSlot until getSizeInventory) ++ (firstInventorySlot until robot.selectedSlot)
 
   override def getCurrentItem = getStackInSlot(0)
 

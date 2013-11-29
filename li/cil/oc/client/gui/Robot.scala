@@ -119,8 +119,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     Minecraft.getMinecraft.renderEngine.bindTexture(selection)
     val now = System.currentTimeMillis() / 1000.0
     val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
-    val x = guiLeft + inventoryX + (robot.selectedSlot % 4) * (selectionSize - 2)
-    val y = guiTop + inventoryY + (robot.selectedSlot / 4) * (selectionSize - 2)
+    val slot = robot.selectedSlot - robot.actualSlot(0)
+    val x = guiLeft + inventoryX + (slot % 4) * (selectionSize - 2)
+    val y = guiTop + inventoryY + (slot / 4) * (selectionSize - 2)
 
     val t = Tessellator.instance
     t.startDrawingQuads()

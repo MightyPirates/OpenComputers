@@ -1,11 +1,12 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Context, Arguments, LuaCallback, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityFurnace
+import scala.Some
 
 class Generator extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -20,14 +21,15 @@ class Generator extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("insert")
-  def insert(context: Context, args: Arguments): Array[AnyRef] = {
+  def insert(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else 64
-    val stack = context.getStackInSelectedSlot
+    val player = context.player
+    val stack = player.inventory.getStackInSlot(context.selectedSlot)
     if (stack == null) throw new IllegalArgumentException("selected slot is empty")
     if (!TileEntityFurnace.isItemFuel(stack)) return result(false, "selected slot does not contain fuel")
     inventory match {
       case Some(existingStack) =>
-        if (!ItemStack.areItemStacksEqual(existingStack, stack) ||
+        if (!existingStack.isItemEqual(stack) ||
           !ItemStack.areItemStackTagsEqual(existingStack, stack)) {
           return result(false, "different fuel type already queued")
         }
@@ -41,7 +43,7 @@ class Generator extends ManagedComponent {
       case _ =>
         inventory = Some(stack.splitStack(stack.getMaxStackSize min count))
     }
-    context.setStackInSelectedSlot(stack)
+    player.inventory.setInventorySlotContents(context.selectedSlot, stack)
     result(true)
   }
 
@@ -54,8 +56,19 @@ class Generator extends ManagedComponent {
   }
 
   @LuaCallback("remove")
-  def remove(context: Context, args: Arguments): Array[AnyRef] = {
-    null
+  def remove(context: RobotContext, args: Arguments): Array[AnyRef] = {
+    val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
+    inventory match {
+      case Some(stack) =>
+        val removedStack = stack.splitStack(count min stack.stackSize)
+        val success = context.player.inventory.addItemStackToInventory(removedStack)
+        stack.stackSize += removedStack.stackSize
+        if (success && stack.stackSize <= 0) {
+          inventory = None
+        }
+        result(success)
+      case _ => result(false)
+    }
   }
 
   // ----------------------------------------------------------------------- //

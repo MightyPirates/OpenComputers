@@ -6,16 +6,33 @@ import li.cil.oc.common.item
 object Items {
   var multi: item.Delegator = null
 
+  // ----------------------------------------------------------------------- //
+  // Tools
   var analyzer: item.Analyzer = null
-  var disk: item.Disk = null
-  var generator: item.Generator = null
-  var gpu1, gpu2, gpu3: item.GraphicsCard = null
-  var hdd1, hdd2, hdd3: item.HardDiskDrive = null
-  var lan: item.NetworkCard = null
+
+  // ----------------------------------------------------------------------- //
+  // Memory
   var ram1, ram2, ram3: item.Memory = null
+
+  // ----------------------------------------------------------------------- //
+  // Storage
+  var disk: item.Disk = null
+  var hdd1, hdd2, hdd3: item.HardDiskDrive = null
+
+  // ----------------------------------------------------------------------- //
+  // Cards
+  var gpu1, gpu2, gpu3: item.GraphicsCard = null
+  var lan: item.NetworkCard = null
   var rs: item.RedstoneCard = null
   var wlan: item.WirelessNetworkCard = null
 
+  // ----------------------------------------------------------------------- //
+  // Upgrades
+  var crafting: item.Crafting = null
+  var generator: item.Generator = null
+
+  // ----------------------------------------------------------------------- //
+  // Crafting
   var card: item.Card = null
   var circuitBoardBody: item.PlatineBody = null
   var circuitBoard: item.Platine = null
@@ -41,6 +58,7 @@ object Items {
     ram3 = new item.Memory(multi, 2)
     rs = new item.RedstoneCard(multi)
     wlan = new item.WirelessNetworkCard(multi)
+    crafting = new item.Crafting(multi)
 
     card = new item.Card(multi)
     circuitBoardBody = new item.PlatineBody(multi)

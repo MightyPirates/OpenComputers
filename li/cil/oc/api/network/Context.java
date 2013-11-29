@@ -1,7 +1,5 @@
 package li.cil.oc.api.network;
 
-import net.minecraft.item.ItemStack;
-
 /**
  * This is used to provide some context to {@link LuaCallback}s, i.e. the
  * computer from which the callback was called.
@@ -161,37 +159,4 @@ public interface Context {
      * @return <tt>true</tt> if the signal was queued; <tt>false</tt> otherwise.
      */
     boolean signal(String name, Object... args);
-
-    /**
-     * Get the item stack that is currently in the robot's selected slot.
-     * <p/>
-     * For normal computers this will always return <tt>null</tt>.
-     * <p/>
-     * Note that this returns the actual <tt>ItemStack</tt> instance that is in
-     * the robot's inventory, so if you manipulate the stack's size, make sure
-     * to always call {@link #setStackInSelectedSlot} with the stack itself
-     * afterwards, to trigger an `onInventoryUpdate` in the robot.
-     *
-     * @return the item stack in the robot's currently selected inventory slot.
-     */
-    ItemStack getStackInSelectedSlot();
-
-    /**
-     * Set the item stack in the robot's selected inventory slot.
-     * <p/>
-     * For computers this will always do nothing and return <tt>false</tt>.
-     * <p/>
-     * This will store a copy / split portion of the passed stack in the robot's
-     * inventory. How many items of the stack were stored can be seen from the
-     * stack size of the passed stack after the function returns (it will be
-     * set to the number of remaining items, or zero if the stack was completely
-     * stored).
-     * <p/>
-     * If the slot is not empty, and the stack cannot be - at least partially -
-     * merged into the existing item stack this will return <tt>false</tt>.
-     *
-     * @param stack the stack to store in the currently selected slot.
-     * @return <tt>true</tt> if the stack was completely or partially stored.
-     */
-    boolean setStackInSelectedSlot(ItemStack stack);
 }
