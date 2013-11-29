@@ -1,8 +1,8 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
+import cpw.mods.fml.common.{ObfuscationReflectionHelper, FMLCommonHandler}
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import li.cil.oc.common.tileentity.TileEntity
@@ -45,7 +45,8 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getConfigurationManager
     for (player <- manager.playerEntityList.map(_.asInstanceOf[EntityPlayerMP]) if player.dimension == dimension) {
-      val playerSpecificRange = range min ((manager.getViewDistance min PacketBuilder.tryGetPlayerRenderDistance(player)) * 16)
+      val playerRenderDistance = ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
+      val playerSpecificRange = range min ((manager.getViewDistance min playerRenderDistance) * 16)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
         sendToPlayer(player.asInstanceOf[Player])
       }
@@ -62,29 +63,5 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     p.data = stream.toByteArray
     p.length = stream.size
     p
-  }
-}
-
-object PacketBuilder {
-  private val renderDistanceField = try {
-    val field = classOf[EntityPlayerMP].getDeclaredField("renderDistance")
-    field.setAccessible(true)
-    Some(field)
-  }
-  catch {
-    case _: Throwable => None
-  }
-
-  private def tryGetPlayerRenderDistance(player: EntityPlayerMP): Int = {
-    try {
-      renderDistanceField match {
-        case Some(field) => return field.get(player).asInstanceOf[Integer]
-        case _ =>
-      }
-    }
-    catch {
-      case _: Throwable =>
-    }
-    Int.MaxValue
   }
 }

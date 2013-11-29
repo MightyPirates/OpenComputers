@@ -9,7 +9,6 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 
-/** Utility for inventory containers providing basic re-usable functionality. */
 abstract class Player(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
   protected val playerInventorySizeX = InventoryPlayer.getHotbarSize

@@ -14,32 +14,35 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) = if (t.hasKeyboard) {
-    val pb = new PacketBuilder(PacketType.KeyDown)
+  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) =
+    if (t.hasKeyboard) {
+      val pb = new PacketBuilder(PacketType.KeyDown)
 
-    pb.writeTileEntity(t)
-    pb.writeChar(char)
-    pb.writeInt(code)
+      pb.writeTileEntity(t)
+      pb.writeChar(char)
+      pb.writeInt(code)
 
-    pb.sendToServer()
-  }
+      pb.sendToServer()
+    }
 
-  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) = if (t.hasKeyboard) {
-    val pb = new PacketBuilder(PacketType.KeyUp)
+  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) =
+    if (t.hasKeyboard) {
+      val pb = new PacketBuilder(PacketType.KeyUp)
 
-    pb.writeTileEntity(t)
-    pb.writeChar(char)
-    pb.writeInt(code)
+      pb.writeTileEntity(t)
+      pb.writeChar(char)
+      pb.writeInt(code)
 
-    pb.sendToServer()
-  }
+      pb.sendToServer()
+    }
 
-  def sendClipboard[T <: Buffer](t: T, value: String) = if (!value.isEmpty && t.hasKeyboard) {
-    val pb = new PacketBuilder(PacketType.Clipboard)
+  def sendClipboard[T <: Buffer](t: T, value: String) =
+    if (!value.isEmpty && t.hasKeyboard) {
+      val pb = new PacketBuilder(PacketType.Clipboard)
 
-    pb.writeTileEntity(t)
-    pb.writeUTF(value.substring(0, value.length min 1024))
+      pb.writeTileEntity(t)
+      pb.writeUTF(value.substring(0, value.length min 1024))
 
-    pb.sendToServer()
-  }
+      pb.sendToServer()
+    }
 }

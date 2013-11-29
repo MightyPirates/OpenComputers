@@ -16,7 +16,7 @@ trait Buffer extends GuiScreen {
 
   private val pressedKeys = mutable.Map.empty[Int, Char]
 
-  private var currentWidth, currentHeight = -1.0
+  protected var currentWidth, currentHeight = -1
 
   private var shouldRecompileDisplayLists = true
 
@@ -34,6 +34,7 @@ trait Buffer extends GuiScreen {
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
     buffer.owner.currentGui = Some(this)
+    recompileDisplayLists()
   }
 
   override def onGuiClosed() = {
@@ -47,12 +48,11 @@ trait Buffer extends GuiScreen {
 
   protected def drawBufferLayer() {
     if (shouldRecompileDisplayLists) {
+      shouldRecompileDisplayLists = false
       val (w, h) = buffer.resolution
-      if (w != currentWidth || h != currentHeight) {
-        currentWidth = w
-        currentHeight = h
-        scale = changeSize(currentWidth, currentHeight)
-      }
+      currentWidth = w
+      currentHeight = h
+      scale = changeSize(currentWidth, currentHeight)
       BufferRenderer.compileText(scale, buffer.lines, buffer.color, buffer.depth)
     }
     GL11.glPushMatrix()

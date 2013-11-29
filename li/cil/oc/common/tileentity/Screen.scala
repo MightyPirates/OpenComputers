@@ -41,11 +41,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
 
-  override def hasKeyboard = ForgeDirection.VALID_DIRECTIONS.
-    map(side => (side, world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ))).
+  override def hasKeyboard = screens.exists(screen => ForgeDirection.VALID_DIRECTIONS.
+    map(side => (side, world.getBlockTileEntity(screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ))).
     collect {
     case (side, keyboard: Keyboard) if keyboard.facing == side => keyboard
-  }.nonEmpty
+  }.nonEmpty)
 
   // ----------------------------------------------------------------------- //
 
