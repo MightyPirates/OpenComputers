@@ -31,7 +31,7 @@ object FileSystem extends Item {
       }
     } else Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024)
-      case Some(disk: Disk) => createEnvironment(stack, 512 * 1024)
+      case Some(disk: Disk) => createEnvironment(stack, Settings.get.floppySize * 1024)
       case _ => null
     }
 

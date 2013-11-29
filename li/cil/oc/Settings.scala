@@ -106,7 +106,7 @@ class Settings(config: Config) {
       OpenComputers.log.warning("Bad number of HDD sizes, ignoring.")
       Array(2048, 4096, 8192)
   }
-
+  val floppySize = config.getInt("filesystem.floppySize") max 0
   val maxHandles = config.getInt("filesystem.maxHandles") max 0
   val maxReadBuffer = config.getInt("filesystem.maxReadBuffer") max 0
 
