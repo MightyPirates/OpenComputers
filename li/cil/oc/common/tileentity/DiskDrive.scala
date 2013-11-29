@@ -1,15 +1,19 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver.Slot
-import li.cil.oc.api.network.{Component, Visibility}
+import li.cil.oc.api.network.{Analyzable, Component, Visibility}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.{Blocks, api, Settings}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Environment with ComponentInventory with Rotatable {
+class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   override def canUpdate = false
 

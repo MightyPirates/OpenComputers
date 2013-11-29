@@ -1,13 +1,14 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.api.network.{Node, Visibility}
+import li.cil.oc.api.network.{Analyzable, Node, Visibility}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Charger extends Environment with Redstone {
+class Charger extends Environment with Redstone with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
@@ -15,6 +16,8 @@ class Charger extends Environment with Redstone {
   val robots = Array.fill(6)(None: Option[RobotProxy])
 
   var chargeSpeed = 0.0
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   override def updateEntity() {
     super.updateEntity()

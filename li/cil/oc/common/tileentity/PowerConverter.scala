@@ -11,16 +11,19 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
+import net.minecraft.entity.player.EntityPlayer
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
-class PowerConverter extends Environment with IEnergySink with IPowerReceptor with IElectrical {
+class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector().
     create()
 
   private def demand = if (Settings.get.ignorePower) 0.0 else node.globalBufferSize - node.globalBuffer
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   // ----------------------------------------------------------------------- //
 
