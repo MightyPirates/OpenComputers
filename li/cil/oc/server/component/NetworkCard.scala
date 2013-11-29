@@ -1,8 +1,8 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -47,6 +47,7 @@ class NetworkCard extends ManagedComponent {
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
+    checkPacketSize(args.drop(2))
     node.sendToAddress(address, "network.message", Seq(Int.box(port)) ++ args.drop(2): _*)
     result(true)
   }
@@ -54,6 +55,7 @@ class NetworkCard extends ManagedComponent {
   @LuaCallback("broadcast")
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
+    checkPacketSize(args.drop(1))
     node.sendToReachable("network.message", Seq(Int.box(port)) ++ args.drop(1): _*)
     result(true)
   }
@@ -98,4 +100,19 @@ class NetworkCard extends ManagedComponent {
   protected def checkPort(port: Int) =
     if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
     else port
+
+  protected def checkPacketSize(data: Iterable[AnyRef]) {
+    val size = data.foldLeft(0)((acc, arg) => {
+      acc + (arg match {
+        case null | Unit | None => 4
+        case _: java.lang.Boolean => 4
+        case _: java.lang.Double => 8
+        case value: java.lang.String => value.length
+        case value: Array[Byte] => value.length
+      })
+    })
+    if (size > Settings.get.maxNetworkPacketSize) {
+      throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
+    }
+  }
 }

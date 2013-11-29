@@ -75,6 +75,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     }
     else {
       val port = checkPort(args.checkInteger(1))
+      checkPacketSize(args.drop(2))
       if (strength > 0) {
         checkPower()
         for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
@@ -89,6 +90,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def broadcast(context: Context, args: Arguments) = {
     val port = checkPort(args.checkInteger(0))
+    checkPacketSize(args.drop(1))
     if (strength > 0) {
       checkPower()
       for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
