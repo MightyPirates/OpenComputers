@@ -14,7 +14,6 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-/** Utility class for packet creation. */
 class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayOutputStream = new ByteArrayOutputStream) extends DataOutputStream(stream) {
   writeByte(packetType.id)
 
@@ -39,7 +38,7 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 
-  def sendToNearbyPlayers(t: TileEntity, range: Double = 64): Unit = sendToNearbyPlayers(t.world, t.x + 0.5, t.y + 0.5, t.z + 0.5, range)
+  def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.world, t.x + 0.5, t.y + 0.5, t.z + 0.5, range)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
     val dimension = world.provider.dimensionId
@@ -48,7 +47,7 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     for (player <- manager.playerEntityList.map(_.asInstanceOf[EntityPlayerMP]) if player.dimension == dimension) {
       val playerSpecificRange = range min ((manager.getViewDistance min PacketBuilder.tryGetPlayerRenderDistance(player)) * 16)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
-        player.playerNetServerHandler.sendPacketToPlayer(packet)
+        sendToPlayer(player.asInstanceOf[Player])
       }
     }
   }

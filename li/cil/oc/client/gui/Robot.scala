@@ -81,6 +81,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
+    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
     if (isPointInRegion(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = StatCollector.translateToLocal(Settings.namespace + "gui.Robot.Power") + ": %d%% (%d/%d)"
@@ -91,13 +92,12 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     if (powerButton.func_82252_a) {
-      GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
       val tooltip = new java.util.ArrayList[String]
       val which = if (robot.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
       drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
-      GL11.glPopAttrib()
     }
+    GL11.glPopAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

@@ -21,11 +21,12 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   addPlayerInventorySlots(8, 160)
 
-  var lastSentBuffer = -1
+  var lastSentBuffer = Double.NegativeInfinity
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
     if ((robot.globalBuffer - lastSentBuffer).abs > 1) {
+      lastSentBuffer = robot.globalBuffer
       ServerPacketSender.sendPowerState(robot)
     }
   }
