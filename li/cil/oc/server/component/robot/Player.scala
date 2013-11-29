@@ -329,6 +329,8 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
   override def onLivingUpdate() {}
 
+  override def onItemPickup(entity: Entity, count: Int) {}
+
   override def setCurrentItemOrArmor(slot: Int, stack: ItemStack) {}
 
   override def setRevengeTarget(entity: EntityLivingBase) {}
