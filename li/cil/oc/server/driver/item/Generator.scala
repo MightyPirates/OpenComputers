@@ -9,7 +9,7 @@ import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 object Generator extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.generator)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.Generator()
+  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.Generator(container)
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 }

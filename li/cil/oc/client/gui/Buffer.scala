@@ -45,8 +45,7 @@ trait Buffer extends GuiScreen {
     Keyboard.enableRepeatEvents(false)
   }
 
-  override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
-    super.drawScreen(mouseX, mouseY, dt)
+  protected def drawBufferLayer() {
     if (shouldRecompileDisplayLists) {
       val (w, h) = buffer.resolution
       if (w != currentWidth || h != currentHeight) {

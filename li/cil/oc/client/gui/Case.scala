@@ -8,6 +8,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.{ResourceLocation, StatCollector}
+import org.lwjgl.opengl.GL11
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected val computerBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
@@ -36,9 +37,17 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
+    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
     fontRenderer.drawString(
       StatCollector.translateToLocal(Settings.namespace + "container.Case"),
       8, 6, 0x404040)
+    if (powerButton.func_82252_a) {
+      val tooltip = new java.util.ArrayList[String]
+      val which = if (computer.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
+      tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
+      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+    }
+    GL11.glPopAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {

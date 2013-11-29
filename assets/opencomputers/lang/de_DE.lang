@@ -17,10 +17,6 @@ oc:block.ScreenAdvanced.name=Hochwertiger Bildschirm
 oc:block.ScreenBasic.name=Einfacher Bildschirm
 oc:block.ScreenProfessional.name=Professioneller Bildschirm
 
-# Containers
-oc:container.Case=Computer
-oc:container.DiskDrive=Diskettenlaufwerk
-
 # Items
 oc:item.Analyzer.name=Messgerät
 oc:item.Crafting.name=Crafting
@@ -34,16 +30,24 @@ oc:item.Memory.name=Speicher
 oc:item.NetworkCard.name=Netzwerkkarte
 oc:item.RedstoneCard.name=Redstonekarte
 oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
-oc:text.Analyzer.Address=Adresse
-oc:text.Analyzer.ComponentName=Komponentenname
-oc:text.Analyzer.LastError=Letzter Fehler
-oc:text.Analyzer.RobotOwner=Besitzer
-oc:text.Analyzer.RobotName=Name
-oc:text.Analyzer.StoredEnergy=Gespeicherte Energie
-oc:text.Analyzer.TotalEnergy=Insgesamt gespeicherte Energie
-oc:text.Robot.Power=Energie
 
-# Tooltips
+# GUI
+oc:gui.Analyzer.Address=Adresse
+oc:gui.Analyzer.ComponentName=Komponentenname
+oc:gui.Analyzer.LastError=Letzter Fehler
+oc:gui.Analyzer.RobotOwner=Besitzer
+oc:gui.Analyzer.RobotName=Name
+oc:gui.Analyzer.StoredEnergy=Gespeicherte Energie
+oc:gui.Analyzer.TotalEnergy=Insgesamt gespeicherte Energie
+oc:gui.Robot.Power=Energie
+oc:gui.Robot.TurnOff=Ausschalten
+oc:gui.Robot.TurnOn=Einschalten
+
+# Containers
+oc:container.Case=Computer
+oc:container.DiskDrive=Diskettenlaufwerk
+
+# Item / Block Tooltips
 oc:tooltip.Adapter=Erlaubt es Blöcke anzusteuern die keine Komponentenblöcke sind, wie etwa reguläre Minecraft Blöcke oder Blöcke anderer Mods.
 oc:tooltip.Analyzer=Erlaubt es Informationen über Blöcke anzuzeigen, wie zum Bleistift ihre §fAdresse§7 und ihren §fKomponentennamen§7.[nl] Erlaubt zudem den Fehler anzuzeigen der zu einem Computerabsturz geführt hat, falls der Computer nicht regulär heruntergefahren wurde.
 oc:tooltip.Cable=Ein billiger Weg verschiedene Blöcke miteinander zu verbinden.

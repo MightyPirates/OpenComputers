@@ -44,15 +44,15 @@ class Analyzer(val parent: Delegator) extends Delegate {
 
   private def analyzeNode(stats: NBTTagCompound, node: Node, player: EntityPlayer) = if (node != null) {
     node match {
-      case connector: Connector if connector.localBufferSize > 0 => stats.setString(Settings.namespace + "text.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
+      case connector: Connector if connector.localBufferSize > 0 => stats.setString(Settings.namespace + "gui.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
       case _ =>
     }
     node match {
-      case component: Component => stats.setString(Settings.namespace + "text.Analyzer.ComponentName", component.name)
+      case component: Component => stats.setString(Settings.namespace + "gui.Analyzer.ComponentName", component.name)
       case _ =>
     }
     val address = node.address()
-    stats.setString(Settings.namespace + "text.Analyzer.Address", address)
+    stats.setString(Settings.namespace + "gui.Analyzer.Address", address)
     PacketSender.sendAnalyze(stats, address, player.asInstanceOf[Player])
   }
 

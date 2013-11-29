@@ -126,7 +126,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Node = {
     if (computer != null) computer.lastError match {
-      case Some(value) => stats.setString(Settings.namespace + "text.Analyzer.LastError", value)
+      case Some(value) => stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
       case _ =>
     }
     computer.node

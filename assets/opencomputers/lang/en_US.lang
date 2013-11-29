@@ -21,10 +21,6 @@ oc:block.ScreenAdvanced.name=Advanced Screen
 oc:block.ScreenBasic.name=Basic Screen
 oc:block.ScreenProfessional.name=Professional Screen
 
-# Containers
-oc:container.Case=Computer
-oc:container.DiskDrive=Disk Drive
-
 # Items
 oc:item.Analyzer.name=Analyzer
 oc:item.Crafting.name=Crafting
@@ -38,16 +34,24 @@ oc:item.Memory.name=Memory
 oc:item.NetworkCard.name=Network Card
 oc:item.RedstoneCard.name=Redstone Card
 oc:item.WirelessNetworkCard.name=Wireless Network Card
-oc:text.Analyzer.Address=Address
-oc:text.Analyzer.ComponentName=Component name
-oc:text.Analyzer.LastError=Last error
-oc:text.Analyzer.RobotOwner=Owner
-oc:text.Analyzer.RobotName=Name
-oc:text.Analyzer.StoredEnergy=Stored energy
-oc:text.Analyzer.TotalEnergy=Total stored energy
-oc:text.Robot.Power=Power
 
-# Tooltips
+# GUI
+oc:gui.Analyzer.Address=Address
+oc:gui.Analyzer.ComponentName=Component name
+oc:gui.Analyzer.LastError=Last error
+oc:gui.Analyzer.RobotOwner=Owner
+oc:gui.Analyzer.RobotName=Name
+oc:gui.Analyzer.StoredEnergy=Stored energy
+oc:gui.Analyzer.TotalEnergy=Total stored energy
+oc:gui.Robot.Power=Power
+oc:gui.Robot.TurnOff=Turn off
+oc:gui.Robot.TurnOn=Turn on
+
+# Containers
+oc:container.Case=Computer
+oc:container.DiskDrive=Disk Drive
+
+# Item / Block  Tooltips
 oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
 oc:tooltip.Analyzer=Used to display information about blocks, such as their §faddress§7 and §fcomponent name§7.[nl] Also displays the error that caused a computer to crash if it did not shut down normally.
 oc:tooltip.Cable=A cheap way of connecting blocks.

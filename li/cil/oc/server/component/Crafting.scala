@@ -12,7 +12,7 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import scala.collection.mutable
 
-class Crafting(owner: MCTileEntity) extends ManagedComponent {
+class Crafting(val owner: MCTileEntity) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()

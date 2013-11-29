@@ -60,7 +60,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var globalBufferSize = 0.0
 
-  var selectedSlot = 0
+  var selectedSlot = actualSlot(0)
 
   var equippedItem: Option[ItemStack] = None
 
@@ -79,8 +79,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    stats.setString(Settings.namespace + "text.Analyzer.RobotOwner", owner)
-    stats.setString(Settings.namespace + "text.Analyzer.RobotName", player_.getCommandSenderName)
+    stats.setString(Settings.namespace + "gui.Analyzer.RobotOwner", owner)
+    stats.setString(Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName)
     super.onAnalyze(stats, player, side, hitX, hitY, hitZ)
   }
 

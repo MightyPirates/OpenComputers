@@ -3,12 +3,13 @@ package li.cil.oc.server.component
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
+import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntityFurnace
+import net.minecraft.tileentity.{TileEntity => MCTileEntity, TileEntityFurnace}
 import scala.Some
 
-class Generator extends ManagedComponent {
+class Generator(val owner: MCTileEntity) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
@@ -91,6 +92,26 @@ class Generator extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      inventory match {
+        case Some(stack) =>
+          val world = owner.getWorldObj
+          val x = owner.xCoord
+          val y = owner.yCoord
+          val z = owner.zCoord
+          val entity = new EntityItem(world, x + 0.5, y + 0.5, z + 0.5, stack.copy())
+          entity.motionY = 0.04
+          entity.delayBeforeCanPickup = 5
+          world.spawnEntityInWorld(entity)
+          inventory = None
+        case _ =>
+      }
+    }
+    remainingTicks = 0
+  }
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     if (nbt.hasKey("inventory")) {
@@ -102,9 +123,12 @@ class Generator extends ManagedComponent {
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     inventory match {
-      case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
-      case _ => nbt.removeTag("inventory")
+      case Some(stack) =>
+        nbt.setNewCompoundTag("inventory", stack.writeToNBT)
+        nbt.setInteger("remainingTicks", remainingTicks)
+      case _ =>
+        nbt.removeTag("inventory")
+        nbt.removeTag("remainingTicks")
     }
-    nbt.setInteger("remainingTicks", remainingTicks)
   }
 }

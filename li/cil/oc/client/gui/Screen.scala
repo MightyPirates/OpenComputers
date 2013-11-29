@@ -13,6 +13,11 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
 
   private var x, y = 0
 
+  override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
+    super.drawScreen(mouseX, mouseY, dt)
+    drawBufferLayer()
+  }
+
   def drawBuffer() {
     GL11.glTranslatef(x, y, 0)
     BufferRenderer.drawBackground()
