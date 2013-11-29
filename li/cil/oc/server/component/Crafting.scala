@@ -19,10 +19,7 @@ class Crafting(owner: MCTileEntity) extends ManagedComponent {
 
   @LuaCallback("craft")
   def craft(context: RobotContext, args: Arguments): Array[AnyRef] = {
-    val count = if (args.count > 0) args.checkInteger(0) else 64
-    if (count > 0 && context.player.inventory.getStackInSlot(context.selectedSlot) != null) {
-      throw new IllegalArgumentException("selected result slot is not empty")
-    }
+    val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     result(CraftingInventory.craft(context, count))
   }
 
@@ -41,7 +38,7 @@ class Crafting(owner: MCTileEntity) extends ManagedComponent {
       if (timesCrafted <= 0) return true
       val surplus = mutable.ArrayBuffer.empty[ItemStack]
       for (row <- 0 until 3) for (col <- 0 until 3) {
-        val slot = row * 3 + col
+        val slot = row * 4 + col
         val stack = getStackInSlot(slot)
         if (stack != null) {
           decrStackSize(slot, timesCrafted)
