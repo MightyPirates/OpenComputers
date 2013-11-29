@@ -30,7 +30,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
+      case _ => pb.sendToNearbyPlayers(t)
     }
   }
 
@@ -42,7 +42,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
+      case _ => pb.sendToNearbyPlayers(t)
     }
   }
 
@@ -67,7 +67,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
+      case _ => pb.sendToNearbyPlayers(t)
     }
   }
 
@@ -82,7 +82,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
+      case _ => pb.sendToNearbyPlayers(t)
     }
   }
 
@@ -96,7 +96,7 @@ object PacketSender {
     pb.writeInt(oz)
     pb.writeDirection(direction)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRobotAnimateSwing(t: Robot) {
@@ -105,7 +105,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t.proxy)
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRobotAnimateTurn(t: Robot) {
@@ -115,7 +115,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t.proxy)
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRobotEquippedItemChange(t: Robot, stack: ItemStack) {
@@ -124,7 +124,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeItemStack(stack)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRobotSelectedSlotChange(t: Robot) {
@@ -133,7 +133,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
@@ -145,7 +145,7 @@ object PacketSender {
 
     player match {
       case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToAllPlayers()
+      case _ => pb.sendToNearbyPlayers(t)
     }
   }
 
@@ -156,7 +156,7 @@ object PacketSender {
     pb.writeInt(foreground)
     pb.writeInt(background)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenCopy(t: Buffer, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
@@ -170,7 +170,7 @@ object PacketSender {
     pb.writeInt(tx)
     pb.writeInt(ty)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenDepthChange(t: Buffer, value: PackedColor.Depth.Value) {
@@ -179,7 +179,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeInt(value.id)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenFill(t: Buffer, col: Int, row: Int, w: Int, h: Int, c: Char) {
@@ -192,7 +192,7 @@ object PacketSender {
     pb.writeInt(h)
     pb.writeChar(c)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenPowerChange(t: Buffer, hasPower: Boolean) {
@@ -201,7 +201,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(hasPower)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenResolutionChange(t: Buffer, w: Int, h: Int) {
@@ -211,7 +211,7 @@ object PacketSender {
     pb.writeInt(w)
     pb.writeInt(h)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenSet(t: Buffer, col: Int, row: Int, s: String) {
@@ -222,6 +222,6 @@ object PacketSender {
     pb.writeInt(row)
     pb.writeUTF(s)
 
-    pb.sendToAllPlayers()
+    pb.sendToNearbyPlayers(t)
   }
 }
