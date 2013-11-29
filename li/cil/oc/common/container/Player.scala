@@ -21,6 +21,14 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
 
   def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
 
+  override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
+    val result = super.slotClick(slot, mouseClick, holdingShift, player)
+    detectAndSendChanges() // We have to enforce this more than MC does itself
+    // because stacks can change their... "character" just by being inserted in
+    // certain containers - by being assigned an address.
+    result
+  }
+
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
     val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
     if (slot != null && slot.getHasStack) {
@@ -37,6 +45,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
         }
 
       tryTransferStackInSlot(slot, begin, length, direction)
+      detectAndSendChanges()
     }
     null
   }

@@ -80,8 +80,6 @@ class Delegator(id: Int) extends Item(id) {
     EnumRarity.common
   }
 
-  override def getShareTag = false
-
   override def getSubItems(itemId: Int, tab: CreativeTabs, list: util.List[_]) {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])

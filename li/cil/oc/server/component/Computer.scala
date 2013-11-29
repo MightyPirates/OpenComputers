@@ -30,8 +30,10 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"), "rom"))
 
-  val tmp = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
-    fromMemory(512 * 1024), "tmpfs"))
+  val tmp = if (Settings.get.tmpSize > 0) {
+    Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+      fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
+  } else None
 
   private val state = mutable.Stack(Computer.State.Stopped)
 

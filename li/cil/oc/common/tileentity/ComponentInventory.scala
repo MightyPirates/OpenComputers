@@ -6,7 +6,6 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.driver.item.Item
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
@@ -87,7 +86,6 @@ trait ComponentInventory extends Inventory with network.Environment {
           component.load(dataTag(driver, stack))
           connectItemNode(component.node)
           component.save(dataTag(driver, stack))
-          ServerPacketSender.sendItemComponentAddress(this, slot, stack)
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.

@@ -32,8 +32,6 @@ trait Buffered extends OutputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
-
     def recurse(path: String, directory: io.File) {
       makeDirectory(path)
       for (child <- directory.listFiles()) {
@@ -58,6 +56,8 @@ trait Buffered extends OutputStreamFileSystem {
       setLastModified(path, directory.lastModified())
     }
     recurse("", fileRoot)
+
+    super.load(nbt)
   }
 
   override def save(nbt: NBTTagCompound) = {

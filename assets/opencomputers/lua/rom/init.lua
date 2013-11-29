@@ -1,5 +1,5 @@
 fs.mount(os.romAddress(), "/")
-fs.mount(os.tmpAddress(), "/tmp")
+if os.tmpAddress() then fs.mount(os.tmpAddress(), "/tmp") end
 
 for c, t in component.list() do
   os.pushSignal("component_added", c, t)

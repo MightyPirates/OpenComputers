@@ -1,7 +1,6 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
@@ -11,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
-/** Centralized packet dispatcher for sending updates to the client. */
 object PacketSender {
   def sendAnalyze(stats: NBTTagCompound, address: String, player: Player) {
     val pb = new PacketBuilder(PacketType.Analyze)
@@ -44,18 +42,6 @@ object PacketSender {
       case Some(p) => pb.sendToPlayer(p)
       case _ => pb.sendToNearbyPlayers(t)
     }
-  }
-
-  def sendItemComponentAddress(inventory: ComponentInventory, slot: Int, stack: ItemStack) {
-    val pb = new PacketBuilder(PacketType.ItemComponentAddress)
-
-    pb.writeTileEntity(inventory)
-    pb.writeInt(slot)
-    pb.writeInt(stack.itemID)
-    pb.writeInt(stack.getItemDamage)
-    pb.writeUTF(stack.getTagCompound.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").getString("address"))
-
-    pb.sendToAllPlayers()
   }
 
   def sendPowerState(t: PowerInformation, player: Option[Player] = None) {
