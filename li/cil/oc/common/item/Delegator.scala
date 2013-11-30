@@ -137,8 +137,5 @@ class Delegator(id: Int) extends Item(id) {
     subItems.foreach(_.registerIcons(iconRegister))
   }
 
-  override def toString: String = {
-    getUnlocalizedName
-  }
-
+  override def toString = getUnlocalizedName
 }
