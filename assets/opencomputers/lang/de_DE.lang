@@ -31,6 +31,16 @@ oc:item.NetworkCard.name=Netzwerkkarte
 oc:item.RedstoneCard.name=Redstonekarte
 oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
 oc:item.IronNugget.name=Eisennugget
+oc:item.CircuitBoard.name=Basis Platte
+oc:item.PrintedCircuitBoard.name=Leiterplatte (PCB)
+oc:item.NumPad.name=Ziffernblock
+oc:item.ArrowKeys.name=Pfeiltasten
+oc:item.CuttingWire.name=Schneidedraht
+oc:item.ButtonGroup.name=Tastengruppe
+oc:item.Transistor.name=Transistor
+oc:item.ArithmeticLogicUnit.name=Arithmetisch-logische Einheit (ALU)
+oc:item.ControlUnit.name=Steuerwerk (CU)
+oc:item.CPU.name=Hauptprozessor (CPU)
 
 # GUI
 oc:gui.Analyzer.Address=Adresse

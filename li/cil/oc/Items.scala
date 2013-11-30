@@ -36,9 +36,9 @@ object Items {
   // ----------------------------------------------------------------------- //
   // Crafting
   var card1, card2, card3: item.Card = null
-  var circuitBoardBody: item.PlatineBody = null
-  var circuitBoard: item.Platine = null
-  var ironCutter: item.IronCutter = null
+  var circuitBoardBody: item.CircuitBoard = null
+  var circuitBoard: item.PrintedCircuitBoard = null
+  var ironCutter: item.CuttingWire = null
   var chip1, chip2, chip3: item.Chip = null
   var numPad: item.NumPad = null
   var arrowKeys: item.ArrowKeys = null
@@ -76,9 +76,9 @@ object Items {
     card1 = new item.Card(multi, 0)
     card2 = new item.Card(multi, 1)
     card3 = new item.Card(multi, 2)
-    circuitBoardBody = new item.PlatineBody(multi)
-    circuitBoard = new item.Platine(multi)
-    ironCutter = new item.IronCutter(multi)
+    circuitBoardBody = new item.CircuitBoard(multi)
+    circuitBoard = new item.PrintedCircuitBoard(multi)
+    ironCutter = new item.CuttingWire(multi)
 
 
     chip1 = new item.Chip(multi, 0)
