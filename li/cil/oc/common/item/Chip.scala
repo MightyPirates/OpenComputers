@@ -1,8 +1,8 @@
 package li.cil.oc.common.item
 
+import li.cil.oc.Settings
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.item.ItemStack
-import scala.Some
-
 
 class Chip(val parent: Delegator, val tier: Int) extends Delegate {
   val unlocalizedName = "Chip"
@@ -17,8 +17,14 @@ class Chip(val parent: Delegator, val tier: Int) extends Delegate {
     else if (tier == 2) {
       Option("Diamond Chip")
     }
-    else{
+    else {
       Option(unlocalizedName)
     }
+  }
+
+  override def registerIcons(iconRegister: IconRegister) = {
+    super.registerIcons(iconRegister)
+
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":chipset" + tier)
   }
 }
