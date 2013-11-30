@@ -37,6 +37,14 @@ oc:item.WirelessNetworkCard.name=Wireless Network Card
 oc:item.IronNugget.name=Iron Nugget
 oc:item.CircuitBoard.name=Circuit Board
 oc:item.PrintedCircuitBoard.name=Printed Circuit Board(PCB)
+oc:item.NumPad.name=Numeric Keypad
+oc:item.ArrowKeys.name=Arrow Keys
+oc:item.CuttingWire.name=Cutting Wire
+oc:item.ButtonGroup.name=Button Group
+oc:item.Transistor.name=Transistor
+oc:item.ArithmeticLogicUnit.name=Arithmetic Logic Unit (ALU)
+oc:item.ControlUnit.name=Control Unit (CU)
+oc:item.CPU.name=Central Processing Unit (CPU)
 
 # GUI
 oc:gui.Analyzer.Address=Address
