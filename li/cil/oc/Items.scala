@@ -45,7 +45,7 @@ object Items {
   var buttonGroup: item.ButtonGroup = null
   var cpu: item.CPU = null
   var transistor : item.Transistor = null
-  var alu : item.Alu = null
+  var alu : item.ALU = null
   var cu : item.ControlUnit = null
 
   var ironNugget : item.IronNugget = null
@@ -91,7 +91,7 @@ object Items {
 
     cpu = new item.CPU(multi)
     transistor = new item.Transistor(multi)
-    alu = new item.Alu(multi)
+    alu = new item.ALU(multi)
     cu = new item.ControlUnit(multi)
 
     ironNugget = new item.IronNugget(multi)
