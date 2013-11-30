@@ -66,9 +66,8 @@ object Recipes {
       "xxx", 'x': Character, dirt)
 
     GameRegistry.addRecipe(Blocks.keyboard.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "xxx",
+      "xan", 'x': Character, Items.buttonGroup.createItemStack(),'a':Character,Items.arrowKeys.createItemStack(),'n':Character,Items.numPad.createItemStack())
 
     GameRegistry.addRecipe(Blocks.robotProxy.createItemStack(),
       "x  ",
@@ -98,17 +97,17 @@ object Recipes {
     GameRegistry.addRecipe(Items.card1.createItemStack(),
       "xyy",
       "xzz",
-      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip1.createItemStack())
+      "x  ", 'x': Character, ironStack, 'z': Character, Items.circuitBoard.createItemStack(), 'y': Character, Items.chip1.createItemStack())
 
     GameRegistry.addRecipe(Items.card2.createItemStack(),
       "xyy",
       "xzz",
-      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip2.createItemStack())
+      "x  ", 'x': Character, ironStack, 'z': Character, Items.circuitBoard.createItemStack(), 'y': Character, Items.chip2.createItemStack())
 
     GameRegistry.addRecipe(Items.card3.createItemStack(),
       "xyy",
       "xzz",
-      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip3.createItemStack())
+      "x  ", 'x': Character, ironStack, 'z': Character, Items.circuitBoard.createItemStack(), 'y': Character, Items.chip3.createItemStack())
 
     GameRegistry.addRecipe(Items.disk.createItemStack(),
       "x  ",
@@ -166,9 +165,32 @@ object Recipes {
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
+    GameRegistry.addRecipe(Items.numPad.createItemStack(),
+      "xxx",
+      "xxx",
+      "xxx", 'x': Character, new ItemStack(Block.stoneButton))
+
+    GameRegistry.addRecipe(Items.arrowKeys.createItemStack(),
+      " x ",
+      "xxx", 'x': Character, new ItemStack(Block.stoneButton))
+
+    GameRegistry.addRecipe(Items.buttonGroup.createItemStack(),
+      "xxx",
+      "xxx", 'x': Character, new ItemStack(Block.stoneButton))
+
+    addRecipe(Items.transistor.createItemStack(),
+    " r ",
+    "dcd",
+    " t ", 'r',new ItemStack(Item.redstoneRepeater),'d',new ItemStack(Item.redstone),'c',new ItemStack(Item.comparator),'t',new ItemStack(Block.torchRedstoneIdle))
+
+    addRecipe(Items.cpu.createItemStack(),
+      "brb",
+      "rcr",
+      "brb", 'b',ironStack,'r',new ItemStack(Item.redstone),'c',new ItemStack(Item.pocketSundial))
+
 
     GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron))
-    GameRegistry.addShapelessRecipe(Items.circuitBoardBody.createItemStack(), Items.ironCutter.createItemStack(), new ItemStack(Item.clay))
+    GameRegistry.addShapelessRecipe(Items.circuitBoardBody.createItemStack(), Items.ironCutter.createItemStack(), new ItemStack(Block.hardenedClay))
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8196), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8228), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8260), Item.goldNugget, Items.circuitBoardBody.createItemStack())
@@ -177,5 +199,9 @@ object Recipes {
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16452), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
 
+  }
+
+  def addRecipe(output:ItemStack,args:Any*)={
+    GameRegistry.addRecipe(output,args.map(_.asInstanceOf[AnyRef]):_*)
   }
 }

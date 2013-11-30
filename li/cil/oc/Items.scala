@@ -33,11 +33,16 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Crafting
-  var card1,card2,card3: item.Card = null
+  var card1, card2, card3: item.Card = null
   var circuitBoardBody: item.PlatineBody = null
   var circuitBoard: item.Platine = null
   var ironCutter: item.IronCutter = null
-  var chip1,chip2,chip3 :item.Chip = null
+  var chip1, chip2, chip3: item.Chip = null
+  var numPad: item.Numpad = null
+  var arrowKeys: item.ArrowKeys = null
+  var buttonGroup: item.ButtonGroup = null
+  var cpu: item.CPU = null
+  var transistor : item.Transistor = null
 
 
   def init() {
@@ -62,16 +67,23 @@ object Items {
     wlan = new item.WirelessNetworkCard(multi)
     crafting = new item.Crafting(multi)
 
-    card1 = new item.Card(multi,0)
-    card2 = new item.Card(multi,1)
-    card3 = new item.Card(multi,2)
+    card1 = new item.Card(multi, 0)
+    card2 = new item.Card(multi, 1)
+    card3 = new item.Card(multi, 2)
     circuitBoardBody = new item.PlatineBody(multi)
     circuitBoard = new item.Platine(multi)
     ironCutter = new item.IronCutter(multi)
 
 
-    chip1 = new item.Chip(multi,0)
-    chip2 = new item.Chip(multi,1)
-    chip3 = new item.Chip(multi,2)
+    chip1 = new item.Chip(multi, 0)
+    chip2 = new item.Chip(multi, 1)
+    chip3 = new item.Chip(multi, 2)
+
+    numPad = new item.Numpad(multi)
+    arrowKeys = new item.ArrowKeys(multi)
+    buttonGroup = new item.ButtonGroup(multi)
+
+    cpu = new item.CPU(multi)
+    transistor = new item.Transistor(multi)
   }
 }
