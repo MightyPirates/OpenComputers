@@ -7,7 +7,7 @@ import net.minecraftforge.common.ForgeDirection
 abstract class Computer extends Delegate {
   override def hasTileEntity = true
 
-  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
+  override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Computer => computer.isOutputEnabled
       case _ => false
@@ -22,7 +22,7 @@ abstract class Computer extends Delegate {
       case _ => super.isProvidingWeakPower(world, x, y, z, side)
     }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Computer => computer.checkRedstoneInputChanged()
       case _ => // Ignore.

@@ -16,7 +16,7 @@ import net.minecraftforge.common.ForgeDirection
 class Analyzer(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Analyzer"
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 

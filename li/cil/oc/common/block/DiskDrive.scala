@@ -19,7 +19,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
     if (Loader.isModLoaded("ComputerCraft")) {
       tooltip.addAll(Tooltip.get(unlocalizedName + ".CC"))
@@ -52,8 +52,8 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)

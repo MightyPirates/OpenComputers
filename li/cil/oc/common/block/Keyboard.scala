@@ -18,7 +18,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   var icon: Icon = null
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -46,17 +46,17 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
       case _ => false
     }
 
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard => parent.setBlockBounds(computeBounds(keyboard.pitch, keyboard.yaw))
-      case _ => super.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ => super.updateBounds(world, x, y, z)
     }
 
-  override def setBlockBoundsForItemRender() {
+  override def itemBounds() {
     parent.setBlockBounds(computeBounds(ForgeDirection.NORTH, ForgeDirection.WEST))
   }
 
@@ -83,7 +83,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
       (x0 max x1) + 0.5f, (y0 max y1) + 0.5f, (z0 max z1) + 0.5f)
   }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite) => // Can stay.
       case _ =>
@@ -91,7 +91,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
         world.setBlockToAir(x, y, z)
     }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         val (sx, sy, sz) = (
@@ -99,11 +99,11 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
           y + keyboard.facing.getOpposite.offsetY,
           z + keyboard.facing.getOpposite.offsetZ)
         Delegator.subBlock(world, sx, sy, sz) match {
-          case Some(screen: Screen) => screen.onBlockActivated(world, sx, sy, sz, player, keyboard.facing.getOpposite, 0, 0, 0)
-          case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+          case Some(screen: Screen) => screen.rightClick(world, sx, sy, sz, player, keyboard.facing.getOpposite, 0, 0, 0)
+          case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
         }
-      case _ => super.onBlockActivated(world, x, y, z, player, side, hitX, hitY, hitZ)
+      case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
     }
 
-  override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
+  override protected val validRotations_ = ForgeDirection.VALID_DIRECTIONS
 }

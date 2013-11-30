@@ -9,7 +9,7 @@ class Memory(val parent: Delegator, val tier: Int) extends Delegate {
 
   val kiloBytes = Settings.get.ramSizes(tier)
 
-  override def getItemDisplayName(stack: ItemStack) =
+  override def displayName(stack: ItemStack) =
     Some(parent.getItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))
 
   override def registerIcons(iconRegister: IconRegister) {

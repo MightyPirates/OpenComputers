@@ -16,7 +16,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -34,22 +34,22 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
-  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {
     world.markBlockForRenderUpdate(x, y, z)
-    super.onNeighborBlockChange(world, x, y, z, blockId)
+    super.neighborBlockChanged(world, x, y, z, blockId)
   }
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
+  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
     parent.setBlockBounds(Cable.bounds(world, x, y, z))
   }
 }

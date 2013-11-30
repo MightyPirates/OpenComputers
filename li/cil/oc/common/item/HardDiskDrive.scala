@@ -11,7 +11,7 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
 
   val kiloBytes = Settings.get.hddSizes(tier)
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {
       val nbt = stack.getTagCompound
       if (nbt.hasKey(Settings.namespace + "data")) {
@@ -28,10 +28,10 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
         }
       }
     }
-    super.addInformation(stack, player, tooltip, advanced)
+    super.tooltipLines(stack, player, tooltip, advanced)
   }
 
-  override def getItemDisplayName(stack: ItemStack) = {
+  override def displayName(stack: ItemStack) = {
     val localizedName = parent.getItemStackDisplayName(stack)
     Some(if (kiloBytes >= 1024) {
       localizedName + " (%dMB)".format(kiloBytes / 1024)

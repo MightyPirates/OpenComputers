@@ -10,9 +10,9 @@ import net.minecraft.item.ItemStack
 class Crafting(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Crafting"
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    super.addInformation(stack, player, tooltip, advanced)
+    super.tooltipLines(stack, player, tooltip, advanced)
   }
 
   override def registerIcons(iconRegister: IconRegister) = {

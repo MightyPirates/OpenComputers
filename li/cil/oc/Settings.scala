@@ -150,13 +150,13 @@ object Settings {
       out.close()
     }
     val defaults = ConfigFactory.defaultReference().withOnlyPath("opencomputers")
-    val config = ConfigFactory.parseFile(file).withFallback(defaults)
     try {
+      val config = ConfigFactory.parseFile(file).withFallback(defaults)
       settings = new Settings(config.getConfig("opencomputers"))
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed loading config, using defaults.", e)
+        OpenComputers.log.warning("Failed loading config, using defaults. The reason was: " + e.getMessage)
         settings = new Settings(defaults.getConfig("opencomputers"))
     }
   }
