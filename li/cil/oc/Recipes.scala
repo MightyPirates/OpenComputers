@@ -3,6 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
+import net.minecraftforge.oredict.OreDictionary
 
 object Recipes {
   def init() {
@@ -143,7 +144,7 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears), new ItemStack(Item.ingotIron))
+    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears,1,OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron))
     GameRegistry.addShapelessRecipe(Items.circuitBoardBody.createItemStack(), Items.ironCutter.createItemStack(), new ItemStack(Item.clay))
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8196), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8228), Item.goldNugget, Items.circuitBoardBody.createItemStack())
@@ -151,6 +152,7 @@ object Recipes {
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16388), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16420), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16452), Item.goldNugget, Items.circuitBoardBody.createItemStack())
+    GameRegistry.addShapelessRecipe(new ItemStack(Item.potion),Item.bucketWater,Item.glassBottle)
 
   }
 }
