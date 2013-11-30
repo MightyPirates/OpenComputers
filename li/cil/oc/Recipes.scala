@@ -75,15 +75,40 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
+    GameRegistry.addRecipe(Items.chip1.createItemStack(),
+      "xxx",
+      "xyx",
+      "xxx", 'x': Character, new ItemStack(Block.fenceIron), 'y': Character, new ItemStack(Item.redstone))
+
+    GameRegistry.addRecipe(Items.chip2.createItemStack(),
+      "xxx",
+      "xyx",
+      "xxx", 'x': Character, Items.chip1.createItemStack(), 'y': Character, new ItemStack(Item.ingotGold))
+
+    GameRegistry.addRecipe(Items.chip3.createItemStack(),
+      "xxx",
+      "xyx",
+      "xxx", 'x': Character, Items.chip2.createItemStack(), 'y': Character, new ItemStack(Item.diamond))
+
     GameRegistry.addRecipe(Items.analyzer.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Items.card.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+    GameRegistry.addRecipe(Items.card1.createItemStack(),
+      "xyy",
+      "xzz",
+      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip1.createItemStack())
+
+    GameRegistry.addRecipe(Items.card2.createItemStack(),
+      "xyy",
+      "xzz",
+      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip2.createItemStack())
+
+    GameRegistry.addRecipe(Items.card3.createItemStack(),
+      "xyy",
+      "xzz",
+      "xyy", 'x': Character, ironStack, 'y': Character, Items.circuitBoard.createItemStack(), 'z': Character, Items.chip3.createItemStack())
 
     GameRegistry.addRecipe(Items.disk.createItemStack(),
       "x  ",
@@ -92,18 +117,48 @@ object Recipes {
 
     GameRegistry.addRecipe(Items.gpu1.createItemStack(),
       "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "y  ",
+      "x  ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu1.createItemStack(),
+      " x ",
+      " y ",
+      " x ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu1.createItemStack(),
+      "  x",
+      "  y",
+      "  x", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
 
     GameRegistry.addRecipe(Items.gpu2.createItemStack(),
       "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "y  ",
+      "x  ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu2.createItemStack(),
+      " x ",
+      " y ",
+      " x ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu2.createItemStack(),
+      "  x",
+      "  y",
+      "  x", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
 
     GameRegistry.addRecipe(Items.gpu3.createItemStack(),
       "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "y  ",
+      "x  ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu3.createItemStack(),
+      " x ",
+      " y ",
+      " x ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
+
+    GameRegistry.addRecipe(Items.gpu3.createItemStack(),
+      "  x",
+      "  y",
+      "  x", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
 
     GameRegistry.addRecipe(Items.hdd1.createItemStack(),
       "x  ",
@@ -120,31 +175,40 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addShapelessRecipe(Items.lan.createItemStack(), Items.card.createItemStack(), Blocks.cable.createItemStack())
+    GameRegistry.addShapelessRecipe(Items.lan.createItemStack(), Items.card1.createItemStack(), Blocks.cable.createItemStack())
 
     GameRegistry.addRecipe(Items.ram1.createItemStack(),
-      "x  ",
+      "xxx",
+      "yyy",
+      "   ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+    GameRegistry.addRecipe(Items.ram1.createItemStack(),
       "   ",
-      "xxx", 'x': Character, dirt)
+      "xxx",
+      "yyy", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
     GameRegistry.addRecipe(Items.ram2.createItemStack(),
-      "x  ",
       "   ",
-      "xxx", 'x': Character, dirt)
+      "xxx",
+      "yyy", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+
+    GameRegistry.addRecipe(Items.ram2.createItemStack(),
+      "xxx",
+      "yyy",
+      "   ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
     GameRegistry.addRecipe(Items.ram3.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "xxx",
+      "yyy",
+      "   ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
-    GameRegistry.addShapelessRecipe(Items.rs.createItemStack(), Items.card.createItemStack(), new ItemStack(Item.redstone, 1))
+    GameRegistry.addShapelessRecipe(Items.rs.createItemStack(), Items.card1.createItemStack(), new ItemStack(Item.redstone, 1))
 
     GameRegistry.addRecipe(Items.wlan.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears,1,OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron))
+    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron))
     GameRegistry.addShapelessRecipe(Items.circuitBoardBody.createItemStack(), Items.ironCutter.createItemStack(), new ItemStack(Item.clay))
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8196), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8228), Item.goldNugget, Items.circuitBoardBody.createItemStack())
@@ -152,7 +216,7 @@ object Recipes {
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16388), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16420), Item.goldNugget, Items.circuitBoardBody.createItemStack())
     GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16452), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(new ItemStack(Item.potion),Item.bucketWater,Item.glassBottle)
+    GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
 
   }
 }
