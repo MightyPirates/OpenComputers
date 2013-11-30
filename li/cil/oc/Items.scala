@@ -2,6 +2,8 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
+import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
 
 object Items {
   var multi: item.Delegator = null
@@ -43,6 +45,10 @@ object Items {
   var buttonGroup: item.ButtonGroup = null
   var cpu: item.CPU = null
   var transistor : item.Transistor = null
+  var alu : item.Alu = null
+  var cu : item.ControlUnit = null
+
+  var ironNugget : item.IronNugget = null
 
 
   def init() {
@@ -85,5 +91,10 @@ object Items {
 
     cpu = new item.CPU(multi)
     transistor = new item.Transistor(multi)
+    alu = new item.Alu(multi)
+    cu = new item.ControlUnit(multi)
+
+    ironNugget = new item.IronNugget(multi)
+    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
   }
 }
