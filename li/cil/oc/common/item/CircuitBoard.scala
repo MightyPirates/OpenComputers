@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-
-class CircuitBoard (val parent: Delegator) extends Delegate {
-val unlocalizedName = "CircuitBoard"
+class CircuitBoard(val parent: Delegator) extends Delegate {
+  val unlocalizedName = "CircuitBoard"
 }
