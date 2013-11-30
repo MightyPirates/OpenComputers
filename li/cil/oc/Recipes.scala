@@ -15,6 +15,7 @@ object Recipes {
     val redstoneDust = new ItemStack(Item.redstone)
     val comparator = new ItemStack(Item.comparator)
     val emerald = new ItemStack(Item.emerald)
+    val goldNugget = new ItemStack(Item.goldNugget)
 
 
     val chip1 = Items.chip1.createItemStack()
@@ -213,7 +214,7 @@ object Recipes {
     addRecipe(chip2,
       "glg",
       "cdc",
-      "glg", 'g', "nuggetGold", 'l', lapis, 'c', chip1, 'd', diamond)
+      "glg", 'g', goldNugget, 'l', lapis, 'c', chip1, 'd', diamond)
 
     addRecipe(chip3,
       "dmd",

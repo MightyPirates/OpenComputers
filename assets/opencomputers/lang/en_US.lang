@@ -34,6 +34,7 @@ oc:item.Memory.name=Memory
 oc:item.NetworkCard.name=Network Card
 oc:item.RedstoneCard.name=Redstone Card
 oc:item.WirelessNetworkCard.name=Wireless Network Card
+oc:item.IronNugget.name=Iron Nugget
 
 # GUI
 oc:gui.Analyzer.Address=Address
