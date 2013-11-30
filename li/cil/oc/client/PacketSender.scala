@@ -14,7 +14,7 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown[T <: Buffer](t: T, char: Char, code: Int) =
+  def sendKeyDown(t: Buffer, char: Char, code: Int) =
     if (t.hasKeyboard) {
       val pb = new PacketBuilder(PacketType.KeyDown)
 
@@ -25,7 +25,7 @@ object PacketSender {
       pb.sendToServer()
     }
 
-  def sendKeyUp[T <: Buffer](t: T, char: Char, code: Int) =
+  def sendKeyUp(t: Buffer, char: Char, code: Int) =
     if (t.hasKeyboard) {
       val pb = new PacketBuilder(PacketType.KeyUp)
 
@@ -36,12 +36,23 @@ object PacketSender {
       pb.sendToServer()
     }
 
-  def sendClipboard[T <: Buffer](t: T, value: String) =
-    if (!value.isEmpty && t.hasKeyboard) {
+  def sendClipboard(t: Buffer, value: String) =
+    if (value != null && !value.isEmpty && t.hasKeyboard) {
       val pb = new PacketBuilder(PacketType.Clipboard)
 
       pb.writeTileEntity(t)
       pb.writeUTF(value.substring(0, value.length min 1024))
+
+      pb.sendToServer()
+    }
+
+  def sendMouseClick(t: Buffer, x: Int, y: Int) =
+    if (t.tier > 0) {
+      val pb = new PacketBuilder(PacketType.MouseClick)
+
+      pb.writeTileEntity(t)
+      pb.writeInt(x)
+      pb.writeInt(y)
 
       pb.sendToServer()
     }

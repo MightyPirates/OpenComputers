@@ -64,6 +64,4 @@ trait Delegate {
 
   def equals(stack: ItemStack) =
     stack != null && stack.getItem == parent && parent.subItem(stack).exists(_ == this)
-
-
 }

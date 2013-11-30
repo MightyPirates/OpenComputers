@@ -12,7 +12,6 @@ import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import sun.plugin.dom.exception.InvalidStateException
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
@@ -74,41 +73,34 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
-        val (w, h) = (screen.width, screen.height)
-        // Don't ask. Seriously. Just... don't.
-        val (lx, ly) =
-          screen.pitch match {
-            case ForgeDirection.NORTH => screen.localPosition
-            case ForgeDirection.UP => screen.yaw match {
-              case ForgeDirection.SOUTH =>
-                screen.localPosition
-              case ForgeDirection.NORTH =>
-                val (x, y) = screen.localPosition
-                (w - x - 1, h - y - 1)
-              case ForgeDirection.EAST =>
-                val (x, y) = screen.localPosition
-                (w - x - 1, y)
-              case ForgeDirection.WEST =>
-                val (x, y) = screen.localPosition
-                (x, h - y - 1)
-              case _ => throw new InvalidStateException("yaw has invalid value")
-            }
-            case ForgeDirection.DOWN => screen.yaw match {
-              case ForgeDirection.SOUTH =>
-                val (x, y) = screen.localPosition
-                (x, h - y - 1)
-              case ForgeDirection.NORTH =>
-                val (x, y) = screen.localPosition
-                (w - x - 1, y)
-              case ForgeDirection.EAST =>
-                val (x, y) = screen.localPosition
-                (w - x - 1, h - y - 1)
-              case ForgeDirection.WEST =>
-                screen.localPosition
-              case _ => throw new InvalidStateException("yaw has invalid value")
-            }
-            case _ => throw new InvalidStateException("pitch has invalid value")
+        val (right, bottom) = (screen.width - 1, screen.height - 1)
+        val (px, py) = screen.localPosition
+        val (lx, ly) = screen.pitch match {
+          case ForgeDirection.NORTH => (px, py)
+          case ForgeDirection.UP => screen.yaw match {
+            case ForgeDirection.SOUTH =>
+              (px, py)
+            case ForgeDirection.NORTH =>
+              (right - px, bottom - py)
+            case ForgeDirection.EAST =>
+              (right - px, py)
+            case ForgeDirection.WEST =>
+              (px, bottom - py)
+            case _ => throw new AssertionError("yaw has invalid value")
           }
+          case ForgeDirection.DOWN => screen.yaw match {
+            case ForgeDirection.SOUTH =>
+              (px, bottom - py)
+            case ForgeDirection.NORTH =>
+              (right - px, py)
+            case ForgeDirection.EAST =>
+              (right - px, bottom - py)
+            case ForgeDirection.WEST =>
+              (px, py)
+            case _ => throw new AssertionError("yaw has invalid value")
+          }
+          case _ => throw new AssertionError("pitch has invalid value")
+        }
         // See which face we're rendering. We can pretty much treat front and
         // back the same, except with a different texture set. Same goes for
         // left and right sides, as well as top and bottom sides.
@@ -122,33 +114,33 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
               case _ => screen.yaw match {
                 case ForgeDirection.SOUTH | ForgeDirection.NORTH => sn
                 case ForgeDirection.EAST | ForgeDirection.WEST => ew
-                case _ => throw new InvalidStateException("yaw has invalid value")
+                case _ => throw new AssertionError("yaw has invalid value")
               }
             }
-            if (h == 1) {
+            if (screen.height == 1) {
               if (lx == 0) Some(ht)
-              else if (lx == w - 1) Some(hb)
+              else if (lx == right) Some(hb)
               else Some(hm)
             }
-            else if (w == 1) {
+            else if (screen.width == 1) {
               if (ly == 0) Some(vb)
-              else if (ly == h - 1) Some(vt)
+              else if (ly == bottom) Some(vt)
               else Some(vm)
             }
             else {
               if (lx == 0) {
                 if (ly == 0) Some(bl)
-                else if (ly == h - 1) Some(tl)
+                else if (ly == bottom) Some(tl)
                 else Some(ml)
               }
-              else if (lx == w - 1) {
+              else if (lx == right) {
                 if (ly == 0) Some(br)
-                else if (ly == h - 1) Some(tr)
+                else if (ly == bottom) Some(tr)
                 else Some(mr)
               }
               else {
                 if (ly == 0) Some(bm)
-                else if (ly == h - 1) Some(tm)
+                else if (ly == bottom) Some(tm)
                 else Some(mm)
               }
             }
@@ -161,15 +153,15 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
               case _ => screen.yaw match {
                 case ForgeDirection.SOUTH | ForgeDirection.EAST => sn
                 case ForgeDirection.NORTH | ForgeDirection.WEST => ew
-                case _ => throw new InvalidStateException("yaw has invalid value")
+                case _ => throw new AssertionError("yaw has invalid value")
               }
             }
-            if (h == 1) {
+            if (screen.height == 1) {
               Some(Icons.b2)
             }
             else {
               if (ly == 0) Some(b)
-              else if (ly == h - 1) Some(t)
+              else if (ly == bottom) Some(t)
               else Some(m)
             }
           case ForgeDirection.UP | ForgeDirection.DOWN =>
@@ -182,21 +174,21 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
                 case ForgeDirection.NORTH => Icons.bh
                 case ForgeDirection.EAST => Icons.bv
                 case ForgeDirection.WEST => Icons.tv
-                case _ => throw new InvalidStateException("yaw has invalid value")
+                case _ => throw new AssertionError("yaw has invalid value")
               }
               case _ => screen.yaw match {
                 case ForgeDirection.SOUTH | ForgeDirection.WEST => sn
                 case ForgeDirection.NORTH | ForgeDirection.EAST => ew
-                case _ => throw new InvalidStateException("yaw has invalid value")
+                case _ => throw new AssertionError("yaw has invalid value")
               }
             }
-            if (w == 1) {
+            if (screen.width == 1) {
               if (screen.pitch == ForgeDirection.NORTH) Some(Icons.b)
               else Some(Icons.b2)
             }
             else {
               if (lx == 0) Some(b)
-              else if (lx == w - 1) Some(t)
+              else if (lx == right) Some(t)
               else Some(m)
             }
           case _ => None
@@ -290,6 +282,8 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
         case screen: tileentity.Screen if screen.hasKeyboard =>
           player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
           true
+        case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
+          screen.click(player, hitX, hitY, hitZ)
         case _ => false
       }
     }
