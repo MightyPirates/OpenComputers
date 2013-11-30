@@ -18,6 +18,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
+      case PacketType.MouseClick => onMouseClick(p)
       case _ => // Invalid packet.
     }
 
@@ -60,6 +61,15 @@ class PacketHandler extends CommonPacketHandler {
         val value = p.readUTF()
         s.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
       case Some(e) => e.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
+      case _ => // Invalid packet.
+    }
+
+  def onMouseClick(p: PacketParser) =
+    p.readTileEntity[Buffer]() match {
+      case Some(s: Screen) =>
+        val x = p.readInt()
+        val y = p.readInt()
+        s.origin.node.sendToReachable("computer.checked_signal", p.player, "click", Int.box(x), Int.box(y))
       case _ => // Invalid packet.
     }
 }

@@ -85,8 +85,9 @@ trait Buffer extends GuiScreen {
 
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
-    if (button == 2)
+    if (button == 2) {
       PacketSender.sendClipboard(buffer.owner, GuiScreen.getClipboardString)
+    }
   }
 
   protected def changeSize(w: Double, h: Double): Double

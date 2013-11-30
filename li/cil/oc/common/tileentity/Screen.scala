@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
+import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -41,13 +42,22 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
 
+  // ----------------------------------------------------------------------- //
+
+  def isOrigin = origin == this
+
+  def localPosition = {
+    val (lx, ly, _) = project(this)
+    val (ox, oy, _) = project(origin)
+    val (px, py) = (lx - ox, ly - oy)
+    (px, py)
+  }
+
   override def hasKeyboard = screens.exists(screen => ForgeDirection.VALID_DIRECTIONS.
     map(side => (side, world.getBlockTileEntity(screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ))).
     collect {
     case (side, keyboard: Keyboard) if keyboard.facing == side => keyboard
   }.nonEmpty)
-
-  // ----------------------------------------------------------------------- //
 
   def checkMultiBlock() {
     shouldCheckForMultiBlock = true
@@ -58,12 +68,51 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     screens += this
   }
 
-  def isOrigin = origin == this
+  def click(player: EntityPlayer, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    // Compute absolute position of the click on the face, measured in blocks.
+    def dot(f: ForgeDirection) = f.offsetX * hitX + f.offsetY * hitY + f.offsetZ * hitZ
+    val (hx, hy) = (dot(toGlobal(ForgeDirection.EAST)), dot(toGlobal(ForgeDirection.UP)))
+    val tx = if (hx < 0) 1 + hx else hx
+    val ty = 1 - (if (hy < 0) 1 + hy else hy)
+    val (lx, ly) = localPosition
+    val (ax, ay) = (lx + tx, height - 1 - ly + ty)
 
-  def localPosition = {
-    val (x, y, _) = project(this)
-    val (ox, oy, _) = project(origin)
-    ((ox - x).abs, (oy - y).abs)
+    // Get the relative position in the *display area* of the face.
+    val border = 2.25 / 16.0
+    if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
+      return false
+    }
+    val (rx, ry) = ((ax - border) / (width - border * 2), (ay - border) / (height - border * 2))
+
+    // Make it a relative position in the displayed buffer.
+    val (bw, bh) = buffer.resolution
+    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth, bh * MonospaceFontRenderer.fontHeight)
+    val (brx, bry) = if (bpw > bph) {
+      val rh = bph.toDouble / bpw.toDouble
+      val bry = (ry - (1 - rh) * 0.5) / rh
+      if (bry <= 0 || bry >= 1) {
+        return false
+      }
+      (rx, bry)
+    }
+    else if (bph > bpw) {
+      val rw = bpw.toDouble / bph.toDouble
+      val brx = (rx - (1 - rw) * 0.5) / rw
+      if (brx <= 0 || brx >= 1) {
+        return false
+      }
+      (brx, ry)
+    }
+    else {
+      (rx, ry)
+    }
+
+    // Convert to absolute coordinates and send the (checked) signal.
+    if (!world.isRemote) {
+      val (bx, by) = (brx * bw, bry * bh)
+      origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(bx.toInt + 1), Int.box(by.toInt + 1))
+    }
+    true
   }
 
   // ----------------------------------------------------------------------- //
@@ -90,9 +139,9 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       val queue = mutable.Queue(this)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
-        val (x, y, z) = project(current)
+        val (lx, ly, lz) = project(current)
         def tryQueue(dx: Int, dy: Int) {
-          val (nx, ny, nz) = unproject(x + dx, y + dy, z)
+          val (nx, ny, nz) = unproject(lx + dx, ly + dy, lz)
           worldObj.getBlockTileEntity(nx, ny, nz) match {
             case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
             case _ => // Ignore.
@@ -223,21 +272,21 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   private def tryMerge() = {
-    val (x, y, z) = project(origin)
+    val (ox, oy, oz) = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
-      val (nx, ny, nz) = unproject(x + dx, y + dy, z)
+      val (nx, ny, nz) = unproject(ox + dx, oy + dy, oz)
       worldObj.getBlockTileEntity(nx, ny, nz) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
-          val canMergeAlongX = sy == y && s.height == height && s.width + width <= Settings.get.maxScreenWidth
-          val canMergeAlongY = sx == x && s.width == width && s.height + height <= Settings.get.maxScreenHeight
+          val canMergeAlongX = sy == oy && s.height == height && s.width + width <= Settings.get.maxScreenWidth
+          val canMergeAlongY = sx == ox && s.width == width && s.height + height <= Settings.get.maxScreenHeight
           if (canMergeAlongX || canMergeAlongY) {
             val (newOrigin) =
               if (canMergeAlongX) {
-                if (sx < x) s.origin else origin
+                if (sx < ox) s.origin else origin
               }
               else {
-                if (sy < y) s.origin else origin
+                if (sy < oy) s.origin else origin
               }
             val (newWidth, newHeight) =
               if (canMergeAlongX) (width + s.width, height)

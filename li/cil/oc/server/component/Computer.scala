@@ -1204,7 +1204,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
             case _ =>
               lua.resume(1, 0)
           }, System.nanoTime() - cpuStart)
-        case s => throw new Exception("Running computer from invalid state " + s.toString)
+        case s => throw new AssertionError("Running computer from invalid state " + s.toString)
       }
 
       // Keep track of time spent executing the computer.

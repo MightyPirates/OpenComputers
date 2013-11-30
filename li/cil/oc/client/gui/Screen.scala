@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.client.PacketSender
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.common.tileentity
@@ -12,6 +13,18 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var x, y = 0
+
+  override protected def mouseClicked(x: Int, y: Int, button: Int) {
+    super.mouseClicked(x, y, button)
+    if (button == 0 && screen.tier > 0) {
+      val bx = (x - this.x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
+      val by = (y - this.y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+      val (bw, bh) = screen.buffer.resolution
+      if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+        PacketSender.sendMouseClick(buffer.owner, bx, by)
+      }
+    }
+  }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float): Unit = {
     super.drawScreen(mouseX, mouseY, dt)
