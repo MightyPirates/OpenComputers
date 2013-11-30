@@ -1,20 +1,21 @@
 package li.cil.oc.common.item
 
 import net.minecraft.item.ItemStack
+import scala.Some
 
 
-class Card(val parent: Delegator,val tier:Int) extends Delegate {
-  val unlocalizedName = "Card"
+class Chip(val parent: Delegator, val tier: Int) extends Delegate {
+  val unlocalizedName = "Chip"
 
   override def displayName(stack: ItemStack) = {
     if (tier == 0) {
-      Option("Redstone Card")
+      Option("Redstone Chip")
     }
     else if (tier == 1) {
-      Option("Golden Card")
+      Option("Golden Chip")
     }
     else if (tier == 2) {
-      Option("Diamond Card")
+      Option("Diamond Chip")
     }
     else{
       Option(unlocalizedName)
