@@ -9,14 +9,14 @@ import net.minecraft.item.ItemStack
 class Disk(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Disk"
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val nbt = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (nbt.hasKey(Settings.namespace + "fs.label")) {
         tooltip.add(nbt.getString(Settings.namespace + "fs.label"))
       }
     }
-    super.addInformation(stack, player, tooltip, advanced)
+    super.tooltipLines(stack, player, tooltip, advanced)
   }
 
   override def registerIcons(iconRegister: IconRegister) {

@@ -1,6 +1,7 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
@@ -283,6 +284,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   // ----------------------------------------------------------------------- //
 
+  @SideOnly(Side.CLIENT)
   def addInformation(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
@@ -304,18 +306,21 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => 0
     }
 
+  @SideOnly(Side.CLIENT)
   override def getRenderColor(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.color
       case _ => super.getRenderColor(metadata)
     }
 
+  @SideOnly(Side.CLIENT)
   override def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.color(world, x, y, z)
       case _ => super.colorMultiplier(world, x, y, z)
     }
 
+  @SideOnly(Side.CLIENT)
   override def getIcon(side: Int, metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.icon(ForgeDirection.getOrientation(side)) match {
@@ -325,6 +330,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.getIcon(side, metadata)
     }
 
+  @SideOnly(Side.CLIENT)
   override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) =>
@@ -346,12 +352,14 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => setBlockBoundsForItemRender()
     }
 
+  @SideOnly(Side.CLIENT)
   def preItemRender(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.preItemRender()
       case _ =>
     }
 
+  @SideOnly(Side.CLIENT)
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
     subBlocks.foreach(_.registerIcons(iconRegister))
@@ -393,6 +401,7 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
       case _ => true
     }
 
+  @SideOnly(Side.CLIENT)
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = {
     val direction = ForgeDirection.getOrientation(side)
     subBlock(world.getBlockMetadata(x - direction.offsetX, y - direction.offsetY, z - direction.offsetZ)) match {

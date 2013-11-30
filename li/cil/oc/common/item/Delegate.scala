@@ -1,5 +1,6 @@
 package li.cil.oc.common.item
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -22,20 +23,9 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
-      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
-      if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
-        tooltip.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
-      }
-    }
-  }
+  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
-  def getItemDisplayName(stack: ItemStack): Option[String] = None
-
-  def icon: Option[Icon] = _icon
-
-  protected def icon_=(value: Icon) = _icon = Option(value)
+  def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
 
   def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack = {
     if (player.isSneaking) {
@@ -47,11 +37,30 @@ trait Delegate {
     stack
   }
 
-  def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  // ----------------------------------------------------------------------- //
 
-  def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = false
+  def displayName(stack: ItemStack): Option[String] = None
 
+  @SideOnly(Side.CLIENT)
+  def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
+      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
+      if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
+        tooltip.add("§8" + data.getCompoundTag("node").getString("address").substring(0, 13) + "...§7")
+      }
+    }
+  }
+
+  @SideOnly(Side.CLIENT)
+  def icon: Option[Icon] = _icon
+
+  @SideOnly(Side.CLIENT)
+  protected def icon_=(value: Icon) = _icon = Option(value)
+
+  @SideOnly(Side.CLIENT)
   def registerIcons(iconRegister: IconRegister) {}
+
+  // ----------------------------------------------------------------------- //
 
   def equals(stack: ItemStack) =
     stack != null && stack.getItem == parent && parent.subItem(stack).exists(_ == this)

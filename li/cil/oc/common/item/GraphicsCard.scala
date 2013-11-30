@@ -11,7 +11,7 @@ class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "GraphicsCard"
   val unlocalizedName = baseName + Array("Basic", "Advanced", "Professional").apply(tier)
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get(baseName,
@@ -21,7 +21,7 @@ class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
         case 1 => "2/4/8/4/4"
         case 2 => "4/8/16/8/8"
       }))
-    super.addInformation(stack, player, tooltip, advanced)
+    super.tooltipLines(stack, player, tooltip, advanced)
   }
 
   override def registerIcons(iconRegister: IconRegister) {

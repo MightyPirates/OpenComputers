@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
@@ -89,26 +90,31 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
+  @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
 
   def opacity(world: World, x: Int, y: Int, z: Int) = 255
 
   def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
+  @SideOnly(Side.CLIENT)
   def color = 0xFFFFFF
 
+  @SideOnly(Side.CLIENT)
   def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int = color
 
+  @SideOnly(Side.CLIENT)
   def icon(side: ForgeDirection): Option[Icon] = None
 
+  @SideOnly(Side.CLIENT)
   def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
 
   def itemBounds(): Unit = parent.setBlockBoundsForItemRender()
 
+  @SideOnly(Side.CLIENT)
   def preItemRender() {}
 
-  def postItemRender() {}
-
+  @SideOnly(Side.CLIENT)
   def registerIcons(iconRegister: IconRegister) {}
 
   // ----------------------------------------------------------------------- //
@@ -135,6 +141,7 @@ trait SpecialDelegate extends Delegate {
 
   def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
+  @SideOnly(Side.CLIENT)
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     !world.isBlockOpaqueCube(x, y, z)
 }
