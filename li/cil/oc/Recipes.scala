@@ -116,49 +116,20 @@ object Recipes {
       "xxx", 'x': Character, dirt)
 
     GameRegistry.addRecipe(Items.gpu1.createItemStack(),
-      "x  ",
-      "y  ",
-      "x  ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
-
-    GameRegistry.addRecipe(Items.gpu1.createItemStack(),
-      " x ",
-      " y ",
-      " x ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
-
-    GameRegistry.addRecipe(Items.gpu1.createItemStack(),
-      "  x",
-      "  y",
-      "  x", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
+      "x",
+      "y",
+      "x", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.card1.createItemStack())
 
     GameRegistry.addRecipe(Items.gpu2.createItemStack(),
-      "x  ",
-      "y  ",
-      "x  ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
-
-    GameRegistry.addRecipe(Items.gpu2.createItemStack(),
-      " x ",
-      " y ",
-      " x ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
-
-    GameRegistry.addRecipe(Items.gpu2.createItemStack(),
-      "  x",
-      "  y",
-      "  x", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
+      "x",
+      "y",
+      "x", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.card2.createItemStack())
 
     GameRegistry.addRecipe(Items.gpu3.createItemStack(),
-      "x  ",
-      "y  ",
-      "x  ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
+      "x",
+      "y",
+      "x", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
 
-    GameRegistry.addRecipe(Items.gpu3.createItemStack(),
-      " x ",
-      " y ",
-      " x ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
-
-    GameRegistry.addRecipe(Items.gpu3.createItemStack(),
-      "  x",
-      "  y",
-      "  x", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.card3.createItemStack())
 
     GameRegistry.addRecipe(Items.hdd1.createItemStack(),
       "x  ",
@@ -179,27 +150,15 @@ object Recipes {
 
     GameRegistry.addRecipe(Items.ram1.createItemStack(),
       "xxx",
-      "yyy",
-      "   ", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
-    GameRegistry.addRecipe(Items.ram1.createItemStack(),
-      "   ",
-      "xxx",
       "yyy", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
     GameRegistry.addRecipe(Items.ram2.createItemStack(),
-      "   ",
       "xxx",
       "yyy", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
-    GameRegistry.addRecipe(Items.ram2.createItemStack(),
-      "xxx",
-      "yyy",
-      "   ", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
-
     GameRegistry.addRecipe(Items.ram3.createItemStack(),
       "xxx",
-      "yyy",
-      "   ", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+      "yyy", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
 
     GameRegistry.addShapelessRecipe(Items.rs.createItemStack(), Items.card1.createItemStack(), new ItemStack(Item.redstone, 1))
 
