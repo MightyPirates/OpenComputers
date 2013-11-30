@@ -40,7 +40,7 @@ object Items {
   var circuitBoard: item.Platine = null
   var ironCutter: item.IronCutter = null
   var chip1, chip2, chip3: item.Chip = null
-  var numPad: item.Numpad = null
+  var numPad: item.NumPad = null
   var arrowKeys: item.ArrowKeys = null
   var buttonGroup: item.ButtonGroup = null
   var cpu: item.CPU = null
@@ -85,7 +85,7 @@ object Items {
     chip2 = new item.Chip(multi, 1)
     chip3 = new item.Chip(multi, 2)
 
-    numPad = new item.Numpad(multi)
+    numPad = new item.NumPad(multi)
     arrowKeys = new item.ArrowKeys(multi)
     buttonGroup = new item.ButtonGroup(multi)
 
