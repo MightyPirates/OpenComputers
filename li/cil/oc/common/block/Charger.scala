@@ -16,7 +16,7 @@ class Charger(val parent: SimpleDelegator) extends SimpleDelegate {
 
   private val icons = Array.fill[Icon](6)(null)
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -36,9 +36,9 @@ class Charger(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def createTileEntity(world: World) = Some(new tileentity.Charger())
 
-  override def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case charger: tileentity.Charger => charger.onNeighborChanged()
       case _ =>

@@ -18,7 +18,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   def tier: Int
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get("Screen", w, h, depth))
@@ -71,7 +71,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   // This an ugly monstrosity, but it's still better than having to manually
   // compute ambient occlusion in a custom block renderer to keep the lighting
   // pretty... which would be even more grotesque.
-  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
+  override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
         val (w, h) = (screen.width, screen.height)
@@ -273,7 +273,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     Icons.fvt = iconRegister.registerIcon(Settings.resourceDomain + ":screen/fvt")
   }
 
-  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
+  override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
 
   // ----------------------------------------------------------------------- //
 
@@ -283,8 +283,8 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     if (!player.isSneaking) {
       world.getBlockTileEntity(x, y, z) match {
         case screen: tileentity.Screen if screen.hasKeyboard =>
@@ -297,7 +297,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override protected val validRotations = ForgeDirection.VALID_DIRECTIONS
+  override protected val validRotations_ = ForgeDirection.VALID_DIRECTIONS
 }
 
 object Screen {
@@ -307,7 +307,7 @@ object Screen {
 
     def tier = 0
 
-    override def getRenderColor = 0x7F7F7F
+    override def color = 0x7F7F7F
   }
 
   class Tier2(parent: SimpleDelegator) extends Screen(parent) {
@@ -315,7 +315,7 @@ object Screen {
 
     def tier = 1
 
-    override def getRenderColor = 0xFFFF66
+    override def color = 0xFFFF66
   }
 
   class Tier3(parent: SimpleDelegator) extends Screen(parent) {
@@ -323,7 +323,7 @@ object Screen {
 
     def tier = 2
 
-    override def getRenderColor = 0x66FFFF
+    override def color = 0x66FFFF
   }
 
 }

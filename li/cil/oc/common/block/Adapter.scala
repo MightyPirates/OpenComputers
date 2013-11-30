@@ -18,7 +18,7 @@ class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -42,7 +42,7 @@ class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case adapter: tileentity.Adapter => adapter.neighborChanged()
       case _ => // Ignore.

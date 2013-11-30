@@ -11,7 +11,6 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-/** The base class on which all our blocks are built. */
 trait Delegate {
   val unlocalizedName: String
 
@@ -25,89 +24,96 @@ trait Delegate {
     world.setBlock(x, y, z, parent.blockID, blockId, flags)
   }
 
-  def createItemStack(amount: Int = 1) = new ItemStack(parent, amount, damageDropped)
+  def createItemStack(amount: Int = 1) = new ItemStack(parent, amount, itemDamage)
 
   // ----------------------------------------------------------------------- //
-  // Block
-  // ----------------------------------------------------------------------- //
 
-  def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+  def itemDamage = blockId
 
-  def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
+  def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = createItemStack()
 
-  def canConnectRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  def drop(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = false
+
+  def isNormalCube(world: World, x: Int, y: Int, z: Int) = true
+
+  def validRotations(world: World, x: Int, y: Int, z: Int) = validRotations_
 
   def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  def colorMultiplier(world: IBlockAccess, x: Int, y: Int, z: Int) = getRenderColor
-
-  def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
-    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
-
-  def createTileEntity(world: World): Option[TileEntity] = None
-
-  def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int,
-                              worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
-
-  def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) =
+  def bounds(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
 
-  def damageDropped = blockId
+  def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
 
-  def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = false
+  def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
+    parent.superCollisionRayTrace(world, x, y, z, origin, direction)
 
-  def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = createItemStack()
+  // ----------------------------------------------------------------------- //
 
-  def getRenderColor = 0xFFFFFF
-
-  def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 255
-
-  def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
-
-  def getValidRotations(world: World, x: Int, y: Int, z: Int) = validRotations
-
-  def hasTileEntity = false
-
-  def icon(side: ForgeDirection): Option[Icon] = None
-
-  def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = true
+  def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   def isProvidingStrongPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
   def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = 0
 
-  def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
+  // ----------------------------------------------------------------------- //
 
-  def onBlockAdded(world: World, x: Int, y: Int, z: Int) {}
+  def hasTileEntity = false
 
-  def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {}
+  def createTileEntity(world: World): Option[TileEntity] = None
 
-  def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) =
+  // ----------------------------------------------------------------------- //
+
+  def update(world: World, x: Int, y: Int, z: Int) = {}
+
+  def addedToWorld(world: World, x: Int, y: Int, z: Int) {}
+
+  def addedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityLivingBase, stack: ItemStack) {}
+
+  def aboutToBeRemoved(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case inventory: tileentity.Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
 
-  def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
+  def removedFromWorld(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
-  def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
+  def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = true
 
-  def registerIcons(iconRegister: IconRegister) {}
+  def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {}
 
-  def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+  def leftClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) {}
 
-  def setBlockBoundsForItemRender(): Unit = parent.setBlockBoundsForItemRender()
+  def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
+
+  // ----------------------------------------------------------------------- //
+
+  def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+
+  def opacity(world: World, x: Int, y: Int, z: Int) = 255
+
+  def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
+
+  def color = 0xFFFFFF
+
+  def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int = color
+
+  def icon(side: ForgeDirection): Option[Icon] = None
+
+  def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection): Option[Icon] = icon(localSide)
+
+  def itemBounds(): Unit = parent.setBlockBoundsForItemRender()
 
   def preItemRender() {}
 
   def postItemRender() {}
 
-  def update(world: World, x: Int, y: Int, z: Int) = {}
+  def registerIcons(iconRegister: IconRegister) {}
 
   // ----------------------------------------------------------------------- //
 
-  protected val validRotations = Array(
+  protected val validRotations_ = Array(
     ForgeDirection.SOUTH,
     ForgeDirection.WEST,
     ForgeDirection.NORTH,
@@ -127,7 +133,7 @@ trait SpecialDelegate extends Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     !world.isBlockOpaqueCube(x, y, z)

@@ -18,7 +18,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
@@ -34,7 +34,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
-  override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
+  override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
 
   // ----------------------------------------------------------------------- //
 
@@ -52,7 +52,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
       case _ =>
     }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
       case _ =>

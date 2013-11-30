@@ -21,14 +21,14 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
 
   // ----------------------------------------------------------------------- //
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
       tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")))
     }
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  override def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy => proxy.robot.createItemStack()
       case _ => null
@@ -45,25 +45,25 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
 
   // ----------------------------------------------------------------------- //
 
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
-  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   // ----------------------------------------------------------------------- //
 
-  override def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = true
+  override def drop(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = true
 
-  override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
+  override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = parent.getCollisionBoundingBoxFromPool(world, x, y, z)
     if (bounds.isVecInside(origin)) null
-    else super.collisionRayTrace(world, x, y, z, origin, direction)
+    else super.intersect(world, x, y, z, origin, direction)
   }
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) {
+  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
     world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
@@ -76,12 +76,12 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
             -robot.moveDirection.offsetZ * remaining)
         }
         parent.setBlockBounds(bounds)
-      case _ => super.setBlockBoundsBasedOnState(world, x, y, z)
+      case _ => super.updateBounds(world, x, y, z)
     }
   }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
@@ -91,8 +91,8 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
     else false
   }
 
-  override def onBlockPlacedBy(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
-    super.onBlockPlacedBy(world, x, y, z, entity, stack)
+  override def addedByEntity(world: World, x: Int, y: Int, z: Int, entity: EntityLivingBase, stack: ItemStack) {
+    super.addedByEntity(world, x, y, z, entity, stack)
     if (!world.isRemote) ((entity, world.getBlockTileEntity(x, y, z)) match {
       case (player: robot.Player, proxy: tileentity.RobotProxy) =>
         Some((proxy.robot, player.robot.owner))
@@ -107,18 +107,18 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
     }
   }
 
-  override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
+  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy if !player.capabilities.isCreativeMode || proxy.globalBuffer > 1 =>
         parent.dropBlockAsItem(world, x, y, z, proxy.robot.createItemStack())
       case _ =>
     }
-    super.onBlockRemovedBy(world, x, y, z, player)
+    super.removedByEntity(world, x, y, z, player)
   }
 
-  override def onBlockPreDestroy(world: World, x: Int, y: Int, z: Int) {
+  override def aboutToBeRemoved(world: World, x: Int, y: Int, z: Int) {
     if (moving.get.isEmpty) {
-      super.onBlockPreDestroy(world, x, y, z)
+      super.aboutToBeRemoved(world, x, y, z)
     }
   }
 }

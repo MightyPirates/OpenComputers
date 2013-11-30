@@ -16,7 +16,7 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
 
   def tier: Int
 
-  override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val slots = tier match {
       case 0 => "2/1/1"
       case 1 => "2/2/2"
@@ -30,7 +30,7 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
     val off = Array.fill[Icon](6)(null)
   }
 
-  override def getBlockTextureFromSide(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
+  override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
     getIcon(localSide, world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Case => computer.isRunning
       case _ => false
@@ -66,8 +66,8 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
 
   // ----------------------------------------------------------------------- //
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                                side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
@@ -78,11 +78,11 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
   }
 
   // TODO do we have to manually sync the client since we can only check this on the server side?
-  override def onBlockRemovedBy(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
+  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
       case c: tileentity.Case if !world.isRemote =>
         c.computer.canInteract(player.getCommandSenderName)
-      case _ => super.onBlockRemovedBy(world, x, y, z, player)
+      case _ => super.removedByEntity(world, x, y, z, player)
     }
 }
 
@@ -93,7 +93,7 @@ object Case {
 
     def tier = 0
 
-    override def getRenderColor = 0x7F7F7F
+    override def color = 0x7F7F7F
   }
 
   class Tier2(parent: SimpleDelegator) extends Case(parent) {
@@ -101,7 +101,7 @@ object Case {
 
     def tier = 1
 
-    override def getRenderColor = 0xFFFF66
+    override def color = 0xFFFF66
   }
 
   class Tier3(parent: SimpleDelegator) extends Case(parent) {
@@ -109,7 +109,7 @@ object Case {
 
     def tier = 2
 
-    override def getRenderColor = 0x66FFFF
+    override def color = 0x66FFFF
   }
 
 }

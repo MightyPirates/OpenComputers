@@ -3,40 +3,40 @@ package li.cil.oc.common.block
 import li.cil.oc.Blocks
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.util.MovingObjectPosition
 
 class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "RobotAfterimage"
 
   override val showInItemList = false
 
-  override def pickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
+  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     findMovingRobot(world, x, y, z) match {
       case Some(robot) => robot.createItemStack()
       case _ => null
     }
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
-    super.breakBlock(world, x, y, z, blockId)
+  override def removedFromWorld(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
+    super.removedFromWorld(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {
       case Some(robot) if robot.isAnimatingMove => world.setBlockToAir(robot.x, robot.y, robot.z)
       case _ => // Probably broken by the robot we represent.
     }
   }
 
-  override def damageDropped = Blocks.robotProxy.blockId
+  override def itemDamage = Blocks.robotProxy.blockId
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
 
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
-  override def isBlockSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) = {
+  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     findMovingRobot(world, x, y, z) match {
       case Some(robot) =>
         val block = robot.getBlockType
@@ -52,7 +52,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
     }
   }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     findMovingRobot(world, x, y, z) match {
       case Some(robot) => robot.getBlockType.onBlockActivated(world, robot.x, robot.y, robot.z, player, side.ordinal, hitX, hitY, hitZ)
       case _ => world.setBlockToAir(x, y, z)
