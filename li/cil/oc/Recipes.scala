@@ -4,16 +4,20 @@ import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe, OreDictionary}
+import net.minecraft.item.crafting.FurnaceRecipes
 
 object Recipes {
   def init() {
     val ironStack = new ItemStack(Item.ingotIron)
     val dirt = new ItemStack(Block.dirt)
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
+    val cactusGreen = new ItemStack(Item.dyePowder, 1, 4)
     val diamond = new ItemStack(Item.diamond)
     val glowstoneDust = new ItemStack(Item.glowstone)
     val redstoneDust = new ItemStack(Item.redstone)
+    val redstoneTorch = new ItemStack(Block.torchRedstoneIdle)
     val comparator = new ItemStack(Item.comparator)
+    val repeater = new ItemStack(Item.redstoneRepeater)
     val emerald = new ItemStack(Item.emerald)
     val goldNugget = new ItemStack(Item.goldNugget)
 
@@ -22,6 +26,8 @@ object Recipes {
     val chip2 = Items.chip2.createItemStack()
     val chip3 = Items.chip3.createItemStack()
     val transistor = Items.transistor.createItemStack()
+    val circuitBoard =Items.circuitBoardBody.createItemStack()
+    val rawCircuitBoard =Items.rawCircuitBoard.createItemStack()
 
     GameRegistry.addRecipe(Blocks.adapter.createItemStack(),
       "x  ",
@@ -184,10 +190,10 @@ object Recipes {
       "xxx",
       "xxx", 'x': Character, new ItemStack(Block.stoneButton))
 
-    addRecipe(Items.transistor.createItemStack(),
-      " d ",
+    addRecipe(transistor,
+      "ttt",
       "drd",
-      " t ", 'r', new ItemStack(Item.redstoneRepeater), 'd', new ItemStack(Item.redstone), 't', new ItemStack(Block.torchRedstoneIdle))
+      " d ", 'r',repeater , 'd', redstoneDust, 't', redstoneTorch)
 
     addRecipe(Items.cpu.createItemStack(),
       "brb",
@@ -226,13 +232,9 @@ object Recipes {
 
 
     GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron))
-    GameRegistry.addShapelessRecipe(Items.circuitBoardBody.createItemStack(), Items.ironCutter.createItemStack(), new ItemStack(Block.hardenedClay))
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8196), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8228), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 8260), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16388), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16420), Item.goldNugget, Items.circuitBoardBody.createItemStack())
-    GameRegistry.addShapelessRecipe(Items.circuitBoard.createItemStack(), new ItemStack(Item.potion, 1, 16452), Item.goldNugget, Items.circuitBoardBody.createItemStack())
+    GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay),cactusGreen)
+  FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID,rawCircuitBoard.getItemDamage,circuitBoard,1)
+    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.circuitBoard.createItemStack(), "potionPoison", Item.goldNugget, circuitBoard))
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironStack))
   }

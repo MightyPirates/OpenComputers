@@ -35,6 +35,7 @@ oc:item.NetworkCard.name=Network Card
 oc:item.RedstoneCard.name=Redstone Card
 oc:item.WirelessNetworkCard.name=Wireless Network Card
 oc:item.IronNugget.name=Iron Nugget
+oc:item.RawCircuitBoard.name=Raw Circuit Board
 oc:item.CircuitBoard.name=Circuit Board
 oc:item.PrintedCircuitBoard.name=Printed Circuit Board(PCB)
 oc:item.NumPad.name=Numeric Keypad
