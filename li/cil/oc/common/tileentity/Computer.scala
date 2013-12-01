@@ -24,7 +24,6 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   private var hasChanged = false
 
-  @SideOnly(Side.CLIENT)
   private val _users = mutable.Set.empty[String]
 
   // ----------------------------------------------------------------------- //
