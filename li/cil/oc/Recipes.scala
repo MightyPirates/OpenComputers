@@ -14,6 +14,7 @@ object Recipes {
     val comparator = new ItemStack(Item.comparator)
     val diamond = new ItemStack(Item.diamond)
     val dirt = new ItemStack(Block.dirt)
+    val dispenser = new ItemStack(Block.dispenser)
     val emerald = new ItemStack(Item.emerald)
     val enderPearl = new ItemStack(Item.enderPearl)
     val glass = new ItemStack(Block.glass)
@@ -24,14 +25,16 @@ object Recipes {
     val ironIngot = new ItemStack(Item.ingotIron)
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
     val lever = new ItemStack(Block.lever)
+    val minecartHopper = new ItemStack(Item.minecartHopper)
     val netherQuarz = new ItemStack(Item.netherQuartz)
     val obsidian = new ItemStack(Block.obsidian)
     val paper = new ItemStack(Item.paper)
-    val piston = new ItemStack(Block.pistonStickyBase)
+    val piston = new ItemStack(Block.pistonBase)
     val redstoneDust = new ItemStack(Item.redstone)
     val redstoneTorch = new ItemStack(Block.torchRedstoneActive)
     val repeater = new ItemStack(Item.redstoneRepeater)
     val roseRed = new ItemStack(Item.dyePowder, 1, 1)
+    val stick = new ItemStack(Item.stick)
 
     val alu = Items.alu.createItemStack()
     val cable = Blocks.cable.createItemStack()
@@ -75,12 +78,6 @@ object Recipes {
       "xxx",
       'x', dirt)
 
-    addRecipe(Blocks.diskDrive.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
     addRecipe(Blocks.powerDistributor.createItemStack(),
       "x  ",
       "   ",
@@ -106,17 +103,11 @@ object Recipes {
       'x', dirt)
 
 
-    addRecipe(Blocks.robotProxy.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
     // ----------------------------------------------------------------------- //
 
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, new ItemStack(Item.stick))
+    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, stick)
     GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
     FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID, rawCircuitBoard.getItemDamage, circuitBoard, 1)
     GameRegistry.addRecipe(new ShapelessOreRecipe(printedCircuitBoard, "potionPoison", Item.goldNugget, circuitBoard))
@@ -295,6 +286,28 @@ object Recipes {
       'b', blazeRod,
       'q', netherQuarz,
       's', Blocks.screen2.createItemStack())
+
+    addRecipe(Blocks.diskDrive.createItemStack(),
+      "ici",
+      "ps ",
+      "ici",
+      'i', ironIngot,
+      'c', chip1,
+      'p', piston,
+      's', stick)
+
+    addRecipe(Blocks.robotProxy.createItemStack(),
+      "sgf",
+      "dcr",
+      "pmp",
+      's', Blocks.screen1.createItemStack(),
+      'g', gpu1,
+      'f', Blocks.diskDrive.createItemStack(),
+      'd', dispenser,
+      'c', Blocks.case1.createItemStack(),
+      'r', ram1,
+      'p', piston,
+      'm', minecartHopper)
 
     addRecipe(Blocks.keyboard.createItemStack(),
       "ggg",
