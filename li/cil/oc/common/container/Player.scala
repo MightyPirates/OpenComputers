@@ -8,6 +8,7 @@ import net.minecraft.inventory.Container
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
+import cpw.mods.fml.common.FMLCommonHandler
 
 abstract class Player(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
@@ -23,9 +24,11 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
 
   override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
     val result = super.slotClick(slot, mouseClick, holdingShift, player)
-    detectAndSendChanges() // We have to enforce this more than MC does itself
-    // because stacks can change their... "character" just by being inserted in
-    // certain containers - by being assigned an address.
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+      detectAndSendChanges() // We have to enforce this more than MC does itself
+      // because stacks can change their... "character" just by being inserted in
+      // certain containers - by being assigned an address.
+    }
     result
   }
 
@@ -45,7 +48,9 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
         }
 
       tryTransferStackInSlot(slot, begin, length, direction)
-      detectAndSendChanges()
+      if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+        detectAndSendChanges()
+      }
     }
     null
   }
