@@ -174,7 +174,7 @@ object LuaStateFactory {
             val l = lua.checkInteger(1)
             val u = lua.checkInteger(2)
             lua.checkArg(1, l < u, "interval is empty")
-            lua.pushInteger(l + random.nextInt(u - l))
+            lua.pushInteger(l + random.nextInt(u - (l - 1)))
           }
           case _ => throw new IllegalArgumentException("wrong number of arguments")
         }

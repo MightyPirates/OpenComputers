@@ -1,23 +1,36 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
-import li.cil.oc.api
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Settings, api}
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.{Icon, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Cable"
 
+  private var icon: Icon = _
+
   // ----------------------------------------------------------------------- //
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def icon(side: ForgeDirection) = Some(icon)
+
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {
+    super.registerIcons(iconRegister)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }
 
   // ----------------------------------------------------------------------- //

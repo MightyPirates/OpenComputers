@@ -1,9 +1,11 @@
 package li.cil.oc.common.block
 
-import li.cil.oc.Blocks
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
+import li.cil.oc.{Settings, Blocks}
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.{Icon, MovingObjectPosition}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
@@ -12,11 +14,38 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override val showInItemList = false
 
+  private var icon: Icon = _
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def icon(side: ForgeDirection) = Some(icon)
+
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {
+    super.registerIcons(iconRegister)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
+  }
+
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     findMovingRobot(world, x, y, z) match {
       case Some(robot) => robot.createItemStack()
       case _ => null
     }
+
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
+  // ----------------------------------------------------------------------- //
+
+  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
+
+  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
+
+  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
+
+  override def itemDamage = Blocks.robotProxy.blockId
+
+  // ----------------------------------------------------------------------- //
 
   override def removedFromWorld(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
     super.removedFromWorld(world, x, y, z, blockId)
@@ -25,16 +54,6 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
       case _ => // Probably broken by the robot we represent.
     }
   }
-
-  override def itemDamage = Blocks.robotProxy.blockId
-
-  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
-
-  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
-
-  override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
-
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     findMovingRobot(world, x, y, z) match {

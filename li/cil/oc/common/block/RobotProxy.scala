@@ -1,20 +1,24 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Settings, OpenComputers}
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{MovingObjectPosition, AxisAlignedBB, Vec3}
+import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
   val unlocalizedName = "Robot"
+
+  private var icon: Icon = _
 
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
     override protected def initialValue = None
@@ -27,6 +31,15 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
       tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")))
     }
     tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def icon(side: ForgeDirection) = Some(icon)
+
+  @SideOnly(Side.CLIENT)
+  override def registerIcons(iconRegister: IconRegister) {
+    super.registerIcons(iconRegister)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
