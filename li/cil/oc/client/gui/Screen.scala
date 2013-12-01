@@ -13,14 +13,31 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var x, y = 0
+  
+  private var mx, my = 0
 
-  override protected def mouseClicked(x: Int, y: Int, button: Int) {
-    super.mouseClicked(x, y, button)
+  override protected def mouseClicked(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseClicked(mouseX, mouseY, button)
     if (button == 0 && screen.tier > 0) {
-      val bx = (x - this.x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
-      val by = (y - this.y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
-      val (bw, bh) = screen.buffer.resolution
-      if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+      click(mouseX, mouseY, force = true)
+    }
+  }
+
+  protected override def mouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLast: Long) {
+    super.mouseClicked(mouseX, mouseY, button)
+    if (button == 0 && screen.tier > 0 && timeSinceLast > 10) {
+      click(mouseX, mouseY)
+    }
+  }
+
+  private def click(mouseX: Int, mouseY: Int, force: Boolean = false) = {
+    val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
+    val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+    val (bw, bh) = screen.buffer.resolution
+    if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+      if (bx != mx || by != my || force) {
+        mx = bx
+        my = by
         PacketSender.sendMouseClick(buffer.owner, bx, by)
       }
     }
