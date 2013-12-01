@@ -6,8 +6,8 @@ import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class Disk(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Disk"
+class FloppyDisk(val parent: Delegator) extends Delegate {
+  val unlocalizedName = "FloppyDisk"
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {

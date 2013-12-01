@@ -23,6 +23,7 @@ object Recipes {
     val goldNugget = new ItemStack(Item.goldNugget)
     val clock = new ItemStack(Item.pocketSundial)
     val enderPearl = new ItemStack(Item.enderPearl)
+    val piston = new ItemStack(Block.pistonStickyBase)
 
     val chip1 = Items.chip1.createItemStack()
     val chip2 = Items.chip2.createItemStack()
@@ -43,10 +44,12 @@ object Recipes {
     val gpu2 = Items.gpu2.createItemStack()
     val gpu3 = Items.gpu3.createItemStack()
     val redstoneCard = Items.rs.createItemStack()
-    var lanCard = Items.lan.createItemStack()
-    var wlanCard = Items.wlan.createItemStack()
-    var cable = Blocks.cable.createItemStack()
-
+    val lanCard = Items.lan.createItemStack()
+    val wlanCard = Items.wlan.createItemStack()
+    val cable = Blocks.cable.createItemStack()
+    val analyzer = Items.analyzer.createItemStack()
+    val disc = Items.disc.createItemStack()
+    val floppy = Items.floppyDisk.createItemStack()
 
     GameRegistry.addRecipe(Blocks.adapter.createItemStack(),
       "x  ",
@@ -73,71 +76,71 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.screen1.createItemStack(),
+    addRecipe(Blocks.screen1.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.screen2.createItemStack(),
+    addRecipe(Blocks.screen2.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.screen3.createItemStack(),
+    addRecipe(Blocks.screen3.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.router.createItemStack(),
+    addRecipe(Blocks.router.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Blocks.cable.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-
-
-    GameRegistry.addRecipe(Blocks.robotProxy.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-    GameRegistry.addRecipe(Items.analyzer.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-    GameRegistry.addRecipe(Items.disk.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-
-    GameRegistry.addRecipe(Items.hdd1.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-
-    GameRegistry.addRecipe(Items.hdd2.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
-
-    GameRegistry.addRecipe(Items.hdd3.createItemStack(),
+    addRecipe(Blocks.cable.createItemStack(),
       "x  ",
       "   ",
       "xxx", 'x': Character, dirt)
 
 
+    addRecipe(Blocks.robotProxy.createItemStack(),
+      "x  ",
+      "   ",
+      "xxx", 'x': Character, dirt)
+
+    addRecipe(floppy,
+      "x  ",
+      "   ",
+      "xxx", 'x': Character, dirt)
+
+    addRecipe(Items.hdd1.createItemStack(),
+      "cdi",
+      "bdp",
+      "cdi", 'b', printedCircuitBoard,'i',ironIngot,'p',piston,'d',disc,'c',chip1)
+
+    addRecipe(Items.hdd2.createItemStack(),
+      "x  ",
+      "   ",
+      "xxx", 'x': Character, dirt)
+
+    addRecipe(Items.hdd3.createItemStack(),
+      "x  ",
+      "   ",
+      "xxx", 'x': Character, dirt)
+    addRecipe(disc,
+      " i ",
+      "i i",
+      " i ", 'i',ironNugget)
 
 
 
 
 
-    GameRegistry.addRecipe(Blocks.case1.createItemStack(),
+
+    addRecipe(Blocks.case1.createItemStack(),
       "xxx",
       "x x",
       "xxx", 'x': Character, ironIngot)
-    GameRegistry.addRecipe(Blocks.keyboard.createItemStack(),
+    addRecipe(Blocks.keyboard.createItemStack(),
       "xxx",
       "xan", 'x': Character, Items.buttonGroup.createItemStack(), 'a': Character, Items.arrowKeys.createItemStack(), 'n': Character, Items.numPad.createItemStack())
 
@@ -206,6 +209,11 @@ object Recipes {
       "ttt",
       "drd",
       " d ", 'r', repeater, 'd', redstoneDust, 't', redstoneTorch)
+
+    addRecipe(analyzer,
+      " r ",
+      "tcg",
+      "tpg", 'p', printedCircuitBoard, 'c', chip1, 'r', redstoneTorch,'t',transistor,'g',goldNugget)
 
     addRecipe(cpu,
       "crc",

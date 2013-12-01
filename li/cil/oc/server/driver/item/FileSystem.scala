@@ -4,7 +4,7 @@ import dan200.computer.api.IMedia
 import li.cil.oc
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.fs.Label
-import li.cil.oc.common.item.{Disk, HardDiskDrive}
+import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
 import li.cil.oc.common.tileentity.TileEntity
 import li.cil.oc.util.mods.ComputerCraft
 import li.cil.oc.{Settings, Items}
@@ -13,7 +13,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object FileSystem extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.disk) || ComputerCraft.isDisk(stack)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk) || ComputerCraft.isDisk(stack)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) =
     if (ComputerCraft.isDisk(stack)) {
@@ -31,7 +31,7 @@ object FileSystem extends Item {
       }
     } else Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024)
-      case Some(disk: Disk) => createEnvironment(stack, Settings.get.floppySize * 1024)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024)
       case _ => null
     }
 
@@ -39,7 +39,7 @@ object FileSystem extends Item {
     if (ComputerCraft.isDisk(stack)) Slot.Disk
     else Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => Slot.HardDiskDrive
-      case Some(disk: Disk) => Slot.Disk
+      case Some(disk: FloppyDisk) => Slot.Disk
       case _ => throw new IllegalArgumentException()
     }
 

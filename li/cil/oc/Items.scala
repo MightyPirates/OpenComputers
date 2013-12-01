@@ -4,6 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
+import li.cil.oc.common.item.Disc
 
 object Items {
   var multi: item.Delegator = null
@@ -18,7 +19,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Storage
-  var disk: item.Disk = null
+  var floppyDisk: item.FloppyDisk = null
   var hdd1, hdd2, hdd3: item.HardDiskDrive = null
 
   // ----------------------------------------------------------------------- //
@@ -50,6 +51,7 @@ object Items {
 
   var ironNugget: item.IronNugget = null
   var rawCircuitBoard: item.RawCircuitBoard = null
+  var disc: item.Disc = null
 
 
   def init() {
@@ -58,7 +60,7 @@ object Items {
     GameRegistry.registerItem(multi, Settings.namespace + "item")
 
     analyzer = new item.Analyzer(multi)
-    disk = new item.Disk(multi)
+    floppyDisk = new item.FloppyDisk(multi)
     gpu1 = new item.GraphicsCard(multi, 0)
     gpu2 = new item.GraphicsCard(multi, 1)
     gpu3 = new item.GraphicsCard(multi, 2)
@@ -103,5 +105,6 @@ object Items {
     OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16452))
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
+    disc = new item.Disc(multi)
   }
 }
