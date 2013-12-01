@@ -2,7 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 
 object Items {
@@ -44,11 +44,12 @@ object Items {
   var arrowKeys: item.ArrowKeys = null
   var buttonGroup: item.ButtonGroup = null
   var cpu: item.CPU = null
-  var transistor : item.Transistor = null
-  var alu : item.ALU = null
-  var cu : item.ControlUnit = null
+  var transistor: item.Transistor = null
+  var alu: item.ALU = null
+  var cu: item.ControlUnit = null
 
-  var ironNugget : item.IronNugget = null
+  var ironNugget: item.IronNugget = null
+  var rawCircuitBoard: item.RawCircuitBoard = null
 
 
   def init() {
@@ -96,5 +97,13 @@ object Items {
 
     ironNugget = new item.IronNugget(multi)
     OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8196))
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8228))
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8260))
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16388))
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16420))
+    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16452))
+
+    rawCircuitBoard = new item.RawCircuitBoard(multi)
   }
 }

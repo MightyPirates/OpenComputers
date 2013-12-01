@@ -31,6 +31,7 @@ oc:item.NetworkCard.name=Netzwerkkarte
 oc:item.RedstoneCard.name=Redstonekarte
 oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
 oc:item.IronNugget.name=Eisennugget
+oc:item.RawCircuitBoard.name=Rohe Basis Platte
 oc:item.CircuitBoard.name=Basis Platte
 oc:item.PrintedCircuitBoard.name=Leiterplatte (PCB)
 oc:item.NumPad.name=Ziffernblock
