@@ -18,7 +18,7 @@ object Blocks {
   var diskDrive: DiskDrive = null
   var keyboard: Keyboard = null
   var powerDistributor: PowerDistributor = null
-  var powerSupply: PowerConverter = null
+  var powerConverter: PowerConverter = null
   var robotProxy: RobotProxy = null
   var robotAfterimage: RobotAfterimage = null
   var router: Router = null
@@ -61,7 +61,7 @@ object Blocks {
     diskDrive = new DiskDrive(blockSimple)
     keyboard = new Keyboard(blockSpecial)
     powerDistributor = new PowerDistributor(blockSimple)
-    powerSupply = new PowerConverter(blockSimple)
+    powerConverter = new PowerConverter(blockSimple)
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = new RobotProxy(blockSpecialWithRedstone)
     router = new Router(blockSimple)

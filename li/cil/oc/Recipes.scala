@@ -12,9 +12,10 @@ object Recipes {
     val cactusGreen = new ItemStack(Item.dyePowder, 1, 2)
     val clock = new ItemStack(Item.pocketSundial)
     val comparator = new ItemStack(Item.comparator)
+    val craftingTable = new ItemStack(Block.workbench)
     val diamond = new ItemStack(Item.diamond)
-    val dirt = new ItemStack(Block.dirt)
     val dispenser = new ItemStack(Block.dispenser)
+    val dropper = new ItemStack(Block.dropper)
     val emerald = new ItemStack(Item.emerald)
     val enderPearl = new ItemStack(Item.enderPearl)
     val glass = new ItemStack(Block.glass)
@@ -26,7 +27,7 @@ object Recipes {
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
     val lever = new ItemStack(Block.lever)
     val minecartHopper = new ItemStack(Item.minecartHopper)
-    val netherQuarz = new ItemStack(Item.netherQuartz)
+    val netherQuartz = new ItemStack(Item.netherQuartz)
     val obsidian = new ItemStack(Block.obsidian)
     val paper = new ItemStack(Item.paper)
     val piston = new ItemStack(Block.pistonBase)
@@ -63,39 +64,6 @@ object Recipes {
     val redstoneCard = Items.rs.createItemStack()
     val transistor = Items.transistor.createItemStack()
     val wlanCard = Items.wlan.createItemStack()
-
-    // ----------------------------------------------------------------------- //
-
-    addRecipe(Blocks.adapter.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.capacitor.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.powerDistributor.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.powerSupply.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.router.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
 
     // ----------------------------------------------------------------------- //
 
@@ -212,16 +180,6 @@ object Recipes {
 
     // ----------------------------------------------------------------------- //
 
-    addRecipe(Items.analyzer.createItemStack(),
-      " r ",
-      "tcg",
-      "tpg",
-      'r', redstoneTorch,
-      't', transistor,
-      'c', chip1,
-      'g', goldNugget,
-      'p', printedCircuitBoard)
-
     addRecipe(Blocks.case1.createItemStack(),
       "ipi",
       "bcb",
@@ -278,8 +236,38 @@ object Recipes {
       'p', printedCircuitBoard,
       'c', chip3,
       'b', blazeRod,
-      'q', netherQuarz,
+      'q', netherQuartz,
       's', Blocks.screen2.createItemStack())
+
+    addRecipe(Blocks.capacitor.createItemStack(),
+      "iti",
+      "gpg",
+      "ibi",
+      'i', ironIngot,
+      't', transistor,
+      'g', goldNugget,
+      'p', paper,
+      'b', printedCircuitBoard)
+
+    addRecipe(Blocks.powerDistributor.createItemStack(),
+      "ici",
+      "wgw",
+      "ibi",
+      'i', ironIngot,
+      'c', chip1,
+      'w', cable,
+      'g', goldIngot,
+      'b', printedCircuitBoard)
+
+    addRecipe(Blocks.powerConverter.createItemStack(),
+      "iwi",
+      "gcg",
+      "ibi",
+      'i', ironIngot,
+      'c', chip1,
+      'w', cable,
+      'g', goldIngot,
+      'b', printedCircuitBoard)
 
     addRecipe(Blocks.diskDrive.createItemStack(),
       "ici",
@@ -290,17 +278,45 @@ object Recipes {
       'p', piston,
       's', stick)
 
+    addRecipe(Blocks.router.createItemStack(),
+      "ini",
+      "ncn",
+      "ibi",
+      'i', ironIngot,
+      'n', lanCard,
+      'c', chip1,
+      'b', printedCircuitBoard)
+
+    addRecipe(Blocks.adapter.createItemStack(),
+      "iwi",
+      "wcw",
+      "ibi",
+      'i', ironIngot,
+      'w', cable,
+      'c', chip1,
+      'b', printedCircuitBoard)
+
+    addRecipe(Blocks.charger.createItemStack(),
+      "igi",
+      "pcp",
+      "ibi",
+      'i', ironIngot,
+      'g', goldIngot,
+      'p', Blocks.capacitor.createItemStack(),
+      'c', chip2,
+      'b', printedCircuitBoard)
+
     addRecipe(Blocks.robotProxy.createItemStack(),
       "sgf",
       "dcr",
-      "pmp",
+      "bmb",
       's', Blocks.screen1.createItemStack(),
       'g', gpu1,
       'f', Blocks.diskDrive.createItemStack(),
       'd', dispenser,
       'c', Blocks.case1.createItemStack(),
       'r', ram1,
-      'p', piston,
+      'b', Blocks.capacitor.createItemStack(),
       'm', minecartHopper)
 
     addRecipe(Blocks.keyboard.createItemStack(),
@@ -318,6 +334,16 @@ object Recipes {
       'r', redstoneDust)
 
     // ----------------------------------------------------------------------- //
+
+    addRecipe(Items.analyzer.createItemStack(),
+      " r ",
+      "tcg",
+      "tpg",
+      'r', redstoneTorch,
+      't', transistor,
+      'c', chip1,
+      'g', goldNugget,
+      'p', printedCircuitBoard)
 
     addRecipe(ram1,
       "ccc",
@@ -419,6 +445,25 @@ object Recipes {
       'p', enderPearl,
       'c', chip2,
       'b', lanCard)
+
+    addRecipe(Items.generator.createItemStack(),
+      "i i",
+      "cpc",
+      "bib",
+      'i', ironIngot,
+      'c', chip1,
+      'p', piston,
+      'b', printedCircuitBoard)
+
+    addRecipe(Items.crafting.createItemStack(),
+      "idi",
+      "cwc",
+      "ibi",
+      'i', ironIngot,
+      'd', dropper,
+      'c', chip1,
+      'w', craftingTable,
+      'b', printedCircuitBoard)
   }
 
   private def addRecipe(output: ItemStack, args: Any*) = {
