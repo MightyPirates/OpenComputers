@@ -54,7 +54,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     findMovingRobot(world, x, y, z) match {
-      case Some(robot) => robot.getBlockType.onBlockActivated(world, robot.x, robot.y, robot.z, player, side.ordinal, hitX, hitY, hitZ)
+      case Some(robot) => Blocks.robotProxy.rightClick(world, robot.x, robot.y, robot.z, player, side, hitX, hitY, hitZ)
       case _ => world.setBlockToAir(x, y, z)
     }
   }

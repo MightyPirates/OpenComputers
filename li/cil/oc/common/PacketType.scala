@@ -6,6 +6,7 @@ object PacketType extends Enumeration {
   Analyze,
   ChargerState,
   ComputerState,
+  ComputerUserList,
   PowerState,
   RedstoneState,
   RobotAnimateSwing,

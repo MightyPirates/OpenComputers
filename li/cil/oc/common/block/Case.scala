@@ -80,8 +80,7 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
   // TODO do we have to manually sync the client since we can only check this on the server side?
   override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
-      case c: tileentity.Case if !world.isRemote =>
-        c.computer.canInteract(player.getCommandSenderName)
+      case c: tileentity.Case => c.canInteract(player.getCommandSenderName)
       case _ => super.removedByEntity(world, x, y, z, player)
     }
 }

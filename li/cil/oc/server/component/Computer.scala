@@ -7,6 +7,7 @@ import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
+import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ThreadPoolFactory, GameTimeFormatter, LuaStateFactory}
@@ -45,7 +46,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   private val addedComponents = mutable.Set.empty[Component]
 
-  private val users = mutable.Set.empty[String]
+  private val _users = mutable.Set.empty[String]
 
   private val signals = new mutable.Queue[Computer.Signal]
 
@@ -67,6 +68,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   private var remainingPause = 0 // Ticks left to wait before resuming.
 
+  private var usersChanged = false // Send updated users list to clients?
+
   private var message: Option[String] = None // For error messages.
 
   // ----------------------------------------------------------------------- //
@@ -83,6 +86,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def lastError = message
 
+  def users = _users.synchronized(_users.toArray)
+
   def isRobot = false
 
   // ----------------------------------------------------------------------- //
@@ -90,7 +95,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   def address = node.address
 
   def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
-    users.isEmpty || users.contains(player) ||
+    _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
 
@@ -231,6 +236,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           crash("not enough energy")
         }
     })
+
+    // Avoid spamming user list across the network.
+    if (worldTime % 20 == 0 && usersChanged) {
+      val list = _users.synchronized {
+        usersChanged = false
+        users
+      }
+      PacketSender.sendComputerUserList(owner, list)
+    }
 
     // Check if we should switch states. These are all the states in which we're
     // guaranteed that the executor thread isn't running anymore.
@@ -419,14 +433,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   override def load(nbt: NBTTagCompound) = this.synchronized {
     assert(state.top == Computer.State.Stopped)
-    assert(users.isEmpty)
+    assert(_users.isEmpty)
     assert(signals.isEmpty)
     state.clear()
 
     super.load(nbt)
 
     state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Computer.State(s.data)))
-    nbt.getTagList("users").foreach[NBTTagString](u => users += u.data)
+    nbt.getTagList("users").foreach[NBTTagString](u => _users += u.data)
 
     if (state.size > 0 && state.top != Computer.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
@@ -506,7 +520,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     processAddedComponents()
 
     nbt.setNewTagList("state", state.map(_.id))
-    nbt.setNewTagList("users", users)
+    nbt.setNewTagList("users", _users)
 
     if (state.top != Computer.State.Stopped) {
       // Unlimit memory while persisting.
@@ -826,25 +840,28 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       // User management.
       lua.pushScalaFunction(lua => {
-        users.foreach(lua.pushString)
-        users.size
+        _users.foreach(lua.pushString)
+        _users.size
       })
       lua.setField(-2, "users")
 
       lua.pushScalaFunction(lua => try {
-        if (users.size >= Settings.get.maxUsers)
+        if (_users.size >= Settings.get.maxUsers)
           throw new Exception("too many users")
 
         val name = lua.checkString(1)
 
-        if (users.contains(name))
+        if (_users.contains(name))
           throw new Exception("user exists")
         if (name.length > Settings.get.maxUsernameLength)
           throw new Exception("username too long")
         if (!MinecraftServer.getServer.getConfigurationManager.getAllUsernames.contains(name))
           throw new Exception("player must be online")
 
-        users += name
+        _users.synchronized {
+          _users += name
+          usersChanged = true
+        }
         lua.pushBoolean(true)
         1
       } catch {
@@ -857,7 +874,13 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
       lua.pushScalaFunction(lua => {
         val name = lua.checkString(1)
-        lua.pushBoolean(users.remove(name))
+        _users.synchronized {
+          val success = _users.remove(name)
+          if (success) {
+            usersChanged = true
+          }
+          lua.pushBoolean(success)
+        }
         1
       })
       lua.setField(-2, "removeUser")

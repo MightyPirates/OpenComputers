@@ -56,6 +56,7 @@ oc:gui.Analyzer.RobotName=Name
 oc:gui.Analyzer.RobotOwner=Owner
 oc:gui.Analyzer.StoredEnergy=Stored energy
 oc:gui.Analyzer.TotalEnergy=Total stored energy
+oc:gui.Analyzer.Users=Users
 oc:gui.Robot.Power=Power
 oc:gui.Robot.TurnOff=Turn off
 oc:gui.Robot.TurnOn=Turn on

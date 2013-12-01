@@ -2,6 +2,7 @@ package li.cil.oc.common.block
 
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Settings, OpenComputers}
@@ -84,6 +85,14 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     if (!player.isSneaking) {
       if (!world.isRemote) {
+        // We only send slot changes to nearby players, so if there was no slot
+        // change since this player got into range he might have the wrong one,
+        // so we send him the current one just in case.
+        world.getBlockTileEntity(x, y, z) match {
+          case proxy: tileentity.RobotProxy =>
+            PacketSender.sendRobotSelectedSlotChange(proxy.robot)
+          case _ =>
+        }
         player.openGui(OpenComputers, GuiType.Robot.id, world, x, y, z)
       }
       true

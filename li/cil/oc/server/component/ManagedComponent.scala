@@ -22,15 +22,6 @@ abstract class ManagedComponent extends ManagedEnvironment {
     if (node != null) nbt.setNewCompoundTag("node", node.save)
   }
 
-  /**
-   * Handy function for returning a list of results.
-   * <p/>
-   * This is primarily meant to be used for returning result arrays from Lua
-   * callbacks, to avoid having to write `XYZ.box(...)` all the time.
-   *
-   * @param args the values to return.
-   * @return and array of objects.
-   */
   final protected def result(args: Any*): Array[AnyRef] = {
     def unwrap(arg: Any): AnyRef = arg match {
       case x: ScalaNumber => x.underlying

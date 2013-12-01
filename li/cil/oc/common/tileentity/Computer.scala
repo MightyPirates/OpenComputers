@@ -6,9 +6,10 @@ import li.cil.oc.api.network._
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
+import scala.collection.mutable
 
 abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstone with Analyzable {
   protected val _computer = if (isRemote) null else new component.Computer(this)
@@ -23,10 +24,14 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   private var hasChanged = false
 
+  @SideOnly(Side.CLIENT)
+  private val _users = mutable.Set.empty[String]
+
   // ----------------------------------------------------------------------- //
 
   def isRunning = _isRunning
 
+  @SideOnly(Side.CLIENT)
   def isRunning_=(value: Boolean) = {
     _isRunning = value
     world.markBlockForRenderUpdate(x, y, z)
@@ -39,6 +44,21 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     case Some(item) => driver.item.RedstoneCard.worksWith(item)
     case _ => false
   }
+
+  def users: Iterable[String] =
+    if (isServer) computer.users
+    else _users
+
+  @SideOnly(Side.CLIENT)
+  def users_=(list: Iterable[String]) {
+    _users.clear()
+    _users ++= list
+  }
+
+  def canInteract(player: String) =
+    if (isServer) computer.canInteract(player)
+    else !Settings.get.canComputersBeOwned ||
+      _users.isEmpty || _users.contains(player)
 
   // ----------------------------------------------------------------------- //
 
@@ -95,11 +115,14 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     isRunning = nbt.getBoolean("isRunning")
+    _users.clear()
+    _users ++= nbt.getTagList("users").iterator[NBTTagString].map(_.data)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setBoolean("isRunning", isRunning)
+    nbt.setNewTagList("users", computer.users.map(user => new NBTTagString(null, user)))
   }
 
   // ----------------------------------------------------------------------- //
@@ -126,8 +149,13 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Node = {
     if (computer != null) computer.lastError match {
-      case Some(value) => stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
+      case Some(value) =>
+        stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
       case _ =>
+    }
+    val list = users
+    if (list.size > 0) {
+      stats.setString(Settings.namespace + "gui.Analyzer.Users", list.mkString(", "))
     }
     computer.node
   }

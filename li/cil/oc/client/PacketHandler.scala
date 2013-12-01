@@ -26,6 +26,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ComputerState => onComputerState(p)
+      case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -70,6 +71,14 @@ class PacketHandler extends CommonPacketHandler {
   def onComputerState(p: PacketParser) =
     p.readTileEntity[Computer]() match {
       case Some(t) => t.isRunning = p.readBoolean()
+      case _ => // Invalid packet.
+    }
+
+  def onComputerUserList(p: PacketParser) =
+    p.readTileEntity[Computer]() match {
+      case Some(t) =>
+        val count = p.readInt()
+        t.users = (0 until count).map(_ => p.readUTF())
       case _ => // Invalid packet.
     }
 

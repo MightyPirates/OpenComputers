@@ -44,6 +44,16 @@ object PacketSender {
     }
   }
 
+  def sendComputerUserList(t: Computer, list: Array[String]) {
+    val pb = new PacketBuilder(PacketType.ComputerUserList)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(list.length)
+    list.foreach(pb.writeUTF)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendPowerState(t: PowerInformation, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.PowerState)
 
@@ -91,7 +101,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(t, 64)
   }
 
   def sendRobotAnimateTurn(t: Robot) {
@@ -101,7 +111,7 @@ object PacketSender {
     pb.writeByte(t.turnAxis)
     pb.writeInt(t.animationTicksTotal)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(t, 64)
   }
 
   def sendRobotEquippedItemChange(t: Robot, stack: ItemStack) {
@@ -119,7 +129,7 @@ object PacketSender {
     pb.writeTileEntity(t.proxy)
     pb.writeInt(t.selectedSlot)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(t, 16)
   }
 
   def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
@@ -187,7 +197,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeBoolean(hasPower)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(t, 64)
   }
 
   def sendScreenResolutionChange(t: Buffer, w: Int, h: Int) {
