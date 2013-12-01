@@ -153,11 +153,12 @@ object Recipes {
       'i', ironNugget)
 
     addRecipe(transistor,
-      "ttt",
-      "drd",
-      " d ",
-      'r', repeater,
-      'd', redstoneDust,
+      "iii",
+      "grg",
+      " t ",
+      'i', ironNugget,
+      'g', goldNugget,
+      'r', redstoneDust,
       't', redstoneTorch)
 
     addRecipe(chip1,
@@ -308,7 +309,7 @@ object Recipes {
       "gdg",
       'g', goldIngot,
       'd', hdd1,
-      'c', chip1,
+      'c', chip2,
       'b', printedCircuitBoard)
 
     addRecipe(hdd3,
