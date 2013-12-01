@@ -66,10 +66,13 @@ class PacketHandler extends CommonPacketHandler {
 
   def onMouseClick(p: PacketParser) =
     p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) =>
-        val x = p.readInt()
-        val y = p.readInt()
-        s.origin.node.sendToReachable("computer.checked_signal", p.player, "click", Int.box(x), Int.box(y))
+      case Some(s: Screen) => p.player match {
+        case player: EntityPlayer =>
+          val x = p.readInt()
+          val y = p.readInt()
+          s.origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(x), Int.box(y), player.getCommandSenderName)
+        case _ =>
+      }
       case _ => // Invalid packet.
     }
 }
