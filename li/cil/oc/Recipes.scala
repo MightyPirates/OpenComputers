@@ -96,12 +96,6 @@ object Recipes {
       "xxx",
       'x', dirt)
 
-    addRecipe(Blocks.cable.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
 
     // ----------------------------------------------------------------------- //
 
@@ -315,6 +309,15 @@ object Recipes {
       'g', Items.buttonGroup.createItemStack(),
       'a', Items.arrowKeys.createItemStack(),
       'n', Items.numPad.createItemStack())
+
+    addRecipe(Blocks.cable.createItemStack(4),
+      " i ",
+      "iri",
+      " i ",
+      'i', ironNugget,
+      'r', redstoneDust)
+
+    // ----------------------------------------------------------------------- //
 
     addRecipe(ram1,
       "ccc",
