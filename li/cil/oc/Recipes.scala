@@ -8,6 +8,7 @@ import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe, OreDicti
 
 object Recipes {
   def init() {
+    val blazeRod = new ItemStack(Item.blazeRod)
     val cactusGreen = new ItemStack(Item.dyePowder, 1, 2)
     val clock = new ItemStack(Item.pocketSundial)
     val comparator = new ItemStack(Item.comparator)
@@ -15,6 +16,7 @@ object Recipes {
     val dirt = new ItemStack(Block.dirt)
     val emerald = new ItemStack(Item.emerald)
     val enderPearl = new ItemStack(Item.enderPearl)
+    val glass = new ItemStack(Block.glass)
     val glowstoneDust = new ItemStack(Item.glowstone)
     val goldIngot = new ItemStack(Item.ingotGold)
     val goldNugget = new ItemStack(Item.goldNugget)
@@ -22,11 +24,14 @@ object Recipes {
     val ironIngot = new ItemStack(Item.ingotIron)
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
     val lever = new ItemStack(Block.lever)
+    val netherQuarz = new ItemStack(Item.netherQuartz)
+    val obsidian = new ItemStack(Block.obsidian)
     val paper = new ItemStack(Item.paper)
     val piston = new ItemStack(Block.pistonStickyBase)
     val redstoneDust = new ItemStack(Item.redstone)
     val redstoneTorch = new ItemStack(Block.torchRedstoneActive)
     val repeater = new ItemStack(Item.redstoneRepeater)
+    val roseRed = new ItemStack(Item.dyePowder, 1, 1)
 
     val alu = Items.alu.createItemStack()
     val cable = Blocks.cable.createItemStack()
@@ -83,24 +88,6 @@ object Recipes {
       'x', dirt)
 
     addRecipe(Blocks.powerSupply.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.screen1.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.screen2.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx",
-      'x', dirt)
-
-    addRecipe(Blocks.screen3.createItemStack(),
       "x  ",
       "   ",
       "xxx",
@@ -277,6 +264,37 @@ object Recipes {
       'p', printedCircuitBoard,
       'd', diamond,
       'c', Blocks.case2.createItemStack())
+
+    addRecipe(Blocks.screen1.createItemStack(),
+      "iig",
+      "rtg",
+      "iig",
+      'i', ironIngot,
+      'g', glass,
+      'r', redstoneDust,
+      't', transistor)
+
+    addRecipe(Blocks.screen2.createItemStack(),
+      "iri",
+      "cgs",
+      "ibi",
+      'i', goldIngot,
+      'r', roseRed,
+      'c', chip2,
+      'g', cactusGreen,
+      's', Blocks.screen1.createItemStack(),
+      'b', lapis)
+
+    addRecipe(Blocks.screen3.createItemStack(),
+      "opc",
+      "bqs",
+      "opc",
+      'o', obsidian,
+      'p', printedCircuitBoard,
+      'c', chip3,
+      'b', blazeRod,
+      'q', netherQuarz,
+      's', Blocks.screen2.createItemStack())
 
     addRecipe(Blocks.keyboard.createItemStack(),
       "ggg",
