@@ -125,12 +125,6 @@ object Recipes {
       "xxx",
       'x', dirt)
 
-    addRecipe(Blocks.case1.createItemStack(),
-      "xxx",
-      "x x",
-      "xxx",
-      'x', ironIngot)
-
     // ----------------------------------------------------------------------- //
 
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
@@ -255,6 +249,34 @@ object Recipes {
       'c', chip1,
       'g', goldNugget,
       'p', printedCircuitBoard)
+
+    addRecipe(Blocks.case1.createItemStack(),
+      "ipi",
+      "bcb",
+      "imi",
+      'i', ironIngot,
+      'p', printedCircuitBoard,
+      'b', ironBars,
+      'c', cpu,
+      'm', chip1)
+
+    addRecipe(Blocks.case2.createItemStack(),
+      "gpg",
+      "mcm",
+      "gpg",
+      'g', goldIngot,
+      'p', printedCircuitBoard,
+      'm', chip2,
+      'c', Blocks.case1.createItemStack())
+
+    addRecipe(Blocks.case3.createItemStack(),
+      "mpm",
+      "dcd",
+      "mpm",
+      'm', chip3,
+      'p', printedCircuitBoard,
+      'd', diamond,
+      'c', Blocks.case2.createItemStack())
 
     addRecipe(Blocks.keyboard.createItemStack(),
       "ggg",
