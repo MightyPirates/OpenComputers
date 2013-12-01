@@ -22,14 +22,15 @@ object Recipes {
     val emerald = new ItemStack(Item.emerald)
     val goldNugget = new ItemStack(Item.goldNugget)
     val clock = new ItemStack(Item.pocketSundial)
+    val enderPearl = new ItemStack(Item.enderPearl)
 
     val chip1 = Items.chip1.createItemStack()
     val chip2 = Items.chip2.createItemStack()
     val chip3 = Items.chip3.createItemStack()
     val transistor = Items.transistor.createItemStack()
-    val circuitBoard =Items.circuitBoardBody.createItemStack()
-    val rawCircuitBoard =Items.rawCircuitBoard.createItemStack()
-    val printedCircuitBoard =Items.printedCircuitBoard.createItemStack()
+    val circuitBoard = Items.circuitBoardBody.createItemStack()
+    val rawCircuitBoard = Items.rawCircuitBoard.createItemStack()
+    val printedCircuitBoard = Items.printedCircuitBoard.createItemStack()
     val card = Items.card.createItemStack()
     val cpu = Items.cpu.createItemStack()
     val alu = Items.alu.createItemStack()
@@ -41,6 +42,10 @@ object Recipes {
     val gpu1 = Items.gpu1.createItemStack()
     val gpu2 = Items.gpu2.createItemStack()
     val gpu3 = Items.gpu3.createItemStack()
+    val redstoneCard = Items.rs.createItemStack()
+    var lanCard = Items.lan.createItemStack()
+    var wlanCard = Items.wlan.createItemStack()
+    var cable = Blocks.cable.createItemStack()
 
 
     GameRegistry.addRecipe(Blocks.adapter.createItemStack(),
@@ -122,10 +127,7 @@ object Recipes {
       "   ",
       "xxx", 'x': Character, dirt)
 
-    GameRegistry.addRecipe(Items.wlan.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+
 
 
 
@@ -147,23 +149,29 @@ object Recipes {
     addRecipe(card,
       "ict",
       "ibb",
-      "inn", 'i', ironNugget, 'c', chip1, 't' ,transistor,'b',printedCircuitBoard,'n',goldNugget)
+      "inn", 'i', ironNugget, 'c', chip1, 't', transistor, 'b', printedCircuitBoard, 'n', goldNugget)
 
 
     addRecipe(gpu1,
       "car",
-      " d ", 'c',chip1,'r',ram1,'d',card,'a',alu)
+      " d ", 'c', chip1, 'r', ram1, 'd', card, 'a', alu)
 
     addRecipe(gpu2,
       "ccr",
-      " d ", 'c',chip2,'r',ram2,'d',gpu1)
+      " d ", 'c', chip2, 'r', ram2, 'd', gpu1)
 
     addRecipe(gpu3,
       "ccr",
-      " d ", 'c',chip3,'r',ram3,'d',gpu2)
+      " d ", 'c', chip3, 'r', ram3, 'd', gpu2)
 
 
-    GameRegistry.addShapelessRecipe(Items.lan.createItemStack(),card, Blocks.cable.createItemStack())
+    addRecipe(lanCard,
+      "tc ",
+      " d ", 'c', chip1, 't', cable, 'd', card)
+
+    addRecipe(wlanCard,
+      "tc ",
+      " d ", 'c', chip2, 't', enderPearl, 'd', lanCard)
 
     GameRegistry.addRecipe(ram1,
       "xxx",
@@ -177,7 +185,9 @@ object Recipes {
       "xxx",
       "yyy", 'x': Character, chip3, 'y': Character, Items.printedCircuitBoard.createItemStack())
 
-    GameRegistry.addShapelessRecipe(Items.rs.createItemStack(),card, new ItemStack(Item.redstone, 1))
+    addRecipe(redstoneCard,
+      "tc ",
+      " d ", 'c', chip1, 't', redstoneTorch, 'd', card)
 
     GameRegistry.addRecipe(Items.numPad.createItemStack(),
       "xxx",
@@ -195,18 +205,18 @@ object Recipes {
     addRecipe(transistor,
       "ttt",
       "drd",
-      " d ", 'r',repeater , 'd', redstoneDust, 't', redstoneTorch)
+      " d ", 'r', repeater, 'd', redstoneDust, 't', redstoneTorch)
 
     addRecipe(cpu,
       "crc",
       "bub",
-      "cac", 'b', ironBars, 'r', redstoneDust, 'c',chip1,'a',alu ,'u',cu)
+      "cac", 'b', ironBars, 'r', redstoneDust, 'c', chip1, 'a', alu, 'u', cu)
 
     addRecipe(alu,
       "rtr",
       "sss",
       "bdb", 'r', repeater, 's', transistor, 't', redstoneTorch,
-      'b', ironNugget, 'd',redstoneDust)
+      'b', ironNugget, 'd', redstoneDust)
 
     addRecipe(cu,
       "gtg",
@@ -232,13 +242,13 @@ object Recipes {
 
 
     addRecipe(ironIngot,
-    "xxx",
-    "xxx",
-    "xxx",'x',"nuggetIron")
+      "xxx",
+      "xxx",
+      "xxx", 'x', "nuggetIron")
 
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget,new ItemStack(Item.stick))
-    GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay),cactusGreen)
-  FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID,rawCircuitBoard.getItemDamage,circuitBoard,1)
+    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, new ItemStack(Item.stick))
+    GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
+    FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID, rawCircuitBoard.getItemDamage, circuitBoard, 1)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.printedCircuitBoard.createItemStack(), "potionPoison", Item.goldNugget, circuitBoard))
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
