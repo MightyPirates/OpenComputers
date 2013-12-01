@@ -29,6 +29,7 @@ oc:item.ButtonGroup.name=Button Group
 oc:item.CircuitBoard.name=Circuit Board
 oc:item.ControlUnit.name=Control Unit (CU)
 oc:item.CPU.name=Central Processing Unit (CPU)
+oc:item.Card.name=Card
 oc:item.Crafting.name=Crafting
 oc:item.CuttingWire.name=Cutting Wire
 oc:item.Disk.name=Floppy Disk

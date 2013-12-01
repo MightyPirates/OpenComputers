@@ -25,6 +25,7 @@ oc:item.ButtonGroup.name=Tastengruppe
 oc:item.CircuitBoard.name=Basis Platte
 oc:item.ControlUnit.name=Steuerwerk (CU)
 oc:item.CPU.name=Hauptprozessor (CPU)
+oc:item.Card.name=Karte
 oc:item.Crafting.name=Crafting
 oc:item.CuttingWire.name=Schneidedraht
 oc:item.Disk.name=Diskette

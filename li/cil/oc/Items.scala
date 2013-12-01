@@ -37,7 +37,7 @@ object Items {
   // Crafting
   var card: item.Card = null
   var circuitBoardBody: item.CircuitBoard = null
-  var circuitBoard: item.PrintedCircuitBoard = null
+  var printedCircuitBoard: item.PrintedCircuitBoard = null
   var ironCutter: item.CuttingWire = null
   var chip1, chip2, chip3: item.Chip = null
   var numPad: item.NumPad = null
@@ -76,7 +76,7 @@ object Items {
 
     card = new item.Card(multi)
     circuitBoardBody = new item.CircuitBoard(multi)
-    circuitBoard = new item.PrintedCircuitBoard(multi)
+    printedCircuitBoard = new item.PrintedCircuitBoard(multi)
     ironCutter = new item.CuttingWire(multi)
 
 

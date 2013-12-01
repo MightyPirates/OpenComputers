@@ -12,7 +12,7 @@ object Recipes {
     val ironBars = new ItemStack(Block.fenceIron)
     val dirt = new ItemStack(Block.dirt)
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
-    val cactusGreen = new ItemStack(Item.dyePowder, 1, 4)
+    val cactusGreen = new ItemStack(Item.dyePowder, 1, 2)
     val diamond = new ItemStack(Item.diamond)
     val glowstoneDust = new ItemStack(Item.glowstone)
     val redstoneDust = new ItemStack(Item.redstone)
@@ -29,6 +29,7 @@ object Recipes {
     val transistor = Items.transistor.createItemStack()
     val circuitBoard =Items.circuitBoardBody.createItemStack()
     val rawCircuitBoard =Items.rawCircuitBoard.createItemStack()
+    val printedCircuitBoard =Items.printedCircuitBoard.createItemStack()
     val card = Items.card.createItemStack()
     val cpu = Items.cpu.createItemStack()
     val alu = Items.alu.createItemStack()
@@ -137,10 +138,10 @@ object Recipes {
 
 
 
-    GameRegistry.addRecipe(card,
-      "xyy",
-      "xzz",
-      "x  ", 'x': Character, ironIngot, 'z': Character, Items.circuitBoard.createItemStack(), 'y': Character, Items.chip1.createItemStack())
+    addRecipe(card,
+      "ict",
+      "ibb",
+      "inn", 'i', ironNugget, 'c', chip1, 't' ,transistor,'b',printedCircuitBoard,'n',goldNugget)
 
 
     GameRegistry.addRecipe(Items.gpu1.createItemStack(),
@@ -163,15 +164,15 @@ object Recipes {
 
     GameRegistry.addRecipe(Items.ram1.createItemStack(),
       "xxx",
-      "yyy", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+      "yyy", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
 
     GameRegistry.addRecipe(Items.ram2.createItemStack(),
       "xxx",
-      "yyy", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+      "yyy", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
 
     GameRegistry.addRecipe(Items.ram3.createItemStack(),
       "xxx",
-      "yyy", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.circuitBoard.createItemStack())
+      "yyy", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
 
     GameRegistry.addShapelessRecipe(Items.rs.createItemStack(),card, new ItemStack(Item.redstone, 1))
 
@@ -213,7 +214,7 @@ object Recipes {
     addRecipe(chip1,
       "ibi",
       "rtr",
-      "ibi", 'i', "nuggetIron", 'b', ironIngot, 'r', redstoneDust, 't', transistor)
+      "ibi", 'i', "nuggetIron", 'b', ironBars, 'r', redstoneDust, 't', transistor)
 
     addRecipe(chip2,
       "glg",
@@ -229,10 +230,10 @@ object Recipes {
 
 
 
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(16), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), new ItemStack(Item.ingotIron),new ItemStack(Item.stick))
+    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget,new ItemStack(Item.stick))
     GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay),cactusGreen)
   FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID,rawCircuitBoard.getItemDamage,circuitBoard,1)
-    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.circuitBoard.createItemStack(), "potionPoison", Item.goldNugget, circuitBoard))
+    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.printedCircuitBoard.createItemStack(), "potionPoison", Item.goldNugget, circuitBoard))
     GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
   }

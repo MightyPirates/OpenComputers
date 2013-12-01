@@ -34,7 +34,7 @@ class CraftingHandler extends ICraftingHandler {
         val itemStack = craftMatrix.getStackInSlot(i)
         if (itemStack != null && itemStack.getItem == Item.shears) {
           println(itemStack)
-          itemStack.damageItem(20, player)
+          itemStack.damageItem(10, player)
           itemStack.stackSize = itemStack.stackSize+1
           println(itemStack)
         }
