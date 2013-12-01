@@ -35,6 +35,12 @@ object Recipes {
     val alu = Items.alu.createItemStack()
     val cu = Items.cu.createItemStack()
     val ironNugget = Items.ironNugget.createItemStack()
+    val ram1 = Items.ram1.createItemStack()
+    val ram2 = Items.ram2.createItemStack()
+    val ram3 = Items.ram3.createItemStack()
+    val gpu1 = Items.gpu1.createItemStack()
+    val gpu2 = Items.gpu2.createItemStack()
+    val gpu3 = Items.gpu3.createItemStack()
 
 
     GameRegistry.addRecipe(Blocks.adapter.createItemStack(),
@@ -144,35 +150,32 @@ object Recipes {
       "inn", 'i', ironNugget, 'c', chip1, 't' ,transistor,'b',printedCircuitBoard,'n',goldNugget)
 
 
-    GameRegistry.addRecipe(Items.gpu1.createItemStack(),
-      "x",
-      "y",
-      "x", 'x': Character, Items.chip1.createItemStack(), 'y': Character, card)
+    addRecipe(gpu1,
+      "car",
+      " d ", 'c',chip1,'r',ram1,'d',card,'a',alu)
 
-    GameRegistry.addRecipe(Items.gpu2.createItemStack(),
-      "x",
-      "y",
-      "x", 'x': Character, Items.chip2.createItemStack(), 'y': Character, card)
+    addRecipe(gpu2,
+      "ccr",
+      " d ", 'c',chip2,'r',ram2,'d',gpu1)
 
-    GameRegistry.addRecipe(Items.gpu3.createItemStack(),
-      "x",
-      "y",
-      "x", 'x': Character, Items.chip3.createItemStack(), 'y': Character, card)
+    addRecipe(gpu3,
+      "ccr",
+      " d ", 'c',chip3,'r',ram3,'d',gpu2)
 
 
     GameRegistry.addShapelessRecipe(Items.lan.createItemStack(),card, Blocks.cable.createItemStack())
 
-    GameRegistry.addRecipe(Items.ram1.createItemStack(),
+    GameRegistry.addRecipe(ram1,
       "xxx",
-      "yyy", 'x': Character, Items.chip1.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
+      "yyy", 'x': Character, chip1, 'y': Character, Items.printedCircuitBoard.createItemStack())
 
-    GameRegistry.addRecipe(Items.ram2.createItemStack(),
+    GameRegistry.addRecipe(ram2,
       "xxx",
-      "yyy", 'x': Character, Items.chip2.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
+      "yyy", 'x': Character, chip2, 'y': Character, Items.printedCircuitBoard.createItemStack())
 
-    GameRegistry.addRecipe(Items.ram3.createItemStack(),
+    GameRegistry.addRecipe(ram3,
       "xxx",
-      "yyy", 'x': Character, Items.chip3.createItemStack(), 'y': Character, Items.printedCircuitBoard.createItemStack())
+      "yyy", 'x': Character, chip3, 'y': Character, Items.printedCircuitBoard.createItemStack())
 
     GameRegistry.addShapelessRecipe(Items.rs.createItemStack(),card, new ItemStack(Item.redstone, 1))
 
@@ -228,7 +231,10 @@ object Recipes {
 
 
 
-
+    addRecipe(ironIngot,
+    "xxx",
+    "xxx",
+    "xxx",'x',"nuggetIron")
 
     GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget,new ItemStack(Item.stick))
     GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay),cactusGreen)
