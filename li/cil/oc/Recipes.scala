@@ -9,6 +9,7 @@ import net.minecraft.item.crafting.FurnaceRecipes
 object Recipes {
   def init() {
     val ironIngot = new ItemStack(Item.ingotIron)
+    val goldIngot = new ItemStack(Item.ingotGold)
     val ironBars = new ItemStack(Block.fenceIron)
     val dirt = new ItemStack(Block.dirt)
     val lapis = new ItemStack(Item.dyePowder, 1, 4)
@@ -24,6 +25,8 @@ object Recipes {
     val clock = new ItemStack(Item.pocketSundial)
     val enderPearl = new ItemStack(Item.enderPearl)
     val piston = new ItemStack(Block.pistonStickyBase)
+    val lever = new ItemStack(Block.lever)
+    val paper = new ItemStack(Item.paper)
 
     val chip1 = Items.chip1.createItemStack()
     val chip2 = Items.chip2.createItemStack()
@@ -43,6 +46,9 @@ object Recipes {
     val gpu1 = Items.gpu1.createItemStack()
     val gpu2 = Items.gpu2.createItemStack()
     val gpu3 = Items.gpu3.createItemStack()
+    val hdd1 = Items.hdd1.createItemStack()
+    val hdd2 = Items.hdd2.createItemStack()
+    val hdd3 = Items.hdd3.createItemStack()
     val redstoneCard = Items.rs.createItemStack()
     val lanCard = Items.lan.createItemStack()
     val wlanCard = Items.wlan.createItemStack()
@@ -108,28 +114,28 @@ object Recipes {
       "xxx", 'x': Character, dirt)
 
     addRecipe(floppy,
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+      "ili",
+      "pdp",
+      "iai", 'd', disc,'i',ironNugget,'l',lever,'p',printedCircuitBoard,'a',paper)
 
-    addRecipe(Items.hdd1.createItemStack(),
+    addRecipe(hdd1,
       "cdi",
       "bdp",
-      "cdi", 'b', printedCircuitBoard,'i',ironIngot,'p',piston,'d',disc,'c',chip1)
+      "cdi", 'b', printedCircuitBoard, 'i', ironIngot, 'p', piston, 'd', disc, 'c', chip1)
 
-    addRecipe(Items.hdd2.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+    addRecipe(hdd2,
+      "gdg",
+      "cbc",
+      "gdg", 'g', goldIngot,'d',hdd1,'c',chip1,'b',printedCircuitBoard)
 
-    addRecipe(Items.hdd3.createItemStack(),
-      "x  ",
-      "   ",
-      "xxx", 'x': Character, dirt)
+    addRecipe(hdd3,
+      "cdc",
+      "rbr",
+      "cdc", 'c', chip3,'d',hdd2,'r',ram1,'b',printedCircuitBoard)
     addRecipe(disc,
       " i ",
       "i i",
-      " i ", 'i',ironNugget)
+      " i ", 'i', ironNugget)
 
 
 
@@ -213,7 +219,7 @@ object Recipes {
     addRecipe(analyzer,
       " r ",
       "tcg",
-      "tpg", 'p', printedCircuitBoard, 'c', chip1, 'r', redstoneTorch,'t',transistor,'g',goldNugget)
+      "tpg", 'p', printedCircuitBoard, 'c', chip1, 'r', redstoneTorch, 't', transistor, 'g', goldNugget)
 
     addRecipe(cpu,
       "crc",
