@@ -9,6 +9,6 @@ class NetworkCard(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":lancard")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_lan")
   }
 }

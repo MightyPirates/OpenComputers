@@ -9,6 +9,6 @@ class PrintedCircuitBoard(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":pcb")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":circuit_board_printed")
   }
 }

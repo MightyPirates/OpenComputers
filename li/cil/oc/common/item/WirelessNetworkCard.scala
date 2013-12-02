@@ -18,6 +18,6 @@ class WirelessNetworkCard(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":wlancard")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_wlan")
   }
 }

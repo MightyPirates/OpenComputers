@@ -44,6 +44,6 @@ class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":hdd" + tier)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk_harddrive" + tier)
   }
 }

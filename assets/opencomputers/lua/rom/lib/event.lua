@@ -1,4 +1,5 @@
 local event, listeners, timers = {}, {}, {}
+local lastInterrupt = -math.huge
 
 local function matches(signal, name, filter)
   if name and not (type(signal[1]) == "string" and signal[1]:match(name))
@@ -144,6 +145,7 @@ function event.pull(...)
     end
     tick()
     if event.shouldInterrupt() then
+      lastInterrupt = os.uptime()
       error("interrupted", 0)
     end
     if not (seconds or hasFilter) or matches(signal, name, filter) then
@@ -153,7 +155,8 @@ function event.pull(...)
 end
 
 function event.shouldInterrupt()
-  return keyboard.isControlDown() and
+  return os.uptime() - lastInterrupt > 1 and
+         keyboard.isControlDown() and
          keyboard.isAltDown() and
          keyboard.isKeyDown(keyboard.keys.c)
 end

@@ -4,7 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
-import li.cil.oc.common.item.Disc
+import li.cil.oc.common.item.Disk
 
 object Items {
   var multi: item.Delegator = null
@@ -36,11 +36,11 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Crafting
-  var card: item.Card = null
+  var card: item.CardBase = null
   var circuitBoardBody: item.CircuitBoard = null
   var printedCircuitBoard: item.PrintedCircuitBoard = null
   var ironCutter: item.CuttingWire = null
-  var chip1, chip2, chip3: item.Chip = null
+  var chip1, chip2, chip3: item.Microchip = null
   var numPad: item.NumPad = null
   var arrowKeys: item.ArrowKeys = null
   var buttonGroup: item.ButtonGroup = null
@@ -51,7 +51,7 @@ object Items {
 
   var ironNugget: item.IronNugget = null
   var rawCircuitBoard: item.RawCircuitBoard = null
-  var disc: item.Disc = null
+  var disc: item.Disk = null
 
 
   def init() {
@@ -76,15 +76,15 @@ object Items {
     wlan = new item.WirelessNetworkCard(multi)
     crafting = new item.Crafting(multi)
 
-    card = new item.Card(multi)
+    card = new item.CardBase(multi)
     circuitBoardBody = new item.CircuitBoard(multi)
     printedCircuitBoard = new item.PrintedCircuitBoard(multi)
     ironCutter = new item.CuttingWire(multi)
 
 
-    chip1 = new item.Chip(multi, 0)
-    chip2 = new item.Chip(multi, 1)
-    chip3 = new item.Chip(multi, 2)
+    chip1 = new item.Microchip(multi, 0)
+    chip2 = new item.Microchip(multi, 1)
+    chip3 = new item.Microchip(multi, 2)
 
     numPad = new item.NumPad(multi)
     arrowKeys = new item.ArrowKeys(multi)
@@ -105,6 +105,6 @@ object Items {
     OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16452))
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
-    disc = new item.Disc(multi)
+    disc = new item.Disk(multi)
   }
 }

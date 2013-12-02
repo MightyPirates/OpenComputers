@@ -14,6 +14,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
+  val unlocalizedName = "Screen" + tier
 
   def tier: Int
 
@@ -297,24 +298,18 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 object Screen {
 
   class Tier1(parent: SimpleDelegator) extends Screen(parent) {
-    val unlocalizedName = "ScreenBasic"
-
     def tier = 0
 
     override def color = 0x7F7F7F
   }
 
   class Tier2(parent: SimpleDelegator) extends Screen(parent) {
-    val unlocalizedName = "ScreenAdvanced"
-
     def tier = 1
 
     override def color = 0xFFFF66
   }
 
   class Tier3(parent: SimpleDelegator) extends Screen(parent) {
-    val unlocalizedName = "ScreenProfessional"
-
     def tier = 2
 
     override def color = 0x66FFFF

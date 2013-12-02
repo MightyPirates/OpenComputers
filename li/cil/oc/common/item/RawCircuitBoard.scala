@@ -9,6 +9,6 @@ class RawCircuitBoard(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":raw_circuit_board")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":circuit_board_raw")
   }
 }

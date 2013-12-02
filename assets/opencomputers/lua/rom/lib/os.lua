@@ -18,15 +18,11 @@ os.execute = function(command)
   for part in tail:gmatch("%S+") do
     table.insert(args, part)
   end
-  return shell.execute(head, table.unpack(args))
+  return shell.execute(head, _ENV, table.unpack(args))
 end
 
 function os.exit()
-  local result, reason = shell.kill(coroutine.running())
-  if result then
-    coroutine.yield() -- never returns
-  end
-  error(reason, 2)
+  error("terminated", 0)
 end
 
 os.remove = fs.remove

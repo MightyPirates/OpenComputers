@@ -36,9 +36,13 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
+  @LuaCallback(value = "isHttpEnabled", direct = true)
+  def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
+
   override def send(context: Context, args: Arguments) = {
     val address = args.checkString(0)
-    if (Settings.get.httpEnabled && isValidInternetRequest(address)) {
+    if (isHttpRequest(address)) {
+      checkAddress(address)
       val post = if (args.isString(1)) Option(args.checkString(1)) else None
       WirelessNetworkCard.threadPool.submit(new Runnable {
         def run() = try {
@@ -59,7 +63,20 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
                 http.setRequestMethod("GET")
                 http.setDoOutput(false)
               }
-              context.signal("http_response", address, scala.io.Source.fromInputStream(http.getInputStream).getLines().mkString("\n"))
+              var part: Option[String] = None
+              for (line <- scala.io.Source.fromInputStream(http.getInputStream).getLines()) {
+                if ((part + line).length <= Settings.get.maxNetworkPacketSize) {
+                  part = Some(part.getOrElse("") + line + "\n")
+                }
+                else {
+                  context.signal("http_response", address, part.get)
+                  part = None
+                }
+              }
+              context.signal("http_response", address, part.orNull)
+              if (part.isDefined) {
+                context.signal("http_response", address)
+              }
             }
             finally {
               http.disconnect()
@@ -68,7 +85,10 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
           }
         }
         catch {
-          case e: Throwable => context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
+          case e: FileNotFoundException =>
+            context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
+          case e: Throwable =>
+            context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
         }
       })
       result(true)
@@ -111,24 +131,28 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     }
   }
 
-  private def isValidInternetRequest(address: String) = {
+  private def isHttpRequest(address: String) = {
     try {
-      val url = new URL(address)
-      val protocol = url.getProtocol
-      if (!protocol.matches("^https?$")) {
-        throw new Exception()
-      }
-      val host = Matcher.quoteReplacement(url.getHost)
-      if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(host.matches)) {
-        throw new Exception()
-      }
-      if (Settings.get.httpHostBlacklist.exists(host.matches)) {
-        throw new Exception()
-      }
+      new URL(address)
       true
     }
     catch {
       case e: Throwable => false
+    }
+  }
+
+  private def checkAddress(address: String) {
+    val url = new URL(address)
+    val protocol = url.getProtocol
+    if (!protocol.matches("^https?$")) {
+      throw new FileNotFoundException("unsupported protocol")
+    }
+    val host = Matcher.quoteReplacement(url.getHost)
+    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(host.matches)) {
+      throw new FileNotFoundException("domain is not whitelisted")
+    }
+    if (Settings.get.httpHostBlacklist.exists(host.matches)) {
+      throw new FileNotFoundException("domain is blacklisted")
     }
   }
 

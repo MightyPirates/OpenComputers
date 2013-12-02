@@ -153,6 +153,11 @@ function filesystem.mount(fs, path)
   end
 end
 
+function filesystem.path(path)
+  local parts = segments(path)
+  return table.concat(parts, "/", 1, #parts - 1) .. "/"
+end
+
 function filesystem.name(path)
   local parts = segments(path)
   return parts[#parts]
@@ -410,7 +415,7 @@ local function onComponentAdded(_, address, componentType)
       name = filesystem.concat("/mnt", name)
       filesystem.mount(proxy, name)
       if isAutorunEnabled then
-        shell.execute(filesystem.concat(name, "autorun"), proxy)
+        os.execute(filesystem.concat(name, "autorun"), proxy)
       end
     end
   end

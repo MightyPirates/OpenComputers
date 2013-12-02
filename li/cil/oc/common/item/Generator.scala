@@ -18,6 +18,6 @@ class Generator(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":generator")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_generator")
   }
 }

@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 
 class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "GraphicsCard"
-  val unlocalizedName = baseName + Array("Basic", "Advanced", "Professional").apply(tier)
+  val unlocalizedName = baseName + tier
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
@@ -27,6 +27,6 @@ class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":gpu" + tier)
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_graphics" + tier)
   }
 }

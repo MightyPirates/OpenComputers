@@ -1,8 +1,8 @@
 local shell = {}
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
-local aliases = {dir="ls", move="mv", rename="mv", copy="cp", del="rm",
-                 md="mkdir", cls="clear", more="less", rs="redstone",
+local aliases = {dir="ls", list="ls", move="mv", rename="mv", copy="cp",
+                 del="rm", md="mkdir", cls="clear", more="less", rs="redstone",
                  view="edit -r"}
 local running = {}
 
@@ -77,65 +77,6 @@ function shell.setWorkingDirectory(dir)
   end
 end
 
-function shell.execute(program, ...)
-  if type(program) ~= "function" then
-    local where, reason = shell.resolve(program, "lua")
-    if not where then
-      return nil, reason
-    end
-    local code, reason = loadfile(where, "t", setmetatable({}, {__index=_ENV}))
-    if not code then
-      return nil, reason
-    end
-    program = code
-  end
-  local co, args, result = coroutine.create(program), table.pack(true, ...), nil
-  running[co] = true
-  while running[co] and args[1] do
-    result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
-    if coroutine.status(co) ~= "dead" then
-      -- Emulate CC behavior by making yields a filtered event.wait.
-      if type(result[2]) == "string" then
-        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-      else
-        args = {true, n=1}
-      end
-    else
-      break
-    end
-  end
-  running[co] = nil
-  if not args[1] then
-    return false, "interrupted"
-  end
-  return table.unpack(result, 1, result.n)
-end
-
-function shell.kill(co)
-  if running[co] ~= nil then
-    running[co] = nil
-    return true
-  end
-  return nil, "not a program thread"
-end
-
-function shell.parse(...)
-  local params = table.pack(...)
-  local args = {}
-  local options = {}
-  for i = 1, params.n do
-    local param = params[i]
-    if unicode.sub(param, 1, 1) == "-" then
-      for j = 2, unicode.len(param) do
-        options[unicode.sub(param, j, j)] = true
-      end
-    else
-      table.insert(args, param)
-    end
-  end
-  return args, options
-end
-
 function shell.getPath()
   return table.concat(path, ":")
 end
@@ -168,6 +109,59 @@ function shell.resolve(path, ext)
       return fs.concat(shell.getWorkingDirectory(), path)
     end
   end
+end
+
+function shell.execute(program, env, ...)
+  checkArg(1, program, "string")
+  local filename, reason = shell.resolve(program, "lua")
+  if not filename then
+    return nil, reason
+  end
+  local code, reason = loadfile(filename, "t", setmetatable({}, {__index=env}))
+  if not code then
+    return nil, reason
+  end
+  local co, args, result = coroutine.create(code), table.pack(true, ...), nil
+  table.insert(running, filename)
+  -- Emulate CC behavior by making yields a filtered event.pull()
+  repeat
+    result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
+    if coroutine.status(co) == "dead" then
+      break
+    end
+    if type(result[2]) == "string" then
+      args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
+    else
+      args = {true, n=1}
+    end
+  until not args[1]
+  table.remove(running)
+  if not args[1] then
+    return false, args[2]
+  end
+  return table.unpack(result, 1, result.n)
+end
+
+function shell.parse(...)
+  local params = table.pack(...)
+  local args = {}
+  local options = {}
+  for i = 1, params.n do
+    local param = params[i]
+    if unicode.sub(param, 1, 1) == "-" then
+      for j = 2, unicode.len(param) do
+        options[unicode.sub(param, j, j)] = true
+      end
+    else
+      table.insert(args, param)
+    end
+  end
+  return args, options
+end
+
+function shell.running(level)
+  level = level or 1
+  return running[1 + (#running - level)]
 end
 
 -------------------------------------------------------------------------------

@@ -25,6 +25,6 @@ class RedstoneCard(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":rscard")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_redstone")
   }
 }

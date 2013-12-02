@@ -9,6 +9,6 @@ class ArrowKeys(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":arrow_keys")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":keys_arrow")
   }
 }

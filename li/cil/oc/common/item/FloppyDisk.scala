@@ -22,6 +22,6 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk_floppy")
   }
 }

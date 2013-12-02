@@ -13,6 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
+  val unlocalizedName = "Case" + tier
 
   def tier: Int
 
@@ -88,24 +89,18 @@ abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDel
 object Case {
 
   class Tier1(parent: SimpleDelegator) extends Case(parent) {
-    val unlocalizedName = "CaseBasic"
-
     def tier = 0
 
     override def color = 0x7F7F7F
   }
 
   class Tier2(parent: SimpleDelegator) extends Case(parent) {
-    val unlocalizedName = "CaseAdvanced"
-
     def tier = 1
 
     override def color = 0xFFFF66
   }
 
   class Tier3(parent: SimpleDelegator) extends Case(parent) {
-    val unlocalizedName = "CaseProfessional"
-
     def tier = 2
 
     override def color = 0x66FFFF
