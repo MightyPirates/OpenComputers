@@ -26,32 +26,16 @@ if fs.exists(filename) then
   end
 end
 
-local url = "http://pastebin.com/raw.php?i=" .. id
-local result, reason = m.send(url)
-if not result then
-  print("failed sending request: " .. reason)
-  return
-end
-
 local f, reason = io.open(filename, "w")
 if not f then
   print("failed opening file for writing: " .. reason)
   return
 end
 
-repeat
-  local _, responseUrl, result, reason = event.pull("http_response")
-  if responseUrl == url then
-    if not result and reason then
-      print("failed fetching data: " .. reason)
-      f:close()
-      return
-    end
-    if result then
-      f:write(result)
-    end
-  end
-until not result
+local url = "http://pastebin.com/raw.php?i=" .. id
+for line in http.request(url) do
+  f:write(line)
+end
 
 f:close()
 print("saved data to " .. filename)
