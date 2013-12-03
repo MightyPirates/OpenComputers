@@ -61,7 +61,7 @@ object Recipes {
     val hdd3 = Items.hdd3.createItemStack()
     val ironNugget = Items.ironNugget.createItemStack()
     val lanCard = Items.lan.createItemStack()
-    val pcb = Items.pcu.createItemStack()
+    val pcb = Items.pcb.createItemStack()
     val ram1 = Items.ram1.createItemStack()
     val ram2 = Items.ram2.createItemStack()
     val ram3 = Items.ram3.createItemStack()

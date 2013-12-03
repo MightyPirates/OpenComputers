@@ -34,23 +34,22 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Crafting
-  var card: item.CardBase = null
-  var circuitBoard: item.CircuitBoard = null
-  var pcu: item.PrintedCircuitBoard = null
-  var cuttingWire: item.CuttingWire = null
-  var chip1, chip2, chip3: item.Microchip = null
-  var numPad: item.NumPad = null
+  var acid: item.Acid = null
+  var alu: item.ALU = null
   var arrowKeys: item.ArrowKeys = null
   var buttonGroup: item.ButtonGroup = null
+  var card: item.CardBase = null
+  var chip1, chip2, chip3: item.Microchip = null
+  var circuitBoard: item.CircuitBoard = null
   var cpu: item.CPU = null
-  var transistor: item.Transistor = null
-  var alu: item.ALU = null
   var cu: item.ControlUnit = null
-
-  var ironNugget: item.IronNugget = null
-  var rawCircuitBoard: item.RawCircuitBoard = null
+  var cuttingWire: item.CuttingWire = null
   var disk: item.Disk = null
-  var acid: item.Acid = null
+  var ironNugget: item.IronNugget = null
+  var numPad: item.NumPad = null
+  var pcb: item.PrintedCircuitBoard = null
+  var rawCircuitBoard: item.RawCircuitBoard = null
+  var transistor: item.Transistor = null
 
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
@@ -74,9 +73,12 @@ object Items {
     wlan = new item.WirelessNetworkCard(multi)
     crafting = new item.Crafting(multi)
 
+    acid = new item.Acid(multi)
+    alu = new item.ALU(multi)
+    arrowKeys = new item.ArrowKeys(multi)
     card = new item.CardBase(multi)
     circuitBoard = new item.CircuitBoard(multi)
-    pcu = new item.PrintedCircuitBoard(multi)
+    pcb = new item.PrintedCircuitBoard(multi)
     cuttingWire = new item.CuttingWire(multi)
 
     chip1 = new item.Microchip(multi, 0)
@@ -84,12 +86,10 @@ object Items {
     chip3 = new item.Microchip(multi, 2)
 
     numPad = new item.NumPad(multi)
-    arrowKeys = new item.ArrowKeys(multi)
     buttonGroup = new item.ButtonGroup(multi)
 
     cpu = new item.CPU(multi)
     transistor = new item.Transistor(multi)
-    alu = new item.ALU(multi)
     cu = new item.ControlUnit(multi)
 
     ironNugget = new item.IronNugget(multi)
@@ -97,6 +97,5 @@ object Items {
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
     disk = new item.Disk(multi)
-    acid = new item.Acid(multi)
   }
 }

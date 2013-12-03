@@ -66,7 +66,7 @@ oc:container.Case=Computer
 oc:container.DiskDrive=Diskettenlaufwerk
 
 # Item / Block Tooltips
-oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet. Sie ist so korrosiv, dass sogar der Eimer kaputt geht.
+oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet.
 oc:tooltip.Adapter=Erlaubt es Blöcke anzusteuern die keine Komponentenblöcke sind, wie etwa reguläre Minecraft Blöcke oder Blöcke anderer Mods.
 oc:tooltip.ALU=Zählt Zahlen zum Zeitvertreib. Klingt komisch, is aber so.
 oc:tooltip.Analyzer=Erlaubt es Informationen über Blöcke anzuzeigen, wie zum Bleistift ihre §fAdresse§7 und ihren §fKomponentennamen§7.[nl] Erlaubt zudem den Fehler anzuzeigen der zu einem Computerabsturz geführt hat, falls der Computer nicht regulär heruntergefahren wurde.

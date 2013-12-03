@@ -71,7 +71,7 @@ oc:container.Case=Computer
 oc:container.DiskDrive=Disk Drive
 
 # Item / Block Tooltips
-oc:tooltip.Acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. Thanks to its corrosive nature it is perfectly suited for etching circuit boards. So corrosive that the bucket becomes unusable, actually.
+oc:tooltip.Acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. Thanks to its corrosive nature it is perfectly suited for etching circuit boards.
 oc:tooltip.Adapter=Used to control non-component blocks, such as vanilla blocks or blocks from other mods.
 oc:tooltip.ALU=Adds number so you don't have to. It might be better this way.
 oc:tooltip.Analyzer=Used to display information about blocks, such as their §faddress§7 and §fcomponent name§7.[nl] Also displays the error that caused a computer to crash if it did not shut down normally.

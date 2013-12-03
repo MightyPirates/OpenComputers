@@ -1,53 +1,44 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.ICraftingHandler
-import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
+import net.minecraft.item.{Item, ItemStack}
 
-
-class CraftingHandler extends ICraftingHandler {
-  /**
-   * The object array contains these three arguments
-   *
-   * @param player
-   * @param item
-   * @param craftMatrix
-   */
-  override def onCrafting(player: EntityPlayer, item: ItemStack, craftMatrix: IInventory) = {
-    if (item.isItemEqual(Items.circuitBoard.createItemStack())) {
-      for ( i <- 0 to craftMatrix.getSizeInventory)
-      {
-        val itemStack = craftMatrix.getStackInSlot(i)
-
-        if (itemStack != null && itemStack.getItem() == Item.potion) {
-          println(itemStack)
-          val stack = new ItemStack(Item.glassBottle,1)
-          if(!player.inventory.addItemStackToInventory(stack))
-            player.dropPlayerItem(stack)
+object CraftingHandler extends ICraftingHandler {
+  override def onCrafting(player: EntityPlayer, craftedStack: ItemStack, inventory: IInventory) = {
+    if (craftedStack.isItemEqual(Items.cuttingWire.createItemStack())) {
+      for (i <- 0 to inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(i)
+        if (stack != null && stack.getItem == Item.shears) {
+          stack.damageItem(10, player)
+          stack.stackSize = stack.stackSize + 1
         }
       }
     }
-    else if(item.isItemEqual(Items.cuttingWire.createItemStack())){
-      for ( i <- 0 to craftMatrix.getSizeInventory)
-      {
-        val itemStack = craftMatrix.getStackInSlot(i)
-        if (itemStack != null && itemStack.getItem == Item.shears) {
-          println(itemStack)
-          itemStack.damageItem(10, player)
-          itemStack.stackSize = itemStack.stackSize+1
-          println(itemStack)
+
+    if (craftedStack.isItemEqual(Items.acid.createItemStack())) {
+      for (i <- 0 to inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(i)
+        if (stack != null && stack.getItem == Item.bucketWater) {
+          stack.stackSize = 0
+          inventory.setInventorySlotContents(i, null)
+        }
+      }
+    }
+
+    if (craftedStack.isItemEqual(Items.pcb.createItemStack())) {
+      for (i <- 0 to inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(i)
+        if (stack != null && stack.isItemEqual(Items.acid.createItemStack())) {
+          val container = new ItemStack(Item.bucketEmpty, 1)
+          if (!player.inventory.addItemStackToInventory(container)) {
+            player.dropPlayerItem(container)
+          }
         }
       }
     }
   }
 
-  /**
-   * The object array contains these two arguments
-   * @param player
-   * @param item
-   */
-  override def onSmelting(player: EntityPlayer, item: ItemStack) = {
-
-  }
+  override def onSmelting(player: EntityPlayer, item: ItemStack) {}
 }

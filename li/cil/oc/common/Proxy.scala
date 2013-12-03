@@ -37,7 +37,7 @@ class Proxy {
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     Recipes.init()
-    GameRegistry.registerCraftingHandler(new CraftingHandler())
+    GameRegistry.registerCraftingHandler(CraftingHandler)
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
