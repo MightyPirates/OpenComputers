@@ -60,6 +60,7 @@ function file:read(...)
   end
 
   local function readBytesOrChars(n)
+    n = math.max(n, 0)
     local len, sub
     if self.mode == "r" then
       len = unicode.len

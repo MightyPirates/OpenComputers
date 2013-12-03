@@ -415,7 +415,7 @@ local function onComponentAdded(_, address, componentType)
       name = filesystem.concat("/mnt", name)
       filesystem.mount(proxy, name)
       if isAutorunEnabled then
-        os.execute(filesystem.concat(name, "autorun"), proxy)
+        shell.execute(filesystem.concat(name, "autorun"), _ENV, proxy)
       end
     end
   end
