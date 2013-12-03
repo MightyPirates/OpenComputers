@@ -10,7 +10,7 @@ import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
@@ -25,6 +25,8 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def rarity = EnumRarity.epic
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {

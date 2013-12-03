@@ -7,16 +7,19 @@ import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import scala.Array
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Screen" + tier
 
   def tier: Int
+
+  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)

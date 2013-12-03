@@ -6,16 +6,19 @@ import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import scala.Array
 
 abstract class Case(val parent: SimpleDelegator) extends Computer with SimpleDelegate {
   val unlocalizedName = "Case" + tier
 
   def tier: Int
+
+  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val slots = tier match {

@@ -5,8 +5,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemBlock
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemBlock, ItemStack}
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
@@ -19,6 +18,11 @@ class Item(id: Int) extends ItemBlock(id) {
       case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
       case _ =>
     }
+  }
+
+  override def getRarity(stack: ItemStack) = Delegator.subBlock(stack) match {
+    case Some(subBlock) => subBlock.rarity
+    case _ => EnumRarity.common
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage

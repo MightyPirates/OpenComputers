@@ -5,6 +5,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.{Settings, Blocks}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.EnumRarity
 import net.minecraft.util.{Icon, MovingObjectPosition}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
@@ -17,6 +18,8 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   private var icon: Icon = _
 
   // ----------------------------------------------------------------------- //
+
+  override def rarity = EnumRarity.epic
 
   @SideOnly(Side.CLIENT)
   override def icon(side: ForgeDirection) = Some(icon)

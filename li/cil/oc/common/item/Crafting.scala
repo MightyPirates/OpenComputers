@@ -5,10 +5,12 @@ import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 
 class Crafting(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Crafting"
+
+  override def rarity = EnumRarity.epic
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))

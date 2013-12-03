@@ -7,8 +7,8 @@ import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
-class CPU(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "CPU"
+class Acid(val parent: Delegator) extends Delegate {
+  val unlocalizedName = "Acid"
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -18,7 +18,6 @@ class CPU(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":cpu")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":grog")
   }
 }
-

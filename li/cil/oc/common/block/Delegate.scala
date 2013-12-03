@@ -5,7 +5,7 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB, Icon}
 import net.minecraft.world.IBlockAccess
@@ -89,6 +89,8 @@ trait Delegate {
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
 
   // ----------------------------------------------------------------------- //
+
+  def rarity = EnumRarity.common
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}

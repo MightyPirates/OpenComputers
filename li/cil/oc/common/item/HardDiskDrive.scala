@@ -4,12 +4,15 @@ import java.util
 import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
+import scala.Array
 
 class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
   val unlocalizedName = "HardDiskDrive"
 
   val kiloBytes = Settings.get.hddSizes(tier)
+
+  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {

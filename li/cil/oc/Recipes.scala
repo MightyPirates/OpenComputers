@@ -9,6 +9,7 @@ import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe, OreDicti
 object Recipes {
   def init() {
     val blazeRod = new ItemStack(Item.blazeRod)
+    val boneMeal = new ItemStack(Item.dyePowder, 1, 15)
     val cactusGreen = new ItemStack(Item.dyePowder, 1, 2)
     val clock = new ItemStack(Item.pocketSundial)
     val comparator = new ItemStack(Item.comparator)
@@ -35,18 +36,22 @@ object Recipes {
     val redstoneTorch = new ItemStack(Block.torchRedstoneActive)
     val repeater = new ItemStack(Item.redstoneRepeater)
     val roseRed = new ItemStack(Item.dyePowder, 1, 1)
+    val slimeBall = new ItemStack(Item.slimeBall)
+    val spiderEye = new ItemStack(Item.spiderEye)
     val stick = new ItemStack(Item.stick)
+    val sugar = new ItemStack(Item.sugar)
 
+    val acid = Items.acid.createItemStack()
     val alu = Items.alu.createItemStack()
     val cable = Blocks.cable.createItemStack()
     val card = Items.card.createItemStack()
     val chip1 = Items.chip1.createItemStack()
     val chip2 = Items.chip2.createItemStack()
     val chip3 = Items.chip3.createItemStack()
-    val circuitBoard = Items.circuitBoardBody.createItemStack()
+    val board = Items.circuitBoard.createItemStack()
     val cpu = Items.cpu.createItemStack()
     val cu = Items.cu.createItemStack()
-    val disc = Items.disc.createItemStack()
+    val disk = Items.disk.createItemStack()
     val floppy = Items.floppyDisk.createItemStack()
     val gpu1 = Items.gpu1.createItemStack()
     val gpu2 = Items.gpu2.createItemStack()
@@ -56,23 +61,23 @@ object Recipes {
     val hdd3 = Items.hdd3.createItemStack()
     val ironNugget = Items.ironNugget.createItemStack()
     val lanCard = Items.lan.createItemStack()
-    val printedCircuitBoard = Items.printedCircuitBoard.createItemStack()
+    val pcb = Items.pcu.createItemStack()
     val ram1 = Items.ram1.createItemStack()
     val ram2 = Items.ram2.createItemStack()
     val ram3 = Items.ram3.createItemStack()
-    val rawCircuitBoard = Items.rawCircuitBoard.createItemStack()
+    val rawBoard = Items.rawCircuitBoard.createItemStack()
     val redstoneCard = Items.rs.createItemStack()
     val transistor = Items.transistor.createItemStack()
     val wlanCard = Items.wlan.createItemStack()
 
     // ----------------------------------------------------------------------- //
 
-    GameRegistry.addShapelessRecipe(new ItemStack(Item.potion), Item.bucketWater, Item.glassBottle)
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
-    GameRegistry.addShapelessRecipe(Items.ironCutter.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, stick)
-    GameRegistry.addShapelessRecipe(rawCircuitBoard, Items.ironCutter.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
-    FurnaceRecipes.smelting().addSmelting(rawCircuitBoard.itemID, rawCircuitBoard.getItemDamage, circuitBoard, 1)
-    GameRegistry.addRecipe(new ShapelessOreRecipe(printedCircuitBoard, "potionPoison", Item.goldNugget, circuitBoard))
+    GameRegistry.addShapelessRecipe(Items.cuttingWire.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, stick)
+    GameRegistry.addShapelessRecipe(rawBoard, Items.cuttingWire.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
+    FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 1)
+    GameRegistry.addRecipe(new ShapelessOreRecipe(acid, Item.bucketWater, sugar, roseRed, slimeBall, spiderEye, boneMeal))
+    GameRegistry.addRecipe(new ShapelessOreRecipe(pcb, acid, Item.goldNugget, board))
 
     addRecipe(ironIngot,
       "xxx",
@@ -80,7 +85,7 @@ object Recipes {
       "xxx",
       'x', "nuggetIron")
 
-    addRecipe(disc,
+    addRecipe(disk,
       " i ",
       "i i",
       " i ",
@@ -159,7 +164,7 @@ object Recipes {
       'i', ironNugget,
       'c', chip1,
       't', transistor,
-      'b', printedCircuitBoard,
+      'b', pcb,
       'g', goldNugget)
 
     addRecipe(Items.buttonGroup.createItemStack(),
@@ -185,7 +190,7 @@ object Recipes {
       "bcb",
       "imi",
       'i', ironIngot,
-      'p', printedCircuitBoard,
+      'p', pcb,
       'b', ironBars,
       'c', cpu,
       'm', chip1)
@@ -195,7 +200,7 @@ object Recipes {
       "mcm",
       "gpg",
       'g', goldIngot,
-      'p', printedCircuitBoard,
+      'p', pcb,
       'm', chip2,
       'c', Blocks.case1.createItemStack())
 
@@ -204,7 +209,7 @@ object Recipes {
       "dcd",
       "mpm",
       'm', chip3,
-      'p', printedCircuitBoard,
+      'p', pcb,
       'd', diamond,
       'c', Blocks.case2.createItemStack())
 
@@ -233,7 +238,7 @@ object Recipes {
       "bqs",
       "opc",
       'o', obsidian,
-      'p', printedCircuitBoard,
+      'p', pcb,
       'c', chip3,
       'b', blazeRod,
       'q', netherQuartz,
@@ -247,7 +252,7 @@ object Recipes {
       't', transistor,
       'g', goldNugget,
       'p', paper,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.powerDistributor.createItemStack(),
       "ici",
@@ -257,7 +262,7 @@ object Recipes {
       'c', chip1,
       'w', cable,
       'g', goldIngot,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.powerConverter.createItemStack(),
       "iwi",
@@ -267,7 +272,7 @@ object Recipes {
       'c', chip1,
       'w', cable,
       'g', goldIngot,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.diskDrive.createItemStack(),
       "ici",
@@ -285,7 +290,7 @@ object Recipes {
       'i', ironIngot,
       'n', lanCard,
       'c', chip1,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.adapter.createItemStack(),
       "iwi",
@@ -294,7 +299,7 @@ object Recipes {
       'i', ironIngot,
       'w', cable,
       'c', chip1,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.charger.createItemStack(),
       "igi",
@@ -304,7 +309,7 @@ object Recipes {
       'g', goldIngot,
       'p', Blocks.capacitor.createItemStack(),
       'c', chip2,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Blocks.robotProxy.createItemStack(),
       "sgf",
@@ -343,27 +348,27 @@ object Recipes {
       't', transistor,
       'c', chip1,
       'g', goldNugget,
-      'p', printedCircuitBoard)
+      'p', pcb)
 
     addRecipe(ram1,
       "ccc",
       "bbb",
       'c', chip1,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(ram2,
       "ccc",
       "rbr",
       'c', chip2,
       'r', ram1,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(ram3,
       "ccc",
       "rbr",
       'c', chip3,
       'r', ram2,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(floppy,
       "ili",
@@ -371,8 +376,8 @@ object Recipes {
       "ipi",
       'i', ironNugget,
       'l', lever,
-      'b', circuitBoard,
-      'd', disc,
+      'b', board,
+      'd', disk,
       'p', paper)
 
     addRecipe(hdd1,
@@ -380,9 +385,9 @@ object Recipes {
       "bdp",
       "cdi",
       'c', chip1,
-      'd', disc,
+      'd', disk,
       'i', ironIngot,
-      'b', printedCircuitBoard,
+      'b', pcb,
       'p', piston)
 
     addRecipe(hdd2,
@@ -392,7 +397,7 @@ object Recipes {
       'g', goldIngot,
       'd', hdd1,
       'c', chip2,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(hdd3,
       "cdc",
@@ -401,7 +406,7 @@ object Recipes {
       'c', chip3,
       'd', hdd2,
       'r', ram1,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(gpu1,
       "car",
@@ -453,7 +458,7 @@ object Recipes {
       'i', ironIngot,
       'c', chip1,
       'p', piston,
-      'b', printedCircuitBoard)
+      'b', pcb)
 
     addRecipe(Items.crafting.createItemStack(),
       "idi",
@@ -463,7 +468,7 @@ object Recipes {
       'd', dropper,
       'c', chip1,
       'w', craftingTable,
-      'b', printedCircuitBoard)
+      'b', pcb)
   }
 
   private def addRecipe(output: ItemStack, args: Any*) = {

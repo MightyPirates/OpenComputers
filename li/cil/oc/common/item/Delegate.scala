@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 
@@ -38,6 +38,8 @@ trait Delegate {
   }
 
   // ----------------------------------------------------------------------- //
+
+  def rarity = EnumRarity.common
 
   def displayName(stack: ItemStack): Option[String] = None
 

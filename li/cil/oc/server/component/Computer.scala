@@ -250,23 +250,21 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     // guaranteed that the executor thread isn't running anymore.
     state.synchronized(state.top match {
       // Booting up.
-      case Computer.State.Starting => {
+      case Computer.State.Starting =>
         verifyComponents()
         switchTo(Computer.State.Yielded)
-      }
       // Computer is rebooting.
-      case Computer.State.Restarting => {
+      case Computer.State.Restarting =>
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
         node.sendToReachable("computer.stopped")
         start()
-      }
       // Resume from pauses based on sleep or signal underflow.
       case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
         switchTo(Computer.State.Yielded)
       }
       // Resume in case we paused  because the game was paused.
-      case Computer.State.Paused => {
+      case Computer.State.Paused =>
         if (remainingPause > 0) {
           remainingPause -= 1
         }
@@ -275,7 +273,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           state.pop()
           switchTo(state.top) // Trigger execution if necessary.
         }
-      }
       // Perform a synchronized call (message sending).
       case Computer.State.SynchronizedCall => {
         // These three asserts are all guaranteed by run().

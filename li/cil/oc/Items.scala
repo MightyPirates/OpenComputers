@@ -2,9 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
-import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
-import li.cil.oc.common.item.Disk
 
 object Items {
   var multi: item.Delegator = null
@@ -37,9 +35,9 @@ object Items {
   // ----------------------------------------------------------------------- //
   // Crafting
   var card: item.CardBase = null
-  var circuitBoardBody: item.CircuitBoard = null
-  var printedCircuitBoard: item.PrintedCircuitBoard = null
-  var ironCutter: item.CuttingWire = null
+  var circuitBoard: item.CircuitBoard = null
+  var pcu: item.PrintedCircuitBoard = null
+  var cuttingWire: item.CuttingWire = null
   var chip1, chip2, chip3: item.Microchip = null
   var numPad: item.NumPad = null
   var arrowKeys: item.ArrowKeys = null
@@ -51,8 +49,8 @@ object Items {
 
   var ironNugget: item.IronNugget = null
   var rawCircuitBoard: item.RawCircuitBoard = null
-  var disc: item.Disk = null
-
+  var disk: item.Disk = null
+  var acid: item.Acid = null
 
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
@@ -77,10 +75,9 @@ object Items {
     crafting = new item.Crafting(multi)
 
     card = new item.CardBase(multi)
-    circuitBoardBody = new item.CircuitBoard(multi)
-    printedCircuitBoard = new item.PrintedCircuitBoard(multi)
-    ironCutter = new item.CuttingWire(multi)
-
+    circuitBoard = new item.CircuitBoard(multi)
+    pcu = new item.PrintedCircuitBoard(multi)
+    cuttingWire = new item.CuttingWire(multi)
 
     chip1 = new item.Microchip(multi, 0)
     chip2 = new item.Microchip(multi, 1)
@@ -97,14 +94,9 @@ object Items {
 
     ironNugget = new item.IronNugget(multi)
     OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8196))
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8228))
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 8260))
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16388))
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16420))
-    OreDictionary.registerOre("potionPoison", new ItemStack(Item.potion, 1, 16452))
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
-    disc = new item.Disk(multi)
+    disk = new item.Disk(multi)
+    acid = new item.Acid(multi)
   }
 }

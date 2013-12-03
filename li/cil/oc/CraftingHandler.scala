@@ -15,7 +15,7 @@ class CraftingHandler extends ICraftingHandler {
    * @param craftMatrix
    */
   override def onCrafting(player: EntityPlayer, item: ItemStack, craftMatrix: IInventory) = {
-    if (item.isItemEqual(Items.circuitBoardBody.createItemStack())) {
+    if (item.isItemEqual(Items.circuitBoard.createItemStack())) {
       for ( i <- 0 to craftMatrix.getSizeInventory)
       {
         val itemStack = craftMatrix.getStackInSlot(i)
@@ -28,7 +28,7 @@ class CraftingHandler extends ICraftingHandler {
         }
       }
     }
-    else if(item.isItemEqual(Items.ironCutter.createItemStack())){
+    else if(item.isItemEqual(Items.cuttingWire.createItemStack())){
       for ( i <- 0 to craftMatrix.getSizeInventory)
       {
         val itemStack = craftMatrix.getStackInSlot(i)
