@@ -34,22 +34,25 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Crafting
+  var ironNugget: item.IronNugget = null
+  var cuttingWire: item.CuttingWire = null
   var acid: item.Acid = null
-  var alu: item.ALU = null
-  var arrowKeys: item.ArrowKeys = null
+  var disk: item.Disk = null
+
   var buttonGroup: item.ButtonGroup = null
-  var card: item.CardBase = null
+  var arrowKeys: item.ArrowKeys = null
+  var numPad: item.NumPad = null
+
+  var transistor: item.Transistor = null
   var chip1, chip2, chip3: item.Microchip = null
-  var circuitBoard: item.CircuitBoard = null
+  var alu: item.ALU = null
   var cpu: item.CPU = null
   var cu: item.ControlUnit = null
-  var cuttingWire: item.CuttingWire = null
-  var disk: item.Disk = null
-  var ironNugget: item.IronNugget = null
-  var numPad: item.NumPad = null
-  var pcb: item.PrintedCircuitBoard = null
+
   var rawCircuitBoard: item.RawCircuitBoard = null
-  var transistor: item.Transistor = null
+  var circuitBoard: item.CircuitBoard = null
+  var pcb: item.PrintedCircuitBoard = null
+  var card: item.CardBase = null
 
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
@@ -57,45 +60,48 @@ object Items {
     GameRegistry.registerItem(multi, Settings.namespace + "item")
 
     analyzer = new item.Analyzer(multi)
-    floppyDisk = new item.FloppyDisk(multi)
-    gpu1 = new item.GraphicsCard(multi, 0)
-    gpu2 = new item.GraphicsCard(multi, 1)
-    gpu3 = new item.GraphicsCard(multi, 2)
-    hdd1 = new item.HardDiskDrive(multi, 0)
-    hdd2 = new item.HardDiskDrive(multi, 1)
-    hdd3 = new item.HardDiskDrive(multi, 2)
-    lan = new item.NetworkCard(multi)
-    generator = new item.Generator(multi)
+
     ram1 = new item.Memory(multi, 0)
     ram2 = new item.Memory(multi, 1)
     ram3 = new item.Memory(multi, 2)
+
+    floppyDisk = new item.FloppyDisk(multi)
+    hdd1 = new item.HardDiskDrive(multi, 0)
+    hdd2 = new item.HardDiskDrive(multi, 1)
+    hdd3 = new item.HardDiskDrive(multi, 2)
+
+    gpu1 = new item.GraphicsCard(multi, 0)
+    gpu2 = new item.GraphicsCard(multi, 1)
+    gpu3 = new item.GraphicsCard(multi, 2)
+    lan = new item.NetworkCard(multi)
     rs = new item.RedstoneCard(multi)
     wlan = new item.WirelessNetworkCard(multi)
+
     crafting = new item.Crafting(multi)
+    generator = new item.Generator(multi)
 
-    acid = new item.Acid(multi)
-    alu = new item.ALU(multi)
-    arrowKeys = new item.ArrowKeys(multi)
-    card = new item.CardBase(multi)
-    circuitBoard = new item.CircuitBoard(multi)
-    pcb = new item.PrintedCircuitBoard(multi)
+    ironNugget = new item.IronNugget(multi)
     cuttingWire = new item.CuttingWire(multi)
+    acid = new item.Acid(multi)
+    disk = new item.Disk(multi)
 
+    buttonGroup = new item.ButtonGroup(multi)
+    arrowKeys = new item.ArrowKeys(multi)
+    numPad = new item.NumPad(multi)
+
+    transistor = new item.Transistor(multi)
     chip1 = new item.Microchip(multi, 0)
     chip2 = new item.Microchip(multi, 1)
     chip3 = new item.Microchip(multi, 2)
-
-    numPad = new item.NumPad(multi)
-    buttonGroup = new item.ButtonGroup(multi)
-
-    cpu = new item.CPU(multi)
-    transistor = new item.Transistor(multi)
+    alu = new item.ALU(multi)
     cu = new item.ControlUnit(multi)
-
-    ironNugget = new item.IronNugget(multi)
-    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
+    cpu = new item.CPU(multi)
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
-    disk = new item.Disk(multi)
+    circuitBoard = new item.CircuitBoard(multi)
+    pcb = new item.PrintedCircuitBoard(multi)
+    card = new item.CardBase(multi)
+
+    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
   }
 }

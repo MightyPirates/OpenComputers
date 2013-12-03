@@ -25,20 +25,20 @@ class Crafting(val owner: MCTileEntity) extends ManagedComponent {
 
   private object CraftingInventory extends InventoryCrafting(new Container {
     def canInteractWith(player: EntityPlayer) = true
-  }, 4, 4) {
+  }, 3, 3) {
     var amountPossible = 0
 
     def craft(context: RobotContext, wantedCount: Int): Boolean = {
-      CraftingInventory.load(context)
+      load(context)
       val manager = CraftingManager.getInstance
       val result = manager.findMatchingRecipe(CraftingInventory, owner.getWorldObj)
       if (result == null) return false
       val targetStackSize = if (result.isStackable) wantedCount min result.getMaxStackSize else result.stackSize
       val timesCrafted = targetStackSize / result.stackSize
       if (timesCrafted <= 0) return true
+      GameRegistry.onItemCrafted(context.player, result, this)
       val surplus = mutable.ArrayBuffer.empty[ItemStack]
-      for (row <- 0 until 3) for (col <- 0 until 3) {
-        val slot = row * 4 + col
+      for (slot <- 0 until getSizeInventory) {
         val stack = getStackInSlot(slot)
         if (stack != null) {
           decrStackSize(slot, timesCrafted)
@@ -58,8 +58,7 @@ class Crafting(val owner: MCTileEntity) extends ManagedComponent {
           }
         }
       }
-      GameRegistry.onItemCrafted(context.player, result, this)
-      CraftingInventory.save(context)
+      save(context)
       result.stackSize *= timesCrafted
       val inventory = context.player.inventory
       inventory.addItemStackToInventory(result)
@@ -72,8 +71,8 @@ class Crafting(val owner: MCTileEntity) extends ManagedComponent {
     def load(context: RobotContext) {
       val inventory = context.player.inventory
       amountPossible = Int.MaxValue
-      for (slot <- 0 until 16) {
-        val stack = inventory.getStackInSlot(slot + 4)
+      for (slot <- 0 until getSizeInventory) {
+        val stack = inventory.getStackInSlot(toParentSlot(slot))
         setInventorySlotContents(slot, stack)
         if (stack != null) {
           amountPossible = amountPossible min stack.stackSize
@@ -83,9 +82,15 @@ class Crafting(val owner: MCTileEntity) extends ManagedComponent {
 
     def save(context: RobotContext) {
       val inventory = context.player.inventory
-      for (slot <- 0 until 16) {
-        inventory.setInventorySlotContents(slot + 4, getStackInSlot(slot))
+      for (slot <- 0 until getSizeInventory) {
+        inventory.setInventorySlotContents(toParentSlot(slot), getStackInSlot(slot))
       }
+    }
+
+    private def toParentSlot(slot: Int) = {
+      val col = slot % 3
+      val row = slot / 3
+      row * 4 + col + 4 // first four are always: tool, card, disk, upgrade
     }
   }
 
