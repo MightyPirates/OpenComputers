@@ -17,19 +17,25 @@ class NoteBlock(entity: TileEntityNote) extends ManagedComponent {
 
   @LuaCallback("setPitch")
   def setPitch(context: Context, args: Arguments): Array[AnyRef] = {
-    val value = args.checkInteger(0)
-    if (value < 0 || value > 24) throw new IllegalArgumentException("invalid pitch")
-    entity.note = value.toByte
-    entity.onInventoryChanged()
+    setPitch(args.checkInteger(0))
     result(true)
   }
 
   @LuaCallback("trigger")
   def trigger(context: Context, args: Arguments): Array[AnyRef] = {
+    if (args.count > 0) {
+      setPitch(args.checkInteger(0))
+    }
+
     val world = entity.getWorldObj
     val (x, y, z) = (entity.xCoord, entity.yCoord, entity.zCoord)
-
     entity.triggerNote(world, x, y, z)
     result(world.getBlockMaterial(x, y + 1, z) == Material.air)
+  }
+
+  def setPitch(value: Int) {
+    if (value < 1 || value > 25) throw new IllegalArgumentException("invalid pitch")
+    entity.note = (value - 1).toByte
+    entity.onInventoryChanged()
   }
 }

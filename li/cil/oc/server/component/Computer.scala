@@ -1179,9 +1179,12 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
 
-      // Help out the GC a little. The emergency GC has a few limitations that
-      // will make it free less memory than doing a full step manually.
-      lua.gc(LuaState.GcAction.COLLECT, 0)
+      if (Settings.get.activeGC) {
+        // Help out the GC a little. The emergency GC has a few limitations
+        // that will make it free less memory than doing a full step manually.
+        lua.gc(LuaState.GcAction.COLLECT, 0)
+      }
+
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
       val (results, runtime) = enterState match {
