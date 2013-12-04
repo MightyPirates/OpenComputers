@@ -1,17 +1,13 @@
 local removing = {}
 local primaries = {}
 
-local function tryGetPrimary(_, key)
-  if component.isAvailable(key) then
-    return primaries[key]
-  end
-end
-
 -------------------------------------------------------------------------------
 
 -- This allows writing component.modem.open(123) instead of writing
--- component.primary("modem").open(123), which may be nicer to read.
-setmetatable(component, {__index=tryGetPrimary})
+-- component.getPrimary("modem").open(123), which may be nicer to read.
+setmetatable(component, { __index = function(_, key)
+                                      return component.getPrimary(key)
+                                    end })
 
 function component.get(address, componentType)
   checkArg(1, address, "string")
@@ -39,27 +35,27 @@ function component.isPrimary(address)
   return false
 end
 
-function component.primary(componentType, ...)
+function component.getPrimary(componentType)
   checkArg(1, componentType, "string")
-  local args = table.pack(...)
-  if args.n > 0 then
-    checkArg(2, args[1], "string", "nil")
-    local address
-    if args[1] ~= nil then
-      address = component.get(args[1], componentType)
-      assert(address, "no such component")
-    end
-    local wasAvailable = component.isAvailable(componentType)
-    primaries[componentType] = address and component.proxy(address) or nil
-    if component.isAvailable(componentType) then
-      os.pushSignal("component_available", componentType)
-    elseif wasAvailable then
-      os.pushSignal("component_unavailable", componentType)
-    end
-  else
-    assert(component.isAvailable(componentType),
-      "no primary '" .. componentType .. "' available")
-    return primaries[componentType]
+  assert(component.isAvailable(componentType),
+    "no primary '" .. componentType .. "' available")
+  return primaries[componentType]
+end
+
+function component.setPrimary(componentType, address)
+  checkArg(1, componentType, "string")
+  checkArg(2, address, "string", "nil")
+  if address ~= nil then
+    address = component.get(address, componentType)
+    assert(address, "no such component")
+  end
+  local wasAvailable = component.isAvailable(componentType)
+  primaries[componentType] = address and component.proxy(address) or nil
+  if wasAvailable then
+    os.pushSignal("component_unavailable", componentType)
+  end
+  if component.isAvailable(componentType) then
+    os.pushSignal("component_available", componentType)
   end
 end
 
@@ -67,17 +63,15 @@ end
 
 local function onComponentAdded(_, address, componentType)
   if not component.isAvailable(componentType) then
-    component.primary(componentType, address)
+    component.setPrimary(componentType, address)
   end
 end
 
 local function onComponentRemoved(_, address, componentType)
   if component.isAvailable(componentType) and
-    component.primary(componentType).address == address
+    component.getPrimary(componentType).address == address
   then
-    component.primary(componentType, nil)
-    address = component.list(componentType)()
-    component.primary(componentType, address)
+    component.setPrimary(componentType, component.list(componentType)())
   end
 end
 

@@ -4,7 +4,7 @@ if #args < 1 then
   return
 end
 
-local rs = component.primary("redstone")
+local rs = component.redstone
 
 local side = sides[args[1]]
 if not side then

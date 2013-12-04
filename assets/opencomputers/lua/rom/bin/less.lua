@@ -12,7 +12,7 @@ end
 
 local line = nil
 while true do
-  local w, h = component.primary("gpu").getResolution()
+  local w, h = component.gpu.getResolution()
   term.clear()
   term.setCursorBlink(false)
   local i = 1

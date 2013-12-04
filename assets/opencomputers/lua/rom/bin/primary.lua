@@ -5,17 +5,19 @@ if #args == 0 then
   return
 end
 
+local componentType = args[1]
+
 if #args > 1 then
-  if not component.get(args[2]) then
+  local address = args[2]
+  if not component.get(address) then
     print("no component with this address")
     return
   else
-    component.primary(args[1], nil)
-    component.primary(args[1], args[2])
+    component.setPrimary(componentType, address)
   end
 end
-if component.isAvailable(args[1]) then
-  print(component.primary(args[1]).address)
+if component.isAvailable(componentType) then
+  print(component.getPrimary(componentType).address)
 else
   print("no primary component for this type")
 end

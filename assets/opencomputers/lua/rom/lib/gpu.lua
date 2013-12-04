@@ -2,8 +2,7 @@ local function onComponentAvailable(_, componentType)
   if (componentType == "screen" and component.isAvailable("gpu")) or
      (componentType == "gpu" and component.isAvailable("screen"))
   then
-    local gpu = component.primary("gpu")
-    gpu.bind(component.primary("screen").address)
+    component.gpu.bind(component.screen.address)
   end
 end
 
