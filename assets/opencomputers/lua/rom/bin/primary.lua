@@ -14,6 +14,7 @@ if #args > 1 then
     return
   else
     component.setPrimary(componentType, address)
+    os.sleep(0.1) -- allow signals to be processed
   end
 end
 if component.isAvailable(componentType) then

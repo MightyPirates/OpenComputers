@@ -50,6 +50,9 @@ function component.setPrimary(componentType, address)
     assert(address, "no such component")
   end
   local wasAvailable = component.isAvailable(componentType)
+  if wasAvailable and address == primaries[componentType].address then
+    return
+  end
   primaries[componentType] = address and component.proxy(address) or nil
   if wasAvailable then
     os.pushSignal("component_unavailable", componentType)
