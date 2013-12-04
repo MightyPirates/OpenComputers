@@ -132,6 +132,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 16)
   }
 
+  def sendRobotXp(t: Robot) {
+    val pb = new PacketBuilder(PacketType.RobotXp)
+
+    pb.writeTileEntity(t)
+    pb.writeDouble(t.xp)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RotatableState)
 

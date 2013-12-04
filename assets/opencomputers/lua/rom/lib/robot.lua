@@ -5,6 +5,17 @@ end
 local robot = {}
 
 -------------------------------------------------------------------------------
+-- General
+
+function robot.xp()
+  return component.computer.xp()
+end
+
+function robot.energy()
+  return component.power.buffer()
+end
+
+-------------------------------------------------------------------------------
 -- World
 
 function robot.detect()

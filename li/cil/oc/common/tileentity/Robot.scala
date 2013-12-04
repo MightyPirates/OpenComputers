@@ -56,6 +56,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var owner = "OpenComputers"
 
+  var xp = 0.0
+
+  def xpForNextLevel = Settings.get.baseXpToLevel + Math.pow((level + 1) * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
+
+  var level = 0
+
+  var xpChanged = false
+
   var globalBuffer = 0.0
 
   var globalBufferSize = 0.0
@@ -76,11 +84,29 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   private lazy val player_ = new Player(this)
 
+  def addXp(value: Double) {
+    if (level < 29 && isServer) {
+      xp = xp + value
+      xpChanged = true
+      if (xp >= xpForNextLevel) {
+        updateXpInfo()
+      }
+    }
+  }
+
+  def updateXpInfo() {
+    // xp(level) = base + (level * const) ^ exp
+    // pow(xp(level) - base, 1/exp) / const = level
+    level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 29
+    battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     stats.setString(Settings.namespace + "gui.Analyzer.RobotOwner", owner)
     stats.setString(Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName)
+    stats.setString(Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f"))
     super.onAnalyze(stats, player, side, hitX, hitY, hitZ)
   }
 
@@ -138,8 +164,13 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def createItemStack() = {
     val stack = Blocks.robotProxy.createItemStack()
-    if (globalBuffer > 1) {
+    if (globalBuffer > 1 || xp > 0) {
       stack.setTagCompound(new NBTTagCompound("tag"))
+    }
+    if (xp > 0) {
+      stack.getTagCompound.setDouble(Settings.namespace + "xp", xp)
+    }
+    if (globalBuffer > 1) {
       stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", globalBuffer.toInt)
     }
     stack
@@ -147,6 +178,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def parseItemStack(stack: ItemStack) {
     if (stack.hasTagCompound) {
+      xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
+      updateXpInfo()
       battery.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
     }
   }
@@ -226,6 +259,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (isServer) {
       distributor.update()
       gpu.update()
+      if (xpChanged && world.getWorldInfo.getWorldTotalTime % 200 == 0) {
+        xpChanged = false
+        ServerPacketSender.sendRobotXp(this)
+      }
     }
   }
 
@@ -259,6 +296,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
+    xp = nbt.getDouble(Settings.namespace + "xp")
+    updateXpInfo()
     selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot")
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
@@ -276,6 +315,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     nbt.setNewCompoundTag(Settings.namespace + "gpu", gpu.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     nbt.setString(Settings.namespace + "owner", owner)
+    nbt.setDouble(Settings.namespace + "xp", xp)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
@@ -293,6 +333,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey("equipped")) {
       equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
     }
+    xp = nbt.getDouble(Settings.namespace + "xp")
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -308,6 +349,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (getStackInSlot(0) != null) {
       nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
     }
+    nbt.setDouble(Settings.namespace + "xp", xp)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)

@@ -34,7 +34,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
-      case PacketType.RobotState => onRobotState(p)
+      case PacketType.RobotXp => onRobotXp(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.ScreenColorChange => onScreenColorChange(p)
       case PacketType.ScreenCopy => onScreenCopy(p)
@@ -130,16 +130,9 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotState(p: PacketParser) =
+  def onRobotXp(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(t) =>
-        t.robot.selectedSlot = p.readInt()
-        t.robot.equippedItem = Option(p.readItemStack())
-        t.robot.animationTicksTotal = p.readInt()
-        t.robot.animationTicksLeft = p.readInt()
-        t.robot.moveDirection = p.readDirection()
-        t.robot.swingingTool = p.readBoolean()
-        t.robot.turnAxis = p.readByte()
+      case Some(t) => t.robot.xp = p.readDouble()
       case _ => // Invalid packet.
     }
 

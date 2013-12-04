@@ -29,8 +29,17 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
   override def rarity = EnumRarity.epic
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
-      tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")))
+    if (stack.hasTagCompound) {
+      val level = if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
+        val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
+        (1 + (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt) min 30
+      }
+      else 1
+      tooltip.addAll(Tooltip.get(unlocalizedName + "_Level", level))
+      if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
+        val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
+        tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+      }
     }
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }

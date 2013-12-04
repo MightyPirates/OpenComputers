@@ -78,6 +78,9 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
         val stack = getCurrentEquippedItem
         val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
         super.attackTargetEntityWithCurrentItem(entity)
+        if (stack != null && entity.isDead) {
+          robot.addXp(Settings.get.robotActionXp)
+        }
         if (stack != null && stack.stackSize > 0) {
           tryRepair(stack, oldDamage)
         }
@@ -243,14 +246,17 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
     block.onBlockHarvested(world, x, y, z, metadata, this)
     if (block.removeBlockByPlayer(world, this, x, y, z)) {
-      block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
       if (block.canHarvestBlock(this, metadata)) {
+        block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
         block.harvestBlock(world, this, x, y, z, metadata)
         val itemsAfter = entitiesInBlock[EntityItem](x, y, z)
         val itemsDropped = itemsAfter -- itemsBefore
         for (drop <- itemsDropped) {
           drop.delayBeforeCanPickup = 0
           drop.onCollideWithPlayer(this)
+        }
+        if (stack != null) {
+          robot.addXp(Settings.get.robotActionXp)
         }
       }
       return true
@@ -263,13 +269,14 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
   private def tryRepair(stack: ItemStack, oldDamage: Int) {
     val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
-    val shouldRepair = needsRepairing && getRNG.nextDouble() >= Settings.get.itemDamageRate
+    val damageRate = Settings.get.itemDamageRate * ((1 - robot.level * Settings.get.toolEfficiencyPerLevel) max 0)
+    val shouldRepair = needsRepairing && getRNG.nextDouble() >= damageRate
     if (shouldRepair) {
       // If an item takes a lot of damage at once we don't necessarily want to
       // make *all* of that damage go away. Instead we scale it according to
       // our damage probability. This makes sure we don't discard massive
       // damage spikes (e.g. on axes when using the treecapitator mod or such).
-      val addedDamage = ((stack.getItemDamage - oldDamage) * Settings.get.itemDamageRate).toInt
+      val addedDamage = ((stack.getItemDamage - oldDamage) * damageRate).toInt
       stack.setItemDamage(oldDamage + addedDamage)
     }
   }
@@ -279,6 +286,9 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     setPosition(posX, posY - fakeEyeHeight, posZ)
     val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
     setPosition(posX, posY + fakeEyeHeight, posZ)
+    if (didPlace) {
+      robot.addXp(Settings.get.robotActionXp)
+    }
     didPlace
   }
 
@@ -296,6 +306,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     if (Settings.get.robotExhaustionCost > 0) {
       robot.battery.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
+    robot.addXp(Settings.get.robotExhaustionXpRate * amount)
   }
 
   override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}

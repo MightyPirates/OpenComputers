@@ -3,7 +3,6 @@ package li.cil.oc
 import com.typesafe.config.{Config, ConfigFactory}
 import java.io.{FileOutputStream, File}
 import java.nio.channels.Channels
-import java.util.logging.Level
 import li.cil.oc.util.PackedColor
 import scala.collection.convert.WrapAsScala._
 
@@ -53,6 +52,17 @@ class Settings(config: Config) {
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1
   val nameFormat = config.getString("robot.nameFormat")
+
+  // ----------------------------------------------------------------------- //
+  // robot.xp
+
+  val baseXpToLevel = config.getDouble("robot.xp.baseValue") max 0
+  val constantXpGrowth = config.getDouble("robot.xp.constantGrowth") max 1
+  val exponentialXpGrowth = config.getDouble("robot.xp.exponentialGrowth") max 1
+  val robotActionXp = config.getDouble("robot.xp.actionXp") max 0
+  val robotExhaustionXpRate = config.getDouble("robot.xp.exhaustionXpRate") max 0
+  val bufferPerLevel = config.getDouble("robot.xp.bufferPerLevel") max 0
+  val toolEfficiencyPerLevel = config.getDouble("robot.xp.toolEfficiencyPerLevel") max 0
 
   // ----------------------------------------------------------------------- //
   // robot.delays
