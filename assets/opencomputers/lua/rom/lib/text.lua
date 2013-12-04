@@ -58,6 +58,8 @@ function text.serialize(value)
         return "0/0"
       elseif v == math.huge then
         return "math.huge"
+      elseif v == -math.huge then
+        return "-math.huge"
       else
         return tostring(v)
       end
@@ -88,6 +90,7 @@ function text.serialize(value)
           r = r .. "=" .. s(v)
         end
       end
+      ts[v] = false -- allow writing same table more than once
       return (r or "{") .. "}"
     else
       error("unsupported type: " .. t)

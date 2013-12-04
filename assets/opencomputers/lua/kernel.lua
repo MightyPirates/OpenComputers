@@ -312,10 +312,10 @@ sandbox = {
   unicode = {
     char = unicode.char,
     len = unicode.len,
-    lower = string.lower,
+    lower = unicode.lower,
     reverse = unicode.reverse,
     sub = unicode.sub,
-    upper = string.upper
+    upper = unicode.upper
   },
 
   checkArg = checkArg
