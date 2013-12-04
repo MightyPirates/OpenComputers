@@ -22,24 +22,24 @@ end
 -------------------------------------------------------------------------------
 -- Inventory
 
-function robot.select(index)
-  return component.computer.select(index)
+function robot.select(slot)
+  return component.computer.select(slot)
 end
 
-function robot.count()
-  return component.computer.count()
+function robot.count(slot)
+  return component.computer.count(slot)
 end
 
-function robot.space()
-  return component.computer.select()
+function robot.space(slot)
+  return component.computer.space(slot)
 end
 
-function robot.compareTo(index)
-  return component.computer.compareTo(index)
+function robot.compareTo(slot)
+  return component.computer.compareTo(slot)
 end
 
-function robot.transferTo(index, count)
-  return component.computer.transferTo(index, count)
+function robot.transferTo(slot, count)
+  return component.computer.transferTo(slot, count)
 end
 
 -------------------------------------------------------------------------------

@@ -18,6 +18,11 @@ public interface RobotContext extends Context {
      * robot's current position and rotation in the world. Use this to trigger
      * events involving the robot that require a player entity, and for
      * interacting with the robots' inventory.
+     * <p/>
+     * Note that the inventory of each robot is structured such that the first
+     * four slots are the "equipment" slots, from left to right, i.e. slot one
+     * is the tool slot, slot two is the card slot, three the disk slot and
+     * slot four is for upgrades. The inventory proper starts after that.
      *
      * @return the fake player for the robot.
      */

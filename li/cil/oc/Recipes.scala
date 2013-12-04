@@ -16,7 +16,6 @@ object Recipes {
     val craftingTable = new ItemStack(Block.workbench)
     val diamond = new ItemStack(Item.diamond)
     val dispenser = new ItemStack(Block.dispenser)
-    val dropper = new ItemStack(Block.dropper)
     val emerald = new ItemStack(Item.emerald)
     val enderPearl = new ItemStack(Item.enderPearl)
     val glass = new ItemStack(Block.glass)
@@ -461,11 +460,11 @@ object Recipes {
       'b', pcb)
 
     addRecipe(Items.crafting.createItemStack(),
-      "idi",
+      "ipi",
       "cwc",
       "ibi",
       'i', ironIngot,
-      'd', dropper,
+      'p', piston,
       'c', chip1,
       'w', craftingTable,
       'b', pcb)

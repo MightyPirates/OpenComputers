@@ -10,7 +10,7 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
-import net.minecraft.util.{Vec3, MovingObjectPosition, EnumMovingObjectType}
+import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
@@ -50,19 +50,27 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     result(selectedSlot - actualSlot(0) + 1)
   }
 
-  @LuaCallback("count")
-  def count(context: Context, args: Arguments): Array[AnyRef] =
-    result(stackInSlot(selectedSlot) match {
+  @LuaCallback(value = "count", direct = true)
+  def count(context: Context, args: Arguments): Array[AnyRef] = {
+    val slot =
+      if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
+      else selectedSlot
+    result(stackInSlot(slot) match {
       case Some(stack) => stack.stackSize
       case _ => 0
     })
+  }
 
-  @LuaCallback("space")
-  def space(context: Context, args: Arguments): Array[AnyRef] =
-    result(stackInSlot(selectedSlot) match {
-      case Some(stack) => robot.getInventoryStackLimit - stack.stackSize
+  @LuaCallback(value = "space", direct = true)
+  def space(context: Context, args: Arguments): Array[AnyRef] = {
+    val slot =
+      if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
+      else selectedSlot
+    result(stackInSlot(slot) match {
+      case Some(stack) => (robot.getInventoryStackLimit min stack.getMaxStackSize) - stack.stackSize
       case _ => robot.getInventoryStackLimit
     })
+  }
 
   @LuaCallback("compareTo")
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
@@ -480,23 +488,25 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   // ----------------------------------------------------------------------- //
 
   private def blockContent(side: ForgeDirection) = {
-    val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-    val id = world.getBlockId(bx, by, bz)
-    val block = Block.blocksList(id)
-    if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
-      player.closestEntity[Entity]() match {
-        case Some(entity) => (true, "entity")
-        case _ => (false, "air")
-      }
-    }
-    else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
-      (false, "liquid")
-    }
-    else if (block.isBlockReplaceable(world, bx, by, bz)) {
-      (false, "replaceable")
-    }
-    else {
-      (true, "solid")
+    player.closestEntity[EntityLivingBase](side) match {
+      case Some(entity) =>
+        (true, "entity")
+      case _ =>
+        val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+        val id = world.getBlockId(bx, by, bz)
+        val block = Block.blocksList(id)
+        if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
+          (false, "air")
+        }
+        else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
+          (false, "liquid")
+        }
+        else if (block.isBlockReplaceable(world, bx, by, bz)) {
+          (false, "replaceable")
+        }
+        else {
+          (true, "solid")
+        }
     }
   }
 

@@ -72,21 +72,20 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     def oldNodeB = node(nodeB)
 
     oldNodeA.edges.find(_.isBetween(oldNodeA, oldNodeB)) match {
-      case Some(edge) => {
+      case Some(edge) =>
         handleSplit(edge.remove())
         if (edge.left.data.reachability == Visibility.Neighbors)
           edge.right.data.onDisconnect(edge.left.data)
         if (edge.right.data.reachability == Visibility.Neighbors)
           edge.left.data.onDisconnect(edge.right.data)
         true
-      }
       case _ => false // That connection doesn't exists.
     }
   }
 
   def remove(node: MutableNode) = {
     data.remove(node.address) match {
-      case Some(entry) => {
+      case Some(entry) =>
         node.network = null
         val subGraphs = entry.remove()
         val targets = Iterable(node) ++ (entry.data.reachability match {
@@ -97,7 +96,6 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
         handleSplit(subGraphs)
         targets.foreach(_.asInstanceOf[MutableNode].onDisconnect(node))
         true
-      }
       case _ => false
     }
   }

@@ -165,17 +165,15 @@ object LuaStateFactory {
       state.pushScalaFunction(lua => {
         lua.getTop match {
           case 0 => lua.pushNumber(random.nextDouble())
-          case 1 => {
+          case 1 =>
             val u = lua.checkInteger(1)
             lua.checkArg(1, 1 < u, "interval is empty")
             lua.pushInteger(1 + random.nextInt(u))
-          }
-          case 2 => {
+          case 2 =>
             val l = lua.checkInteger(1)
             val u = lua.checkInteger(2)
             lua.checkArg(1, l < u, "interval is empty")
             lua.pushInteger(l + random.nextInt(u - (l - 1)))
-          }
           case _ => throw new IllegalArgumentException("wrong number of arguments")
         }
         1
@@ -256,11 +254,10 @@ object LuaStateFactory {
 
       Some(state)
     } catch {
-      case ex: Throwable => {
+      case ex: Throwable =>
         ex.printStackTrace()
         state.close()
         return None
-      }
     }
   }
 }

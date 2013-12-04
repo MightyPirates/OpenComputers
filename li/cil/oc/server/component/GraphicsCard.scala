@@ -50,7 +50,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => Array(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Buffer] => {
+      case node: Node if node.host.isInstanceOf[Buffer] =>
         screenAddress = Option(address)
         screenInstance = Some(node.host.asInstanceOf[Buffer])
         screen(s => {
@@ -62,7 +62,6 @@ abstract class GraphicsCard extends ManagedComponent {
           s.background = 0x000000
           result(true)
         })
-      }
       case _ => Array(Unit, "not a screen")
     }
   }

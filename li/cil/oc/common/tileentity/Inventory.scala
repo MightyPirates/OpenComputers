@@ -119,11 +119,10 @@ trait Inventory extends TileEntity with IInventory with Persistable {
       items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)
       } map {
-        case (stack, slot) => {
+        case (stack, slot) =>
           val slotNbt = new NBTTagCompound()
           slotNbt.setByte("slot", slot.toByte)
           slotNbt.setNewCompoundTag("item", stack.writeToNBT)
-        }
       })
   }
 

@@ -152,11 +152,10 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
           val ol = buffer(oy)
           val oc = color(oy)
           for (nx <- dx0 to dx1 by sx) nx - tx match {
-            case ox if ox >= 0 && ox < width => {
+            case ox if ox >= 0 && ox < width =>
               changed = changed || (nl(nx) != ol(ox)) || (nc(nx) != oc(ox))
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
-            }
             case _ => /* Got no source column. */
           }
         case _ => /* Got no source row. */

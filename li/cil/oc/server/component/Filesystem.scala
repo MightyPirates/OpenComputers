@@ -196,13 +196,12 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     message.data match {
       case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
         owners.get(message.source.address) match {
-          case Some(set) => {
+          case Some(set) =>
             set.foreach(handle => Option(fileSystem.getHandle(handle)) match {
               case Some(file) => file.close()
               case _ => // Invalid handle... huh.
             })
             set.clear()
-          }
           case _ => // Computer had no open files.
         }
       case _ =>

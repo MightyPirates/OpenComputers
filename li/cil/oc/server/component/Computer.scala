@@ -260,9 +260,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
-      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty => {
+      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty =>
         switchTo(Computer.State.Yielded)
-      }
       // Resume in case we paused  because the game was paused.
       case Computer.State.Paused =>
         if (remainingPause > 0) {
@@ -274,7 +273,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           switchTo(state.top) // Trigger execution if necessary.
         }
       // Perform a synchronized call (message sending).
-      case Computer.State.SynchronizedCall => {
+      case Computer.State.SynchronizedCall =>
         // These three asserts are all guaranteed by run().
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
@@ -317,7 +316,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
             OpenComputers.log.log(Level.WARNING, "Faulty Lua implementation for synchronized calls.", e)
             crash("protocol error")
         }
-      }
       case _ => // Nothing special to do, just avoid match errors.
     })
 
@@ -496,10 +494,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         // Delay execution for a second to allow the world around us to settle.
         pause(Settings.get.startupDelay)
       } catch {
-        case e: LuaRuntimeException => {
+        case e: LuaRuntimeException =>
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
           state.push(Computer.State.Stopping)
-        }
       }
     }
     else close() // Clean up in case we got a weird state stack.
@@ -571,10 +568,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         nbt.setInteger("remainingPause", remainingPause)
         message.foreach(nbt.setString("message", _))
       } catch {
-        case e: LuaRuntimeException => {
+        case e: LuaRuntimeException =>
           OpenComputers.log.warning("Could not persist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
           nbt.removeTag("state")
-        }
       }
 
       // Limit memory again.
@@ -639,16 +635,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.newTable()
       var count = 0
       value.foreach {
-        case (x, index) => {
-          x match {
-            case (entry: ScalaNumber) =>
-              pushResult(lua, entry.underlying())
-            case (entry) =>
-              pushResult(lua, entry.asInstanceOf[AnyRef])
-          }
+        case (x, index) => x match {
+          case (entry: ScalaNumber) =>
+            pushResult(lua, entry.underlying())
+          case (entry) =>
+            pushResult(lua, entry.asInstanceOf[AnyRef])
+        }
           lua.rawSet(-2, index + 1)
           count = count + 1
-        }
       }
       lua.pushString("n")
       lua.pushInteger(count)
@@ -1045,10 +1039,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       return true
     }
     catch {
-      case ex: Throwable => {
+      case ex: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Failed initializing computer.", ex)
         close()
-      }
     }
     false
   }
