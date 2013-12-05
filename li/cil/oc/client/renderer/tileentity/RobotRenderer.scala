@@ -93,7 +93,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     t.addVertexWithUV(h, gb, h, 0.5, 1)
     t.addVertexWithUV(h, gb, l, 0.5, 0.5)
     t.draw()
-    
+
     GL11.glEndList()
   }
 
@@ -167,10 +167,10 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     if (robot.isAnimatingMove) {
       val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-      GL11.glTranslated(
-        -robot.moveDirection.offsetX * remaining,
-        -robot.moveDirection.offsetY * remaining,
-        -robot.moveDirection.offsetZ * remaining)
+      val dx = robot.moveFromX - robot.x
+      val dy = robot.moveFromY - robot.y
+      val dz = robot.moveFromZ - robot.z
+      GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
     }
 
     if (robot.isAnimatingTurn) {

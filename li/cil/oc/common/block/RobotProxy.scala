@@ -6,7 +6,7 @@ import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{Blocks, Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
@@ -96,10 +96,10 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
         val bounds = AxisAlignedBB.getBoundingBox(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
         if (robot.isAnimatingMove) {
           val remaining = robot.animationTicksLeft.toDouble / robot.animationTicksTotal.toDouble
-          bounds.offset(
-            -robot.moveDirection.offsetX * remaining,
-            -robot.moveDirection.offsetY * remaining,
-            -robot.moveDirection.offsetZ * remaining)
+          val dx = robot.moveFromX - robot.x
+          val dy = robot.moveFromY - robot.y
+          val dz = robot.moveFromZ - robot.z
+          bounds.offset(dx * remaining, dy * remaining, dz * remaining)
         }
         parent.setBlockBounds(bounds)
       case _ => super.updateBounds(world, x, y, z)
@@ -142,9 +142,15 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
   }
 
   override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy if !player.capabilities.isCreativeMode || proxy.globalBuffer > 1 =>
-        parent.dropBlockAsItem(world, x, y, z, proxy.robot.createItemStack())
+    world.getBlockTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy =>
+        val robot = proxy.robot
+        if (!world.isRemote && (!player.capabilities.isCreativeMode || proxy.globalBuffer > 1 || proxy.robot.xp > 0)) {
+          parent.dropBlockAsItem(world, x, y, z, robot.createItemStack())
+        }
+        if (robot.isAnimatingMove && Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
+          world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, 0, 0, 1)
+        }
       case _ =>
     }
     super.removedByEntity(world, x, y, z, player)

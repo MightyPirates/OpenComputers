@@ -50,11 +50,15 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override def removedFromWorld(world: World, x: Int, y: Int, z: Int, blockId: Int) = {
+  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
     super.removedFromWorld(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {
-      case Some(robot) if robot.isAnimatingMove => world.setBlockToAir(robot.x, robot.y, robot.z)
-      case _ => // Probably broken by the robot we represent.
+      case Some(robot) if robot.isAnimatingMove &&
+        robot.moveFromX == x &&
+        robot.moveFromY == y &&
+        robot.moveFromZ == z =>
+        robot.proxy.getBlockType.removeBlockByPlayer(world, player, robot.x, robot.y, robot.z)
+      case _ => super.removedByEntity(world, x, y, z, player) // Probably broken by the robot we represent.
     }
   }
 
@@ -63,13 +67,16 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
       case Some(robot) =>
         val block = robot.getBlockType
         block.setBlockBoundsBasedOnState(world, robot.x, robot.y, robot.z)
+        val dx = robot.x - robot.moveFromX
+        val dy = robot.y - robot.moveFromY
+        val dz = robot.z - robot.moveFromZ
         parent.setBlockBounds(
-          block.getBlockBoundsMinX.toFloat + robot.moveDirection.offsetX,
-          block.getBlockBoundsMinY.toFloat + robot.moveDirection.offsetY,
-          block.getBlockBoundsMinZ.toFloat + robot.moveDirection.offsetZ,
-          block.getBlockBoundsMaxX.toFloat + robot.moveDirection.offsetX,
-          block.getBlockBoundsMaxY.toFloat + robot.moveDirection.offsetY,
-          block.getBlockBoundsMaxZ.toFloat + robot.moveDirection.offsetZ)
+          block.getBlockBoundsMinX.toFloat + dx,
+          block.getBlockBoundsMinY.toFloat + dy,
+          block.getBlockBoundsMinZ.toFloat + dz,
+          block.getBlockBoundsMaxX.toFloat + dx,
+          block.getBlockBoundsMaxY.toFloat + dy,
+          block.getBlockBoundsMaxZ.toFloat + dz)
       case _ => // throw new Exception("Robot afterimage without a robot found. This is a bug!")
     }
   }
@@ -85,7 +92,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (rx, ry, rz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
       world.getBlockTileEntity(rx, ry, rz) match {
-        case proxy: tileentity.RobotProxy if proxy.robot.moveDirection == side => return Some(proxy.robot)
+        case proxy: tileentity.RobotProxy if proxy.robot.moveFromX == x && proxy.robot.moveFromY == y && proxy.robot.moveFromZ == z => return Some(proxy.robot)
         case _ =>
       }
     }

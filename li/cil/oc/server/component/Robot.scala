@@ -10,6 +10,7 @@ import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
+import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
@@ -179,6 +180,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       }
 
       world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+        case chest: TileEntityChest =>
+          tryDropIntoInventory(Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord), (slot) => true)
         case inventory: ISidedInventory =>
           tryDropIntoInventory(inventory, (slot) => inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal()))
         case inventory: IInventory =>
@@ -261,6 +264,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     }
 
     world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+      case chest: TileEntityChest =>
+        trySuckFromInventory(Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord), (slot) => true)
       case inventory: ISidedInventory =>
         trySuckFromInventory(inventory, (slot) => inventory.canExtractItem(slot, inventory.getStackInSlot(slot), facing.getOpposite.ordinal()))
       case inventory: IInventory =>

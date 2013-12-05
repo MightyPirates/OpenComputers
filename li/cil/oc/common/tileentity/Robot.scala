@@ -76,7 +76,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var animationTicksTotal = 0
 
-  var moveDirection = ForgeDirection.UNKNOWN
+  var moveFromX, moveFromY, moveFromZ = Int.MaxValue
 
   var swingingTool = false
 
@@ -137,8 +137,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         assert(x == nx && y == ny && z == nz)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
+        // Here instead of Lua callback so that it gets called on client, too.
+        animateMove(ox, oy, oz, Settings.get.moveDelay)
         if (isServer) {
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
+          checkRedstoneInputChanged()
         }
         else {
           // If we broke some replaceable block (like grass) play its break sound.
@@ -149,11 +152,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
           world.markBlockForRenderUpdate(nx, ny, nz)
         }
         assert(!isInvalid)
-      }
-      if (created) {
-        // Here instead of Lua callback so that it gets triggered on client.
-        animateMove(direction, Settings.get.moveDelay)
-        checkRedstoneInputChanged()
       }
       created
     }
@@ -186,14 +184,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  def isAnimatingMove = animationTicksLeft > 0 && moveDirection != ForgeDirection.UNKNOWN
+  def isAnimatingMove = animationTicksLeft > 0 && (moveFromX != Int.MaxValue || moveFromY != Int.MaxValue || moveFromZ != Int.MaxValue)
 
   def isAnimatingSwing = animationTicksLeft > 0 && swingingTool
 
   def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
 
-  def animateMove(direction: ForgeDirection, duration: Double) =
-    setAnimateMove(direction, (duration * 20).toInt)
+  def animateMove(fromX: Int, fromY: Int, fromZ: Int, duration: Double) =
+    setAnimateMove(fromX, fromY, fromZ, (duration * 20).toInt)
 
   def animateSwing(duration: Double) = {
     setAnimateSwing((duration * 20).toInt)
@@ -205,10 +203,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     ServerPacketSender.sendRobotAnimateTurn(this)
   }
 
-  def setAnimateMove(direction: ForgeDirection, ticks: Int) {
+  def setAnimateMove(fromX: Int, fromY: Int, fromZ: Int, ticks: Int) {
     animationTicksTotal = ticks
     prepareForAnimation()
-    moveDirection = direction
+    moveFromX = fromX
+    moveFromY = fromY
+    moveFromZ = fromZ
   }
 
   def setAnimateSwing(ticks: Int) {
@@ -225,7 +225,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   private def prepareForAnimation() {
     animationTicksLeft = animationTicksTotal
-    moveDirection = ForgeDirection.UNKNOWN
+    moveFromX = Int.MaxValue
+    moveFromY = Int.MaxValue
+    moveFromZ = Int.MaxValue
     swingingTool = false
     turnAxis = 0
   }
@@ -246,13 +248,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
-        val (ox, oy, oz) = (x - moveDirection.offsetX, y - moveDirection.offsetY, z - moveDirection.offsetZ)
-        if (Blocks.blockSpecial.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage)) {
-          world.setBlockToAir(ox, oy, oz)
+        if (Blocks.blockSpecial.subBlock(world, moveFromX, moveFromY, moveFromZ).exists(_ == Blocks.robotAfterimage)) {
+          world.setBlock(moveFromX, moveFromY, moveFromZ, 0, 0, 1)
         }
-      }
-      if (isClient) {
-        world.markBlockForRenderUpdate(x, y, z)
+        moveFromX = x
+        moveFromY = y
+        moveFromZ = z
       }
     }
     super.updateEntity()
@@ -302,7 +303,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
-      moveDirection = ForgeDirection.getOrientation(nbt.getByte(Settings.namespace + "moveDirection"))
+      moveFromX = nbt.getInteger(Settings.namespace + "moveFromX")
+      moveFromY = nbt.getInteger(Settings.namespace + "moveFromY")
+      moveFromZ = nbt.getInteger(Settings.namespace + "moveFromZ")
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
@@ -320,7 +323,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
       nbt.setInteger(Settings.namespace + "animationTicksLeft", animationTicksLeft)
-      nbt.setByte(Settings.namespace + "moveDirection", moveDirection.ordinal.toByte)
+      nbt.setInteger(Settings.namespace + "moveFromX", moveFromX)
+      nbt.setInteger(Settings.namespace + "moveFromY", moveFromY)
+      nbt.setInteger(Settings.namespace + "moveFromZ", moveFromZ)
       nbt.setBoolean(Settings.namespace + "swingingTool", swingingTool)
       nbt.setByte(Settings.namespace + "turnAxis", turnAxis.toByte)
     }
@@ -336,8 +341,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     xp = nbt.getDouble(Settings.namespace + "xp")
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
+    moveFromX = nbt.getInteger("moveFromX")
+    moveFromY = nbt.getInteger("moveFromY")
+    moveFromZ = nbt.getInteger("moveFromZ")
     if (animationTicksLeft > 0) {
-      moveDirection = ForgeDirection.getOrientation(nbt.getByte("moveDirection"))
       swingingTool = nbt.getBoolean("swingingTool")
       turnAxis = nbt.getByte("turnAxis")
     }
@@ -353,7 +360,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)
-      nbt.setByte("moveDirection", moveDirection.ordinal.toByte)
+      nbt.setInteger("moveFromX", moveFromX)
+      nbt.setInteger("moveFromY", moveFromY)
+      nbt.setInteger("moveFromZ", moveFromZ)
       nbt.setBoolean("swingingTool", swingingTool)
       nbt.setByte("turnAxis", turnAxis.toByte)
     }
