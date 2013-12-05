@@ -23,6 +23,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
+  onGround = true
   yOffset = 0.5f
   eyeHeight = 0f
   setSize(1, 1)
@@ -185,15 +186,15 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     }
   }
 
-  def clickBlock(x: Int, y: Int, z: Int, side: Int): Boolean = {
+  def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
     val event = ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side)
     if (event.isCanceled) {
-      return false
+      return 0
     }
 
     // TODO Is this already handled via the event?
     if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
-      return false
+      return 0
     }
 
     val blockId = world.getBlockId(x, y, z)
@@ -205,7 +206,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       FluidRegistry.lookupFluidForBlock(block) == null &&
       !block.isInstanceOf[BlockFluid]
     if (!canClickBlock) {
-      return false
+      return 0
     }
 
     block.onBlockClicked(world, x, y, z, this)
@@ -214,23 +215,27 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
     val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
     if (!canDestroyBlock) {
-      return false
+      return 0
     }
 
     if (world.getWorldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
-      return false
+      return 0
     }
 
     if (!ForgeHooks.canHarvestBlock(block, this, metadata)) {
-      return false
+      return 0
     }
 
     val stack = getCurrentEquippedItem
     if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
-      return false
+      return 0
     }
 
     world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
+
+    val hardness = block.getBlockHardness(world, x, y, z)
+    val strength = getCurrentPlayerStrVsBlock(block, false, metadata)
+    val breakTime = hardness * 1.5 / strength
 
     if (stack != null) {
       val oldDamage = stack.getItemDamage
@@ -246,8 +251,10 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
     val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
     block.onBlockHarvested(world, x, y, z, metadata, this)
     if (block.removeBlockByPlayer(world, this, x, y, z)) {
+      block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
+      // Note: the block has been destroyed by `removeBlockByPlayer`. This
+      // check only serves to test whether the block can drop anything at all.
       if (block.canHarvestBlock(this, metadata)) {
-        block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
         block.harvestBlock(world, this, x, y, z, metadata)
         val itemsAfter = entitiesInBlock[EntityItem](x, y, z)
         val itemsDropped = itemsAfter -- itemsBefore
@@ -255,13 +262,13 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
           drop.delayBeforeCanPickup = 0
           drop.onCollideWithPlayer(this)
         }
-        if (stack != null) {
-          robot.addXp(Settings.get.robotActionXp)
-        }
       }
-      return true
+      if (stack != null) {
+        robot.addXp(Settings.get.robotActionXp)
+      }
+      return breakTime
     }
-    false
+    0
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =

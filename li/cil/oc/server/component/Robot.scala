@@ -314,9 +314,14 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       (true, "entity")
     }
     def click(x: Int, y: Int, z: Int, side: Int) = {
-      val broke = player.clickBlock(x, y, z, side)
+      val breakTime = player.clickBlock(x, y, z, side)
+      val broke = breakTime > 0
       if (broke) {
-        triggerDelay()
+        // Subtract one tick because we take one to trigger the action - a bit
+        // more than one tick avoid floating point inaccuracy incurring another
+        // tick of delay.
+        context.pause(breakTime - 0.055)
+        robot.animateSwing(Settings.get.swingDelay)
       }
       (broke, "block")
     }
@@ -336,7 +341,11 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
             case Some(entity) =>
               attack(entity)
             case _ =>
-              (false, "air")
+              if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
+                triggerDelay()
+                (true, "fire")
+              }
+              else (false, "air")
           }
       }
       if (success) {
