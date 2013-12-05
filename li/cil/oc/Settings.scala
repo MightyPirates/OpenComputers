@@ -63,6 +63,7 @@ class Settings(config: Config) {
   val robotExhaustionXpRate = config.getDouble("robot.xp.exhaustionXpRate") max 0
   val bufferPerLevel = config.getDouble("robot.xp.bufferPerLevel") max 0
   val toolEfficiencyPerLevel = config.getDouble("robot.xp.toolEfficiencyPerLevel") max 0
+  val harvestSpeedBoostPerLevel = config.getDouble("robot.xp.harvestSpeedBoostPerLevel") max 0
 
   // ----------------------------------------------------------------------- //
   // robot.delays
@@ -74,6 +75,7 @@ class Settings(config: Config) {
   val placeDelay = config.getDouble("robot.delays.place") max 0
   val dropDelay = config.getDouble("robot.delays.drop") max 0
   val suckDelay = config.getDouble("robot.delays.suck") max 0
+  val harvestRatio = config.getDouble("robot.delays.harvestRatio") max 0
 
   // ----------------------------------------------------------------------- //
   // power

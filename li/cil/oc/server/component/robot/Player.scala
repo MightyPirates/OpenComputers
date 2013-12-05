@@ -266,7 +266,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       if (stack != null) {
         robot.addXp(Settings.get.robotActionXp)
       }
-      return breakTime
+      return (breakTime * Settings.get.harvestRatio * ((1 - robot.level * Settings.get.harvestSpeedBoostPerLevel) max 0)) max 0.05
     }
     0
   }

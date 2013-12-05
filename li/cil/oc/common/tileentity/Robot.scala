@@ -85,7 +85,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   private lazy val player_ = new Player(this)
 
   def addXp(value: Double) {
-    if (level < 29 && isServer) {
+    if (level < 30 && isServer) {
       xp = xp + value
       xpChanged = true
       if (xp >= xpForNextLevel) {
@@ -97,7 +97,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   def updateXpInfo() {
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
-    level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 29
+    level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 30
     battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
   }
 

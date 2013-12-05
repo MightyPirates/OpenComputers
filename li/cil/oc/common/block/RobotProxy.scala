@@ -30,12 +30,13 @@ class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDele
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     if (stack.hasTagCompound) {
-      val level = if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
+      if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
         val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
-        (1 + (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt) min 30
+        val level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 30
+        if (level > 0) {
+          tooltip.addAll(Tooltip.get(unlocalizedName + "_Level", level))
+        }
       }
-      else 1
-      tooltip.addAll(Tooltip.get(unlocalizedName + "_Level", level))
       if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
         val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
         tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
