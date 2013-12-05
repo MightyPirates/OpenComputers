@@ -16,6 +16,7 @@ end
 
 local r = component.computer
 local x, y, z, f = 0, 0, 0, 0
+local dropping = false -- avoid recursing into drop()
 local delta = {[0] = function() x = x + 1 end, [1] = function() y = y + 1 end,
                [2] = function() x = x - 1 end, [3] = function() y = y - 1 end}
 
@@ -123,10 +124,12 @@ function checkedDrop(force)
       empty = empty + 1
     end
   end
-  if empty == 0 or force and empty < 16 then
+  if not dropping and empty == 0 or force and empty < 16 then
     local ox, oy, oz, of = x, y, z, f
+    dropping = true
     moveTo(0, 0, 0)
     turnTowards(2)
+
     for slot = 1, 16 do
       if robot.count(slot) > 0 then
         robot.select(slot)
@@ -134,6 +137,8 @@ function checkedDrop(force)
       end
     end
     robot.select(1)
+    
+    dropping = false
     moveTo(ox, oy, oz, true)
     turnTowards(of)
   end
