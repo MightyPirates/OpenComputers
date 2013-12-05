@@ -222,7 +222,9 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       return 0
     }
 
-    if (!ForgeHooks.canHarvestBlock(block, this, metadata)) {
+    val cobwebOverride = block == Block.web && Settings.get.screwCobwebs
+
+    if (!ForgeHooks.canHarvestBlock(block, this, metadata) && !cobwebOverride) {
       return 0
     }
 
@@ -235,7 +237,9 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
     val hardness = block.getBlockHardness(world, x, y, z)
     val strength = getCurrentPlayerStrVsBlock(block, false, metadata)
-    val breakTime = hardness * 1.5 / strength
+    val breakTime =
+      if (cobwebOverride) Settings.get.swingDelay
+      else hardness * 1.5 / strength
 
     if (stack != null) {
       val oldDamage = stack.getItemDamage

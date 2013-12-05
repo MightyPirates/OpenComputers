@@ -48,6 +48,7 @@ class Settings(config: Config) {
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")
+  val screwCobwebs = config.getBoolean("robot.notAfraidOfSpiders")
   val swingRange = config.getDouble("robot.swingRange")
   val useAndPlaceRange = config.getDouble("robot.useAndPlaceRange")
   val itemDamageRate = config.getDouble("robot.itemDamageRate") max 0 min 1

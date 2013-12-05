@@ -154,7 +154,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def setBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.updateBounds(world, x, y, z)
+      // This function can mess things up badly in single player if not
+      // synchronized because it sets fields in an instance stored in the
+      // static block list... which is used by both server and client thread.
+      // The other place where this is locked is in collisionRayTrace below,
+      // which seems to be the only built-in function that *logically* depends
+      // on the state bounds (rest is rendering which is unimportant).
+      case Some(subBlock) => subBlock.synchronized(subBlock.updateBounds(world, x, y, z))
       case _ =>
     }
 
@@ -166,7 +172,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def collisionRayTrace(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.intersect(world, x, y, z, origin, direction)
+      // See setBlockBoundsBasedOnState for info on the lock.
+      case Some(subBlock) => subBlock.synchronized(subBlock.intersect(world, x, y, z, origin, direction))
       case _ => super.collisionRayTrace(world, x, y, z, origin, direction)
     }
 

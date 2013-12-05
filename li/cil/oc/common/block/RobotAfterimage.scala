@@ -50,6 +50,13 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
+  override def update(world: World, x: Int, y: Int, z: Int) {
+    parent.subBlock(world, x, y, z) match {
+      case Some(_: RobotAfterimage) => world.setBlockToAir(x, y, z)
+      case _ =>
+    }
+  }
+
   override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
     super.removedFromWorld(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {

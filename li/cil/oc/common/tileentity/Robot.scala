@@ -138,8 +138,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
-        animateMove(ox, oy, oz, Settings.get.moveDelay)
+        val moveTicks = (Settings.get.moveDelay * 20).toInt max 1
+        setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
+          world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
           checkRedstoneInputChanged()
         }
@@ -189,9 +191,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   def isAnimatingSwing = animationTicksLeft > 0 && swingingTool
 
   def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
-
-  def animateMove(fromX: Int, fromY: Int, fromZ: Int, duration: Double) =
-    setAnimateMove(fromX, fromY, fromZ, (duration * 20).toInt)
 
   def animateSwing(duration: Double) = {
     setAnimateSwing((duration * 20).toInt)
@@ -248,12 +247,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
-        if (Blocks.blockSpecial.subBlock(world, moveFromX, moveFromY, moveFromZ).exists(_ == Blocks.robotAfterimage)) {
-          world.setBlock(moveFromX, moveFromY, moveFromZ, 0, 0, 1)
-        }
-        moveFromX = x
-        moveFromY = y
-        moveFromZ = z
+        moveFromX = Int.MaxValue
+        moveFromY = Int.MaxValue
+        moveFromZ = Int.MaxValue
+        swingingTool = false
+        turnAxis = 0
       }
     }
     super.updateEntity()

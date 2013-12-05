@@ -52,7 +52,9 @@ class Analyzer(val parent: Delegator) extends Delegate {
       case _ =>
     }
     val address = node.address()
-    stats.setString(Settings.namespace + "gui.Analyzer.Address", address)
+    if (address != null && !address.isEmpty) {
+      stats.setString(Settings.namespace + "gui.Analyzer.Address", address)
+    }
     PacketSender.sendAnalyze(stats, address, player.asInstanceOf[Player])
   }
 
