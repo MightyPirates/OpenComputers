@@ -34,7 +34,7 @@ class Crafting(val owner: MCTileEntity) extends ManagedComponent {
       val result = manager.findMatchingRecipe(CraftingInventory, owner.getWorldObj)
       if (result == null) return false
       val targetStackSize = if (result.isStackable) wantedCount min result.getMaxStackSize else result.stackSize
-      val timesCrafted = targetStackSize / result.stackSize
+      val timesCrafted = (targetStackSize / result.stackSize) min amountPossible
       if (timesCrafted <= 0) return true
       GameRegistry.onItemCrafted(context.player, result, this)
       val surplus = mutable.ArrayBuffer.empty[ItemStack]
