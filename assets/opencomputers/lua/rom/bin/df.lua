@@ -2,7 +2,7 @@ local args, options = shell.parse(...)
 
 local mounts = {}
 if #args == 0 then
-  for proxy, path in fs.mount() do
+  for proxy, path in fs.mounts() do
     mounts[path] = proxy
   end
 else

@@ -59,7 +59,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function filesystem.isAutorunEnabled(value)
+function filesystem.isAutorunEnabled()
   return isAutorunEnabled
 end
 
@@ -109,44 +109,47 @@ function filesystem.get(path)
 end
 
 function filesystem.mount(fs, path)
+  checkArg(1, fs, "string", "table")
   if type(fs) == "string" then
-    fs = component.proxy(fs)
+    fs = filesystem.proxy(fs)
   end
-  if fs and path then
-    assert(type(fs) == "table", "bad argument #1 (file system proxy or address expected)")
-    local node = findNode(path, true)
-    if node.fs then
-      return nil, "another filesystem is already mounted here"
-    end
-    node.fs = fs
-    return true
-  else
-    local function path(node)
-      local result = "/"
-      while node and node.parent do
-        for name, child in pairs(node.parent.children) do
-          if child == node then
-            result = "/" .. name .. result
-            break
-          end
+  assert(type(fs) == "table", "bad argument #1 (file system proxy or address expected)")
+  checkArg(2, path, "string")
+
+  local node = findNode(path, true)
+  if node.fs then
+    return nil, "another filesystem is already mounted here"
+  end
+  node.fs = fs
+  return true
+end
+
+function filesystem.mounts()
+  local function path(node)
+    local result = "/"
+    while node and node.parent do
+      for name, child in pairs(node.parent.children) do
+        if child == node then
+          result = "/" .. name .. result
+          break
         end
-        node = node.parent
       end
-      return result
+      node = node.parent
     end
-    local queue = {mtab}
-    return function()
-      if #queue == 0 then
-        return nil
-      else
-        while true do
-          local node = table.remove(queue)
-          for _, child in pairs(node.children) do
-            table.insert(queue, child)
-          end
-          if node.fs then
-            return node.fs, path(node)
-          end
+    return result
+  end
+  local queue = {mtab}
+  return function()
+    if #queue == 0 then
+      return nil
+    else
+      while true do
+        local node = table.remove(queue)
+        for _, child in pairs(node.children) do
+          table.insert(queue, child)
+        end
+        if node.fs then
+          return node.fs, path(node)
         end
       end
     end
@@ -194,8 +197,8 @@ function filesystem.umount(fsOrPath)
   end
   local function unmount(address)
     local queue = {mtab}
-    for proxy, path in filesystem.mount() do
-      if proxy.address == address then
+    for proxy, path in filesystem.mounts() do
+      if string.sub(proxy.address, 1, address:len()) == address then
         local node = findNode(path)
         node.fs = nil
         removeEmptyNodes(node)
@@ -310,25 +313,28 @@ function filesystem.rename(oldPath, newPath)
 end
 
 function filesystem.copy(fromPath, toPath)
+  if filesystem.isDirectory(fromPath) then
+    return nil, "cannot copy folders"
+  end
   local input, reason = io.open(fromPath, "rb")
   if not input then
-    error(reason)
+    return nil, reason
   end
   local output, reason = io.open(toPath, "wb")
   if not output then
     input:close()
-    error(reason)
+    return nil, reason
   end
   repeat
     local buffer, reason = input:read(1024)
     if not buffer and reason then
-      error(reason)
+      return nil, reason
     elseif buffer then
       local result, reason = output:write(buffer)
       if not result then
         input:close()
         output:close()
-        error(reason)
+        return nil, reason
       end
     end
   until not buffer
@@ -423,6 +429,9 @@ end
 
 local function onComponentRemoved(_, address, componentType)
   if componentType == "filesystem" then
+    if filesystem.get(shell.getWorkingDirectory()).address == address then
+      shell.setWorkingDirectory("/")
+    end
     filesystem.umount(address)
   end
 end
