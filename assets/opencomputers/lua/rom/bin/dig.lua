@@ -221,5 +221,5 @@ turnTowards(0)
 checkedDrop(true)
 
 if options.s then
-  os.shutdown()
+  computer.shutdown()
 end

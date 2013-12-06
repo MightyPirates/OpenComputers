@@ -5,6 +5,7 @@ import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.common.component
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.mods.NEI
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import org.lwjgl.input.Keyboard
@@ -65,6 +66,8 @@ trait Buffer extends GuiScreen {
 
   override def handleKeyboardInput() {
     super.handleKeyboardInput()
+
+    if (NEI.isInputFocused) return
 
     val code = Keyboard.getEventKey
     if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
