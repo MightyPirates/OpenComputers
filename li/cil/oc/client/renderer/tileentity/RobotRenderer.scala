@@ -165,6 +165,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    // If the move started while we were rendering and we have a reference to
+    // the *old* proxy the robot would be rendered at the wrong position, so we
+    // correct for the offset.
+    if (robot.proxy != proxy) {
+      GL11.glTranslated(robot.proxy.x - proxy.x, robot.proxy.y - proxy.y, robot.proxy.z - proxy.z)
+    }
+
     if (robot.isAnimatingMove) {
       val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
       val dx = robot.moveFromX - robot.x
