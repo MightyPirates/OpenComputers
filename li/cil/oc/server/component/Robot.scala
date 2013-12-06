@@ -6,7 +6,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.robot.{Player, ActivationType}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
-import net.minecraft.entity.item.EntityItem
+import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
@@ -176,17 +176,26 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
           inventory.onInventoryChanged()
         }
         player.inventory.addItemStackToInventory(dropped)
-        result(success)
+        success
       }
 
       world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
         case chest: TileEntityChest =>
-          tryDropIntoInventory(Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord), (slot) => true)
+          val inventory = Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord)
+          result(tryDropIntoInventory(inventory,
+            slot => inventory.isItemValidForSlot(slot, dropped)))
         case inventory: ISidedInventory =>
-          tryDropIntoInventory(inventory, (slot) => inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal()))
+          result(tryDropIntoInventory(inventory,
+            slot => inventory.isItemValidForSlot(slot, dropped) && inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal())))
         case inventory: IInventory =>
-          tryDropIntoInventory(inventory, (slot) => true)
+          result(tryDropIntoInventory(inventory,
+            slot => inventory.isItemValidForSlot(slot, dropped)))
         case _ =>
+          for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
+            if (tryDropIntoInventory(entity, slot => entity.isItemValidForSlot(slot, dropped))) {
+              return result(true)
+            }
+          }
           player.dropPlayerItemWithRandomChoice(dropped, inPlace = false)
           context.pause(Settings.get.dropDelay)
           result(true)
@@ -260,17 +269,24 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       if (success) {
         inventory.onInventoryChanged()
       }
-      result(success)
+      success
     }
 
     world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-      case chest: TileEntityChest =>
-        trySuckFromInventory(Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord), (slot) => true)
-      case inventory: ISidedInventory =>
-        trySuckFromInventory(inventory, (slot) => inventory.canExtractItem(slot, inventory.getStackInSlot(slot), facing.getOpposite.ordinal()))
-      case inventory: IInventory =>
-        trySuckFromInventory(inventory, (slot) => true)
+      case chest: TileEntityChest if chest.isUseableByPlayer(player) =>
+        val inventory = Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord)
+        result(trySuckFromInventory(inventory, slot => true))
+      case inventory: ISidedInventory if inventory.isUseableByPlayer(player) =>
+        result(trySuckFromInventory(inventory,
+          slot => inventory.canExtractItem(slot, inventory.getStackInSlot(slot), facing.getOpposite.ordinal())))
+      case inventory: IInventory if inventory.isUseableByPlayer(player) =>
+        result(trySuckFromInventory(inventory, slot => true))
       case _ =>
+        for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
+          if (trySuckFromInventory(entity, slot => true)) {
+            return result(true)
+          }
+        }
         for (entity <- player.entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
           val stack = entity.getEntityItem
           val size = stack.stackSize
@@ -307,13 +323,21 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
         ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
       }
 
-    def triggerDelay() = {
-      context.pause(Settings.get.swingDelay)
+    def triggerDelay(delay: Double = Settings.get.swingDelay) = {
+      context.pause(delay)
       robot.animateSwing(Settings.get.swingDelay)
     }
     def attack(entity: Entity) = {
       beginConsumeDrops(entity)
       player.attackTargetEntityWithCurrentItem(entity)
+      // Mine carts have to be hit quickly in succession to break, so we click
+      // until it breaks. But avoid an infinite loop... you never know.
+      entity match {
+        case _: EntityMinecart => for (_ <- 0 until 10 if !entity.isDead) {
+          player.attackTargetEntityWithCurrentItem(entity)
+        }
+        case _ =>
+      }
       endConsumeDrops(entity)
       triggerDelay()
       (true, "entity")
@@ -325,8 +349,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
         // Subtract one tick because we take one to trigger the action - a bit
         // more than one tick avoid floating point inaccuracy incurring another
         // tick of delay.
-        context.pause(breakTime - 0.055)
-        robot.animateSwing(Settings.get.swingDelay)
+        triggerDelay(breakTime - 0.055)
       }
       (broke, "block")
     }
@@ -507,8 +530,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   // ----------------------------------------------------------------------- //
 
   private def blockContent(side: ForgeDirection) = {
-    player.closestEntity[EntityLivingBase](side) match {
-      case Some(entity) =>
+    player.closestEntity[Entity](side) match {
+      case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")
       case _ =>
         val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
@@ -543,8 +566,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     val blockCenter = origin.addVector(player.facing.offsetX, player.facing.offsetY, player.facing.offsetZ)
     val target = blockCenter.addVector(player.side.offsetX * range, player.side.offsetY * range, player.side.offsetZ * range)
     val hit = world.clip(origin, target)
-    player.closestEntity[EntityLivingBase]() match {
-      case Some(entity) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+    player.closestEntity[Entity]() match {
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }
