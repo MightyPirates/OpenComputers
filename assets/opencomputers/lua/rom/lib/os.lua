@@ -31,10 +31,10 @@ os.rename = fs.rename
 
 function os.sleep(timeout)
   checkArg(1, timeout, "number", "nil")
-  local deadline = os.uptime() + (timeout or 0)
+  local deadline = computer.uptime() + (timeout or 0)
   repeat
-    event.pull(deadline - os.uptime())
-  until os.uptime() >= deadline
+    event.pull(deadline - computer.uptime())
+  until computer.uptime() >= deadline
 end
 
 function os.tmpname()

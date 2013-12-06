@@ -1,8 +1,8 @@
-fs.mount(os.romAddress(), "/")
-if os.tmpAddress() then fs.mount(os.tmpAddress(), "/tmp") end
+fs.mount(computer.romAddress(), "/")
+if computer.tmpAddress() then fs.mount(computer.tmpAddress(), "/tmp") end
 
 for c, t in component.list() do
-  os.pushSignal("component_added", c, t)
+  computer.pushSignal("component_added", c, t)
 end
 os.sleep(0.5) -- Allow signal processing by libraries.
 

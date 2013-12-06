@@ -1,2 +1,2 @@
 term.clear()
-os.shutdown()
+computer.shutdown()

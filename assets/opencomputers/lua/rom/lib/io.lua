@@ -5,7 +5,7 @@ function file.new(mode, stream, nogc)
     mode = mode or "r",
     stream = stream,
     buffer = "",
-    bufferSize = math.max(128, math.min(8 * 1024, os.freeMemory() / 8)),
+    bufferSize = math.max(128, math.min(8 * 1024, computer.freeMemory() / 8)),
     bufferMode = "full"
   }
   local metatable = {

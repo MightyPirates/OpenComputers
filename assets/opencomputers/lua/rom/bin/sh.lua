@@ -2,7 +2,7 @@ local args, options = shell.parse(...)
 local history = {}
 
 if options.v then
-  print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
+  print("OpenOS v1.0 (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
 end
 
 while true do
@@ -12,7 +12,7 @@ while true do
     end
     term.clear()
     if options.v then
-      print("OpenOS v1.0 (" .. math.floor(os.totalMemory() / 1024) .. "k RAM)")
+      print("OpenOS v1.0 (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
     end
   end
   while term.isAvailable() do

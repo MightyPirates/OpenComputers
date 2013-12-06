@@ -40,13 +40,13 @@ local function tick()
   local function elapsed()
     local list = {}
     for id, timer in pairs(timers) do
-      if timer.after <= os.uptime() then
+      if timer.after <= computer.uptime() then
         table.insert(list, timer.callback)
         timer.times = timer.times - 1
         if timer.times <= 0 then
           timers[id] = nil
         else
-          timer.after = os.uptime() + timer.interval
+          timer.after = computer.uptime() + timer.interval
         end
       end
     end
@@ -131,7 +131,7 @@ function event.pull(...)
   end
 
   local deadline = seconds and
-                   (os.uptime() + seconds) or
+                   (computer.uptime() + seconds) or
                    (hasFilter and math.huge or 0)
 
   repeat
@@ -139,23 +139,23 @@ function event.pull(...)
     for _, timer in pairs(timers) do
       closest = math.min(closest, timer.after)
     end
-    local signal = table.pack(os.pullSignal(closest - os.uptime()))
+    local signal = table.pack(computer.pullSignal(closest - computer.uptime()))
     if signal.n > 0 then
       dispatch(table.unpack(signal, 1, signal.n))
     end
     tick()
     if event.shouldInterrupt() then
-      lastInterrupt = os.uptime()
+      lastInterrupt = computer.uptime()
       error("interrupted", 0)
     end
     if not (seconds or hasFilter) or matches(signal, name, filter) then
       return table.unpack(signal, 1, signal.n)
     end
-  until os.uptime() >= deadline
+  until computer.uptime() >= deadline
 end
 
 function event.shouldInterrupt()
-  return os.uptime() - lastInterrupt > 1 and
+  return computer.uptime() - lastInterrupt > 1 and
          keyboard.isControlDown() and
          keyboard.isAltDown() and
          keyboard.isKeyDown(keyboard.keys.c)
@@ -171,7 +171,7 @@ function event.timer(interval, callback, times)
   until not timers[id]
   timers[id] = {
     interval = interval,
-    after = os.uptime() + interval,
+    after = computer.uptime() + interval,
     callback = callback,
     times = times or 1
   }

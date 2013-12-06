@@ -142,20 +142,6 @@ object LuaStateFactory {
       state.pushNil()
       state.setGlobal("loadfile")
 
-      // Push a couple of functions that override original Lua API functions or
-      // that add new functionality to it.
-      state.getGlobal("os")
-
-      // Allow getting the real world time via os.realTime() for timeouts.
-      state.pushScalaFunction(lua => {
-        lua.pushNumber(System.currentTimeMillis() / 1000.0)
-        1
-      })
-      state.setField(-2, "realTime")
-
-      // Pop the os table.
-      state.pop(1)
-
       state.getGlobal("math")
 
       // We give each Lua state it's own randomizer, since otherwise they'd

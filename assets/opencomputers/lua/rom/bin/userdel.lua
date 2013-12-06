@@ -4,6 +4,6 @@ if #args < 1 then
   return
 end
 
-if not os.removeUser(args[1]) then
+if not computer.removeUser(args[1]) then
   print("no such user")
 end

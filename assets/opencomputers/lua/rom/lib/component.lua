@@ -55,10 +55,10 @@ function component.setPrimary(componentType, address)
   end
   primaries[componentType] = address and component.proxy(address) or nil
   if wasAvailable then
-    os.pushSignal("component_unavailable", componentType)
+    computer.pushSignal("component_unavailable", componentType)
   end
   if component.isAvailable(componentType) then
-    os.pushSignal("component_available", componentType)
+    computer.pushSignal("component_available", componentType)
   end
 end
 

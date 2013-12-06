@@ -1,4 +1,4 @@
-if not os.isRobot() then
+if not computer.isRobot() then
   return
 end
 

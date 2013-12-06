@@ -33,7 +33,7 @@ function term.clearLine()
   cursorX = 1
 end
 
-function term.getCursor(col, row)
+function term.getCursor()
   return cursorX, cursorY
 end
 
@@ -43,8 +43,8 @@ function term.setCursor(col, row)
   if cursorBlink and cursorBlink.state then
     toggleBlink()
   end
-  cursorX = col
-  cursorY = row
+  cursorX = math.floor(col)
+  cursorY = math.floor(row)
 end
 
 function term.getCursorBlink()
@@ -371,7 +371,7 @@ local function onComponentAvailable(_, componentType)
     screenAvailable = true
   end
   if not wasAvailable and term.isAvailable() then
-    os.pushSignal("term_available")
+    computer.pushSignal("term_available")
   end
 end
 
@@ -383,7 +383,7 @@ local function onComponentUnavailable(_, componentType)
     screenAvailable = false
   end
   if wasAvailable and not term.isAvailable() then
-    os.pushSignal("term_unavailable")
+    computer.pushSignal("term_unavailable")
   end
 end
 

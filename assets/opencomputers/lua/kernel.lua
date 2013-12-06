@@ -1,7 +1,6 @@
 local deadline = 0
-local realTime = os.realTime
 local function checkDeadline()
-  if realTime() > deadline then
+  if computer.realTime() > deadline then
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
     error("too long without yielding", 0)
   end
@@ -223,26 +222,28 @@ sandbox = {
     rename = nil, -- in lib/os.lua
     time = os.time,
     tmpname = nil, -- in lib/os.lua
+  },
 
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
-    isRobot = os.isRobot,
-    address = os.address,
-    romAddress = os.romAddress,
-    tmpAddress = os.tmpAddress,
-    freeMemory = os.freeMemory,
-    totalMemory = os.totalMemory,
-    uptime = os.uptime,
+  computer = {
+    isRobot = computer.isRobot,
+    address = computer.address,
+    romAddress = computer.romAddress,
+    tmpAddress = computer.tmpAddress,
+    freeMemory = computer.freeMemory,
+    totalMemory = computer.totalMemory,
+    uptime = computer.uptime,
 
-    users = os.users,
+    users = computer.users,
     addUser = function(name)
       checkArg(1, name, "string")
-      return os.addUser(name)
+      return computer.addUser(name)
     end,
     removeUser = function(name)
       checkArg(1, name, "string")
-      return os.removeUser(name)
+      return computer.removeUser(name)
     end,
 
     shutdown = function(reboot)
@@ -254,17 +255,17 @@ sandbox = {
       for i = 1, args.n do
         checkArg(i + 1, args[i], "nil", "boolean", "string", "number")
       end
-      return os.pushSignal(name, ...)
+      return computer.pushSignal(name, ...)
     end,
     pullSignal = function(timeout)
-      local deadline = os.uptime() +
+      local deadline = computer.uptime() +
         (type(timeout) == "number" and timeout or math.huge)
       repeat
-        local signal = table.pack(coroutine.yield(deadline - os.uptime()))
+        local signal = table.pack(coroutine.yield(deadline - computer.uptime()))
         if signal.n > 0 then
           return table.unpack(signal, 1, signal.n)
         end
-      until os.uptime() >= deadline
+      until computer.uptime() >= deadline
     end
   },
 
@@ -330,7 +331,7 @@ local function main()
     -- Minimalistic hard-coded pure async proxy for our ROM.
     local rom = {}
     function rom.invoke(method, ...)
-      return invoke(true, os.romAddress(), method, ...)
+      return invoke(true, computer.romAddress(), method, ...)
     end
     function rom.open(file) return rom.invoke("open", file) end
     function rom.read(handle) return rom.invoke("read", handle, math.huge) end
@@ -387,7 +388,7 @@ local function main()
   end
   local co, args = bootstrap(), {n=0}
   while true do
-    deadline = os.realTime() + timeout -- timeout global is set by host
+    deadline = computer.realTime() + timeout -- timeout global is set by host
     debug.sethook(co, checkDeadline, "", 10000)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then

@@ -1,2 +1,2 @@
 print("Rebooting...")
-os.shutdown(true)
+computer.shutdown(true)

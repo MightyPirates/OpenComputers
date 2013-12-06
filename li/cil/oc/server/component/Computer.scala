@@ -761,6 +761,20 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setField(-2, "time")
 
+      // Pop the os table.
+      lua.pop(1)
+
+      // Computer API, stuff that kinda belongs to os, but we don't want to
+      // clutter it.
+      lua.newTable()
+
+      // Allow getting the real world time via os.realTime() for timeouts.
+      lua.pushScalaFunction(lua => {
+        lua.pushNumber(System.currentTimeMillis() / 1000.0)
+        1
+      })
+      lua.setField(-2, "realTime")
+
       // The time the computer has been running, as opposed to the CPU time.
       lua.pushScalaFunction(lua => {
         // World time is in ticks, and each second has 20 ticks. Since we
@@ -876,8 +890,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setField(-2, "removeUser")
 
-      // Pop the os table.
-      lua.pop(1)
+      // Set the computer table.
+      lua.setGlobal("computer")
 
       // Until we get to ingame screens we log to Java's stdout.
       lua.pushScalaFunction(lua => {

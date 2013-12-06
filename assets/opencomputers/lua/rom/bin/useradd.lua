@@ -4,7 +4,7 @@ if #args < 1 then
   return
 end
 
-local result, reason = os.addUser(args[1])
+local result, reason = computer.addUser(args[1])
 if not result then
   print(reason)
 end
