@@ -133,11 +133,17 @@ function checkedDrop(force)
     for slot = 1, 16 do
       if robot.count(slot) > 0 then
         robot.select(slot)
-        repeat robot.drop() until robot.count(slot) == 0
+        local wait = 1
+        repeat
+          if not robot.drop() then
+            os.sleep(wait)
+            wait = math.min(10, wait + 1)
+          end
+        until robot.count(slot) == 0
       end
     end
     robot.select(1)
-    
+
     dropping = false
     moveTo(ox, oy, oz, true)
     turnTowards(of)
