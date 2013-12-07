@@ -49,7 +49,7 @@ abstract class GraphicsCard extends ManagedComponent {
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
-      case null => Array(Unit, "invalid address")
+      case null => result(false, "invalid address")
       case node: Node if node.host.isInstanceOf[Buffer] =>
         screenAddress = Option(address)
         screenInstance = Some(node.host.asInstanceOf[Buffer])
@@ -62,7 +62,7 @@ abstract class GraphicsCard extends ManagedComponent {
           s.background = 0x000000
           result(true)
         })
-      case _ => Array(Unit, "not a screen")
+      case _ => result(false, "not a screen")
     }
   }
 

@@ -99,7 +99,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
   compileList()
 
-  def renderChassis(isRunning: Boolean = false, offset: Double = 0) {
+  def renderChassis(isRunning: Boolean = false, level: Int = 0, offset: Double = 0) {
     val size = 0.3f
     val l = 0.5f - size
     val h = 0.5f + size
@@ -114,6 +114,15 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     bindTexture(texture)
+    if (level > 19) {
+      GL11.glColor3f(0.4f, 1, 1)
+    }
+    else if (level > 9) {
+      GL11.glColor3f(1, 1, 0.4f)
+    }
+    else {
+      GL11.glColor3f(0.5f, 0.5f, 0.5f)
+    }
     if (!isRunning) {
       GL11.glTranslatef(0, -2 * gap, 0)
     }
@@ -122,6 +131,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslatef(0, 2 * gap, 0)
     }
     GL11.glCallList(displayList + 1)
+    GL11.glColor3f(1, 1, 1)
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       RenderState.disableLighting()
@@ -202,7 +212,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot.isRunning, offset)
+      renderChassis(robot.isRunning, robot.level, offset)
     }
 
     robot.equippedItem match {

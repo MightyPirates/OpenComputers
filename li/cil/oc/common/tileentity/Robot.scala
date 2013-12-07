@@ -98,7 +98,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
     level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 30
-    battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+    if (battery != null) {
+      battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -337,6 +339,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
     }
     xp = nbt.getDouble(Settings.namespace + "xp")
+    updateXpInfo()
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     moveFromX = nbt.getInteger("moveFromX")

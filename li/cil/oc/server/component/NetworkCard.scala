@@ -75,7 +75,7 @@ class NetworkCard extends ManagedComponent {
       openPorts.clear()
     if (message.name == "network.message") message.data match {
       case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        node.sendToReachable("computer.signal", Seq("modem_message", message.source.address, Int.box(port)) ++ args: _*)
+        node.sendToReachable("computer.signal", Seq("modem_message", message.source.address, Int.box(port), Int.box(0)) ++ args: _*)
       case _ =>
     }
   }

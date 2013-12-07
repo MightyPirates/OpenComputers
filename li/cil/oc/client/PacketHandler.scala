@@ -132,7 +132,9 @@ class PacketHandler extends CommonPacketHandler {
 
   def onRobotXp(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.xp = p.readDouble()
+      case Some(t) =>
+        t.robot.xp = p.readDouble()
+        t.robot.updateXpInfo()
       case _ => // Invalid packet.
     }
 
