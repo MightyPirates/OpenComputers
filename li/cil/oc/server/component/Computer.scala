@@ -1133,8 +1133,10 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     if (state.size == 0 || state.top != Computer.State.Stopped) {
       state.clear()
       state.push(Computer.State.Stopped)
-      lua.setTotalMemory(Integer.MAX_VALUE)
-      lua.close()
+      if (lua != null) {
+        lua.setTotalMemory(Integer.MAX_VALUE)
+        lua.close()
+      }
       lua = null
       kernelMemory = 0
       signals.clear()

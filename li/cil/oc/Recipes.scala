@@ -58,7 +58,6 @@ object Recipes {
     val hdd1 = Items.hdd1.createItemStack()
     val hdd2 = Items.hdd2.createItemStack()
     val hdd3 = Items.hdd3.createItemStack()
-    val ironNugget = Items.ironNugget.createItemStack()
     val lanCard = Items.lan.createItemStack()
     val pcb = Items.pcb.createItemStack()
     val ram1 = Items.ram1.createItemStack()
@@ -72,7 +71,7 @@ object Recipes {
     // ----------------------------------------------------------------------- //
 
     GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
-    GameRegistry.addShapelessRecipe(Items.cuttingWire.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), ironNugget, stick)
+    GameRegistry.addShapelessRecipe(Items.cuttingWire.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), Items.ironNugget.createItemStack(), stick)
     GameRegistry.addShapelessRecipe(rawBoard, Items.cuttingWire.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
     FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 1)
     GameRegistry.addRecipe(new ShapelessOreRecipe(acid, Item.bucketWater, sugar, roseRed, slimeBall, spiderEye, boneMeal))
@@ -88,13 +87,13 @@ object Recipes {
       " i ",
       "i i",
       " i ",
-      'i', ironNugget)
+      'i', "nuggetIron")
 
     addRecipe(transistor,
       "iii",
       "grg",
       " t ",
-      'i', ironNugget,
+      'i', "nuggetIron",
       'g', goldNugget,
       'r', redstoneDust,
       't', redstoneTorch)
@@ -133,7 +132,7 @@ object Recipes {
       'r', repeater,
       's', transistor,
       't', redstoneTorch,
-      'i', ironNugget,
+      'i', "nuggetIron",
       'd', redstoneDust)
 
     addRecipe(cu,
@@ -160,7 +159,7 @@ object Recipes {
       "ict",
       "ibb",
       "igg",
-      'i', ironNugget,
+      'i', "nuggetIron",
       'c', chip1,
       't', transistor,
       'b', pcb,
@@ -334,7 +333,7 @@ object Recipes {
       " i ",
       "iri",
       " i ",
-      'i', ironNugget,
+      'i', "nuggetIron",
       'r', redstoneDust)
 
     // ----------------------------------------------------------------------- //
@@ -373,7 +372,7 @@ object Recipes {
       "ili",
       "bdb",
       "ipi",
-      'i', ironNugget,
+      'i', "nuggetIron",
       'l', lever,
       'b', board,
       'd', disk,
