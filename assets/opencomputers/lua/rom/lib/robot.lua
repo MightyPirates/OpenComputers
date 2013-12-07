@@ -7,8 +7,8 @@ local robot = {}
 -------------------------------------------------------------------------------
 -- General
 
-function robot.xp()
-  return component.computer.xp()
+function robot.level()
+  return component.computer.level()
 end
 
 function robot.energy()

@@ -184,7 +184,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   @LuaCallback("start")
   def start(context: Context, args: Arguments): Array[AnyRef] =
-    result(start())
+    result(!isPaused && start())
 
   @LuaCallback("stop")
   def stop(context: Context, args: Arguments): Array[AnyRef] =

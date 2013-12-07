@@ -37,9 +37,9 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
   def player = robot.player()
 
-  @LuaCallback(value = "xp", direct = true)
-  def xp(context: Context, args: Arguments): Array[AnyRef] = {
-    result(robot.xp)
+  @LuaCallback(value = "level", direct = true)
+  def level(context: Context, args: Arguments): Array[AnyRef] = {
+    result(robot.level + robot.xp / robot.xpForNextLevel)
   }
 
   // ----------------------------------------------------------------------- //

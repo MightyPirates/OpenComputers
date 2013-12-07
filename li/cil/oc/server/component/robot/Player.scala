@@ -160,7 +160,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
         clearItemInUse()
       }
       robot.computer.pause(heldTicks / 20.0)
-      val stackChanged = newStack != stack || (newStack != null && (newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage))
+      val stackChanged = newStack != stack || (newStack != null && (newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage || PortalGun.isStandardPortalGun(stack)))
       if (newStack == stack && stack.stackSize > 0) {
         tryRepair(stack, oldDamage)
       }

@@ -13,7 +13,7 @@ class NoteBlock(entity: TileEntityNote) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("getPitch")
-  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(entity.note)
+  def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(entity.note + 1)
 
   @LuaCallback("setPitch")
   def setPitch(context: Context, args: Arguments): Array[AnyRef] = {
