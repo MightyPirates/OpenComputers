@@ -7,16 +7,6 @@ import net.minecraft.item.{Item, ItemStack}
 
 object CraftingHandler extends ICraftingHandler {
   override def onCrafting(player: EntityPlayer, craftedStack: ItemStack, inventory: IInventory) = {
-    if (craftedStack.isItemEqual(Items.cuttingWire.createItemStack())) {
-      for (i <- 0 to inventory.getSizeInventory) {
-        val stack = inventory.getStackInSlot(i)
-        if (stack != null && stack.getItem == Item.shears) {
-          stack.damageItem(10, player)
-          stack.stackSize = stack.stackSize + 1
-        }
-      }
-    }
-
     if (craftedStack.isItemEqual(Items.acid.createItemStack())) {
       for (i <- 0 to inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)

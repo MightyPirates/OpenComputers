@@ -1,10 +1,11 @@
 package li.cil.oc
 
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe, OreDictionary}
+import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
 
 object Recipes {
   def init() {
@@ -70,10 +71,11 @@ object Recipes {
 
     // ----------------------------------------------------------------------- //
 
-    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
-    GameRegistry.addShapelessRecipe(Items.cuttingWire.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), Items.ironNugget.createItemStack(), stick)
+    if (!Loader.isModLoaded("gregtech_addon")) {
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
+    }
     GameRegistry.addShapelessRecipe(rawBoard, Items.cuttingWire.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
-    FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 1)
+    FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 0)
     GameRegistry.addRecipe(new ShapelessOreRecipe(acid, Item.bucketWater, sugar, roseRed, slimeBall, spiderEye, boneMeal))
     GameRegistry.addRecipe(new ShapelessOreRecipe(pcb, acid, Item.goldNugget, board))
 
@@ -337,6 +339,11 @@ object Recipes {
       'r', redstoneDust)
 
     // ----------------------------------------------------------------------- //
+
+    addRecipe(Items.cuttingWire.createItemStack(),
+      "sis",
+      's', stick,
+      'i', "nuggetIron")
 
     addRecipe(Items.analyzer.createItemStack(),
       " r ",
