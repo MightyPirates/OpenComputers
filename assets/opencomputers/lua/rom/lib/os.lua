@@ -25,9 +25,13 @@ function os.exit()
   error("terminated", 0)
 end
 
-os.remove = fs.remove
+function os.remove(...)
+  return fs.remove(...)
+end
 
-os.rename = fs.rename
+function os.rename(...)
+  return fs.rename(...)
+end
 
 function os.sleep(timeout)
   checkArg(1, timeout, "number", "nil")
