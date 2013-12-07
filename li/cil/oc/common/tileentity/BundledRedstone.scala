@@ -1,14 +1,20 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Optional.Interface
 import cpw.mods.fml.common.{Optional, Loader}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import mods.immibis.redlogic.api.wiring.{IInsulatedRedstoneWire, IBundledUpdatable, IBundledEmitter}
+import net.minecraft.block.Block
 import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.block.Block
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
+import scala.Array
 
+@Optional.InterfaceList(Array(
+  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
+  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic")
+))
 trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatable {
 
   private val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
