@@ -23,9 +23,9 @@ public class DefaultConverter implements Converter {
 	/**
 	 * Raw byte array.
 	 */
-	private static final boolean RAW_BYTE_ARRAY = Boolean.parseBoolean(System
+	private static final boolean RAW_BYTE_ARRAY = false; /* Boolean.parseBoolean(System
 			.getProperty(DefaultConverter.class.getPackage().getName()
-					+ ".rawByteArray"));
+					+ ".rawByteArray")); */
 
 	/**
 	 * Static instance.

@@ -45,7 +45,7 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     val server = FMLCommonHandler.instance.getMinecraftServerInstance
     val manager = server.getConfigurationManager
     for (player <- manager.playerEntityList.map(_.asInstanceOf[EntityPlayerMP]) if player.dimension == dimension) {
-      val playerRenderDistance = ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
+      val playerRenderDistance = Int.MaxValue // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = range min ((manager.getViewDistance min playerRenderDistance) * 16)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
         sendToPlayer(player.asInstanceOf[Player])
