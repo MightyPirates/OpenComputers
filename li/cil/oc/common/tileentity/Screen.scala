@@ -142,7 +142,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         val (lx, ly, lz) = project(current)
         def tryQueue(dx: Int, dy: Int) {
           val (nx, ny, nz) = unproject(lx + dx, ly + dy, lz)
-          worldObj.getBlockTileEntity(nx, ny, nz) match {
+          world.getBlockTileEntity(nx, ny, nz) match {
             case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
             case _ => // Ignore.
           }
@@ -165,7 +165,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         }
         if (isClient) {
           val bounds = current.origin.getRenderBoundingBox
-          worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+          world.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
             bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
         }
       }
@@ -275,7 +275,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     val (ox, oy, oz) = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(ox + dx, oy + dy, oz)
-      worldObj.getBlockTileEntity(nx, ny, nz) match {
+      world.getBlockTileEntity(nx, ny, nz) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           val canMergeAlongX = sy == oy && s.height == height && s.width + width <= Settings.get.maxScreenWidth

@@ -562,9 +562,18 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   }
 
   private def pick(player: Player, range: Double) = {
-    val origin = world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ)
-    val blockCenter = origin.addVector(player.facing.offsetX, player.facing.offsetY, player.facing.offsetZ)
-    val target = blockCenter.addVector(player.side.offsetX * range, player.side.offsetY * range, player.side.offsetZ * range)
+    val origin = world.getWorldVec3Pool.getVecFromPool(
+      player.posX + player.facing.offsetX * 0.5,
+      player.posY + player.facing.offsetY * 0.5,
+      player.posZ + player.facing.offsetZ * 0.5)
+    val blockCenter = origin.addVector(
+      player.facing.offsetX * 0.5,
+      player.facing.offsetY * 0.5,
+      player.facing.offsetZ * 0.5)
+    val target = blockCenter.addVector(
+      player.side.offsetX * range,
+      player.side.offsetY * range,
+      player.side.offsetZ * range)
     val hit = world.clip(origin, target)
     player.closestEntity[Entity]() match {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
