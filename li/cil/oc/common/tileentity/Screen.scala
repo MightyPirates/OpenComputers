@@ -180,9 +180,9 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           if (isServer) {
             screen.buffer.node.setVisibility(Visibility.None)
           }
-          val s = screen.buffer
-          val (w, h) = s.resolution
-          s.buffer.fill(0, 0, w, h, ' ')
+          val buffer = screen.buffer
+          val (w, h) = buffer.resolution
+          buffer.buffer.fill(0, 0, w, h, ' ')
         }
       )
     }
