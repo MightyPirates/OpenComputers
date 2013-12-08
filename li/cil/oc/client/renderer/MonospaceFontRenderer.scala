@@ -12,7 +12,7 @@ import scala.io.Source
 object MonospaceFontRenderer {
   val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
 
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt")).mkString
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
 
   private var instance: Option[Renderer] = None
 
