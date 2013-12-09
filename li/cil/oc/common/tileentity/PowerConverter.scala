@@ -7,11 +7,11 @@ import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
-import net.minecraft.entity.player.EntityPlayer
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
@@ -39,11 +39,8 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
       }
       if (isBuildCraftAvailable && demand > 1 && world.getWorldTime % Settings.get.tickFrequency == 0) {
         val wantInMJ = demand.toFloat / Settings.get.ratioBuildCraft
-        val powerProvider = getPowerProvider
-        if (wantInMJ < powerProvider.getEnergyStored) {
-          val gotInMJ = powerProvider.useEnergy(1, wantInMJ, true)
-          node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
-        }
+        val gotInMJ = getPowerProvider.useEnergy(1, wantInMJ, true)
+        node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
       }
     }
   }

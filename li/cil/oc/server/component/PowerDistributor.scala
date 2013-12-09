@@ -5,7 +5,6 @@ import li.cil.oc.common.tileentity.PowerInformation
 import li.cil.oc.server.network.Connector
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
@@ -20,7 +19,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   var dirty = true
 
-  private var lastSentRatio = 0.0
+  private var lastSentRatio = -1.0
 
   private val buffers = mutable.ArrayBuffer.empty[Connector]
 
@@ -100,20 +99,6 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      for (node <- node.reachableNodes) node match {
-        case connector: Connector if connector.localBufferSize > 0 => this.synchronized {
-          assert(!buffers.contains(connector))
-          buffers += connector
-          globalBuffer += connector.localBuffer
-          globalBufferSize += connector.localBufferSize
-        }
-        case _ => node.host match {
-          case distributor: PowerDistributor if distributor.node.canBeSeenFrom(this.node) =>
-            assert(!distributors.contains(distributor))
-            distributors += distributor
-          case _ =>
-        }
-      }
       assert(!distributors.contains(this))
       distributors += this
       dirty = true
@@ -177,7 +162,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
       distributor.globalBufferSize = sumBufferSize
       distributor.owner.globalBuffer = sumBuffer
       distributor.owner.globalBufferSize = sumBufferSize
-      if (shouldSend) {
+      if (shouldSend || distributor.lastSentRatio < 0) {
         distributor.lastSentRatio = fillRatio
         ServerPacketSender.sendPowerState(distributor.owner)
       }
