@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
+import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
@@ -15,8 +16,10 @@ import universalelectricity.core.electricity.ElectricityPack
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
-  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
-class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical {
+  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy"),
+  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion")
+))
+class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical with IEnergyHandler {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector().
     create()
@@ -180,4 +183,29 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   def getProvide(direction: ForgeDirection) = 0f
 
   def provideElectricity(from: ForgeDirection, request: ElectricityPack, doProvide: Boolean) = null
+
+  // ----------------------------------------------------------------------- //
+  // Thermal Expansion
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) = {
+    if (Settings.get.ignorePower) 0
+    else if (simulate) {
+      val free = node.globalBufferSize - node.globalBuffer
+      math.min(math.ceil(free / Settings.get.ratioThermalExpansion).toInt, maxReceive)
+    }
+    else node.changeBuffer(maxReceive * Settings.get.ratioThermalExpansion).toInt
+  }
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def extractEnergy(from: ForgeDirection, maxExtract: Int, simulate: Boolean) = 0
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def canInterface(from: ForgeDirection) = true
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def getEnergyStored(from: ForgeDirection) = (node.globalBuffer / Settings.get.ratioThermalExpansion).toInt
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def getMaxEnergyStored(from: ForgeDirection) = (node.globalBufferSize / Settings.get.ratioThermalExpansion).toInt
 }

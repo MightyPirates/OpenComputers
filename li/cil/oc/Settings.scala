@@ -82,12 +82,13 @@ class Settings(config: Config) {
   // power
 
   val ignorePower = config.getBoolean("power.ignorePower")
+  val tickFrequency = config.getDouble("power.tickFrequency")
   val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
   val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
+  val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
-  val tickFrequency = 20
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
