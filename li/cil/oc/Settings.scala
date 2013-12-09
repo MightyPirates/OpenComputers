@@ -37,6 +37,7 @@ class Settings(config: Config) {
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
       Array(64, 128, 256)
   }
+  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
@@ -82,7 +83,7 @@ class Settings(config: Config) {
   // power
 
   val ignorePower = config.getBoolean("power.ignorePower")
-  val tickFrequency = config.getDouble("power.tickFrequency")
+  val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
   val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
@@ -100,12 +101,12 @@ class Settings(config: Config) {
   val robotCost = config.getDouble("power.cost.robot") max 0
   val sleepCostFactor = config.getDouble("power.cost.sleepFactor") max 0
   val screenCost = config.getDouble("power.cost.screen") max 0
-  val hddReadCost = config.getDouble("power.cost.hddRead") max 0
-  val hddWriteCost = config.getDouble("power.cost.hddWrite") max 0
-  val gpuSetCost = config.getDouble("power.cost.gpuSet") max 0
-  val gpuFillCost = config.getDouble("power.cost.gpuFill") max 0
-  val gpuClearCost = config.getDouble("power.cost.gpuClear") max 0
-  val gpuCopyCost = config.getDouble("power.cost.gpuCopy") max 0
+  val hddReadCost = (config.getDouble("power.cost.hddRead") max 0) / 1024
+  val hddWriteCost = (config.getDouble("power.cost.hddWrite") max 0) / 1024
+  val gpuSetCost = (config.getDouble("power.cost.gpuSet") max 0) / Settings.basicScreenPixels
+  val gpuFillCost = (config.getDouble("power.cost.gpuFill") max 0) / Settings.basicScreenPixels
+  val gpuClearCost = (config.getDouble("power.cost.gpuClear") max 0) / Settings.basicScreenPixels
+  val gpuCopyCost = (config.getDouble("power.cost.gpuCopy") max 0) / Settings.basicScreenPixels
   val robotTurnCost = config.getDouble("power.cost.robotTurn") max 0
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
@@ -152,6 +153,8 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
+
+  def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
   private var settings: Settings = _
 

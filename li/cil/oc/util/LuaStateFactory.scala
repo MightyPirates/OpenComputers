@@ -27,6 +27,10 @@ object LuaStateFactory {
   /** Set to true in initialization code below if available. */
   private var haveNativeLibrary = false
 
+  private var _is64Bit = false
+
+  def is64Bit = _is64Bit
+
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
   // libraries compiled for that system. It also means we have to unpack the
@@ -34,14 +38,22 @@ object LuaStateFactory {
   // load them directly from a JAR.
   breakable {
     // See http://lopica.sourceforge.net/os.html
-    val architecture = System.getProperty("os.arch").toLowerCase match {
-      case "i386" | "x86" => "32"
-      case "amd64" | "x86_64" => "64"
-      case "ppc" | "powerpc" => "ppc"
-      case _ =>
-        OpenComputers.log.warning("Unsupported architecture, you won't be able to host games with working computers.")
-        break()
-    }
+    val architecture =
+      System.getProperty("sun.arch.data.model") match {
+        case "32" => "32"
+        case "64" => "64"
+        case _ =>
+          System.getProperty("os.arch").toLowerCase match {
+            case "i386" | "x86" => "32"
+            case "amd64" | "x86_64" => "64"
+            case "ppc" | "powerpc" => "ppc"
+            case _ =>
+              OpenComputers.log.warning("Unsupported architecture, you won't be able to host games with working computers.")
+              break()
+          }
+      }
+    _is64Bit = architecture == "64"
+
     val extension = LWJGLUtil.getPlatform match {
       case LWJGLUtil.PLATFORM_LINUX => ".so"
       case LWJGLUtil.PLATFORM_MACOSX => ".dylib"

@@ -52,6 +52,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
 
+  private val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
+
   // ----------------------------------------------------------------------- //
 
   private var timeStarted = 0L // Game-world time [ms] for os.uptime().
@@ -79,7 +81,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       l.setTotalMemory(Int.MaxValue)
       l.gc(LuaState.GcAction.COLLECT, 0)
       if (kernelMemory > 0) {
-        l.setTotalMemory(kernelMemory + owner.installedMemory)
+        l.setTotalMemory(kernelMemory + math.ceil(owner.installedMemory * ramScale).toInt)
       }
     case _ =>
   }
@@ -812,14 +814,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.pushScalaFunction(lua => {
         // This is *very* unlikely, but still: avoid this getting larger than
         // what we report as the total memory.
-        lua.pushInteger(lua.getFreeMemory min (lua.getTotalMemory - kernelMemory))
+        lua.pushInteger(((lua.getFreeMemory min (lua.getTotalMemory - kernelMemory)) / ramScale).toInt)
         1
       })
       lua.setField(-2, "freeMemory")
 
       // Allow the system to read how much memory it uses and has available.
       lua.pushScalaFunction(lua => {
-        lua.pushInteger(lua.getTotalMemory - kernelMemory)
+        lua.pushInteger(((lua.getTotalMemory - kernelMemory) / ramScale).toInt)
         1
       })
       lua.setField(-2, "totalMemory")
