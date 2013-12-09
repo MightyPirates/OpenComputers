@@ -8,7 +8,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
   // Used for quick checks whether values are in the tree, e.g. for updates.
   private val entries = mutable.Map.empty[Data, Leaf]
 
-  private val m = (M / 2) max 1
+  private val m = math.max(M / 2, 1)
 
   private var root = new NonLeaf()
 
@@ -215,7 +215,7 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
                 val newVol2 = r2.volumeIncluding(value)
                 val growth1 = newVol1 - r1.volume
                 val growth2 = newVol2 - r2.volume
-                val d = (growth2 - growth1).abs
+                val d = math.abs(growth2 - growth1)
                 if (d > best) {
                   bestValue = Some(value)
                   r = if (growth1 < growth2 || (growth1 == growth2 && newVol1 < newVol2)) r1 else r2
@@ -263,9 +263,9 @@ class RTree[Data](private val M: Int)(implicit val coordinate: Data => (Double, 
   private class Point(val x: Double, val y: Double, val z: Double) {
     def this(p: (Double, Double, Double)) = this(p._1, p._2, p._3)
 
-    def min(other: Point) = new Point(x min other.x, y min other.y, z min other.z)
+    def min(other: Point) = new Point(math.min(x, other.x), math.min(y, other.y), math.min(z, other.z))
 
-    def max(other: Point) = new Point(x max other.x, y max other.y, z max other.z)
+    def max(other: Point) = new Point(math.max(x, other.x), math.max(y, other.y), math.max(z, other.z))
 
     def asTuple = (x, y, z)
   }

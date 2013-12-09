@@ -71,13 +71,13 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
    */
   def size_=(value: (Int, Int)): Boolean = {
     val (iw, ih) = value
-    val (w, h) = (iw max 1, ih max 1)
+    val (w, h) = (math.max(iw, 1), math.max(ih, 1))
     if (width != w || height != h) {
       val newBuffer = Array.fill(h, w)(' ')
       val newColor = Array.fill(h, w)(packed)
-      (0 until (h min height)).foreach(y => {
-        Array.copy(buffer(y), 0, newBuffer(y), 0, w min width)
-        Array.copy(color(y), 0, newColor(y), 0, w min width)
+      (0 until math.min(h, height)).foreach(y => {
+        Array.copy(buffer(y), 0, newBuffer(y), 0, math.min(w, width))
+        Array.copy(color(y), 0, newColor(y), 0, math.min(w, width))
       })
       buffer = newBuffer
       color = newColor
@@ -98,7 +98,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
       var changed = false
       val line = buffer(row)
       val lineColor = color(row)
-      for (x <- col until ((col + s.length) min width)) if (x >= 0) {
+      for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
         val c = s(x - col)
         changed = changed || (line(x) != c) || (lineColor(x) != packed)
         line(x) = c
@@ -113,10 +113,10 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     if (w <= 0 || h <= 0) return false
     if (col + w < 0 || row + h < 0 || col >= width || row >= height) return false
     var changed = false
-    for (y <- (row max 0) until ((row + h) min height)) {
+    for (y <- math.max(row, 0) until math.min(row + h, height)) {
       val line = buffer(y)
       val lineColor = color(y)
-      for (x <- (col max 0) until ((col + w) min width)) {
+      for (x <- math.max(col, 0) until math.min(col + w, width)) {
         changed = changed || (line(x) != c) || (lineColor(x) != packed)
         line(x) = c
         lineColor(x) = packed
@@ -133,11 +133,11 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     // Loop over the target rectangle, starting from the directions away from
     // the source rectangle and copy the data. This way we ensure we don't
     // overwrite anything we still need to copy.
-    val (dx0, dx1) = ((col + tx + w - 1) max 0 min (width - 1), (col + tx) max 0 min width) match {
+    val (dx0, dx1) = (math.max(col + tx + w - 1, math.min(0, width - 1)), math.max(col + tx, math.min(0, width))) match {
       case dx if tx > 0 => dx
       case dx => dx.swap
     }
-    val (dy0, dy1) = ((row + ty + h - 1) max 0 min (height - 1), (row + ty) max 0 min height) match {
+    val (dy0, dy1) = (math.max(row + ty + h - 1,  math.min(0, height - 1)), math.max(row + ty, math.min(0, height))) match {
       case dy if ty > 0 => dy
       case dy => dy.swap
     }
@@ -170,7 +170,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     size = (w, h)
 
     val b = nbt.getTagList("buffer")
-    for (i <- 0 until (h min b.tagCount)) {
+    for (i <- 0 until math.min(h, b.tagCount)) {
       val line = b.tagAt(i).asInstanceOf[NBTTagString].data
       set(0, i, line)
     }

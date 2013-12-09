@@ -76,7 +76,7 @@ class Charger extends Environment with Redstone with Analyzable {
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    chargeSpeed = 0.0 max (ForgeDirection.VALID_DIRECTIONS.map(input).max min 15) / 15.0
+    chargeSpeed = math.max(0, math.min(ForgeDirection.VALID_DIRECTIONS.map(input).max, 15) / 15.0)
     if (isServer) {
       ServerPacketSender.sendChargerState(this)
     }

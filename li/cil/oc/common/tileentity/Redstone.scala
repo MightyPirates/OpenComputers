@@ -114,14 +114,14 @@ trait Redstone extends RotationAware with network.Environment with Persistable w
         case emitter: IRedstoneEmitter =>
           var strength = 0
           for (i <- -1 to 5) {
-            strength = strength max emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal())
+            strength = math.max(strength, emitter.getEmittedSignalStrength(i, side.getOpposite.ordinal()))
           }
           strength
         case _ => 0
       }
     }
     else 0
-    vanilla max redLogic
+    math.max(vanilla, redLogic)
   }
 
   protected def onRedstoneInputChanged(side: ForgeDirection) {}
@@ -131,7 +131,9 @@ trait Redstone extends RotationAware with network.Environment with Persistable w
       world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
     }
     else {
-      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      val nx = x + side.offsetX
+      val ny = y + side.offsetY
+      val nz = z + side.offsetZ
       world.notifyBlockOfNeighborChange(nx, ny, nz, block.blockID)
       world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlockId(nx, ny, nz))
     }

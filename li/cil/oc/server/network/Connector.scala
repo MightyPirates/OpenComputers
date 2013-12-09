@@ -13,8 +13,6 @@ trait Connector extends Node with network.Connector with Persistable {
 
   var localBuffer = 0.0
 
-  var dirty = true
-
   private var distributor: Option[PowerDistributor] = None
 
   // ----------------------------------------------------------------------- //
@@ -26,80 +24,76 @@ trait Connector extends Node with network.Connector with Persistable {
   // ----------------------------------------------------------------------- //
 
   def changeBuffer(delta: Double): Double = {
-    if (delta == 0) {
-      return 0
+    if (delta == 0) 0
+    else if (Settings.get.ignorePower) {
+      if (delta < 0) 0
+      else /* if (delta > 0) */ delta
     }
-    if (Settings.get.ignorePower) {
-      if (delta < 0) {
-        return 0
-      }
-      else /* if (delta > 0) */ {
-        return delta
-      }
+    else {
+      this.synchronized(distributor match {
+        case Some(d) => d.synchronized(d.changeBuffer(change(delta)))
+        case _ => change(delta)
+      })
     }
-    def change() = {
-      val oldBuffer = localBuffer
-      localBuffer += delta
-      val remaining = if (localBuffer < 0) {
-        val remaining = localBuffer
-        localBuffer = 0
-        remaining
-      }
-      else if (localBuffer > localBufferSize) {
-        val remaining = localBuffer - localBufferSize
-        localBuffer = localBufferSize
-        remaining
-      }
-      else 0
-      dirty ||= (localBuffer != oldBuffer)
+  }
+
+  private def change(delta: Double): Double = {
+    if (localBufferSize <= 0) return delta
+    val oldBuffer = localBuffer
+    localBuffer += delta
+    val remaining = if (localBuffer < 0) {
+      val remaining = localBuffer
+      localBuffer = 0
       remaining
     }
-    this.synchronized(distributor match {
-      case Some(d) => d.synchronized(d.changeBuffer(change()))
-      case _ => change()
-    })
+    else if (localBuffer > localBufferSize) {
+      val remaining = localBuffer - localBufferSize
+      localBuffer = localBufferSize
+      remaining
+    }
+    else 0
+    if (localBuffer != oldBuffer) {
+      this.synchronized(distributor match {
+        case Some(d) => d.dirty = true
+        case _ =>
+      })
+    }
+    remaining
   }
 
   def tryChangeBuffer(delta: Double): Boolean = {
-    if (delta == 0) {
-      return true
-    }
-    if (Settings.get.ignorePower) {
-      if (delta < 0) {
-        return true
-      }
-      else /* if (delta > 0) */ {
-        return false
-      }
-    }
-    this.synchronized(distributor match {
-      case Some(d) => d.synchronized {
-        val newGlobalBuffer = globalBuffer + delta
-        newGlobalBuffer >= 0 && newGlobalBuffer <= globalBufferSize && d.changeBuffer(delta) == 0
-      }
-      case _ =>
-        val newLocalBuffer = localBuffer + delta
-        if (newLocalBuffer < 0 || newLocalBuffer > localBufferSize) {
-          false
+    if (delta == 0) true
+    else if (Settings.get.ignorePower) delta < 0
+    else {
+      this.synchronized(distributor match {
+        case Some(d) => d.synchronized {
+          val newGlobalBuffer = globalBuffer + delta
+          newGlobalBuffer >= 0 && newGlobalBuffer <= globalBufferSize && d.changeBuffer(delta) == 0
         }
-        else {
-          localBuffer = newLocalBuffer
-          true
-        }
-    })
+        case _ =>
+          val newLocalBuffer = localBuffer + delta
+          if (newLocalBuffer < 0 || newLocalBuffer > localBufferSize) {
+            false
+          }
+          else {
+            localBuffer = newLocalBuffer
+            true
+          }
+      })
+    }
   }
 
   def setLocalBufferSize(size: Double) {
     this.synchronized(distributor match {
       case Some(d) => d.synchronized {
-        localBufferSize = size max 0
-        val surplus = (localBuffer - localBufferSize) max 0
-        localBuffer = localBuffer min localBufferSize
+        localBufferSize = math.max(size, 0)
+        val surplus = math.max(localBuffer - localBufferSize, 0)
+        localBuffer = math.min(localBuffer, localBufferSize)
         d.changeBuffer(surplus)
       }
       case _ =>
-        localBufferSize = size max 0
-        localBuffer = localBuffer min localBufferSize
+        localBufferSize = math.max(size, 0)
+        localBuffer = math.min(localBuffer, localBufferSize)
     })
   }
 
@@ -137,8 +131,7 @@ trait Connector extends Node with network.Connector with Persistable {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = nbt.getDouble("buffer") max 0 min localBufferSize
-    dirty = true
+    localBuffer = math.max(nbt.getDouble("buffer"), math.min(0, localBufferSize))
   }
 
   override def save(nbt: NBTTagCompound) {

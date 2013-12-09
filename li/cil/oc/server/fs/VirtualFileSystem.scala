@@ -277,7 +277,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def available() =
       if (isClosed) 0
-      else (file.data.length - position) max 0
+      else math.max(file.data.length - position, 0)
 
     override def close() = isClosed = true
 
@@ -293,9 +293,10 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def read(b: Array[Byte], off: Int, len: Int) =
       if (!isClosed) {
-        if (available == 0) -1
+        val count = available()
+        if (count == 0) -1
         else {
-          val n = len min available
+          val n = math.min(len, count)
           file.data.view(position, file.data.length).copyToArray(b, off, n)
           position += n
           n
@@ -311,7 +312,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def skip(n: Long) =
       if (!isClosed) {
-        position = ((position + n) min Int.MaxValue).toInt
+        position = math.min((position + n).toInt, Int.MaxValue)
         position
       }
       else throw new io.IOException("file is closed")

@@ -19,7 +19,8 @@ object MonospaceFontRenderer {
   def init(textureManager: TextureManager) = this.synchronized(
     instance = instance.orElse(Some(new Renderer(textureManager))))
 
-  val (fontWidth, fontHeight) = (5, 9)
+  val fontWidth = 5
+  val fontHeight = 9
 
   def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")

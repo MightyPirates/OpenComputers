@@ -220,15 +220,15 @@ object LuaStateFactory {
 
       state.pushScalaFunction(lua => {
         val string = lua.checkString(1)
-        val start = (lua.checkInteger(2) match {
+        val start = math.max(0, lua.checkInteger(2) match {
           case i if i < 0 => string.length + i
           case i => i - 1
-        }) max 0
+        })
         val end =
-          if (lua.getTop > 2) (lua.checkInteger(3) match {
+          if (lua.getTop > 2) math.min(string.length, lua.checkInteger(3) match {
             case i if i < 0 => string.length + i + 1
             case i => i
-          }) min string.length
+          })
           else string.length
         if (end <= start) lua.pushString("")
         else lua.pushString(string.substring(start, end))

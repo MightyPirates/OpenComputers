@@ -41,7 +41,7 @@ object PacketSender {
       val pb = new PacketBuilder(PacketType.Clipboard)
 
       pb.writeTileEntity(t)
-      pb.writeUTF(value.substring(0, value.length min 1024))
+      pb.writeUTF(value.substring(0, math.min(value.length, 1024)))
 
       pb.sendToServer()
     }

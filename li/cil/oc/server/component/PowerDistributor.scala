@@ -18,13 +18,13 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   var globalBufferSize = 0.0
 
+  var dirty = true
+
   private var lastSentRatio = 0.0
 
-  private val buffers = mutable.Set.empty[Connector]
+  private val buffers = mutable.ArrayBuffer.empty[Connector]
 
-  private val distributors = mutable.Set.empty[PowerDistributor]
-
-  private var dirty = true
+  private val distributors = mutable.ArrayBuffer.empty[PowerDistributor]
 
   // ----------------------------------------------------------------------- //
 
@@ -37,36 +37,29 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   def changeBuffer(delta: Double): Double = {
-    if (delta == 0) {
-      return 0
+    if (delta == 0) 0
+    else if (Settings.get.ignorePower) {
+      if (delta < 0) 0
+      else /* if (delta > 0) */ delta
     }
-    if (Settings.get.ignorePower) {
-      if (delta < 0) {
-        return 0
-      }
-      else /* if (delta > 0) */ {
-        return delta
-      }
-    }
-    this.synchronized {
+    else this.synchronized {
       val oldBuffer = globalBuffer
-      globalBuffer = (globalBuffer + delta) max 0 min globalBufferSize
+      globalBuffer = math.min(math.max(globalBuffer + delta, 0), globalBufferSize)
       if (globalBuffer == oldBuffer) {
         return delta
       }
       dirty = true
       if (delta < 0) {
         var remaining = -delta
-        for (connector <- buffers) {
+        for (connector <- buffers if remaining > 0 && connector.localBufferSize > 0) {
           if (connector.localBuffer > 0) {
-            connector.dirty = true
             if (connector.localBuffer < remaining) {
               remaining -= connector.localBuffer
               connector.localBuffer = 0
             }
             else {
               connector.localBuffer -= remaining
-              return 0
+              remaining = 0
             }
           }
         }
@@ -74,9 +67,8 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
       }
       else /* if (delta > 0) */ {
         var remaining = delta
-        for (connector <- buffers) {
+        for (connector <- buffers if remaining > 0 && connector.localBufferSize > 0) {
           if (connector.localBuffer < connector.localBufferSize) {
-            connector.dirty = true
             val space = connector.localBufferSize - connector.localBuffer
             if (space < remaining) {
               remaining -= space
@@ -84,7 +76,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
             }
             else {
               connector.localBuffer += remaining
-              return 0
+              remaining = 0
             }
           }
         }
@@ -96,7 +88,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   override def update() {
-    if (node != null && (dirty || buffers.exists(_.dirty))) {
+    if (dirty && owner.world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0 && node != null) {
       updateCachedValues()
     }
   }
@@ -108,21 +100,25 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
     if (node == this.node) {
       for (node <- node.reachableNodes) node match {
         case connector: Connector if connector.localBufferSize > 0 => this.synchronized {
+          assert(!buffers.contains(connector))
           buffers += connector
           globalBuffer += connector.localBuffer
           globalBufferSize += connector.localBufferSize
         }
         case _ => node.host match {
           case distributor: PowerDistributor if distributor.node.canBeSeenFrom(this.node) =>
+            assert(!distributors.contains(distributor))
             distributors += distributor
           case _ =>
         }
       }
+      assert(!distributors.contains(this))
       distributors += this
       dirty = true
     }
     else node match {
       case connector: Connector if connector.localBufferSize > 0 => this.synchronized {
+        assert(!buffers.contains(connector))
         buffers += connector
         globalBuffer += connector.localBuffer
         globalBufferSize += connector.localBufferSize
@@ -130,6 +126,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
       }
       case _ => node.host match {
         case distributor: PowerDistributor if distributor.node.canBeSeenFrom(this.node) =>
+          assert(!distributors.contains(distributor))
           distributors += distributor
         case _ =>
       }
@@ -162,16 +159,16 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   def updateCachedValues() {
     // Computer average fill ratio of all buffers.
-    val (sumBuffer, sumBufferSize) =
-      buffers.foldRight((0.0, 0.0))((c, acc) => {
-        c.dirty = false // clear dirty flag for all connectors
-        (acc._1 + c.localBuffer, acc._2 + c.localBufferSize)
-      })
+    var sumBuffer, sumBufferSize = 0.0
+    for (buffer <- buffers) {
+      sumBuffer += buffer.localBuffer
+      sumBufferSize += buffer.localBufferSize
+    }
     // Only send updates if the state changed by more than 5%, more won't be
     // noticeable "from the outside" anyway. We send more frequent updates in
     // the gui/container of a block that needs it (like robots).
     val fillRatio = sumBuffer / sumBufferSize
-    val shouldSend = (lastSentRatio - fillRatio).abs > (5.0 / 100.0)
+    val shouldSend = math.abs(lastSentRatio - fillRatio) > (5.0 / 100.0)
     for (distributor <- distributors) distributor.synchronized {
       distributor.dirty = false
       distributor.globalBuffer = sumBuffer

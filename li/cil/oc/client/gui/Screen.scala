@@ -61,9 +61,9 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   protected def changeSize(w: Double, h: Double) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
-    val scaleX = (width / (bw + bufferMargin * 2.0)) min 1
-    val scaleY = (height / (bh + bufferMargin * 2.0)) min 1
-    val scale = scaleX min scaleY
+    val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)
+    val scaleY = math.min(height / (bh + bufferMargin * 2.0), 1)
+    val scale = math.min(scaleX, scaleY)
     val innerWidth = (bw * scale).toInt
     val innerHeight = (bh * scale).toInt
     x = (width - (innerWidth + bufferMargin * 2)) / 2

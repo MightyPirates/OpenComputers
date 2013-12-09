@@ -15,7 +15,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   def node = if (isClient) null else keyboard.node
 
-  override def isClient = keyboard == null
+  override lazy val isClient = keyboard == null
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = node
 

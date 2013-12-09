@@ -87,6 +87,7 @@ class Settings(config: Config) {
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
+  val tickFrequency = 20
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0

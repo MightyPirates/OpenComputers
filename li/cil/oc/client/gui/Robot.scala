@@ -116,9 +116,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   protected def changeSize(w: Double, h: Double) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
-    val scaleX = (bufferWidth / (bw + bufferMargin * 2.0)) min 1
-    val scaleY = (bufferHeight / (bh + bufferMargin * 2.0)) min 1
-    scaleX min scaleY
+    val scaleX = math.min(bufferWidth / (bw + bufferMargin * 2.0), 1)
+    val scaleY = math.min(bufferHeight / (bh + bufferMargin * 2.0), 1)
+    math.min(scaleX, scaleY)
   }
 
   private def drawSelection() {

@@ -18,7 +18,7 @@ abstract class Computer extends Delegate {
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer => computer.output(side) max 0 min 15
+      case computer: tileentity.Computer => math.min(math.max(computer.output(side), 0), 15)
       case _ => super.isProvidingWeakPower(world, x, y, z, side)
     }
 

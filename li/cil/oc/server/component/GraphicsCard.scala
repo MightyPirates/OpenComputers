@@ -56,8 +56,8 @@ abstract class GraphicsCard extends ManagedComponent {
         screen(s => {
           val (gmw, gmh) = maxResolution
           val (smw, smh) = s.maxResolution
-          s.resolution = (gmw min smw, gmh min smh)
-          s.depth = PackedColor.Depth(maxDepth.id min s.maxDepth.id)
+          s.resolution = (math.min(gmw, smw), math.min(gmh, smh))
+          s.depth = PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id))
           s.foreground = 0xFFFFFF
           s.background = 0x000000
           result(true)
@@ -101,7 +101,7 @@ abstract class GraphicsCard extends ManagedComponent {
 
   @LuaCallback(value = "maxDepth", direct = true)
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth(maxDepth.id min s.maxDepth.id) match {
+    screen(s => result(PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id)) match {
       case PackedColor.Depth.OneBit => 1
       case PackedColor.Depth.FourBit => 4
       case PackedColor.Depth.EightBit => 8
@@ -128,7 +128,7 @@ abstract class GraphicsCard extends ManagedComponent {
     screen(s => {
       val (gmw, gmh) = maxResolution
       val (smw, smh) = s.maxResolution
-      result(gmw min smw, gmh min smh)
+      result(math.min(gmw, smw), math.min(gmh, smh))
     })
 
   @LuaCallback(value = "get", direct = true)

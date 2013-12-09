@@ -85,7 +85,7 @@ object ZipFileInputStreamFileSystem {
           var root: ArchiveDirectory = null
           for (entry <- directories ++ files) {
             if (entry.path.length > 0) {
-              val parent = entry.path.substring(0, entry.path.lastIndexOf('/') max 0)
+              val parent = entry.path.substring(0, math.max(entry.path.lastIndexOf('/'), 0))
               directories.find(d => d.path == parent) match {
                 case Some(directory) => directory.children += entry
                 case _ =>

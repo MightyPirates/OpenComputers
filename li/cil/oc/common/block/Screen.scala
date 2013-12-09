@@ -77,7 +77,8 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
-        val (right, bottom) = (screen.width - 1, screen.height - 1)
+        val right = screen.width - 1
+        val bottom = screen.height - 1
         val (px, py) = screen.localPosition
         val (lx, ly) = screen.pitch match {
           case ForgeDirection.NORTH => (px, py)

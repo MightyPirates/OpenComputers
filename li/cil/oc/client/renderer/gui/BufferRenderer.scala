@@ -96,7 +96,10 @@ object BufferRenderer {
     }
 
   private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {
-    val (u1d, u2d, v1d, v2d) = (u1 / 16.0, u2 / 16.0, v1 / 16.0, v2 / 16.0)
+    val u1d = u1 / 16.0
+    val u2d = u2 / 16.0
+    val v1d = v1 / 16.0
+    val v2d = v2 / 16.0
     val t = Tessellator.instance
     t.startDrawingQuads()
     t.addVertexWithUV(x, y + h, 0, u1d, v2d)

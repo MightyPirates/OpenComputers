@@ -38,11 +38,11 @@ class Generator(val owner: MCTileEntity) extends ManagedComponent {
         if (space <= 0) {
           return result(false, "queue is full")
         }
-        val moveCount = stack.stackSize min space min count
+        val moveCount = math.min(stack.stackSize, math.min(space, count))
         existingStack.stackSize += moveCount
         stack.stackSize -= moveCount
       case _ =>
-        inventory = Some(stack.splitStack(stack.stackSize min count))
+        inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
     }
     player.inventory.setInventorySlotContents(context.selectedSlot, stack)
     result(true)
@@ -61,7 +61,7 @@ class Generator(val owner: MCTileEntity) extends ManagedComponent {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     inventory match {
       case Some(stack) =>
-        val removedStack = stack.splitStack(count min stack.stackSize)
+        val removedStack = stack.splitStack(math.min(count, stack.stackSize))
         val success = context.player.inventory.addItemStackToInventory(removedStack)
         stack.stackSize += removedStack.stackSize
         if (success && stack.stackSize <= 0) {

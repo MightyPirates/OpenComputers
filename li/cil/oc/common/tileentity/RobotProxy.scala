@@ -100,9 +100,9 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def onInventoryChanged() = robot.onInventoryChanged()
 
-  override def isClient = robot.isClient
+  override lazy val isClient = robot.isClient
 
-  override def isServer = robot.isServer
+  override lazy val isServer = robot.isServer
 
   // ----------------------------------------------------------------------- //
 

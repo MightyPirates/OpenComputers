@@ -97,7 +97,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   def updateXpInfo() {
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
-    level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 30
+    level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
     if (battery != null) {
       battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
     }
@@ -140,7 +140,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
-        val moveTicks = (Settings.get.moveDelay * 20).toInt max 1
+        val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
           world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)

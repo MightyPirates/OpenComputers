@@ -25,7 +25,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if ((robot.globalBuffer - lastSentBuffer).abs > 1) {
+    if (math.abs(robot.globalBuffer - lastSentBuffer) > 1) {
       lastSentBuffer = robot.globalBuffer
       ServerPacketSender.sendPowerState(robot)
     }

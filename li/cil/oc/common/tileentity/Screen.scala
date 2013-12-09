@@ -38,6 +38,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   var hasPower = true
 
+  var cachedBounds: Option[AxisAlignedBB] = None
+
   def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
   def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
@@ -49,8 +51,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   def localPosition = {
     val (lx, ly, _) = project(this)
     val (ox, oy, _) = project(origin)
-    val (px, py) = (lx - ox, ly - oy)
-    (px, py)
+    (lx - ox, ly - oy)
   }
 
   override def hasKeyboard = screens.exists(screen => ForgeDirection.VALID_DIRECTIONS.
@@ -66,6 +67,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     origin = this
     screens.clear()
     screens += this
+    cachedBounds = None
   }
 
   def click(player: EntityPlayer, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
@@ -119,12 +121,15 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
+    if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
       if (litPixels < 0) {
-        litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
+        litPixels = 0
+        for (line <- buffer.lines) for (c <- line) {
+          if (c != ' ') litPixels += 1
+        }
       }
       val hadPower = hasPower
-      val neededPower = Settings.get.screenCost + pixelCost * litPixels
+      val neededPower = (Settings.get.screenCost + pixelCost * litPixels) * Settings.get.tickFrequency
       hasPower = buffer.node.tryChangeBuffer(-neededPower)
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
@@ -213,15 +218,18 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   @SideOnly(Side.CLIENT)
   override def getRenderBoundingBox =
     if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
-    else {
-      val (sx, sy, sz) = unproject(width, height, 1)
-      val ox = x + (if (sx < 0) 1 else 0)
-      val oy = y + (if (sy < 0) 1 else 0)
-      val oz = z + (if (sz < 0) 1 else 0)
-      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
-      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
-        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
-      b
+    else cachedBounds match {
+      case Some(bounds) => bounds
+      case _ =>
+        val (sx, sy, sz) = unproject(width, height, 1)
+        val ox = x + (if (sx < 0) 1 else 0)
+        val oy = y + (if (sy < 0) 1 else 0)
+        val oz = z + (if (sz < 0) 1 else 0)
+        val b = AxisAlignedBB.getBoundingBox(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+        b.setBounds(math.min(b.minX, b.maxX), math.min(b.minY, b.maxY), math.min(b.minZ, b.maxZ),
+          math.max(b.minX, b.maxX), math.max(b.minY, b.maxY), math.max(b.minZ, b.maxZ))
+        cachedBounds = Some(b)
+        b
     }
 
   @SideOnly(Side.CLIENT)
@@ -297,6 +305,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
               screen.height = newHeight
               screen.origin = newOrigin
               screen.screens ++= newScreens // It's a set, so there won't be duplicates.
+              screen.cachedBounds = None
             }
             true
           }

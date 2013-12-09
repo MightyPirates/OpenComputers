@@ -20,11 +20,14 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
 
   def block = getBlockType
 
+  private var addedToNetwork = false
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (node != null && node.network == null) {
+    if (!addedToNetwork) {
+      addedToNetwork = true
       Network.joinOrCreateNetwork(this)
     }
   }

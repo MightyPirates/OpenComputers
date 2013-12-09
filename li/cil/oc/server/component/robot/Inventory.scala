@@ -80,17 +80,17 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
                 val existing = getStackInSlot(slot)
                 existing != null && existing.isItemEqual(stack) &&
                   (!existing.getHasSubtypes || existing.getItemDamage == stack.getItemDamage) &&
-                  (existing.stackSize < (existing.getMaxStackSize min getInventoryStackLimit))
+                  (existing.stackSize < math.min(existing.getMaxStackSize, getInventoryStackLimit))
               }).getOrElse(getFirstEmptyStackAccepting(stack))
             if (slot >= firstInventorySlot) {
               if (getStackInSlot(slot) == null) {
-                val amount = stack.stackSize min (getInventoryStackLimit min stack.getMaxStackSize)
+                val amount = math.min(stack.stackSize, math.min(getInventoryStackLimit, stack.getMaxStackSize))
                 setInventorySlotContents(slot, stack.splitStack(amount))
               }
               else {
                 val existing = getStackInSlot(slot)
-                val space = (getInventoryStackLimit min existing.getMaxStackSize) - existing.stackSize
-                val amount = stack.stackSize min space
+                val space = math.min(getInventoryStackLimit, existing.getMaxStackSize) - existing.stackSize
+                val amount = math.min(stack.stackSize, space)
                 existing.stackSize += amount
                 stack.stackSize -= amount
               }

@@ -18,7 +18,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def node = if (isClient) null else computer.node
 
-  override def isClient = computer == null
+  override lazy val isClient = computer == null
 
   private var _isRunning = false
 

@@ -21,6 +21,10 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
     withConnector().
     create()
 
+  private lazy val isIndustrialCraftAvailable = Loader.isModLoaded("IC2")
+
+  private lazy val isBuildCraftAvailable = Loader.isModLoaded("BuildCraft|Energy")
+
   private def demand = if (Settings.get.ignorePower) 0.0 else node.globalBufferSize - node.globalBuffer
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
@@ -30,13 +34,16 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
-      if (Loader.isModLoaded("IC2")) {
+      if (isIndustrialCraftAvailable) {
         loadIC2()
       }
-      if (demand > 0 && Loader.isModLoaded("BuildCraft|Energy")) {
+      if (isBuildCraftAvailable && demand > 1 && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
         val wantInMJ = demand.toFloat / Settings.get.ratioBuildCraft
-        val gotInMJ = getPowerProvider.useEnergy(1, wantInMJ, true)
-        node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
+        val powerProvider = getPowerProvider
+        if (wantInMJ < powerProvider.getEnergyStored) {
+          val gotInMJ = powerProvider.useEnergy(1, wantInMJ, true)
+          node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
+        }
       }
     }
   }
@@ -74,7 +81,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   // ----------------------------------------------------------------------- //
   // IndustrialCraft
 
-  private var isIC2Loaded = false
+  private var addedToPowerGrid = false
 
   private var lastPacketSize = 0.0
 
@@ -82,17 +89,17 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   @Optional.Method(modid = "IC2")
   def loadIC2() {
-    if (!isIC2Loaded) {
+    if (!addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this))
-      isIC2Loaded = true
+      addedToPowerGrid = true
     }
   }
 
   @Optional.Method(modid = "IC2")
   def unloadIC2() {
-    if (isIC2Loaded) {
+    if (addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this))
-      isIC2Loaded = false
+      addedToPowerGrid = false
     }
   }
 

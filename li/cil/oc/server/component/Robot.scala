@@ -73,7 +73,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
       else selectedSlot
     result(stackInSlot(slot) match {
-      case Some(stack) => (robot.getInventoryStackLimit min stack.getMaxStackSize) - stack.stackSize
+      case Some(stack) => math.min(robot.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
       case _ => robot.getInventoryStackLimit
     })
   }
@@ -98,8 +98,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(from), Some(to)) =>
         if (haveSameItemType(from, to)) {
-          val space = (robot.getInventoryStackLimit min to.getMaxStackSize) - to.stackSize
-          val amount = count min space min from.stackSize
+          val space = math.min(robot.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
+          val amount = math.min(count, math.min(space, from.stackSize))
           if (amount > 0) {
             from.stackSize -= amount
             to.stackSize += amount
@@ -148,7 +148,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     if (dropped != null && dropped.stackSize > 0) {
       def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
         var success = false
-        val maxStackSize = inventory.getInventoryStackLimit min dropped.getMaxStackSize
+        val maxStackSize = math.min(inventory.getInventoryStackLimit, dropped.getMaxStackSize)
         val shouldTryMerge = !dropped.isItemStackDamageable && dropped.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
         if (shouldTryMerge) {
           for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && filter(slot)) {
@@ -157,7 +157,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
               existing.isItemEqual(dropped) && ItemStack.areItemStackTagsEqual(existing, dropped)
             if (shouldMerge) {
               val space = maxStackSize - existing.stackSize
-              val amount = space min dropped.stackSize
+              val amount = math.min(space, dropped.stackSize)
               assert(amount > 0)
               success = true
               existing.stackSize += amount
@@ -168,7 +168,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
         def canDropIntoSlot(slot: Int) = filter(slot) && inventory.isItemValidForSlot(slot, dropped) && inventory.getStackInSlot(slot) == null
         for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && canDropIntoSlot(slot)) {
-          val amount = maxStackSize min dropped.stackSize
+          val amount = math.min(maxStackSize, dropped.stackSize)
           inventory.setInventorySlotContents(slot, dropped.splitStack(amount))
           success = true
         }
@@ -256,8 +256,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       for (slot <- 0 until inventory.getSizeInventory if !success && filter(slot)) {
         val stack = inventory.getStackInSlot(slot)
         if (stack != null) {
-          val maxStackSize = robot.getInventoryStackLimit min stack.getMaxStackSize
-          val amount = maxStackSize min stack.stackSize min count
+          val maxStackSize = math.min(robot.getInventoryStackLimit, stack.getMaxStackSize)
+          val amount = math.min(maxStackSize, math.min(stack.stackSize, count))
           val sucked = stack.splitStack(amount)
           success = player.inventory.addItemStackToInventory(sucked)
           stack.stackSize += sucked.stackSize
@@ -600,7 +600,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
   private def checkOptionalItemCount(args: Arguments, n: Int) =
     if (args.count > n && args.checkAny(n) != null) {
-      args.checkInteger(n) max 0 min robot.getInventoryStackLimit
+      math.max(args.checkInteger(n), math.min(0, robot.getInventoryStackLimit))
     }
     else robot.getInventoryStackLimit
 

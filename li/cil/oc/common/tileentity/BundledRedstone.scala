@@ -39,7 +39,7 @@ trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatab
   }
 
   def bundledInput(side: ForgeDirection, color: Int) =
-    _bundledInput(side.ordinal())(color) max _rednetInput(side.ordinal())(color)
+    math.max(_bundledInput(side.ordinal())(color), _rednetInput(side.ordinal())(color))
 
   def rednetInput(side: ForgeDirection, color: Int, value: Int) =
     if (_rednetInput(side.ordinal())(color) != value) {
@@ -134,7 +134,9 @@ trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatab
     if (side == ForgeDirection.UNKNOWN) {
       if (Loader.isModLoaded("MineFactoryReloaded")) {
         for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+          val nx = x + side.offsetX
+          val ny = y + side.offsetY
+          val nz = z + side.offsetZ
           Block.blocksList(world.getBlockId(nx, ny, nz)) match {
             case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
             case _ =>
@@ -143,7 +145,9 @@ trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatab
       }
     }
     else {
-      val (nx, ny, nz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      val nx = x + side.offsetX
+      val ny = y + side.offsetY
+      val nz = z + side.offsetZ
       if (Loader.isModLoaded("MineFactoryReloaded")) {
         Block.blocksList(world.getBlockId(nx, ny, nz)) match {
           case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
@@ -157,7 +161,7 @@ trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatab
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).map(value => (value max 0 min 255).toByte)
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).map(value => math.min(math.max(value, 0), 255).toByte)
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()

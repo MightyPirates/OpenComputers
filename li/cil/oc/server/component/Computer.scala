@@ -120,7 +120,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   })
 
   def pause(seconds: Double): Boolean = {
-    val ticksToPause = (seconds * 20).toInt max 0
+    val ticksToPause = math.max((seconds * 20).toInt, 0)
     def shouldPause(state: Computer.State.Value) = state match {
       case Computer.State.Stopping | Computer.State.Stopped => false
       case Computer.State.Paused if ticksToPause <= remainingPause => false
@@ -215,27 +215,29 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     worldTime = owner.world.getWorldTime
 
     // We can have rollbacks from '/time set'. Avoid getting negative uptimes.
-    timeStarted = timeStarted min worldTime
+    timeStarted = math.min(timeStarted, worldTime)
 
     // Reset direct call limits.
-    callCounts.synchronized(callCounts.clear())
+    callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
 
     // Make sure we have enough power.
-    val cost = if (isRobot) Settings.get.robotCost else Settings.get.computerCost
-    state.synchronized(state.top match {
-      case Computer.State.Paused |
-           Computer.State.Restarting |
-           Computer.State.Stopping |
-           Computer.State.Stopped => // No power consumption.
-      case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
-        if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
-          crash("not enough energy")
-        }
-      case _ =>
-        if (!node.tryChangeBuffer(-cost)) {
-          crash("not enough energy")
-        }
-    })
+    if (owner.world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+      val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
+      state.synchronized(state.top match {
+        case Computer.State.Paused |
+             Computer.State.Restarting |
+             Computer.State.Stopping |
+             Computer.State.Stopped => // No power consumption.
+        case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
+          if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
+            crash("not enough energy")
+          }
+        case _ =>
+          if (!node.tryChangeBuffer(-cost)) {
+            crash("not enough energy")
+          }
+      })
+    }
 
     // Avoid spamming user list across the network.
     if (worldTime % 20 == 0 && usersChanged) {
@@ -396,17 +398,19 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   }
 
   private def processAddedComponents() {
-    for (component <- addedComponents) {
-      if (component.canBeSeenFrom(node)) {
-        components.synchronized(components += component.address -> component.name)
-        // Skip the signal if we're not initialized yet, since we'd generate a
-        // duplicate in the startup script otherwise.
-        if (kernelMemory > 0) {
-          signal("component_added", component.address, component.name)
+    if (addedComponents.size > 0) {
+      for (component <- addedComponents) {
+        if (component.canBeSeenFrom(node)) {
+          components.synchronized(components += component.address -> component.name)
+          // Skip the signal if we're not initialized yet, since we'd generate a
+          // duplicate in the startup script otherwise.
+          if (kernelMemory > 0) {
+            signal("component_added", component.address, component.name)
+          }
         }
       }
+      addedComponents.clear()
     }
-    addedComponents.clear()
   }
 
   private def verifyComponents() {
@@ -1214,7 +1218,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               // memory, regardless of the memory need of the underlying system
               // (which may change across releases).
               lua.gc(LuaState.GcAction.COLLECT, 0)
-              kernelMemory = lua.getTotalMemory - lua.getFreeMemory max 1
+              kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
               recomputeMemory()
 
               // Fake zero sleep to avoid stopping if there are no signals.
