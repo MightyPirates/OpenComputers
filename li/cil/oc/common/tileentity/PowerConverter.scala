@@ -37,7 +37,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
       if (isIndustrialCraftAvailable) {
         loadIC2()
       }
-      if (isBuildCraftAvailable && demand > 1 && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+      if (isBuildCraftAvailable && demand > 1 && world.getWorldTime % Settings.get.tickFrequency == 0) {
         val wantInMJ = demand.toFloat / Settings.get.ratioBuildCraft
         val powerProvider = getPowerProvider
         if (wantInMJ < powerProvider.getEnergyStored) {

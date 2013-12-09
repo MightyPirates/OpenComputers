@@ -28,6 +28,8 @@ abstract class GraphicsCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
   override def update() {
     super.update()
     if (screenInstance.isEmpty && screenAddress.isDefined) {

@@ -24,7 +24,7 @@ class Adapter extends Environment with IPeripheral {
   override def updateEntity() {
     super.updateEntity()
     for (block <- blocks) block match {
-      case Some((environment, _)) => environment.update()
+      case Some((environment, _)) if environment.canUpdate => environment.update()
       case _ => // Empty.
     }
   }

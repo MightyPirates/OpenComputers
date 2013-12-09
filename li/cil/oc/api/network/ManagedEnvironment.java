@@ -18,6 +18,15 @@ import li.cil.oc.api.Persistable;
  */
 public interface ManagedEnvironment extends Environment, Persistable {
     /**
+     * Like the method of the same name on tile entities, this is used to
+     * decide whether to put a component in the list of components that need
+     * updating, i.e. for which {@link #update()} should be called each tick.
+     * <p/>
+     * Return false here, if you do not need updates, to improve performance.
+     */
+    boolean canUpdate();
+
+    /**
      * This is called by the host of this managed environment once per tick.
      */
     void update();

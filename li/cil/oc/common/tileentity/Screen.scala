@@ -121,7 +121,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
+    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (litPixels < 0) {
         litPixels = 0
         for (line <- buffer.lines) for (c <- line) {

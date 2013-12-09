@@ -74,6 +74,8 @@ class Generator(val owner: MCTileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
   override def update() {
     super.update()
     if (remainingTicks <= 0 && inventory.isDefined) {

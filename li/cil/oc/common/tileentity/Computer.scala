@@ -84,9 +84,10 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
         updateRedstoneInput()
 
-        for (component <- components) component match {
-          case Some(environment) => environment.update()
-          case _ => // Empty.
+        if (updatingComponents.length > 0) {
+          for (component <- updatingComponents) {
+            component.update()
+          }
         }
       }
     }

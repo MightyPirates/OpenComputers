@@ -9,10 +9,11 @@ import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import scala.collection.mutable
 
-trait ComponentInventory extends Inventory with network.Environment {
-  self: MCTileEntity =>
+trait ComponentInventory extends Inventory with network.Environment { self: MCTileEntity =>
   protected lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
+  protected val updatingComponents = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   // ----------------------------------------------------------------------- //
 
@@ -30,14 +31,18 @@ trait ComponentInventory extends Inventory with network.Environment {
     super.onConnect(node)
     if (node == this.node) {
       for ((stack, slot) <- items.zipWithIndex collect {
-        case (Some(stack), slot) => (stack, slot)
+        case (Some(stack), slot) if slot > 0 && slot < components.length => (stack, slot)
       } if components(slot).isEmpty && isComponentSlot(slot)) {
         components(slot) = Registry.driverFor(stack) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, this)) match {
-              case Some(environment) =>
-                environment.load(dataTag(driver, stack))
-                Some(environment)
+              case Some(component) =>
+                component.load(dataTag(driver, stack))
+                if (component.canUpdate) {
+                  assert(!updatingComponents.contains(component))
+                  updatingComponents += component
+                }
+                Some(component)
               case _ => None
             }
           case _ => None
@@ -101,6 +106,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         // are saved (otherwise hard drives would restore all handles after
         // being installed into a different computer, even!)
         components(slot) = None
+        updatingComponents -= component
         component.node.remove()
         Registry.driverFor(stack).foreach(driver =>
           component.save(dataTag(driver, stack)))

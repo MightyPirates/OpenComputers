@@ -158,6 +158,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
   override def update() {
     super.update()
     WirelessNetwork.update(this)

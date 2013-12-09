@@ -233,7 +233,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  override def buffer = robot.buffer
+  override lazy val buffer = robot.buffer
 
   override def bufferIsDirty = robot.bufferIsDirty
 

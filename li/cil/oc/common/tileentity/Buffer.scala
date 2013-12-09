@@ -15,7 +15,7 @@ trait Buffer extends Environment {
 
   protected var _currentGui = None: Option[gui.Buffer]
 
-  def buffer = _buffer
+  lazy val buffer = _buffer
 
   def bufferIsDirty = _bufferIsDirty
 

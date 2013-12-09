@@ -90,6 +90,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def isRobot = false
 
+  private lazy val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
+
   // ----------------------------------------------------------------------- //
 
   def address = node.address
@@ -196,7 +198,9 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   // ----------------------------------------------------------------------- //
 
-  override def update() {
+  override val canUpdate = true
+
+  override def update() = if (state.top != Computer.State.Stopped) {
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their
@@ -221,8 +225,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
 
     // Make sure we have enough power.
-    if (owner.world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0) {
-      val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
+    if (worldTime % Settings.get.tickFrequency == 0) {
       state.synchronized(state.top match {
         case Computer.State.Paused |
              Computer.State.Restarting |

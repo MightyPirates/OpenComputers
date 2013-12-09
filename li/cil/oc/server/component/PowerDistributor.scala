@@ -87,8 +87,10 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
   override def update() {
-    if (dirty && owner.world.getWorldInfo.getWorldTotalTime % Settings.get.tickFrequency == 0 && node != null) {
+    if (dirty && owner.world.getWorldTime % Settings.get.tickFrequency == 0 && node != null) {
       updateCachedValues()
     }
   }
@@ -160,7 +162,7 @@ class PowerDistributor(val owner: PowerInformation) extends ManagedComponent {
   def updateCachedValues() {
     // Computer average fill ratio of all buffers.
     var sumBuffer, sumBufferSize = 0.0
-    for (buffer <- buffers) {
+    for (buffer <- buffers if buffer.localBufferSize > 0) {
       sumBuffer += buffer.localBuffer
       sumBufferSize += buffer.localBufferSize
     }
