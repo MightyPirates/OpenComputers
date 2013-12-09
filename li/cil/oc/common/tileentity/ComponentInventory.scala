@@ -31,7 +31,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
     super.onConnect(node)
     if (node == this.node) {
       for ((stack, slot) <- items.zipWithIndex collect {
-        case (Some(stack), slot) if slot > 0 && slot < components.length => (stack, slot)
+        case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
       } if components(slot).isEmpty && isComponentSlot(slot)) {
         components(slot) = Registry.driverFor(stack) match {
           case Some(driver) =>
