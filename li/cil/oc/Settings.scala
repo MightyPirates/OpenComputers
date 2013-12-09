@@ -70,13 +70,15 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // robot.delays
 
-  val turnDelay = config.getDouble("robot.delays.turn") max 0.05
-  val moveDelay = config.getDouble("robot.delays.move") max 0.05
-  val swingDelay = config.getDouble("robot.delays.swing") max 0
-  val useDelay = config.getDouble("robot.delays.use") max 0
-  val placeDelay = config.getDouble("robot.delays.place") max 0
-  val dropDelay = config.getDouble("robot.delays.drop") max 0
-  val suckDelay = config.getDouble("robot.delays.suck") max 0
+  // Note: all delays are reduced by one tick to account for the tick they are
+  // performed in (since all actions are delegated to the server thread).
+  val turnDelay = (config.getDouble("robot.delays.turn") - 0.06) max 0.05
+  val moveDelay = (config.getDouble("robot.delays.move") - 0.06) max 0.05
+  val swingDelay = (config.getDouble("robot.delays.swing") - 0.06) max 0
+  val useDelay = (config.getDouble("robot.delays.use") - 0.06) max 0
+  val placeDelay = (config.getDouble("robot.delays.place") - 0.06) max 0
+  val dropDelay = (config.getDouble("robot.delays.drop") - 0.06) max 0
+  val suckDelay = (config.getDouble("robot.delays.suck") - 0.06) max 0
   val harvestRatio = config.getDouble("robot.delays.harvestRatio") max 0
 
   // ----------------------------------------------------------------------- //
