@@ -21,7 +21,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
 
   override def validate() {
     super.validate()
-    worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, 0, 0)
+    worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, Int.MinValue, 0)
   }
 
   override def invalidate() {

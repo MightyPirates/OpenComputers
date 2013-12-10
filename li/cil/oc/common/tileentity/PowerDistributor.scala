@@ -14,7 +14,7 @@ class PowerDistributor extends Environment with PowerInformation with Analyzable
 
   var globalBufferSize = 0.0
 
-  def node = distributor.node
+  lazy val node = distributor.node
 
   // ----------------------------------------------------------------------- //
 

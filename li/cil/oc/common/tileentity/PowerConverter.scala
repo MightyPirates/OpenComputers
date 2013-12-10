@@ -194,7 +194,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
       val free = node.globalBufferSize - node.globalBuffer
       math.min(math.ceil(free / Settings.get.ratioThermalExpansion).toInt, maxReceive)
     }
-    else node.changeBuffer(maxReceive * Settings.get.ratioThermalExpansion).toInt
+    else (maxReceive - node.changeBuffer(maxReceive * Settings.get.ratioThermalExpansion) / Settings.get.ratioThermalExpansion).toInt
   }
 
   @Optional.Method(modid = "ThermalExpansion")

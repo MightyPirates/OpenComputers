@@ -27,7 +27,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, Int.MinValue, 0)
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
