@@ -160,31 +160,6 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   def doWork(workProvider: PowerHandler) {}
 
   // ----------------------------------------------------------------------- //
-  // Universal Electricity
-
-  def canConnect(direction: ForgeDirection) = !Settings.get.ignorePower
-
-  def getVoltage = 120f
-
-  def getRequest(direction: ForgeDirection) = {
-    if (Settings.get.ignorePower) 0
-    else demand.toFloat / Settings.get.ratioUniversalElectricity
-  }
-
-  def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
-    if (receive != null) {
-      if (doReceive) {
-        node.changeBuffer(receive.getWatts * Settings.get.ratioUniversalElectricity)
-      }
-      receive.getWatts
-    } else 0
-  }
-
-  def getProvide(direction: ForgeDirection) = 0f
-
-  def provideElectricity(from: ForgeDirection, request: ElectricityPack, doProvide: Boolean) = null
-
-  // ----------------------------------------------------------------------- //
   // Thermal Expansion
 
   @Optional.Method(modid = "ThermalExpansion")
@@ -208,4 +183,29 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   @Optional.Method(modid = "ThermalExpansion")
   def getMaxEnergyStored(from: ForgeDirection) = (node.globalBufferSize / Settings.get.ratioThermalExpansion).toInt
+
+  // ----------------------------------------------------------------------- //
+  // Universal Electricity
+
+  def canConnect(direction: ForgeDirection) = !Settings.get.ignorePower
+
+  def getVoltage = 120f
+
+  def getRequest(direction: ForgeDirection) = {
+    if (Settings.get.ignorePower) 0
+    else demand.toFloat / Settings.get.ratioUniversalElectricity
+  }
+
+  def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
+    if (receive != null) {
+      if (doReceive) {
+        node.changeBuffer(receive.getWatts * Settings.get.ratioUniversalElectricity)
+      }
+      receive.getWatts
+    } else 0
+  }
+
+  def getProvide(direction: ForgeDirection) = 0f
+
+  def provideElectricity(from: ForgeDirection, request: ElectricityPack, doProvide: Boolean) = null
 }

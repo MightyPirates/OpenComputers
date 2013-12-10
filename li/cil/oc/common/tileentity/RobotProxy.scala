@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
@@ -12,7 +13,6 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 
 class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation {
   def this() = this(new Robot(false))
@@ -247,11 +247,11 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  def globalBuffer = robot.globalBuffer
+  override def globalBuffer = robot.globalBuffer
 
-  def globalBuffer_=(value: Double) = robot.globalBuffer = value
+  override def globalBuffer_=(value: Double) = robot.globalBuffer = value
 
-  def globalBufferSize = robot.globalBufferSize
+  override def globalBufferSize = robot.globalBufferSize
 
-  def globalBufferSize_=(value: Double) = robot.globalBufferSize = value
+  override def globalBufferSize_=(value: Double) = robot.globalBufferSize = value
 }

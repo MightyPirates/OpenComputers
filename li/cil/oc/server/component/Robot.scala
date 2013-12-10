@@ -18,7 +18,6 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotContext {
-
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world
@@ -480,7 +479,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       result(false, what)
     }
     else {
-      if (!robot.battery.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+      if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
         result(false, "not enough energy")
       }
       else if (robot.move(direction)) {
@@ -488,7 +487,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
         result(true)
       }
       else {
-        robot.battery.changeBuffer(Settings.get.robotMoveCost)
+        robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
         result(false, "impossible move")
       }
     }
@@ -497,7 +496,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.battery.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (robot.computer.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)

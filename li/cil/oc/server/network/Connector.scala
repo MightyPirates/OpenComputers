@@ -3,17 +3,15 @@ package li.cil.oc.server.network
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.server.component.PowerDistributor
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
-import scala.collection.convert.WrapAsScala._
 
 trait Connector extends Node with network.Connector with Persistable {
   var localBufferSize: Double
 
   var localBuffer = 0.0
 
-  private var distributor: Option[PowerDistributor] = None
+  var distributor: Option[Distributor] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -54,7 +52,7 @@ trait Connector extends Node with network.Connector with Persistable {
     else 0
     if (localBuffer != oldBuffer) {
       this.synchronized(distributor match {
-        case Some(d) => d.dirty = true
+        case Some(d) => d.globalBuffer = math.max(0, math.min(d.globalBufferSize, d.globalBuffer - oldBuffer + localBuffer))
         case _ =>
       })
     }
@@ -86,6 +84,11 @@ trait Connector extends Node with network.Connector with Persistable {
   def setLocalBufferSize(size: Double) {
     this.synchronized(distributor match {
       case Some(d) => d.synchronized {
+        if (network != null) {
+          if (localBufferSize <= 0 && size > 0) d.addConnector(this)
+          else if (localBufferSize > 0 && size == 0) d.removeConnector(this)
+          d.globalBufferSize = math.max(d.globalBufferSize - localBufferSize + size, 0)
+        }
         localBufferSize = math.max(size, 0)
         val surplus = math.max(localBuffer - localBufferSize, 0)
         localBuffer = math.min(localBuffer, localBufferSize)
@@ -99,39 +102,19 @@ trait Connector extends Node with network.Connector with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: ImmutableNode) {
-    if (node == this) {
-      findDistributor()
-    }
-    else if (distributor.isEmpty) {
-      node.host match {
-        case d: PowerDistributor => this.synchronized(distributor = Some(d))
-        case _ =>
-      }
-    }
-    super.onConnect(node)
-  }
-
   override def onDisconnect(node: ImmutableNode) {
     if (node == this) this.synchronized {
       setLocalBufferSize(0)
       distributor = None
     }
-    else if (distributor.exists(_ == node.host)) {
-      findDistributor()
-    }
     super.onDisconnect(node)
-  }
-
-  private def findDistributor() = {
-    this.synchronized(distributor = reachableNodes.find(_.host.isInstanceOf[PowerDistributor]).fold(None: Option[PowerDistributor])(n => Some(n.host.asInstanceOf[PowerDistributor])))
   }
 
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = math.max(nbt.getDouble("buffer"), math.min(0, localBufferSize))
+    localBuffer = math.min(nbt.getDouble("buffer"), math.max(0, localBufferSize))
   }
 
   override def save(nbt: NBTTagCompound) {

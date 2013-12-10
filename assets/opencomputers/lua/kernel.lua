@@ -235,6 +235,8 @@ sandbox = {
     freeMemory = computer.freeMemory,
     totalMemory = computer.totalMemory,
     uptime = computer.uptime,
+    energy = computer.energy,
+    maxEnergy = computer.maxEnergy,
 
     users = computer.users,
     addUser = function(name)
@@ -348,7 +350,10 @@ local function main()
       if handle then
         local buffer = ""
         repeat
-          local data = rom.read(handle)
+          local data, reason = rom.read(handle)
+          if not data and reason then
+            error(reason)
+          end
           buffer = buffer .. (data or "")
         until not data
         rom.close(handle)

@@ -315,7 +315,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
   override def addExhaustion(amount: Float) {
     if (Settings.get.robotExhaustionCost > 0) {
-      robot.battery.changeBuffer(-Settings.get.robotExhaustionCost * amount)
+      robot.computer.node.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
     robot.addXp(Settings.get.robotExhaustionXpRate * amount)
   }

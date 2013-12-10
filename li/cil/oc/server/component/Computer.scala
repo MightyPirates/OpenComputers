@@ -25,7 +25,7 @@ import scala.runtime.BoxedUnit
 class Computer(val owner: tileentity.Computer) extends ManagedComponent with Context with Runnable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
-    withConnector().
+    withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
     create()
 
   val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
@@ -489,7 +489,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
         rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
         tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
-        kernelMemory = nbt.getInteger("kernelMemory")
+        kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
         timeStarted = nbt.getLong("timeStarted")
         cpuTime = nbt.getLong("cpuTime")
         remainingPause = nbt.getInteger("remainingPause")
@@ -571,7 +571,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         rom.foreach(rom => nbt.setNewCompoundTag("rom", rom.save))
         tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
 
-        nbt.setInteger("kernelMemory", kernelMemory)
+        nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
         nbt.setLong("timeStarted", timeStarted)
         nbt.setLong("cpuTime", cpuTime)
         nbt.setInteger("remainingPause", remainingPause)
@@ -898,6 +898,18 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         1
       })
       lua.setField(-2, "removeUser")
+
+      lua.pushScalaFunction(lua => {
+        lua.pushNumber(node.globalBuffer)
+        1
+      })
+      lua.setField(-2, "energy")
+
+      lua.pushScalaFunction(lua => {
+        lua.pushNumber(node.globalBufferSize)
+        1
+      })
+      lua.setField(-2, "maxEnergy")
 
       // Set the computer table.
       lua.setGlobal("computer")

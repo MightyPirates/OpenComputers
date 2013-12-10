@@ -1,12 +1,14 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
+import net.minecraftforge.common.ForgeDirection
 import scala.math.ScalaNumber
 
 abstract class Environment extends net.minecraft.tileentity.TileEntity with TileEntity with network.Environment with Persistable {
@@ -35,11 +37,23 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
   override def onChunkUnload() {
     super.onChunkUnload()
     Option(node).foreach(_.remove)
+    this match {
+      case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
+      }
+      case _ =>
+    }
   }
 
   override def invalidate() {
     super.invalidate()
     Option(node).foreach(_.remove)
+    this match {
+      case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
+      }
+      case _ =>
+    }
   }
 
   // ----------------------------------------------------------------------- //

@@ -96,6 +96,7 @@ class Settings(config: Config) {
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
   val bufferCapacitorAdjacencyBonus = config.getDouble("power.buffer.capacitorAdjacencyBonus") max 0
+  val bufferComputer = config.getDouble("power.buffer.computer") max 0
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
 
   // power.cost

@@ -1,9 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
-trait PowerInformation extends TileEntity {
+trait PowerInformation extends TileEntity { self: MCTileEntity =>
+  private var lastSentRatio = -1.0
+
   def globalBuffer: Double
 
   def globalBuffer_=(value: Double)
@@ -11,6 +15,14 @@ trait PowerInformation extends TileEntity {
   def globalBufferSize: Double
 
   def globalBufferSize_=(value: Double)
+
+  protected def updatePowerInformation() {
+    val ratio = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0
+    if (lastSentRatio < 0 || math.abs(lastSentRatio - ratio) > (5.0 / 100.0)) {
+      lastSentRatio = ratio
+      ServerPacketSender.sendPowerState(this)
+    }
+  }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
@@ -21,6 +33,7 @@ trait PowerInformation extends TileEntity {
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
+    lastSentRatio = if (globalBufferSize > 0) globalBuffer / globalBufferSize else 0
     nbt.setDouble("globalBuffer", globalBuffer)
     nbt.setDouble("globalBufferSize", globalBufferSize)
   }

@@ -11,10 +11,6 @@ function robot.level()
   return component.computer.level()
 end
 
-function robot.energy()
-  return component.power.buffer()
-end
-
 -------------------------------------------------------------------------------
 -- World
 
