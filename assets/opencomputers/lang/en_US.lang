@@ -97,6 +97,7 @@ oc:tooltip.Microchip=The chip formerly known as Integrated Circuit. I have no id
 oc:tooltip.NetworkCard=Allows distant computers connected by other blocks (such as cable) to communicate by sending messages to each other.
 oc:tooltip.PowerConverter.BC=§fBuildCraft MJ§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.IC2=§fIndustrialCraft² EU§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.TE=§fThermal Expansion RF§7: §a%s:%s§7.
 oc:tooltip.PowerConverter.UE=§fUniversal Electricity Joules§7: §a%s:%s§7.
 oc:tooltip.PowerConverter=Converts power from other mods to the internal energy type. Conversion rates:
 oc:tooltip.PowerDistributor=Distributes energy inside the network. You will need one of these per network. Adding more than one has no effect.
