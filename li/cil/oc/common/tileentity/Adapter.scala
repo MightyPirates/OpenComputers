@@ -94,15 +94,21 @@ class Adapter extends Environment with IPeripheral {
     if (Loader.isModLoaded("ComputerCraft")) {
       if (message.name == "network.message") message.data match {
         case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
-          for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-            if (openPorts(computer).contains(port))
-              computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort.toInt)) ++ args.map {
-                case x: Array[Byte] => new String(x, "UTF-8")
-                case x => x
-              }: _*))
-          }
+          queueMessage(port, answerPort.toInt, args)
+        case Array(port: Integer, args@_*) =>
+          queueMessage(port, -1, args)
         case _ =>
       }
+    }
+  }
+
+  private def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
+    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
+      if (openPorts(computer).contains(port))
+        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
+          case x: Array[Byte] => new String(x, "UTF-8")
+          case x => x
+        }: _*))
     }
   }
 

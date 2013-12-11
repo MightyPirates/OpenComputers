@@ -285,7 +285,12 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     if (!player.isSneaking) {
       world.getBlockTileEntity(x, y, z) match {
         case screen: tileentity.Screen if screen.hasKeyboard =>
-          player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+          // Yep, this GUI is actually purely client side. We could skip this
+          // if, but it is clearer this way (to trigger it from the server we
+          // would have to give screens a "container", which we do not want).
+          if (world.isRemote) {
+            player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+          }
           true
         case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
           screen.click(player, hitX, hitY, hitZ)

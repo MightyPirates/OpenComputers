@@ -92,7 +92,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def isRobot = false
 
-  private lazy val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
+  private val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
 
   // ----------------------------------------------------------------------- //
 
