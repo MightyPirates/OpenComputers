@@ -21,7 +21,7 @@ import universalelectricity.core.electricity.ElectricityPack
 ))
 class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical with IEnergyHandler {
   val node = api.Network.newNode(this, Visibility.Network).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
 
   private lazy val isIndustrialCraftAvailable = Loader.isModLoaded("IC2")
