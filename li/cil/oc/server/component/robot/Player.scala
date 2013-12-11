@@ -6,7 +6,7 @@ import li.cil.oc.util.mods.PortalGun
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
-import net.minecraft.entity.{EntityLivingBase, Entity}
+import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
@@ -321,6 +321,10 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
   }
 
   override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
+
+  override def displayGUIMerchant(merchant: IMerchant, name: String) {
+    merchant.setCustomer(null)
+  }
 
   override def closeScreen() {}
 
