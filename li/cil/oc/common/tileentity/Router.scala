@@ -62,7 +62,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
     val node = api.Network.newNode(this, Visibility.Network).create()
 
     def onMessage(message: Message) {
-      if (isPrimary) {
+      if (isPrimary && message.name == "network.message") {
         plugsInOtherNetworks.foreach(_.node.sendToReachable(message.name, message.data: _*))
       }
     }
