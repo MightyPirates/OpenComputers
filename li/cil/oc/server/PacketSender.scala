@@ -67,7 +67,7 @@ object PacketSender {
     }
   }
 
-  def sendRedstoneState(t: Redstone, player: Option[Player] = None) {
+  def sendRedstoneState(t: RedstoneAware, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)

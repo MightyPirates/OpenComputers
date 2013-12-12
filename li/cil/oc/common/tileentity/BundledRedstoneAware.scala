@@ -15,7 +15,7 @@ import scala.Array
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic")
 ))
-trait BundledRedstone extends Redstone with IBundledEmitter with IBundledUpdatable {
+trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable {
 
   private val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
 

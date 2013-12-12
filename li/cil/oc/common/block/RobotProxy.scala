@@ -15,7 +15,7 @@ import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
-class RobotProxy(val parent: SpecialDelegator) extends Computer with SpecialDelegate {
+class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"
 
   private var icon: Icon = _

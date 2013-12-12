@@ -8,7 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Charger extends Environment with Redstone with Analyzable {
+class Charger extends Environment with RedstoneAware with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()

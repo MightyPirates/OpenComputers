@@ -4,12 +4,12 @@ import li.cil.oc.common.tileentity
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.ForgeDirection
 
-abstract class Computer extends Delegate {
+abstract class RedstoneAware extends Delegate {
   override def hasTileEntity = true
 
   override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer => computer.isOutputEnabled
+      case redstone: tileentity.RedstoneAware => redstone.isOutputEnabled
       case _ => false
     }
 
@@ -18,13 +18,13 @@ abstract class Computer extends Delegate {
 
   override def isProvidingWeakPower(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer => math.min(math.max(computer.output(side), 0), 15)
+      case redstone: tileentity.RedstoneAware => math.min(math.max(redstone.output(side), 0), 15)
       case _ => super.isProvidingWeakPower(world, x, y, z, side)
     }
 
   override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case computer: tileentity.Computer => computer.checkRedstoneInputChanged()
+      case redstone: tileentity.RedstoneAware => redstone.checkRedstoneInputChanged()
       case _ => // Ignore.
     }
 }
