@@ -110,11 +110,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
           }
           else false
         }
-        else {
+        else if (count >= from.stackSize) {
           robot.setInventorySlotContents(slot, from)
           robot.setInventorySlotContents(selectedSlot, to)
           true
         }
+        else false
       case (Some(from), None) =>
         robot.setInventorySlotContents(slot, robot.decrStackSize(selectedSlot, count))
         true
