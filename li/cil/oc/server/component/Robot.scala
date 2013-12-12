@@ -615,7 +615,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
   private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = checkSide(args, n, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = checkSide(args, n, ForgeDirection.VALID_DIRECTIONS.filter(_ != robot.toLocal(facing).getOpposite): _*)
 
   private def checkSide(args: Arguments, n: Int, allowed: ForgeDirection*) = {
     val side = args.checkInteger(n)
