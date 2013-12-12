@@ -297,6 +297,16 @@ local function onClipboard(value)
   term.setCursorBlink(true) -- force toggle to caret
 end
 
+local function onClick(x, y)
+  local w, h = getSize()
+  x = math.max(1, math.min(w, x))
+  y = math.max(1, math.min(h, #buffer, y))
+  setCursor(x, y)
+  if getCursor() > unicode.len(line()) then
+    ende()
+  end
+end
+
 -------------------------------------------------------------------------------
 
 do
@@ -327,12 +337,14 @@ do
 end
 
 while running do
-  local event, address, charOrValue, code = event.pull()
+  local event, address, arg1, arg2 = event.pull()
   if type(address) == "string" and component.isPrimary(address) then
     if event == "key_down" then
-      onKeyDown(charOrValue, code)
+      onKeyDown(arg1, arg2)
     elseif event == "clipboard" then
-      onClipboard(charOrValue)
+      onClipboard(arg1)
+    elseif event == "click" then
+      onClick(arg1, arg2)
     end
   end
 end
