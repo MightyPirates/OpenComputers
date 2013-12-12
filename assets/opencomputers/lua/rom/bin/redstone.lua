@@ -1,15 +1,17 @@
+local rs = component.redstone
 local args, options = shell.parse(...)
 if #args < 1 then
-  print("Usage: redstone <side> [<value>]")
+  if rs.setBundledOutput then
+    print("Usage: redstone <side> [-b <color>] [<value>]")
+  else
+    print("Usage: redstone <side> [<value>]")
+  end
   return
 end
 
-local rs = component.redstone
-
 local side = sides[args[1]]
 if not side then
-  print("Invalid side.")
-  return
+  error("Invalid side.")
 end
 if type(side) == "string" then
   side = sides[side]
@@ -17,13 +19,11 @@ end
 
 if options.b then
   if not rs.setBundledOutput then
-    print("Bundled redstone not available.")
-    return
+    error("Bundled redstone not available.")
   end
   local color = colors[args[2]]
   if not color then
-    print("Invalid color.")
-    return
+    error("Invalid color.")
   end
   if type(color) == "string" then
     color = colors[color]
