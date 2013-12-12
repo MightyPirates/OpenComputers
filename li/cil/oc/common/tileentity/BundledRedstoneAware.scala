@@ -43,7 +43,9 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   def rednetInput(side: ForgeDirection, color: Int, value: Int) =
     if (_rednetInput(side.ordinal())(color) != value) {
-      onRedstoneInputChanged(side)
+      if (_rednetInput(side.ordinal())(color) != -1) {
+        onRedstoneInputChanged(side)
+      }
       _rednetInput(side.ordinal())(color) = value
     }
 
@@ -65,11 +67,11 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         val newBundledInput = computeBundledInput(side)
         var changed = false
         if (newBundledInput != null) for (color <- 0 until 16) {
-          changed = changed || oldBundledInput(color) != newBundledInput(color)
+          changed = changed || (oldBundledInput(color) >= 0 && oldBundledInput(color) != newBundledInput(color))
           oldBundledInput(color) = newBundledInput(color)
         }
         else for (color <- 0 until 16) {
-          changed = changed || oldBundledInput(color) != 0
+          changed = changed || oldBundledInput(color) > 0
           oldBundledInput(color) = 0
         }
         if (changed) {
