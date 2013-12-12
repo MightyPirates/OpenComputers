@@ -3,8 +3,8 @@ package li.cil.oc.common.block
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.common.tileentity
 import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB, Icon}
@@ -87,6 +87,10 @@ trait Delegate {
   def leftClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) {}
 
   def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = false
+
+  def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) {}
+
+  def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) {}
 
   // ----------------------------------------------------------------------- //
 

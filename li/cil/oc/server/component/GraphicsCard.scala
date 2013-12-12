@@ -2,6 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.Buffer
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.PackedColor
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
@@ -131,6 +132,13 @@ abstract class GraphicsCard extends ManagedComponent {
       val (gmw, gmh) = maxResolution
       val (smw, smh) = s.maxResolution
       result(math.min(gmw, smw), math.min(gmh, smh))
+    })
+
+  @LuaCallback("getSize")
+  def getSize(context: Context, args: Arguments): Array[AnyRef] =
+    screen(s => s.owner match {
+      case screen: tileentity.Screen => result(screen.width, screen.height)
+      case _ => result(1, 1)
     })
 
   @LuaCallback(value = "get", direct = true)

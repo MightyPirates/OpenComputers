@@ -281,13 +281,24 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ =>
     }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.rightClick(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
       case _ => false
     }
-  }
+
+  override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.walk(world, x, y, z, entity)
+      case _ => super.onEntityWalking(world, x, y, z, entity)
+    }
+
+  override def onEntityCollidedWithBlock(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.collide(world, x, y, z, entity)
+      case _ => super.onEntityCollidedWithBlock(world, x, y, z, entity)
+    }
 
   // ----------------------------------------------------------------------- //
 

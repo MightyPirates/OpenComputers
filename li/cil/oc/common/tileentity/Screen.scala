@@ -6,7 +6,9 @@ import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
@@ -40,6 +42,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   var cachedBounds: Option[AxisAlignedBB] = None
 
+  private val arrows = mutable.Set.empty[EntityArrow]
+
   def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
   def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
@@ -70,7 +74,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     cachedBounds = None
   }
 
-  def click(player: EntityPlayer, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  def click(player: EntityPlayer, hitX: Double, hitY: Double, hitZ: Double): Boolean = {
     // Compute absolute position of the click on the face, measured in blocks.
     def dot(f: ForgeDirection) = f.offsetX * hitX + f.offsetY * hitY + f.offsetZ * hitZ
     val (hx, hy) = (dot(toGlobal(ForgeDirection.EAST)), dot(toGlobal(ForgeDirection.UP)))
@@ -87,7 +91,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     val (rx, ry) = ((ax - border) / (width - border * 2), (ay - border) / (height - border * 2))
 
     // Make it a relative position in the displayed buffer.
-    val (bw, bh) = buffer.resolution
+    val (bw, bh) = origin.buffer.resolution
     val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth, bh * MonospaceFontRenderer.fontHeight)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
@@ -115,6 +119,31 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
     }
     true
+  }
+
+  def walk(entity: Entity) {
+    val (x, y) = localPosition
+    entity match {
+      case player: EntityPlayer =>
+        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getCommandSenderName)
+      case _ =>
+        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
+    }
+  }
+
+  def shot(arrow: EntityArrow, hitX: Double, hitY: Double, hitZ: Double) {
+    // This is nasty, but I see no other way: arrows can trigger two collisions,
+    // once on their own when hitting a block, a second time via their entity's
+    // common collision checker. The second one (collision checker) has the
+    // better coordinates (arrow moved back out of the block it collided with),
+    // so use that when possible, otherwise resolve in next update.
+    if (!arrows.add(arrow)) {
+      arrows.remove(arrow)
+      arrow.shootingEntity match {
+        case player: EntityPlayer => click(player, hitX, hitY, hitZ)
+        case _ =>
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -190,6 +219,15 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           buffer.buffer.fill(0, 0, w, h, ' ')
         }
       )
+    }
+    if (arrows.size > 0) {
+      for (arrow <- arrows) {
+        val hitX = math.max(0, math.min(1, arrow.posX - x))
+        val hitY = math.max(0, math.min(1, arrow.posY - y))
+        val hitZ = math.max(0, math.min(1, arrow.posZ - z))
+        shot(arrow, hitX, hitY, hitZ)
+      }
+      assert(arrows.isEmpty)
     }
   }
 
