@@ -32,6 +32,7 @@ object Recipes {
     val obsidian = new ItemStack(Block.obsidian)
     val paper = new ItemStack(Item.paper)
     val piston = new ItemStack(Block.pistonBase)
+    val redstoneBlock = new ItemStack(Block.blockRedstone)
     val redstoneDust = new ItemStack(Item.redstone)
     val redstoneTorch = new ItemStack(Block.torchRedstoneActive)
     val repeater = new ItemStack(Item.redstoneRepeater)
@@ -254,16 +255,6 @@ object Recipes {
       'p', paper,
       'b', pcb)
 
-    addRecipe(Blocks.powerDistributor.createItemStack(),
-      "ici",
-      "wgw",
-      "ibi",
-      'i', ironIngot,
-      'c', chip1,
-      'w', cable,
-      'g', goldIngot,
-      'b', pcb)
-
     addRecipe(Blocks.powerConverter.createItemStack(),
       "iwi",
       "gcg",
@@ -283,15 +274,6 @@ object Recipes {
       'p', piston,
       's', stick)
 
-    addRecipe(Blocks.router.createItemStack(),
-      "ini",
-      "ncn",
-      "ibi",
-      'i', ironIngot,
-      'n', lanCard,
-      'c', chip1,
-      'b', pcb)
-
     addRecipe(Blocks.adapter.createItemStack(),
       "iwi",
       "wcw",
@@ -299,6 +281,34 @@ object Recipes {
       'i', ironIngot,
       'w', cable,
       'c', chip1,
+      'b', pcb)
+
+    addRecipe(Blocks.redstone.createItemStack(),
+      "iri",
+      "rcr",
+      "ibi",
+      'i', ironIngot,
+      'r', redstoneBlock,
+      'c', redstoneCard,
+      'b', pcb)
+
+    addRecipe(Blocks.powerDistributor.createItemStack(),
+      "igi",
+      "wcw",
+      "ibi",
+      'i', ironIngot,
+      'g', goldIngot,
+      'w', cable,
+      'c', chip1,
+      'b', pcb)
+
+    addRecipe(Blocks.router.createItemStack(),
+      "iwi",
+      "wnw",
+      "ibi",
+      'i', ironIngot,
+      'w', cable,
+      'n', lanCard,
       'b', pcb)
 
     addRecipe(Blocks.charger.createItemStack(),

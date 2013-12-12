@@ -99,16 +99,12 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (isServer) {
-      computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
-    }
+    computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (isServer) {
-      nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
-    }
+    nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
   }
 
   @SideOnly(Side.CLIENT)
