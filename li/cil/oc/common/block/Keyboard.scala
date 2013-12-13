@@ -79,8 +79,8 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     val z0 = -up.offsetZ * sizes(1) - side.offsetZ * sizes(2) - forward.offsetZ * sizes(0)
     val z1 = up.offsetZ * sizes(1) + side.offsetZ * sizes(2) - forward.offsetZ * 0.5f
     AxisAlignedBB.getBoundingBox(
-      (x0 min x1) + 0.5f, (y0 min y1) + 0.5f, (z0 min z1) + 0.5f,
-      (x0 max x1) + 0.5f, (y0 max y1) + 0.5f, (z0 max z1) + 0.5f)
+      math.min(x0, x1) + 0.5f, math.min(y0, y1) + 0.5f, math.min(z0, z1) + 0.5f,
+      math.max(x0, x1) + 0.5f, math.max(y0, y1) + 0.5f, math.max(z0, z1) + 0.5f)
   }
 
   override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =

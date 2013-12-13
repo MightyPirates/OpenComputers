@@ -13,6 +13,8 @@ trait Delegate {
 
   val unlocalizedName: String
 
+  val showInItemList = true
+
   val itemId = parent.add(this)
 
   private var _icon: Option[Icon] = None

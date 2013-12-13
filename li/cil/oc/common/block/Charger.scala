@@ -11,7 +11,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
-class Charger(val parent: SimpleDelegator) extends SimpleDelegate {
+class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Charger"
 
   private val icons = Array.fill[Icon](6)(null)
@@ -32,15 +32,15 @@ class Charger(val parent: SimpleDelegator) extends SimpleDelegate {
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
   }
 
-  override def hasTileEntity = true
-
   override def createTileEntity(world: World) = Some(new tileentity.Charger())
 
   override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {
     world.getBlockTileEntity(x, y, z) match {
       case charger: tileentity.Charger => charger.onNeighborChanged()
       case _ =>
     }
+    super.neighborBlockChanged(world, x, y, z, blockId)
+  }
 }

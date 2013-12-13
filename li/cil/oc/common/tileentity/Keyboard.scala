@@ -15,7 +15,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   def node = if (isClient) null else keyboard.node
 
-  override def isClient = keyboard == null
+  override lazy val isClient = keyboard == null
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = node
 
@@ -27,7 +27,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, Int.MinValue, 0)
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {

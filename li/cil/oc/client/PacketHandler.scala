@@ -91,7 +91,7 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onRedstoneState(p: PacketParser) =
-    p.readTileEntity[Redstone]() match {
+    p.readTileEntity[RedstoneAware]() match {
       case Some(t) =>
         t.isOutputEnabled = p.readBoolean()
         for (d <- ForgeDirection.VALID_DIRECTIONS) {

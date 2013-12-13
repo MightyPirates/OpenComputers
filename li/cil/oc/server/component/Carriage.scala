@@ -75,6 +75,8 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
   override def update() {
     super.update()
     if (shouldMove) {

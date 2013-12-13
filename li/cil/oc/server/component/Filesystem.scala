@@ -133,7 +133,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         // Limit size of read buffer to avoid crazy allocations.
-        val buffer = new Array[Byte](n min Settings.get.maxReadBuffer)
+        val buffer = new Array[Byte](math.min(n, Settings.get.maxReadBuffer))
         val read = file.read(buffer)
         if (read >= 0) {
           val bytes =

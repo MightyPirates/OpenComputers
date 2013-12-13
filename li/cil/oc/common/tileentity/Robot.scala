@@ -37,11 +37,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     override def maxResolution = (48, 14)
   }
   override val _computer = if (isRemote) null else new component.Robot(this)
-  val (battery, distributor, gpu, keyboard) = if (isServer) {
-    val battery = api.Network.newNode(this, Visibility.Network).
-      withConnector(Settings.get.bufferRobot).
-      create()
-    val distributor = new component.PowerDistributor(this)
+  val (gpu, keyboard) = if (isServer) {
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
     }
@@ -50,9 +46,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         world.getBlockTileEntity(x, y, z) == proxy &&
           p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
     }
-    (battery, distributor, gpu, keyboard)
+    (gpu, keyboard)
   }
-  else (null, null, null, null)
+  else (null, null)
 
   var owner = "OpenComputers"
 
@@ -64,9 +60,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var xpChanged = false
 
-  var globalBuffer = 0.0
-
-  var globalBufferSize = 0.0
+  var globalBuffer, globalBufferSize = 0.0
 
   var selectedSlot = actualSlot(0)
 
@@ -97,9 +91,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   def updateXpInfo() {
     // xp(level) = base + (level * const) ^ exp
     // pow(xp(level) - base, 1/exp) / const = level
-    level = (Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt min 30
-    if (battery != null) {
-      battery.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+    level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
+    if (isServer) {
+      computer.node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
     }
   }
 
@@ -140,7 +134,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
-        val moveTicks = (Settings.get.moveDelay * 20).toInt max 1
+        val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
           world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)
@@ -182,7 +176,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (stack.hasTagCompound) {
       xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
       updateXpInfo()
-      battery.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+      computer.node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
     }
   }
 
@@ -258,8 +252,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
     super.updateEntity()
     if (isServer) {
-      distributor.update()
       gpu.update()
+      globalBuffer = computer.node.globalBuffer
+      globalBufferSize = computer.node.globalBufferSize
+      updatePowerInformation()
       if (xpChanged && world.getWorldInfo.getWorldTotalTime % 200 == 0) {
         xpChanged = false
         ServerPacketSender.sendRobotXp(this)
@@ -288,9 +284,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def readFromNBT(nbt: NBTTagCompound) {
     if (isServer) {
-      battery.load(nbt.getCompoundTag(Settings.namespace + "battery"))
       buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
-      distributor.load(nbt.getCompoundTag(Settings.namespace + "distributor"))
       gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
       keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
     }
@@ -312,9 +306,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    nbt.setNewCompoundTag(Settings.namespace + "battery", battery.save)
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
-    nbt.setNewCompoundTag(Settings.namespace + "distributor", distributor.save)
     nbt.setNewCompoundTag(Settings.namespace + "gpu", gpu.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     nbt.setString(Settings.namespace + "owner", owner)
@@ -375,9 +367,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     super.onConnect(node)
     if (node == this.node) {
       computer.node.connect(buffer.node)
-      computer.node.connect(distributor.node)
       computer.node.connect(gpu.node)
-      distributor.node.connect(battery)
       buffer.node.connect(keyboard.node)
     }
   }
@@ -385,10 +375,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      battery.remove()
       buffer.node.remove()
       computer.node.remove()
-      distributor.node.remove()
       gpu.node.remove()
       keyboard.node.remove()
     }

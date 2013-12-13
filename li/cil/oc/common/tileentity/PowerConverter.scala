@@ -1,25 +1,32 @@
 package li.cil.oc.common.tileentity
 
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
+import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import universalelectricity.core.block.IElectrical
 import universalelectricity.core.electricity.ElectricityPack
-import net.minecraft.entity.player.EntityPlayer
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
-  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy")))
-class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical {
+  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy"),
+  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion")
+))
+class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical with IEnergyHandler {
   val node = api.Network.newNode(this, Visibility.Network).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
+
+  private lazy val isIndustrialCraftAvailable = Loader.isModLoaded("IC2")
+
+  private lazy val isBuildCraftAvailable = Loader.isModLoaded("BuildCraft|Energy")
 
   private def demand = if (Settings.get.ignorePower) 0.0 else node.globalBufferSize - node.globalBuffer
 
@@ -30,10 +37,10 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
-      if (Loader.isModLoaded("IC2")) {
+      if (isIndustrialCraftAvailable) {
         loadIC2()
       }
-      if (demand > 0 && Loader.isModLoaded("BuildCraft|Energy")) {
+      if (isBuildCraftAvailable && demand > 1 && world.getWorldTime % Settings.get.tickFrequency == 0) {
         val wantInMJ = demand.toFloat / Settings.get.ratioBuildCraft
         val gotInMJ = getPowerProvider.useEnergy(1, wantInMJ, true)
         node.changeBuffer(gotInMJ * Settings.get.ratioBuildCraft)
@@ -74,7 +81,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   // ----------------------------------------------------------------------- //
   // IndustrialCraft
 
-  private var isIC2Loaded = false
+  private var addedToPowerGrid = false
 
   private var lastPacketSize = 0.0
 
@@ -82,17 +89,17 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   @Optional.Method(modid = "IC2")
   def loadIC2() {
-    if (!isIC2Loaded) {
+    if (!addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this))
-      isIC2Loaded = true
+      addedToPowerGrid = true
     }
   }
 
   @Optional.Method(modid = "IC2")
   def unloadIC2() {
-    if (isIC2Loaded) {
+    if (addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this))
-      isIC2Loaded = false
+      addedToPowerGrid = false
     }
   }
 
@@ -151,6 +158,31 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   @Optional.Method(modid = "BuildCraft|Energy")
   def doWork(workProvider: PowerHandler) {}
+
+  // ----------------------------------------------------------------------- //
+  // Thermal Expansion
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) = {
+    if (Settings.get.ignorePower) 0
+    else if (simulate) {
+      val free = node.globalBufferSize - node.globalBuffer
+      math.min(math.ceil(free / Settings.get.ratioThermalExpansion).toInt, maxReceive)
+    }
+    else (maxReceive - node.changeBuffer(maxReceive * Settings.get.ratioThermalExpansion) / Settings.get.ratioThermalExpansion).toInt
+  }
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def extractEnergy(from: ForgeDirection, maxExtract: Int, simulate: Boolean) = 0
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def canInterface(from: ForgeDirection) = true
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def getEnergyStored(from: ForgeDirection) = (node.globalBuffer / Settings.get.ratioThermalExpansion).toInt
+
+  @Optional.Method(modid = "ThermalExpansion")
+  def getMaxEnergyStored(from: ForgeDirection) = (node.globalBufferSize / Settings.get.ratioThermalExpansion).toInt
 
   // ----------------------------------------------------------------------- //
   // Universal Electricity

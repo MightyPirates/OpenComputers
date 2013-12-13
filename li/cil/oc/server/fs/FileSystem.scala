@@ -2,7 +2,7 @@ package li.cil.oc.server.fs
 
 import dan200.computer.api.{IWritableMount, IMount}
 import java.io
-import java.util.zip.ZipFile
+import java.net.URL
 import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
 import li.cil.oc.{Settings, api}
@@ -10,33 +10,45 @@ import net.minecraftforge.common.DimensionManager
 
 object FileSystem extends api.detail.FileSystemAPI {
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
-    val codeSource = clazz.getProtectionDomain.getCodeSource
-    if (codeSource == null) return null
-    val file = new io.File(codeSource.getLocation.toURI)
-    if (!file.exists || file.isDirectory) return null
-    val path = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
-    if (file.getName.endsWith(".class"))
-      new io.File(new io.File(file.getParent), path) match {
+    val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
+
+    val codeSource = clazz.getProtectionDomain.getCodeSource.getLocation.getPath
+    val (codeUrl, isArchive) =
+      if (codeSource.contains(".zip!") || codeSource.contains(".jar!"))
+        (codeSource.substring(0, codeSource.lastIndexOf('!')), true)
+      else
+        (codeSource, false)
+
+    val file = try {
+      val url = new URL(codeUrl)
+      try {
+        new io.File(url.toURI)
+      }
+      catch {
+        case _: Throwable => new io.File(url.getPath)
+      }
+    } catch {
+      case _: Throwable => new io.File(codeSource)
+    }
+
+    if (isArchive) {
+      ZipFileInputStreamFileSystem.fromFile(file, innerPath.substring(1))
+    }
+    else {
+      if (!file.exists || file.isDirectory) return null
+      new io.File(new io.File(file.getParent), innerPath) match {
         case fsp if fsp.exists() && fsp.isDirectory =>
           new ReadOnlyFileSystem(fsp)
         case _ =>
           System.getProperty("java.class.path").split(System.getProperty("path.separator")).
             find(cp => {
-            val fsp = new io.File(new io.File(cp), path)
+            val fsp = new io.File(new io.File(cp), innerPath)
             fsp.exists() && fsp.isDirectory
           }) match {
             case None => null
-            case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), path))
+            case Some(dir) => new ReadOnlyFileSystem(new io.File(new io.File(dir), innerPath))
           }
       }
-    else {
-      val zip = new ZipFile(file)
-      val entry = zip.getEntry(path)
-      if (entry == null || !entry.isDirectory) {
-        zip.close()
-        return null
-      }
-      new ZipFileInputStreamFileSystem(zip, path)
     }
   }
 

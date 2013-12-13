@@ -6,7 +6,7 @@ import li.cil.oc.util.mods.PortalGun
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
-import net.minecraft.entity.{EntityLivingBase, Entity}
+import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
@@ -153,7 +153,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
-      val heldTicks = 0 max stack.getMaxItemUseDuration min (duration * 20).toInt
+      val heldTicks = math.max(0, math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
       val newStack = stack.useItemRightClick(world, this)
       if (isUsingItem) {
         getItemInUse.onPlayerStoppedUsing(world, this, getItemInUse.getMaxItemUseDuration - heldTicks)
@@ -270,7 +270,7 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       if (stack != null) {
         robot.addXp(Settings.get.robotActionXp)
       }
-      return (breakTime * Settings.get.harvestRatio * ((1 - robot.level * Settings.get.harvestSpeedBoostPerLevel) max 0)) max 0.05
+      return math.max(breakTime * Settings.get.harvestRatio * math.max(1 - robot.level * Settings.get.harvestSpeedBoostPerLevel, 0), 0.05)
     }
     0
   }
@@ -280,13 +280,13 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
   private def tryRepair(stack: ItemStack, oldDamage: Int) {
     val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
-    val damageRate = Settings.get.itemDamageRate * ((1 - robot.level * Settings.get.toolEfficiencyPerLevel) max 0)
+    val damageRate = Settings.get.itemDamageRate * math.max(1 - robot.level * Settings.get.toolEfficiencyPerLevel, 0)
     val shouldRepair = needsRepairing && getRNG.nextDouble() >= damageRate
     if (shouldRepair) {
       // If an item takes a lot of damage at once we don't necessarily want to
       // make *all* of that damage go away. Instead we scale it according to
       // our damage probability. This makes sure we don't discard massive
-      // damage spikes (e.g. on axes when using the treecapitator mod or such).
+      // damage spikes (e.g. on axes when using the TreeCapitator mod or such).
       val addedDamage = ((stack.getItemDamage - oldDamage) * damageRate).toInt
       stack.setItemDamage(oldDamage + addedDamage)
     }
@@ -315,12 +315,16 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
 
   override def addExhaustion(amount: Float) {
     if (Settings.get.robotExhaustionCost > 0) {
-      robot.battery.changeBuffer(-Settings.get.robotExhaustionCost * amount)
+      robot.computer.node.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
     robot.addXp(Settings.get.robotExhaustionXpRate * amount)
   }
 
   override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
+
+  override def displayGUIMerchant(merchant: IMerchant, name: String) {
+    merchant.setCustomer(null)
+  }
 
   override def closeScreen() {}
 

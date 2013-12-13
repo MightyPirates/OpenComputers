@@ -33,10 +33,9 @@ object WirelessNetwork {
       case Some(tree) =>
         tree(card) match {
           case Some((x, y, z)) =>
-            val (dx, dy, dz) = (
-              (card.owner.xCoord + 0.5 - x).abs,
-              (card.owner.yCoord + 0.5 - y).abs,
-              (card.owner.zCoord + 0.5 - z).abs)
+            val dx = math.abs(card.owner.xCoord + 0.5 - x)
+            val dy = math.abs(card.owner.yCoord + 0.5 - y)
+            val dz = math.abs(card.owner.zCoord + 0.5 - z)
             if (dx > 0.5 || dy > 0.5 || dz > 0.5) {
               tree.remove(card)
               tree.add(card)

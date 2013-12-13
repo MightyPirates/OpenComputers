@@ -281,13 +281,24 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ =>
     }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.rightClick(
         world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
       case _ => false
     }
-  }
+
+  override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.walk(world, x, y, z, entity)
+      case _ => super.onEntityWalking(world, x, y, z, entity)
+    }
+
+  override def onEntityCollidedWithBlock(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.collide(world, x, y, z, entity)
+      case _ => super.onEntityCollidedWithBlock(world, x, y, z, entity)
+    }
 
   // ----------------------------------------------------------------------- //
 
@@ -424,13 +435,13 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
 
   def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstone => t.bundledOutput(side, color)
+      case t: tileentity.BundledRedstoneAware => t.bundledOutput(side, color)
       case _ => 0
     }
 
   def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstone => t.bundledOutput(side)
+      case t: tileentity.BundledRedstoneAware => t.bundledOutput(side)
       case _ => Array.fill(16)(0)
     }
 
@@ -438,7 +449,7 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
 
   def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstone => for (color <- 0 until 16) {
+      case t: tileentity.BundledRedstoneAware => for (color <- 0 until 16) {
         t.rednetInput(side, color, inputValues(color))
       }
       case _ =>
@@ -447,7 +458,7 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
   abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
     if (Loader.isModLoaded("MineFactoryReloaded")) {
       world.getBlockTileEntity(x, y, z) match {
-        case t: tileentity.BundledRedstone => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        case t: tileentity.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
           Block.blocksList(world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)) match {
             case block: IRedNetNetworkContainer =>
             case _ => for (color <- 0 until 16) {

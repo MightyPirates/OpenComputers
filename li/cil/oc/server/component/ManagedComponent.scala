@@ -6,6 +6,8 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.math.ScalaNumber
 
 abstract class ManagedComponent extends ManagedEnvironment {
+  val canUpdate = false
+
   def update() {}
 
   def onMessage(message: Message) {}

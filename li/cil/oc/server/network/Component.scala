@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Method, InvocationTargetException}
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.common.tileentity
+import li.cil.oc.server.component
 import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
@@ -58,12 +58,12 @@ trait Component extends api.network.Component with Persistable {
   }
 
   private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: tileentity.Computer => computer.computer.addComponent(this)
+    case computer: component.Computer => computer.addComponent(this)
     case _ =>
   })
 
   private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
-    case computer: tileentity.Computer => computer.computer.removeComponent(this)
+    case computer: component.Computer => computer.removeComponent(this)
     case _ =>
   })
 

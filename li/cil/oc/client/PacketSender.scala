@@ -41,18 +41,31 @@ object PacketSender {
       val pb = new PacketBuilder(PacketType.Clipboard)
 
       pb.writeTileEntity(t)
-      pb.writeUTF(value.substring(0, value.length min 1024))
+      pb.writeUTF(value.substring(0, math.min(value.length, 1024)))
 
       pb.sendToServer()
     }
 
-  def sendMouseClick(t: Buffer, x: Int, y: Int) =
+  def sendMouseClick(t: Buffer, x: Int, y: Int, drag: Boolean) =
     if (t.tier > 0) {
-      val pb = new PacketBuilder(PacketType.MouseClick)
+      val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
       pb.writeTileEntity(t)
       pb.writeInt(x)
       pb.writeInt(y)
+      pb.writeBoolean(drag)
+
+      pb.sendToServer()
+    }
+
+  def sendMouseScroll(t: Buffer, x: Int, y: Int, scroll: Int) =
+    if (t.tier > 0) {
+      val pb = new PacketBuilder(PacketType.MouseScroll)
+
+      pb.writeTileEntity(t)
+      pb.writeInt(x)
+      pb.writeInt(y)
+      pb.writeByte(scroll)
 
       pb.sendToServer()
     }

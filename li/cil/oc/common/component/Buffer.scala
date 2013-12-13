@@ -90,7 +90,7 @@ class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with 
     // avoid sending too much data to our clients.
     val (x, truncated) =
       if (col < 0) (0, s.substring(-col))
-      else (col, s.substring(0, s.length min (buffer.width - col)))
+      else (col, s.substring(0, math.min(s.length, buffer.width - col)))
     if (buffer.set(x, row, truncated))
       owner.onScreenSet(x, row, truncated)
   }

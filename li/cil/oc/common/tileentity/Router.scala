@@ -21,7 +21,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
 
   override def validate() {
     super.validate()
-    worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, 0, 0)
+    worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, Int.MinValue, 0)
   }
 
   override def invalidate() {
@@ -62,7 +62,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
     val node = api.Network.newNode(this, Visibility.Network).create()
 
     def onMessage(message: Message) {
-      if (isPrimary) {
+      if (isPrimary && message.name == "network.message") {
         plugsInOtherNetworks.foreach(_.node.sendToReachable(message.name, message.data: _*))
       }
     }

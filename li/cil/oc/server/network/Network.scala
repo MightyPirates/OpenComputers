@@ -2,25 +2,38 @@ package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
-import li.cil.oc.api
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.server.network.{Node => MutableNode}
+import li.cil.oc.{Settings, api}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-private class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) {
+// Looking at this again after some time, the similarity to const in C++ is somewhat uncanny.
+private class Network private(private val data: mutable.Map[String, Network.Vertex] = mutable.Map.empty) extends Distributor {
   def this(node: MutableNode) = {
     this()
     addNew(node)
     node.onConnect(node)
   }
 
+  var globalBuffer = 0.0
+
+  var globalBufferSize = 0.0
+
+  private val connectors = mutable.ArrayBuffer.empty[Connector]
+
   private lazy val wrapper = new Network.Wrapper(this)
 
-  data.values.foreach(_.data.network = wrapper)
+  data.values.foreach(node => {
+    node.data match {
+      case connector: Connector => addConnector(connector)
+      case _ =>
+    }
+    node.data.network = wrapper
+  })
 
   // ----------------------------------------------------------------------- //
 
@@ -86,6 +99,10 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
   def remove(node: MutableNode) = {
     data.remove(node.address) match {
       case Some(entry) =>
+        node match {
+          case connector: Connector if connector.localBufferSize > 0 => removeConnector(connector)
+          case _ =>
+        }
         node.network = null
         val subGraphs = entry.remove()
         val targets = Iterable(node) ++ (entry.data.reachability match {
@@ -161,6 +178,10 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     if (node.address == null)
       node.address = java.util.UUID.randomUUID().toString
     data += node.address -> newNode
+    node match {
+      case connector: Connector => addConnector(connector)
+      case _ =>
+    }
     node.network = wrapper
     newNode
   }
@@ -201,7 +222,16 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       oldVisibleNodes.foreach(node => connects += ((node, newNodes)))
 
       data ++= otherNetwork.data
-      otherNetwork.data.values.foreach(_.data.network = wrapper)
+      connectors ++= otherNetwork.connectors
+      globalBuffer += otherNetwork.globalBuffer
+      globalBufferSize += otherNetwork.globalBufferSize
+      otherNetwork.data.values.foreach(node => {
+        node.data match {
+          case connector: Connector => connector.distributor = Some(wrapper)
+          case _ =>
+        }
+        node.data.network = wrapper
+      })
 
       Network.Edge(oldNode, node(addedNode))
     }
@@ -217,7 +247,14 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
       val visibleNodes = nodes.map(_.filter(_.reachability == Visibility.Network))
 
       data.clear()
+      connectors.clear()
+      globalBuffer = 0
+      globalBufferSize = 0
       data ++= subGraphs.head
+      for (node <- data.values) node.data match {
+        case connector: Connector => addConnector(connector)
+        case _ =>
+      }
       subGraphs.tail.foreach(new Network(_))
 
       for (indexA <- 0 until subGraphs.length) {
@@ -235,6 +272,73 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
   private def send(source: ImmutableNode, targets: Iterable[ImmutableNode], name: String, args: AnyRef*) {
     val message = new Network.Message(source, name, Array(args: _*))
     targets.foreach(_.host.onMessage(message))
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  def addConnector(connector: Connector) {
+    if (connector.localBufferSize > 0) {
+      assert(!connectors.contains(connector))
+      connectors += connector
+      globalBuffer += connector.localBuffer
+      globalBufferSize += connector.localBufferSize
+    }
+    connector.distributor = Some(wrapper)
+  }
+
+  def removeConnector(connector: Connector) {
+    assert(connectors.contains(connector))
+    connectors -= connector
+    globalBuffer -= connector.localBuffer
+    globalBufferSize -= connector.localBufferSize
+  }
+
+  def changeBuffer(delta: Double): Double = {
+    if (delta == 0) 0
+    else if (Settings.get.ignorePower) {
+      if (delta < 0) 0
+      else /* if (delta > 0) */ delta
+    }
+    else this.synchronized {
+      val oldBuffer = globalBuffer
+      globalBuffer = math.min(math.max(globalBuffer + delta, 0), globalBufferSize)
+      if (globalBuffer == oldBuffer) {
+        return delta
+      }
+      if (delta < 0) {
+        var remaining = -delta
+        for (connector <- connectors if remaining > 0) {
+          if (connector.localBuffer > 0) {
+            if (connector.localBuffer < remaining) {
+              remaining -= connector.localBuffer
+              connector.localBuffer = 0
+            }
+            else {
+              connector.localBuffer -= remaining
+              remaining = 0
+            }
+          }
+        }
+        remaining
+      }
+      else /* if (delta > 0) */ {
+        var remaining = delta
+        for (connector <- connectors if remaining > 0) {
+          if (connector.localBuffer < connector.localBufferSize) {
+            val space = connector.localBufferSize - connector.localBuffer
+            if (space < remaining) {
+              remaining -= space
+              connector.localBuffer = connector.localBufferSize
+            }
+            else {
+              connector.localBuffer += remaining
+              remaining = 0
+            }
+          }
+        }
+        remaining
+      }
+    }
   }
 }
 
@@ -385,7 +489,7 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
-  private class Wrapper(val network: Network) extends api.network.Network {
+  private class Wrapper(val network: Network) extends api.network.Network with Distributor {
     def connect(nodeA: ImmutableNode, nodeB: ImmutableNode) =
       network.connect(nodeA.asInstanceOf[MutableNode], nodeB.asInstanceOf[MutableNode])
 
@@ -410,6 +514,20 @@ object Network extends api.detail.NetworkAPI {
 
     def sendToReachable(source: ImmutableNode, name: String, data: AnyRef*) =
       network.sendToReachable(source, name, data: _*)
+
+    def globalBuffer = network.globalBuffer
+
+    def globalBuffer_=(value: Double) = network.globalBuffer = value
+
+    def globalBufferSize = network.globalBufferSize
+
+    def globalBufferSize_=(value: Double) = network.globalBufferSize = value
+
+    def addConnector(connector: Connector) = network.addConnector(connector)
+
+    def removeConnector(connector: Connector) = network.removeConnector(connector)
+
+    def changeBuffer(delta: Double) = network.changeBuffer(delta)
   }
 
 }

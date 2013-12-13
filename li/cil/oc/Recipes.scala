@@ -1,10 +1,11 @@
 package li.cil.oc
 
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe, OreDictionary}
+import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
 
 object Recipes {
   def init() {
@@ -31,6 +32,7 @@ object Recipes {
     val obsidian = new ItemStack(Block.obsidian)
     val paper = new ItemStack(Item.paper)
     val piston = new ItemStack(Block.pistonBase)
+    val redstoneBlock = new ItemStack(Block.blockRedstone)
     val redstoneDust = new ItemStack(Item.redstone)
     val redstoneTorch = new ItemStack(Block.torchRedstoneActive)
     val repeater = new ItemStack(Item.redstoneRepeater)
@@ -70,10 +72,11 @@ object Recipes {
 
     // ----------------------------------------------------------------------- //
 
-    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
-    GameRegistry.addShapelessRecipe(Items.cuttingWire.createItemStack(1), new ItemStack(Item.shears, 1, OreDictionary.WILDCARD_VALUE), Items.ironNugget.createItemStack(), stick)
+    if (!Loader.isModLoaded("gregtech_addon")) {
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), ironIngot))
+    }
     GameRegistry.addShapelessRecipe(rawBoard, Items.cuttingWire.createItemStack(), new ItemStack(Block.blockClay), cactusGreen)
-    FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 1)
+    FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 0)
     GameRegistry.addRecipe(new ShapelessOreRecipe(acid, Item.bucketWater, sugar, roseRed, slimeBall, spiderEye, boneMeal))
     GameRegistry.addRecipe(new ShapelessOreRecipe(pcb, acid, Item.goldNugget, board))
 
@@ -252,16 +255,6 @@ object Recipes {
       'p', paper,
       'b', pcb)
 
-    addRecipe(Blocks.powerDistributor.createItemStack(),
-      "ici",
-      "wgw",
-      "ibi",
-      'i', ironIngot,
-      'c', chip1,
-      'w', cable,
-      'g', goldIngot,
-      'b', pcb)
-
     addRecipe(Blocks.powerConverter.createItemStack(),
       "iwi",
       "gcg",
@@ -281,15 +274,6 @@ object Recipes {
       'p', piston,
       's', stick)
 
-    addRecipe(Blocks.router.createItemStack(),
-      "ini",
-      "ncn",
-      "ibi",
-      'i', ironIngot,
-      'n', lanCard,
-      'c', chip1,
-      'b', pcb)
-
     addRecipe(Blocks.adapter.createItemStack(),
       "iwi",
       "wcw",
@@ -297,6 +281,34 @@ object Recipes {
       'i', ironIngot,
       'w', cable,
       'c', chip1,
+      'b', pcb)
+
+    addRecipe(Blocks.redstone.createItemStack(),
+      "iri",
+      "rcr",
+      "ibi",
+      'i', ironIngot,
+      'r', redstoneBlock,
+      'c', redstoneCard,
+      'b', pcb)
+
+    addRecipe(Blocks.powerDistributor.createItemStack(),
+      "igi",
+      "wcw",
+      "ibi",
+      'i', ironIngot,
+      'g', goldIngot,
+      'w', cable,
+      'c', chip1,
+      'b', pcb)
+
+    addRecipe(Blocks.router.createItemStack(),
+      "iwi",
+      "wnw",
+      "ibi",
+      'i', ironIngot,
+      'w', cable,
+      'n', lanCard,
       'b', pcb)
 
     addRecipe(Blocks.charger.createItemStack(),
@@ -337,6 +349,11 @@ object Recipes {
       'r', redstoneDust)
 
     // ----------------------------------------------------------------------- //
+
+    addRecipe(Items.cuttingWire.createItemStack(),
+      "sis",
+      's', stick,
+      'i', "nuggetIron")
 
     addRecipe(Items.analyzer.createItemStack(),
       " r ",

@@ -37,6 +37,7 @@ class Settings(config: Config) {
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
       Array(64, 128, 256)
   }
+  val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
@@ -69,41 +70,47 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // robot.delays
 
-  val turnDelay = config.getDouble("robot.delays.turn") max 0.05
-  val moveDelay = config.getDouble("robot.delays.move") max 0.05
-  val swingDelay = config.getDouble("robot.delays.swing") max 0
-  val useDelay = config.getDouble("robot.delays.use") max 0
-  val placeDelay = config.getDouble("robot.delays.place") max 0
-  val dropDelay = config.getDouble("robot.delays.drop") max 0
-  val suckDelay = config.getDouble("robot.delays.suck") max 0
+  // Note: all delays are reduced by one tick to account for the tick they are
+  // performed in (since all actions are delegated to the server thread).
+  val turnDelay = (config.getDouble("robot.delays.turn") - 0.06) max 0.05
+  val moveDelay = (config.getDouble("robot.delays.move") - 0.06) max 0.05
+  val swingDelay = (config.getDouble("robot.delays.swing") - 0.06) max 0
+  val useDelay = (config.getDouble("robot.delays.use") - 0.06) max 0
+  val placeDelay = (config.getDouble("robot.delays.place") - 0.06) max 0
+  val dropDelay = (config.getDouble("robot.delays.drop") - 0.06) max 0
+  val suckDelay = (config.getDouble("robot.delays.suck") - 0.06) max 0
   val harvestRatio = config.getDouble("robot.delays.harvestRatio") max 0
 
   // ----------------------------------------------------------------------- //
   // power
 
   val ignorePower = config.getBoolean("power.ignorePower")
+  val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
   val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
   val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
+  val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
   val bufferCapacitorAdjacencyBonus = config.getDouble("power.buffer.capacitorAdjacencyBonus") max 0
+  val bufferComputer = config.getDouble("power.buffer.computer") max 0
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
+  val bufferConverter = config.getDouble("power.buffer.converter") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
   val robotCost = config.getDouble("power.cost.robot") max 0
   val sleepCostFactor = config.getDouble("power.cost.sleepFactor") max 0
   val screenCost = config.getDouble("power.cost.screen") max 0
-  val hddReadCost = config.getDouble("power.cost.hddRead") max 0
-  val hddWriteCost = config.getDouble("power.cost.hddWrite") max 0
-  val gpuSetCost = config.getDouble("power.cost.gpuSet") max 0
-  val gpuFillCost = config.getDouble("power.cost.gpuFill") max 0
-  val gpuClearCost = config.getDouble("power.cost.gpuClear") max 0
-  val gpuCopyCost = config.getDouble("power.cost.gpuCopy") max 0
+  val hddReadCost = (config.getDouble("power.cost.hddRead") max 0) / 1024
+  val hddWriteCost = (config.getDouble("power.cost.hddWrite") max 0) / 1024
+  val gpuSetCost = (config.getDouble("power.cost.gpuSet") max 0) / Settings.basicScreenPixels
+  val gpuFillCost = (config.getDouble("power.cost.gpuFill") max 0) / Settings.basicScreenPixels
+  val gpuClearCost = (config.getDouble("power.cost.gpuClear") max 0) / Settings.basicScreenPixels
+  val gpuCopyCost = (config.getDouble("power.cost.gpuCopy") max 0) / Settings.basicScreenPixels
   val robotTurnCost = config.getDouble("power.cost.robotTurn") max 0
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
@@ -150,6 +157,8 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
+
+  def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
   private var settings: Settings = _
 

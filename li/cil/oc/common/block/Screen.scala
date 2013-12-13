@@ -6,7 +6,9 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
@@ -77,7 +79,8 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
-        val (right, bottom) = (screen.width - 1, screen.height - 1)
+        val right = screen.width - 1
+        val bottom = screen.height - 1
         val (px, py) = screen.localPosition
         val (lx, ly) = screen.pitch match {
           case ForgeDirection.NORTH => (px, py)
@@ -284,7 +287,12 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
     if (!player.isSneaking) {
       world.getBlockTileEntity(x, y, z) match {
         case screen: tileentity.Screen if screen.hasKeyboard =>
-          player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+          // Yep, this GUI is actually purely client side. We could skip this
+          // if, but it is clearer this way (to trigger it from the server we
+          // would have to give screens a "container", which we do not want).
+          if (world.isRemote) {
+            player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+          }
           true
         case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
           screen.click(player, hitX, hitY, hitZ)
@@ -292,6 +300,39 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
       }
     }
     else false
+
+  override def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
+      case screen: tileentity.Screen if screen.tier > 0 && screen.facing == ForgeDirection.UP => screen.walk(entity)
+      case _ =>
+    }
+
+  override def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) =
+    if (!world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
+      case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
+        val hitX = math.max(0, math.min(1, arrow.posX - x))
+        val hitY = math.max(0, math.min(1, arrow.posY - y))
+        val hitZ = math.max(0, math.min(1, arrow.posZ - z))
+        val absX = math.abs(hitX - 0.5)
+        val absY = math.abs(hitY - 0.5)
+        val absZ = math.abs(hitZ - 0.5)
+        val side = if (absX > absY && absX > absZ) {
+          if (hitX < 0.5) ForgeDirection.WEST
+          else ForgeDirection.EAST
+        }
+        else if (absY > absZ) {
+          if (hitY < 0.5) ForgeDirection.DOWN
+          else ForgeDirection.UP
+        }
+        else {
+          if (hitZ < 0.5) ForgeDirection.NORTH
+          else ForgeDirection.SOUTH
+        }
+        if (side == screen.facing) {
+          screen.shot(arrow, hitX, hitY, hitZ)
+        }
+      case _ =>
+    }
 
   // ----------------------------------------------------------------------- //
 

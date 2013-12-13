@@ -18,7 +18,8 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.KeyDown => onKeyDown(p)
       case PacketType.KeyUp => onKeyUp(p)
       case PacketType.Clipboard => onClipboard(p)
-      case PacketType.MouseClick => onMouseClick(p)
+      case PacketType.MouseClickOrDrag => onMouseClick(p)
+      case PacketType.MouseScroll => onMouseScroll(p)
       case _ => // Invalid packet.
     }
 
@@ -70,7 +71,21 @@ class PacketHandler extends CommonPacketHandler {
         case player: EntityPlayer =>
           val x = p.readInt()
           val y = p.readInt()
-          s.origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(x), Int.box(y), player.getCommandSenderName)
+          val what = if (p.readBoolean()) "drag" else "touch"
+          s.origin.node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), player.getCommandSenderName)
+        case _ =>
+      }
+      case _ => // Invalid packet.
+    }
+
+  def onMouseScroll(p: PacketParser) =
+    p.readTileEntity[Buffer]() match {
+      case Some(s: Screen) => p.player match {
+        case player: EntityPlayer =>
+          val x = p.readInt()
+          val y = p.readInt()
+          val scroll = p.readByte()
+          s.origin.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
         case _ =>
       }
       case _ => // Invalid packet.

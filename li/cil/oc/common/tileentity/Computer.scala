@@ -11,14 +11,14 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
 
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstone with Analyzable {
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable {
   protected val _computer = if (isRemote) null else new component.Computer(this)
 
   def computer = _computer
 
   def node = if (isClient) null else computer.node
 
-  override def isClient = computer == null
+  override lazy val isClient = computer == null
 
   private var _isRunning = false
 
@@ -84,9 +84,10 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
         updateRedstoneInput()
 
-        for (component <- components) component match {
-          case Some(environment) => environment.update()
-          case _ => // Empty.
+        if (updatingComponents.length > 0) {
+          for (component <- updatingComponents) {
+            component.update()
+          }
         }
       }
     }
@@ -98,16 +99,12 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (isServer) {
-      computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
-    }
+    computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (isServer) {
-      nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
-    }
+    nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
   }
 
   @SideOnly(Side.CLIENT)
@@ -141,7 +138,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    computer.signal("redstone_changed", Int.box(side.ordinal()))
+    computer.signal("redstone_changed", computer.address, Int.box(side.ordinal()))
   }
 
   // ----------------------------------------------------------------------- //

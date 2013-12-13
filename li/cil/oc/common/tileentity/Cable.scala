@@ -16,7 +16,7 @@ class Cable extends Environment with Analyzable {
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.cable.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.cable.parent.blockID, Int.MinValue, 0)
   }
 
   override def getRenderBoundingBox = common.block.Cable.bounds(world, x, y, z).offset(x, y, z)

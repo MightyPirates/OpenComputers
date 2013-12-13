@@ -48,9 +48,11 @@ end
 
 local function setCursor(nbx, nby)
   local w, h = getSize()
+  nby = math.max(1, math.min(#buffer, nby))
 
   local ncy = nby - scrollY
   if ncy > h then
+    term.setCursorBlink(false)
     local sy = nby - h
     local dy = math.abs(scrollY - sy)
     scrollY = sy
@@ -60,6 +62,7 @@ local function setCursor(nbx, nby)
       component.gpu.set(1, by - scrollY, str)
     end
   elseif ncy < 1 then
+    term.setCursorBlink(false)
     local sy = nby - 1
     local dy = math.abs(scrollY - sy)
     scrollY = sy
@@ -69,9 +72,12 @@ local function setCursor(nbx, nby)
       component.gpu.set(1, by - scrollY, str)
     end
   end
+  term.setCursor(term.getCursor(), nby - scrollY)
 
+  nbx = math.max(1, math.min(unicode.len(line()) + 1, nbx))
   local ncx = nbx - scrollX
   if ncx > w then
+    term.setCursorBlink(false)
     local sx = nbx - w
     local dx = math.abs(scrollX - sx)
     scrollX = sx
@@ -82,6 +88,7 @@ local function setCursor(nbx, nby)
       component.gpu.set(1 + (w - dx), by - scrollY, str)
     end
   elseif ncx < 1 then
+    term.setCursorBlink(false)
     local sx = nbx - 1
     local dx = math.abs(scrollX - sx)
     scrollX = sx
@@ -92,8 +99,8 @@ local function setCursor(nbx, nby)
       component.gpu.set(1, by - scrollY, str)
     end
   end
-
   term.setCursor(nbx - scrollX, nby - scrollY)
+
   component.gpu.set(w - 9, h + 1, text.padLeft(string.format("%d,%d", nby, nbx), 10))
 end
 
@@ -124,7 +131,7 @@ local function right(n)
   local cbx, cby = getCursor()
   local be = unicode.len(line()) + 1
   if cbx < be then
-    setCursor(math.min(be, cbx + n), cby)
+    setCursor(cbx + n, cby)
   elseif cby < #buffer then
     setCursor(1, cby + 1)
   end
@@ -134,7 +141,7 @@ local function up(n)
   n = n or 1
   local cbx, cby = getCursor()
   if cby > 1 then
-    setCursor(cbx, math.max(cby - n, 1))
+    setCursor(cbx, cby - n)
     if getCursor() > unicode.len(line()) then
       ende()
     end
@@ -145,7 +152,7 @@ local function down(n)
   n = n or 1
   local cbx, cby = getCursor()
   if cby < #buffer then
-    setCursor(cbx, math.min(cby + n, #buffer))
+    setCursor(cbx, cby + n)
     if getCursor() > unicode.len(line()) then
       ende()
     end
@@ -157,6 +164,7 @@ local function delete()
   local cbx, cby = getCursor()
   local w, h = getSize()
   if cbx <= unicode.len(line()) then
+    term.setCursorBlink(false)
     buffer[cby] = unicode.sub(line(), 1, cbx - 1) ..
                   unicode.sub(line(), cbx + 1)
     component.gpu.copy(cx + 1, cy, w - cx, 1, -1, 0)
@@ -167,6 +175,7 @@ local function delete()
     end
     component.gpu.set(w, cy, char)
   elseif cby < #buffer then
+    term.setCursorBlink(false)
     local append = table.remove(buffer, cby + 1)
     buffer[cby] = buffer[cby] .. append
     component.gpu.set(cx, cy, append)
@@ -179,6 +188,10 @@ local function delete()
 end
 
 local function insert(value)
+  if not value or unicode.len(value) < 1 then
+    return
+  end
+  term.setCursorBlink(false)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
@@ -213,7 +226,6 @@ local function enter()
 end
 
 local function onKeyDown(char, code)
-  term.setCursorBlink(false)
   if code == keyboard.keys.back and not readonly then
     if left() then
       delete()
@@ -275,12 +287,9 @@ local function onKeyDown(char, code)
   elseif not keyboard.isControl(char) and not readonly then
     insert(unicode.char(char))
   end
-  term.setCursorBlink(true)
-  term.setCursorBlink(true) -- force toggle to caret
 end
 
 local function onClipboard(value)
-  term.setCursorBlink(false)
   local cbx, cby = getCursor()
   local start = 1
   local l = value:find("\n", 1, true)
@@ -293,8 +302,15 @@ local function onClipboard(value)
     until not l
   end
   insert(string.sub(value, start))
-  term.setCursorBlink(true)
-  term.setCursorBlink(true) -- force toggle to caret
+end
+
+local function onClick(x, y)
+  setCursor(x + scrollX, y + scrollY)
+end
+
+local function onScroll(direction)
+  local cbx, cby = getCursor()
+  setCursor(cbx, cby - direction * 12)
 end
 
 -------------------------------------------------------------------------------
@@ -327,12 +343,23 @@ do
 end
 
 while running do
-  local event, address, charOrValue, code = event.pull()
+  local event, address, arg1, arg2, arg3 = event.pull()
   if type(address) == "string" and component.isPrimary(address) then
+    local blink = true
     if event == "key_down" then
-      onKeyDown(charOrValue, code)
+      onKeyDown(arg1, arg2)
     elseif event == "clipboard" then
-      onClipboard(charOrValue)
+      onClipboard(arg1)
+    elseif event == "touch" or event == "drag" then
+      onClick(arg1, arg2)
+    elseif event == "scroll" then
+      onScroll(arg3)
+    else
+      blink = false
+    end
+    if blink then
+      term.setCursorBlink(true)
+      term.setCursorBlink(true) -- force toggle to caret
     end
   end
 end

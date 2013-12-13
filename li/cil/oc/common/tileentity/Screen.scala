@@ -6,7 +6,9 @@ import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
@@ -38,6 +40,10 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   var hasPower = true
 
+  var cachedBounds: Option[AxisAlignedBB] = None
+
+  private val arrows = mutable.Set.empty[EntityArrow]
+
   def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
   def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
@@ -49,8 +55,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   def localPosition = {
     val (lx, ly, _) = project(this)
     val (ox, oy, _) = project(origin)
-    val (px, py) = (lx - ox, ly - oy)
-    (px, py)
+    (lx - ox, ly - oy)
   }
 
   override def hasKeyboard = screens.exists(screen => ForgeDirection.VALID_DIRECTIONS.
@@ -66,9 +71,10 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     origin = this
     screens.clear()
     screens += this
+    cachedBounds = None
   }
 
-  def click(player: EntityPlayer, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+  def click(player: EntityPlayer, hitX: Double, hitY: Double, hitZ: Double): Boolean = {
     // Compute absolute position of the click on the face, measured in blocks.
     def dot(f: ForgeDirection) = f.offsetX * hitX + f.offsetY * hitY + f.offsetZ * hitZ
     val (hx, hy) = (dot(toGlobal(ForgeDirection.EAST)), dot(toGlobal(ForgeDirection.UP)))
@@ -85,7 +91,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     val (rx, ry) = ((ax - border) / (width - border * 2), (ay - border) / (height - border * 2))
 
     // Make it a relative position in the displayed buffer.
-    val (bw, bh) = buffer.resolution
+    val (bw, bh) = origin.buffer.resolution
     val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth, bh * MonospaceFontRenderer.fontHeight)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
@@ -110,21 +116,49 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     // Convert to absolute coordinates and send the (checked) signal.
     if (!world.isRemote) {
       val (bx, by) = (brx * bw, bry * bh)
-      origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
+      origin.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
     }
     true
+  }
+
+  def walk(entity: Entity) {
+    val (x, y) = localPosition
+    entity match {
+      case player: EntityPlayer =>
+        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getCommandSenderName)
+      case _ =>
+        origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
+    }
+  }
+
+  def shot(arrow: EntityArrow, hitX: Double, hitY: Double, hitZ: Double) {
+    // This is nasty, but I see no other way: arrows can trigger two collisions,
+    // once on their own when hitting a block, a second time via their entity's
+    // common collision checker. The second one (collision checker) has the
+    // better coordinates (arrow moved back out of the block it collided with),
+    // so use that when possible, otherwise resolve in next update.
+    if (!arrows.add(arrow)) {
+      arrows.remove(arrow)
+      arrow.shootingEntity match {
+        case player: EntityPlayer => click(player, hitX, hitY, hitZ)
+        case _ =>
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
+    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (litPixels < 0) {
-        litPixels = buffer.lines.foldLeft(0)((acc, line) => acc + line.count(_ != ' '))
+        litPixels = 0
+        for (line <- buffer.lines) for (c <- line) {
+          if (c != ' ') litPixels += 1
+        }
       }
       val hadPower = hasPower
-      val neededPower = Settings.get.screenCost + pixelCost * litPixels
+      val neededPower = (Settings.get.screenCost + pixelCost * litPixels) * Settings.get.tickFrequency
       hasPower = buffer.node.tryChangeBuffer(-neededPower)
       if (hasPower != hadPower) {
         ServerPacketSender.sendScreenPowerChange(this, hasPower)
@@ -142,7 +176,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         val (lx, ly, lz) = project(current)
         def tryQueue(dx: Int, dy: Int) {
           val (nx, ny, nz) = unproject(lx + dx, ly + dy, lz)
-          worldObj.getBlockTileEntity(nx, ny, nz) match {
+          world.getBlockTileEntity(nx, ny, nz) match {
             case s: Screen if s.pitch == pitch && s.yaw == yaw && pending.add(s) => queue += s
             case _ => // Ignore.
           }
@@ -165,7 +199,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         }
         if (isClient) {
           val bounds = current.origin.getRenderBoundingBox
-          worldObj.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
+          world.markBlockRangeForRenderUpdate(bounds.minX.toInt, bounds.minY.toInt, bounds.minZ.toInt,
             bounds.maxX.toInt, bounds.maxY.toInt, bounds.maxZ.toInt)
         }
       }
@@ -180,11 +214,20 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           if (isServer) {
             screen.buffer.node.setVisibility(Visibility.None)
           }
-          val s = screen.buffer
-          val (w, h) = s.resolution
-          s.buffer.fill(0, 0, w, h, ' ')
+          val buffer = screen.buffer
+          val (w, h) = buffer.resolution
+          buffer.buffer.fill(0, 0, w, h, ' ')
         }
       )
+    }
+    if (arrows.size > 0) {
+      for (arrow <- arrows) {
+        val hitX = math.max(0, math.min(1, arrow.posX - x))
+        val hitY = math.max(0, math.min(1, arrow.posY - y))
+        val hitZ = math.max(0, math.min(1, arrow.posZ - z))
+        shot(arrow, hitX, hitY, hitZ)
+      }
+      assert(arrows.isEmpty)
     }
   }
 
@@ -213,15 +256,18 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   @SideOnly(Side.CLIENT)
   override def getRenderBoundingBox =
     if ((width == 1 && height == 1) || !isOrigin) super.getRenderBoundingBox
-    else {
-      val (sx, sy, sz) = unproject(width, height, 1)
-      val ox = x + (if (sx < 0) 1 else 0)
-      val oy = y + (if (sy < 0) 1 else 0)
-      val oz = z + (if (sz < 0) 1 else 0)
-      val b = AxisAlignedBB.getAABBPool.getAABB(ox, oy, oz, ox + sx, oy + sy, oz + sz)
-      b.setBounds(b.minX min b.maxX, b.minY min b.maxY, b.minZ min b.maxZ,
-        b.minX max b.maxX, b.minY max b.maxY, b.minZ max b.maxZ)
-      b
+    else cachedBounds match {
+      case Some(bounds) => bounds
+      case _ =>
+        val (sx, sy, sz) = unproject(width, height, 1)
+        val ox = x + (if (sx < 0) 1 else 0)
+        val oy = y + (if (sy < 0) 1 else 0)
+        val oz = z + (if (sz < 0) 1 else 0)
+        val b = AxisAlignedBB.getBoundingBox(ox, oy, oz, ox + sx, oy + sy, oz + sz)
+        b.setBounds(math.min(b.minX, b.maxX), math.min(b.minY, b.maxY), math.min(b.minZ, b.maxZ),
+          math.max(b.minX, b.maxX), math.max(b.minY, b.maxY), math.max(b.minZ, b.maxZ))
+        cachedBounds = Some(b)
+        b
     }
 
   @SideOnly(Side.CLIENT)
@@ -275,7 +321,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     val (ox, oy, oz) = project(origin)
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(ox + dx, oy + dy, oz)
-      worldObj.getBlockTileEntity(nx, ny, nz) match {
+      world.getBlockTileEntity(nx, ny, nz) match {
         case s: Screen if s.tier == tier && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           val canMergeAlongX = sy == oy && s.height == height && s.width + width <= Settings.get.maxScreenWidth
@@ -297,6 +343,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
               screen.height = newHeight
               screen.origin = newOrigin
               screen.screens ++= newScreens // It's a set, so there won't be duplicates.
+              screen.cachedBounds = None
             }
             true
           }

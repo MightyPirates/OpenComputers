@@ -16,9 +16,9 @@ trait TileEntity {
 
   def block: Block
 
-  def isClient = world.isRemote
+  lazy val isClient = world.isRemote
 
-  def isServer = !isClient
+  lazy val isServer = !isClient
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}

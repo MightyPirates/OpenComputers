@@ -44,7 +44,11 @@ class Analyzer(val parent: Delegator) extends Delegate {
 
   private def analyzeNode(stats: NBTTagCompound, node: Node, player: EntityPlayer) = if (node != null) {
     node match {
-      case connector: Connector if connector.localBufferSize > 0 => stats.setString(Settings.namespace + "gui.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
+      case connector: Connector =>
+        if (connector.localBufferSize > 0) {
+          stats.setString(Settings.namespace + "gui.Analyzer.StoredEnergy", "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize))
+        }
+        stats.setString(Settings.namespace + "gui.Analyzer.TotalEnergy", "%.2f/%.2f".format(connector.globalBuffer, connector.globalBufferSize))
       case _ =>
     }
     node match {

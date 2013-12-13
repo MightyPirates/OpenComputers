@@ -1,9 +1,9 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network.{Arguments, Context, LuaCallback}
-import li.cil.oc.common.tileentity.BundledRedstone
+import li.cil.oc.common.tileentity.BundledRedstoneAware
 
-class BundledRedstoneCard(override val owner: BundledRedstone) extends RedstoneCard(owner) {
+class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {
 
   @LuaCallback(value = "getBundledInput", direct = true)
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {

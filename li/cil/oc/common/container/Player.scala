@@ -69,10 +69,10 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
       if (intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack
         val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
-        val maxStackSize = fromStack.getMaxStackSize min intoSlot.getSlotStackLimit
+        val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
         val slotHasCapacity = intoStack.stackSize < maxStackSize
         if (itemsAreEqual && slotHasCapacity) {
-          val itemsMoved = (maxStackSize - intoStack.stackSize) min fromStack.stackSize
+          val itemsMoved = math.min(maxStackSize - intoStack.stackSize, fromStack.stackSize)
           if (itemsMoved > 0) {
             intoStack.stackSize += from.decrStackSize(itemsMoved).stackSize
             intoSlot.onSlotChanged()
@@ -85,8 +85,8 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     for (i <- begin until end by step if from.getHasStack && from.getStack.stackSize > 0) {
       val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
       if (!intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
-        val maxStackSize = fromStack.getMaxStackSize min intoSlot.getSlotStackLimit
-        val itemsMoved = maxStackSize min fromStack.stackSize
+        val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
+        val itemsMoved = math.min(maxStackSize, fromStack.stackSize)
         intoSlot.putStack(from.decrStackSize(itemsMoved))
         somethingChanged = true
       }

@@ -64,7 +64,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     if (distance > fadeDistanceSq) {
-      RenderState.setBlendAlpha(0f max (1 - (distance - fadeDistanceSq) * fadeRatio).toFloat)
+      RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
 
     MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
@@ -77,8 +77,10 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
     screen.bufferIsDirty = false
-    val (sx, sy) = (screen.width, screen.height)
-    val (tw, th) = (sx * 16f, sy * 16f)
+    val sx = screen.width
+    val sy = screen.height
+    val tw = sx * 16f
+    val th = sy * 16f
 
     GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 

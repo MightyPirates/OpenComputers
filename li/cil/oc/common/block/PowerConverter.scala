@@ -1,6 +1,7 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.Loader
+import java.text.DecimalFormat
 import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
@@ -17,30 +18,29 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   private val icons = Array.fill[Icon](6)(null)
 
+  private val formatter = new DecimalFormat("#.#")
+
   // ----------------------------------------------------------------------- //
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    if (Loader.isModLoaded("IC2")) {
-      val ratio = Settings.get.ratioIndustrialCraft2
+    def addRatio(name: String, ratio: Float) {
       val (a, b) =
-        if (ratio > 1) (1f, ratio.ceil)
-        else ((1f / ratio).ceil, 1f)
-      tooltip.addAll(Tooltip.get(unlocalizedName + ".IC2", a.toInt, b.toInt))
+        if (ratio > 1) (1f, ratio)
+        else (1f / ratio, 1f)
+      tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, formatter.format(a), formatter.format(b)))
     }
     if (Loader.isModLoaded("BuildCraft|Energy")) {
-      val ratio = Settings.get.ratioBuildCraft
-      val (a, b) =
-        if (ratio > 1) (1f, ratio.ceil)
-        else ((1f / ratio).ceil, 1f)
-      tooltip.addAll(Tooltip.get(unlocalizedName + ".BC", a.toInt, b.toInt))
+      addRatio("BC", Settings.get.ratioBuildCraft)
+    }
+    if (Loader.isModLoaded("IC2")) {
+      addRatio("IC2", Settings.get.ratioIndustrialCraft2)
+    }
+    if (Loader.isModLoaded("ThermalExpansion")) {
+      addRatio("TE", Settings.get.ratioThermalExpansion)
     }
     {
-      val ratio = Settings.get.ratioUniversalElectricity
-      val (a, b) =
-        if (ratio > 1) (1f, ratio.ceil)
-        else ((1f / ratio).ceil, 1f)
-      tooltip.addAll(Tooltip.get(unlocalizedName + ".UE", a.toInt, b.toInt))
+      addRatio("UE", Settings.get.ratioUniversalElectricity)
     }
   }
 

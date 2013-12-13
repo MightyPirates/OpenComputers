@@ -5,24 +5,25 @@ import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 
 object Blocks {
-  var blockSimple: SimpleDelegator = null
-  var blockSimpleWithRedstone: SimpleDelegator = null
-  var blockSpecial: SpecialDelegator = null
-  var blockSpecialWithRedstone: SpecialDelegator = null
+  var blockSimple: SimpleDelegator = _
+  var blockSimpleWithRedstone: SimpleDelegator = _
+  var blockSpecial: SpecialDelegator = _
+  var blockSpecialWithRedstone: SpecialDelegator = _
 
-  var adapter: Adapter = null
-  var cable: Cable = null
-  var capacitor: Capacitor = null
-  var charger: Charger = null
-  var case1, case2, case3: Case = null
-  var diskDrive: DiskDrive = null
-  var keyboard: Keyboard = null
-  var powerDistributor: PowerDistributor = null
-  var powerConverter: PowerConverter = null
-  var robotProxy: RobotProxy = null
-  var robotAfterimage: RobotAfterimage = null
-  var router: Router = null
-  var screen1, screen2, screen3: Screen = null
+  var adapter: Adapter = _
+  var cable: Cable = _
+  var capacitor: Capacitor = _
+  var charger: Charger = _
+  var case1, case2, case3: Case = _
+  var diskDrive: DiskDrive = _
+  var keyboard: Keyboard = _
+  var powerDistributor: PowerDistributor = _
+  var powerConverter: PowerConverter = _
+  var redstone: Redstone = _
+  var robotProxy: RobotProxy = _
+  var robotAfterimage: RobotAfterimage = _
+  var router: Router = _
+  var screen1, screen2, screen3: Screen = _
 
   def init() {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
@@ -44,6 +45,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
+    GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
@@ -68,5 +70,7 @@ object Blocks {
     screen1 = new Screen.Tier1(blockSimple)
     screen2 = new Screen.Tier2(blockSimple)
     screen3 = new Screen.Tier3(blockSimple)
+
+    redstone = new Redstone(blockSimpleWithRedstone)
   }
 }

@@ -12,14 +12,15 @@ import scala.io.Source
 object MonospaceFontRenderer {
   val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
 
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt")).mkString
+  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
 
   private var instance: Option[Renderer] = None
 
   def init(textureManager: TextureManager) = this.synchronized(
     instance = instance.orElse(Some(new Renderer(textureManager))))
 
-  val (fontWidth, fontHeight) = (5, 9)
+  val fontWidth = 5
+  val fontHeight = 9
 
   def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")

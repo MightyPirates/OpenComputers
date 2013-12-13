@@ -18,7 +18,6 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotContext {
-
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world
@@ -73,7 +72,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
       else selectedSlot
     result(stackInSlot(slot) match {
-      case Some(stack) => (robot.getInventoryStackLimit min stack.getMaxStackSize) - stack.stackSize
+      case Some(stack) => math.min(robot.getInventoryStackLimit, stack.getMaxStackSize) - stack.stackSize
       case _ => robot.getInventoryStackLimit
     })
   }
@@ -98,8 +97,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     else result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
       case (Some(from), Some(to)) =>
         if (haveSameItemType(from, to)) {
-          val space = (robot.getInventoryStackLimit min to.getMaxStackSize) - to.stackSize
-          val amount = count min space min from.stackSize
+          val space = math.min(robot.getInventoryStackLimit, to.getMaxStackSize) - to.stackSize
+          val amount = math.min(count, math.min(space, from.stackSize))
           if (amount > 0) {
             from.stackSize -= amount
             to.stackSize += amount
@@ -111,11 +110,12 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
           }
           else false
         }
-        else {
+        else if (count >= from.stackSize) {
           robot.setInventorySlotContents(slot, from)
           robot.setInventorySlotContents(selectedSlot, to)
           true
         }
+        else false
       case (Some(from), None) =>
         robot.setInventorySlotContents(slot, robot.decrStackSize(selectedSlot, count))
         true
@@ -148,7 +148,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
     if (dropped != null && dropped.stackSize > 0) {
       def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
         var success = false
-        val maxStackSize = inventory.getInventoryStackLimit min dropped.getMaxStackSize
+        val maxStackSize = math.min(inventory.getInventoryStackLimit, dropped.getMaxStackSize)
         val shouldTryMerge = !dropped.isItemStackDamageable && dropped.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
         if (shouldTryMerge) {
           for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && filter(slot)) {
@@ -157,7 +157,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
               existing.isItemEqual(dropped) && ItemStack.areItemStackTagsEqual(existing, dropped)
             if (shouldMerge) {
               val space = maxStackSize - existing.stackSize
-              val amount = space min dropped.stackSize
+              val amount = math.min(space, dropped.stackSize)
               assert(amount > 0)
               success = true
               existing.stackSize += amount
@@ -168,7 +168,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
         def canDropIntoSlot(slot: Int) = filter(slot) && inventory.isItemValidForSlot(slot, dropped) && inventory.getStackInSlot(slot) == null
         for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && canDropIntoSlot(slot)) {
-          val amount = maxStackSize min dropped.stackSize
+          val amount = math.min(maxStackSize, dropped.stackSize)
           inventory.setInventorySlotContents(slot, dropped.splitStack(amount))
           success = true
         }
@@ -256,8 +256,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       for (slot <- 0 until inventory.getSizeInventory if !success && filter(slot)) {
         val stack = inventory.getStackInSlot(slot)
         if (stack != null) {
-          val maxStackSize = robot.getInventoryStackLimit min stack.getMaxStackSize
-          val amount = maxStackSize min stack.stackSize min count
+          val maxStackSize = math.min(robot.getInventoryStackLimit, stack.getMaxStackSize)
+          val amount = math.min(maxStackSize, math.min(stack.stackSize, count))
           val sucked = stack.splitStack(amount)
           success = player.inventory.addItemStackToInventory(sucked)
           stack.stackSize += sucked.stackSize
@@ -480,7 +480,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       result(false, what)
     }
     else {
-      if (!robot.battery.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+      if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
         result(false, "not enough energy")
       }
       else if (robot.move(direction)) {
@@ -488,7 +488,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
         result(true)
       }
       else {
-        robot.battery.changeBuffer(Settings.get.robotMoveCost)
+        robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
         result(false, "impossible move")
       }
     }
@@ -497,7 +497,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   @LuaCallback("turn")
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.battery.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (robot.computer.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)
@@ -562,9 +562,18 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   }
 
   private def pick(player: Player, range: Double) = {
-    val origin = world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ)
-    val blockCenter = origin.addVector(player.facing.offsetX, player.facing.offsetY, player.facing.offsetZ)
-    val target = blockCenter.addVector(player.side.offsetX * range, player.side.offsetY * range, player.side.offsetZ * range)
+    val origin = world.getWorldVec3Pool.getVecFromPool(
+      player.posX + player.facing.offsetX * 0.5,
+      player.posY + player.facing.offsetY * 0.5,
+      player.posZ + player.facing.offsetZ * 0.5)
+    val blockCenter = origin.addVector(
+      player.facing.offsetX * 0.5,
+      player.facing.offsetY * 0.5,
+      player.facing.offsetZ * 0.5)
+    val target = blockCenter.addVector(
+      player.side.offsetX * range,
+      player.side.offsetY * range,
+      player.side.offsetZ * range)
     val hit = world.clip(origin, target)
     player.closestEntity[Entity]() match {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
@@ -591,7 +600,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
   private def checkOptionalItemCount(args: Arguments, n: Int) =
     if (args.count > n && args.checkAny(n) != null) {
-      args.checkInteger(n) max 0 min robot.getInventoryStackLimit
+      math.max(args.checkInteger(n), math.min(0, robot.getInventoryStackLimit))
     }
     else robot.getInventoryStackLimit
 
@@ -607,7 +616,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
   private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
 
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = checkSide(args, n, ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite): _*)
+  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = checkSide(args, n, ForgeDirection.VALID_DIRECTIONS.filter(_ != robot.toLocal(facing).getOpposite): _*)
 
   private def checkSide(args: Arguments, n: Int, allowed: ForgeDirection*) = {
     val side = args.checkInteger(n)
