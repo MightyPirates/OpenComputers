@@ -29,5 +29,6 @@ object PacketType extends Enumeration {
   KeyDown,
   KeyUp,
   Clipboard,
-  MouseClick = Value
+  MouseClickOrDrag,
+  MouseScroll = Value
 }

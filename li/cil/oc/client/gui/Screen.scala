@@ -5,6 +5,7 @@ import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
+import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
 class Screen(val screen: tileentity.Screen) extends Buffer {
@@ -15,6 +16,21 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   private var x, y = 0
 
   private var mx, my = 0
+
+  override def handleMouseInput() {
+    super.handleMouseInput()
+    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
+      val mouseX = Mouse.getEventX * width / mc.displayWidth
+      val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
+      val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
+      val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+      val (bw, bh) = screen.buffer.resolution
+      if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+        val scroll = math.signum(Mouse.getEventDWheel)
+        PacketSender.sendMouseScroll(buffer.owner, bx, by, scroll)
+      }
+    }
+  }
 
   override protected def mouseClicked(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseClicked(mouseX, mouseY, button)

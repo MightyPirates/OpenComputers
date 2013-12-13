@@ -48,12 +48,24 @@ object PacketSender {
 
   def sendMouseClick(t: Buffer, x: Int, y: Int, drag: Boolean) =
     if (t.tier > 0) {
-      val pb = new PacketBuilder(PacketType.MouseClick)
+      val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
       pb.writeTileEntity(t)
       pb.writeInt(x)
       pb.writeInt(y)
       pb.writeBoolean(drag)
+
+      pb.sendToServer()
+    }
+
+  def sendMouseScroll(t: Buffer, x: Int, y: Int, scroll: Int) =
+    if (t.tier > 0) {
+      val pb = new PacketBuilder(PacketType.MouseScroll)
+
+      pb.writeTileEntity(t)
+      pb.writeInt(x)
+      pb.writeInt(y)
+      pb.writeByte(scroll)
 
       pb.sendToServer()
     }
