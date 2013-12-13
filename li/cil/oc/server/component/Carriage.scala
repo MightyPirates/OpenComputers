@@ -78,6 +78,10 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
   override val canUpdate = true
 
   override def update() {
+    if (node != null && node.network != null && moving) {
+      moving = false
+      node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(true))
+    }
     super.update()
     if (shouldMove) {
       shouldMove = false
@@ -96,16 +100,6 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
       finally {
         moving = false
       }
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (moving) {
-      moving = false
-      node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(true))
     }
   }
 
