@@ -70,7 +70,8 @@ class PacketHandler extends CommonPacketHandler {
         case player: EntityPlayer =>
           val x = p.readInt()
           val y = p.readInt()
-          s.origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(x), Int.box(y), player.getCommandSenderName)
+          val what = if (p.readBoolean()) "drag" else "touch"
+          s.origin.node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), player.getCommandSenderName)
         case _ =>
       }
       case _ => // Invalid packet.

@@ -116,7 +116,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     // Convert to absolute coordinates and send the (checked) signal.
     if (!world.isRemote) {
       val (bx, by) = (brx * bw, bry * bh)
-      origin.node.sendToReachable("computer.checked_signal", player, "click", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
+      origin.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
     }
     true
   }

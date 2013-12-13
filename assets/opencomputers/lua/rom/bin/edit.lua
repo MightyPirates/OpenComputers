@@ -343,7 +343,7 @@ while running do
       onKeyDown(arg1, arg2)
     elseif event == "clipboard" then
       onClipboard(arg1)
-    elseif event == "click" then
+    elseif event == "touch" or event == "drag" then
       onClick(arg1, arg2)
     end
   end

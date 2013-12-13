@@ -46,13 +46,14 @@ object PacketSender {
       pb.sendToServer()
     }
 
-  def sendMouseClick(t: Buffer, x: Int, y: Int) =
+  def sendMouseClick(t: Buffer, x: Int, y: Int, drag: Boolean) =
     if (t.tier > 0) {
       val pb = new PacketBuilder(PacketType.MouseClick)
 
       pb.writeTileEntity(t)
       pb.writeInt(x)
       pb.writeInt(y)
+      pb.writeBoolean(drag)
 
       pb.sendToServer()
     }
