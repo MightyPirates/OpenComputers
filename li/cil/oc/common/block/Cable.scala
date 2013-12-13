@@ -92,6 +92,7 @@ object Cable {
     var result = 0
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+        case robot: tileentity.RobotProxy =>
         case host: SidedEnvironment =>
           if (host.canConnect(side.getOpposite)) {
             result |= side.flag
