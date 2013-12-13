@@ -54,13 +54,27 @@ object LuaStateFactory {
       }
     _is64Bit = architecture == "64"
 
-    val extension = LWJGLUtil.getPlatform match {
-      case LWJGLUtil.PLATFORM_LINUX => ".so"
-      case LWJGLUtil.PLATFORM_MACOSX => ".dylib"
-      case LWJGLUtil.PLATFORM_WINDOWS => ".dll"
-      case _ =>
-        OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
-        break()
+    val extension = try {
+      LWJGLUtil.getPlatform match {
+        case LWJGLUtil.PLATFORM_LINUX => ".so"
+        case LWJGLUtil.PLATFORM_MACOSX => ".dylib"
+        case LWJGLUtil.PLATFORM_WINDOWS => ".dll"
+        case _ =>
+          OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
+          break()
+      }
+    }
+    catch {
+      // Dedicated server doesn't necessarily have LWJGLUtil...
+      case _: NoClassDefFoundError =>
+        System.getProperty("os.name").toLowerCase match {
+          case name if name.startsWith("linux") => ".so"
+          case name if name.startsWith("mac") => ".dylib"
+          case name if name.startsWith("windows") => ".dll"
+          case _ =>
+            OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
+            break()
+        }
     }
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
 
