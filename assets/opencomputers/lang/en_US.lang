@@ -92,6 +92,7 @@ oc:tooltip.DiskDrive.CC=ComputerCraft floppies are §asupported§7.
 oc:tooltip.DiskDrive=Allows reading and writing floppies.
 oc:tooltip.Generator=Can be used to generate energy from fuel on the go. Burns items to generate energy over time, based on their fuel value.[nl] §fEfficiency§7: §a%s%%§7
 oc:tooltip.GraphicsCard=Used to change what's displayed on screens.[nl] Maximum resolution: §f%sx%s§7.[nl] Maximum color depth: §f%s§7.[nl] Operations/tick: §f%s§7.
+oc:tooltip.IronNugget=A nugget made of iron, that's why it's called a Iron Nugget, stupid...
 oc:tooltip.Keyboard=Can be attached to screens to allow typing on them.
 oc:tooltip.Memory=Required to get computers to run. The more you have, the more complex the programs you can run.
 oc:tooltip.Microchip=The chip formerly known as Integrated Circuit. I have no idea why this works with redstone, but it does.
