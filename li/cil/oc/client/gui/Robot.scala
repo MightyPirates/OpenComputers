@@ -101,6 +101,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
+    GL11.glColor3f(1, 1, 1) // Required under Linux.
     mc.renderEngine.bindTexture(robotBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
