@@ -1,6 +1,7 @@
 package li.cil.oc.server.fs
 
 import java.io
+import java.io.FileNotFoundException
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
@@ -62,7 +63,8 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
   }
 
   override def rename(from: String, to: String) =
-    if (from != "" && exists(from) && !exists(to)) {
+    if (from == "" || !exists(from)) throw new FileNotFoundException()
+    else if (!exists(to)) {
       val segmentsTo = segments(to)
       root.get(segmentsTo.dropRight(1)) match {
         case Some(toParent: VirtualDirectory) =>
