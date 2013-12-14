@@ -6,13 +6,13 @@ package li.cil.oc.api.network;
  * Components therefore form a sub-network in the overall network, and some
  * special rules apply to them. For one, components specify an additional
  * kind of visibility. Component visibility may have to differ from real
- * network visibility in some cases, such as network cards (which have to
+ * network reachability in some cases, such as network cards (which have to
  * be able to communicate across the whole network, but computers should only
  * "see" the cards installed directly in them).
  * <p/>
- * Unlike the `Node`'s network visibility, this is a dynamic value and can be
- * changed at any time. For example, this is used to hide multi-block screen
- * parts that are not the origin from computers in the network.
+ * Unlike the {@link Node}'s network reachability, this is a dynamic value and
+ * can be changed at any time. For example, this is used to hide multi-block
+ * screen parts that are not the origin from computers in the network.
  * <p/>
  * The method responsible for dispatching network messages from computers also
  * only allows sending messages to components that the computer can see,
@@ -41,6 +41,10 @@ public interface Component extends Node {
      * <p/>
      * Note that this cannot be higher / more visible than the reachability of
      * the node. Trying to set it to a higher value will generate an exception.
+     *
+     * @throws java.lang.IllegalArgumentException if the specified value is
+     *                                            more visible than the node's
+     *                                            reachability.
      */
     void setVisibility(Visibility value);
 
