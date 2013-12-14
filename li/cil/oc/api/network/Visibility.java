@@ -1,18 +1,18 @@
 package li.cil.oc.api.network;
 
 /**
- * Possible reachability values foe nodes.
+ * Possible reachability values for nodes.
  * <p/>
  * Since all nodes that are connected are packed into the same network, we want
  * some way of controlling what's accessible from where on a low level (to
  * avoid unnecessary messages and unauthorized access).
  * <p/>
  * Note that there is a more specific kind of visibility for components. See
- * `Component` for more details on that.
+ * {@link Component} for more details on that.
  */
 public enum Visibility {
     /**
-     * Nodes with this visibility neither receives nor sends messages.
+     * Nodes with this visibility neither receive nor send messages.
      * <p/>
      * Components with this visibility cannot be seen nor reached by computers.
      */
