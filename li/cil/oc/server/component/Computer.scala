@@ -15,6 +15,7 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.convert.WrapAsScala._
@@ -60,13 +61,11 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   private var worldTime = 0L // Game-world time for os.time().
 
-  private var lastUpdate = 0L // Real-world time [ms] for pause detection.
-
   private var cpuTime = 0L // Pseudo-real-world time [ns] for os.clock().
 
   private var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
 
-  private var sleepUntil = 0.0 // Real-world time [ms].
+  private var remainIdle = 0 // Ticks left to sleep before resuming.
 
   private var remainingPause = 0 // Ticks left to wait before resuming.
 
@@ -213,15 +212,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     // reachability).
     processAddedComponents()
 
-    // Update last time run to let our executor thread know it doesn't have to
-    // pause.
-    lastUpdate = System.currentTimeMillis
-
     // Update world time for time().
     worldTime = owner.world.getWorldTime
 
     // We can have rollbacks from '/time set'. Avoid getting negative uptimes.
     timeStarted = math.min(timeStarted, worldTime)
+
+    if (remainIdle > 0) {
+      remainIdle -= 1
+    }
 
     // Reset direct call limits.
     callCounts.synchronized(if (callCounts.size > 0) callCounts.clear())
@@ -233,7 +232,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
              Computer.State.Restarting |
              Computer.State.Stopping |
              Computer.State.Stopped => // No power consumption.
-        case Computer.State.Sleeping if lastUpdate < sleepUntil && signals.isEmpty =>
+        case Computer.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
           if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
             crash("not enough energy")
           }
@@ -267,7 +266,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
-      case Computer.State.Sleeping if lastUpdate >= sleepUntil || !signals.isEmpty =>
+      case Computer.State.Sleeping if remainIdle <= 0 || !signals.isEmpty =>
         switchTo(Computer.State.Yielded)
       // Resume in case we paused  because the game was paused.
       case Computer.State.Paused =>
@@ -1164,7 +1163,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       timeStarted = 0
       cpuTime = 0
       cpuStart = 0
-      sleepUntil = 0
+      remainIdle = 0
 
       // Mark state change in owner, to send it to clients.
       owner.markAsChanged()
@@ -1176,7 +1175,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     val result = state.pop()
     state.push(value)
     if (value == Computer.State.Yielded || value == Computer.State.SynchronizedReturn) {
-      sleepUntil = 0
+      remainIdle = 0
       Computer.threadPool.submit(this)
     }
 
@@ -1185,6 +1184,11 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
     result
   }
+
+  private def isGamePaused = !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
+    case integrated: IntegratedServer => integrated.getServerListeningThread.isGamePaused
+    case _ => false
+  })
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = this.synchronized {
@@ -1195,7 +1199,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         return
       }
       // See if the game appears to be paused, in which case we also pause.
-      if (System.currentTimeMillis - lastUpdate > 100) {
+      if (isGamePaused) {
         state.push(Computer.State.Paused)
         return
       }
@@ -1288,15 +1292,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               // early if a signal arrives in the meantime. If we have something
               // else we just process the next signal or wait for one.
               val sleep =
-                if (results == 1 && lua.isNumber(2)) lua.toNumber(2) * 1000
-                else Double.PositiveInfinity
+                if (results == 1 && lua.isNumber(2)) (lua.toNumber(2) * 20).toInt
+                else Int.MaxValue
               lua.pop(results)
               signals.synchronized {
                 // Immediately check for signals to allow processing more than one
                 // signal per game tick.
-                if (signals.isEmpty) {
+                if (signals.isEmpty && sleep > 0) {
                   switchTo(Computer.State.Sleeping)
-                  sleepUntil = System.currentTimeMillis + sleep
+                  remainIdle = sleep
                 } else {
                   switchTo(Computer.State.Yielded)
                 }
