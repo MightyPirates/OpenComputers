@@ -56,11 +56,13 @@ class Charger extends Environment with RedstoneAware with Analyzable {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed")
+    invertSignal = nbt.getBoolean("invertSignal")
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
+    nbt.setBoolean("invertSignal", invertSignal)
   }
 
   @SideOnly(Side.CLIENT)
