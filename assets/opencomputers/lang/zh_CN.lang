@@ -1,0 +1,119 @@
+# OpenComputer
+# This is the simplified Chinese file for localizations. 
+# Use [nl] to for a line break.
+
+# Blocks
+oc:block.Adapter.name=适配器
+oc:block.Cable.name=线缆
+oc:block.Capacitor.name=电容
+oc:block.Case0.name=基础机箱
+oc:block.Case1.name=高级机箱
+oc:block.Case2.name=超级机箱
+oc:block.Charger.name=充电器
+oc:block.DiskDrive.name=磁盘驱动器
+oc:block.Keyboard.name=键盘
+oc:block.PowerConverter.name=能量转换器
+oc:block.PowerDistributor.name=能量分配器
+oc:block.Redstone.name=红石I/O
+oc:block.Robot.name=机器人
+oc:block.RobotAfterimage.name=机器人
+oc:block.Router.name=路由器
+oc:block.Screen0.name=基础屏幕
+oc:block.Screen1.name=高级屏幕
+oc:block.Screen2.name=超级屏幕
+
+# Items
+oc:item.ALU.name=算逻运算单元(ALU)
+oc:item.Analyzer.name=分析器
+oc:item.ArrowKeys.name=方向键
+oc:item.ButtonGroup.name=按钮组
+oc:item.CardBase.name=主板
+oc:item.CircuitBoard.name=电路板
+oc:item.ControlUnit.name=控制单元(CU)
+oc:item.CPU.name=中央处理器(CPU)
+oc:item.Crafting.name=合成升级
+oc:item.CuttingWire.name=切割线
+oc:item.Disk.name=磁盘
+oc:item.FloppyDisk.name=软盘
+oc:item.Generator.name=发电机升级
+oc:item.GraphicsCard0.name=基础显卡
+oc:item.GraphicsCard1.name=高级显卡
+oc:item.GraphicsCard2.name=超级显卡
+oc:item.Acid.name=蚀刻药水
+oc:item.HardDiskDrive.name=硬盘驱动
+oc:item.IronNugget.name=铁粒
+oc:item.Memory.name=内存
+oc:item.Microchip0.name=简易微芯片
+oc:item.Microchip1.name=高级微芯片
+oc:item.Microchip2.name=超级微芯片
+oc:item.NetworkCard.name=网卡
+oc:item.NumPad.name=数字键盘
+oc:item.PrintedCircuitBoard.name=印制板(PCB)
+oc:item.RawCircuitBoard.name=电路板材料
+oc:item.RedstoneCard.name=红石卡
+oc:item.Transistor.name=晶体管
+oc:item.WirelessNetworkCard.name=无线网卡
+
+# GUI
+oc:gui.Analyzer.Address=地址
+oc:gui.Analyzer.ComponentName=设备组件名
+oc:gui.Analyzer.LastError=上一个错误
+oc:gui.Analyzer.RobotName=名称
+oc:gui.Analyzer.RobotOwner=主人
+oc:gui.Analyzer.RobotXp=经验
+oc:gui.Analyzer.StoredEnergy=储能
+oc:gui.Analyzer.TotalEnergy=总储能
+oc:gui.Analyzer.Users=用户
+oc:gui.Robot.Power=能量
+oc:gui.Robot.TurnOff=关闭
+oc:gui.Robot.TurnOn=开启
+
+# Containers
+oc:container.Case=计算机
+oc:container.DiskDrive=磁盘驱动
+
+# Item / Block Tooltips
+oc:tooltip.Acid=一种有毒的假液相物质,通常只有某些海盗会使用它们.[nl]它的腐蚀特性令它非常完美地适用于蚀刻电路板的材料.
+oc:tooltip.Adapter=用于控制非电脑组件的方块,[nl]比如原版或者来自其他模组的方块.
+oc:tooltip.ALU=用来做算逻运算以免你亲自代劳,[nl]它更胜任这份差事.
+oc:tooltip.Analyzer=用于显示方块信息,比如它们的§f地址§7和§f组件名称§7.[nl]如果计算机未能正常关闭它也会显示使得计算机崩溃的报错.
+oc:tooltip.Cable=连接方块的廉价选择.
+oc:tooltip.Capacitor=储能以备他用.[nl]能够非常快速地充电放电.
+oc:tooltip.CardBase=正如其名,它是用来安装其他扩展卡的基本卡板.
+oc:tooltip.Case=计算机机箱是构建计算机的基本方块,[nl]也是各种§f扩展卡§7,§f内存§7以及§f硬盘§7的外壳.[nl] 格子: §f%s§7.
+oc:tooltip.Charger=将电容器的能量传输给相邻机器人.[nl]传输效率取决于输入的§f红石信号§7强度,无信号意味着不给机器人充电,而最强信号则意味着全速给机器人充电.
+oc:tooltip.CircuitBoard=现在我们已经取得一些进展.[nl]可以通过蚀刻来得到印制板.
+oc:tooltip.ControlUnit=用来控制...控制东西...的单元.[nl]你需要这玩意儿来做CPU.所以反正啦,这个非常重要.
+oc:tooltip.CPU=所有计算机最核心的组件,它的时钟频率有点不可靠,[nl]但是你考虑到它是靠便携日晷来运行的你还能指望啥呢?
+oc:tooltip.Crafting=使得机器人能够将其物品栏的左上区域作为合成网格来制做物品.[nl]物品栏内物品摆放必须与工作台中一致.
+oc:tooltip.CuttingWire=用于将粘土块切割成电路板的形状.[nl]使用一次就会坏掉,这可能使得成为历来最低效的工具.
+oc:tooltip.Disk=用于制造持久存储设备的原始媒介材料.
+oc:tooltip.DiskDrive.CC=已经§a支持§7使用另一个电脑模组(ComputerCraft)的软盘.
+oc:tooltip.DiskDrive=用来读写软盘.
+oc:tooltip.Generator=用来不断地消耗燃料发电,燃烧物品并基于它们的燃烧值随着时间推移产生电力.[nl] §f效率§7: §a%s%%§7.
+oc:tooltip.GraphicsCard=用来改变屏幕显示内容.[nl]最高分辨率:§f%sx%s§7.[nl] 最大色深: §f%s§7.
+oc:tooltip.IronNugget=颗粒状的铁,所以叫铁粒啦,蠢蠢的感觉...
+oc:tooltip.Keyboard=可以连接屏幕,能够输入显示文本.
+oc:tooltip.Memory=电脑运行必备.[nl]内存越大,你就可以运行越复杂的程序.
+oc:tooltip.Microchip=通常也管这种芯片叫集成电路.[nl]我也不知道为啥能和红石一起运行,但事实如此啊.
+oc:tooltip.NetworkCard=允许通过其他方块(比如线缆)相连的远程计算机能够向彼此发送信息进行交互.
+oc:tooltip.PowerConverter.BC=§f建筑模组minecraft焦耳(BC-MJ)§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.IC2=§f工业时代EU(IC²-EU)§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.TE=§f热能扩展RF(TE-RF)§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.UE=§f通用电力焦耳(UE-Joules§7): §a%s:%s§7.
+oc:tooltip.PowerConverter=将其他模组的能量转化为本模组的内部能源形式.转换率:
+oc:tooltip.PowerDistributor=在不同网络中分配能量.[nl]用来通过包含多个理论上独立的子网络的转换器在系统中共享能量时很实用.
+oc:tooltip.PrintedCircuitBoard=扩展卡,内存等的基板.
+oc:tooltip.RawCircuitBoard=能够在熔炉或者类似炉子中加工强化成其他材料.
+oc:tooltip.Redstone=能够在方块周围接收以及发送红石信号.[nl]可以被与之相连的计算机控制.基本上就像一个外置红石卡.
+oc:tooltip.RedstoneCard.RedLogic=已经§a支持§7§f红石逻辑(RedLogic)§7中的红石系统.
+oc:tooltip.RedstoneCard.RedNet=已经§a支持§7MFR中的§f红石网络(RedNet)§7.
+oc:tooltip.RedstoneCard=能够在计算机和机器人四周接收以及发送红石信号.
+oc:tooltip.Robot=和计算机不同,机器人能够移动并且像玩家那些与世界之中的东西交互.[nl]然而,它们§o不能§r§7直接与外设进行交互!
+oc:tooltip.Robot_Level=§f等级§7: §a%s§7.
+oc:tooltip.Robot_StoredEnergy=§f储能§7: §a%s§7.
+oc:tooltip.Router=允许设备相互连接不同的网络.[nl]仅能传递网络信息,通过路由器方式设备并不互相可见.[nl]例如可以通过这种方式来建立独立网络但仍允许其使用网卡通讯.
+oc:tooltip.Screen=由机箱内的显卡控制来显示文本.[nl]最高分辨率:§f%sx%s§7.[nl] 最大色深: §f%s§7.
+oc:tooltip.TooLong=按住潜行键(shift)以查看详细提示信息.
+oc:tooltip.Transistor=在多数其他计算机的零件中都很基础的元件.[nl]引脚有点弯了,但还能用.
+oc:tooltip.WirelessNetworkCard=允许在发送正常信息外无线发送网络信息.[nl]请确保已设置好§f信号强度§7否则不会发出无线数据包.
