@@ -15,6 +15,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.Array
+import li.cil.oc.util.mods.BuildCraft
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Screen" + tier
@@ -284,7 +285,7 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
-    if (!player.isSneaking) {
+    if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
       world.getBlockTileEntity(x, y, z) match {
         case screen: tileentity.Screen if screen.hasKeyboard =>
           // Yep, this GUI is actually purely client side. We could skip this

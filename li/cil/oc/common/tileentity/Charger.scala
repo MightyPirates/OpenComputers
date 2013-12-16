@@ -17,6 +17,8 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   var chargeSpeed = 0.0
 
+  var invertSignal = false
+
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   override def updateEntity() {
@@ -76,7 +78,10 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
-    chargeSpeed = math.max(0, math.min(ForgeDirection.VALID_DIRECTIONS.map(input).max, 15) / 15.0)
+    val signal = math.max(0, math.min(15, ForgeDirection.VALID_DIRECTIONS.map(input).max))
+
+    if (invertSignal) chargeSpeed = (15 - signal) / 15.0
+    else chargeSpeed = signal / 15.0
     if (isServer) {
       ServerPacketSender.sendChargerState(this)
     }

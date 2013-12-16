@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -72,7 +73,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
+    if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
       }

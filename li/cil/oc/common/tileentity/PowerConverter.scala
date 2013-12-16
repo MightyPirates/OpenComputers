@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import cofh.api.energy.IEnergyHandler
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.{ModAPIManager, Loader, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api.network._
@@ -16,7 +16,7 @@ import universalelectricity.core.electricity.ElectricityPack
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
-  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Energy"),
+  new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
   new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion")
 ))
 class PowerConverter extends Environment with Analyzable with IEnergySink with IPowerReceptor with IElectrical with IEnergyHandler {
@@ -26,7 +26,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   private lazy val isIndustrialCraftAvailable = Loader.isModLoaded("IC2")
 
-  private lazy val isBuildCraftAvailable = Loader.isModLoaded("BuildCraft|Energy")
+  private lazy val isBuildCraftAvailable = ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")
 
   private def demand = if (Settings.get.ignorePower) 0.0 else node.globalBufferSize - node.globalBuffer
 
@@ -66,14 +66,14 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    if (Loader.isModLoaded("BuildCraft|Energy")) {
+    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")) {
       getPowerProvider.readFromNBT(nbt.getCompoundTag(Settings.namespace + "bc"))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (Loader.isModLoaded("BuildCraft|Energy")) {
+    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")) {
       nbt.setNewCompoundTag(Settings.namespace + "bc", getPowerProvider.writeToNBT)
     }
   }
@@ -133,7 +133,7 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   private var powerHandler: Option[AnyRef] = None
 
-  @Optional.Method(modid = "BuildCraft|Energy")
+  @Optional.Method(modid = "BuildCraftAPI|power")
   def getPowerProvider = {
     if (node != null && powerHandler.isEmpty) {
       val handler = new PowerHandler(this, PowerHandler.Type.MACHINE)
@@ -147,16 +147,16 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
     else null
   }
 
-  @Optional.Method(modid = "BuildCraft|Energy")
+  @Optional.Method(modid = "BuildCraftAPI|power")
   def getPowerReceiver(side: ForgeDirection) =
     if (node != null)
       getPowerProvider.getPowerReceiver
     else null
 
-  @Optional.Method(modid = "BuildCraft|Energy")
+  @Optional.Method(modid = "BuildCraftAPI|power")
   def getWorld = worldObj
 
-  @Optional.Method(modid = "BuildCraft|Energy")
+  @Optional.Method(modid = "BuildCraftAPI|power")
   def doWork(workProvider: PowerHandler) {}
 
   // ----------------------------------------------------------------------- //

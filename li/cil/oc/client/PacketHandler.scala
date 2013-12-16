@@ -64,7 +64,9 @@ class PacketHandler extends CommonPacketHandler {
 
   def onChargerState(p: PacketParser) =
     p.readTileEntity[Charger]() match {
-      case Some(t) => t.chargeSpeed = p.readDouble()
+      case Some(t) =>
+        t.chargeSpeed = p.readDouble()
+        t.world.markBlockForRenderUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }
 
