@@ -31,6 +31,7 @@ object Items {
   // Upgrades
   var crafting: item.Crafting = null
   var generator: item.Generator = null
+  var solarGenerator: item.SolarGenerator = null
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -101,6 +102,10 @@ object Items {
     circuitBoard = new item.CircuitBoard(multi)
     pcb = new item.PrintedCircuitBoard(multi)
     card = new item.CardBase(multi)
+
+
+    //new for next release
+    solarGenerator = new item.SolarGenerator(multi)
 
     OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
   }
