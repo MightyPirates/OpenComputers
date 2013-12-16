@@ -11,6 +11,10 @@
      "de_DE":{
         "name": "Deutsch",
         "region": "Deutschland"
+     },
+     "zh_CN":{
+        "name": "简体中文",
+        "region": "中国"
      }
   }
 }
