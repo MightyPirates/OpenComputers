@@ -77,8 +77,10 @@ trait Buffer extends GuiScreen {
       }
       else if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
-        PacketSender.sendKeyDown(buffer.owner, char, code)
-        pressedKeys += code -> char
+        if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
+          PacketSender.sendKeyDown(buffer.owner, char, code)
+          pressedKeys += code -> char
+        }
       }
       else pressedKeys.remove(code) match {
         case Some(char) => PacketSender.sendKeyUp(buffer.owner, char, code)
@@ -94,4 +96,15 @@ trait Buffer extends GuiScreen {
   }
 
   protected def changeSize(w: Double, h: Double): Double
+
+  private def ignoreRepeat(char: Char, code: Int) = {
+    code == Keyboard.KEY_LCONTROL ||
+      code == Keyboard.KEY_RCONTROL ||
+      code == Keyboard.KEY_LMENU ||
+      code == Keyboard.KEY_RMENU ||
+      code == Keyboard.KEY_LSHIFT ||
+      code == Keyboard.KEY_RSHIFT ||
+      code == Keyboard.KEY_LMETA ||
+      code == Keyboard.KEY_RMETA
+  }
 }

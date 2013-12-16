@@ -225,6 +225,8 @@ local function enter()
   setStatus("Save: [Ctrl+S] Close: [Ctrl+W]")
 end
 
+local controlKeyCombos = {[keyboard.keys.s]=true,[keyboard.keys.w]=true,
+                          [keyboard.keys.c]=true,[keyboard.keys.x]=true}
 local function onKeyDown(char, code)
   if code == keyboard.keys.back and not readonly then
     if left() then
@@ -252,7 +254,7 @@ local function onKeyDown(char, code)
     down(h - 1)
   elseif code == keyboard.keys.enter and not readonly then
     enter()
-  elseif keyboard.isControlDown() then
+  elseif keyboard.isControlDown() and controlKeyCombos[code] then
     local cbx, cby = getCursor()
     if code == keyboard.keys.s and not readonly then
       local new = not fs.exists(filename)
