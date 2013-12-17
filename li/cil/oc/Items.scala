@@ -32,6 +32,7 @@ object Items {
   var crafting: item.Crafting = null
   var generator: item.Generator = null
   var solarGenerator: item.SolarGenerator = null
+  var reader:item.Reader = null
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -106,6 +107,7 @@ object Items {
 
     //new for next release
     solarGenerator = new item.SolarGenerator(multi)
+    reader = new item.Reader(multi)
 
     OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
   }
