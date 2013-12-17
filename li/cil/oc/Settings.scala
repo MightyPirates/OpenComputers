@@ -1,8 +1,7 @@
 package li.cil.oc
 
-import com.typesafe.config.{Config, ConfigFactory}
-import java.io.{FileOutputStream, File}
-import java.nio.channels.Channels
+import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
+import java.io._
 import li.cil.oc.util.PackedColor
 import scala.collection.convert.WrapAsScala._
 
@@ -125,7 +124,7 @@ class Settings(config: Config) {
       Array(tier1: Int, tier2: Int, tier3: Int)
     case _ =>
       OpenComputers.log.warning("Bad number of HDD sizes, ignoring.")
-      Array(2048, 4096, 8192)
+      Array(1024, 2048, 4096)
   }
   val floppySize = config.getInt("filesystem.floppySize") max 0
   val tmpSize = config.getInt("filesystem.tmpSize") max 0
@@ -165,17 +164,23 @@ object Settings {
   def get = settings
 
   def load(file: File) = {
-    if (!file.exists() || file.length() == 0) {
-      val in = Channels.newChannel(classOf[Settings].getResourceAsStream("/reference.conf"))
-      val out = new FileOutputStream(file).getChannel
-      out.transferFrom(in, 0, Long.MaxValue)
-      in.close()
-      out.close()
-    }
     val defaults = ConfigFactory.defaultReference().withOnlyPath("opencomputers")
     try {
       val config = ConfigFactory.parseFile(file).withFallback(defaults)
       settings = new Settings(config.getConfig("opencomputers"))
+
+      val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
+      val out = new PrintWriter(file)
+      out.write(config.root.render(renderSettings).lines.
+        // Strip extra spaces in front and fix additional space in of comments.
+        map(_.stripPrefix("    ").replaceAll("^(\\s*)#  ", "$1# ")).
+        // Indent two spaces instead of four.
+        map(line => """^(\s*)""".r.replaceAllIn(line, m => m.group(1).replace("  ", " "))).
+        // Finalize the string.
+        filter(_ != "").mkString("\n").
+        // Newline after values.
+        replaceAll( """((?:\s*#.*\n)(?:\s*[^#\s].*\n)+)""", "$1\n"))
+      out.close()
     }
     catch {
       case e: Throwable =>
