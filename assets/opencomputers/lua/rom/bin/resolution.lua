@@ -20,3 +20,4 @@ local result, reason = component.gpu.setResolution(w, h)
 if not result then
   print(reason)
 end
+term.clear()
