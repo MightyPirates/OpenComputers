@@ -90,6 +90,10 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
           components(slot) = Some(component)
           component.load(dataTag(driver, stack))
           connectItemNode(component.node)
+          if (component.canUpdate) {
+            assert(!updatingComponents.contains(component))
+            updatingComponents += component
+          }
           component.save(dataTag(driver, stack))
         case _ => // No environment (e.g. RAM).
       }
