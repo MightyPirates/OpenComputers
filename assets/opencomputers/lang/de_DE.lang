@@ -91,6 +91,7 @@ oc:tooltip.Generator=Kann verwendet werden um unterwegs Energie aus Brennstoffen
 oc:tooltip.GraphicsCard=Erlaubt es den angezeigten Inhalt von Bildschirmen zu ändern.[nl] Höchstauflösung: §f%sx%s§7.[nl] Maximale Farbtiefe: §f%s§7.[nl] Operationen/Tick: §f%s§7.
 oc:tooltip.IronNugget=Ein Nugget das aus Eisen besteht, darum wird es ja auch Eisennugget genannt, duh...
 oc:tooltip.Keyboard=Kann an Bildschirmen befestigt werden um auf ihnen zu tippen.
+oc:tooltip.Locator=Kann benutzt werden um die Position des Robters zu bestimmen. Die Position ist relativ zur Mitte der Karte, die im Locator verbaut wurde.
 oc:tooltip.Memory=Braucht ein jeder Computer um zu starten. Je mehr vorhanden, desto komplexere Programme können ausgeführt werden.
 oc:tooltip.Microchip=Tritt auch unter dem Alias Integrierter Schaltkreis auf. Keine Ahnung warum das auch mit Redstone klappt, aber es funktioniert.
 oc:tooltip.NetworkCard=Erlaubt es Computern die über mehrere Blöcke miteinander verbunden sind (z.B. Kabel) mittels Netzwerknachrichten zu kommunizieren.

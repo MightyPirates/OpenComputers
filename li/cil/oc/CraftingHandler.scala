@@ -3,7 +3,10 @@ package li.cil.oc
 import cpw.mods.fml.common.ICraftingHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.{ItemMap, Item, ItemStack}
+import net.minecraftforge.oredict.OreDictionary
+import net.minecraft.world.storage.MapInfo
+import li.cil.oc.server.driver.Registry
 
 object CraftingHandler extends ICraftingHandler {
   override def onCrafting(player: EntityPlayer, craftedStack: ItemStack, inventory: IInventory) = {
@@ -26,6 +29,26 @@ object CraftingHandler extends ICraftingHandler {
             player.dropPlayerItem(container)
           }
         }
+      }
+    }
+    if (!player.getEntityWorld.isRemote&&craftedStack.isItemEqual(Items.locator.createItemStack())) {
+      for (i <- 0 to inventory.getSizeInventory) {
+        val stack = inventory.getStackInSlot(i)
+        if(stack != null && stack.getItem== Item.map)
+        {
+          var map = stack.getItem.asInstanceOf[ItemMap]
+          val info = map.getMapData(stack, player.getEntityWorld)
+
+          val nbt = Registry.driverFor(craftedStack) match {
+            case Some(driver)=>driver.dataTag(craftedStack)
+            case _ => null
+          }
+          nbt.setInteger(Settings.namespace +"xCenter",info.xCenter)
+          nbt.setInteger(Settings.namespace +"xCenter",info.zCenter)
+          nbt.setInteger(Settings.namespace +"scale",128*(1<<info.scale))
+        }
+
+
       }
     }
   }

@@ -5,7 +5,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
+import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
 
 object Recipes {
   def init() {
@@ -79,7 +79,7 @@ object Recipes {
     FurnaceRecipes.smelting().addSmelting(rawBoard.itemID, rawBoard.getItemDamage, board, 0)
     GameRegistry.addRecipe(new ShapelessOreRecipe(acid, Item.bucketWater, sugar, roseRed, slimeBall, spiderEye, boneMeal))
     GameRegistry.addRecipe(new ShapelessOreRecipe(pcb, acid, Item.goldNugget, board))
-
+    GameRegistry.addRecipe(new ShapelessOreRecipe(Items.locator.createItemStack(),new ItemStack(Item.map,1,OreDictionary.WILDCARD_VALUE),pcb)  )
     addRecipe(ironIngot,
       "xxx",
       "xxx",
@@ -485,6 +485,8 @@ object Recipes {
       'w', craftingTable,
       'b', pcb)
   }
+
+
 
   private def addRecipe(output: ItemStack, args: Any*) = {
     GameRegistry.addRecipe(new ShapedOreRecipe(output, args.map(_.asInstanceOf[AnyRef]): _*))

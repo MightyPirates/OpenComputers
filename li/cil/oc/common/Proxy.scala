@@ -32,6 +32,7 @@ class Proxy {
     api.Driver.add(driver.item.Generator)
     api.Driver.add(driver.item.SolarGenerator)
     api.Driver.add(driver.item.GraphicsCard)
+    api.Driver.add(driver.item.Locator)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Reader)
