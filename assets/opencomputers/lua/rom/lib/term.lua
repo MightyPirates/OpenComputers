@@ -242,16 +242,14 @@ function term.read(history)
         table.remove(history, cby)
       end
       return true, history[#history] .. "\n"
-    elseif keyboard.isControlDown() then
-      if code == keyboard.keys.d then
-        if line() == "" then
-          history[#history] = ""
-          return true, nil
-        end
-      elseif code == keyboard.keys.c then
+    elseif keyboard.isControlDown() and code == keyboard.keys.d then
+      if line() == "" then
         history[#history] = ""
         return true, nil
       end
+    elseif keyboard.isControlDown() and code == keyboard.keys.c then
+      history[#history] = ""
+      return true, nil
     elseif not keyboard.isControl(char) then
       insert(unicode.char(char))
     end

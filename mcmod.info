@@ -2,9 +2,9 @@
 {
   "modid": "OpenComputers",
   "name": "OpenComputers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
-  "authors": ["Florian 'Sangar' NÃ¼cke", "Johannes 'Lord Joda' Lohrer"],
+  "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
   "description": "This mod adds modular computers and robots that can be programmed in Lua.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
   "url": "https://github.com/MightyPirates/OpenComputers/wiki"

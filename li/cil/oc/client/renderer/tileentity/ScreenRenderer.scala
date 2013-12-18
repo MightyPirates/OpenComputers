@@ -6,16 +6,21 @@ import java.util
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
+import li.cil.oc.util.mods.BuildCraft
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
+  private val upIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
+
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
@@ -38,7 +43,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     screen = t.asInstanceOf[Screen]
-    if (!screen.isOrigin || !screen.hasPower) {
+    if (!screen.isOrigin) {
       return
     }
 
@@ -63,27 +68,23 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    drawOverlay()
+
     if (distance > fadeDistanceSq) {
       RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
 
-    MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
-    val list = cache.get(screen, this)
-    compileOrDraw(list)
+    if (screen.hasPower) {
+      MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
+      val list = cache.get(screen, this)
+      compileOrDraw(list)
+    }
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
   }
 
-  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
-    screen.bufferIsDirty = false
-    val sx = screen.width
-    val sy = screen.height
-    val tw = sx * 16f
-    val th = sy * 16f
-
-    GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
-
+  private def transform() {
     screen.yaw match {
       case ForgeDirection.WEST => GL11.glRotatef(-90, 0, 1, 0)
       case ForgeDirection.NORTH => GL11.glRotatef(180, 0, 1, 0)
@@ -98,10 +99,49 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     // Fit area to screen (bottom left = bottom left).
     GL11.glTranslatef(-0.5f, -0.5f, 0.5f)
-    GL11.glTranslatef(0, sy, 0)
+    GL11.glTranslatef(0, screen.height, 0)
 
     // Flip text upside down.
     GL11.glScalef(1, -1, 1)
+  }
+
+  private def drawOverlay() = if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) {
+    // Show up vector overlay when holding same screen block.
+    val stack = Minecraft.getMinecraft.thePlayer.getHeldItem
+    if (stack != null) {
+      if (BuildCraft.holdsApplicableWrench(Minecraft.getMinecraft.thePlayer, screen.x, screen.y, screen.z) ||
+        (stack.getItem match {
+          case block: block.Item => block.getMetadata(stack.getItemDamage) == screen.getBlockMetadata
+          case _ => false
+        })) {
+        GL11.glPushMatrix()
+        transform()
+        bindTexture(upIndicator)
+        GL11.glDepthMask(false)
+        GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
+        val t = Tessellator.instance
+        t.startDrawingQuads()
+        t.addVertexWithUV(0, 1, 0, 0, 1)
+        t.addVertexWithUV(1, 1, 0, 1, 1)
+        t.addVertexWithUV(1, 0, 0, 1, 0)
+        t.addVertexWithUV(0, 0, 0, 0, 0)
+        t.draw()
+        GL11.glDepthMask(true)
+        GL11.glPopMatrix()
+      }
+    }
+  }
+
+  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
+    screen.bufferIsDirty = false
+    val sx = screen.width
+    val sy = screen.height
+    val tw = sx * 16f
+    val th = sy * 16f
+
+    GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
+
+    transform()
 
     // Offset from border.
     GL11.glTranslatef(sx * 2.25f / tw, sy * 2.25f / th, 0)
