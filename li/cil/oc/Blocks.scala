@@ -3,6 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -72,5 +73,14 @@ object Blocks {
     screen3 = new Screen.Tier3(blockSimple)
 
     redstone = new Redstone(blockSimpleWithRedstone)
+
+
+
+    OreDictionary.registerOre("craftingMonitorBasic", screen1.createItemStack())
+    OreDictionary.registerOre("craftingMonitorAdvanced", screen2.createItemStack())
+    OreDictionary.registerOre("craftingMonitorElite", screen3.createItemStack())
+    OreDictionary.registerOre("craftingRawMachineBasic", case1.createItemStack())
+    OreDictionary.registerOre("craftingRawMachineAdvanced", case2.createItemStack())
+    OreDictionary.registerOre("craftingRawMachineElite", case3.createItemStack())
   }
 }

@@ -112,5 +112,11 @@ object Items {
     locator =  new item.Locator(multi)
 
     OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
+    OreDictionary.registerOre("craftingCircuitBoardBasic", circuitBoard.createItemStack())
+    OreDictionary.registerOre("craftingCircuitBoardAdvanced", pcb.createItemStack())
+    OreDictionary.registerOre("craftingWireTin", cuttingWire.createItemStack())
+    OreDictionary.registerOre("circuitBasic", chip1.createItemStack())
+    OreDictionary.registerOre("circuitAdvanced", chip2.createItemStack())
+    OreDictionary.registerOre("circuitElite", chip3.createItemStack())
   }
 }
