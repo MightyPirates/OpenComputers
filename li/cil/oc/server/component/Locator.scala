@@ -20,10 +20,8 @@ class Locator(val owner: MCTileEntity, val xCenter: Int, val zCenter: Int,val sc
   @LuaCallback("getPosition")
   def getPosition(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val player = context.player()
-    println("start: "+xCenter+","+zCenter)
     val x = player.posX.floor.toInt
     val z = player.posZ.floor.toInt
-    println("curr: "+x+","+z)
     val xDist = x - xCenter
     val zDist = z - zCenter
 

@@ -20,7 +20,7 @@ object Locator extends Item {
     val z = if(nbt.hasKey(Settings.namespace +"zCenter")) nbt.getInteger(Settings.namespace +"zCenter")
     else container.zCoord
     val scale = if(nbt.hasKey(Settings.namespace +"scale")) nbt.getInteger(Settings.namespace +"scale")
-    else container.zCoord
+    else 512
     new component.Locator(container,x,z,scale)
   }
 
