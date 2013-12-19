@@ -22,7 +22,7 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
 
   def block = getBlockType
 
-  private var addedToNetwork = false
+  protected var addedToNetwork = false
 
   // ----------------------------------------------------------------------- //
 

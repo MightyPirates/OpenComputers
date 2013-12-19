@@ -237,7 +237,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (node != null && node.network == null) {
+    if (!addedToNetwork) {
+      addedToNetwork = true
       api.Network.joinNewNetwork(node)
     }
     if (animationTicksLeft > 0) {
@@ -270,6 +271,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
         case _ =>
       }
+      updateXpInfo()
     }
   }
 

@@ -100,7 +100,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     data.remove(node.address) match {
       case Some(entry) =>
         node match {
-          case connector: Connector if connector.localBufferSize > 0 => removeConnector(connector)
+          case connector: Connector => removeConnector(connector)
           case _ =>
         }
         node.network = null
@@ -287,10 +287,12 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
   }
 
   def removeConnector(connector: Connector) {
-    assert(connectors.contains(connector))
-    connectors -= connector
-    globalBuffer -= connector.localBuffer
-    globalBufferSize -= connector.localBufferSize
+    if (connector.localBufferSize > 0) {
+      assert(connectors.contains(connector))
+      connectors -= connector
+      globalBuffer -= connector.localBuffer
+      globalBufferSize -= connector.localBufferSize
+    }
   }
 
   def changeBuffer(delta: Double): Double = {
