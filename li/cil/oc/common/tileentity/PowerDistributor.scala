@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
@@ -13,9 +14,10 @@ class PowerDistributor extends Environment with SidedEnvironment with PowerInfor
 
   val node = null
 
-  def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
-
+  @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = true
+
+  def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
 
   var globalBuffer, globalBufferSize = 0.0
 

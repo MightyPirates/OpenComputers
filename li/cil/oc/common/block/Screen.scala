@@ -3,6 +3,7 @@ package li.cil.oc.common.block
 import java.util
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -15,7 +16,6 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.Array
-import li.cil.oc.util.mods.BuildCraft
 
 abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Screen" + tier
@@ -337,7 +337,15 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
 
   // ----------------------------------------------------------------------- //
 
-  override protected val validRotations_ = ForgeDirection.VALID_DIRECTIONS
+  override def validRotations(world: World, x: Int, y: Int, z: Int) =
+    world.getBlockTileEntity(x, y, z) match {
+      case screen: tileentity.Screen =>
+        if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) ForgeDirection.VALID_DIRECTIONS
+        else ForgeDirection.VALID_DIRECTIONS.filter {
+          d => d != screen.facing && d != screen.facing.getOpposite
+        }
+      case _ => super.validRotations(world, x, y, z)
+    }
 }
 
 object Screen {

@@ -44,9 +44,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   private val arrows = mutable.Set.empty[EntityArrow]
 
+  @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
-  def sidedNode(side: ForgeDirection) = if (canConnect(side)) node else null
+  // Allow connections from front for keyboards, just don't render cables as connected...
+  def sidedNode(side: ForgeDirection) = node
 
   // ----------------------------------------------------------------------- //
 
@@ -58,11 +60,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     (lx - ox, ly - oy)
   }
 
-  override def hasKeyboard = screens.exists(screen => ForgeDirection.VALID_DIRECTIONS.
-    map(side => (side, world.getBlockTileEntity(screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ))).
-    collect {
-    case (side, keyboard: Keyboard) if keyboard.facing == side => keyboard
-  }.nonEmpty)
+  override def hasKeyboard = screens.exists(screen =>
+    ForgeDirection.VALID_DIRECTIONS.map(side => (side, world.getBlockTileEntity(screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ))).exists {
+      case (side, keyboard: Keyboard) => keyboard.hasNodeOnSide(side.getOpposite)
+      case _ => false
+    })
 
   def checkMultiBlock() {
     shouldCheckForMultiBlock = true

@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Node, Message, Visibility}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Settings, api}
@@ -11,6 +12,7 @@ class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedE
 
   // ----------------------------------------------------------------------- //
 
+  @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = true
 
   def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node

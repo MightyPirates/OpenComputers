@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
@@ -19,9 +20,18 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = node
 
+  @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = side == facing.getOpposite
 
-  def sidedNode(side: ForgeDirection) = if (side == facing.getOpposite) node else null
+  def sidedNode(side: ForgeDirection) =
+    if (hasNodeOnSide(side)) node else null
+
+  def hasNodeOnSide(side: ForgeDirection) =
+    side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)
+
+  def isOnWall = facing != ForgeDirection.UP && facing != ForgeDirection.DOWN
+
+  def forward = if (isOnWall) ForgeDirection.UP else yaw
 
   override def canUpdate = false
 
