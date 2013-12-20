@@ -164,7 +164,17 @@ object Settings {
   def get = settings
 
   def load(file: File) = {
-    val defaults = ConfigFactory.defaultReference().withOnlyPath("opencomputers")
+    // typesafe config's internal method for loading the reference.conf file
+    // seems to fail on some systems (as does their parseResource method), so
+    // we'll have to load the default config manually. This was reported on the
+    // Minecraft Forums, I could not reproduce the issue, but this version has
+    // reportedly fixed the problem.
+    val defaults = {
+      val in = classOf[Settings].getResourceAsStream("/reference.conf")
+      val config = ConfigFactory.parseReader(new BufferedReader(new InputStreamReader(in)))
+      in.close()
+      config
+    }
     try {
       val config = ConfigFactory.parseFile(file).withFallback(defaults)
       settings = new Settings(config.getConfig("opencomputers"))
