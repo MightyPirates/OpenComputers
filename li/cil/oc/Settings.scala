@@ -182,8 +182,8 @@ object Settings {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
-        // Strip extra spaces in front and fix additional space in of comments.
-        map(_.stripPrefix("    ").replaceAll("^(\\s*)#  ", "$1# ")).
+        // Strip extra spaces in front.
+        map(_.stripPrefix("    ")).
         // Indent two spaces instead of four.
         map(line => """^(\s*)""".r.replaceAllIn(line, m => m.group(1).replace("  ", " "))).
         // Finalize the string.
