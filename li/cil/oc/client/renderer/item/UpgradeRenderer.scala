@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.item
 
+import li.cil.oc.server.driver.item.Item
 import li.cil.oc.{Settings, Items}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
@@ -17,17 +18,22 @@ object UpgradeRenderer extends IItemRenderer {
     }
   }
 
-  def shouldUseRenderHelper(renderType: ItemRenderType, item: ItemStack, helper: ItemRendererHelper) = helper == ItemRendererHelper.EQUIPPED_BLOCK
+  def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
+  // Note: it's easier to revert changes introduced by this "helper" than by
+  // the code that applies if no helper is used...
+    helper == ItemRendererHelper.EQUIPPED_BLOCK
 
-  def renderItem(renderType: ItemRenderType, item: ItemStack, data: AnyRef*) {
+  def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
     val tm = Minecraft.getMinecraft.getTextureManager
-    GL11.glTranslatef(0.5f, 0.5f, 0.5f)
     val t = Tessellator.instance
 
-    Items.multi.subItem(item) match {
+    // Revert offset introduced by the render "helper".
+    GL11.glTranslatef(0.5f, 0.5f, 0.5f)
+
+    Items.multi.subItem(stack) match {
       case Some(subItem) if subItem == Items.generator =>
         // TODO display lists?
-        val onOffset = if (true) 0.5 else 0
+        val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
         tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png"))
 

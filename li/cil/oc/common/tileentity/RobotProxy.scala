@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation {
+class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation with RobotContext {
   def this() = this(new Robot(false))
 
   // ----------------------------------------------------------------------- //
@@ -22,6 +22,25 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot", Visibility.Neighbors).
     create()
+
+  override protected val _computer = null
+
+  override def computer = robot.computer
+
+  // ----------------------------------------------------------------------- //
+
+  // Note: we implement IRobotContext in the TE to allow external components
+  //to cast their owner to it (to allow interacting with their owning robot).
+
+  override def isRunning = robot.isRunning
+
+  override def isRunning_=(value: Boolean) = robot.isRunning_=(value)
+
+  def selectedSlot() = robot.selectedSlot
+
+  def player() = robot.player()
+
+  def saveUpgrade() = robot.saveUpgrade()
 
   // ----------------------------------------------------------------------- //
 
@@ -220,12 +239,6 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   def getAccessibleSlotsFromSide(side: Int) = robot.getAccessibleSlotsFromSide(side)
 
   // ----------------------------------------------------------------------- //
-
-  override def computer = robot.computer
-
-  override def isRunning = robot.isRunning
-
-  override def isRunning_=(value: Boolean) = robot.isRunning_=(value)
 
   override def markAsChanged() = robot.markAsChanged()
 

@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
 
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable {
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with Context {
   protected val _computer = if (isRemote) null else new component.Computer(this)
 
   def computer = _computer
@@ -28,6 +28,16 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   // ----------------------------------------------------------------------- //
 
+  // Note: we implement IContext in the TE to allow external components to cast
+  // their owner to it (to allow interacting with their owning computer).
+
+  def address() = computer.address
+
+  def canInteract(player: String) =
+    if (isServer) computer.canInteract(player)
+    else !Settings.get.canComputersBeOwned ||
+      _users.isEmpty || _users.contains(player)
+
   def isRunning = _isRunning
 
   @SideOnly(Side.CLIENT)
@@ -36,6 +46,18 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     world.markBlockForRenderUpdate(x, y, z)
     this
   }
+
+  def isPaused = computer.isPaused
+
+  def start() = computer.start()
+
+  def pause(seconds: Double) = computer.pause(seconds)
+
+  def stop() = computer.stop()
+
+  def signal(name: String, args: AnyRef*) = computer.signal(name, args: _*)
+
+  // ----------------------------------------------------------------------- //
 
   def markAsChanged() = hasChanged = true
 
@@ -53,11 +75,6 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     _users.clear()
     _users ++= list
   }
-
-  def canInteract(player: String) =
-    if (isServer) computer.canInteract(player)
-    else !Settings.get.canComputersBeOwned ||
-      _users.isEmpty || _users.contains(player)
 
   // ----------------------------------------------------------------------- //
 
@@ -110,7 +127,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isRunning = nbt.getBoolean("isRunning")
+    isRunning_=(nbt.getBoolean("isRunning"))
     _users.clear()
     _users ++= nbt.getTagList("users").iterator[NBTTagString].map(_.data)
   }
