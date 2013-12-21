@@ -32,6 +32,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
+      case PacketType.RobotEquippedUpgradeChange => onRobotEquippedUpgradeChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RobotXp => onRobotXp(p)
@@ -117,6 +118,12 @@ class PacketHandler extends CommonPacketHandler {
   def onRobotEquippedItemChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(t) => t.robot.equippedItem = Option(p.readItemStack())
+      case _ => // Invalid packet.
+    }
+
+  def onRobotEquippedUpgradeChange(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(t) => t.robot.equippedUpgrade = Option(p.readItemStack())
       case _ => // Invalid packet.
     }
 
