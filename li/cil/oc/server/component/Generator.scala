@@ -81,7 +81,7 @@ class Generator(val owner: MCTileEntity) extends ManagedComponent {
     if (remainingTicks <= 0 && inventory.isDefined) {
       val stack = inventory.get
       remainingTicks = TileEntityFurnace.getItemBurnTime(stack)
-      if (remainingTicks > 0) updateClient()
+      updateClient()
       stack.stackSize -= 1
       if (stack.stackSize <= 0) {
         inventory = None
@@ -89,7 +89,9 @@ class Generator(val owner: MCTileEntity) extends ManagedComponent {
     }
     if (remainingTicks > 0) {
       remainingTicks -= 1
-      if (remainingTicks == 0) updateClient()
+      if (remainingTicks == 0 && inventory.isEmpty) {
+        updateClient()
+      }
       node.changeBuffer(Settings.get.ratioBuildCraft * Settings.get.generatorEfficiency)
     }
   }
