@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11
 object UpgradeRenderer extends IItemRenderer {
   def handleRenderType(item: ItemStack, renderType: ItemRenderType) = {
     Items.multi.subItem(item) match {
-      case Some(subItem) if subItem == Items.generator => renderType == ItemRenderType.EQUIPPED
+      case Some(subItem) if subItem == Items.generator || subItem == Items.crafting => renderType == ItemRenderType.EQUIPPED
       case _ => false
     }
   }
@@ -31,6 +31,46 @@ object UpgradeRenderer extends IItemRenderer {
     GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
     Items.multi.subItem(stack) match {
+      case Some(subItem) if subItem == Items.crafting =>
+        // TODO display list?
+        val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 1-0.36, 0.6, 0.4, 1-0.16)
+        tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png"))
+
+        // Front.
+        t.startDrawingQuads()
+        t.addVertexWithUV(b.minX, b.minY, b.maxZ, 0, 0.5)
+        t.addVertexWithUV(b.maxX, b.minY, b.maxZ, 0.5, 0.5)
+        t.addVertexWithUV(b.maxX, b.maxY, b.maxZ, 0.5, 0)
+        t.addVertexWithUV(b.minX, b.maxY, b.maxZ, 0, 0)
+        t.setNormal(0, 0, 1)
+        t.draw()
+
+        // Bottom.
+        t.startDrawingQuads()
+        t.addVertexWithUV(b.minX, b.minY, b.maxZ, 0.5, 0.5)
+        t.addVertexWithUV(b.minX, b.minY, b.minZ, 0.5, 1)
+        t.addVertexWithUV(b.maxX, b.minY, b.minZ, 1, 1)
+        t.addVertexWithUV(b.maxX, b.minY, b.maxZ, 1, 0.5)
+        t.setNormal(0, -1, 0)
+        t.draw()
+
+        // Left.
+        t.startDrawingQuads()
+        t.addVertexWithUV(b.maxX, b.maxY, b.maxZ, 0, 0.5)
+        t.addVertexWithUV(b.maxX, b.minY, b.maxZ, 0, 1)
+        t.addVertexWithUV(b.maxX, b.minY, b.minZ, 0.5, 1)
+        t.addVertexWithUV(b.maxX, b.maxY, b.minZ, 0.5, 0.5)
+        t.setNormal(1, 0, 0)
+        t.draw()
+
+        // Right.
+        t.startDrawingQuads()
+        t.addVertexWithUV(b.minX, b.minY, b.maxZ, 0, 1)
+        t.addVertexWithUV(b.minX, b.maxY, b.maxZ, 0, 0.5)
+        t.addVertexWithUV(b.minX, b.maxY, b.minZ, 0.5, 0.5)
+        t.addVertexWithUV(b.minX, b.minY, b.minZ, 0.5, 1)
+        t.setNormal(-1, 0, 0)
+        t.draw()
       case Some(subItem) if subItem == Items.generator =>
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
