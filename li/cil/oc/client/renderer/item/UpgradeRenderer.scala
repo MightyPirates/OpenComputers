@@ -33,7 +33,7 @@ object UpgradeRenderer extends IItemRenderer {
     Items.multi.subItem(stack) match {
       case Some(subItem) if subItem == Items.crafting =>
         // TODO display list?
-        val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 1-0.36, 0.6, 0.4, 1-0.16)
+        val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
         tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png"))
 
         // Front.
