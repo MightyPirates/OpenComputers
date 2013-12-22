@@ -14,6 +14,8 @@ object GuiHandler extends CommonGuiHandler {
         new gui.DiskDrive(player.inventory, drive)
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>
         new gui.Robot(player.inventory, proxy.robot)
+      case rack: tileentity.Rack if id == GuiType.Rack.id =>
+        new gui.Rack(player.inventory, rack)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen)
       case _ => null

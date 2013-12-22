@@ -8,40 +8,29 @@ package li.cil.oc.api.network;
  * them (and nodes amongst each other) by using the network as an index
  * structure.
  * <p/>
- * There are four types of nodes:
+ * There are three types of nodes:
  * <ul>
  * <li>{@link Node}, the most basic form.</li>
  * <li>{@link Component}, used to expose callbacks to Lua.</li>
+ * <li>{@link Connector}, used for consuming of producing energy.</li>
  * </ul>
  * <p/>
- * `Component`s are specializations of `Node`s, that can be addressed by
- * computers via a corresponding `Driver`.
+ * See <tt>Node</tt> for more details on the behavior of single nodes, and in
+ * particular how nodes represented by tile entities should be added.
  * <p/>
- * See `Node` for more details on the behavior of single nodes, and in
- * particular how block related nodes should be added.
+ * Another important concept of node networks is reachability and visibility,
+ * see {@link Visibility}.
  * <p/>
- * Another important concept of node networks is visibility, see `Visibility`.
- * <p/>
- * There are a couple of system messages to be aware of. These are all sent by
- * the network manager itself:
- * <ul>
- * <li>`system.connect` is generated when a node is added to the network,
- * with the added node as the sender. This will also be sent to the nodes of
- * the other network, when a network merges with another one (both ways).</li>
- * <li>`system.disconnect` is generated when a node is removed from the
- * network, with the removed node as the sender. This will also be sent to the
- * nodes of the other network(s), when a network is split (all pairs).</li>
- * </ul>
- * <p/>
- * Note that network access is <em>not</em> thread safe! Networks should only
- * be accessed from the main server thread.
- *
+ * Note that network access in general is <em>not</em> thread safe! Networks
+ * should only be accessed from the main server thread. The exception are the
+ * connector nodes, which can be used to consume or produce energy from other
+ * threads.
  * <p/>
  * IMPORTANT: do *not* implement this interface yourself and create
  * instances of your own network implementation; this will lead to
  * incompatibilities with the built-in network implementation (which can only
  * merge with other networks of its own type). Always use the methods provided
- * in `Network` to create and join networks.
+ * in {@link li.cil.oc.api.Network} to create and join networks.
  */
 public interface Network {
     /**
@@ -60,7 +49,7 @@ public interface Network {
      * @param nodeA the first node.
      * @param nodeB the second node.
      * @return true if a new connection between the two nodes was added; false if
-     *         the connection already existed.
+     * the connection already existed.
      * @throws IllegalArgumentException if neither node is in this network.
      */
     boolean connect(Node nodeA, Node nodeB);
@@ -85,10 +74,11 @@ public interface Network {
     /**
      * Removes a node from the network.
      * <p/>
-     * This should be called by nodes when they are destroyed (e.g. `breakBlock`)
-     * or unloaded. Removing the node can lead to one or more new networks if it
-     * was the a bridge node, i.e. the only node connecting the resulting
-     * networks.
+     * This should be called by nodes when they are destroyed (e.g. in
+     * {@link net.minecraft.tileentity.TileEntity#invalidate()}) or unloaded
+     * (e.g. in {@link net.minecraft.tileentity.TileEntity#onChunkUnload()}).
+     * Removing the node can lead to one or more new networks if it was the a
+     * bridge node, i.e. the only node connecting the resulting networks.
      *
      * @param node the node to remove from the network.
      * @return true if the node was removed; false if it wasn't in the network.
@@ -106,7 +96,7 @@ public interface Network {
     Node node(String address);
 
     /**
-     * The list of all addressed nodes in this network.
+     * The list of all nodes in this network.
      *
      * @return the list of nodes in this network.
      */
@@ -115,15 +105,16 @@ public interface Network {
     /**
      * The list of addressed nodes in the network visible to the specified node.
      * <p/>
-     * This does *not* include nodes with a visibility of `Visibility.None` or
-     * a visibility of `Visibility.Neighbors` when there is no direct connection
+     * This does <em>not</em> include nodes with a visibility of <tt>None</tt>
+     * or a visibility of <tt>Neighbors</tt> when there is no direct connection
      * between that node and the reference node.
      * <p/>
-     * This does *not* include the node itself.
+     * This does <em>not</em> include the node itself.
      * <p/>
      * This can be useful when performing a delayed initialization of a node.
      * For example, computers will use this when starting up to generate
-     * `component_added` signals for all visible nodes in the network.
+     * <tt>component_added</tt> signals for all visible components in the
+     * network.
      *
      * @param reference the node to get the visible other nodes for.
      * @return the nodes visible to the specified node.
@@ -133,9 +124,9 @@ public interface Network {
     /**
      * The list of nodes the specified node is directly connected to.
      * <p/>
-     * This *does* include nodes with a visibility of `Visibility.None`.
+     * This <em>does</em> include nodes with a visibility of <tt>None</tt>.
      * <p/>
-     * This does *not* include the node itself.
+     * This does <em>not</em> include the node itself.
      * <p/>
      * This can be used to verify arguments for components that should only work
      * for other components that are directly connected to them, for example.
@@ -151,23 +142,17 @@ public interface Network {
     /**
      * Sends a message to the node with the specified address.
      * <p/>
-     * If the target node with that address has a visibility of `Visibility.None`
-     * the message will *not* be delivered to that node. If the target node with
-     * that address has a visibility of `Visibility.Neighbors` and the source
-     * node is not directly connected to the target the message will *not* be
-     * delivered to that node.
+     * If the target node with that address has a visibility of <tt>None</tt>
+     * the message will <em>not</em> be delivered to that node. If the target
+     * node with that address has a visibility of <tt>Neighbors</tt> and the
+     * source node is not directly connected to the target the message will
+     * <em>not</em> be delivered to that node.
      * <p/>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
-     * messages named `computer.signal` by converting the message data to a
-     * signal and inject that signal into the Lua VM, so no message not used for
-     * this purpose should be named `computer.signal`.
-     * <p/>
-     * Note that message handlers may also return results. In this case that
-     * result will be returned from this function. In the case that there are
-     * more than one target node (shared addresses, should not happen, but may if
-     * a node implementation decides to ignore this rule) the last result that
-     * was not `None` will be returned, or `None` if all results were `None`.
+     * messages named <tt>computer.signal</tt> by converting the message data to
+     * a signal and inject that signal into the Lua VM, so no message not used
+     * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
      * @param target the id of the node to send the message to.
@@ -180,14 +165,14 @@ public interface Network {
     /**
      * Sends a message to all addressed, visible neighbors of the source node.
      * <p/>
-     * Targets are determined using `neighbors(source)` and additionally filtered
-     * for visibility (so that nodes with `Visibility.None` are ignored).
+     * Targets are determined using {@link #neighbors(Node)} and additionally
+     * filtered for reachability (so that unreachable nodes are ignored).
      * <p/>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
-     * messages named `computer.signal` by converting the message data to a
-     * signal and inject that signal into the Lua VM, so no message not used for
-     * this purpose should be named `computer.signal`.
+     * messages named <tt>computer.signal</tt> by converting the message data to
+     * a signal and inject that signal into the Lua VM, so no message not used
+     * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
      * @param name   the name of the message.
@@ -198,20 +183,43 @@ public interface Network {
     void sendToNeighbors(Node source, String name, Object... data);
 
     /**
-     * Sends a message to all addressed nodes visible to the source node.
+     * Sends a message to all addressed nodes reachable to the source node.
      * <p/>
-     * Targets are determined using `nodes(source)`.
+     * Targets are determined using {@link #nodes(Node)}.
      * <p/>
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
-     * messages named `computer.signal` by converting the message data to a
-     * signal and inject that signal into the Lua VM, so no message not used for
-     * this purpose should be named `computer.signal`.
+     * messages named <tt>computer.signal</tt> by converting the message data to
+     * a signal and inject that signal into the Lua VM, so no message not used
+     * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
      * @param data   the message to send.
      * @throws IllegalArgumentException if the source node is not in this network.
-     * @see `nodes`
+     * @see {@link #nodes(Node)}
      */
     void sendToReachable(Node source, String name, Object... data);
+
+    /**
+     * Sends a message to all addressed nodes visible to the source node.
+     * <p/>
+     * Targets are determined using {@link #nodes(Node)} and additionally
+     * filtered for visibility (so that invisible nodes are ignored).
+     * <p/>
+     * Note that messages sent this way are <em>only</em> delivered to other
+     * components. The message will <em>not</em> be delivered to normal nodes.
+     * <p/>
+     * Messages should have a unique name to allow differentiating them when
+     * handling them in a network node. For example, computers will try to parse
+     * messages named <tt>computer.signal</tt> by converting the message data to
+     * a signal and inject that signal into the Lua VM, so no message not used
+     * for this purpose should be named <tt>computer.signal</tt>.
+     *
+     * @param source the node that sends the message.
+     * @param data   the message to send.
+     * @throws IllegalArgumentException if the source node is not in this network.
+     * @see {@link #nodes(Node)}
+     * @see {@link Component#canBeSeenFrom(Node)}
+     */
+    void sendToVisible(Node source, String name, Object... data);
 }

@@ -10,6 +10,7 @@ object Blocks {
   var blockSpecial: SpecialDelegator = _
   var blockSpecialWithRedstone: SpecialDelegator = _
 
+  var accessPoint: AccessPoint = _
   var adapter: Adapter = _
   var cable: Cable = _
   var capacitor: Capacitor = _
@@ -24,6 +25,7 @@ object Blocks {
   var robotAfterimage: RobotAfterimage = _
   var router: Router = _
   var screen1, screen2, screen3: Screen = _
+  var serverRack: Rack = _
 
   def init() {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
@@ -36,6 +38,7 @@ object Blocks {
     GameRegistry.registerBlock(blockSpecial, classOf[Item], Settings.namespace + "special")
     GameRegistry.registerBlock(blockSpecialWithRedstone, classOf[Item], Settings.namespace + "special_redstone")
 
+    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "accessPoint")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
@@ -49,6 +52,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
+    GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
@@ -72,5 +76,7 @@ object Blocks {
     screen3 = new Screen.Tier3(blockSimple)
 
     redstone = new Redstone(blockSimpleWithRedstone)
+    serverRack = new Rack(blockSimple)
+    accessPoint = new AccessPoint(blockSimple)
   }
 }

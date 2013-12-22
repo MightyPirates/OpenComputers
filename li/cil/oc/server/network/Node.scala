@@ -48,6 +48,9 @@ trait Node extends api.network.Node with Persistable {
   def sendToReachable(name: String, data: AnyRef*) =
     if (network != null) network.sendToReachable(this, name, data: _*)
 
+  def sendToVisible(name: String, data: AnyRef*) =
+    if (network != null) network.sendToVisible(this, name, data: _*)
+
   private def isInSameNetwork(other: ImmutableNode) = network != null && network == other.network
 
   // ----------------------------------------------------------------------- //

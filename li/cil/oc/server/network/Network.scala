@@ -167,6 +167,14 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
     send(source, nodes(source), name, args: _*)
   }
 
+  def sendToVisible(source: ImmutableNode, name: String, args: AnyRef*) = {
+    if (source.network != wrapper)
+      throw new IllegalArgumentException("Source node must be in this network.")
+    send(source, nodes(source) collect {
+      case component: api.network.Component if component.canBeSeenFrom(source) => component
+    }, name, args: _*)
+  }
+
   // ----------------------------------------------------------------------- //
 
   private def contains(node: ImmutableNode) = data.contains(node.address)
@@ -516,6 +524,9 @@ object Network extends api.detail.NetworkAPI {
 
     def sendToReachable(source: ImmutableNode, name: String, data: AnyRef*) =
       network.sendToReachable(source, name, data: _*)
+
+    def sendToVisible(source: ImmutableNode, name: String, data: AnyRef*) =
+      network.sendToVisible(source, name, data: _*)
 
     def globalBuffer = network.globalBuffer
 

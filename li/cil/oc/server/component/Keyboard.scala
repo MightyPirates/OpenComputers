@@ -25,7 +25,7 @@ class Keyboard(owner: Environment) extends ManagedComponent {
   def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {
     pressedKeys.get(e.player) match {
       case Some(keys) => for ((code, char) <- keys)
-        owner.node.sendToReachable("computer.checked_signal", e.player, "key_up", char, code, e.player.getCommandSenderName)
+        signal(e.player, "key_up", char, code, e.player.getCommandSenderName)
       case _ =>
     }
     pressedKeys.remove(e.player)
@@ -50,19 +50,19 @@ class Keyboard(owner: Environment) extends ManagedComponent {
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
-          node.sendToReachable("computer.checked_signal", p, "key_down", char, code, p.getCommandSenderName)
+          signal(p, "key_down", char, code, p.getCommandSenderName)
         }
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
         pressedKeys.get(p) match {
           case Some(keys) if keys.contains(code) =>
             keys -= code
-            node.sendToReachable("computer.checked_signal", p, "key_up", char, code, p.getCommandSenderName)
+            signal(p, "key_up", char, code, p.getCommandSenderName)
           case _ =>
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
-            node.sendToReachable("computer.checked_signal", p, "clipboard", line, p.getCommandSenderName)
+            signal(p, "clipboard", line, p.getCommandSenderName)
           }
         }
       case _ =>
@@ -74,6 +74,9 @@ class Keyboard(owner: Environment) extends ManagedComponent {
   def isUseableByPlayer(p: EntityPlayer) =
     owner.world.getBlockTileEntity(owner.x, owner.y, owner.z) == owner &&
       p.getDistanceSq(owner.x + 0.5, owner.y + 0.5, owner.z + 0.5) <= 64
+
+  protected def signal(args: AnyRef*) =
+    node.sendToReachable("computer.checked_signal", args: _*)
 }
 
 object Keyboard extends IPlayerTracker {
