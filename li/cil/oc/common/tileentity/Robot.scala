@@ -45,6 +45,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         // We're guaranteed to have a driver for entries.
         environment.save(dataTag(Registry.driverFor(stack).get, stack))
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
+      case _ =>
     }
   }
 
@@ -384,6 +385,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
           val stack = getStackInSlot(3)
           // We're guaranteed to have a driver for entries.
           environment.save(dataTag(Registry.driverFor(stack).get, stack))
+        case _ =>
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
     }
