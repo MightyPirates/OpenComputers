@@ -1,5 +1,7 @@
 package li.cil.oc.api.network;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraftforge.common.ForgeDirection;
 
 /**
@@ -39,14 +41,14 @@ public interface SidedEnvironment {
      * return <tt>null</tt> from {@link #sidedNode}, and for each side it
      * returns <tt>true</tt> for it should return a node.
      * <p/>
-     * This is primarily intended for the client side, i.e. rendering related
-     * things, since nodes are not created on the client side. Accordingly, this
-     * will find little use on the server side.
+     * This is intended for the client side, i.e. rendering related things,
+     * since nodes are not created on the client side.
      * <p/>
      * The side is relative to the environment, same as for <tt>sidedNode</tt>.
      *
      * @param side the side to check for.
      * @return whether the environment provides a node for the specified side.
      */
+    @SideOnly(Side.CLIENT)
     boolean canConnect(ForgeDirection side);
 }

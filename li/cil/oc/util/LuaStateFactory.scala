@@ -162,6 +162,20 @@ object LuaStateFactory {
       state.newTable()
       state.setGlobal("os")
 
+      // Kill compat entries.
+      state.pushNil()
+      state.setGlobal("unpack")
+      state.pushNil()
+      state.setGlobal("loadstring")
+      state.getGlobal("math")
+      state.pushNil()
+      state.setField(-2, "log10")
+      state.pop(1)
+      state.getGlobal("table")
+      state.pushNil()
+      state.setField(-2, "maxn")
+      state.pop(1)
+
       // Remove some other functions we don't need and are dangerous.
       state.pushNil()
       state.setGlobal("dofile")

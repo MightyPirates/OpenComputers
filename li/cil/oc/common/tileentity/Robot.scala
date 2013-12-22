@@ -24,10 +24,29 @@ import scala.Some
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation {
+class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation with RobotContext {
   def this() = this(false)
 
   var proxy: RobotProxy = _
+
+  // ----------------------------------------------------------------------- //
+
+  // Note: we implement IRobotContext in the TE to allow external components
+  //to cast their owner to it (to allow interacting with their owning robot).
+
+  var selectedSlot = actualSlot(0)
+
+  def player() = player(facing, facing)
+
+  def saveUpgrade() = this.synchronized {
+    components(3) match {
+      case Some(environment) =>
+        val stack = getStackInSlot(3)
+        // We're guaranteed to have a driver for entries.
+        environment.save(dataTag(Registry.driverFor(stack).get, stack))
+        ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -62,9 +81,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var globalBuffer, globalBufferSize = 0.0
 
-  var selectedSlot = actualSlot(0)
-
   var equippedItem: Option[ItemStack] = None
+
+  var equippedUpgrade: Option[ItemStack] = None
 
   var animationTicksLeft = 0
 
@@ -307,7 +326,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
+    // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
+    // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "gpu", gpu.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
@@ -332,6 +353,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey("equipped")) {
       equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
     }
+    if (nbt.hasKey("upgrade")) {
+      equippedUpgrade = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("upgrade")))
+    }
     xp = nbt.getDouble(Settings.namespace + "xp")
     updateXpInfo()
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
@@ -345,11 +369,23 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
+  override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
     super.writeToNBTForClient(nbt)
     nbt.setInteger("selectedSlot", selectedSlot)
     if (getStackInSlot(0) != null) {
       nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
+    }
+    if (getStackInSlot(3) != null) {
+      // Force saving to item's NBT if necessary before sending, to make sure
+      // we transfer the component's current state (e.g. running or not for
+      // generator upgrades).
+      components(3) match {
+        case Some(environment) =>
+          val stack = getStackInSlot(3)
+          // We're guaranteed to have a driver for entries.
+          environment.save(dataTag(Registry.driverFor(stack).get, stack))
+      }
+      nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
     }
     nbt.setDouble(Settings.namespace + "xp", xp)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
@@ -389,11 +425,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     if (isServer) {
-      if (slot == 0) {
+      if (isToolSlot(slot)) {
         player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers)
         ServerPacketSender.sendRobotEquippedItemChange(this, null)
       }
-      else if (slot >= actualSlot(0)) {
+      if (isUpgradeSlot(slot)) {
+        ServerPacketSender.sendRobotEquippedUpgradeChange(this, null)
+      }
+      if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
     }
@@ -401,20 +440,29 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     if (isServer) {
-      if (slot == 0) {
+      if (isToolSlot(slot)) {
         player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(0))
+        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(slot))
       }
-      else if (isComponentSlot(slot)) {
+      if (isUpgradeSlot(slot)) {
+        ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
+      }
+      if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
       }
-      else if (slot >= actualSlot(0)) {
+      if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
       }
     }
   }
 
   override protected def isComponentSlot(slot: Int) = slot > 0 && slot < actualSlot(0)
+
+  private def isInventorySlot(slot: Int) = slot >= actualSlot(0)
+
+  private def isToolSlot(slot: Int) = slot == 0
+
+  private def isUpgradeSlot(slot: Int) = slot == 3
 
   // ----------------------------------------------------------------------- //
 

@@ -27,4 +27,17 @@ public interface RobotContext extends Context {
      * @return the fake player for the robot.
      */
     EntityPlayer player();
+
+    /**
+     * Causes the currently installed upgrade to be saved and synchronized.
+     * <p/>
+     * If no upgrade is installed in the robot this does nothing.
+     * <p/>
+     * This is intended for upgrade components, to allow them to update their
+     * client side representation for rendering purposes. The component will be
+     * saved to its item's NBT tag compound, as it would be when the game is
+     * saved, and then re-sent to the client. Keep the number of calls to this
+     * function low, since each call causes a network packet to be sent.
+     */
+    void saveUpgrade();
 }

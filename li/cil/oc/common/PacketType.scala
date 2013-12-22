@@ -12,6 +12,7 @@ object PacketType extends Enumeration {
   RobotAnimateSwing,
   RobotAnimateTurn,
   RobotEquippedItemChange,
+  RobotEquippedUpgradeChange,
   RobotMove,
   RobotSelectedSlotChange,
   RobotXp,

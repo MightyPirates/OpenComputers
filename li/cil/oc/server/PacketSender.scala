@@ -123,6 +123,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendRobotEquippedUpgradeChange(t: Robot, stack: ItemStack) {
+    val pb = new PacketBuilder(PacketType.RobotEquippedUpgradeChange)
+
+    pb.writeTileEntity(t.proxy)
+    pb.writeItemStack(stack)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendRobotSelectedSlotChange(t: Robot) {
     val pb = new PacketBuilder(PacketType.RobotSelectedSlotChange)
 

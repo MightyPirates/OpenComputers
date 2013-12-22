@@ -46,6 +46,11 @@ class Item(id: Int) extends ItemBlock(id) {
           keyboard.setFromFacing(ForgeDirection.getOrientation(side))
         case rotatable: tileentity.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
+          rotatable match {
+            case _@(_: tileentity.Computer | _: tileentity.DiskDrive) =>
+              rotatable.pitch = ForgeDirection.NORTH
+            case _ =>
+          }
           if (!rotatable.isInstanceOf[tileentity.RobotProxy]) {
             rotatable.invertRotation()
           }

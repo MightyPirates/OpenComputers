@@ -125,11 +125,7 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  protected val validRotations_ = Array(
-    ForgeDirection.SOUTH,
-    ForgeDirection.WEST,
-    ForgeDirection.NORTH,
-    ForgeDirection.EAST)
+  protected val validRotations_ = Array(ForgeDirection.UP, ForgeDirection.DOWN)
 }
 
 trait SimpleDelegate extends Delegate {

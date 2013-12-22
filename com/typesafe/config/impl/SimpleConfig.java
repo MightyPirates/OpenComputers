@@ -234,23 +234,25 @@ final class SimpleConfig implements Config, MergeableValue, Serializable {
         return size;
     }
 
+    @Deprecated
     @Override
     public Long getMilliseconds(String path) {
-        long ns = getNanoseconds(path);
-        long ms = TimeUnit.NANOSECONDS.toMillis(ns);
-        return ms;
+        return getDuration(path, TimeUnit.MILLISECONDS);
+    }
+
+    @Deprecated
+    @Override
+    public Long getNanoseconds(String path) {
+        return getDuration(path, TimeUnit.NANOSECONDS);
     }
 
     @Override
-    public Long getNanoseconds(String path) {
-        Long ns = null;
-        try {
-            ns = TimeUnit.MILLISECONDS.toNanos(getLong(path));
-        } catch (ConfigException.WrongType e) {
-            ConfigValue v = find(path, ConfigValueType.STRING);
-            ns = parseDuration((String) v.unwrapped(), v.origin(), path);
-        }
-        return ns;
+    public Long getDuration(String path, TimeUnit unit) {
+        ConfigValue v = find(path, ConfigValueType.STRING);
+        Long result = unit.convert(
+                       parseDuration((String) v.unwrapped(), v.origin(), path),
+                       TimeUnit.NANOSECONDS);
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -384,34 +386,40 @@ final class SimpleConfig implements Config, MergeableValue, Serializable {
     }
 
     @Override
-    public List<Long> getMillisecondsList(String path) {
-        List<Long> nanos = getNanosecondsList(path);
-        List<Long> l = new ArrayList<Long>();
-        for (Long n : nanos) {
-            l.add(TimeUnit.NANOSECONDS.toMillis(n));
-        }
-        return l;
-    }
-
-    @Override
-    public List<Long> getNanosecondsList(String path) {
+    public List<Long> getDurationList(String path, TimeUnit unit) {
         List<Long> l = new ArrayList<Long>();
         List<? extends ConfigValue> list = getList(path);
         for (ConfigValue v : list) {
             if (v.valueType() == ConfigValueType.NUMBER) {
-                l.add(TimeUnit.MILLISECONDS.toNanos(((Number) v.unwrapped())
-                        .longValue()));
+                Long n = unit.convert(
+                           ((Number) v.unwrapped()).longValue(),
+                           TimeUnit.MILLISECONDS);
+                l.add(n);
             } else if (v.valueType() == ConfigValueType.STRING) {
                 String s = (String) v.unwrapped();
-                Long n = parseDuration(s, v.origin(), path);
+                Long n = unit.convert(
+                           parseDuration(s, v.origin(), path),
+                           TimeUnit.NANOSECONDS);
                 l.add(n);
             } else {
                 throw new ConfigException.WrongType(v.origin(), path,
-                        "duration string or number of nanoseconds", v
-                                .valueType().name());
+                        "duration string or number of milliseconds",
+                        v.valueType().name());
             }
         }
         return l;
+    }
+
+    @Deprecated
+    @Override
+    public List<Long> getMillisecondsList(String path) {
+        return getDurationList(path, TimeUnit.MILLISECONDS);
+    }
+
+    @Deprecated
+    @Override
+    public List<Long> getNanosecondsList(String path) {
+        return getDurationList(path, TimeUnit.NANOSECONDS);
     }
 
     @Override
@@ -715,7 +723,8 @@ final class SimpleConfig implements Config, MergeableValue, Serializable {
                 return false;
             }
         } else if (reference instanceof SimpleConfigList) {
-            if (value instanceof SimpleConfigList) {
+            // objects may be convertible to lists if they have numeric keys
+            if (value instanceof SimpleConfigList || value instanceof SimpleConfigObject) {
                 return true;
             } else {
                 return false;
@@ -759,6 +768,25 @@ final class SimpleConfig implements Config, MergeableValue, Serializable {
         }
     }
 
+    private static void checkListCompatibility(Path path, SimpleConfigList listRef,
+            SimpleConfigList listValue, List<ConfigException.ValidationProblem> accumulator) {
+        if (listRef.isEmpty() || listValue.isEmpty()) {
+            // can't verify type, leave alone
+        } else {
+            AbstractConfigValue refElement = listRef.get(0);
+            for (ConfigValue elem : listValue) {
+                AbstractConfigValue e = (AbstractConfigValue) elem;
+                if (!haveCompatibleTypes(refElement, e)) {
+                    addProblem(accumulator, path, e.origin(), "List at '" + path.render()
+                            + "' contains wrong value type, expecting list of "
+                            + getDesc(refElement) + " but got element of type " + getDesc(e));
+                    // don't add a problem for every last array element
+                    break;
+                }
+            }
+        }
+    }
+
     private static void checkValid(Path path, ConfigValue reference, AbstractConfigValue value,
             List<ConfigException.ValidationProblem> accumulator) {
         // Unmergeable is supposed to be impossible to encounter in here
@@ -771,22 +799,16 @@ final class SimpleConfig implements Config, MergeableValue, Serializable {
             } else if (reference instanceof SimpleConfigList && value instanceof SimpleConfigList) {
                 SimpleConfigList listRef = (SimpleConfigList) reference;
                 SimpleConfigList listValue = (SimpleConfigList) value;
-                if (listRef.isEmpty() || listValue.isEmpty()) {
-                    // can't verify type, leave alone
-                } else {
-                    AbstractConfigValue refElement = listRef.get(0);
-                    for (ConfigValue elem : listValue) {
-                        AbstractConfigValue e = (AbstractConfigValue) elem;
-                        if (!haveCompatibleTypes(refElement, e)) {
-                            addProblem(accumulator, path, e.origin(), "List at '" + path.render()
-                                    + "' contains wrong value type, expecting list of "
-                                    + getDesc(refElement) + " but got element of type "
-                                    + getDesc(e));
-                            // don't add a problem for every last array element
-                            break;
-                        }
-                    }
-                }
+                checkListCompatibility(path, listRef, listValue, accumulator);
+            } else if (reference instanceof SimpleConfigList && value instanceof SimpleConfigObject) {
+                // attempt conversion of indexed object to list
+                SimpleConfigList listRef = (SimpleConfigList) reference;
+                AbstractConfigValue listValue = DefaultTransformer.transform(value,
+                        ConfigValueType.LIST);
+                if (listValue instanceof SimpleConfigList)
+                    checkListCompatibility(path, listRef, (SimpleConfigList) listValue, accumulator);
+                else
+                    addWrongType(accumulator, reference, value, path);
             }
         } else {
             addWrongType(accumulator, reference, value, path);

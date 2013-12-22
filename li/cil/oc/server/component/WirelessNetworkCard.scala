@@ -116,7 +116,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
       for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
            if card.openPorts.contains(port)) {
         card.node.sendToReachable("computer.signal",
-          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(1): _*)
       }
     }
     super.broadcast(context, args)

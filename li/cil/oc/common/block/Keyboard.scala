@@ -41,10 +41,11 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     }
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-      case screen: tileentity.Screen => screen.facing != side.getOpposite
-      case _ => false
-    }
+    world.isBlockSolidOnSide(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
+      (world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+        case screen: tileentity.Screen => screen.facing != side.getOpposite
+        case _ => true
+      })
 
   override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
@@ -92,6 +93,21 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     }
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+    adjacencyInfo(world, x, y, z) match {
+      case Some((keyboard, screen, sx, sy, sz, facing)) => screen.rightClick(world, sx, sy, sz, player, facing, 0, 0, 0)
+      case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
+    }
+
+  def adjacentScreen(world: World, x: Int, y: Int, z: Int) =
+    adjacencyInfo(world, x, y, z) match {
+      case Some((_, _, sx, sy, sz, _)) => world.getBlockTileEntity(sx, sy, sz) match {
+        case screen: tileentity.Screen => Some(screen)
+        case _ => None
+      }
+      case _ => None
+    }
+
+  def adjacencyInfo(world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         val (sx, sy, sz) = (
@@ -99,11 +115,34 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
           y + keyboard.facing.getOpposite.offsetY,
           z + keyboard.facing.getOpposite.offsetZ)
         Delegator.subBlock(world, sx, sy, sz) match {
-          case Some(screen: Screen) => screen.rightClick(world, sx, sy, sz, player, keyboard.facing.getOpposite, 0, 0, 0)
-          case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
+          case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, keyboard.facing.getOpposite))
+          case _ =>
+            // Special case #1: check for screen in front of the keyboard.
+            val forward = keyboard.facing match {
+              case ForgeDirection.UP | ForgeDirection.DOWN => keyboard.yaw
+              case _ => ForgeDirection.UP
+            }
+            val (sx, sy, sz) = (
+              x + forward.offsetX,
+              y + forward.offsetY,
+              z + forward.offsetZ)
+            Delegator.subBlock(world, sx, sy, sz) match {
+              case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, forward))
+              case _ if keyboard.facing != ForgeDirection.UP && keyboard.facing != ForgeDirection.DOWN =>
+                // Special case #2: check for screen below keyboards on walls.
+                val (sx, sy, sz) = (
+                  x - forward.offsetX,
+                  y - forward.offsetY,
+                  z - forward.offsetZ)
+                Delegator.subBlock(world, sx, sy, sz) match {
+                  case Some(screen: Screen) => Some((keyboard, screen, sx, sy, sz, forward.getOpposite))
+                  case _ => None
+                }
+              case _ => None
+            }
         }
-      case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
+      case _ => None
     }
 
-  override protected val validRotations_ = ForgeDirection.VALID_DIRECTIONS
+  override protected val validRotations_ = null
 }

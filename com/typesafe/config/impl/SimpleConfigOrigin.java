@@ -93,6 +93,34 @@ final class SimpleConfigOrigin implements ConfigOrigin {
         }
     }
 
+    SimpleConfigOrigin prependComments(List<String> comments) {
+        if (ConfigImplUtil.equalsHandlingNull(comments, this.commentsOrNull) || comments == null) {
+            return this;
+        } else if (this.commentsOrNull == null) {
+            return setComments(comments);
+        } else {
+            List<String> merged = new ArrayList<String>(comments.size()
+                    + this.commentsOrNull.size());
+            merged.addAll(comments);
+            merged.addAll(this.commentsOrNull);
+            return setComments(merged);
+        }
+    }
+
+    SimpleConfigOrigin appendComments(List<String> comments) {
+        if (ConfigImplUtil.equalsHandlingNull(comments, this.commentsOrNull) || comments == null) {
+            return this;
+        } else if (this.commentsOrNull == null) {
+            return setComments(comments);
+        } else {
+            List<String> merged = new ArrayList<String>(comments.size()
+                    + this.commentsOrNull.size());
+            merged.addAll(this.commentsOrNull);
+            merged.addAll(comments);
+            return setComments(merged);
+        }
+    }
+
     @Override
     public String description() {
         // not putting the URL in here for files and resources, because people
@@ -438,6 +466,10 @@ final class SimpleConfigOrigin implements ConfigOrigin {
     }
 
     static SimpleConfigOrigin fromFields(Map<SerializedField, Object> m) throws IOException {
+        // we represent a null origin as one with no fields at all
+        if (m.isEmpty())
+            return null;
+
         String description = (String) m.get(SerializedField.ORIGIN_DESCRIPTION);
         Integer lineNumber = (Integer) m.get(SerializedField.ORIGIN_LINE_NUMBER);
         Integer endLineNumber = (Integer) m.get(SerializedField.ORIGIN_END_LINE_NUMBER);

@@ -129,13 +129,21 @@ trait Rotatable extends RotationAware with Persistable {
   }
 
   def rotate(axis: ForgeDirection) = {
-    val (newPitch, newYaw) = facing.getRotation(axis) match {
-      case value@(ForgeDirection.UP | ForgeDirection.DOWN) =>
-        if (value == pitch) (value, yaw.getRotation(axis))
-        else (value, yaw)
-      case value => (ForgeDirection.NORTH, value)
+    val block = Block.blocksList(world.getBlockId(x, y, z))
+    if (block != null) {
+      val valid = block.getValidRotations(world, x, y, z)
+      if (valid != null && valid.contains(axis)) {
+        val (newPitch, newYaw) = facing.getRotation(axis) match {
+          case value@(ForgeDirection.UP | ForgeDirection.DOWN) =>
+            if (value == pitch) (value, yaw.getRotation(axis))
+            else (value, yaw)
+          case value => (ForgeDirection.NORTH, value)
+        }
+        trySetPitchYaw(newPitch, newYaw)
+      }
+      else false
     }
-    trySetPitchYaw(newPitch, newYaw)
+    else false
   }
 
   override def toLocal(value: ForgeDirection) = cachedTranslation(value.ordinal)
@@ -198,17 +206,15 @@ trait Rotatable extends RotationAware with Persistable {
   /** Validates new values against the allowed rotations as set in our block. */
   private def trySetPitchYaw(pitch: ForgeDirection, yaw: ForgeDirection) = {
     var changed = false
-    val block = Block.blocksList(world.getBlockId(x, y, z))
-    if (block != null) {
-      val valid = block.getValidRotations(world, x, y, z)
-      if (valid.contains(pitch)) {
-        changed = true
-        _pitch = pitch
-      }
-      if (valid.contains(yaw)) {
-        changed = true
-        _yaw = yaw
-      }
+    if (pitch != _pitch) {
+      changed = true
+      _pitch = pitch
+    }
+    if (yaw != _yaw) {
+      changed = true
+      _yaw = yaw
+    }
+    if (changed) {
       updateTranslation()
     }
     changed

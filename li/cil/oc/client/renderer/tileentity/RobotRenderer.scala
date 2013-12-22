@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{Vec3, ResourceLocation}
+import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -217,6 +218,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     robot.equippedItem match {
       case Some(stack) =>
+        GL11.glPushMatrix()
         GL11.glTranslatef(0.1f, 0.25f, 0.75f)
         GL11.glScalef(0.4f, 0.4f, -0.4f)
         if (robot.isAnimatingSwing) {
@@ -225,6 +227,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         }
         GL11.glRotatef(-30, 1, 0, 0)
         GL11.glRotatef(40, 0, 1, 0)
+        GL11.glDisable(GL11.GL_CULL_FACE)
         try {
           RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
         }
@@ -232,6 +235,23 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Failed rendering equipped item.", e)
             robot.equippedItem = None
+        }
+        GL11.glEnable(GL11.GL_CULL_FACE)
+        GL11.glPopMatrix()
+      case _ =>
+    }
+
+    robot.equippedUpgrade match {
+      case Some(stack) =>
+        try {
+          if (MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null) {
+            RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass, ItemRenderType.EQUIPPED)
+          }
+        }
+        catch {
+          case e: Throwable =>
+            OpenComputers.log.log(Level.WARNING, "Failed rendering equipped upgrade.", e)
+            robot.equippedUpgrade = None
         }
       case _ =>
     }

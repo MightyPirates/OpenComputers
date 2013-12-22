@@ -86,7 +86,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isServer && isComponentSlot(slot)) {
     Registry.driverFor(stack) match {
       case Some(driver) => Option(driver.createEnvironment(stack, this)) match {
-        case Some(component) =>
+        case Some(component) => this.synchronized {
           components(slot) = Some(component)
           component.load(dataTag(driver, stack))
           connectItemNode(component.node)
@@ -95,6 +95,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
             updatingComponents += component
           }
           component.save(dataTag(driver, stack))
+        }
         case _ => // No environment (e.g. RAM).
       }
       case _ => // No driver.
@@ -104,7 +105,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
   override protected def onItemRemoved(slot: Int, stack: ItemStack) = if (isServer) {
     // Uninstall component previously in that slot.
     components(slot) match {
-      case Some(component) =>
+      case Some(component) => this.synchronized {
         // Note to self: we have to remove the node from the network *before*
         // saving, to allow file systems to close their handles before they
         // are saved (otherwise hard drives would restore all handles after
@@ -114,6 +115,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
         component.node.remove()
         Registry.driverFor(stack).foreach(driver =>
           component.save(dataTag(driver, stack)))
+      }
       case _ => // Nothing to do.
     }
   }
@@ -124,6 +126,6 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
     this.node.connect(node)
   }
 
-  private def dataTag(driver: ItemDriver, stack: ItemStack) =
+  protected def dataTag(driver: ItemDriver, stack: ItemStack) =
     Option(driver.dataTag(stack)).getOrElse(Item.dataTag(stack))
 }

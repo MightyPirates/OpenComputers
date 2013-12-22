@@ -701,9 +701,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     try {
       // Push a couple of functions that override original Lua API functions or
       // that add new functionality to it.
-
-      // Push a couple of functions that override original Lua API functions or
-      // that add new functionality to it.
       lua.getGlobal("os")
 
       // Custom os.clock() implementation returning the time the computer has
@@ -776,7 +773,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       // clutter it.
       lua.newTable()
 
-      // Allow getting the real world time via os.realTime() for timeouts.
+      // Allow getting the real world time for timeouts.
       lua.pushScalaFunction(lua => {
         lua.pushNumber(System.currentTimeMillis() / 1000.0)
         1
@@ -786,7 +783,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       // The time the computer has been running, as opposed to the CPU time.
       lua.pushScalaFunction(lua => {
         // World time is in ticks, and each second has 20 ticks. Since we
-        // want os.uptime() to return real seconds, though, we'll divide it
+        // want uptime() to return real seconds, though, we'll divide it
         // accordingly.
         lua.pushNumber((worldTime - timeStarted) / 20.0)
         1
@@ -831,7 +828,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setField(-2, "pushSignal")
 
-      // And it's ROM address.
+      // And its ROM address.
       lua.pushScalaFunction(lua => {
         rom.foreach(rom => Option(rom.node.address) match {
           case None => lua.pushNil()

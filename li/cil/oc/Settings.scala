@@ -165,7 +165,17 @@ object Settings {
   def get = settings
 
   def load(file: File) = {
-    val defaults = ConfigFactory.defaultReference().withOnlyPath("opencomputers")
+    // typesafe config's internal method for loading the reference.conf file
+    // seems to fail on some systems (as does their parseResource method), so
+    // we'll have to load the default config manually. This was reported on the
+    // Minecraft Forums, I could not reproduce the issue, but this version has
+    // reportedly fixed the problem.
+    val defaults = {
+      val in = classOf[Settings].getResourceAsStream("/reference.conf")
+      val config = ConfigFactory.parseReader(new BufferedReader(new InputStreamReader(in)))
+      in.close()
+      config
+    }
     try {
       val config = ConfigFactory.parseFile(file).withFallback(defaults)
       settings = new Settings(config.getConfig("opencomputers"))
@@ -173,8 +183,8 @@ object Settings {
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val out = new PrintWriter(file)
       out.write(config.root.render(renderSettings).lines.
-        // Strip extra spaces in front and fix additional space in of comments.
-        map(_.stripPrefix("    ").replaceAll("^(\\s*)#  ", "$1# ")).
+        // Strip extra spaces in front.
+        map(_.stripPrefix("    ")).
         // Indent two spaces instead of four.
         map(line => """^(\s*)""".r.replaceAllIn(line, m => m.group(1).replace("  ", " "))).
         // Finalize the string.
