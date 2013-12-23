@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11
 object UpgradeRenderer extends IItemRenderer {
   def handleRenderType(item: ItemStack, renderType: ItemRenderType) = {
     Items.multi.subItem(item) match {
-      case Some(subItem) if subItem == Items.generator || subItem == Items.crafting => renderType == ItemRenderType.EQUIPPED
+      case Some(subItem) if subItem == Items.upgradeGenerator || subItem == Items.upgradeCrafting => renderType == ItemRenderType.EQUIPPED
       case _ => false
     }
   }
@@ -31,7 +31,7 @@ object UpgradeRenderer extends IItemRenderer {
     GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
     Items.multi.subItem(stack) match {
-      case Some(subItem) if subItem == Items.crafting =>
+      case Some(subItem) if subItem == Items.upgradeCrafting =>
         // TODO display list?
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
         tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png"))
@@ -71,7 +71,7 @@ object UpgradeRenderer extends IItemRenderer {
         t.addVertexWithUV(b.minX, b.minY, b.minZ, 0.5, 1)
         t.setNormal(-1, 0, 0)
         t.draw()
-      case Some(subItem) if subItem == Items.generator =>
+      case Some(subItem) if subItem == Items.upgradeGenerator =>
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)

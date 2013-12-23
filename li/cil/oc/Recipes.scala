@@ -68,11 +68,11 @@ object Recipes {
       loadRecipe(config.getConfig("redstoneCard"), Items.rs.createItemStack())
       loadRecipe(config.getConfig("lanCard"), Items.lan.createItemStack())
       loadRecipe(config.getConfig("wlanCard"), Items.wlan.createItemStack())
-      loadRecipe(config.getConfig("generator"), Items.generator.createItemStack())
-      loadRecipe(config.getConfig("crafting"), Items.crafting.createItemStack())
-      loadRecipe(config.getConfig("locator"), Items.locator.createItemStack())
-      loadRecipe(config.getConfig("solarGenerator"), Items.solarGenerator.createItemStack())
-      loadRecipe(config.getConfig("reader"), Items.signUpgrade.createItemStack())
+      loadRecipe(config.getConfig("generator"), Items.upgradeGenerator.createItemStack())
+      loadRecipe(config.getConfig("crafting"), Items.upgradeCrafting.createItemStack())
+      loadRecipe(config.getConfig("locator"), Items.upgradeNavigation.createItemStack())
+      loadRecipe(config.getConfig("solarGenerator"), Items.upgradeSolarGenerator.createItemStack())
+      loadRecipe(config.getConfig("reader"), Items.upgradeSign.createItemStack())
       loadRecipe(config.getConfig("chip1"), Items.chip1.createItemStack())
       loadRecipe(config.getConfig("chip2"), Items.chip2.createItemStack())
       loadRecipe(config.getConfig("chip3"), Items.chip3.createItemStack())
@@ -86,7 +86,7 @@ object Recipes {
       if (OreDictionary.getOres("nuggetIron").contains(Items.ironNugget.createItemStack())) {
         GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), "nuggetIron"))
       }
-      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.locator.createItemStack(), Items.locator.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
   }
 

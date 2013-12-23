@@ -7,9 +7,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object SolarGenerator extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.solarGenerator)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeSolarGenerator)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.SolarGenerator(container)
+  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.UpgradeSolarGenerator(container)
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 }

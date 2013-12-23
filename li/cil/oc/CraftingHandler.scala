@@ -31,7 +31,7 @@ object CraftingHandler extends ICraftingHandler {
       }
     }
 
-    if (!player.getEntityWorld.isRemote && craftedStack.isItemEqual(Items.locator.createItemStack())) {
+    if (!player.getEntityWorld.isRemote && craftedStack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
       Registry.driverFor(craftedStack) match {
         case Some(driver) =>
           for (i <- 0 to inventory.getSizeInventory) {
@@ -41,7 +41,7 @@ object CraftingHandler extends ICraftingHandler {
               // crafting inventory is the player's inventory - which is the
               // case for robots, for example - by it added to a slot not yet
               // checked but before the actual map to be used.
-              if (stack.isItemEqual(Items.locator.createItemStack())) {
+              if (stack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
                 // Restore the map currently used in the upgrade.
                 val nbt = driver.dataTag(stack)
                 val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))

@@ -7,8 +7,8 @@ import li.cil.oc.{Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
-object Locator extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.locator)
+object UpgradeNavigation extends Item {
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeNavigation)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = {
     val nbt = Registry.driverFor(stack) match {
@@ -17,8 +17,8 @@ object Locator extends Item {
     }
     val x = if (nbt.hasKey(Settings.namespace + "xCenter")) nbt.getInteger(Settings.namespace + "xCenter") else container.xCoord
     val z = if (nbt.hasKey(Settings.namespace + "zCenter")) nbt.getInteger(Settings.namespace + "zCenter") else container.zCoord
-    val scale = if (nbt.hasKey(Settings.namespace + "scale")) nbt.getInteger(Settings.namespace + "scale") else 512
-    new component.Locator(container, x, z, scale)
+    val size = if (nbt.hasKey(Settings.namespace + "scale")) nbt.getInteger(Settings.namespace + "scale") else 512
+    new component.UpgradeNavigation(container, x, z, size)
   }
 
   override def slot(stack: ItemStack) = Slot.Upgrade

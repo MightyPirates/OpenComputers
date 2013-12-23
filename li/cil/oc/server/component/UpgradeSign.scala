@@ -5,15 +5,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.RotationHelper
 import net.minecraft.tileentity.{TileEntity => MCTileEntity, TileEntitySign}
 
-class Reader(val owner: MCTileEntity) extends ManagedComponent {
+class UpgradeSign(val owner: MCTileEntity) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
-    withComponent("reader", Visibility.Neighbors).
+    withComponent("sign", Visibility.Neighbors).
     withConnector().
     create()
-
-  // ----------------------------------------------------------------------- //
-
-  override val canUpdate = false
 
   // ----------------------------------------------------------------------- //
 

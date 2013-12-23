@@ -30,11 +30,11 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Upgrades
-  var crafting: item.Crafting = null
-  var generator: item.Generator = null
-  var locator: item.Locator = null
-  var signUpgrade: item.Reader = null
-  var solarGenerator: item.SolarGenerator = null
+  var upgradeCrafting: item.UpgradeCrafting = null
+  var upgradeGenerator: item.UpgradeGenerator = null
+  var upgradeNavigation: item.UpgradeNavigation = null
+  var upgradeSign: item.UpgradeSign = null
+  var upgradeSolarGenerator: item.UpgradeSolarGenerator = null
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -81,8 +81,8 @@ object Items {
     rs = new item.RedstoneCard(multi)
     wlan = new item.WirelessNetworkCard(multi)
 
-    crafting = new item.Crafting(multi)
-    generator = new item.Generator(multi)
+    upgradeCrafting = new item.UpgradeCrafting(multi)
+    upgradeGenerator = new item.UpgradeGenerator(multi)
 
     ironNugget = new item.IronNugget(multi)
     cuttingWire = new item.CuttingWire(multi)
@@ -107,9 +107,9 @@ object Items {
     card = new item.CardBase(multi)
 
     // v1.1.0
-    solarGenerator = new item.SolarGenerator(multi)
-    signUpgrade = new item.Reader(multi)
-    locator = new item.Locator(multi)
+    upgradeSolarGenerator = new item.UpgradeSolarGenerator(multi)
+    upgradeSign = new item.UpgradeSign(multi)
+    upgradeNavigation = new item.UpgradeNavigation(multi)
 
     // ----------------------------------------------------------------------- //
 
@@ -141,7 +141,7 @@ object Items {
     register("oc:craftingNumPad", numPad.createItemStack())
     register("oc:craftingDisk", disk.createItemStack())
     register("oc:craftingAcid", acid.createItemStack())
-    register("oc:craftingGenerator", generator.createItemStack())
+    register("oc:craftingGenerator", upgradeGenerator.createItemStack())
   }
 
   def register(name: String, item: ItemStack) {

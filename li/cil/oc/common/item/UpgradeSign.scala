@@ -7,8 +7,8 @@ import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
 
-class Reader(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "Reader"
+class UpgradeSign(val parent: Delegator) extends Delegate {
+  val unlocalizedName = "UpgradeSign"
 
   override def rarity = EnumRarity.epic
 
@@ -20,6 +20,6 @@ class Reader(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_reader")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_sign")
   }
 }
