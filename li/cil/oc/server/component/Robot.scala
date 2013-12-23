@@ -324,6 +324,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       else {
         ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
       }
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
     def triggerDelay(delay: Double = Settings.get.swingDelay) = {
       context.pause(delay)
@@ -358,6 +359,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
     for (side <- sides) {
       val player = robot.player(facing, side)
+      player.setSneaking(sneaky)
+
       val (success, what) = Option(pick(player, Settings.get.swingRange)) match {
         case Some(hit) =>
           hit.typeOfHit match {
@@ -378,6 +381,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
               else (false, "air")
           }
       }
+
+      player.setSneaking(false)
       if (success) {
         return result(true, what)
       }
