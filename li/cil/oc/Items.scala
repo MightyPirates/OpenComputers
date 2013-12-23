@@ -3,6 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
 import net.minecraftforge.oredict.OreDictionary
+import net.minecraft.item.ItemStack
 
 object Items {
   var multi: item.Delegator = null
@@ -111,12 +112,46 @@ object Items {
     reader = new item.Reader(multi)
     locator =  new item.Locator(multi)
 
-    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
-    OreDictionary.registerOre("craftingCircuitBoardBasic", circuitBoard.createItemStack())
-    OreDictionary.registerOre("craftingCircuitBoardAdvanced", pcb.createItemStack())
-    OreDictionary.registerOre("craftingWireTin", cuttingWire.createItemStack())
-    OreDictionary.registerOre("circuitBasic", chip1.createItemStack())
-    OreDictionary.registerOre("circuitAdvanced", chip2.createItemStack())
-    OreDictionary.registerOre("circuitElite", chip3.createItemStack())
+    registerExclusice("nuggetIron", ironNugget.createItemStack())
+    register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
+    register("craftingCircuitBoardBasic", circuitBoard.createItemStack())
+    register("craftingCircuitBoardAdvanced", pcb.createItemStack())
+    register("oc:craftingWire", cuttingWire.createItemStack())
+    register("circuitBasic", chip1.createItemStack())
+    register("circuitAdvanced", chip2.createItemStack())
+    register("circuitElite", chip3.createItemStack())
+    register("craftingTransistor",transistor.createItemStack())
+    register("craftingControlUnit",cu.createItemStack())
+    register("craftingALU",alu.createItemStack())
+    register("craftingCPU",cpu.createItemStack())
+    register("componentCardRedstone",rs.createItemStack())
+    register("componentCardLand",lan.createItemStack())
+    register("craftingGPUBasic",gpu1.createItemStack())
+    register("craftingGPUAdvanced",gpu2.createItemStack())
+    register("craftingGPUElite",gpu3.createItemStack())
+    register("craftingRAMBasic",ram1.createItemStack())
+    register("craftingRAMAdvanced",ram2.createItemStack())
+    register("craftingRAMElite",ram3.createItemStack())
+    register("craftingHDDBasic",hdd1.createItemStack())
+    register("craftingHDDAdvanced",hdd2.createItemStack())
+    register("craftingHDDElite",hdd3.createItemStack())
+    register("oc:craftingButtonGroup",buttonGroup.createItemStack())
+    register("oc:craftingArrowKey",arrowKeys.createItemStack())
+    register("oc:craftingNumPad",numPad.createItemStack())
+    register("oc:craftingDisk",disk.createItemStack())
+    register("oc:craftingAcid",acid.createItemStack())
+  }
+
+  def register(name:String,item:ItemStack){
+    if(!OreDictionary.getOres(name).contains(item)){
+      println("registered "+name)
+      OreDictionary.registerOre(name,item)
+    }
+  }
+  def registerExclusice(name:String,item:ItemStack){
+    if(OreDictionary.getOres(name).isEmpty){
+      println("registered "+name)
+      OreDictionary.registerOre(name,item)
+    }
   }
 }

@@ -4,6 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import net.minecraftforge.oredict.OreDictionary
+import net.minecraft.item.ItemStack
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -76,11 +77,20 @@ object Blocks {
 
 
 
-    OreDictionary.registerOre("craftingMonitorBasic", screen1.createItemStack())
-    OreDictionary.registerOre("craftingMonitorAdvanced", screen2.createItemStack())
-    OreDictionary.registerOre("craftingMonitorElite", screen3.createItemStack())
-    OreDictionary.registerOre("craftingRawMachineBasic", case1.createItemStack())
-    OreDictionary.registerOre("craftingRawMachineAdvanced", case2.createItemStack())
-    OreDictionary.registerOre("craftingRawMachineElite", case3.createItemStack())
+    register("craftingMonitorBasic", screen1.createItemStack())
+    register("craftingMonitorAdvanced", screen2.createItemStack())
+    register("craftingMonitorElite", screen3.createItemStack())
+    register("craftingRawMachineBasic", case1.createItemStack())
+    register("craftingRawMachineAdvanced", case2.createItemStack())
+    register("craftingRawMachineElite", case3.createItemStack())
+    register("craftingWireCopper", cable.createItemStack())
+    register("craftingCapacitor", capacitor.createItemStack())
+    register("craftingDiscDrive", diskDrive.createItemStack())
+    def register(name:String,item:ItemStack){
+      if(!OreDictionary.getOres(name).contains(item)){
+        println("registered "+name)
+        OreDictionary.registerOre(name,item)
+      }
+    }
   }
 }
