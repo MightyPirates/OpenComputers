@@ -34,12 +34,6 @@ object Recipes {
         inputToFile(in, customFile)
       }
       val config = ConfigFactory.parseFile(customFile).withFallback(custom)
-
-
-
-
-
-
       loadRecipe(config.getConfig("cu"), Items.cu.createItemStack())
       loadRecipe(config.getConfig("cpu"), Items.cpu.createItemStack())
       loadRecipe(config.getConfig("card"), Items.card.createItemStack())
@@ -80,6 +74,9 @@ object Recipes {
       loadRecipe(config.getConfig("wlanCard"), Items.wlan.createItemStack())
       loadRecipe(config.getConfig("generator"), Items.generator.createItemStack())
       loadRecipe(config.getConfig("crafting"), Items.crafting.createItemStack())
+      loadRecipe(config.getConfig("locator"), Items.locator.createItemStack())
+      loadRecipe(config.getConfig("solarGenerator"), Items.solarGenerator.createItemStack())
+      loadRecipe(config.getConfig("reader"), Items.reader.createItemStack())
       loadRecipe(config.getConfig("chip1"), Items.chip1.createItemStack())
       loadRecipe(config.getConfig("chip2"), Items.chip2.createItemStack())
       loadRecipe(config.getConfig("chip3"), Items.chip3.createItemStack())

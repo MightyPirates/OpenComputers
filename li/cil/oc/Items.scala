@@ -140,6 +140,7 @@ object Items {
     register("oc:craftingNumPad",numPad.createItemStack())
     register("oc:craftingDisk",disk.createItemStack())
     register("oc:craftingAcid",acid.createItemStack())
+    register("oc:craftingGenerator",generator.createItemStack())
   }
 
   def register(name:String,item:ItemStack){
