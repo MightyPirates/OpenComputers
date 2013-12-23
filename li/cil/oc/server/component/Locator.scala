@@ -37,6 +37,13 @@ class Locator(val owner: MCTileEntity, val xCenter: Int, val zCenter: Int,val sc
 
     result(d.offsetX,d.offsetY,d.offsetZ)
   }
+  @LuaCallback("getHeight")
+  def getHeight(context: RobotContext, args: Arguments): Array[AnyRef] = {
+    val player = context.player()
+
+
+    result(player.posY.floor)
+  }
 
   // ----------------------------------------------------------------------- //
 

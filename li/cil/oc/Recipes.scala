@@ -90,6 +90,7 @@ object Recipes {
       if (OreDictionary.getOres("nuggetIron").contains(Items.ironNugget.createItemStack())) {
         GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), "nuggetIron"))
       }
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.locator.createItemStack(),Items.locator.createItemStack(),new ItemStack(Item.map,1,OreDictionary.WILDCARD_VALUE)))
     }
   }
 
