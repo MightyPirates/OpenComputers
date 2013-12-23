@@ -385,7 +385,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
           val stack = getStackInSlot(3)
           // We're guaranteed to have a driver for entries.
           environment.save(dataTag(Registry.driverFor(stack).get, stack))
-        case _ =>
+        case _ => // See onConnect()
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
     }
@@ -409,6 +409,16 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       computer.node.connect(buffer.node)
       computer.node.connect(gpu.node)
       buffer.node.connect(keyboard.node)
+      // There's a chance the server sends a robot tile entity to its clients
+      // before the tile entity's first update was called, in which case the
+      // component list isn't initialized (e.g. when a client triggers a chunk
+      // load, most noticeable in single player). In that case the current
+      // equipment will be initialized incorrectly. So we have to send it
+      // again when the first update is run. One of the two (this and the info
+      // sent in writeToNBTForClient) may be superfluous, but the packet is
+      // quite small compared to what else is sent on a chunk load, so we don't
+      // really worry about it and just send it.
+      saveUpgrade()
     }
   }
 
