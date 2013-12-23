@@ -3,8 +3,8 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
-import net.minecraftforge.oredict.OreDictionary
 import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -75,8 +75,6 @@ object Blocks {
 
     redstone = new Redstone(blockSimpleWithRedstone)
 
-
-
     register("craftingMonitorBasic", screen1.createItemStack())
     register("craftingMonitorAdvanced", screen2.createItemStack())
     register("craftingMonitorElite", screen3.createItemStack())
@@ -86,11 +84,11 @@ object Blocks {
     register("craftingWireCopper", cable.createItemStack())
     register("craftingCapacitor", capacitor.createItemStack())
     register("craftingDiscDrive", diskDrive.createItemStack())
-    def register(name:String,item:ItemStack){
-      if(!OreDictionary.getOres(name).contains(item)){
-        println("registered "+name)
-        OreDictionary.registerOre(name,item)
-      }
+  }
+
+  private def register(name: String, item: ItemStack) {
+    if (!OreDictionary.getOres(name).contains(item)) {
+      OreDictionary.registerOre(name, item)
     }
   }
 }

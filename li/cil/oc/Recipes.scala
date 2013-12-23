@@ -1,21 +1,17 @@
 package li.cil.oc
 
+import com.typesafe.config.{Config, ConfigFactory}
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
+import java.io.File
+import java.net.URL
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
-import gregtechmod.api.GregTech_API
-import scala.collection.convert.wrapAsScala._
-import com.typesafe.config.{ConfigValueType, Config, ConfigFactory}
-import java.io.{IOException, FileOutputStream, File}
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable
-import java.util
 import org.apache.commons.io.FileUtils
-import java.net.URL
-import cpw.mods.fml.common.event.FMLInterModComms
+import scala.collection.convert.wrapAsScala._
+import scala.collection.mutable.ListBuffer
 
 object Recipes {
   def init() {
@@ -76,7 +72,7 @@ object Recipes {
       loadRecipe(config.getConfig("crafting"), Items.crafting.createItemStack())
       loadRecipe(config.getConfig("locator"), Items.locator.createItemStack())
       loadRecipe(config.getConfig("solarGenerator"), Items.solarGenerator.createItemStack())
-      loadRecipe(config.getConfig("reader"), Items.reader.createItemStack())
+      loadRecipe(config.getConfig("reader"), Items.signUpgrade.createItemStack())
       loadRecipe(config.getConfig("chip1"), Items.chip1.createItemStack())
       loadRecipe(config.getConfig("chip2"), Items.chip2.createItemStack())
       loadRecipe(config.getConfig("chip3"), Items.chip3.createItemStack())
@@ -86,11 +82,11 @@ object Recipes {
       loadRecipe(config.getConfig("pcb"), Items.pcb.createItemStack())
       loadRecipe(config.getConfig("acid"), Items.acid.createItemStack())
       loadRecipe(config.getConfig("rawBoard"), Items.rawCircuitBoard.createItemStack())
-      loadRecipe(config.getConfig("circuitBoard"),Items.circuitBoard.createItemStack())
+      loadRecipe(config.getConfig("circuitBoard"), Items.circuitBoard.createItemStack())
       if (OreDictionary.getOres("nuggetIron").contains(Items.ironNugget.createItemStack())) {
         GameRegistry.addRecipe(new ShapelessOreRecipe(Items.ironNugget.createItemStack(9), "nuggetIron"))
       }
-      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.locator.createItemStack(),Items.locator.createItemStack(),new ItemStack(Item.map,1,OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.locator.createItemStack(), Items.locator.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
   }
 
@@ -98,7 +94,7 @@ object Recipes {
     conf.getString("type") match {
       case "shaped" => addShapedRecipe(result, conf)
       case "shapeless" => addShapelessRecipe(result, conf)
-      case "furnace" =>   addSmeltingRecipe(result,conf)
+      case "furnace" => addSmeltingRecipe(result, conf)
       case _ => throw new Exception("Don't know what to do with " + conf.getString("type"))
 
     }
@@ -366,7 +362,7 @@ object Recipes {
   }
 
   private def addSmeltingRecipe(output: ItemStack, conf: Config) {
-   var out = output.copy()
+    var out = output.copy()
     try {
       out.stackSize = conf.getInt("result")
     } catch {
@@ -379,25 +375,24 @@ object Recipes {
         var itemSubID: Int = 0
         item.unwrapped() match {
 
-
           case list: java.util.HashMap[String, Object] => {
             for (entrySet <- list.entrySet()) {
               entrySet.getKey match {
                 case "oreDict" => {
                   entrySet.getValue match {
-                    case value: String => obj= value
+                    case value: String => obj = value
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
                 }
                 case "item" => {
                   entrySet.getValue match {
-                    case value: String => obj= getItemFromName(value)
+                    case value: String => obj = getItemFromName(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
                 }
                 case "block" =>
                   entrySet.getValue match {
-                    case value: String => obj= getBlockFromName(value)
+                    case value: String => obj = getBlockFromName(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
 
@@ -412,23 +407,22 @@ object Recipes {
             }
           }
           case value: String => {
-            obj= getNameOrStackFromName(value)
+            obj = getNameOrStackFromName(value)
           }
           case _ => println(item.unwrapped())
         }
         obj match {
           case item: Item => {
 
-
-            val newItem= new ItemStack(item, 1, itemSubID)
+            val newItem = new ItemStack(item, 1, itemSubID)
             FurnaceRecipes.smelting().addSmelting(newItem.itemID, newItem.getItemDamage, out, 0)
           }
           case block: Block => {
-            val newItem= new ItemStack(block, 1, itemSubID)
+            val newItem = new ItemStack(block, 1, itemSubID)
             FurnaceRecipes.smelting().addSmelting(newItem.itemID, newItem.getItemDamage, out, 0)
           }
           case value: String => {
-            for(stack<-OreDictionary.getOres(value)){
+            for (stack <- OreDictionary.getOres(value)) {
               FurnaceRecipes.smelting().addSmelting(stack.itemID, stack.getItemDamage, out, 0)
             }
           }
@@ -437,7 +431,6 @@ object Recipes {
       }
     }
   }
-
 
   def inputToFile(is: URL, f: java.io.File) {
     FileUtils.copyURLToFile(is, f)
@@ -460,7 +453,6 @@ object Recipes {
       case _ => throw new Exception("No block found for name: " + name)
     }
   }
-
 
   def getNameOrStackFromName(name: String) = {
     if (name.isEmpty)

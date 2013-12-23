@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object Reader extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.reader)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.signUpgrade)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.Reader(container)
 
