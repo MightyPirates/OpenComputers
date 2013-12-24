@@ -3,6 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
@@ -19,8 +20,8 @@ object Blocks {
   var case1, case2, case3: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
-  var powerDistributor: PowerDistributor = _
   var powerConverter: PowerConverter = _
+  var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
   var robotProxy: RobotProxy = _
   var robotAfterimage: RobotAfterimage = _
@@ -75,15 +76,17 @@ object Blocks {
 
     redstone = new Redstone(blockSimpleWithRedstone)
 
-    register("craftingMonitorBasic", screen1.createItemStack())
-    register("craftingMonitorAdvanced", screen2.createItemStack())
-    register("craftingMonitorElite", screen3.createItemStack())
+    register("craftingWireCopper", cable.createItemStack())
+    register("craftingCapacitor", capacitor.createItemStack())
     register("craftingRawMachineBasic", case1.createItemStack())
     register("craftingRawMachineAdvanced", case2.createItemStack())
     register("craftingRawMachineElite", case3.createItemStack())
-    register("craftingWireCopper", cable.createItemStack())
-    register("craftingCapacitor", capacitor.createItemStack())
-    register("craftingDiscDrive", diskDrive.createItemStack())
+    register("craftingDiskDrive", diskDrive.createItemStack())
+    register("craftingMonitorBasic", screen1.createItemStack())
+    register("craftingMonitorAdvanced", screen2.createItemStack())
+    register("craftingMonitorElite", screen3.createItemStack())
+
+    register("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
   }
 
   private def register(name: String, item: ItemStack) {

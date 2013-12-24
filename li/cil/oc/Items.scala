@@ -126,7 +126,7 @@ object Items {
     register("craftingALU", alu.createItemStack())
     register("craftingCPU", cpu.createItemStack())
     register("componentCardRedstone", rs.createItemStack())
-    register("componentCardLand", lan.createItemStack())
+    register("componentCardLan", lan.createItemStack())
     register("craftingGPUBasic", gpu1.createItemStack())
     register("craftingGPUAdvanced", gpu2.createItemStack())
     register("craftingGPUElite", gpu3.createItemStack())
