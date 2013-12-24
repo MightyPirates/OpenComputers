@@ -31,23 +31,17 @@ object CraftingHandler extends ICraftingHandler {
       }
     }
 
-    if (!player.getEntityWorld.isRemote && craftedStack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
+    if (craftedStack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
       Registry.driverFor(craftedStack) match {
         case Some(driver) =>
+          var oldMap = None: Option[ItemStack]
           for (i <- 0 to inventory.getSizeInventory) {
             val stack = inventory.getStackInSlot(i)
             if (stack != null) {
-              // FIXME this could cause the built-in map to be re-used if the
-              // crafting inventory is the player's inventory - which is the
-              // case for robots, for example - by it added to a slot not yet
-              // checked but before the actual map to be used.
               if (stack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
                 // Restore the map currently used in the upgrade.
                 val nbt = driver.dataTag(stack)
-                val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
-                if (!player.inventory.addItemStackToInventory(map)) {
-                  player.dropPlayerItem(map)
-                }
+                oldMap = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map")))
               }
               else if (stack.getItem == Item.map) {
                 // Store information of the map used for crafting in the result.
@@ -59,6 +53,12 @@ object CraftingHandler extends ICraftingHandler {
                 nbt.setInteger(Settings.namespace + "scale", 128 * (1 << info.scale))
                 nbt.setNewCompoundTag(Settings.namespace + "map", stack.writeToNBT)
               }
+            }
+          }
+          if (oldMap.isDefined) {
+            val map = oldMap.get
+            if (!player.inventory.addItemStackToInventory(map)) {
+              player.dropPlayerItemWithRandomChoice(map, false)
             }
           }
         case _ =>
