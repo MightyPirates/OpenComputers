@@ -22,12 +22,12 @@ object Recipes {
       val customFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "custom.conf")
       defaultFile.getParentFile.mkdirs()
       var in = Recipes.getClass.getResource("/assets/opencomputers/recipes/default.conf")
-      inputToFile(in, defaultFile)
+      copyToFile(in, defaultFile)
       if (!customFile.exists()) {
         //debug
         customFile.getParentFile.mkdirs()
         in = Recipes.getClass.getResource("/assets/opencomputers/recipes/custom.conf")
-        inputToFile(in, customFile)
+        copyToFile(in, customFile)
       }
       val config = ConfigFactory.parseFile(customFile).withFallback(custom)
       loadRecipe(config.getConfig("cu"), Items.cu.createItemStack())
@@ -96,7 +96,6 @@ object Recipes {
       case "shapeless" => addShapelessRecipe(result, conf)
       case "furnace" => addSmeltingRecipe(result, conf)
       case _ => throw new Exception("Don't know what to do with " + conf.getString("type"))
-
     }
   }
 
@@ -111,117 +110,98 @@ object Recipes {
         var line = ""
         item.unwrapped() match {
           //got list so we expect a entry with subid
-          case list: java.util.List[Object] => {
+          case list: java.util.List[Object] =>
             var obj: Object = null
             var itemSubID: Int = 0
             for (entry <- list) {
               entry match {
                 //found hash value check for type of value
-                case map: java.util.HashMap[String, Object] => {
+                case map: java.util.HashMap[String, Object] =>
                   for (entrySet <- map.entrySet()) {
                     entrySet.getKey match {
-                      case "oreDict" => {
+                      case "oreDict" =>
                         entrySet.getValue match {
                           case value: String => obj = value
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
-                      case "item" => {
+                      case "item" =>
                         entrySet.getValue match {
                           case value: String => obj = getItemFromName(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
                       case "block" =>
                         entrySet.getValue match {
                           case value: String => obj = getBlockFromName(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-
-                      case "subID" => {
+                      case "subID" =>
                         entrySet.getValue match {
                           case value: Integer => itemSubID = value
                           case value: String => itemSubID = Integer.valueOf(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
                       case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                     }
                   }
-                }
 
                 //again a list
-                case list2: java.util.List[Object] => {
+                case list2: java.util.List[Object] =>
                   for (entry2 <- list2) {
                     entry2 match {
                       //found hash value check for type of value
-                      case map: java.util.HashMap[String, Object] => {
+                      case map: java.util.HashMap[String, Object] =>
                         for (entrySet <- map.entrySet()) {
                           entrySet.getKey match {
-                            case "oreDict" => {
+                            case "oreDict" =>
                               entrySet.getValue match {
                                 case value: String => obj = value
                                 case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                               }
-                            }
-                            case "item" => {
+                            case "item" =>
                               entrySet.getValue match {
                                 case value: String => obj = getItemFromName(value)
                                 case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                               }
-                            }
                             case "block" =>
                               entrySet.getValue match {
                                 case value: String => obj = getBlockFromName(value)
                                 case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                               }
-
-                            case "subID" => {
+                            case "subID" =>
                               entrySet.getValue match {
                                 case value: Integer => itemSubID = value
                                 case value: String => itemSubID = Integer.valueOf(value)
                                 case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                               }
-                            }
                             case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                           }
                         }
-                      }
                       //only found a string so just add this
-                      case value: String => obj = getNameOrStackFromName(value)
+                      case value: String => obj = getOreNameOrItemStackFromName(value)
                     }
 
                   }
-
-                }
                 //only found a string so just add this
-                case value: String => obj = getNameOrStackFromName(value)
+                case value: String => obj = getOreNameOrItemStackFromName(value)
               }
               line += ch.toChar
 
               //alright now add recipe to list, with subid if found
               obj match {
-                case item: Item => {
-
+                case item: Item =>
                   input += (ch.toChar: Character)
                   input += new ItemStack(item, 1, itemSubID)
-
-                }
-                case block: Block => {
+                case block: Block =>
                   input += (ch.toChar: Character)
                   input += new ItemStack(block, 1, itemSubID)
-                }
-                case value: String => {
+                case value: String =>
                   input += (ch.toChar: Character)
                   input += value
-                }
                 case null =>
               }
 
               ch += 1
             }
-
-          }
 
           //          case list: java.util.HashMap[String, Object] => {
           //            for (entrySet <- list.entrySet()) {
@@ -259,7 +239,7 @@ object Recipes {
     } catch {
       case _: Throwable => // ignore
     }
-    GameRegistry.addRecipe(new ShapedOreRecipe(out, (recipe ++ input): _*))
+    GameRegistry.addRecipe(new ShapedOreRecipe(out, recipe ++ input: _*))
   }
 
   private def addShapelessRecipe(output: ItemStack, conf: Config) {
@@ -271,45 +251,40 @@ object Recipes {
       {
         item.unwrapped() match {
           //got list so we expect a entry with subid
-          case list: java.util.List[Object] => {
+          case list: java.util.List[Object] =>
             var obj: Object = null
             var itemSubID: Int = 0
             for (entry <- list) {
               entry match {
                 //found hash value check for type of value
-                case map: java.util.HashMap[String, Object] => {
+                case map: java.util.HashMap[String, Object] =>
                   for (entrySet <- map.entrySet()) {
                     entrySet.getKey match {
-                      case "oreDict" => {
+                      case "oreDict" =>
                         entrySet.getValue match {
                           case value: String => obj = value
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
-                      case "item" => {
+                      case "item" =>
                         entrySet.getValue match {
                           case value: String => obj = getItemFromName(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
                       case "block" =>
                         entrySet.getValue match {
                           case value: String => obj = getBlockFromName(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-
-                      case "subID" => {
+                      case "subID" =>
                         entrySet.getValue match {
                           case value: Integer => itemSubID = value
                           case value: String => itemSubID = Integer.valueOf(value)
                           case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                         }
-                      }
                     }
                   }
-                }
                 //only found a string so just add this
-                case value: String => obj = getNameOrStackFromName(value)
+                case value: String => obj = getOreNameOrItemStackFromName(value)
               }
             }
             //alright now add recipe to list, with subid if found
@@ -319,23 +294,19 @@ object Recipes {
               case value: String => input += value
             }
 
-          }
-
-          case list: java.util.HashMap[String, Object] => {
+          case list: java.util.HashMap[String, Object] =>
             for (entrySet <- list.entrySet()) {
               entrySet.getKey match {
-                case "oreDict" => {
+                case "oreDict" =>
                   entrySet.getValue match {
                     case value: String => input += value
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
-                }
-                case "item" => {
+                case "item" =>
                   entrySet.getValue match {
                     case value: String => input += getItemFromName(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
-                }
                 case "block" =>
                   entrySet.getValue match {
                     case value: String => input += getBlockFromName(value)
@@ -343,8 +314,7 @@ object Recipes {
                   }
               }
             }
-          }
-          case value: String => input += getNameOrStackFromName(value)
+          case value: String => input += getOreNameOrItemStackFromName(value)
           case _ => println(item.unwrapped())
         }
 
@@ -375,112 +345,94 @@ object Recipes {
         var itemSubID: Int = 0
         item.unwrapped() match {
 
-          case list: java.util.HashMap[String, Object] => {
+          case list: java.util.HashMap[String, Object] =>
             for (entrySet <- list.entrySet()) {
               entrySet.getKey match {
-                case "oreDict" => {
+                case "oreDict" =>
                   entrySet.getValue match {
                     case value: String => obj = value
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
-                }
-                case "item" => {
+                case "item" =>
                   entrySet.getValue match {
                     case value: String => obj = getItemFromName(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
-                }
                 case "block" =>
                   entrySet.getValue match {
                     case value: String => obj = getBlockFromName(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
 
-                case "subID" => {
+                case "subID" =>
                   entrySet.getValue match {
                     case value: Integer => itemSubID = value
                     case value: String => itemSubID = Integer.valueOf(value)
                     case _ => throw new Exception("This case is not implemented please try adding a different way ore report the recipe you tried to add. " + entrySet)
                   }
-                }
               }
             }
-          }
-          case value: String => {
-            obj = getNameOrStackFromName(value)
-          }
+          case value: String =>
+            obj = getOreNameOrItemStackFromName(value)
           case _ => println(item.unwrapped())
         }
         obj match {
-          case item: Item => {
-
+          case item: Item =>
             val newItem = new ItemStack(item, 1, itemSubID)
             FurnaceRecipes.smelting().addSmelting(newItem.itemID, newItem.getItemDamage, out, 0)
-          }
-          case block: Block => {
+          case block: Block =>
             val newItem = new ItemStack(block, 1, itemSubID)
             FurnaceRecipes.smelting().addSmelting(newItem.itemID, newItem.getItemDamage, out, 0)
-          }
-          case value: String => {
+          case value: String =>
             for (stack <- OreDictionary.getOres(value)) {
               FurnaceRecipes.smelting().addSmelting(stack.itemID, stack.getItemDamage, out, 0)
             }
-          }
           case null =>
         }
       }
     }
   }
 
-  def inputToFile(is: URL, f: java.io.File) {
-    FileUtils.copyURLToFile(is, f)
-  }
-
-  def getItemFromName(name: String) = {
-    Item.itemsList.find(item => item != null && (item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name)) match {
-      case Some(item) => {
-        item
-      }
-      case _ => throw new Exception("No item found for name: " + name)
-    }
-  }
-
-  def getBlockFromName(name: String) = {
-    Block.blocksList.find(block => block != null && (block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name)) match {
-      case Some(block) => {
-        block
-      }
+  private def getBlockFromName(name: String) = {
+    Block.blocksList.find(blockNameEquals(_, name)) match {
+      case Some(block) => block
       case _ => throw new Exception("No block found for name: " + name)
     }
   }
 
-  def getNameOrStackFromName(name: String) = {
-    if (name.isEmpty)
-      null
+  private def getItemFromName(name: String) = {
+    Item.itemsList.find(itemNameEquals(_, name)) match {
+      case Some(item) => item
+      case _ => throw new Exception("No item found for name: " + name)
+    }
+  }
+
+  private def getOreNameOrItemStackFromName(name: String) = {
+    if (name.isEmpty) null
     else if (!OreDictionary.getOres(name).isEmpty) name
     else {
-      var list = Item.itemsList
-
-      list.find(item => item != null && (item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name)) match {
-        case Some(item) => {
-          item
-        }
-        case _ => {
-          Block.blocksList.find(block => block != null && (block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name)) match {
-            case Some(block) => block
-            case _ => {
-              throw new Exception("No item / block found for name: " + name)
-
-            }
-          }
+      Item.itemsList.find(itemNameEquals(_, name)) match {
+        case Some(item) => item
+        case _ => Block.blocksList.find(blockNameEquals(_, name)) match {
+          case Some(block) => block
+          case _ => throw new Exception("No item or block found for name: " + name)
         }
       }
     }
   }
 
-  def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
+  private def itemNameEquals(item: Item, name: String) =
+    item != null && (item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name)
+
+  private def blockNameEquals(block: Block, name: String) =
+    block != null && (block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name)
+
+  private def copyToFile(source: URL, target: java.io.File) {
+    FileUtils.copyURLToFile(source, target)
+  }
+
+  private def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
     case Nil => List(Nil)
-    case h :: t => for (xh <- h;
-                        xt <- cartesianProduct(t)) yield xh :: xt
+    case h :: t => for (xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
   }
 }
