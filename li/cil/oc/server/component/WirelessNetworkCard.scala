@@ -2,6 +2,7 @@ package li.cil.oc.server.component
 
 import java.io._
 import java.net.{HttpURLConnection, URL}
+import java.nio.charset.MalformedInputException
 import java.util.concurrent.Future
 import java.util.regex.Matcher
 import li.cil.oc.api.network._
@@ -12,7 +13,6 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
-import java.nio.charset.MalformedInputException
 
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override val node = api.Network.newNode(this, Visibility.Network).
