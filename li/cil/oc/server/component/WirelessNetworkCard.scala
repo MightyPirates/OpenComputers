@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
+import java.nio.charset.MalformedInputException
 
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override val node = api.Network.newNode(this, Visibility.Network).
@@ -87,6 +88,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
         catch {
           case e: FileNotFoundException =>
             context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
+          case _: MalformedInputException =>
+            context.signal("http_response", address, Unit, "binary data not yet supported")
           case e: Throwable =>
             context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
         }
