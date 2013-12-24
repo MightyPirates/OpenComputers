@@ -94,7 +94,8 @@ object Cable {
       world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
         case robot: tileentity.RobotProxy =>
         case host: SidedEnvironment =>
-          if (host.canConnect(side.getOpposite)) {
+          val connects = if (host.getWorldObj.isRemote) host.canConnect(side.getOpposite) else host.sidedNode(side.getOpposite) != null
+          if (connects) {
             result |= side.flag
           }
         case host: Environment => result |= side.flag
