@@ -4,7 +4,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import java.io.File
-import java.net.URL
 import java.util.logging.Level
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
@@ -16,21 +15,16 @@ import scala.collection.mutable.ArrayBuffer
 
 object Recipes {
   def init() {
-
-    val custom = ConfigFactory.parseResources("/assets/opencomputers/recipes/custom.conf")
     try {
-      val defaultFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.conf")
-      val customFile = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "custom.conf")
-      defaultFile.getParentFile.mkdirs()
-      var in = Recipes.getClass.getResource("/assets/opencomputers/recipes/default.conf")
-      copyToFile(in, defaultFile)
-      if (!customFile.exists()) {
-        //debug
-        customFile.getParentFile.mkdirs()
-        in = Recipes.getClass.getResource("/assets/opencomputers/recipes/custom.conf")
-        copyToFile(in, customFile)
+      val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
+      val userRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "custom.recipes")
+
+      defaultRecipes.getParentFile.mkdirs()
+      FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/default.recipes"), defaultRecipes)
+      if (!userRecipes.exists()) {
+        FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/custom.recipes"), userRecipes)
       }
-      val recipes = ConfigFactory.parseFile(customFile).withFallback(custom)
+      val recipes = ConfigFactory.parseFile(userRecipes)
 
       // Try to keep this in the same order as the fields in the Items class
       // to make it easier to match them and check if anything is missing.
@@ -239,10 +233,6 @@ object Recipes {
 
   private def blockNameEquals(block: Block, name: String) =
     block != null && (block.getUnlocalizedName == name || block.getUnlocalizedName == "tile." + name)
-
-  private def copyToFile(source: URL, target: java.io.File) {
-    FileUtils.copyURLToFile(source, target)
-  }
 
   private def tryGetType(recipe: Config) = if (recipe.hasPath("type")) recipe.getString("type") else "shaped"
 
