@@ -211,22 +211,20 @@ object Recipes {
         }
       }
       else throw new RecipeException("Invalid ingredient type (no oreDict, item or block entry).")
-    case name: String => getOreNameOrItemStackFromName(name)
-    case _ => throw new RecipeException("Invalid ingredient type (not a map or string).")
-  }
-
-  private def getOreNameOrItemStackFromName(name: String) =
-    if (name == null || name.trim.isEmpty) null
-    else if (OreDictionary.getOres(name) != null && !OreDictionary.getOres(name).isEmpty) name
-    else {
-      Item.itemsList.find(itemNameEquals(_, name)) match {
-        case Some(item) => new ItemStack(item, 1, 0)
-        case _ => Block.blocksList.find(blockNameEquals(_, name)) match {
-          case Some(block) => new ItemStack(block, 1, 0)
-          case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
+    case name: String =>
+      if (name == null || name.trim.isEmpty) null
+      else if (OreDictionary.getOres(name) != null && !OreDictionary.getOres(name).isEmpty) name
+      else {
+        Item.itemsList.find(itemNameEquals(_, name)) match {
+          case Some(item) => new ItemStack(item, 1, 0)
+          case _ => Block.blocksList.find(blockNameEquals(_, name)) match {
+            case Some(block) => new ItemStack(block, 1, 0)
+            case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
+          }
         }
       }
-    }
+    case _ => throw new RecipeException("Invalid ingredient type (not a map or string).")
+  }
 
   private def itemNameEquals(item: Item, name: String) =
     item != null && (item.getUnlocalizedName == name || item.getUnlocalizedName == "item." + name)
