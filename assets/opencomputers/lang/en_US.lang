@@ -69,6 +69,7 @@ oc:gui.Robot.TurnOff=Turn off
 oc:gui.Robot.TurnOn=Turn on
 
 # Containers
+oc:container.Adapter=Adapter
 oc:container.Case=Computer
 oc:container.DiskDrive=Disk Drive
 
