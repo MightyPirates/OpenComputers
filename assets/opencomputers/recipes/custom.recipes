@@ -3,7 +3,7 @@
 # priority (i.e. included recipes simply replace the current definition for all
 # already known recipes).
 
-include "default.conf"
+include "default.recipes"
 #include "buildcraft.recipes"
 #include "gregtech.recipes"
 #include "your_custom.recipes"
