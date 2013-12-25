@@ -2,7 +2,9 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.{Array, Some}
@@ -13,6 +15,8 @@ class Adapter extends Environment {
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
+
+  private var filter: Option[ItemStack] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -33,12 +37,18 @@ class Adapter extends Environment {
             if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
-              val environment = newDriver.createEnvironment(world, x, y, z)
-              blocks(d.ordinal()) = Some((environment, newDriver))
-              blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-              node.connect(environment.node)
+              if (isBlockSupported(x, y, z)) {
+                val environment = newDriver.createEnvironment(world, x, y, z)
+                blocks(d.ordinal()) = Some((environment, newDriver))
+                blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+                node.connect(environment.node)
+              }
+              else {
+                blocks(d.ordinal()) = None
+                blocksData(d.ordinal()) = None
+              }
             } // else: the more things change, the more they stay the same.
-          case _ =>
+          case _ if isBlockSupported(x, y, z) =>
             // A challenger appears.
             val environment = newDriver.createEnvironment(world, x, y, z)
             blocks(d.ordinal()) = Some((environment, newDriver))
@@ -49,6 +59,7 @@ class Adapter extends Environment {
             }
             blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
             node.connect(environment.node)
+          case _ => // Not supported by filter.
         }
         case _ => blocks(d.ordinal()) match {
           case Some((environment, driver)) =>
@@ -87,6 +98,10 @@ class Adapter extends Environment {
           blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
         }
     }
+
+    if (nbt.hasKey(Settings.namespace + "adapter.filter")) {
+      filter = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "adapter.filter")))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -108,9 +123,20 @@ class Adapter extends Environment {
       blocksNbt.appendTag(blockNbt)
     }
     nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
+
+    if (filter.isDefined) {
+      nbt.setNewCompoundTag(Settings.namespace + "adapter.filter", filter.get.writeToNBT)
+    }
   }
 
   // ----------------------------------------------------------------------- //
+
+  private def isBlockSupported(x: Int, y: Int, z: Int) =
+    filter.isDefined && (filter.get.getItem match {
+      case block: ItemBlock =>
+        block.getBlockID == world.getBlockId(x, y, z) && block.getMetadata(block.getDamage(filter.get)) == world.getBlockMetadata(x, y, z)
+      case _ => false
+    })
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 
