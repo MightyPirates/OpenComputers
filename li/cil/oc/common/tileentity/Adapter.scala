@@ -2,21 +2,18 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.{Array, Some}
 
-class Adapter extends Environment {
+class Adapter extends Environment with Inventory {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
-
-  private var filter: Option[ItemStack] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -34,7 +31,7 @@ class Adapter extends Environment {
       driver.Registry.driverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
-            if (newDriver != driver) {
+            if (newDriver != driver || !isBlockSupported(x, y, z)) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
               if (isBlockSupported(x, y, z)) {
@@ -98,10 +95,6 @@ class Adapter extends Environment {
           blocksData(i) = Some(new BlockData(blockNbt.getString("name"), blockNbt.getCompoundTag("data")))
         }
     }
-
-    if (nbt.hasKey(Settings.namespace + "adapter.filter")) {
-      filter = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "adapter.filter")))
-    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -123,18 +116,35 @@ class Adapter extends Environment {
       blocksNbt.appendTag(blockNbt)
     }
     nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
+  }
 
-    if (filter.isDefined) {
-      nbt.setNewCompoundTag(Settings.namespace + "adapter.filter", filter.get.writeToNBT)
-    }
+  // ----------------------------------------------------------------------- //
+
+  def getSizeInventory = 1
+
+  def getInvName = Settings.namespace + "container.Adapter"
+
+  def getInventoryStackLimit = 0
+
+  override def getInventoryStackRequired = 0
+
+  def isItemValidForSlot(i: Int, stack: ItemStack) =
+    stack != null && stack.stackSize > 0 && (stack.getItem match {
+      case block: ItemBlock => true
+      case _ => false
+    })
+
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    neighborChanged()
   }
 
   // ----------------------------------------------------------------------- //
 
   private def isBlockSupported(x: Int, y: Int, z: Int) =
-    filter.isDefined && (filter.get.getItem match {
+    items(0).isDefined && (items(0).get.getItem match {
       case block: ItemBlock =>
-        block.getBlockID == world.getBlockId(x, y, z) && block.getMetadata(block.getDamage(filter.get)) == world.getBlockMetadata(x, y, z)
+        block.getBlockID == world.getBlockId(x, y, z) && block.getMetadata(block.getDamage(items(0).get)) == world.getBlockMetadata(x, y, z)
       case _ => false
     })
 

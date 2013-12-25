@@ -29,7 +29,8 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
     }
-    result
+    if (result != null && result.stackSize > 0) result
+    else null
   }
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
@@ -55,7 +56,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     null
   }
 
-  private def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
+  protected def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
     val fromStack = from.getStack
     var somethingChanged = false
 
@@ -99,19 +100,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
 
   def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None) {
     val index = getInventory.size
-    addSlotToContainer(new Slot(otherInventory, index, x, y) {
-      setBackgroundIcon(Icons.get(slot))
-
-      override def getSlotStackLimit =
-        slot match {
-          case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
-          case _ => 1
-        }
-
-      override def isItemValid(stack: ItemStack) = {
-        otherInventory.isItemValidForSlot(index, stack)
-      }
-    })
+    addSlotToContainer(new ComponentSlot(otherInventory, index, x, y, slot))
   }
 
   /** Render player inventory at the specified coordinates. */
