@@ -1,14 +1,13 @@
 package li.cil.oc.common.container
 
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
-import li.cil.oc.client.gui.Icons
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
-import cpw.mods.fml.common.FMLCommonHandler
 
 abstract class Player(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
