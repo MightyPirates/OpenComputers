@@ -17,12 +17,12 @@ object Recipes {
   def init() {
     try {
       val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
-      val userRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "custom.recipes")
+      val userRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "user.recipes")
 
       defaultRecipes.getParentFile.mkdirs()
       FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/default.recipes"), defaultRecipes)
       if (!userRecipes.exists()) {
-        FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/custom.recipes"), userRecipes)
+        FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
       }
       val recipes = ConfigFactory.parseFile(userRecipes)
 
