@@ -91,6 +91,7 @@ class Settings(config: Config) {
   val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
+  val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0

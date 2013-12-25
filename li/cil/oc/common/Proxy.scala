@@ -27,12 +27,15 @@ class Proxy {
     api.Driver.add(driver.block.CommandBlock)
     api.Driver.add(driver.block.NoteBlock)
 
-    api.Driver.add(driver.item.Crafting)
+    api.Driver.add(driver.item.UpgradeCrafting)
     api.Driver.add(driver.item.FileSystem)
-    api.Driver.add(driver.item.Generator)
+    api.Driver.add(driver.item.UpgradeGenerator)
+    api.Driver.add(driver.item.SolarGenerator)
     api.Driver.add(driver.item.GraphicsCard)
+    api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
+    api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.WirelessNetworkCard)
 

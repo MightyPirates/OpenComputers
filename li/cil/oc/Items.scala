@@ -2,6 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
+import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
 object Items {
@@ -29,8 +30,11 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Upgrades
-  var crafting: item.Crafting = null
-  var generator: item.Generator = null
+  var upgradeCrafting: item.UpgradeCrafting = null
+  var upgradeGenerator: item.UpgradeGenerator = null
+  var upgradeNavigation: item.UpgradeNavigation = null
+  var upgradeSign: item.UpgradeSign = null
+  var upgradeSolarGenerator: item.UpgradeSolarGenerator = null
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -77,8 +81,8 @@ object Items {
     rs = new item.RedstoneCard(multi)
     wlan = new item.WirelessNetworkCard(multi)
 
-    crafting = new item.Crafting(multi)
-    generator = new item.Generator(multi)
+    upgradeCrafting = new item.UpgradeCrafting(multi)
+    upgradeGenerator = new item.UpgradeGenerator(multi)
 
     ironNugget = new item.IronNugget(multi)
     cuttingWire = new item.CuttingWire(multi)
@@ -102,6 +106,53 @@ object Items {
     pcb = new item.PrintedCircuitBoard(multi)
     card = new item.CardBase(multi)
 
-    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
+    // v1.1.0
+    upgradeSolarGenerator = new item.UpgradeSolarGenerator(multi)
+    upgradeSign = new item.UpgradeSign(multi)
+    upgradeNavigation = new item.UpgradeNavigation(multi)
+
+    // ----------------------------------------------------------------------- //
+
+    registerExclusive("nuggetIron", ironNugget.createItemStack())
+    register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
+    register("craftingCircuitBoardBasic", circuitBoard.createItemStack())
+    register("craftingCircuitBoardAdvanced", pcb.createItemStack())
+    register("oc:craftingWire", cuttingWire.createItemStack())
+    register("circuitBasic", chip1.createItemStack())
+    register("circuitAdvanced", chip2.createItemStack())
+    register("circuitElite", chip3.createItemStack())
+    register("craftingTransistor", transistor.createItemStack())
+    register("craftingControlUnit", cu.createItemStack())
+    register("craftingALU", alu.createItemStack())
+    register("craftingCPU", cpu.createItemStack())
+    register("componentCardRedstone", rs.createItemStack())
+    register("componentCardLan", lan.createItemStack())
+    register("craftingGPUBasic", gpu1.createItemStack())
+    register("craftingGPUAdvanced", gpu2.createItemStack())
+    register("craftingGPUElite", gpu3.createItemStack())
+    register("craftingRAMBasic", ram1.createItemStack())
+    register("craftingRAMAdvanced", ram2.createItemStack())
+    register("craftingRAMElite", ram3.createItemStack())
+    register("craftingHDDBasic", hdd1.createItemStack())
+    register("craftingHDDAdvanced", hdd2.createItemStack())
+    register("craftingHDDElite", hdd3.createItemStack())
+    register("oc:craftingButtonGroup", buttonGroup.createItemStack())
+    register("oc:craftingArrowKey", arrowKeys.createItemStack())
+    register("oc:craftingNumPad", numPad.createItemStack())
+    register("oc:craftingDisk", disk.createItemStack())
+    register("oc:craftingAcid", acid.createItemStack())
+    register("oc:craftingGenerator", upgradeGenerator.createItemStack())
+  }
+
+  def register(name: String, item: ItemStack) {
+    if (!OreDictionary.getOres(name).contains(item)) {
+      OreDictionary.registerOre(name, item)
+    }
+  }
+
+  def registerExclusive(name: String, item: ItemStack) {
+    if (OreDictionary.getOres(name).isEmpty) {
+      OreDictionary.registerOre(name, item)
+    }
   }
 }
