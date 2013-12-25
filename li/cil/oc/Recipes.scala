@@ -1,15 +1,16 @@
 package li.cil.oc
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
-import java.io.File
+import java.io.{FileReader, File}
 import java.util.logging.Level
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
 import org.apache.commons.io.FileUtils
+import scala.Some
 import scala.collection.convert.wrapAsScala._
 import scala.collection.mutable.ArrayBuffer
 
@@ -24,7 +25,26 @@ object Recipes {
       if (!userRecipes.exists()) {
         FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
       }
-      val recipes = ConfigFactory.parseFile(userRecipes)
+      val config = ConfigParseOptions.defaults.
+        setSyntax(ConfigSyntax.CONF).
+        setIncluder(new ConfigIncluder with ConfigIncluderFile {
+        var fallback: ConfigIncluder = _
+
+        def withFallback(fallback: ConfigIncluder) = {
+          this.fallback = fallback
+          this
+        }
+
+        def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
+
+        def includeFile(context: ConfigIncludeContext, what: File) = {
+          val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
+          val result = ConfigFactory.parseReader(in)
+          in.close()
+          result.root()
+        }
+      })
+      val recipes = ConfigFactory.parseFile(userRecipes, config)
 
       // Try to keep this in the same order as the fields in the Items class
       // to make it easier to match them and check if anything is missing.
@@ -113,6 +133,9 @@ object Recipes {
         case "furnace" => addFurnaceRecipe(output, recipe)
         case other => throw new RecipeException("Invalid recipe type '" + other + "'.")
       }
+    }
+    else {
+      OpenComputers.log.info("No recipe for '" + name + "', you will not be able to craft this item.")
     }
   }
   catch {

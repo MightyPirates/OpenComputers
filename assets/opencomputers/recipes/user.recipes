@@ -3,10 +3,10 @@
 # priority (i.e. included recipes simply replace the current definition for all
 # already known recipes).
 
-include "default.recipes"
-#include "buildcraft.recipes"
-#include "gregtech.recipes"
-#include "your_custom.recipes"
+include file("default.recipes")
+#include file("buildcraft.recipes")
+#include file("gregtech.recipes")
+#include file("your_custom.recipes")
 
 # You can also specify custom recipes in this file directly. Have a look at the
 # default.recipes file to get an idea how recipes have to be structured. You'll
