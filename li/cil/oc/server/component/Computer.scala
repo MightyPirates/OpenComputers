@@ -107,11 +107,25 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   def isPaused = state.synchronized(state.top == Computer.State.Paused && remainingPause > 0)
 
   def start() = state.synchronized(state.top match {
-    case Computer.State.Stopped if owner.installedMemory > 0 && init() =>
-      switchTo(Computer.State.Starting)
-      timeStarted = owner.world.getWorldTime
-      node.sendToReachable("computer.started")
-      true
+    case Computer.State.Stopped =>
+      if (owner.installedMemory > 0) {
+        if (node.globalBuffer > cost) {
+          init() && {
+            switchTo(Computer.State.Starting)
+            timeStarted = owner.world.getWorldTime
+            node.sendToReachable("computer.started")
+            true
+          }
+        }
+        else {
+          message = Some("not enough energy")
+          false
+        }
+      }
+      else {
+        message = Some("no memory installed")
+        false
+      }
     case Computer.State.Paused if remainingPause > 0 =>
       remainingPause = 0
       true
@@ -687,6 +701,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     LuaStateFactory.createState() match {
       case None =>
         lua = null
+        message = Some("native libraries not available")
         return false
       case Some(value) => lua = value
     }
