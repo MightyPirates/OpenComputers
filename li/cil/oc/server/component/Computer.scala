@@ -1351,7 +1351,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-        crash("kernel panic")
+        crash("kernel panic: this is a bug, check your log file and report it")
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null) crash("kernel panic:\n" + e.getMessage)
         else crash("kernel panic:\nerror in garbage collection metamethod")
@@ -1361,7 +1361,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         crash("not enough memory")
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
-        crash("kernel panic")
+        crash("kernel panic: this is a bug, check your log file and report it")
     }
   }
 }
