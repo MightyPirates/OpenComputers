@@ -9,7 +9,7 @@ analyzer {
 
 ram1 {
   type:assembly
-  input: ["oc:circuitBasic", "oc:craftingCircuitBoardPrinted"]
+  input: [{item="oc:item",subID=24}, {item="oc:item",subID=32}]
   number:[3,3]
   eu:32
   time=250
@@ -88,7 +88,7 @@ signUpgrade {
 
 solarGeneratorUpgrade {
   input: [[screwTitanium, "", screwTitanium]
-          ["oc:circuitElite", {item=tile.GT_Components,subID=7} , "oc:circuitElite"]
+          ["oc:circuitElite", {item=GT_Components,subID=7} , "oc:circuitElite"]
           [screwTitanium, craftingToolScrewdriver, screwTitanium]]
 }
 
@@ -110,7 +110,7 @@ disk {
 
 transistor {
 type:assembly
-  input: [redstone, plateIron]
+  input: [redstone,  {item="GT_Materials",subID=64}]
   number:[1,2]
   eu:16
   time=500
@@ -135,7 +135,7 @@ chip2 {
 }
 chip3 {
   type:assembly
-    input: [{item=Components,subID=1}, {item="oc:item",subID=23}]
+    input: [{item=GT_Components,subID=1}, {item="oc:item",subID=23}]
     number:[1,16]
     eu:25
     time=800

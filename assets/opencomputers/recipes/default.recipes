@@ -101,7 +101,7 @@ cuttingWire {
 }
 acid {
   type: shapeless
-  input: [bucketWater, sugar, slimeball, spiderEye, bone, {item=dyePowder, subID=1}]
+  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone, {item=dyePowder, subID=1}]
 }
 disk {
   input: [["", nuggetIron, ""]
