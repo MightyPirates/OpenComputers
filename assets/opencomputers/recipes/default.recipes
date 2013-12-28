@@ -27,7 +27,7 @@ floppy {
 }
 hdd1 {
   input: [["oc:circuitBasic", "oc:craftingDisk", ingotIron]
-          ["oc:craftingCircuitBoardPrinted", "oc:craftingDisk", pistonBase]
+          ["oc:craftingCircuitBoardPrinted", "oc:craftingDisk", craftingPiston]
           ["oc:circuitBasic", "oc:craftingDisk", ingotIron]]
 }
 hdd2 {
@@ -215,7 +215,7 @@ case3 {
 }
 diskDrive {
   input: [[ingotIron, "oc:circuitBasic", ingotIron]
-          [pistonBase, stickWood, ""]
+          [craftingPiston, stickWood, ""]
           [ingotIron, "oc:circuitBasic", ingotIron]]
 }
 keyboard {
