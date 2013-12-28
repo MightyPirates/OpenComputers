@@ -244,7 +244,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier")
+    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
     super.readFromNBT(nbt)
   }
 

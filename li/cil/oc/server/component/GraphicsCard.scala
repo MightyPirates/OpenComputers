@@ -216,7 +216,10 @@ abstract class GraphicsCard extends ManagedComponent {
     super.load(nbt)
 
     if (nbt.hasKey("screen")) {
-      screenAddress = Some(nbt.getString("screen"))
+      nbt.getString("screen") match {
+        case screen: String if !screen.isEmpty => screenAddress = Some(screen)
+        case _ => screenAddress = None
+      }
       screenInstance = None
     }
   }

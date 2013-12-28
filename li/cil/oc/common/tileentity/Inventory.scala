@@ -107,7 +107,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Some(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
       }
     })
   }

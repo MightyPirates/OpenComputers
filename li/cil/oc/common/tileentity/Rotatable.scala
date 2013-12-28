@@ -165,7 +165,9 @@ trait Rotatable extends RotationAware with Persistable {
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
+    if (_pitch == ForgeDirection.UNKNOWN) _pitch = ForgeDirection.NORTH
     _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
+    if (_yaw == ForgeDirection.UNKNOWN) _yaw = ForgeDirection.SOUTH
     updateTranslation()
   }
 
