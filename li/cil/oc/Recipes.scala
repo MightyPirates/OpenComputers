@@ -152,7 +152,7 @@ object Recipes {
 
   private def addShapedRecipe(stack: ItemStack, recipe: Config) {
     val rows = recipe.getList("input").unwrapped().map {
-      case row: java.util.List[Object] => row.map(parseIngredient).padTo(3, null)
+      case row: java.util.List[Object] => row.map(parseIngredient)
       case other => throw new RecipeException("Invalid row entry for shaped recipe (not a list: " + other + ").")
     }
 
@@ -253,7 +253,7 @@ object Recipes {
           }
         }
       }
-    case _ => throw new RecipeException("Invalid ingredient type (not a map or string): ")
+    case other => throw new RecipeException("Invalid ingredient type (not a map or string): "+other)
   }
 
   private def itemNameEquals(item: Item, name: String) =
