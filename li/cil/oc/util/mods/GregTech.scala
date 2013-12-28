@@ -3,32 +3,25 @@ package li.cil.oc.util.mods
 import net.minecraft.item.ItemStack
 
 object GregTech {
-  private val (sRecipeAdder, addAssemblerRecipe)=try{
+  private val (recipeAdder, addAssemblerRecipe) = try {
     val api = Class.forName("gregtechmod.api.GregTech_API")
-    for(meth<-api.getMethods){
-      println(meth)
-    }
     val iRecipe = Class.forName("gregtechmod.api.interfaces.IGT_RecipeAdder")
 
-    val adder = api.getField("sRecipeAdder").get(null)
-    val addAssemb = iRecipe.getMethods.find(_.getName == "addAssemblerRecipe")
+    val recipeAdder = api.getField("sRecipeAdder").get(null)
+    val addAssemblerRecipe = iRecipe.getMethods.find(_.getName == "addAssemblerRecipe")
 
-    (Option(adder),addAssemb)
-  } catch {
-    case e: Throwable =>{
-       e.printStackTrace()
-      (None, null)
-    }
+    (Option(recipeAdder), addAssemblerRecipe)
+  }
+  catch {
+    case _: Throwable => (None, None)
   }
 
-  def available = sRecipeAdder.isDefined
+  def available = recipeAdder.isDefined
 
-
-  def addAssemblerRecipe (input1: ItemStack, input2: ItemStack, output: ItemStack, duration: Int, eut: Int){
-    (sRecipeAdder,addAssemblerRecipe) match{
-      case (Some(adder),Some(recipe))=>recipe.invoke(adder,input1,input2,output,duration:java.lang.Integer,eut:java.lang.Integer)
-      case _=>
+  def addAssemblerRecipe(input1: ItemStack, input2: ItemStack, output: ItemStack, duration: Int, euPerTick: Int) {
+    (recipeAdder, addAssemblerRecipe) match {
+      case (Some(instance), Some(method)) => method.invoke(instance, input1, input2, output, Int.box(duration), Int.box(euPerTick))
+      case _ =>
     }
-
   }
 }

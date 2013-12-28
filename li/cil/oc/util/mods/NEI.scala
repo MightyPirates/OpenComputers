@@ -5,7 +5,8 @@ import cpw.mods.fml.common.Loader
 object NEI {
   private lazy val layoutManagerClass = try {
     Class.forName("codechicken.nei.LayoutManager")
-  } catch {
+  }
+  catch {
     case _: Throwable => null
   }
 

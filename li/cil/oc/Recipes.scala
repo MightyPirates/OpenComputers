@@ -13,7 +13,6 @@ import org.apache.commons.io.FileUtils
 import scala.Some
 import scala.collection.convert.wrapAsScala._
 import scala.collection.mutable.ArrayBuffer
-import li.cil.oc.util.mods.GregTech
 
 object Recipes {
   def init() {
@@ -265,6 +264,7 @@ object Recipes {
   private def tryGetId(ingredient: java.util.HashMap[String, _]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {
       case id: Number => id.intValue
+      case "any" => 32767
       case id: String => Integer.valueOf(id)
       case _ => 0
     } else 0

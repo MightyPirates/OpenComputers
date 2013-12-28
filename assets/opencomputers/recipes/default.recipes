@@ -78,7 +78,7 @@ generatorUpgrade {
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
-          ["oc:circuitElite", {item=map, subID=32767}, "oc:circuitElite"]
+          ["oc:circuitElite", {item=map, subID=any}, "oc:circuitElite"]
           [ingotGold, potion, ingotGold]]
 }
 signUpgrade {
