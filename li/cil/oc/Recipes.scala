@@ -248,7 +248,7 @@ object Recipes {
           }
         }
       }
-    case other => throw new RecipeException("Invalid ingredient type (not a map or string): "+other)
+    case other => throw new RecipeException("Invalid ingredient type (not a map or string): " + other)
   }
 
   private def itemNameEquals(item: Item, name: String) =

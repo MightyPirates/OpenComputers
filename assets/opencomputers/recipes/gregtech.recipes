@@ -75,23 +75,22 @@ generatorUpgrade {
           ["oc:circuitAdvanced",craftingGenerator , "oc:circuitAdvanced"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
-#todo
-#navigationUpgrade {
-#  input: [[ingotGold, compass, ingotGold]
-#          ["oc:circuitElite", {item=map, subID=32767}, "oc:circuitElite"]
-#          [ingotGold, potion, ingotGold]]
-#}
-#todo
-#signUpgrade {
-#  input: [[ingotIron, dyePowder, ingotIron]
-#          ["oc:circuitAdvanced", stickWood, "oc:circuitAdvanced"]
-#          [ingotIron, pistonStickyBase, ingotIron]]
-#}
-#todo
-#solarGeneratorUpgrade {
-#  input: [[glass, glass, glass]
-#          ["oc:circuitAdvanced", "oc:craftingGenerator", "oc:circuitAdvanced"]]
-#}
+navigationUpgrade {
+  input: [[craftingRawMachineTier02, compass, screwStainlessSteel]
+          ["oc:circuitElite", {item=map, subID=any}, "oc:circuitElite"]
+          [screwStainlessSteel, potion, craftingToolScrewdriver]]
+}
+signUpgrade {
+  input: [[screwAluminium, dyePowder, screwAluminium]
+          ["oc:circuitBasic", stickWood, "oc:circuitBasic"]
+          [screwAluminium, craftingToolScrewdriver, screwAluminium]]
+}
+
+solarGeneratorUpgrade {
+  input: [[screwTitanium, "", screwTitanium]
+          ["oc:circuitElite", {item=tile.GT_Components,subID=7} , "oc:circuitElite"]
+          [screwTitanium, craftingToolScrewdriver, screwTitanium]]
+}
 
 
 cuttingWire {
