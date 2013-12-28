@@ -9,7 +9,7 @@ analyzer {
 
 ram1 {
   type:assembly
-  input: ["oc:circuitBasic", "oc:craftingCircuitBoardPrinted"]
+  input: [{item="oc:item",subID=24}, {item="oc:item",subID=32}]
   number:[3,3]
   eu:32
   time=250
@@ -75,23 +75,22 @@ generatorUpgrade {
           ["oc:circuitAdvanced",craftingGenerator , "oc:circuitAdvanced"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
-#todo
-#navigationUpgrade {
-#  input: [[ingotGold, compass, ingotGold]
-#          ["oc:circuitElite", {item=map, subID=32767}, "oc:circuitElite"]
-#          [ingotGold, potion, ingotGold]]
-#}
-#todo
-#signUpgrade {
-#  input: [[ingotIron, dyePowder, ingotIron]
-#          ["oc:circuitAdvanced", stickWood, "oc:circuitAdvanced"]
-#          [ingotIron, pistonStickyBase, ingotIron]]
-#}
-#todo
-#solarGeneratorUpgrade {
-#  input: [[glass, glass, glass]
-#          ["oc:circuitAdvanced", "oc:craftingGenerator", "oc:circuitAdvanced"]]
-#}
+navigationUpgrade {
+  input: [[craftingRawMachineTier02, compass, screwStainlessSteel]
+          ["oc:circuitElite", {item=map, subID=any}, "oc:circuitElite"]
+          [screwStainlessSteel, potion, craftingToolScrewdriver]]
+}
+signUpgrade {
+  input: [[screwAluminium, dyePowder, screwAluminium]
+          ["oc:circuitBasic", stickWood, "oc:circuitBasic"]
+          [screwAluminium, craftingToolScrewdriver, screwAluminium]]
+}
+
+solarGeneratorUpgrade {
+  input: [[screwTitanium, "", screwTitanium]
+          ["oc:circuitElite", {item=GT_Components,subID=7} , "oc:circuitElite"]
+          [screwTitanium, craftingToolScrewdriver, screwTitanium]]
+}
 
 
 cuttingWire {
@@ -111,7 +110,7 @@ disk {
 
 transistor {
 type:assembly
-  input: [redstone, plateIron]
+  input: [redstone,  {item="GT_Materials",subID=64}]
   number:[1,2]
   eu:16
   time=500
@@ -136,7 +135,7 @@ chip2 {
 }
 chip3 {
   type:assembly
-    input: [{item=Components,subID=1}, {item="oc:item",subID=23}]
+    input: [{item=GT_Components,subID=1}, {item="oc:item",subID=23}]
     number:[1,16]
     eu:25
     time=800

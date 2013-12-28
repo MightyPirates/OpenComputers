@@ -4,7 +4,6 @@
 # already known recipes).
 
 include file("default.recipes")
-#include file("buildcraft.recipes")
 #include file("gregtech.recipes")
 #include file("your_custom.recipes")
 

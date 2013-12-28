@@ -67,13 +67,13 @@ wlanCard {
 }
 
 craftingUpgrade {
-  input: [[ingotIron, pistonBase, ingotIron]
+  input: [[ingotIron, craftingPiston, ingotIron]
           ["oc:circuitBasic", workbench, "oc:circuitBasic"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 generatorUpgrade {
   input: [[ingotIron, "", ingotIron]
-          ["oc:circuitBasic", pistonBase, "oc:circuitBasic"]
+          ["oc:circuitBasic", craftingPiston, "oc:circuitBasic"]
           ["oc:craftingCircuitBoardPrinted", ingotIron, "oc:craftingCircuitBoardPrinted"]]
 }
 navigationUpgrade {
@@ -83,12 +83,12 @@ navigationUpgrade {
 }
 signUpgrade {
   input: [[ingotIron, dyePowder, ingotIron]
-          ["oc:circuitAdvanced", stickWood, "oc:circuitAdvanced"]
+          ["oc:circuitBasic", stickWood, "oc:circuitBasic"]
           [ingotIron, pistonStickyBase, ingotIron]]
 }
 solarGeneratorUpgrade {
   input: [[glass, glass, glass]
-          ["oc:circuitAdvanced", "oc:craftingGenerator", "oc:circuitAdvanced"]]
+          ["oc:circuitElite", "oc:craftingGenerator", "oc:circuitElite"]]
 }
 
 nuggetIron {
@@ -101,7 +101,7 @@ cuttingWire {
 }
 acid {
   type: shapeless
-  input: [bucketWater, sugar, slimeball, spiderEye, bone, {item=dyePowder, subID=1}]
+  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone, {item=dyePowder, subID=1}]
 }
 disk {
   input: [["", nuggetIron, ""]
