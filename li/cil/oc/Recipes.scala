@@ -152,11 +152,12 @@ object Recipes {
     case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
   }
 
-  private def addShapedRecipe(stack: ItemStack, recipe: Config) {
+  private def addShapedRecipe(output: ItemStack, recipe: Config) {
     val rows = recipe.getList("input").unwrapped().map {
       case row: java.util.List[Object] => row.map(parseIngredient)
       case other => throw new RecipeException("Invalid row entry for shaped recipe (not a list: " + other + ").")
     }
+    output.stackSize = tryGetCount(recipe)
 
     var number = -1
     var shape = ArrayBuffer.empty[String]
@@ -175,19 +176,14 @@ object Recipes {
       input ++= ingredients
     }
 
-    val output = stack.copy()
-    output.stackSize = tryGetCount(recipe)
-
     GameRegistry.addRecipe(new ShapedOreRecipe(output, shape ++ input: _*))
   }
 
-  private def addShapelessRecipe(stack: ItemStack, recipe: Config) {
+  private def addShapelessRecipe(output: ItemStack, recipe: Config) {
     val input = recipe.getValue("input").unwrapped() match {
       case list: java.util.List[Object] => list.map(parseIngredient)
       case other => Seq(parseIngredient(other))
     }
-
-    val output = stack.copy()
     output.stackSize = tryGetCount(recipe)
 
     if (input.size > 0 && output.stackSize > 0) {
@@ -195,50 +191,40 @@ object Recipes {
     }
   }
 
-  private def addAssemblyRecipe(stack: ItemStack, recipe: Config) {
-    val input = recipe.getValue("input").unwrapped() match {
+  private def addAssemblyRecipe(output: ItemStack, recipe: Config) {
+    val input = (recipe.getValue("input").unwrapped() match {
       case list: java.util.List[Object] => list.map(parseIngredient)
       case other => Seq(parseIngredient(other))
+    }) map {
+      case stack: ItemStack => stack
+      case null => null
+      case name: String => throw new RecipeException("Invalid ingredient '" + name + "', OreDictionary not supported for assembly recipes.")
+      case other => throw new RecipeException("Invalid ingredient type: " + other + ".")
     }
-    val number = recipe.getValue("number").unwrapped().asInstanceOf[java.util.List[Object]]
-    var input1: ItemStack = null
-    var input2: ItemStack = null
-    if (input.size < 1 || input.size > 2) {
-      throw new RecipeException("Invalid recipe length: " + input.size + ".")
-    }
-    if (number.size() != input.size) {
-      throw new RecipeException("Invalid number length, expected: " + input.size + " got: " + number.size + ".")
-    }
-
-    val eu = recipe.getValue("eu").unwrapped().asInstanceOf[Integer]
-    val duration = recipe.getValue("time").unwrapped().asInstanceOf[Integer]
-    val output = stack.copy()
     output.stackSize = tryGetCount(recipe)
-    input(0) match {
-      case value: ItemStack =>
-        input1 = value
-        input1.stackSize = number(0).asInstanceOf[Integer]
-      case other => throw new RecipeException("Invalid recipe type expected ItemStack got: " + other + ".")
+
+    if (input.size < 1 || input.size > 2) {
+      throw new RecipeException("Invalid recipe length: " + input.size + ", should be 1 or 2.")
     }
 
-    if (input.size == 2) {
-      input(1) match {
-        case value: ItemStack =>
-          input2 = value
-          input2.stackSize = number(1).asInstanceOf[Integer]
-        case other => throw new RecipeException("Invalid recipe type expected ItemStack got: " + other + ".")
-      }
+    val inputCount = recipe.getIntList("count")
+    if (inputCount.size() != input.size) {
+      throw new RecipeException("Ingredient and input count mismatch: " + input.size + " != " + inputCount.size + ".")
     }
 
-    if (input1 != null) {
-      GregTech.addAssemblerRecipe(input1, input2, output, duration, eu)
+    val eu = recipe.getInt("eu")
+    val duration = recipe.getInt("time")
+
+    (input, inputCount).zipped.foreach((stack, count) => if (stack != null && count > 0) stack.stackSize = stack.getMaxStackSize min count)
+    input.padTo(2, null)
+
+    if (input(0) != null) {
+      GregTech.addAssemblerRecipe(input(0), input(1), output, duration, eu)
     }
   }
 
-  private def addFurnaceRecipe(stack: ItemStack, recipe: Config) {
+  private def addFurnaceRecipe(output: ItemStack, recipe: Config) {
     val input = parseIngredient(recipe.getValue("input").unwrapped())
-
-    val output = stack.copy()
     output.stackSize = tryGetCount(recipe)
 
     input match {

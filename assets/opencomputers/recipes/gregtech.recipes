@@ -8,11 +8,11 @@ analyzer {
 }
 
 ram1 {
-  type:assembly
-  input: [{item="oc:item",subID=24}, {item="oc:item",subID=32}]
-  number:[3,3]
-  eu:32
-  time=250
+  type: assembly
+  input: [{item="oc:item", subID=24}, {item="oc:item", subID=32}]
+  count: [3, 3]
+  eu: 32
+  time: 250
 }
 ram2 {
   input: [["oc:circuitAdvanced", "oc:circuitAdvanced", "oc:circuitAdvanced"]
@@ -37,13 +37,13 @@ hdd1 {
 }
 hdd2 {
   input: [["oc:craftingHDDBasic", "oc:craftingCircuitBoardPrinted" , "oc:craftingHDDBasic"]
-          ["oc:circuitAdvanced", screwTitanium , "oc:circuitAdvanced"]
-          [screwTitanium , craftingToolScrewdriver, screwTitanium  ]]
+          ["oc:circuitAdvanced", screwTitanium, "oc:circuitAdvanced"]
+          [screwTitanium, craftingToolScrewdriver, screwTitanium]]
 }
 hdd3 {
-  input: [["oc:craftingRAMAdvanced", "oc:craftingCircuitBoardPrinted" , "oc:craftingRAMAdvanced"]
-          ["oc:circuitElite" , screwTungstenSteel , "oc:circuitElite" ]
-          [screwTungstenSteel , craftingToolScrewdriver, screwTungstenSteel ]]
+  input: [["oc:craftingHDDAdvanced", "oc:craftingCircuitBoardPrinted", "oc:craftingHDDAdvanced"]
+          ["oc:circuitElite", screwTungstenSteel, "oc:circuitElite"]
+          [screwTungstenSteel , craftingToolScrewdriver, screwTungstenSteel]]
 }
 
 redstoneCard {
@@ -60,19 +60,19 @@ lanCard {
 
 wlanCard {
   input: [[screwTitanium , "oc:circuitElite" , screwTitanium]
-          [{item="item.GT_Components",subID=84}, "oc:craftingDiskDrive", {item="item.GT_Components",subID=82}]
+          [{item="item.GT_Components", subID=84}, "oc:componentCardLan", {item="item.GT_Components", subID=82}]
           [screwTitanium , craftingToolScrewdriver, screwTitanium]]
 }
 
 craftingUpgrade {
   input: [[screwStainlessSteel, "oc:craftingCircuitBoardPrinted" , screwStainlessSteel]
-          ["oc:circuitAdvanced", {item=tile.BlockMetaID_Machine,subID=16}, "oc:circuitAdvanced"]
+          ["oc:circuitAdvanced", {item=tile.BlockMetaID_Machine, subID=16}, "oc:circuitAdvanced"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
 
 generatorUpgrade {
   input: [[screwStainlessSteel, "oc:craftingCircuitBoardPrinted" , screwStainlessSteel]
-          ["oc:circuitAdvanced",craftingGenerator , "oc:circuitAdvanced"]
+          ["oc:circuitAdvanced", craftingGenerator, "oc:circuitAdvanced"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
 navigationUpgrade {
@@ -88,19 +88,18 @@ signUpgrade {
 
 solarGeneratorUpgrade {
   input: [[screwTitanium, "", screwTitanium]
-          ["oc:circuitElite", {item=GT_Components,subID=7} , "oc:circuitElite"]
+          ["oc:circuitElite", {item=GT_Components, subID=7} , "oc:circuitElite"]
           [screwTitanium, craftingToolScrewdriver, screwTitanium]]
 }
 
-
 cuttingWire {
   input: [[stickWood, ingotTin, stickWood]
-  ["", craftingToolWireCutter, ""]]
+          ["", craftingToolWireCutter, ""]]
 }
 acid {
   type: shapeless
   input: [bucketWater, dustEmerald, fermentedSpiderEye, slimeball]
-  output=16
+  output: 4
 }
 disk {
   input: [["", plateAluminium, ""]
@@ -109,45 +108,44 @@ disk {
 }
 
 transistor {
-type:assembly
-  input: [redstone,  {item="GT_Materials",subID=64}]
-  number:[1,2]
-  eu:16
-  time=500
-  output=4
-
+  type: assembly
+  input: [redstone, {item="GT_Materials", subID=64}]
+  count: [1, 2]
+  eu: 16
+  time: 500
+  output: 4
 }
 chip1 {
- type:assembly
-   input: [itemPartCircuit, {item="oc:item",subID=23}]
-   number:[1,4]
-   eu:25
-   time=480
-   output=4
+  type: assembly
+  input: [itemPartCircuit, {item="oc:item", subID=23}]
+  count: [1, 4]
+  eu:25
+  time: 480
+  output: 4
 }
 chip2 {
-  type:assembly
-    input: [itemPartCircuitAdv, {item="oc:item",subID=23}]
-    number:[1,8]
-    eu:25
-    time=640
-    output=4
+  type: assembly
+  input: [itemPartCircuitAdv, {item="oc:item", subID=23}]
+  count: [1, 8]
+  eu: 25
+  time: 640
+  output: 4
 }
 chip3 {
-  type:assembly
-    input: [{item=GT_Components,subID=1}, {item="oc:item",subID=23}]
-    number:[1,16]
-    eu:25
-    time=800
-    output=4
+  type: assembly
+  input: [{item=GT_Components, subID=1}, {item="oc:item", subID=23}]
+  count: [1, 16]
+  eu: 25
+  time: 800
+  output: 4
 }
 alu {
-   type:assembly
-      input: [comparator, {item="oc:item",subID=24}]
-      number:[3,1]
-      eu:24
-      time=500
-      output=1
+  type: assembly
+  input: [comparator, {item="oc:item", subID=24}]
+  count: [3, 1]
+  eu: 24
+  time: 500
+  output: 1
 }
 cpu {
   input: [["oc:circuitAdvanced", "oc:craftingALU", "oc:circuitAdvanced"]
@@ -155,18 +153,14 @@ cpu {
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
 cu {
-     type:assembly
-        input: [ {item="oc:item",subID=23}, {item=item.GT_Components,subID=1}]
-        number:[6,1]
-        eu:32
-        time=750
-        output=3
+  type: assembly
+  input: [{item="oc:item", subID=23}, {item=item.GT_Components, subID=1}]
+  count: [6, 1]
+  eu: 32
+  time: 750
+  output: 3
 }
 
-rawCircuitBoard {
-  type: shapeless
-  input: ["oc:craftingWire", plateAluminium, {item=dyePowder, subID=2}]
-}
 circuitBoard {
   type: furnace
   input: "oc:craftingCircuitBoardRaw"
@@ -174,55 +168,55 @@ circuitBoard {
 printedCircuitBoard {
   type:shaped
   input: [[dustTinyGold, "oc:craftingAcid"]
-         ["oc:craftingCircuitBoard", dustTinyGold ]]
+          ["oc:craftingCircuitBoard", dustTinyGold]]
 }
 card {
-  input: [[ {item=item.GT_Materials,subID=96}, "oc:circuitAdvanced", "oc:craftingTransistor"]
-          [ {item=item.GT_Materials,subID=96}, "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]
+  input: [[{item=item.GT_Materials, subID=96}, "oc:circuitAdvanced", "oc:craftingTransistor"]
+          [{item=item.GT_Materials, subID=96}, "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]
           [craftingToolScrewdriver, nuggetGold, nuggetGold]]
 }
 
 adapter {
   input: [["oc:craftingCable", "oc:circuitBasic", "oc:craftingCable"]
-          ["", "oc:craftingCaseBasic", ""]
+          ["", craftingRawMachineTier01, ""]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingCable", craftingToolWrench]]
 }
 cable {
-  type:assembly
-  input: [ itemCable, {item=item.GT_Dusts,subID=35}]
-  number:[8,1]
-  eu:32
-  time=64
-  output=8
+  type: assembly
+  input: [itemCable, {item=item.GT_Dusts, subID=35}]
+  count: [8, 1]
+  eu: 32
+  time: 64
+  output: 8
 }
 capacitor {
-  input: [["", {item=Electric,subID=7}, ""]
-          ["oc:craftingCaseBasic", "oc:craftingTransistor", "oc:craftingCaseBasic"]
+  input: [["", {item=Electric, subID=7}, ""]
+          [craftingRawMachineTier01, "oc:craftingTransistor", craftingRawMachineTier01]
           ["oc:craftingCircuitBoardPrinted", craftingToolWrench, "oc:craftingCircuitBoardPrinted"]]
 }
 charger {
   input: [["", plateStainlessSteel, ""]
-          [{block=tile.BlockMetaID_Machine,subID=35}, "oc:craftingCaseElite", {block=tile.BlockMetaID_Machine,subID=35}]
+          [{block=tile.BlockMetaID_Machine, subID=35}, craftingRawMachineTier03, {block=tile.BlockMetaID_Machine, subID=35}]
           ["oc:circuitElite", craftingToolWrench, "oc:craftingCircuitBoardPrinted"]]
 }
 case1 {
-  input: [["", "oc:craftingCircuitBoardPrinted", ""]
-          [reactorVentSpread, "oc:craftingCPU", "oc:craftingCPU"]
-          ["oc:circuitBasic", craftingToolWrench, ingotIron]]
+  input: [[screwAluminium, "oc:craftingCircuitBoardPrinted", craftingToolWrench]
+          [reactorVentSpread, craftingRawMachineTier01, "oc:circuitBasic"]
+          [screwAluminium, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 case2 {
-  input: [[screwStainlessSteel , "oc:craftingCircuitBoardPrinted", screwStainlessSteel ]
-          [reactorVentGold, "oc:craftingCaseBasic", "oc:craftingCPU"]
-          ["oc:circuitAdvanced", craftingToolWrench, craftingToolScrewdriver ]]
+  input: [[screwStainlessSteel , "oc:craftingCircuitBoardPrinted", craftingToolWrench]
+          [reactorVentGold, "oc:craftingCaseBasic", "oc:circuitAdvanced"]
+          [screwStainlessSteel, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 case3 {
-  input: [[screwTitanium , "oc:craftingCircuitBoardPrinted",screwTitanium ]
-          [reactorVentDiamond, "oc:craftingCaseAdvanced", "oc:craftingCPU"]
-          ["oc:circuitElite", craftingToolWrench,craftingToolScrewdriver ]]
+  input: [[screwTitanium , "oc:craftingCircuitBoardPrinted", craftingToolWrench]
+          [reactorVentDiamond, "oc:craftingCaseAdvanced", "oc:circuitElite"]
+          [screwTitanium, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 diskDrive {
   input: [["", "oc:circuitAdvanced", ""]
-          [craftingPiston, "oc:craftingCaseAdvanced", craftingLenseWhite]
+          [craftingPiston, craftingRawMachineTier02, craftingLenseWhite]
           ["oc:circuitAdvanced", craftingToolWrench, "oc:circuitAdvanced"]]
 }
 
@@ -233,28 +227,28 @@ powerConverter {
 }
 powerDistributor {
   input: [["", plateAluminium, ""]
-          [{item=Electric,subID=7}, "oc:craftingCaseAdvanced", GT_Components]
+          [{item=Electric, subID=7}, craftingRawMachineTier02, GT_Components]
           ["oc:craftingCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
 redstone {
   input: [["", "oc:craftingCircuitBoardPrinted", ""]
-          [{block=BlockMetaID_Machine,subID=69}, "oc:craftingCaseAdvanced", "oc:componentCardRedstone"]
+          [{block=BlockMetaID_Machine, subID=69}, craftingRawMachineTier02, "oc:componentCardRedstone"]
           ["oc:circuitAdvanced", "oc:craftingCircuitBoardPrinted", "oc:circuitAdvanced"]]
 }
 robot {
   input: [["oc:craftingScreenBasic", "oc:craftingGPUBasic", "oc:craftingDiskDrive"]
-          [{block=BlockMetaID_Machine,subID=46}, "oc:craftingCaseAdvanced", "oc:craftingRAMBasic"]
-          [{item=Electric,subID=7}, craftingToolWrench, {item=Electric,subID=7}]]
+          [{block=BlockMetaID_Machine, subID=46}, craftingRawMachineTier02, "oc:craftingRAMBasic"]
+          [{item=Electric, subID=7}, craftingToolWrench, {item=Electric, subID=7}]]
 }
 router {
   input: [["", "oc:componentCardLan", ""]
-          ["oc:craftingCable", "oc:craftingCaseAdvanced", "oc:craftingCable"]
+          ["oc:craftingCable", craftingRawMachineTier02, "oc:craftingCable"]
           ["oc:craftingCircuitBoardPrinted", craftingToolWrench, "oc:craftingCircuitBoardPrinted"]]
 }
 screen1 {
   input: [[plateAluminium, plateAluminium, craftingToolWrench]
           [redstone, "oc:craftingTransistor", thinGlass]
-          [plateAluminium,plateAluminium , craftingToolScrewdriver]]
+          [plateAluminium, plateAluminium, craftingToolScrewdriver]]
 }
 screen2 {
   input: [[plateStainlessSteel, {item=dyePowder, subID=1}, craftingToolWrench]
