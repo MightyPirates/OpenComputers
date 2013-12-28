@@ -129,11 +129,17 @@ object Recipes {
   def addRecipe(output: ItemStack, list: Config, name: String) = try {
     if (list.hasPath(name)) {
       val recipe = list.getConfig(name)
-      tryGetType(recipe) match {
-        case "shaped" => addShapedRecipe(output, recipe)
-        case "shapeless" => addShapelessRecipe(output, recipe)
-        case "furnace" => addFurnaceRecipe(output, recipe)
-        case other => throw new RecipeException("Invalid recipe type '" + other + "'.")
+      val recipeType = tryGetType(recipe)
+      try {
+        recipeType match {
+          case "shaped" => addShapedRecipe(output, recipe)
+          case "shapeless" => addShapelessRecipe(output, recipe)
+          case "furnace" => addFurnaceRecipe(output, recipe)
+          case other => OpenComputers.log.warning("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
+        }
+      }
+      catch {
+        case e: RecipeException => OpenComputers.log.warning("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
       }
     }
     else {
@@ -141,7 +147,6 @@ object Recipes {
     }
   }
   catch {
-    case e: RecipeException => OpenComputers.log.warning("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
     case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
   }
 
@@ -283,7 +288,8 @@ object Recipes {
 
   private def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
     case Nil => List(Nil)
-    case h :: t => for (xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
+    case h :: t => for (xh <- h;
+                        xt <- cartesianProduct(t)) yield xh :: xt
   }
 
   private class RecipeException(message: String) extends RuntimeException(message)
