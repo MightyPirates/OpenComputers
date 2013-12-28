@@ -264,6 +264,7 @@ object Recipes {
   private def tryGetId(ingredient: java.util.HashMap[String, _]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {
       case id: Number => id.intValue
+      case "any" => 32767
       case id: String => Integer.valueOf(id)
       case _ => 0
     } else 0
