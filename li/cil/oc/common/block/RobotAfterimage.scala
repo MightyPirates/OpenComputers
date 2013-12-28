@@ -50,6 +50,10 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   // ----------------------------------------------------------------------- //
 
+  override def addedToWorld(world: World, x: Int, y: Int, z: Int) {
+    world.scheduleBlockUpdate(x, y, z, parent.blockID, math.max((Settings.get.moveDelay * 20).toInt, 1) - 1)
+  }
+
   override def update(world: World, x: Int, y: Int, z: Int) {
     parent.subBlock(world, x, y, z) match {
       case Some(_: RobotAfterimage) => world.setBlockToAir(x, y, z)

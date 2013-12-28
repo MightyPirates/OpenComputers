@@ -85,8 +85,10 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = parent.getCollisionBoundingBoxFromPool(world, x, y, z)
-    if (bounds.isVecInside(origin)) null
-    else super.intersect(world, x, y, z, origin, direction)
+    world.getBlockTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
+      case _ => super.intersect(world, x, y, z, origin, direction)
+    }
   }
 
   override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {

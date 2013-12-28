@@ -157,7 +157,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
-          world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
           checkRedstoneInputChanged()
         }
@@ -313,9 +312,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
-    xp = nbt.getDouble(Settings.namespace + "xp")
+    xp = nbt.getDouble(Settings.namespace + "xp") max 0
     updateXpInfo()
-    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot")
+    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max actualSlot(0) min (getSizeInventory - 1)
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {

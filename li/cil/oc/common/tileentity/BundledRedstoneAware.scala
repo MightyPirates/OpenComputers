@@ -86,14 +86,20 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     super.load(nbt)
 
     nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledInput(side))
+      case (input, side) if side < _bundledInput.length =>
+        val safeLength = input.intArray.length min _bundledInput(side).length
+        input.intArray.copyToArray(_bundledInput(side), 0, safeLength)
     }
     nbt.getTagList(Settings.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledOutput(side))
+      case (input, side) if side < _bundledOutput.length =>
+        val safeLength = input.intArray.length min _bundledOutput(side).length
+        input.intArray.copyToArray(_bundledOutput(side), 0, safeLength)
     }
 
     nbt.getTagList(Settings.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_rednetInput(side))
+      case (input, side) if side < _rednetInput.length =>
+        val safeLength = input.intArray.length min _rednetInput(side).length
+        input.intArray.copyToArray(_rednetInput(side), 0, safeLength)
     }
   }
 

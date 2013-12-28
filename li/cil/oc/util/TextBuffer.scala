@@ -1,5 +1,6 @@
 package li.cil.oc.util
 
+import li.cil.oc.Settings
 import net.minecraft.nbt._
 
 /**
@@ -137,7 +138,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
       case dx if tx > 0 => dx
       case dx => dx.swap
     }
-    val (dy0, dy1) = (math.max(row + ty + h - 1,  math.min(0, height - 1)), math.max(row + ty, math.min(0, height))) match {
+    val (dy0, dy1) = (math.max(row + ty + h - 1, math.min(0, height - 1)), math.max(row + ty, math.min(0, height))) match {
       case dy if ty > 0 => dy
       case dy => dy.swap
     }
@@ -165,17 +166,19 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
   }
 
   override def load(nbt: NBTTagCompound): Unit = {
-    val w = nbt.getInteger("width")
-    val h = nbt.getInteger("height")
+    val w = nbt.getInteger("width") max 1 min Settings.screenResolutionsByTier(2)._1
+    val h = nbt.getInteger("height") max 1 min Settings.screenResolutionsByTier(2)._2
     size = (w, h)
 
     val b = nbt.getTagList("buffer")
     for (i <- 0 until math.min(h, b.tagCount)) {
-      val line = b.tagAt(i).asInstanceOf[NBTTagString].data
-      set(0, i, line)
+      b.tagAt(i) match {
+        case tag: NBTTagString => set(0, i, tag.data)
+        case _ =>
+      }
     }
 
-    _depth = PackedColor.Depth(nbt.getInteger("depth"))
+    _depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
     foreground = nbt.getInteger("foreground")
     background = nbt.getInteger("background")
 
@@ -183,7 +186,13 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     for (i <- 0 until h) {
       val rowColor = color(i)
       for (j <- 0 until w) {
-        rowColor(j) = c.tagAt(j + i * w).asInstanceOf[NBTTagShort].data
+        val index = j + i * w
+        if (index < c.tagCount) {
+          c.tagAt(index) match {
+            case tag: NBTTagShort => rowColor(j) = tag.data
+            case _ =>
+          }
+        }
       }
     }
   }
