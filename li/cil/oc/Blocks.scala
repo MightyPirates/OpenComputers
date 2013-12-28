@@ -76,16 +76,15 @@ object Blocks {
 
     redstone = new Redstone(blockSimpleWithRedstone)
 
-    register("craftingWireCopper", cable.createItemStack())
-    register("craftingCapacitor", capacitor.createItemStack())
-    register("craftingRawMachineBasic", case1.createItemStack())
-    register("craftingRawMachineAdvanced", case2.createItemStack())
-    register("craftingRawMachineElite", case3.createItemStack())
-    register("craftingDiskDrive", diskDrive.createItemStack())
-    register("craftingMonitorBasic", screen1.createItemStack())
-    register("craftingMonitorAdvanced", screen2.createItemStack())
-    register("craftingMonitorElite", screen3.createItemStack())
-
+    register("oc:craftingWireCopper", cable.createItemStack())
+    register("oc:craftingCapacitor", capacitor.createItemStack())
+    register("oc:craftingCaseBasic", case1.createItemStack())
+    register("oc:craftingCaseAdvanced", case2.createItemStack())
+    register("oc:craftingCaseElite", case3.createItemStack())
+    register("oc:craftingDiskDrive", diskDrive.createItemStack())
+    register("oc:craftingScreenBasic", screen1.createItemStack())
+    register("oc:craftingScreenAdvanced", screen2.createItemStack())
+    register("oc:craftingScreenElite", screen3.createItemStack())
     register("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
   }
 

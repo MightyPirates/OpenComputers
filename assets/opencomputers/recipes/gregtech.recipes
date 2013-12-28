@@ -1,0 +1,267 @@
+# Do not change this file, it is rewritten each time you start the game.
+# Instead, use the custom.conf file to edit recipes by redefining them there.
+
+analyzer {
+  input: [["craftingTransistor", torchRedstoneActive, "craftingTransistor"]
+          [circuitAdvanced, "item.GT_Scanner", circuitAdvanced]
+          [screwAluminium, craftingToolScrewdriver, screwAluminium]]
+}
+
+ram1 {
+  type:assembly
+  input: [circuitBasic, craftingCircuitBoardAdvanced]
+  number:[3,3]
+  eu:32
+  time=250
+}
+ram2 {
+  input: [[circuitAdvanced, circuitAdvanced, circuitAdvanced]
+          [craftingRAMBasic, craftingCircuitBoardAdvanced, craftingRAMBasic]
+          [Dataorb, craftingToolWrench, Dataorb]]
+}
+ram3 {
+  input: [[circuitElite, circuitElite, circuitElite]
+          [craftingRAMAdvanced, craftingCircuitBoardAdvanced, craftingRAMAdvanced]
+          [Dataorb, craftingToolWrench, Dataorb]]
+}
+
+floppy {
+  input: [[screwAluminium, lever, screwAluminium]
+          [craftingCircuitBoardBasic, "oc:craftingDisk", craftingCircuitBoardBasic]
+          [screwAluminium, craftingToolScrewdriver, screwAluminium]]
+}
+hdd1 {
+  input: [[craftingRAMBasic, "oc:craftingDisk", craftingRAMBasic]
+          [craftingRAMBasic, "oc:craftingDisk", craftingRAMBasic]
+          [screwAluminium, craftingToolScrewdriver, circuitAdvanced]]
+}
+hdd2 {
+  input: [[craftingHDDBasic, craftingCircuitBoardAdvanced , craftingHDDBasic]
+          [circuitAdvanced, screwTitanium , circuitAdvanced]
+          [screwTitanium , craftingToolScrewdriver, screwTitanium  ]]
+}
+hdd3 {
+  input: [[craftingRAMAdvanced, craftingCircuitBoardAdvanced , craftingRAMAdvanced]
+          [circuitElite , screwTungstenSteel , circuitElite ]
+          [screwTungstenSteel , craftingToolScrewdriver, screwTungstenSteel ]]
+}
+
+redstoneCard {
+  input: [[screwStainlessSteel , circuitAdvanced , screwStainlessSteel]
+          ["comparator", craftingCircuitBoardAdvanced, diode]
+          [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
+}
+
+lanCard {
+  input: [[screwStainlessSteel , circuitAdvanced , screwStainlessSteel]
+          [craftingWireCopper, craftingCircuitBoardAdvanced, craftingWireCopper]
+          [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
+}
+
+wlanCard {
+  input: [[screwTitanium , circuitElite , screwTitanium]
+          [{item="item.GT_Components",subID=84}, componentCardLan, {item="item.GT_Components",subID=82}]
+          [screwTitanium , craftingToolScrewdriver, screwTitanium]]
+}
+
+craftingUpgrade {
+  input: [[screwStainlessSteel, craftingCircuitBoardAdvanced , screwStainlessSteel]
+          [circuitAdvanced, {item=tile.BlockMetaID_Machine,subID=16}, circuitAdvanced]
+          [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
+}
+
+generatorUpgrade {
+  input: [[screwStainlessSteel, craftingCircuitBoardAdvanced , screwStainlessSteel]
+          [circuitAdvanced,craftingGenerator , circuitAdvanced]
+          [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
+}
+#todo
+#navigationUpgrade {
+#  input: [[ingotGold, compass, ingotGold]
+#          [circuitElite, {item=map, subID=32767}, circuitElite]
+#          [ingotGold, potion, ingotGold]]
+#}
+#todo
+#signUpgrade {
+#  input: [[ingotIron, dyePowder, ingotIron]
+#          [circuitAdvanced, stickWood, circuitAdvanced]
+#          [ingotIron, pistonStickyBase, ingotIron]]
+#}
+#todo
+#solarGeneratorUpgrade {
+#  input: [[glass, glass, glass]
+#          [circuitAdvanced, "oc:craftingGenerator", circuitAdvanced]]
+#}
+
+
+cuttingWire {
+  input: [[stickWood, ingotTin, stickWood]
+  ["", craftingToolWireCutter, ""]]
+}
+acid {
+  type: shapeless
+  input: [bucketWater, dustEmerald, fermentedSpiderEye, slimeball]
+  output=16
+}
+disk {
+  input: [["", plateAluminium, ""]
+          [plateAluminium, "", plateAluminium]
+          ["", plateAluminium, ""]]
+}
+
+transistor {
+type:assembly
+  input: [redstone, plateIron]
+  number:[1,2]
+  eu:16
+  time=500
+  output=4
+
+}
+chip1 {
+ type:assembly
+   input: [itemPartCircuit, {item=oc:item,subID=23}]
+   number:[1,4]
+   eu:25
+   time=480
+   output=4
+}
+chip2 {
+  type:assembly
+    input: [itemPartCircuitAdv, {item=oc:item,subID=23}]
+    number:[1,8]
+    eu:25
+    time=640
+    output=4
+}
+chip3 {
+  type:assembly
+    input: [{item=Components,subID=1}, {item=oc:item,subID=23}]
+    number:[1,16]
+    eu:25
+    time=800
+    output=4
+}
+alu {
+   type:assembly
+      input: [comparator, {item=oc:item,subID=24}]
+      number:[3,1]
+      eu:24
+      time=500
+      output=1
+}
+############
+cpu {
+  input: [[circuitAdvanced, {item=oc:item,subID=24}, circuitBasic]
+          [plateAluminium, craftingControlUnit, plateAluminium]
+          [screwAluminium, craftingALU, screwAluminium]]
+}
+cu {
+  input: [[nuggetGold, torchRedstoneActive, nuggetGold]
+          [craftingTransistor, clock, craftingTransistor]
+          [nuggetGold, redstone, nuggetGold]]
+}
+
+rawCircuitBoard {
+  type: shapeless
+  input: ["oc:craftingWire", clay, {item=dyePowder, subID=2}]
+}
+circuitBoard {
+  type: furnace
+  input: "oc:craftingCircuitBoardRaw"
+}
+printedCircuitBoard {
+  type: shapeless
+  input: [craftingCircuitBoardBasic, nuggetGold, "oc:craftingAcid"]
+}
+card {
+  input: [[nuggetIron, circuitBasic, craftingTransistor]
+          [nuggetIron, craftingCircuitBoardAdvanced, craftingCircuitBoardAdvanced]
+          [nuggetIron, nuggetGold, nuggetGold]]
+}
+
+adapter {
+  input: [[ingotIron, craftingWireCopper, ingotIron]
+          [craftingWireCopper, circuitBasic, craftingWireCopper]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+cable {
+  input: [["", nuggetIron, ""]
+          [nuggetIron, redstone, nuggetIron]
+          ["", nuggetIron, ""]]
+  output: 4
+}
+capacitor {
+  input: [[ingotIron, craftingTransistor, ingotIron]
+          [nuggetGold, paper, nuggetGold]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+charger {
+  input: [[ingotIron, ingotGold, ingotIron]
+          [craftingCapacitor, circuitAdvanced, craftingCapacitor]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+case1 {
+  input: [[ingotIron, craftingCircuitBoardAdvanced, ingotIron]
+          [fenceIron, craftingCPU, fenceIron]
+          [ingotIron, circuitBasic, ingotIron]]
+}
+case2 {
+  input: [[ingotGold, craftingCircuitBoardAdvanced, ingotGold]
+          [circuitAdvanced, craftingRawMachineBasic, circuitAdvanced]
+          [ingotGold, circuitAdvanced, ingotGold]]
+}
+case3 {
+  input: [[circuitElite, craftingCircuitBoardAdvanced, circuitElite]
+          [diamond, craftingRawMachineAdvanced, diamond]
+          [circuitElite, craftingCircuitBoardAdvanced, circuitElite]]
+}
+diskDrive {
+  input: [[ingotIron, circuitBasic, ingotIron]
+          [pistonBase, stickWood, ""]
+          [ingotIron, circuitBasic, ingotIron]]
+}
+keyboard {
+  input: [["oc:craftingButtonGroup", "oc:craftingButtonGroup", "oc:craftingButtonGroup"]
+          ["oc:craftingButtonGroup", "oc:craftingArrowKey", "oc:craftingNumPad"]]
+}
+powerConverter {
+  input: [[ingotIron, craftingWireCopper, ingotIron]
+          [ingotGold, circuitBasic, ingotGold]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+powerDistributor {
+  input: [[ingotIron, ingotGold, ingotIron]
+          [craftingWireCopper, circuitBasic, craftingWireCopper]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+redstone {
+  input: [[ingotIron, blockRedstone, ingotIron]
+          [blockRedstone, componentCardRedstone, blockRedstone]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+robot {
+  input: [[craftingMonitorBasic, craftingGPUBasic, craftingDiskDrive]
+          [dispenser, craftingRawMachineBasic, craftingRAMBasic]
+          [craftingCapacitor, minecartHopper, craftingCapacitor]]
+}
+router {
+  input: [[ingotIron, craftingWireCopper, ingotIron]
+          [craftingWireCopper, componentCardLan, craftingWireCopper]
+          [ingotIron, craftingCircuitBoardAdvanced, ingotIron]]
+}
+screen1 {
+  input: [[ingotIron, ingotIron, glass]
+          [redstone, craftingTransistor, glass]
+          [ingotIron, ingotIron, glass]]
+}
+screen2 {
+  input: [[ingotGold, {item=dyePowder, subID=1}, ingotGold]
+          [circuitAdvanced, {item=dyePowder, subID=2}, craftingMonitorBasic]
+          [ingotGold, {item=dyePowder, subID=4}, ingotGold]]
+}
+screen3 {
+  input: [[obsidian, craftingCircuitBoardAdvanced, circuitElite]
+          [blazeRod, netherquartz, craftingMonitorAdvanced]
+          [obsidian, craftingCircuitBoardAdvanced, circuitElite]]
+}
