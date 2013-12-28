@@ -12,6 +12,7 @@ import li.cil.oc.{OpenComputers, Settings}
 import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
+import org.apache.commons.lang3.SystemUtils
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -81,6 +82,11 @@ object LuaStateFactory {
     }
     isWindows = extension == ".dll"
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
+
+    if (isWindows && SystemUtils.IS_OS_WINDOWS_XP) {
+      OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting it in April 2014.")
+      break()
+    }
 
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")

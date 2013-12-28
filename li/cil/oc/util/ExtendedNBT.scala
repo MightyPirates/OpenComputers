@@ -78,7 +78,9 @@ object ExtendedNBT {
 
     def append(values: NBTBase*): Unit = append(values)
 
-    def iterator[Tag <: NBTBase] = (0 until nbt.tagCount).map(nbt.tagAt).map(_.asInstanceOf[Tag])
+    def iterator[Tag <: NBTBase] = (0 until nbt.tagCount).map(nbt.tagAt).collect {
+      case tag: Tag => tag
+    }
 
     def foreach[Tag <: NBTBase](f: (Tag) => Unit) = iterator[Tag].foreach(f)
 

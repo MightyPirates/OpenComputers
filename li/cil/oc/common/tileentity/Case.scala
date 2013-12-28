@@ -13,7 +13,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier")
+    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
     super.readFromNBT(nbt)
   }
 
@@ -30,6 +30,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     case 0 => 4
     case 1 => 6
     case 2 => 8
+    case _ => 0
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
@@ -62,5 +63,6 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
       case _ => false // Invalid slot.
     }
+    case _ => false
   }
 }

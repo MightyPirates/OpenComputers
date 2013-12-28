@@ -75,8 +75,10 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    nbt.getIntArray(Settings.namespace + "rs.input").copyToArray(_input)
-    nbt.getIntArray(Settings.namespace + "rs.output").copyToArray(_output)
+    val input = nbt.getIntArray(Settings.namespace + "rs.input")
+    input.copyToArray(_input, 0, input.length min _input.length)
+    val output = nbt.getIntArray(Settings.namespace + "rs.output")
+    output.copyToArray(_output, 0, output.length min _output.length)
   }
 
   override def save(nbt: NBTTagCompound) = {

@@ -109,7 +109,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   def start() = state.synchronized(state.top match {
     case Computer.State.Stopped =>
       if (owner.installedMemory > 0) {
-        if (node.globalBuffer > cost) {
+        if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
             switchTo(Computer.State.Starting)
             timeStarted = owner.world.getWorldTime

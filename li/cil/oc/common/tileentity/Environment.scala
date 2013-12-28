@@ -61,13 +61,17 @@ abstract class Environment extends net.minecraft.tileentity.TileEntity with Tile
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     load(nbt)
-    if (node != null && node.host == this) node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+    if (node != null && node.host == this) {
+      node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     save(nbt)
-    if (node != null && node.host == this) nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    if (node != null && node.host == this) {
+      nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    }
   }
 
   // ----------------------------------------------------------------------- //
