@@ -157,7 +157,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
-          world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
           checkRedstoneInputChanged()
         }

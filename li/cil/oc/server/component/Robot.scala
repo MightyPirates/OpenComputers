@@ -482,21 +482,28 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   @LuaCallback("move")
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     val direction = checkSideForMovement(args, 0)
-    val (something, what) = blockContent(direction)
-    if (something) {
-      result(false, what)
+    if (robot.isAnimatingMove) {
+      // This shouldn't really happen due to delays being enforced, but just to
+      // be on the safe side...
+      result(false, "already moving")
     }
     else {
-      if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
-        result(false, "not enough energy")
-      }
-      else if (robot.move(direction)) {
-        context.pause(Settings.get.moveDelay)
-        result(true)
+      val (something, what) = blockContent(direction)
+      if (something) {
+        result(false, what)
       }
       else {
-        robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
-        result(false, "impossible move")
+        if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+          result(false, "not enough energy")
+        }
+        else if (robot.move(direction)) {
+          context.pause(Settings.get.moveDelay)
+          result(true)
+        }
+        else {
+          robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
+          result(false, "impossible move")
+        }
       }
     }
   }

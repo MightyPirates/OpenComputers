@@ -11,6 +11,7 @@ import scala.io.Source
 
 object MonospaceFontRenderer {
   val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
+  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
   private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
 
@@ -71,7 +72,10 @@ object MonospaceFontRenderer {
     def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
-      textureManager.bindTexture(MonospaceFontRenderer.font)
+      if (Settings.get.textAntiAlias)
+        textureManager.bindTexture(MonospaceFontRenderer.font)
+      else
+        textureManager.bindTexture(MonospaceFontRenderer.fontAliased)
       GL11.glPushMatrix()
       GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
       GL11.glTranslatef(x, y, 0)

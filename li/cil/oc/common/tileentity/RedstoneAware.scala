@@ -8,6 +8,7 @@ import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
+import net.minecraft.block.Block
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
@@ -101,16 +102,12 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   // ----------------------------------------------------------------------- //
 
   protected def computeInput(side: ForgeDirection) = {
-    val vanilla = world.getIndirectPowerLevelTo(
-      x + side.offsetX,
-      y + side.offsetY,
-      z + side.offsetZ,
-      side.ordinal())
+    val (sx, sy, sz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    // See BlockRedstoneLogic.getInputStrength() for reference.
+    val vanilla = math.max(world.getIndirectPowerLevelTo(sx, sy, sz, side.ordinal()),
+      if (world.getBlockId(sx, sy, sz) == Block.redstoneWire.blockID) world.getBlockMetadata(sx, sy, sz) else 0)
     val redLogic = if (Loader.isModLoaded("RedLogic")) {
-      world.getBlockTileEntity(
-        x + side.offsetX,
-        y + side.offsetY,
-        z + side.offsetZ) match {
+      world.getBlockTileEntity(sx, sy, sz) match {
         case emitter: IRedstoneEmitter =>
           var strength = 0
           for (i <- -1 to 5) {
