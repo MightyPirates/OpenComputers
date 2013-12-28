@@ -19,7 +19,8 @@ object RedstoneInMotion {
     val obstructionZ = obstructionException.getDeclaredField("Z")
 
     (Option(controller), setup, move, motionException, obstructionException, obstructionX, obstructionY, obstructionZ, directions)
-  } catch {
+  }
+  catch {
     case _: Throwable => (None, null, null, null, null, null, null, null, null)
   }
 

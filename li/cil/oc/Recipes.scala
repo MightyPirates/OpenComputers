@@ -13,7 +13,6 @@ import org.apache.commons.io.FileUtils
 import scala.Some
 import scala.collection.convert.wrapAsScala._
 import scala.collection.mutable.ArrayBuffer
-import li.cil.oc.util.mods.GregTech
 
 object Recipes {
   def init() {

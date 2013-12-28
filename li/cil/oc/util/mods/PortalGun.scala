@@ -6,7 +6,8 @@ import net.minecraft.item.ItemStack
 object PortalGun {
   private lazy val portalGunClass = try {
     Class.forName("portalgun.common.item.ItemPortalGun")
-  } catch {
+  }
+  catch {
     case _: Throwable => null
   }
 
