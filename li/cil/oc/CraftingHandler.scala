@@ -32,7 +32,7 @@ object CraftingHandler extends ICraftingHandler {
     }
 
     if (craftedStack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
-      Registry.driverFor(craftedStack) match {
+      Registry.itemDriverFor(craftedStack) match {
         case Some(driver) =>
           var oldMap = None: Option[ItemStack]
           for (i <- 0 to inventory.getSizeInventory) {

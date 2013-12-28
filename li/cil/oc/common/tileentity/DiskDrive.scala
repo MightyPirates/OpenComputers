@@ -28,7 +28,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   def getSizeInventory = 1
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
     case _ => false
   }

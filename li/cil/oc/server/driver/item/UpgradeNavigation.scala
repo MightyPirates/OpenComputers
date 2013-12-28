@@ -11,7 +11,7 @@ object UpgradeNavigation extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeNavigation)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = {
-    val nbt = Registry.driverFor(stack) match {
+    val nbt = Registry.itemDriverFor(stack) match {
       case Some(driver) => driver.dataTag(stack)
       case _ => null
     }

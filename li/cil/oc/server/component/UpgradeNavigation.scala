@@ -30,4 +30,9 @@ class UpgradeNavigation(val owner: MCTileEntity, val xCenter: Int, val zCenter: 
   def getFacing(context: RobotContext, args: Arguments): Array[AnyRef] = {
     result(RotationHelper.fromYaw(context.player().rotationYaw).ordinal())
   }
+
+  @LuaCallback("getRange")
+  def getRange(context: RobotContext, args: Arguments): Array[AnyRef] = {
+    result(size / 2)
+  }
 }

@@ -41,21 +41,21 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     }
 
   def isItemValidForSlot(slot: Int, stack: ItemStack) = tier match {
-    case 0 => (slot, Registry.driverFor(stack)) match {
+    case 0 => (slot, Registry.itemDriverFor(stack)) match {
       case (_, None) => false // Invalid item.
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card
       case (2, Some(driver)) => driver.slot(stack) == Slot.Memory
       case (3, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive
       case _ => false // Invalid slot.
     }
-    case 1 => (slot, Registry.driverFor(stack)) match {
+    case 1 => (slot, Registry.itemDriverFor(stack)) match {
       case (_, None) => false // Invalid item.
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card
       case (2 | 3, Some(driver)) => driver.slot(stack) == Slot.Memory
       case (4 | 5, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive
       case _ => false // Invalid slot.
     }
-    case 2 => (slot, Registry.driverFor(stack)) match {
+    case 2 => (slot, Registry.itemDriverFor(stack)) match {
       case (_, None) => false // Invalid item.
       case (0 | 1 | 2, Some(driver)) => driver.slot(stack) == Slot.Card
       case (3 | 4, Some(driver)) => driver.slot(stack) == Slot.Memory

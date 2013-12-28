@@ -43,7 +43,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case Some(environment) =>
         val stack = getStackInSlot(3)
         // We're guaranteed to have a driver for entries.
-        environment.save(dataTag(Registry.driverFor(stack).get, stack))
+        environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
       case _ =>
     }
@@ -383,7 +383,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         case Some(environment) =>
           val stack = getStackInSlot(3)
           // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Registry.driverFor(stack).get, stack))
+          environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
         case _ => // See onConnect()
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
@@ -516,7 +516,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case _ => false
     }
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk

@@ -28,7 +28,7 @@ class Adapter extends Environment with Inventory {
   def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
-      driver.Registry.driverFor(world, x, y, z) match {
+      driver.Registry.blockDriverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
             if (newDriver != driver || !isBlockSupported(x, y, z)) {
@@ -84,6 +84,11 @@ class Adapter extends Environment with Inventory {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
+    items(0) match {
+      case Some(stack) if driver.Registry.blockDriverFor(stack).isEmpty => setInventorySlotContents(0, null)
+      case _ =>
+    }
+
     val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
       map(blocksNbt.tagAt).
@@ -129,10 +134,7 @@ class Adapter extends Environment with Inventory {
   override def getInventoryStackRequired = 0
 
   def isItemValidForSlot(i: Int, stack: ItemStack) =
-    stack != null && stack.stackSize > 0 && (stack.getItem match {
-      case block: ItemBlock => true
-      case _ => false
-    })
+    stack != null && stack.stackSize > 0 && driver.Registry.blockDriverFor(stack).isDefined
 
   override def onInventoryChanged() {
     super.onInventoryChanged()
