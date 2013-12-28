@@ -122,7 +122,7 @@ object Items {
     register("oc:circuitAdvanced", chip2.createItemStack())
     register("oc:circuitElite", chip3.createItemStack())
     register("oc:craftingTransistor", transistor.createItemStack())
-    register("oc:craftingControlUnit", cu.createItemStack())
+    register("oc:craftingCU", cu.createItemStack())
     register("oc:craftingALU", alu.createItemStack())
     register("oc:craftingCPU", cpu.createItemStack())
     register("oc:componentCardRedstone", rs.createItemStack())

@@ -63,7 +63,7 @@ lanCard {
 }
 wlanCard {
   input: [[enderPearl, "oc:circuitAdvanced", ""]
-          ["", componentCardLan, ""]]
+          ["", "oc:componentCardLan", ""]]
 }
 
 craftingUpgrade {
@@ -234,7 +234,7 @@ powerDistributor {
 }
 redstone {
   input: [[ingotIron, blockRedstone, ingotIron]
-          [blockRedstone, componentCardRedstone, blockRedstone]
+          [blockRedstone, "oc:componentCardRedstone", blockRedstone]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 robot {
@@ -244,7 +244,7 @@ robot {
 }
 router {
   input: [[ingotIron, "oc:craftingCable", ingotIron]
-          ["oc:craftingCable", componentCardLan, "oc:craftingCable"]
+          ["oc:craftingCable", "oc:componentCardLan", "oc:craftingCable"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 screen1 {

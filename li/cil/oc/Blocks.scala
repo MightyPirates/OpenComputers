@@ -76,7 +76,7 @@ object Blocks {
 
     redstone = new Redstone(blockSimpleWithRedstone)
 
-    register("oc:craftingWireCopper", cable.createItemStack())
+    register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())
     register("oc:craftingCaseBasic", case1.createItemStack())
     register("oc:craftingCaseAdvanced", case2.createItemStack())
