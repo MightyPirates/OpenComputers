@@ -2,7 +2,7 @@
 {
   "modid": "OpenComputers",
   "name": "OpenComputers",
-  "version": "1.0.5",
+  "version": "1.0.5a",
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
   "description": "This mod adds modular computers and robots that can be programmed in Lua.",
