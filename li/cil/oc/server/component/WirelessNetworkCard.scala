@@ -5,6 +5,7 @@ import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.Future
 import java.util.regex.Matcher
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ThreadPoolFactory, WirelessNetwork}
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
@@ -69,18 +70,17 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
               }
 
               val input = http.getInputStream
+              val data = mutable.ArrayBuffer.empty[Byte]
               val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
-              val queue = mutable.Queue.empty[Array[Byte]]
               var count = 0
               do {
                 count = input.read(buffer)
                 if (count > 0) {
-                  queue += buffer.clone()
+                  data ++= buffer.take(count)
                 }
               } while (count != -1)
               input.close()
-              queue += null // Termination "packet".
-              queues.synchronized(queues.getOrElseUpdate(context.address, mutable.Queue.empty) += address -> queue)
+              queues.synchronized(queues.getOrElseUpdate(context.address, mutable.Queue.empty) += address -> (mutable.Queue(data.toArray.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
             }
             finally {
               http.disconnect()
@@ -211,13 +211,47 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
-    // TODO load queues
+    queues.synchronized {
+      queues.clear()
+      if (nbt.hasKey("queues")) {
+        queues ++= nbt.getTagList("queues").iterator[NBTTagCompound].map(nodeNbt => {
+          val nodeAddress = nodeNbt.getString("nodeAddress")
+          val responses = mutable.Queue(nodeNbt.getTagList("responses").iterator[NBTTagCompound].map(responseNbt => {
+            val address = responseNbt.getString("address")
+            val data = responseNbt.getByteArray("data")
+            (address, mutable.Queue(data.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null))
+          }): _*)
+          nodeAddress -> responses
+        })
+      }
+    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setDouble("strength", strength)
-    // TODO save queues
+    queues.synchronized {
+      if (!queues.isEmpty) {
+        nbt.setNewTagList("queues", queues.toIterable.map(
+          node => {
+            val (nodeAddress, responses) = node
+            val nodeNbt = new NBTTagCompound()
+            nodeNbt.setString("nodeAddress", nodeAddress)
+            nodeNbt.setNewTagList("responses", responses.toIterable.map(
+              response => {
+                val (address, packets) = response
+                val responseNbt = new NBTTagCompound()
+                responseNbt.setString("address", address)
+                val data = mutable.ArrayBuffer.empty[Byte]
+                packets.toIterable.dropRight(1).foreach(data.appendAll(_))
+                responseNbt.setByteArray("data", data.toArray)
+                responseNbt
+              }
+            ))
+          }
+        ))
+      }
+    }
   }
 }
 
