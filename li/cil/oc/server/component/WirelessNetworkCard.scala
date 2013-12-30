@@ -2,7 +2,6 @@ package li.cil.oc.server.component
 
 import java.io._
 import java.net.{HttpURLConnection, URL}
-import java.nio.charset.MalformedInputException
 import java.util.concurrent.Future
 import java.util.regex.Matcher
 import li.cil.oc.api.network._
@@ -12,6 +11,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
@@ -23,6 +23,9 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   var strength = 0.0
 
   var response: Option[Future[_]] = None
+
+  // node address -> list per request -> list of signals as (request url, packets)
+  private val queues = mutable.Map.empty[String, mutable.Queue[(String, mutable.Queue[Array[Byte]])]]
 
   // ----------------------------------------------------------------------- //
 
@@ -64,20 +67,20 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
                 http.setRequestMethod("GET")
                 http.setDoOutput(false)
               }
-              var part: Option[String] = None
-              for (line <- scala.io.Source.fromInputStream(http.getInputStream).getLines()) {
-                if ((part + line).length <= Settings.get.maxNetworkPacketSize) {
-                  part = Some(part.getOrElse("") + line + "\n")
+
+              val input = http.getInputStream
+              val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
+              val queue = mutable.Queue.empty[Array[Byte]]
+              var count = 0
+              do {
+                count = input.read(buffer)
+                if (count > 0) {
+                  queue += buffer.clone()
                 }
-                else {
-                  context.signal("http_response", address, part.get)
-                  part = None
-                }
-              }
-              context.signal("http_response", address, part.orNull)
-              if (part.isDefined) {
-                context.signal("http_response", address)
-              }
+              } while (count != -1)
+              input.close()
+              queue += null // Termination "packet".
+              queues.synchronized(queues.getOrElseUpdate(context.address, mutable.Queue.empty) += address -> queue)
             }
             finally {
               http.disconnect()
@@ -88,8 +91,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
         catch {
           case e: FileNotFoundException =>
             context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
-          case _: MalformedInputException =>
-            context.signal("http_response", address, Unit, "binary data not yet supported")
           case e: Throwable =>
             context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
         }
@@ -166,6 +167,28 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def update() {
     super.update()
     WirelessNetwork.update(this)
+
+    queues.synchronized {
+      for ((nodeAddress, queue) <- queues if queue.nonEmpty) {
+        node.network.node(nodeAddress) match {
+          case computer: Node =>
+            computer.host match {
+              case context: Context =>
+                val (address, packets) = queue.front
+                if (context.signal("http_response", address, packets.front)) {
+                  packets.dequeue()
+                }
+              case _ => queue.clear()
+            }
+          case _ => queue.clear()
+        }
+        // Remove all responses that have no more packets (usually only the
+        // first on when it has been processed).
+        queue.dequeueAll(_._2.isEmpty)
+      }
+      // Remove all targets that have no more responses.
+      queues.retain((_, queue) => queue.nonEmpty)
+    }
   }
 
   override def onConnect(node: Node) {
@@ -188,11 +211,13 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
+    // TODO load queues
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setDouble("strength", strength)
+    // TODO save queues
   }
 }
 

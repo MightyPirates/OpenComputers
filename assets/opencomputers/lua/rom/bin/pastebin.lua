@@ -2,6 +2,8 @@ local args, options = shell.parse(...)
 if #args < 2 then
   print("Usage: pastebin [-f] <id> <file>")
   print(" -f: Force overwriting existing files.")
+  print(" -k: keep line endings as-is (will convert")
+  print("     Windows line endings to Unix otherwise).")
   return
 end
 
@@ -33,8 +35,11 @@ if not f then
 end
 
 local url = "http://pastebin.com/raw.php?i=" .. id
-for line in http.request(url) do
-  f:write(line)
+for chunk in http.request(url) do
+  if not options.k then
+    string.gsub(chunk, "\r\n", "\n")
+  end
+  f:write(chunk)
 end
 
 f:close()
