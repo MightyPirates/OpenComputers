@@ -262,8 +262,10 @@ local function onKeyDown(char, code)
       if f then
         local chars = 0
         for _, line in ipairs(buffer) do
+          if chars > 0 then
+            line = line .. "\n"
+          end
           f:write(line)
-          f:write("\n")
           chars = chars + unicode.len(line)
         end
         f:close()
@@ -330,6 +332,9 @@ do
       end
     end
     f:close()
+    if #buffer == 0 then
+      table.insert(buffer, "")
+    end
     local format
     if readonly then
       format = [["%s" [readonly] %dL,%dC]]
