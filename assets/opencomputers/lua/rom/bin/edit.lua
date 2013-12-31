@@ -260,11 +260,12 @@ local function onKeyDown(char, code)
       local new = not fs.exists(filename)
       local f, reason = io.open(filename, "w")
       if f then
-        local chars = 0
+        local chars, firstLine = 0, true
         for _, line in ipairs(buffer) do
-          if chars > 0 then
-            line = line .. "\n"
+          if not firstLine then
+            line = "\n" .. line
           end
+          firstLine = false
           f:write(line)
           chars = chars + unicode.len(line)
         end
