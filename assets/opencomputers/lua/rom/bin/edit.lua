@@ -73,8 +73,11 @@ local function setCursor(nbx, nby)
     end
   end
   term.setCursor(term.getCursor(), nby - scrollY)
-
-  nbx = math.max(1, math.min(unicode.len(line()) + 1, nbx))
+if line() == nil then
+nbx = math.max(1, math.min(unicode.len("") + 1, nbx))
+else
+nbx = math.max(1, math.min(unicode.len(line()) + 1, nbx))
+end 
   local ncx = nbx - scrollX
   if ncx > w then
     term.setCursorBlink(false)
