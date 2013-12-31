@@ -73,7 +73,7 @@ local function setCursor(nbx, nby)
     end
   end
   term.setCursor(term.getCursor(), nby - scrollY)
-if line() = nil then
+if line() == nil then
 nbx = math.max(1, math.min(unicode.len("") + 1, nbx))
 else
 nbx = math.max(1, math.min(unicode.len(line()) + 1, nbx))
