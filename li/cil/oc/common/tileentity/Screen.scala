@@ -233,8 +233,17 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     }
   }
 
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    cleanup()
+  }
+
   override def invalidate() {
     super.invalidate()
+    cleanup()
+  }
+
+  protected def cleanup() {
     if (currentGui.isDefined) {
       Minecraft.getMinecraft.displayGuiScreen(null)
     }
