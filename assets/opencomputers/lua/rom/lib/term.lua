@@ -284,10 +284,16 @@ function term.read(history)
 
   term.setCursorBlink(true)
   while term.isAvailable() do
+    local ocx, ocy = getCursor()
     local ok, name, address, charOrValue, code = pcall(event.pull)
     if not ok then
       cleanup()
       error("interrupted", 0)
+    end
+    local ncx, ncy = getCursor()
+    if ocx ~= ncx or ocy ~= ncy then
+      cleanup()
+      return "" -- soft fail the read if someone messes with the term
     end
     if term.isAvailable() and -- may have changed since pull
        type(address) == "string" and

@@ -23,10 +23,10 @@ object MonospaceFontRenderer {
   val fontWidth = 5
   val fontHeight = 9
 
-  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = instance match {
+  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = this.synchronized(instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")
     case Some(renderer) => renderer.drawString(x, y, value, color, depth)
-  }
+  })
 
   private class Renderer(private val textureManager: TextureManager) {
     /** Display lists, one per char (renders quad with char's uv coords). */

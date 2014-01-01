@@ -132,14 +132,17 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
   }
 
-  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty && !RenderState.compilingDisplayList) {
-    screen.bufferIsDirty = false
+  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty) {
     val sx = screen.width
     val sy = screen.height
     val tw = sx * 16f
     val th = sy * 16f
 
-    GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
+    val doCompile = !RenderState.compilingDisplayList
+    if (doCompile) {
+      screen.bufferIsDirty = false
+      GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
+    }
 
     transform()
 
@@ -178,7 +181,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
     }
 
-    GL11.glEndList()
+    if (doCompile) {
+      GL11.glEndList()
+    }
 
     true
   }
