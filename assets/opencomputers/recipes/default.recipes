@@ -1,5 +1,5 @@
 # Do not change this file, it is rewritten each time you start the game.
-# Instead, use the custom.conf file to edit recipes by redefining them there.
+# Instead, use the user.recipes file to edit recipes by redefining them there.
 
 analyzer {
   input: [["", torchRedstoneActive, ""]
