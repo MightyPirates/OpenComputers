@@ -196,7 +196,7 @@ capacitor {
 }
 charger {
   input: [["", plateStainlessSteel, ""]
-          [{block=tile.BlockMetaID_Machine, subID=35}, craftingRawMachineTier03, {block=tile.BlockMetaID_Machine, subID=35}]
+          [{block=tile.BlockMetaID_Machine, subID=86}, craftingRawMachineTier03, {block=tile.BlockMetaID_Machine, subID=86}]
           ["oc:circuitElite", craftingToolWrench, "oc:craftingCircuitBoardPrinted"]]
 }
 case1 {
