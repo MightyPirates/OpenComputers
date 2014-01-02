@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import java.io._
-import java.net.{HttpURLConnection, URL}
+import java.net.{SocketTimeoutException, HttpURLConnection, URL}
 import java.util.concurrent.Future
 import java.util.regex.Matcher
 import li.cil.oc.api.network._
@@ -59,6 +59,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
               if (post.isDefined) {
                 http.setRequestMethod("POST")
                 http.setDoOutput(true)
+                http.setReadTimeout(Settings.get.httpTimeout)
 
                 val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
                 out.write(post.get)
@@ -91,6 +92,8 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
         catch {
           case e: FileNotFoundException =>
             context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
+          case _: SocketTimeoutException =>
+            context.signal("http_response", address, Unit, "timeout")
           case e: Throwable =>
             context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
         }

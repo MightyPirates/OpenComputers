@@ -139,7 +139,7 @@ class Settings(config: Config) {
   val httpThreads = config.getInt("http.threads") max 1
   val httpHostBlacklist = Array(config.getStringList("http.blacklist"): _*)
   val httpHostWhitelist = Array(config.getStringList("http.whitelist"): _*)
-  val httpTimeout = config.getInt("http.requestTimeout") max 0
+  val httpTimeout = (config.getInt("http.requestTimeout") max 0) * 1000
 
   // ----------------------------------------------------------------------- //
   // misc
