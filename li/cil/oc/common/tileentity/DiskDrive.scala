@@ -13,7 +13,11 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
+    components(0) match {
+      case Some(environment) => environment.node
+      case _ => null
+    }
 
   override def canUpdate = false
 
