@@ -112,6 +112,7 @@ oc:tooltip.RedstoneCard.RedLogic=§fRedLogic§7 wird §aunterstützt§7.
 oc:tooltip.RedstoneCard.RedNet=§fRedNet§7 wird §aunterstützt§7.
 oc:tooltip.RedstoneCard=Erlaubt das Lesen und Ausgeben von Redstonesignalen um den Computer oder Roboter herum.
 oc:tooltip.Robot=Im Gegensatz zu normalen Computern können sich Roboter in der Welt bewegen und ähnlich wie Spieler mit der Welt interagieren. Sie können jedoch §onicht§r§7 mit externen Komponenten interagieren!
+# The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fStufe§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fGespeicherte Energie§7: §a%s§7.
 oc:tooltip.Router=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Router sind nicht sichtbar. Nützlich um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
