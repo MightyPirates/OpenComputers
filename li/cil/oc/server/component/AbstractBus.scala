@@ -62,9 +62,12 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
   @LuaCallback("send")
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val target = args.checkInteger(0) & 0xFFFF
-    val data = ???
-    val packet = new BusPacketLIP(address, target.toShort)
-    // TODO
+    val data = args.checkTable(1)
+    val packet = new BusPacketLIP(address.toShort, target.toShort)
+    for ((key, value) <- data) {
+      packet.set(key.toString, value.toString)
+    }
+    // TODO generate metadata
     sendQueue += packet
     result(true)
   }
@@ -76,6 +79,7 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
     busInterface.readFromNBT(nbt, "bus")
     isEnabled = nbt.getBoolean("enabled")
     address = nbt.getInteger("address") & 0xFFFF
+    // TODO load queue
   }
 
   override def save(nbt: NBTTagCompound) {
@@ -83,5 +87,6 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
     busInterface.writeToNBT(nbt, "bus")
     nbt.setBoolean("enabled", isEnabled)
     nbt.setInteger("address", address)
+    // TODO save queue
   }
 }

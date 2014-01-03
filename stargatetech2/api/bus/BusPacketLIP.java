@@ -47,7 +47,7 @@ public final class BusPacketLIP extends BusPacket {
 		}
 	}
 	
-	protected BusPacketLIP(short sender, short target) {
+	public BusPacketLIP(short sender, short target) {
 		super(sender, target, true);
 	}
 	

@@ -6,7 +6,7 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
-object SolarGenerator extends Item {
+object UpgradeSolarGenerator extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeSolarGenerator)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.UpgradeSolarGenerator(container)
