@@ -25,7 +25,7 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
   def getZCoord = z
 
   protected def hasAbstractBusCard = components exists {
-    case abstractBus: component.AbstractBus => true
+    case _: component.AbstractBus => true
   }
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
@@ -57,13 +57,8 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
     addAbstractBus()
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    removeAbstractBus()
-  }
-
-  override def invalidate() {
-    super.onChunkUnload()
+  abstract override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
     removeAbstractBus()
   }
 

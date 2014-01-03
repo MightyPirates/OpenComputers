@@ -59,6 +59,13 @@ public final class BusPacketLIP extends BusPacket {
 			this.metadata = metadata;
 		}
 	}
+	
+	/**
+	 * @return The LIPMetadata object on this object. May be null.
+	 */
+	public LIPMetadata getMetadata(){
+		return metadata;
+	}
 
 	@Override // We don't need this. At all.
 	protected void fillPlainText(BusPacketLIP lip){}

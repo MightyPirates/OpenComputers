@@ -6,8 +6,8 @@ public class Address {
 	public static Address create(Symbol[] symbols){
 		try{
 			boolean used[] = new boolean[40];
-			if(symbols.length < 7) throw new Exception("Address too short.");
-			if(symbols.length > 9) throw new Exception("Address too long.");
+			if(symbols.length < 7) throw new Exception("Address too short: " + symbols.length);
+			if(symbols.length > 9) throw new Exception("Address too long: " + symbols.length);
 			for(int i = 0; i < used.length; i++){
 				used[i] = (i == 0);
 			}
@@ -73,5 +73,10 @@ public class Address {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public int hashCode(){
+		return length();
 	}
 }

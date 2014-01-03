@@ -28,8 +28,7 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
   def handlePacket(packet: BusPacket) {
     val lip = packet.getPlainText
     val data = Map(lip.getEntryList.map(key => (key, lip.get(key))): _*)
-    // TODO do we want to push metadata, too?
-    val metadata = Map("mod" -> "", "device" -> "", "player" -> "")
+    val metadata = Map("mod" -> lip.getMetadata.modID, "device" -> lip.getMetadata.deviceName, "player" -> lip.getMetadata.playerName)
     owner.signal("bus_message", Int.box(packet.getProtocolID), Int.box(packet.getSender), Int.box(packet.getTarget), data, metadata)
   }
 
