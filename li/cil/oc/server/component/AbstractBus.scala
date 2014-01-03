@@ -83,7 +83,10 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     busInterface.readFromNBT(nbt, "bus")
-    isEnabled = nbt.getBoolean("enabled")
+    // Don't default to false.
+    if (nbt.hasKey("enabled")) {
+      isEnabled = nbt.getBoolean("enabled")
+    }
     address = nbt.getInteger("address") & 0xFFFF
   }
 
