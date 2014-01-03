@@ -180,7 +180,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).map(value => math.min(math.max(value, 0), 255).toByte)
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(ForgeDirection.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()
@@ -191,5 +191,5 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   def canConnectBundled(side: Int) = isOutputEnabled
 
   @Optional.Method(modid = "ProjRed|Transmission")
-  def getBundledSignal(side: Int) = getBundledCableStrength(-1, side)
+  def getBundledSignal(side: Int) = bundledOutput(ForgeDirection.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }
