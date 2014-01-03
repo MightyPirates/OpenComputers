@@ -188,6 +188,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           case arg: java.lang.Double => arg
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
+          case arg: Map[String, String] => arg
           case arg =>
             OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             Unit
@@ -496,6 +497,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               case tag: NBTTagDouble => tag.data
               case tag: NBTTagString => tag.data
               case tag: NBTTagByteArray => tag.byteArray
+              case tag: NBTTagList =>
+                val data = mutable.Map.empty[String, String]
+                for (i <- 0 until tag.tagCount by 2) {
+                  (tag.tagAt(i), tag.tagAt(i + 1)) match {
+                    case (key: NBTTagString, value: NBTTagString) => data += key.data -> value.data
+                    case _ =>
+                  }
+                }
+                data
               case _ => Unit
             }.toArray)
         })
@@ -575,6 +585,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               case (arg: Double, i) => args.setDouble("arg" + i, arg)
               case (arg: String, i) => args.setString("arg" + i, arg)
               case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
+              case (arg: Map[String, String], i) =>
+                val list = new NBTTagList()
+                for ((key, value) <- arg) {
+                  list.append(key)
+                  list.append(value)
+                }
+                args.setTag("arg" + i, list)
+              case (_, i) => args.setByte("arg" + i, -1)
             }
           })
           signalsNbt.appendTag(signalNbt)
@@ -1269,6 +1287,12 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
                 case arg: Double => lua.pushNumber(arg)
                 case arg: String => lua.pushString(arg)
                 case arg: Array[Byte] => lua.pushByteArray(arg)
+                case arg: Map[String, String] =>
+                  lua.newTable(0, arg.size)
+                  for ((key, value) <- arg if key != null && value != null) {
+                    lua.pushString(value)
+                    lua.setField(-2, key)
+                  }
               }
               lua.resume(1, 1 + signal.args.length)
             case _ =>
