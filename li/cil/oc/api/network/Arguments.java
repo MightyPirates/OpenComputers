@@ -1,5 +1,7 @@
 package li.cil.oc.api.network;
 
+import java.util.Map;
+
 /**
  * This interface provides access to arguments passed to a {@link LuaCallback}.
  * <p/>
@@ -100,9 +102,21 @@ public interface Arguments extends Iterable<Object> {
     byte[] checkByteArray(int index);
 
     /**
+     * Try to get a table at the specified index.
+     * <p/>
+     * Throws an error if there are too few arguments.
+     *
+     * @param index the index from which to get the argument.
+     * @return the table at the specified index.
+     * @throws IllegalArgumentException if there is no argument at that index,
+     *                                  or if the argument is not a table.
+     */
+    Map checkTable(int index);
+
+    /**
      * Tests whether the argument at the specified index is a boolean value.
      * <p/>
-     * This will return true if there is <em>no</em> argument at the specified
+     * This will return false if there is <em>no</em> argument at the specified
      * index, i.e. if there are too few arguments.
      *
      * @param index the index to check.
@@ -113,7 +127,7 @@ public interface Arguments extends Iterable<Object> {
     /**
      * Tests whether the argument at the specified index is an integer value.
      * <p/>
-     * This will return true if there is <em>no</em> argument at the specified
+     * This will return false if there is <em>no</em> argument at the specified
      * index, i.e. if there are too few arguments.
      *
      * @param index the index to check.
@@ -124,7 +138,7 @@ public interface Arguments extends Iterable<Object> {
     /**
      * Tests whether the argument at the specified index is a double value.
      * <p/>
-     * This will return true if there is <em>no</em> argument at the specified
+     * This will return false if there is <em>no</em> argument at the specified
      * index, i.e. if there are too few arguments.
      *
      * @param index the index to check.
@@ -135,7 +149,7 @@ public interface Arguments extends Iterable<Object> {
     /**
      * Tests whether the argument at the specified index is a string value.
      * <p/>
-     * This will return true if there is <em>no</em> argument at the specified
+     * This will return false if there is <em>no</em> argument at the specified
      * index, i.e. if there are too few arguments.
      *
      * @param index the index to check.
@@ -146,11 +160,22 @@ public interface Arguments extends Iterable<Object> {
     /**
      * Tests whether the argument at the specified index is a byte array.
      * <p/>
-     * This will return true if there is <em>no</em> argument at the specified
+     * This will return false if there is <em>no</em> argument at the specified
      * index, i.e. if there are too few arguments.
      *
      * @param index the index to check.
      * @return true if the argument is a byte array; false otherwise.
      */
     boolean isByteArray(int index);
+
+    /**
+     * Tests whether the argument at the specified index is a table.
+     * <p/>
+     * This will return false if there is <em>no</em> argument at the specified
+     * index, i.e. if there are too few arguments.
+     *
+     * @param index the index to check.
+     * @return true if the argument is a string; false otherwise.
+     */
+    boolean isTable(int index);
 }

@@ -647,6 +647,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
       case LuaType.NUMBER => Double.box(lua.toNumber(index))
       case LuaType.STRING => lua.toByteArray(index)
+      case LuaType.TABLE => lua.toJavaObject(index, classOf[java.util.Map[_, _]])
       case _ => Unit
     }
 
