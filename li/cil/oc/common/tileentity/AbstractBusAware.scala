@@ -1,12 +1,22 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.{Loader, Optional}
+import li.cil.oc.Items
+import li.cil.oc.api.network.Node
+import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
-import stargatetech2.api.bus.IBusDevice
+import net.minecraftforge.common.MinecraftForge
+import stargatetech2.api.bus.{BusEvent, IBusDevice}
 
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-trait AbstractBusAware extends TileEntity with Inventory with IBusDevice {
-  def getInterfaces(side: Int) = if (hasAbstractBusCard) Array(null) else null
+trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevice {
+  def getInterfaces(side: Int) =
+    if (hasAbstractBusCard) {
+      components collect {
+        case abstractBus: component.AbstractBus => abstractBus.busInterface
+      }
+    }
+    else null
 
   def getXCoord = x
 
@@ -14,15 +24,60 @@ trait AbstractBusAware extends TileEntity with Inventory with IBusDevice {
 
   def getZCoord = z
 
-  protected def hasAbstractBusCard = false
+  protected def hasAbstractBusCard = components exists {
+    case abstractBus: component.AbstractBus => true
+  }
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
-    // TODO if card wasn't present, send device added event
+    if (Items.abstractBus.parent.subItem(stack) == Items.abstractBus) {
+      // Trigger network re-map after another interface was added.
+      addAbstractBus()
+    }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    // TODO if no card is present anymore, send device removed event
+    if (Items.abstractBus.parent.subItem(stack) == Items.abstractBus) {
+      if (!hasAbstractBusCard) {
+        // Last interface was removed, trigger removal. This is the case when
+        // the last abstract bus card was removed.
+        removeAbstractBus(force = true)
+      }
+      else {
+        // Trigger network re-map if some interface still remains. This is the
+        // case when one of multiple abstract bus cards was removed.
+        addAbstractBus()
+      }
+    }
+  }
+
+  abstract override def onConnect(node: Node) {
+    super.onConnect(node)
+    addAbstractBus()
+  }
+
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    removeAbstractBus()
+  }
+
+  override def invalidate() {
+    super.onChunkUnload()
+    removeAbstractBus()
+  }
+
+  protected def addAbstractBus() {
+    // Mod loaded check to avoid class not found errors.
+    if (Loader.isModLoaded("StargateTech2") && hasAbstractBusCard) {
+      MinecraftForge.EVENT_BUS.post(new BusEvent.AddToNetwork(world, x, y, z))
+    }
+  }
+
+  protected def removeAbstractBus(force: Boolean = false) {
+    // Mod loaded check to avoid class not found errors.
+    if (Loader.isModLoaded("StargateTech2") && (hasAbstractBusCard || force)) {
+      MinecraftForge.EVENT_BUS.post(new BusEvent.RemoveFromNetwork(world, x, y, z))
+    }
   }
 }

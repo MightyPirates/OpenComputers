@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends net.minecraft.tileentity.TileEntity with api.network.SidedEnvironment with IPeripheral {
+class Router extends TileEntity with api.network.SidedEnvironment with IPeripheral {
   private val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
   // ----------------------------------------------------------------------- //

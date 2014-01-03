@@ -13,7 +13,7 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
     withComponent("abstract_bus").
     create()
 
-  protected val busInterface: IBusInterface = StargateTechAPI.api.getFactory.getIBusInterface(owner, this)
+  val busInterface: IBusInterface = StargateTechAPI.api.getFactory.getIBusInterface(owner, this)
 
   protected var isEnabled = true
 
