@@ -13,7 +13,7 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
   def getInterfaces(side: Int) =
     if (hasAbstractBusCard) {
       components collect {
-        case abstractBus: component.AbstractBus => abstractBus.busInterface
+        case Some(abstractBus: component.AbstractBus) => abstractBus.busInterface
       }
     }
     else null
@@ -25,7 +25,8 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
   def getZCoord = z
 
   protected def hasAbstractBusCard = components exists {
-    case _: component.AbstractBus => true
+    case Some(_: component.AbstractBus) => true
+    case _ => false
   }
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
