@@ -8,9 +8,17 @@ import li.cil.oc.util.PackedColor
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import scala.Some
 
 object PacketSender {
+  def sendAbstractBusState(t: AbstractBusAware) {
+    val pb = new PacketBuilder(PacketType.AbstractBusState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.isAbstractBusAvailable)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendAnalyze(stats: NBTTagCompound, address: String, player: Player) {
     val pb = new PacketBuilder(PacketType.Analyze)
 
@@ -20,28 +28,22 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendChargerState(t: Charger, player: Option[Player] = None) {
+  def sendChargerState(t: Charger) {
     val pb = new PacketBuilder(PacketType.ChargerState)
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.chargeSpeed)
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
-    }
+    pb.sendToNearbyPlayers(t)
   }
 
-  def sendComputerState(t: Computer, player: Option[Player] = None) {
+  def sendComputerState(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
     pb.writeBoolean(t.isRunning)
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
-    }
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendComputerUserList(t: Computer, list: Array[String]) {
@@ -54,20 +56,17 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendPowerState(t: PowerInformation, player: Option[Player] = None) {
+  def sendPowerState(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.globalBuffer)
     pb.writeDouble(t.globalBufferSize)
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
-    }
+    pb.sendToNearbyPlayers(t)
   }
 
-  def sendRedstoneState(t: RedstoneAware, player: Option[Player] = None) {
+  def sendRedstoneState(t: RedstoneAware) {
     val pb = new PacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)
@@ -76,10 +75,7 @@ object PacketSender {
       pb.writeByte(t.output(d))
     }
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
-    }
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendRobotMove(t: Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
@@ -150,17 +146,14 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRotatableState(t: Rotatable, player: Option[Player] = None) {
+  def sendRotatableState(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
     pb.writeDirection(t.pitch)
     pb.writeDirection(t.yaw)
 
-    player match {
-      case Some(p) => pb.sendToPlayer(p)
-      case _ => pb.sendToNearbyPlayers(t)
-    }
+    pb.sendToNearbyPlayers(t)
   }
 
   def sendScreenColorChange(t: Buffer, foreground: Int, background: Int) {

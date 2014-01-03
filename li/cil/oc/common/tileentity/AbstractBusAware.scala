@@ -1,22 +1,31 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
-import li.cil.oc.Items
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network.Node
-import li.cil.oc.server.component
+import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.MinecraftForge
+import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus.{BusEvent, IBusDevice}
 
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
 trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevice {
   def getInterfaces(side: Int) =
-    if (hasAbstractBusCard) {
-      components collect {
-        case Some(abstractBus: component.AbstractBus) => abstractBus.busInterface
+    if (isAbstractBusAvailable) {
+      if (isServer) {
+        components collect {
+          case Some(abstractBus: component.AbstractBus) => abstractBus.busInterface
+        }
       }
+      else fakeInterface
     }
     else null
+
+  protected var _isAbstractBusAvailable = false
+
+  private lazy val fakeInterface = Array(StargateTechAPI.api.getFactory.getIBusInterface(this, null))
 
   def getXCoord = x
 
@@ -24,38 +33,48 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
 
   def getZCoord = z
 
-  protected def hasAbstractBusCard = components exists {
-    case Some(_: component.AbstractBus) => true
-    case _ => false
+  def isAbstractBusAvailable = _isAbstractBusAvailable
+
+  def isAbstractBusAvailable_=(value: Boolean) = {
+    if (value != isAbstractBusAvailable) {
+      _isAbstractBusAvailable = value
+      if (isAbstractBusAvailable) addAbstractBus()
+      else removeAbstractBus()
+      world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
+      if (isServer) ServerPacketSender.sendAbstractBusState(this)
+      else world.markBlockForRenderUpdate(x, y, z)
+    }
+    this
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    isAbstractBusAvailable = nbt.getBoolean("isAbstractBusAvailable")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("isAbstractBusAvailable", isAbstractBusAvailable)
   }
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
-    if (Items.abstractBus.parent.subItem(stack) == Items.abstractBus) {
-      // Trigger network re-map after another interface was added.
-      addAbstractBus()
+    if (isServer) {
+      isAbstractBusAvailable = hasAbstractBusCard
     }
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
-    if (Items.abstractBus.parent.subItem(stack) == Items.abstractBus) {
-      if (!hasAbstractBusCard) {
-        // Last interface was removed, trigger removal. This is the case when
-        // the last abstract bus card was removed.
-        removeAbstractBus(force = true)
-      }
-      else {
-        // Trigger network re-map if some interface still remains. This is the
-        // case when one of multiple abstract bus cards was removed.
-        addAbstractBus()
-      }
+    if (isServer) {
+      isAbstractBusAvailable = hasAbstractBusCard
     }
   }
 
   abstract override def onConnect(node: Node) {
     super.onConnect(node)
-    addAbstractBus()
+    isAbstractBusAvailable = hasAbstractBusCard
   }
 
   abstract override def onDisconnect(node: Node) {
@@ -65,15 +84,20 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
 
   protected def addAbstractBus() {
     // Mod loaded check to avoid class not found errors.
-    if (Loader.isModLoaded("StargateTech2") && hasAbstractBusCard) {
+    if (isServer && Loader.isModLoaded("StargateTech2")) {
       MinecraftForge.EVENT_BUS.post(new BusEvent.AddToNetwork(world, x, y, z))
     }
   }
 
-  protected def removeAbstractBus(force: Boolean = false) {
+  protected def removeAbstractBus() {
     // Mod loaded check to avoid class not found errors.
-    if (Loader.isModLoaded("StargateTech2") && (hasAbstractBusCard || force)) {
+    if (isServer && Loader.isModLoaded("StargateTech2")) {
       MinecraftForge.EVENT_BUS.post(new BusEvent.RemoveFromNetwork(world, x, y, z))
     }
+  }
+
+  protected def hasAbstractBusCard = components exists {
+    case Some(_: component.AbstractBus) => true
+    case _ => false
   }
 }
