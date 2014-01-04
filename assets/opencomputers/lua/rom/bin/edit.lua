@@ -209,6 +209,7 @@ local function insert(value)
 end
 
 local function enter()
+  term.setCursorBlink(false)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
