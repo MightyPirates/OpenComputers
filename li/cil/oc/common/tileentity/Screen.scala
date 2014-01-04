@@ -218,7 +218,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           }
           val buffer = screen.buffer
           val (w, h) = buffer.resolution
-          buffer.buffer.fill(0, 0, w, h, ' ')
+          buffer.foreground = 0xFFFFFF
+          buffer.background = 0x000000
+          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+            onScreenFill(0, 0, w, h, ' ')
+          }
         }
       )
     }
