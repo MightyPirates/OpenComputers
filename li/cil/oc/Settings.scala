@@ -22,6 +22,7 @@ class Settings(config: Config) {
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
   val textAntiAlias = config.getBoolean("client.textAntiAlias")
+  val pasteShortcut = config.getStringList("client.pasteShortcut").toSet
   val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //
