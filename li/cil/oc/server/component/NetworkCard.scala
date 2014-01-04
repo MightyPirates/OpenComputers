@@ -60,6 +60,9 @@ class NetworkCard extends ManagedComponent {
     result(true)
   }
 
+  @LuaCallback(value = "maxPacketSize", direct = true)
+  def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
+
   // ----------------------------------------------------------------------- //
 
   override def onDisconnect(node: Node) {
