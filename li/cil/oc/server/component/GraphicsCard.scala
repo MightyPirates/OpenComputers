@@ -33,7 +33,7 @@ abstract class GraphicsCard extends ManagedComponent {
 
   override def update() {
     super.update()
-    if (screenInstance.isEmpty && screenAddress.isDefined) {
+    if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
         case Some(node: Node) if node.host.isInstanceOf[Buffer] =>
           screenInstance = Some(node.host.asInstanceOf[Buffer])
