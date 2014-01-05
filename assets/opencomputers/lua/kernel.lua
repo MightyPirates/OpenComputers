@@ -66,8 +66,10 @@ sandbox = {
   end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
-    assert((mode or "t") == "t", "unsupported mode")
-    return load(ld, source, "t", env or sandbox)
+    if not allowBytecode() then
+      mode = "t"
+    end
+    return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in lib/base.lua
   next = next,

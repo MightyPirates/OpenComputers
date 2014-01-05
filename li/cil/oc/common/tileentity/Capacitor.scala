@@ -5,7 +5,7 @@ import li.cil.oc.{Blocks, Settings, api}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class Capacitor extends Environment {
+class Capacitor extends Environment with PassiveNode {
   // Start with maximum theoretical capacity, gets reduced after validation.
   // This is done so that we don't lose energy while loading.
   val node = api.Network.newNode(this, Visibility.Network).
@@ -16,7 +16,7 @@ class Capacitor extends Environment {
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.capacitor.parent.blockID, Int.MinValue, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.capacitor.parent.blockID, 0, 0)
   }
 
   override def invalidate() {

@@ -222,7 +222,7 @@ diskDrive {
 
 powerConverter {
   input: [["", "oc:circuitAdvanced", ""]
-          [plateAluminium, craftingGenerator, plateAluminium]
+          [plateAluminium, {item=Electric, subID=4}, plateAluminium]
           ["oc:craftingCircuitBoardPrinted", craftingToolWrench, "oc:craftingCircuitBoardPrinted"]]
 }
 powerDistributor {
@@ -251,12 +251,12 @@ screen1 {
           [plateAluminium, plateAluminium, craftingToolScrewdriver]]
 }
 screen2 {
-  input: [[plateStainlessSteel, {item=dyePowder, subID=1}, craftingToolWrench]
-          ["oc:circuitAdvanced", {item=dyePowder, subID=2}, "oc:craftingScreenBasic"]
-          [plateStainlessSteel, {item=dyePowder, subID=4}, craftingToolScrewdriver]]
+  input: [[plateStainlessSteel, screwStainlessSteel, craftingToolWrench]
+          ["oc:circuitAdvanced", "oc:craftingScreenBasic", craftingMonitorTier02]
+          [plateStainlessSteel, screwStainlessSteel, craftingToolScrewdriver]]
 }
 screen3 {
   input: [[plateTitanium, "oc:craftingCircuitBoardPrinted", craftingToolWrench]
-          ["oc:circuitElite", "oc:circuitElite", "oc:craftingScreenAdvanced"]
+          ["oc:circuitElite", "oc:craftingScreenAdvanced", "oc:circuitElite"]
           [plateTitanium, "oc:craftingCircuitBoardPrinted", craftingToolScrewdriver]]
 }

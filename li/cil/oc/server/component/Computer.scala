@@ -108,7 +108,12 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
 
   def start() = state.synchronized(state.top match {
     case Computer.State.Stopped =>
-      if (owner.installedMemory > 0) {
+      val rules = owner.world.getWorldInfo.getGameRulesInstance
+      if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
+        crash("computers don't work while time is frozen (gamerule doDaylightCycle is false)")
+        false
+      }
+      else if (owner.installedMemory > 0) {
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
             switchTo(Computer.State.Starting)
@@ -959,6 +964,13 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         0
       })
       lua.setGlobal("print")
+
+      // Whether bytecode may be loaded directly.
+      lua.pushScalaFunction(lua => {
+        lua.pushBoolean(Settings.get.allowBytecode)
+        1
+      })
+      lua.setGlobal("allowBytecode")
 
       // How long programs may run without yielding before we stop them.
       lua.pushNumber(Settings.get.timeout)

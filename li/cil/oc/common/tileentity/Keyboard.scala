@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable {
+class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable with PassiveNode {
   def this() = this(false)
 
   val keyboard = if (isRemote) null else new component.Keyboard(this)
@@ -37,7 +37,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, Int.MinValue, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {

@@ -90,11 +90,12 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
       return false
     }
-    val (rx, ry) = ((ax - border) / (width - border * 2), (ay - border) / (height - border * 2))
+    val (iw, ih) = (width - border * 2, height - border * 2)
+    val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
     val (bw, bh) = origin.buffer.resolution
-    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth, bh * MonospaceFontRenderer.fontHeight)
+    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth / iw.toDouble, bh * MonospaceFontRenderer.fontHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
@@ -218,7 +219,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           }
           val buffer = screen.buffer
           val (w, h) = buffer.resolution
-          buffer.buffer.fill(0, 0, w, h, ' ')
+          buffer.foreground = 0xFFFFFF
+          buffer.background = 0x000000
+          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+            onScreenFill(0, 0, w, h, ' ')
+          }
         }
       )
     }

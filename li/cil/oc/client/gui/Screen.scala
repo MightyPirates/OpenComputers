@@ -59,8 +59,8 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   }
 
   private def clickOrDrag(mouseX: Int, mouseY: Int) {
-    val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
-    val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+    val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
+    val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
     val (bw, bh) = screen.buffer.resolution
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {

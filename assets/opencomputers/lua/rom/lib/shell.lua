@@ -84,7 +84,7 @@ end
 function shell.setPath(value)
   checkArg(1, value, "string")
   path = {}
-  for p in string:gmatch(value, "[^:]") do
+  for p in string.gmatch(value, "[^:]+") do
     p = fs.canonical(text.trim(p))
     if unicode.sub(p, 1, 1) ~= "/" then
       p = "/" .. p
