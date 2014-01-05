@@ -7,6 +7,7 @@ import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
+import li.cil.oc.server.network.Network
 import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
 
@@ -49,5 +50,6 @@ class Proxy {
 
     GameRegistry.registerPlayerTracker(Keyboard)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+    MinecraftForge.EVENT_BUS.register(Network)
   }
 }

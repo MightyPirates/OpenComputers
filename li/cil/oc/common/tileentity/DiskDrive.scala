@@ -8,7 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable {
+class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable with PassiveNode {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //
@@ -23,7 +23,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   override def validate() = {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, Int.MinValue, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //
