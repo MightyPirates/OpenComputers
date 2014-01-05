@@ -42,6 +42,7 @@ class Settings(config: Config) {
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
+  val allowBytecode = config.getBoolean("computer.allowBytecode")
 
   // ----------------------------------------------------------------------- //
   // robot

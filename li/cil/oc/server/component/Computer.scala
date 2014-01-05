@@ -965,6 +965,13 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setGlobal("print")
 
+      // Whether bytecode may be loaded directly.
+      lua.pushScalaFunction(lua => {
+        lua.pushBoolean(Settings.get.allowBytecode)
+        1
+      })
+      lua.setGlobal("allowBytecode")
+
       // How long programs may run without yielding before we stop them.
       lua.pushNumber(Settings.get.timeout)
       lua.setGlobal("timeout")
