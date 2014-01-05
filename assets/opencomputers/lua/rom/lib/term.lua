@@ -345,7 +345,7 @@ function term.write(value, wrap)
     while wrap and unicode.len(line) > w - (cursorX - 1) do
       local partial = unicode.sub(line, 1, w - (cursorX - 1))
       local wordWrapped = partial:match("(.*[^a-zA-Z0-9._])")
-      if wordWrapped or unicode.len(partial) > w then
+      if wordWrapped or unicode.len(line) > w then
         partial = wordWrapped or partial
         line = unicode.sub(line, unicode.len(partial) + 1)
         component.gpu.set(cursorX, cursorY, partial)
