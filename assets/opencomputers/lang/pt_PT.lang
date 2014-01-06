@@ -1,0 +1,135 @@
+# This is the portuguese lang file, adapted from the english master file.
+#
+# CHANGES:
+# LordFokas (6-JAN-2014): first translation from en_US to pt_PT.
+#	  It's not perfect, but it's hard to translate, especially because
+#	given I'm a Computer Science Engineering student, I tend to mix in
+#	technical english words. I suggest someone less involved with CSE to
+#	try and revise my translation.
+#
+#########################################################################
+
+
+# Blocks
+oc:block.Adapter.name=Adaptador
+oc:block.Cable.name=Cabo
+oc:block.Capacitor.name=Condensador
+oc:block.Case0.name=Caixa Básica
+oc:block.Case1.name=Caixa Avançada
+oc:block.Case2.name=Caixa Superior
+oc:block.Charger.name=Carregador
+oc:block.DiskDrive.name=Drive de Disquetes
+oc:block.Keyboard.name=Teclado
+oc:block.PowerConverter.name=Conversor de Energia
+oc:block.PowerDistributor.name=Distribuidor de Energia
+oc:block.Redstone.name=E/S de Redstone
+oc:block.Robot.name=Robô
+oc:block.RobotAfterimage.name=Robô
+oc:block.Router.name=Roteador
+oc:block.Screen0.name=Ecrã Básico
+oc:block.Screen1.name=Ecrã Avançado
+oc:block.Screen2.name=Ecrã Superior
+
+# Items
+oc:item.Acid.name=Grogue
+oc:item.ALU.name=Unidade Aritmética e Lógica
+oc:item.Analyzer.name=Analizador
+oc:item.ArrowKeys.name=Setas
+oc:item.ButtonGroup.name=Grupo de Botões
+oc:item.CardBase.name=Placa Base
+oc:item.CircuitBoard.name=Placa de Circuitos
+oc:item.ControlUnit.name=Unidade de Controlo
+oc:item.CPU.name=Processador
+oc:item.CuttingWire.name=Arame de Corte
+oc:item.Disk.name=Disco
+oc:item.FloppyDisk.name=Disquete
+oc:item.GraphicsCard0.name=Placa Gráfica Básica
+oc:item.GraphicsCard1.name=Placa Gráfica Avançada
+oc:item.GraphicsCard2.name=Placa Gráfica Superior
+oc:item.HardDiskDrive.name=Disco Rígido
+oc:item.IronNugget.name=Pepita de Ferro
+oc:item.Memory.name=Memória
+oc:item.Microchip0.name=Circuito Integrado Simples
+oc:item.Microchip1.name=Circuito Integrado Avançado
+oc:item.Microchip2.name=Circuito Integrado Superior
+oc:item.NetworkCard.name=Placa de Rede
+oc:item.NumPad.name=Teclado Numérico
+oc:item.PrintedCircuitBoard.name=Placa de Circuitos Impressos
+oc:item.RawCircuitBoard.name=Placa de Circuitos Vazia
+oc:item.RedstoneCard.name=Placa de Redstone
+oc:item.Transistor.name=Transístor
+oc:item.UpgradeCrafting.name=Melhoramento: Fabrico
+oc:item.UpgradeGenerator.name=Melhoramento: Gerador
+oc:item.UpgradeNavigation.name=Melhoramento: Navegação
+oc:item.UpgradeSign.name=Melhoramento: Escrita e Leitura de Placas
+oc:item.UpgradeSolarGenerator.name=Melhoramento: Gerador Solar
+oc:item.WirelessNetworkCard.name=Placa de Rede sem Fios
+
+# GUI
+oc:gui.Analyzer.Address=Endereço
+oc:gui.Analyzer.ComponentName=Nome do Componente
+oc:gui.Analyzer.LastError=Último erro
+oc:gui.Analyzer.RobotName=Nome
+oc:gui.Analyzer.RobotOwner=Proprietário
+oc:gui.Analyzer.RobotXp=Experiência
+oc:gui.Analyzer.StoredEnergy=Energia Armazenada
+oc:gui.Analyzer.TotalEnergy=Total de Energia Armazenada
+oc:gui.Analyzer.Users=Utilizadores
+oc:gui.Robot.Power=Energia
+oc:gui.Robot.TurnOff=Desligar
+oc:gui.Robot.TurnOn=Ligar
+
+# Containers
+oc:container.Adapter=Adaptador
+oc:container.Case=Computador
+oc:container.DiskDrive=Drive de Disquetes
+
+# Item / Block Tooltips
+oc:tooltip.Acid=Um líquido muito tóxico, geralmente apenas consumido por alguns piratas. Graças à sua natureza corrosiva é perfeito para gravar placas de circuitos.
+oc:tooltip.Adapter=Usado para controlar blocos que não sejam componentes, tais como blocos do Minecraft Vanilla ou de outros mods.
+oc:tooltip.ALU=Faz cálculos por ti. Talvez seja melhor assim.
+oc:tooltip.Analyzer=Usado para mostrar informação acerca de blocos, tais como o seu §fendereço§7 e §fnome de componente§7.[nl] também mostra o erro que fez o computador crashar caso este não se tenha desligado normalmente.
+oc:tooltip.Cable=Uma forma barata de conectar blocos.
+oc:tooltip.Capacitor=Armazena energia para ser usada mais tarde. Pode encher e esvaziar-se muito rapidamente.
+oc:tooltip.CardBase=Como o nome indica, é o componente básico para construir placas de expansão.
+oc:tooltip.Case=A Caixa é o bloco básico para a construção de computadores e contém as §fplacas de expansão§7, §fRAM§7 e §fdiscos rígidos§7.[nl] Slots: §f%s§7.
+oc:tooltip.Charger=Transfere energia dos condensadores para robôs adjacentes. A taxa de transferência depende do §fsinal de redstone§7 aplicado, onde nenhum sinal significa não carregar, e o sinal máximo significa carregar à velocidade máxima.
+oc:tooltip.CircuitBoard=Agora estamos a chegar a algum lado. Pode ser gravada para obter uma placa de circuitos impressos.
+oc:tooltip.ControlUnit=Esta é a unidade que... controla... coisas. Precisas dela para montar um Processador. Portanto, sim, pode-se dizer que é importante.
+oc:tooltip.CPU=Um componente essencial de qualquer computador. A frequencia é pouco fiável, mas o que é que esperas quando corre com um relógio de sol?
+oc:tooltip.CuttingWire=Usado para cortar blocos de barro na forma de uma placa. Parte-se ao fim de um uso, o que faz dela a ferramenta menos eficiente de sempre.
+oc:tooltip.Disk=Um meio primitivo que pode ser usado para construir dispositivos de armazenamento persistente.
+oc:tooltip.DiskDrive.CC=Disquetes do ComputerCraft são §asuportadas§7.
+oc:tooltip.DiskDrive=Permite ler e escrever dados em Disquetes.
+oc:tooltip.GraphicsCard=Usado para alterar o que é mostrado nos ecrãs.[nl] Resolução máxima: §f%sx%s§7.[nl] Profundidade de cor máxima: §f%s§7.[nl] Operações/ciclo: §f%s§7.
+oc:tooltip.IronNugget=Uma pepita feita de ferro, por isso é que se chama Pepita de Ferro, duh...
+oc:tooltip.Keyboard=Pode ligar-se a um ecrã para permitir escrever através dele.
+oc:tooltip.Memory=Necessária para poder usar um computador. Quanta mais RAM tiveres, mais complexos são os programas que podes correr.
+oc:tooltip.Microchip=Um chip antes conhecido por Circuito Integrado. Não faço ideia como é que isto funciona com redstone, mas funciona.
+oc:tooltip.NetworkCard=Permite a computadores distantes ligados por blocos (tais como Cabos) comunicar enviando mensagens entre eles.
+oc:tooltip.PowerConverter.BC=§fMJ de Buildcraft§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.IC2=§fEU de IndustrialCraft²§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.TE=§fRF de Thermal Expansion§7: §a%s:%s§7.
+oc:tooltip.PowerConverter.UE=§fJoules de Universal Electricity§7: §a%s:%s§7.
+oc:tooltip.PowerConverter=Converte energia de outros mods para o tipo de energia usado internamente. Taxas de conversão:
+oc:tooltip.PowerDistributor=Distribui energia entre diferentes redes. É util para alimentar várias redes separadas através de uma fonte de energia partilhada.
+oc:tooltip.PrintedCircuitBoard=O componente básico de placas de expansão, memórias e afins.
+oc:tooltip.RawCircuitBoard=Pode ser endurecida em qualquer fornalha.
+oc:tooltip.Redstone=Permite receber e emitir sinais de redstone. Pode ser controlado por qualquer computador ao qual o bloco esteja conectado. Basicamente isto é uma placa de controlo de redstone.
+oc:tooltip.RedstoneCard.RedLogic=§fRedLogic§7 é §asuportado§7.
+oc:tooltip.RedstoneCard.RedNet=§fRedNet§7 é §asuportado§7.
+oc:tooltip.RedstoneCard=Permite ao computador ou robô receber e emitir sinais de redstone.
+oc:tooltip.Robot=Ao contrário dos computadores, os robôs podem mover-se e interagir com o mundo como um jogado. No entanto, eles §onão§r§7 podem interagir com componentes externos!
+# The underscore makes sure this isn't hidden with the rest of the tooltip.
+oc:tooltip.Robot_Level=§fNível§7: §a%s§7.
+oc:tooltip.Robot_StoredEnergy=§fEnergia Armazenada§7: §a%s§7.
+oc:tooltip.Router=Permite interligar redes diferentes. Apenas pacotes de rede serão passados, componentes não serão visiveis em redes vizinhas. Usa isto para separar várias redes e ao mesmo tempo permitir comunicação através de placas de rede, por exemplo.
+oc:tooltip.Screen=Mostra texto, controlado por uma placa gráfica numa Caixa.[nl] Resolução máxima: §f%sx%s§7.[nl] Profundidade de cor máxima: §f%s§7.
+oc:tooltip.TooLong=Prime SHIFT para uma descrição detalhada.
+oc:tooltip.Transistor=Um componente básico do hardware do computador. É um pouco retorcido, mas faz o seu trabalho.
+oc:tooltip.UpgradeCrafting=Permite aos robôs usar a parte superior esquerda do seu inventório para fabricar objectos. Os itens têm de estar alinhados como numa mesa de fabrico.
+oc:tooltip.UpgradeGenerator=Pode ser usado para gerar energia a partir de combustível. Queima itens para gerar energia ao longo do tempo, dependendo da energia que pode ser extraída de cada componente.[nl] §fEficiência§7: §a%s%%§7
+oc:tooltip.UpgradeNavigation=Pode ser usado para determinar a posição e orientação do robô. A posição é relativa ao centro do mapa usado para fabricar este melhoramento.
+oc:tooltip.UpgradeSign=Permiter ler e escrever texto em Placas.
+oc:tooltip.UpgradeSolarGenerator=Pode ser usado para gerar energia a partir da luz solar. Requer exposição directa à luz solar. Gera energia a %s%% da velocidade de um motor a carvão.
+oc:tooltip.WirelessNetworkCard=Permite trocar mensagens em redes com e sem fios. Certifica-te que defines a §fforça do sinal§7 ou nenhum pacote será enviado via redes sem fios!
