@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
 import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
@@ -116,10 +117,9 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       (rx, ry)
     }
 
-    // Convert to absolute coordinates and send the (checked) signal.
-    if (!world.isRemote) {
-      val (bx, by) = (brx * bw, bry * bh)
-      origin.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
+    // Convert to absolute coordinates and send the packet to the server.
+    if (world.isRemote) {
+      ClientPacketSender.sendMouseClick(this, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false)
     }
     true
   }
