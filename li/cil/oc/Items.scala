@@ -2,7 +2,8 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
-import net.minecraft.item.ItemStack
+import net.minecraft.block.Block
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 
 object Items {
@@ -113,6 +114,8 @@ object Items {
 
     // ----------------------------------------------------------------------- //
 
+    registerExclusive("craftingPiston", new ItemStack(Block.pistonBase), new ItemStack(Block.pistonStickyBase))
+    registerExclusive("nuggetGold", new ItemStack(Item.goldNugget))
     registerExclusive("nuggetIron", ironNugget.createItemStack())
     register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
     register("oc:craftingCircuitBoard", circuitBoard.createItemStack())
@@ -150,9 +153,11 @@ object Items {
     }
   }
 
-  def registerExclusive(name: String, item: ItemStack) {
+  def registerExclusive(name: String, items: ItemStack*) {
     if (OreDictionary.getOres(name).isEmpty) {
-      OreDictionary.registerOre(name, item)
+      for (item <- items) {
+        OreDictionary.registerOre(name, item)
+      }
     }
   }
 }
