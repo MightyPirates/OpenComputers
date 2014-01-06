@@ -13,9 +13,7 @@ import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
 
-@Mod(modid = "OpenComputers", name = "OpenComputers", version = "1.1.0",
-  dependencies = "required-after:Forge@[9.11.1.940,);after:BuildCraft|Energy;after:ComputerCraft;after:IC2;after:MineFactoryReloaded;after:ProjRed|Transmission;after:RedLogic;after:ThermalExpansion",
-  modLanguage = "scala")
+@Mod(modid = "OpenComputers", modLanguage = "scala", useMetadata = true)
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),
