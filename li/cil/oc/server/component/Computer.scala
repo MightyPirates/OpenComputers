@@ -1004,7 +1004,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         }
         catch {
           case e: Throwable =>
-            if (Settings.get.logLuaCallbackErrors) {
+            if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
               OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
             }
             e match {
