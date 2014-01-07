@@ -3,7 +3,6 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Method, InvocationTargetException}
-import java.util
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.server.component
@@ -249,7 +248,7 @@ object Component {
 
     def isTable(index: Int) =
       index >= 0 && index < count && (args(index) match {
-        case value: util.Map[_, _] => true
+        case value: java.util.Map[_, _] => true
         case value: Map[_, _] => true
         case value: mutable.Map[_, _] => true
         case _ => false
@@ -272,7 +271,7 @@ object Component {
       case _: java.lang.Double => "double"
       case _: java.lang.String => "string"
       case _: Array[Byte] => "string"
-      case value: util.Map[_, _] => "table"
+      case value: java.util.Map[_, _] => "table"
       case value: Map[_, _] => "table"
       case value: mutable.Map[_, _] => "table"
       case _ => value.getClass.getSimpleName

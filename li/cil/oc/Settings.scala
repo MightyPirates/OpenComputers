@@ -43,6 +43,7 @@ class Settings(config: Config) {
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
   val allowBytecode = config.getBoolean("computer.allowBytecode")
+  val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
 
   // ----------------------------------------------------------------------- //
   // robot
