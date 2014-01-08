@@ -119,7 +119,7 @@ chip1 {
   type: assembly
   input: [itemPartCircuit, {item="oc:item", subID=23}]
   count: [1, 4]
-  eu:25
+  eu: 25
   time: 480
   output: 4
 }

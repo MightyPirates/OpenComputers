@@ -135,6 +135,12 @@ object MonospaceFontRenderer {
     private val bgv2 = 256.0 / 256.0
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {
+      // IMPORTANT: we must not use the tessellator here. Doing so can cause
+      // crashes on certain graphics cards with certain drivers (reported for
+      // ATI/AMD and Intel chip sets). These crashes have been reported to
+      // happen I have no idea why, and can only guess that it's related to
+      // using the VBO/ARB the tessellator uses inside a display list (since
+      // this stuff is eventually only rendered via display lists).
       GL11.glBegin(GL11.GL_QUADS)
       GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
       GL11.glTexCoord2d(bgu1, bgv2)
