@@ -32,11 +32,11 @@ class Settings(config: Config) {
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3) =>
-      Array(tier1: Int, tier2: Int, tier3: Int)
+    case Array(tier1, tier2, tier3, tier4, tier5) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int)
     case _ =>
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
-      Array(64, 128, 256)
+      Array(64, 128, 256, 512, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")

@@ -15,7 +15,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Memory
-  var ram1, ram2, ram3: item.Memory = null
+  var ram1, ram2, ram3, ram4, ram5: item.Memory = null
 
   // ----------------------------------------------------------------------- //
   // Storage
@@ -111,6 +111,9 @@ object Items {
     upgradeSolarGenerator = new item.UpgradeSolarGenerator(multi)
     upgradeSign = new item.UpgradeSign(multi)
     upgradeNavigation = new item.UpgradeNavigation(multi)
+
+    ram4 = new item.Memory(multi, 3)
+    ram5 = new item.Memory(multi, 4)
 
     // ----------------------------------------------------------------------- //
 
