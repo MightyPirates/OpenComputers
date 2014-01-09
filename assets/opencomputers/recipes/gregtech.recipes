@@ -46,18 +46,19 @@ hdd3 {
           [screwTungstenSteel , craftingToolScrewdriver, screwTungstenSteel]]
 }
 
+# graphicsCard1 { fallback to default }
+# graphicsCard2 { fallback to default }
+# graphicsCard3 { fallback to default }
 redstoneCard {
   input: [[screwStainlessSteel , "oc:circuitAdvanced" , screwStainlessSteel]
-          ["comparator", "oc:craftingCircuitBoardPrinted", diode]
+          ["comparator", "oc:craftingCard", diode]
           [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
 }
-
 lanCard {
   input: [[screwStainlessSteel , "oc:circuitAdvanced" , screwStainlessSteel]
-          ["oc:craftingCable", "oc:craftingCircuitBoardPrinted", "oc:craftingCable"]
+          ["oc:craftingCable", "oc:craftingCard", "oc:craftingCable"]
           [screwStainlessSteel , craftingToolScrewdriver, screwStainlessSteel]]
 }
-
 wlanCard {
   input: [[screwTitanium , "oc:circuitElite" , screwTitanium]
           [{item="item.GT_Components", subID=84}, "oc:componentCardLan", {item="item.GT_Components", subID=82}]
@@ -69,7 +70,6 @@ craftingUpgrade {
           ["oc:circuitAdvanced", {item=tile.BlockMetaID_Machine, subID=16}, "oc:circuitAdvanced"]
           [screwStainlessSteel, craftingToolScrewdriver, screwStainlessSteel]]
 }
-
 generatorUpgrade {
   input: [[screwStainlessSteel, "oc:craftingCircuitBoardPrinted" , screwStainlessSteel]
           ["oc:circuitAdvanced", craftingGenerator, "oc:circuitAdvanced"]
@@ -85,7 +85,6 @@ signUpgrade {
           ["oc:circuitBasic", stickWood, "oc:circuitBasic"]
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
-
 solarGeneratorUpgrade {
   input: [[screwTitanium, "", screwTitanium]
           ["oc:circuitElite", {item=GT_Components, subID=7} , "oc:circuitElite"]
@@ -106,6 +105,10 @@ disk {
           [plateAluminium, "", plateAluminium]
           ["", plateAluminium, ""]]
 }
+
+# buttonGroup { fallback to default }
+# arrowKeys { fallback to default }
+# numPad { fallback to default }
 
 transistor {
   type: assembly
@@ -161,6 +164,7 @@ cu {
   output: 3
 }
 
+# rawCircuitBoard { fallback to default }
 circuitBoard {
   type: furnace
   input: "oc:craftingCircuitBoardRaw"
@@ -219,7 +223,7 @@ diskDrive {
           [craftingPiston, craftingRawMachineTier02, craftingLenseWhite]
           ["oc:circuitAdvanced", craftingToolWrench, "oc:circuitAdvanced"]]
 }
-
+# keyboard { fallback to default }
 powerConverter {
   input: [["", "oc:circuitAdvanced", ""]
           [plateAluminium, {item=Electric, subID=4}, plateAluminium]
