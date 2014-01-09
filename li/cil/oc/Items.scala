@@ -123,6 +123,7 @@ object Items {
     register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
     register("oc:craftingCircuitBoard", circuitBoard.createItemStack())
     register("oc:craftingCircuitBoardPrinted", pcb.createItemStack())
+    register("oc:craftingCard", card.createItemStack())
     register("oc:craftingWire", cuttingWire.createItemStack())
     register("oc:circuitBasic", chip1.createItemStack())
     register("oc:circuitAdvanced", chip2.createItemStack())

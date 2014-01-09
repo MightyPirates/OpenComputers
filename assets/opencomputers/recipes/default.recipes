@@ -47,7 +47,7 @@ abstractBusCard {
 }
 graphicsCard1 {
   input: [["oc:circuitBasic", "oc:craftingALU", "oc:craftingRAMBasic"]
-          ["", "oc:craftingCircuitBoardPrinted", ""]]
+          ["", "oc:craftingCard", ""]]
 }
 graphicsCard2 {
   input: [["oc:circuitAdvanced", "oc:circuitAdvanced", "oc:craftingRAMAdvanced"]
@@ -59,11 +59,11 @@ graphicsCard3 {
 }
 redstoneCard {
   input: [[torchRedstoneActive, "oc:circuitBasic", ""]
-          ["", "oc:craftingCircuitBoardPrinted", ""]]
+          ["", "oc:craftingCard", ""]]
 }
 lanCard {
   input: [["oc:craftingCable", "oc:circuitBasic", ""]
-          ["", "oc:craftingCircuitBoardPrinted", ""]]
+          ["", "oc:craftingCard", ""]]
 }
 wlanCard {
   input: [[enderPearl, "oc:circuitAdvanced", ""]
