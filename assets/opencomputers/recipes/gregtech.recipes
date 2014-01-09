@@ -117,15 +117,15 @@ transistor {
 }
 chip1 {
   type: assembly
-  input: [itemPartCircuit, {item="oc:item", subID=23}]
+  input: ["ic2.itemPartCircuit", {item="oc:item", subID=23}]
   count: [1, 4]
-  eu:25
+  eu: 25
   time: 480
   output: 4
 }
 chip2 {
   type: assembly
-  input: [itemPartCircuitAdv, {item="oc:item", subID=23}]
+  input: ["ic2.itemPartCircuitAdv", {item="oc:item", subID=23}]
   count: [1, 8]
   eu: 25
   time: 640
@@ -183,7 +183,7 @@ adapter {
 }
 cable {
   type: assembly
-  input: [itemCable, {item=item.GT_Dusts, subID=35}]
+  input: ["ic2.itemCable", {item=item.GT_Dusts, subID=35}]
   count: [8, 1]
   eu: 32
   time: 64
@@ -201,17 +201,17 @@ charger {
 }
 case1 {
   input: [[screwAluminium, "oc:craftingCircuitBoardPrinted", craftingToolWrench]
-          [reactorVentSpread, craftingRawMachineTier01, "oc:circuitBasic"]
+          ["ic2.reactorVentSpread", craftingRawMachineTier01, "oc:circuitBasic"]
           [screwAluminium, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 case2 {
   input: [[screwStainlessSteel , "oc:craftingCircuitBoardPrinted", craftingToolWrench]
-          [reactorVentGold, "oc:craftingCaseBasic", "oc:circuitAdvanced"]
+          ["ic2.reactorVentGold", "oc:craftingCaseBasic", "oc:circuitAdvanced"]
           [screwStainlessSteel, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 case3 {
   input: [[screwTitanium , "oc:craftingCircuitBoardPrinted", craftingToolWrench]
-          [reactorVentDiamond, "oc:craftingCaseAdvanced", "oc:circuitElite"]
+          ["ic2.reactorVentDiamond", "oc:craftingCaseAdvanced", "oc:circuitElite"]
           [screwTitanium, "oc:craftingCPU", craftingToolScrewdriver]]
 }
 diskDrive {

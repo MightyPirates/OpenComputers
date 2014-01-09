@@ -10,6 +10,7 @@ To support accepting energy from their respective power systems:
 To support bundled redstone input and output:
 - RedLogic [6], license: MIT License, see thread.
 - MineFactory Reloaded [7], license: custom, see thread.
+- Project: Red [9], license: Restricted Public Software License [10].
 
 For providing a peripheral and reading their floppy disks:
 - ComputerCraft [8], copyright Daniel Ratcliffe.
@@ -22,3 +23,5 @@ For providing a peripheral and reading their floppy disks:
 [6] http://www.minecraftforum.net/topic/1852277-162-redlogic-wip-replacement-for-rp2-wiringlogiccontrollighting/
 [7] http://www.minecraftforum.net/topic/2016680-162164-powercrystals-mods-minefactoryreloaded-powercrystalscore-and-netherores-updated/
 [8] http://www.computercraft.info/
+[9] http://projectredwiki.com/
+[10] https://github.com/MrTJP/ProjectRed/blob/master/LICENSE.md

@@ -101,7 +101,8 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   def findMovingRobot(world: IBlockAccess, x: Int, y: Int, z: Int): Option[tileentity.Robot] = {
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+      val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (world.getBlockId(tx, ty, tz) != 0) world.getBlockTileEntity(tx, ty, tz) match {
         case proxy: tileentity.RobotProxy if proxy.robot.moveFromX == x && proxy.robot.moveFromY == y && proxy.robot.moveFromZ == z => return Some(proxy.robot)
         case _ =>
       }
