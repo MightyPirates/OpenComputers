@@ -1,8 +1,8 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network.{Arguments, Context, LuaCallback, Visibility}
 import li.cil.oc.common.tileentity
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
@@ -11,6 +11,7 @@ import stargatetech2.api.bus.{BusPacketLIP, BusPacket, IBusDriver, IBusInterface
 class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with IBusDriver {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
+    withConnector().
     create()
 
   val busInterface: IBusInterface = StargateTechAPI.api.getFactory.getIBusInterface(owner, this)
@@ -73,10 +74,16 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)
-    sendQueue = Some(new QueuedPacket(address.toShort, target.toShort, Map(data.toSeq.map(entry => (entry._1.toString, entry._2.toString)): _*)))
-    busInterface.sendAllPackets()
-    result(true)
+    if (node.tryChangeBuffer(-Settings.get.abstractBusPacketCost)) {
+      sendQueue = Some(new QueuedPacket(address.toShort, target.toShort, Map(data.toSeq.map(entry => (entry._1.toString, entry._2.toString)): _*)))
+      busInterface.sendAllPackets()
+      result(true)
+    }
+    else result(false, "not enough energy")
   }
+
+  @LuaCallback(value = "maxPacketSize", direct = true)
+  def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //
 
@@ -97,6 +104,16 @@ class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with 
     nbt.setInteger("address", address)
   }
 
-  protected class QueuedPacket(val sender: Short, val target: Short, val data: Map[String, String])
+  protected class QueuedPacket(val sender: Short, val target: Short, val data: Map[String, String]) {
+    // Extra braces because we don't want/have to keep size as a field.
+    {
+      val size = data.foldLeft(0)((acc, arg) => {
+        acc + arg._1.length + arg._2.length
+      })
+      if (size > Settings.get.maxNetworkPacketSize) {
+        throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
+      }
+    }
+  }
 
 }
