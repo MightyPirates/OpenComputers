@@ -518,7 +518,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (1, Some(driver)) => driver.slot(stack) == Slot.Card
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
     case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade
     case (i, _) if actualSlot(0) until getSizeInventory contains i => true // Normal inventory.

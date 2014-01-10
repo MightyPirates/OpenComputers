@@ -37,5 +37,5 @@
 @cpw.mods.fml.common.API(
         owner = "OpenComputers",
         provides = "OpenComputersAPI",
-        apiVersion = "1.1.0")
+        apiVersion = "1.2.0")
 package li.cil.oc.api;

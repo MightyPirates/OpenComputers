@@ -5,8 +5,10 @@ import li.cil.oc.client.gui.Icons
 import net.minecraft.inventory.{IInventory, Slot}
 import net.minecraft.item.ItemStack
 
-class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot = api.driver.Slot.None) extends Slot(inventory, index, x, y) {
+class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot = api.driver.Slot.None, val tier: Int = -1) extends Slot(inventory, index, x, y) {
   setBackgroundIcon(Icons.get(slot))
+
+  val tierIcon = Icons.get(tier)
 
   override def getSlotStackLimit =
     slot match {

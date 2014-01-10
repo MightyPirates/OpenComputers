@@ -97,9 +97,9 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     }
   }
 
-  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None) {
+  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = -1) {
     val index = getInventory.size
-    addSlotToContainer(new ComponentSlot(otherInventory, index, x, y, slot))
+    addSlotToContainer(new ComponentSlot(otherInventory, index, x, y, slot, tier))
   }
 
   /** Render player inventory at the specified coordinates. */

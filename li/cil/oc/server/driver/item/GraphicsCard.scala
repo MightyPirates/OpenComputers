@@ -22,4 +22,10 @@ object GraphicsCard extends Item {
     }
 
   override def slot(stack: ItemStack) = Slot.Card
+
+  override def tier(stack: ItemStack) =
+    Items.multi.subItem(stack) match {
+      case Some(gpu: common.item.GraphicsCard) => gpu.tier
+      case _ => 0
+    }
 }
