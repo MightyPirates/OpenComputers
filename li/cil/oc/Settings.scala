@@ -32,6 +32,9 @@ class Settings(config: Config) {
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      // For compatibility with older config files.
+      Array(tier1: Int, tier2: Int, tier3: Int, tier3 * 2: Int, tier3 * 4: Int)
     case Array(tier1, tier2, tier3, tier4, tier5) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int)
     case _ =>

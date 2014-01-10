@@ -13,7 +13,7 @@ object Memory extends Item with driver.Memory {
     case _ => 0
   }
 
-  def worksWith(stack: ItemStack) = isOneOf(stack, Items.ram3, Items.ram1, Items.ram2)
+  def worksWith(stack: ItemStack) = isOneOf(stack, Items.ram1, Items.ram2, Items.ram3, Items.ram4, Items.ram5)
 
   def createEnvironment(stack: ItemStack, container: MCTileEntity) = null
 
@@ -21,7 +21,7 @@ object Memory extends Item with driver.Memory {
 
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
-      case Some(memory: item.Memory) => memory.tier
+      case Some(memory: item.Memory) => (memory.tier + 1) / 2
       case _ => 0
     }
 }
