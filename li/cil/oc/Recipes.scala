@@ -56,6 +56,8 @@ object Recipes {
       addRecipe(Items.ram1.createItemStack(), recipes, "ram1")
       addRecipe(Items.ram2.createItemStack(), recipes, "ram2")
       addRecipe(Items.ram3.createItemStack(), recipes, "ram3")
+      addRecipe(Items.ram4.createItemStack(), recipes, "ram4")
+      addRecipe(Items.ram5.createItemStack(), recipes, "ram5")
 
       addRecipe(Items.floppyDisk.createItemStack(), recipes, "floppy")
       addRecipe(Items.hdd1.createItemStack(), recipes, "hdd1")

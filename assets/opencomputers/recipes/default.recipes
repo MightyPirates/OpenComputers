@@ -19,6 +19,16 @@ ram3 {
   input: [["oc:circuitElite", "oc:circuitElite", "oc:circuitElite"]
           ["oc:craftingRAMAdvanced", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMAdvanced"]]
 }
+ram4 {
+  input: [["oc:circuitElite", emerald, "oc:circuitElite"]
+          ["oc:craftingRAMElite", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMElite"]
+          ["oc:circuitElite", "", "oc:circuitElite"]]
+}
+ram5 {
+  input: [["oc:circuitElite", netherStar, "oc:circuitElite"]
+          ["oc:craftingRAMElite2", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMElite2"]
+          ["oc:circuitElite", "", "oc:circuitElite"]]
+}
 
 floppy {
   input: [[nuggetIron, lever, nuggetIron]

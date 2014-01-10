@@ -140,6 +140,8 @@ object Items {
     register("oc:craftingRAMBasic", ram1.createItemStack())
     register("oc:craftingRAMAdvanced", ram2.createItemStack())
     register("oc:craftingRAMElite", ram3.createItemStack())
+    register("oc:craftingRAMElite2", ram4.createItemStack())
+    register("oc:craftingRAMElite3", ram5.createItemStack())
     register("oc:craftingHDDBasic", hdd1.createItemStack())
     register("oc:craftingHDDAdvanced", hdd2.createItemStack())
     register("oc:craftingHDDElite", hdd3.createItemStack())

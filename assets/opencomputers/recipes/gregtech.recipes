@@ -24,6 +24,16 @@ ram3 {
           ["oc:craftingRAMAdvanced", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMAdvanced"]
           [Dataorb, craftingToolWrench, Dataorb]]
 }
+ram4 {
+  input: [["oc:circuitElite", emerald, "oc:circuitElite"]
+          ["oc:craftingRAMElite", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMElite"]
+          [Dataorb, craftingToolWrench, Dataorb]]
+}
+ram5 {
+  input: [["oc:circuitElite", netherStar, "oc:circuitElite"]
+          ["oc:craftingRAMElite2", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMElite2"]
+          [Dataorb, craftingToolWrench, Dataorb]]
+}
 
 floppy {
   input: [[screwAluminium, lever, screwAluminium]
