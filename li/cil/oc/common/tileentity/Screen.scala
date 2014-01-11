@@ -367,7 +367,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         case _ => false
       }
     }
-    tryMergeTowards(width, 0) || tryMergeTowards(0, height) || tryMergeTowards(-1, 0) || tryMergeTowards(0, -1)
+    tryMergeTowards(0, height) || tryMergeTowards(0, -1) || tryMergeTowards(width, 0) || tryMergeTowards(-1, 0)
   }
 
   private def project(t: Screen) = {
