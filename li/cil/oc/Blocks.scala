@@ -70,9 +70,15 @@ object Blocks {
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = new RobotProxy(blockSpecialWithRedstone)
     router = new Router(blockSimple)
-    screen1 = new Screen.Tier1(blockSimple)
-    screen2 = new Screen.Tier2(blockSimple)
-    screen3 = new Screen.Tier3(blockSimple)
+    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
+    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
+    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
+
+    // For automatic conversion from old format (when screens did not take
+    // redstone inputs) to keep save format compatible.
+    blockSimple.subBlocks += screen1
+    blockSimple.subBlocks += screen2
+    blockSimple.subBlocks += screen3
 
     redstone = new Redstone(blockSimpleWithRedstone)
 

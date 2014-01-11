@@ -17,8 +17,9 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with RedstoneAware with Analyzable with Ordered[Screen] {
   def this() = this(0)
+  _isOutputEnabled = true
 
   // ----------------------------------------------------------------------- //
 
@@ -29,10 +30,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     @LuaCallback("turnOn")
     def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
       if (!origin.isOn) {
-        origin.isOn = true
-        val neededPower = width * height * Settings.get.screenCost * Settings.get.tickFrequency
-        origin.hasPower = node.changeBuffer(-neededPower) == 0
-        ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+        origin.turnOn()
         result(true, origin.isOn)
       }
       else result(false, origin.isOn)
@@ -41,8 +39,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     @LuaCallback("turnOff")
     def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
       if (origin.isOn) {
-        origin.isOn = false
-        ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+        origin.turnOff()
         result(true, origin.isOn)
       }
       else result(false, origin.isOn)
@@ -76,6 +73,8 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   var hasPower = true
 
   var isOn = true
+
+  var hadRedstoneInput = false
 
   var cachedBounds: Option[AxisAlignedBB] = None
 
@@ -185,10 +184,25 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     }
   }
 
+  def turnOn() {
+    origin.isOn = true
+    val neededPower = width * height * Settings.get.screenCost * Settings.get.tickFrequency
+    origin.hasPower = buffer.node.changeBuffer(-neededPower) == 0
+    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+  }
+
+  def turnOff() {
+    origin.isOn = false
+    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
+    if (isServer) {
+      updateRedstoneInput()
+    }
     if (isServer && isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
@@ -196,7 +210,9 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         // scaled to multi-block screens, since we only compute this for the
         // origin. We add 1 to make sure we at least consume `screenCost`.
         val (w, h) = buffer.resolution
-        relativeLitArea = 1 + width * height * buffer.lines.foldLeft(0) { (acc, line) => acc + line.count(' ' !=) } / (w * h).toDouble
+        relativeLitArea = 1 + width * height * buffer.lines.foldLeft(0) {
+          (acc, line) => acc + line.count(' ' !=)
+        } / (w * h).toDouble
       }
       val hadPower = hasPower
       val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
@@ -306,6 +322,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     if (nbt.hasKey(Settings.namespace + "isOn")) {
       hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
     }
+    hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -313,6 +330,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     super.writeToNBT(nbt)
     nbt.setBoolean(Settings.namespace + "isOn", isOn)
     nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
+    nbt.setBoolean(Settings.namespace + "hadRedstoneInput", hadRedstoneInput)
   }
 
   @SideOnly(Side.CLIENT)
@@ -351,6 +369,17 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin.node
+
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    val hasRedstoneInput = screens.map(_.maxInput).max > 0
+    if (hasRedstoneInput != hadRedstoneInput) {
+      hadRedstoneInput = hasRedstoneInput
+      if (hasRedstoneInput) {
+        if (origin.isOn) turnOff() else turnOn()
+      }
+    }
+  }
 
   override def onRotationChanged() {
     super.onRotationChanged()

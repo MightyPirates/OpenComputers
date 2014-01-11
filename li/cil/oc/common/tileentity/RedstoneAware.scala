@@ -43,6 +43,8 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
 
   def input(side: ForgeDirection) = _input(side.ordinal())
 
+  def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
+
   def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
 
   def output(side: ForgeDirection, value: Int): Unit = if (value != output(side)) {
