@@ -29,7 +29,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   override def isOutputEnabled_=(value: Boolean) = {
     if (value != isOutputEnabled) {
-      if (!isOutputEnabled) {
+      if (!value) {
         for (i <- 0 until _bundledOutput.length) {
           for (j <- 0 until _bundledOutput(i).length) {
             _bundledOutput(i)(j) = 0

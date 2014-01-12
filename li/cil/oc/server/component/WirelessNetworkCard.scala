@@ -120,8 +120,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     checkPacketSize(args.drop(1))
     if (strength > 0) {
       checkPower()
-      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-           if card.openPorts.contains(port)) {
+      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this) if card.openPorts.contains(port)) {
         card.node.sendToReachable("computer.signal",
           Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(1): _*)
       }
