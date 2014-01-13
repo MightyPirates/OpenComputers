@@ -1018,8 +1018,8 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
                 lua.pushBoolean(true)
                 lua.pushNil()
                 lua.pushString(e.getMessage)
-                if (true) {
-                  lua.pushString(e.getStackTraceString)
+                if (Settings.get.logLuaCallbackErrors) {
+                  lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
                   4
                 }
                 else 3
