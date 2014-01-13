@@ -93,7 +93,9 @@ object Recipes {
       addRecipe(Items.chip2.createItemStack(), recipes, "chip2")
       addRecipe(Items.chip3.createItemStack(), recipes, "chip3")
       addRecipe(Items.alu.createItemStack(), recipes, "alu")
-      addRecipe(Items.cpu.createItemStack(), recipes, "cpu")
+      addRecipe(Items.cpu0.createItemStack(), recipes, "cpu0")
+      addRecipe(Items.cpu1.createItemStack(), recipes, "cpu1")
+      addRecipe(Items.cpu2.createItemStack(), recipes, "cpu2")
       addRecipe(Items.cu.createItemStack(), recipes, "cu")
 
       addRecipe(Items.rawCircuitBoard.createItemStack(), recipes, "rawCircuitBoard")

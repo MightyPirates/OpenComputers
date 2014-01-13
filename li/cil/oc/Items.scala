@@ -54,7 +54,7 @@ object Items {
   var transistor: item.Transistor = _
   var chip1, chip2, chip3: item.Microchip = _
   var alu: item.ALU = _
-  var cpu: item.CPU = _
+  var cpu0, cpu1, cpu2: item.CPU = _
   var cu: item.ControlUnit = _
 
   var rawCircuitBoard: item.RawCircuitBoard = _
@@ -103,7 +103,7 @@ object Items {
     chip3 = new item.Microchip(multi, 2)
     alu = new item.ALU(multi)
     cu = new item.ControlUnit(multi)
-    cpu = new item.CPU(multi)
+    cpu0 = new item.CPU(multi, 0)
 
     rawCircuitBoard = new item.RawCircuitBoard(multi)
     circuitBoard = new item.CircuitBoard(multi)
@@ -121,6 +121,8 @@ object Items {
     // v1.2.0
     server = new item.Server(multi)
     terminal = new item.Terminal(multi)
+    cpu1 = new item.CPU(multi, 1)
+    cpu2 = new item.CPU(multi, 2)
 
     // ----------------------------------------------------------------------- //
 
@@ -138,7 +140,10 @@ object Items {
     register("oc:craftingTransistor", transistor.createItemStack())
     register("oc:craftingCU", cu.createItemStack())
     register("oc:craftingALU", alu.createItemStack())
-    register("oc:craftingCPU", cpu.createItemStack())
+    register("oc:craftingCPU", cpu0.createItemStack())
+    register("oc:craftingCPUTier1", cpu0.createItemStack())
+    register("oc:craftingCPUTier2", cpu1.createItemStack())
+    register("oc:craftingCPUTier3", cpu2.createItemStack())
     register("oc:componentCardRedstone", rs.createItemStack())
     register("oc:componentCardLan", lan.createItemStack())
     register("oc:craftingGPUBasic", gpu1.createItemStack())

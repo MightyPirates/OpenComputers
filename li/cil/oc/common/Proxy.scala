@@ -36,6 +36,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
+    api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.WirelessNetworkCard)

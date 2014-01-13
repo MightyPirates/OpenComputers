@@ -32,10 +32,10 @@ public interface Item {
      * over time; if it does, though, an already installed component will not
      * be ejected, since this value is only checked when adding components.
      *
-     * @param item the item to check.
+     * @param stack the item to check.
      * @return <tt>true</tt> if the item is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(ItemStack item);
+    boolean worksWith(ItemStack stack);
 
     /**
      * Create a new managed environment interfacing the specified item.
