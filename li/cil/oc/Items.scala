@@ -16,14 +16,14 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Memory
-  var ram1, ram2, ram3, ram4, ram5: item.Memory = null
+  var ram1, ram2, ram3, ram4, ram5: item.Memory = _
+
+  // ----------------------------------------------------------------------- //
   // Servers
   var server: item.Server = _
 
   // ----------------------------------------------------------------------- //
-  // Modules
-  var ram1, ram2, ram3: item.Memory = _
-
+  // Components
   var floppyDisk: item.FloppyDisk = _
   var hdd1, hdd2, hdd3: item.HardDiskDrive = _
 
@@ -34,11 +34,11 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Upgrades
-  var upgradeCrafting: item.UpgradeCrafting = null
-  var upgradeGenerator: item.UpgradeGenerator = null
-  var upgradeNavigation: item.UpgradeNavigation = null
-  var upgradeSign: item.UpgradeSign = null
-  var upgradeSolarGenerator: item.UpgradeSolarGenerator = null
+  var upgradeCrafting: item.UpgradeCrafting = _
+  var upgradeGenerator: item.UpgradeGenerator = _
+  var upgradeNavigation: item.UpgradeNavigation = _
+  var upgradeSign: item.UpgradeSign = _
+  var upgradeSolarGenerator: item.UpgradeSolarGenerator = _
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -110,10 +110,6 @@ object Items {
     pcb = new item.PrintedCircuitBoard(multi)
     card = new item.CardBase(multi)
 
-    server = new item.Server(multi)
-    terminal = new item.Terminal(multi)
-
-    OreDictionary.registerOre("nuggetIron", ironNugget.createItemStack())
     // v1.1.0
     upgradeSolarGenerator = new item.UpgradeSolarGenerator(multi)
     upgradeSign = new item.UpgradeSign(multi)
@@ -121,6 +117,10 @@ object Items {
 
     ram4 = new item.Memory(multi, 3)
     ram5 = new item.Memory(multi, 4)
+
+    // v1.2.0
+    server = new item.Server(multi)
+    terminal = new item.Terminal(multi)
 
     // ----------------------------------------------------------------------- //
 
