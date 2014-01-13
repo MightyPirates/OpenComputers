@@ -24,26 +24,35 @@ class PacketHandler extends CommonPacketHandler {
     }
 
   def onComputerPower(p: PacketParser) =
-    p.readTileEntity[Computer]() match {
-      case Some(t) => p.player match {
-        case player: EntityPlayer if t.computer.canInteract(player.getCommandSenderName) =>
-          if (p.readBoolean()) {
-            if (!t.computer.isPaused) {
-              t.computer.start()
-              t.computer.lastError match {
-                case Some(message) => p.player match {
-                  case player: EntityPlayer => player.addChatMessage(message)
-                  case _ =>
-                }
-                case _ =>
-              }
-            }
-          }
-          else t.computer.stop()
+    p.readTileEntity[TileEntity]() match {
+      case Some(t: Computer) => p.player match {
+        case player: EntityPlayer => trySetComputerPower(t.computer, p.readBoolean(), player)
         case _ =>
+      }
+      case Some(r: Rack) => r.servers(p.readInt()) match {
+        case Some(server) => p.player match {
+          case player: EntityPlayer => trySetComputerPower(server, p.readBoolean(), player)
+          case _ =>
+        }
+        case _ => // Invalid packet.
       }
       case _ => // Invalid packet.
     }
+
+  private def trySetComputerPower(computer: component.Computer, value: Boolean, player: EntityPlayer) {
+    if (computer.canInteract(player.getCommandSenderName)) {
+      if (value) {
+        if (!computer.isPaused) {
+          computer.start()
+          computer.lastError match {
+            case Some(message) => player.addChatMessage(message)
+            case _ =>
+          }
+        }
+      }
+      else computer.stop()
+    }
+  }
 
   def onKeyDown(p: PacketParser) =
     p.readTileEntity[Buffer]() match {

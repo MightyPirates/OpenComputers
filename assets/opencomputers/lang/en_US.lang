@@ -78,8 +78,8 @@ oc:gui.Robot.TurnOn=Turn on
 oc:container.Adapter=Adapter
 oc:container.Case=Computer
 oc:container.DiskDrive=Disk Drive
+oc:container.Rack=Server Rack
 oc:container.Server=Server
-oc:container.ServerRack=Server Rack
 
 # Item / Block Tooltips
 oc:tooltip.Acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. Thanks to its corrosive nature it is perfectly suited for etching circuit boards.

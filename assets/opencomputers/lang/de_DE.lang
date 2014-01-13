@@ -78,8 +78,8 @@ oc:gui.Robot.TurnOn=Einschalten
 oc:container.Adapter=Adapter
 oc:container.Case=Computer
 oc:container.DiskDrive=Diskettenlaufwerk
+oc:container.Rack=Serverschrank
 oc:container.Server=Server
-oc:container.ServerRack=Serverschrank
 
 # Item / Block Tooltips
 oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet.

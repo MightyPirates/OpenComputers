@@ -17,4 +17,11 @@ class Rack extends Environment with Inventory {
   def getInventoryStackLimit = 1
 
   def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
+
+  def isRunning(number: Int) = servers(number) match {
+    case Some(server) => server.isRunning
+    case _ => false
+  }
+
+  def isServerInstalled(number: Int) = servers(number).isDefined
 }

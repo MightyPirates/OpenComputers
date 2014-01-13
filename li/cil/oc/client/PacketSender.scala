@@ -69,4 +69,14 @@ object PacketSender {
 
       pb.sendToServer()
     }
+
+  def sendServerPower(t: Rack, number: Int, power: Boolean) {
+    val pb = new PacketBuilder(PacketType.ComputerPower)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(number)
+    pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
 }
