@@ -43,6 +43,15 @@ public enum Slot {
     Memory,
 
     /**
+     * CPU slots, used in servers.
+     * <p/>
+     * Components should usually not implement this slot type, unless you want
+     * to provide an alternative CPU (that will have the same effect as the
+     * default one, so I don't think that would make a lot of sense).
+     */
+    Processor,
+
+    /**
      * Tool slot in robots (equipment slot).
      * <p/>
      * Components should usually not implement this slot type, since this slot

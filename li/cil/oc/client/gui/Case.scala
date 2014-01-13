@@ -39,7 +39,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
     fontRenderer.drawString(
-      StatCollector.translateToLocal(Settings.namespace + "container.Case"),
+      StatCollector.translateToLocal(computer.getInvName),
       8, 6, 0x404040)
     if (powerButton.func_82252_a) {
       val tooltip = new java.util.ArrayList[String]

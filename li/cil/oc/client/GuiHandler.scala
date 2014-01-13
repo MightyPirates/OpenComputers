@@ -1,7 +1,8 @@
 package li.cil.oc.client
 
-import li.cil.oc.common.tileentity
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler, GuiType}
+import li.cil.oc.Items
+import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiType}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -20,6 +21,12 @@ object GuiHandler extends CommonGuiHandler {
         new gui.Rack(player.inventory, rack)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen)
-      case _ => null
+      case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
+        case Some(server: item.Server) if id == GuiType.Server.id =>
+          new gui.Server(player.inventory, new ServerInventory(player))
+        case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
+          null // TODO
+        case _ => null
+      }
     }
 }

@@ -32,14 +32,14 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
       GL11.glEnable(GL11.GL_LIGHTING)
     }
     RenderState.makeItBlend()
-    GL11.glDepthMask(false)
     super.drawSlotInventory(slot)
-    GL11.glDepthMask(true)
     GL11.glDisable(GL11.GL_BLEND)
     if (!slot.getHasStack) slot match {
       case component: ComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
       case _ =>
     }
   }

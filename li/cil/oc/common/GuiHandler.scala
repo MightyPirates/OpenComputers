@@ -1,6 +1,8 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IGuiHandler
+import li.cil.oc.Items
+import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 
@@ -17,6 +19,12 @@ abstract class GuiHandler extends IGuiHandler {
         new container.Robot(player.inventory, proxy.robot)
       case rack: tileentity.Rack if id == GuiType.Rack.id =>
         new container.Rack(player.inventory, rack)
-      case _ => null
+      case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
+        case Some(server: item.Server) if id == GuiType.Server.id =>
+          new container.Server(player.inventory, new ServerInventory(player))
+        case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
+          null // TODO
+        case _ => null
+      }
     }
 }
