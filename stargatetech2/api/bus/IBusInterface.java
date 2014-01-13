@@ -10,16 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
  */
 public interface IBusInterface {
 	/**
-	 * This method is used to make the network remap it's devices.
-	 * Unless you are Sangar from OpenComputers, you probably don't need this.
-	 * 
-	 * Instead, use the BusEvent, to make StargateTech handle that automatically.
-	 * You should use BusEvent.AddToNetwork when the containing block is added and
-	 * BusEvent.RemoveFromNetwork when the containing block is removed from the world.
-	 */
-	public void updateAddressingTable();
-	
-	/**
 	 * Makes the IBusInterface call its IBusDriver's
 	 * getNextPacketToSend() method repeatedly until it returns
 	 * null. Every packet returned by that method will be sent
