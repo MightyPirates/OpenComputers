@@ -27,6 +27,8 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
 
   private lazy val fakeInterface = Array(StargateTechAPI.api.getFactory.getIBusInterface(this, null))
 
+  def getWorld = world
+
   def getXCoord = x
 
   def getYCoord = y

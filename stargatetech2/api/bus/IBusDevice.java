@@ -22,7 +22,7 @@ public interface IBusDevice {
 	/**
 	 * @return This device's worldObj.
 	 */
-	public World getWorldObj();
+	public World getWorld();
 	
 	/**
 	 * @return This device's X Coordinate.
