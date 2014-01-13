@@ -64,6 +64,7 @@ object Recipes {
       addRecipe(Items.hdd2.createItemStack(), recipes, "hdd2")
       addRecipe(Items.hdd3.createItemStack(), recipes, "hdd3")
 
+      addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")
       addRecipe(Items.gpu1.createItemStack(), recipes, "graphicsCard1")
       addRecipe(Items.gpu2.createItemStack(), recipes, "graphicsCard2")
       addRecipe(Items.gpu3.createItemStack(), recipes, "graphicsCard3")

@@ -122,6 +122,7 @@ class Settings(config: Config) {
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
   val wirelessCostPerRange = config.getDouble("power.cost.wirelessStrength") max 0
+  val abstractBusPacketCost = config.getDouble("power.cost.abstractBusPacket") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem

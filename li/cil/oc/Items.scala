@@ -7,57 +7,58 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 
 object Items {
-  var multi: item.Delegator = null
+  var multi: item.Delegator = _
 
   // ----------------------------------------------------------------------- //
   // Tools
-  var analyzer: item.Analyzer = null
+  var analyzer: item.Analyzer = _
 
   // ----------------------------------------------------------------------- //
   // Memory
-  var ram1, ram2, ram3, ram4, ram5: item.Memory = null
+  var ram1, ram2, ram3, ram4, ram5: item.Memory = _
 
   // ----------------------------------------------------------------------- //
   // Storage
-  var floppyDisk: item.FloppyDisk = null
-  var hdd1, hdd2, hdd3: item.HardDiskDrive = null
+  var floppyDisk: item.FloppyDisk = _
+  var hdd1, hdd2, hdd3: item.HardDiskDrive = _
 
   // ----------------------------------------------------------------------- //
   // Cards
-  var gpu1, gpu2, gpu3: item.GraphicsCard = null
-  var lan: item.NetworkCard = null
-  var rs: item.RedstoneCard = null
-  var wlan: item.WirelessNetworkCard = null
+  var abstractBus: item.AbstractBusCard = _
+  var gpu1, gpu2, gpu3: item.GraphicsCard = _
+  var lan: item.NetworkCard = _
+  var rs: item.RedstoneCard = _
+  var wlan: item.WirelessNetworkCard = _
 
   // ----------------------------------------------------------------------- //
   // Upgrades
-  var upgradeCrafting: item.UpgradeCrafting = null
-  var upgradeGenerator: item.UpgradeGenerator = null
-  var upgradeNavigation: item.UpgradeNavigation = null
-  var upgradeSign: item.UpgradeSign = null
-  var upgradeSolarGenerator: item.UpgradeSolarGenerator = null
+  var upgradeCrafting: item.UpgradeCrafting = _
+  var upgradeGenerator: item.UpgradeGenerator = _
+  var upgradeNavigation: item.UpgradeNavigation = _
+  var upgradeSign: item.UpgradeSign = _
+  var upgradeSolarGenerator: item.UpgradeSolarGenerator = _
 
   // ----------------------------------------------------------------------- //
   // Crafting
-  var ironNugget: item.IronNugget = null
-  var cuttingWire: item.CuttingWire = null
-  var acid: item.Acid = null
-  var disk: item.Disk = null
+  var ironNugget: item.IronNugget = _
+  var cuttingWire: item.CuttingWire = _
+  var acid: item.Acid = _
+  var disk: item.Disk = _
 
-  var buttonGroup: item.ButtonGroup = null
-  var arrowKeys: item.ArrowKeys = null
-  var numPad: item.NumPad = null
+  var buttonGroup: item.ButtonGroup = _
+  var arrowKeys: item.ArrowKeys = _
+  var numPad: item.NumPad = _
 
-  var transistor: item.Transistor = null
-  var chip1, chip2, chip3: item.Microchip = null
-  var alu: item.ALU = null
-  var cpu: item.CPU = null
-  var cu: item.ControlUnit = null
+  var transistor: item.Transistor = _
+  var chip1, chip2, chip3: item.Microchip = _
+  var alu: item.ALU = _
+  var cpu: item.CPU = _
+  var cu: item.ControlUnit = _
 
-  var rawCircuitBoard: item.RawCircuitBoard = null
-  var circuitBoard: item.CircuitBoard = null
-  var pcb: item.PrintedCircuitBoard = null
-  var card: item.CardBase = null
+  var rawCircuitBoard: item.RawCircuitBoard = _
+  var circuitBoard: item.CircuitBoard = _
+  var pcb: item.PrintedCircuitBoard = _
+  var card: item.CardBase = _
 
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
@@ -114,6 +115,8 @@ object Items {
 
     ram4 = new item.Memory(multi, 3)
     ram5 = new item.Memory(multi, 4)
+
+    abstractBus = new item.AbstractBusCard(multi)
 
     // ----------------------------------------------------------------------- //
 
