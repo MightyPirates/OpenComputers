@@ -23,7 +23,11 @@ object GuiHandler extends CommonGuiHandler {
         new gui.Screen(screen)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
-          new gui.Server(player.inventory, new ServerInventory(player))
+          new gui.Server(player.inventory, new ServerInventory {
+            def container = player.getCurrentEquippedItem
+
+            override def isUseableByPlayer(player: EntityPlayer) = player == player
+          })
         case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
           null // TODO
         case _ => null

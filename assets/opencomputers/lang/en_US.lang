@@ -14,6 +14,7 @@ oc:block.DiskDrive.name=Disk Drive
 oc:block.Keyboard.name=Keyboard
 oc:block.PowerConverter.name=Power Converter
 oc:block.PowerDistributor.name=Power Distributor
+oc:block.Rack.name=Server Rack
 oc:block.Redstone.name=Redstone I/O
 oc:block.Robot.name=Robot
 oc:block.RobotAfterimage.name=Robot

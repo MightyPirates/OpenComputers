@@ -14,13 +14,16 @@ import scala.collection.mutable
 class Server(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Server"
 
+  private val helperInventory = new ServerInventory {
+    var container: ItemStack = null
+  }
+
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    val inventory = new ServerInventory(player) {
-      override def container = stack
-    }
+    helperInventory.container = stack
+    helperInventory.reinitialize()
     val items = mutable.Map.empty[String, Int]
-    for (item <- (0 until inventory.getSizeInventory).map(inventory.getStackInSlot) if item != null) {
+    for (item <- (0 until helperInventory.getSizeInventory).map(helperInventory.getStackInSlot) if item != null) {
       val itemName = item.getDisplayName
       items += itemName -> (if (items.contains(itemName)) items(itemName) + 1 else 1)
     }

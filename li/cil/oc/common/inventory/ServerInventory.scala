@@ -3,17 +3,17 @@ package li.cil.oc.common.inventory
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.driver.Registry
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.entity.player.EntityPlayer
 
-class ServerInventory(player: EntityPlayer) extends ItemStackInventory {
-  def container = player.getCurrentEquippedItem
-
+trait ServerInventory extends ItemStackInventory {
   def getSizeInventory = 14
 
   def getInvName = Settings.namespace + "container.Server"
 
   override def getInventoryStackLimit = 1
+
+  def isUseableByPlayer(player: EntityPlayer) = false
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     (slot, Registry.itemDriverFor(stack)) match {

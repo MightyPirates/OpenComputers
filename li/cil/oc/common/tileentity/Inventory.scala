@@ -1,64 +1,16 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Settings
-import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.common.inventory
 import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-trait Inventory extends TileEntity with IInventory with Persistable {
-  protected lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+trait Inventory extends TileEntity with inventory.Inventory with Persistable {
+  lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
-
-  def getStackInSlot(i: Int) = items(i).orNull
-
-  def decrStackSize(slot: Int, amount: Int) = items(slot) match {
-    case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
-      setInventorySlotContents(slot, null)
-      stack
-    case Some(stack) =>
-      val result = stack.splitStack(amount)
-      onInventoryChanged()
-      result
-    case _ => null
-  }
-
-  def setInventorySlotContents(slot: Int, stack: ItemStack) = {
-    if (items(slot).isDefined) {
-      onItemRemoved(slot, items(slot).get)
-    }
-
-    if (stack == null || stack.stackSize < getInventoryStackRequired) {
-      items(slot) = None
-    }
-    else {
-      items(slot) = Some(stack)
-    }
-    if (stack != null && stack.stackSize > getInventoryStackLimit) {
-      stack.stackSize = getInventoryStackLimit
-    }
-
-    if (items(slot).isDefined) {
-      onItemAdded(slot, items(slot).get)
-    }
-
-    onInventoryChanged()
-  }
-
-  def getInventoryStackRequired = 1
-
-  def getStackInSlotOnClosing(slot: Int) = null
-
-  def openChest() {}
-
-  def closeChest() {}
-
-  def isInvNameLocalized = false
 
   def isUseableByPlayer(player: EntityPlayer) =
     world.getBlockTileEntity(x, y, z) match {
@@ -100,37 +52,4 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     world.spawnEntityInWorld(entity)
     entity
   }
-
-  // ----------------------------------------------------------------------- //
-
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-
-    nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
-      val slot = slotNbt.getByte("slot")
-      if (slot >= 0 && slot < items.length) {
-        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
-      }
-    })
-  }
-
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-
-    nbt.setNewTagList(Settings.namespace + "items",
-      items.zipWithIndex collect {
-        case (Some(stack), slot) => (stack, slot)
-      } map {
-        case (stack, slot) =>
-          val slotNbt = new NBTTagCompound()
-          slotNbt.setByte("slot", slot.toByte)
-          slotNbt.setNewCompoundTag("item", stack.writeToNBT)
-      })
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  protected def onItemAdded(slot: Int, stack: ItemStack) {}
-
-  protected def onItemRemoved(slot: Int, stack: ItemStack) {}
 }

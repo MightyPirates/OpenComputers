@@ -16,12 +16,13 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
+import net.minecraft.world.World
 import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Computer(val owner: tileentity.Computer) extends ManagedComponent with Context with Runnable {
+class Computer(val owner: Computer.Owner) extends ManagedComponent with Context with Runnable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
@@ -267,7 +268,10 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         usersChanged = false
         users
       }
-      PacketSender.sendComputerUserList(owner, list)
+      owner match {
+        case computer: tileentity.Computer => PacketSender.sendComputerUserList(computer, list)
+        case _ =>
+      }
     }
 
     // Check if we should switch states. These are all the states in which we're
@@ -1388,5 +1392,17 @@ object Computer {
   }
 
   private val threadPool = ThreadPoolFactory.create("Lua", Settings.get.threads)
+
+  trait Owner {
+    def installedMemory: Int
+
+    def world: World
+
+    def markAsChanged()
+
+    def onConnect(node: Node)
+
+    def onDisconnect(node: Node)
+  }
 
 }
