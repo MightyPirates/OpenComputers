@@ -2,7 +2,7 @@ package li.cil.oc.server.component.robot
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.Robot
-import li.cil.oc.util.mods.PortalGun
+import li.cil.oc.util.mods.{IndustrialCraft2, PortalGun}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
@@ -153,14 +153,32 @@ class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.na
       (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
+      val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
       val heldTicks = math.max(0, math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
-      val newStack = stack.useItemRightClick(world, this)
+      val newStack = if (IndustrialCraft2.isMiningLaser(stack)) {
+        // Fire the mining laser from a little bit ahead of us, to avoid hitting
+        // the robot itself.
+        val offset = facing
+        posX += offset.offsetX * 0.5
+        posY += offset.offsetY * 0.5
+        posZ += offset.offsetZ * 0.5
+        val result = stack.useItemRightClick(world, this)
+        posX -= offset.offsetX * 0.5
+        posY -= offset.offsetY * 0.5
+        posZ -= offset.offsetZ * 0.5
+        result
+      }
+      else stack.useItemRightClick(world, this)
       if (isUsingItem) {
         getItemInUse.onPlayerStoppedUsing(world, this, getItemInUse.getMaxItemUseDuration - heldTicks)
         clearItemInUse()
       }
       robot.computer.pause(heldTicks / 20.0)
-      val stackChanged = newStack != stack || (newStack != null && (newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage || PortalGun.isStandardPortalGun(stack)))
+      // These are functions to avoid null pointers if newStack is null.
+      def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
+      def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
+        (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
+      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
       if (newStack == stack && stack.stackSize > 0) {
         tryRepair(stack, oldDamage)
       }

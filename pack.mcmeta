@@ -4,13 +4,21 @@
     "description": "OpenComputers"
   },
   "language":{
+     "de_DE":{
+        "name": "Deutsch",
+        "region": "Deutschland"
+     },
      "en_US":{
         "name": "English",
         "region": "United States"
      },
-     "de_DE":{
-        "name": "Deutsch",
-        "region": "Deutschland"
+     "fr_FR":{
+        "name": "French",
+        "region": "France"
+     },
+     "pt_PT":{
+        "name": "Português",
+        "region": "Portugal"
      },
      "zh_CN":{
         "name": "简体中文",

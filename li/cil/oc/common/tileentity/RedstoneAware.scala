@@ -31,7 +31,7 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   def isOutputEnabled_=(value: Boolean) = {
     if (value != isOutputEnabled) {
       _isOutputEnabled = value
-      if (!isOutputEnabled) {
+      if (!value) {
         for (i <- 0 until _output.length) {
           _output(i) = 0
         }

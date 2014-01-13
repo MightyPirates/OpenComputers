@@ -15,13 +15,13 @@ class UpgradeNavigation(val owner: MCTileEntity, val xCenter: Int, val zCenter: 
   @LuaCallback("getPosition")
   def getPosition(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val x = owner.xCoord
-    val z = owner.zCoord
     val y = owner.yCoord
+    val z = owner.zCoord
     val relativeX = x - xCenter
-    val relativeY = z - zCenter
+    val relativeZ = z - zCenter
 
-    if (math.abs(relativeX) <= size / 2 && math.abs(relativeY) <= size / 2)
-      result(relativeX, relativeY, y)
+    if (math.abs(relativeX) <= size / 2 && math.abs(relativeZ) <= size / 2)
+      result(relativeX, y, relativeZ)
     else
       result(Unit, "out of range")
   }

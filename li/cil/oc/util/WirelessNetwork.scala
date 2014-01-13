@@ -61,9 +61,7 @@ object WirelessNetwork {
           filter(_ != card).
           map(zipWithDistance(card)).
           filter(_._2 <= range * range).
-          map {
-          case (c, distance) => (c, Math.sqrt(distance))
-        }.
+          map { case (c, distance) => (c, Math.sqrt(distance)) }.
           filter(isUnobstructed(card))
       case _ => Iterable.empty[(WirelessNetworkCard, Double)] // Should not be possible.
     }
@@ -91,36 +89,49 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
+      val world = card.owner.worldObj
+      val pool = world.getWorldVec3Pool
 
-      // Unit vector from reference card (sender) to this one (receiver).
-      val dx = (card.owner.xCoord - reference.owner.xCoord) / distance
-      val dy = (card.owner.yCoord - reference.owner.yCoord) / distance
-      val dz = (card.owner.zCoord - reference.owner.zCoord) / distance
+      val origin = pool.getVecFromPool(reference.owner.xCoord, reference.owner.yCoord, reference.owner.zCoord)
+      val target = pool.getVecFromPool(card.owner.xCoord, card.owner.yCoord, card.owner.zCoord)
+
+      // Vector from reference card (sender) to this one (receiver).
+      val delta = origin.subtract(target)
+      val v = delta.normalize()
+
+      // Get the vectors that are orthogonal to the direction vector.
+      val up = if (v.xCoord == 0 && v.zCoord == 0) {
+        assert(v.yCoord != 0)
+        pool.getVecFromPool(1, 0, 0)
+      }
+      else {
+        pool.getVecFromPool(0, 1, 0)
+      }
+      val side = v.crossProduct(up)
+      val top = v.crossProduct(side)
 
       // Accumulated obstructions and number of samples.
+      //val delta = v.lengthVector
       var hardness = 0.0
-      val samples = Math.sqrt(gap).toInt
+      val samples = math.max(1, math.sqrt(gap).toInt)
 
-      val world = card.owner.worldObj
-      val ox = reference.owner.xCoord - (if (reference.owner.xCoord < 0) 2 else 1)
-      val oy = reference.owner.yCoord - (if (reference.owner.yCoord < 0) 2 else 1)
-      val oz = reference.owner.zCoord - (if (reference.owner.zCoord < 0) 2 else 1)
       for (i <- 0 until samples) {
-        val sample = 0.5 + world.rand.nextDouble() * gap
+        val rGap = world.rand.nextDouble() * gap
         // Adding some jitter to avoid only tracking the perfect line between
-        // two modems when they are diagonal to each other.
-        val x = (ox + world.rand.nextInt(3) + 0.5 + dx * sample).toInt
-        val y = (oy + world.rand.nextInt(3) + 0.5 + dy * sample).toInt
-        val z = (oz + world.rand.nextInt(3) + 0.5 + dz * sample).toInt
+        // two modems when they are diagonal to each other for example.
+        val rSide = world.rand.nextInt(3) - 1
+        val rTop = world.rand.nextInt(3) - 1
+        val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
+        val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
+        val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
         Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-          case Some(block) =>
-            hardness += block.blockHardness
+          case Some(block) => hardness += block.blockHardness
           case _ =>
         }
       }
 
       // Normalize and scale obstructions:
-      hardness *= gap.toDouble / samples.toDouble
+      hardness *= gap / samples
 
       // Remaining signal strength.
       val strength = reference.strength - gap
