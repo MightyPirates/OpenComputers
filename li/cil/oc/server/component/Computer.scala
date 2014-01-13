@@ -1022,8 +1022,8 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
                 lua.pushBoolean(true)
                 lua.pushNil()
                 lua.pushString(e.getMessage)
-                if (true) {
-                  lua.pushString(e.getStackTraceString)
+                if (Settings.get.logLuaCallbackErrors) {
+                  lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
                   4
                 }
                 else 3

@@ -3,7 +3,9 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network.{Analyzable, Visibility}
 import li.cil.oc.server.component
 import li.cil.oc.{Items, Settings, api}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
 class Rack extends Environment with Inventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
@@ -70,4 +72,6 @@ class Rack extends Environment with Inventory with Analyzable {
     }
 
   def isServerInstalled(number: Int) = if (isServer) servers(number).isDefined else _isRunning(number).isDefined
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 }

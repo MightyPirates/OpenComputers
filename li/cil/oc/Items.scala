@@ -19,14 +19,15 @@ object Items {
   var ram1, ram2, ram3, ram4, ram5: item.Memory = _
 
   // ----------------------------------------------------------------------- //
+  // Storage
+  var floppyDisk: item.FloppyDisk = _
+  var hdd1, hdd2, hdd3: item.HardDiskDrive = _
   // Servers
   var server: item.Server = _
 
   // ----------------------------------------------------------------------- //
-  // Components
-  var floppyDisk: item.FloppyDisk = _
-  var hdd1, hdd2, hdd3: item.HardDiskDrive = _
-
+  // Cards
+  var abstractBus: item.AbstractBusCard = _
   var gpu1, gpu2, gpu3: item.GraphicsCard = _
   var lan: item.NetworkCard = _
   var rs: item.RedstoneCard = _
@@ -117,6 +118,8 @@ object Items {
 
     ram4 = new item.Memory(multi, 3)
     ram5 = new item.Memory(multi, 4)
+
+    abstractBus = new item.AbstractBusCard(multi)
 
     // v1.2.0
     server = new item.Server(multi)

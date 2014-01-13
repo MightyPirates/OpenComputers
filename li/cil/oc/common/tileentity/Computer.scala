@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
 
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with Analyzable with Context with component.Computer.Owner {
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with Context with component.Computer.Owner {
   protected val _computer = if (isRemote) null else new component.Computer(this)
 
   def computer = _computer

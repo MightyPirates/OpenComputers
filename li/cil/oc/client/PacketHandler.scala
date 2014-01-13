@@ -23,6 +23,7 @@ class PacketHandler extends CommonPacketHandler {
 
   override def dispatch(p: PacketParser) =
     p.packetType match {
+      case PacketType.AbstractBusState => onAbstractBusState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
       case PacketType.ComputerState => onComputerState(p)
@@ -44,6 +45,12 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenPowerChange => onScreenPowerChange(p)
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
+      case _ => // Invalid packet.
+    }
+
+  def onAbstractBusState(p: PacketParser) =
+    p.readTileEntity[AbstractBusAware]() match {
+      case Some(t) => t.isAbstractBusAvailable = p.readBoolean()
       case _ => // Invalid packet.
     }
 

@@ -41,6 +41,10 @@ hdd3 {
           ["oc:circuitElite", "oc:craftingHDDAdvanced", "oc:circuitElite"]]
 }
 
+abstractBusCard {
+  input: [[busCable, {item=naquadah, subID=8}, ""]
+          ["", "oc:craftingCard", ""]]
+}
 graphicsCard1 {
   input: [["oc:circuitBasic", "oc:craftingALU", "oc:craftingRAMBasic"]
           ["", "oc:craftingCard", ""]]
