@@ -81,12 +81,14 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   // ----------------------------------------------------------------------- //
 
-  override def drop(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = true
+  override def drops(world: World, x: Int, y: Int, z: Int, fortune: Int) = Some(new java.util.ArrayList[ItemStack]())
 
   override def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) = {
     val bounds = parent.getCollisionBoundingBoxFromPool(world, x, y, z)
-    if (bounds.isVecInside(origin)) null
-    else super.intersect(world, x, y, z, origin, direction)
+    world.getBlockTileEntity(x, y, z) match {
+      case proxy: tileentity.RobotProxy if proxy.robot.animationTicksLeft <= 0 && bounds.isVecInside(origin) => null
+      case _ => super.intersect(world, x, y, z, origin, direction)
+    }
   }
 
   override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
@@ -148,7 +150,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         if (!world.isRemote && (!player.capabilities.isCreativeMode || proxy.globalBuffer > 1 || proxy.robot.xp > 0)) {
           parent.dropBlockAsItem(world, x, y, z, robot.createItemStack())
         }
-        if (robot.isAnimatingMove && Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
+        if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, 0, 0, 1)
         }
       case _ =>

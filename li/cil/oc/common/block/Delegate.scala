@@ -33,7 +33,7 @@ trait Delegate {
 
   def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int): ItemStack = createItemStack()
 
-  def drop(world: World, x: Int, y: Int, z: Int, chance: Float, fortune: Int) = false
+  def drops(world: World, x: Int, y: Int, z: Int, fortune: Int): Option[java.util.ArrayList[ItemStack]] = None
 
   def isNormalCube(world: World, x: Int, y: Int, z: Int) = true
 

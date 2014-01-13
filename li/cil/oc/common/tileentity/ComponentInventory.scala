@@ -18,7 +18,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
   // ----------------------------------------------------------------------- //
 
   def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.driverFor(item) match {
+    case Some(item) => Registry.itemDriverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -33,7 +33,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
       for ((stack, slot) <- items.zipWithIndex collect {
         case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
       } if components(slot).isEmpty && isComponentSlot(slot)) {
-        components(slot) = Registry.driverFor(stack) match {
+        components(slot) = Registry.itemDriverFor(stack) match {
           case Some(driver) =>
             Option(driver.createEnvironment(stack, this)) match {
               case Some(component) =>
@@ -72,7 +72,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
       case (stack, slot) => components(slot) match {
         case Some(environment) =>
           // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Registry.driverFor(stack).get, stack))
+          environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
         case _ => // Nothing special to save.
       }
     }
@@ -84,7 +84,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
   def getInventoryStackLimit = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isServer && isComponentSlot(slot)) {
-    Registry.driverFor(stack) match {
+    Registry.itemDriverFor(stack) match {
       case Some(driver) => Option(driver.createEnvironment(stack, this)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
@@ -113,7 +113,7 @@ trait ComponentInventory extends Inventory with network.Environment { self: MCTi
         components(slot) = None
         updatingComponents -= component
         component.node.remove()
-        Registry.driverFor(stack).foreach(driver =>
+        Registry.itemDriverFor(stack).foreach(driver =>
           component.save(dataTag(driver, stack)))
       }
       case _ => // Nothing to do.

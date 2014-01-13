@@ -11,6 +11,7 @@ import scala.io.Source
 
 object MonospaceFontRenderer {
   val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
+  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
   private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
 
@@ -22,10 +23,10 @@ object MonospaceFontRenderer {
   val fontWidth = 5
   val fontHeight = 9
 
-  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = instance match {
+  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = this.synchronized(instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")
     case Some(renderer) => renderer.drawString(x, y, value, color, depth)
-  }
+  })
 
   private class Renderer(private val textureManager: TextureManager) {
     /** Display lists, one per char (renders quad with char's uv coords). */
@@ -71,7 +72,10 @@ object MonospaceFontRenderer {
     def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
-      textureManager.bindTexture(MonospaceFontRenderer.font)
+      if (Settings.get.textAntiAlias)
+        textureManager.bindTexture(MonospaceFontRenderer.font)
+      else
+        textureManager.bindTexture(MonospaceFontRenderer.fontAliased)
       GL11.glPushMatrix()
       GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
       GL11.glTranslatef(x, y, 0)
@@ -131,14 +135,23 @@ object MonospaceFontRenderer {
     private val bgv2 = 256.0 / 256.0
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.setColorOpaque_I(color)
-      t.addVertexWithUV(charWidth * offset, charHeight, 0, bgu1, bgv2)
-      t.addVertexWithUV(charWidth * (offset + width), charHeight, 0, bgu2, bgv2)
-      t.addVertexWithUV(charWidth * (offset + width), 0, 0, bgu2, bgv1)
-      t.addVertexWithUV(charWidth * offset, 0, 0, bgu1, bgv1)
-      t.draw()
+      // IMPORTANT: we must not use the tessellator here. Doing so can cause
+      // crashes on certain graphics cards with certain drivers (reported for
+      // ATI/AMD and Intel chip sets). These crashes have been reported to
+      // happen I have no idea why, and can only guess that it's related to
+      // using the VBO/ARB the tessellator uses inside a display list (since
+      // this stuff is eventually only rendered via display lists).
+      GL11.glBegin(GL11.GL_QUADS)
+      GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
+      GL11.glTexCoord2d(bgu1, bgv2)
+      GL11.glVertex3d(charWidth * offset, charHeight, 0)
+      GL11.glTexCoord2d(bgu2, bgv2)
+      GL11.glVertex3d(charWidth * (offset + width), charHeight, 0)
+      GL11.glTexCoord2d(bgu2, bgv1)
+      GL11.glVertex3d(charWidth * (offset + width), 0, 0)
+      GL11.glTexCoord2d(bgu1, bgv1)
+      GL11.glVertex3d(charWidth * offset, 0, 0)
+      GL11.glEnd()
     }
 
     private def flush() = if (listBuffer.position > 0) {

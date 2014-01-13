@@ -24,7 +24,7 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
       val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
       val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
-      val (bw, bh) = screen.buffer.resolution
+      val (bw, bh) = buffer.resolution
       if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
         val scroll = math.signum(Mouse.getEventDWheel)
         PacketSender.sendMouseScroll(buffer.owner, bx, by, scroll)
@@ -59,9 +59,9 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   }
 
   private def clickOrDrag(mouseX: Int, mouseY: Int) {
-    val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
-    val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
-    val (bw, bh) = screen.buffer.resolution
+    val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
+    val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+    val (bw, bh) = buffer.resolution
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {
         PacketSender.sendMouseClick(buffer.owner, bx, by, mx > 0 && my > 0)
@@ -79,7 +79,7 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   def drawBuffer() {
     GL11.glTranslatef(x, y, 0)
     BufferRenderer.drawBackground()
-    if (screen.hasPower) {
+    if (screen.origin.hasPower) {
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
       RenderState.makeItBlend()
       BufferRenderer.drawText()

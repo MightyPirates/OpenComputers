@@ -43,8 +43,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case Some(environment) =>
         val stack = getStackInSlot(3)
         // We're guaranteed to have a driver for entries.
-        environment.save(dataTag(Registry.driverFor(stack).get, stack))
+        environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
+      case _ =>
     }
   }
 
@@ -156,7 +157,6 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         val moveTicks = math.max((Settings.get.moveDelay * 20).toInt, 1)
         setAnimateMove(ox, oy, oz, moveTicks)
         if (isServer) {
-          world.scheduleBlockUpdate(ox, oy, oz, Blocks.robotAfterimage.parent.blockID, moveTicks - 1)
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
           checkRedstoneInputChanged()
         }
@@ -312,9 +312,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
-    xp = nbt.getDouble(Settings.namespace + "xp")
+    xp = nbt.getDouble(Settings.namespace + "xp") max 0
     updateXpInfo()
-    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot")
+    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max actualSlot(0) min (getSizeInventory - 1)
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -383,7 +383,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         case Some(environment) =>
           val stack = getStackInSlot(3)
           // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Registry.driverFor(stack).get, stack))
+          environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
+        case _ => // See onConnect()
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
     }
@@ -407,6 +408,16 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       computer.node.connect(buffer.node)
       computer.node.connect(gpu.node)
       buffer.node.connect(keyboard.node)
+      // There's a chance the server sends a robot tile entity to its clients
+      // before the tile entity's first update was called, in which case the
+      // component list isn't initialized (e.g. when a client triggers a chunk
+      // load, most noticeable in single player). In that case the current
+      // equipment will be initialized incorrectly. So we have to send it
+      // again when the first update is run. One of the two (this and the info
+      // sent in writeToNBTForClient) may be superfluous, but the packet is
+      // quite small compared to what else is sent on a chunk load, so we don't
+      // really worry about it and just send it.
+      saveUpgrade()
     }
   }
 
@@ -505,9 +516,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case _ => false
     }
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (1, Some(driver)) => driver.slot(stack) == Slot.Card
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
     case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade
     case (i, _) if actualSlot(0) until getSizeInventory contains i => true // Normal inventory.

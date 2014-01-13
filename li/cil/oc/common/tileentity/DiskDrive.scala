@@ -8,18 +8,22 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable {
+class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable with PassiveNode {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
+    components(0) match {
+      case Some(environment) => environment.node
+      case _ => null
+    }
 
   override def canUpdate = false
 
   override def validate() = {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, Int.MinValue, 0)
+    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //
@@ -28,7 +32,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   def getSizeInventory = 1
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.driverFor(stack)) match {
+  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
     case _ => false
   }

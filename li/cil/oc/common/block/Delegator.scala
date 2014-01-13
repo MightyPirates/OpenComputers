@@ -57,7 +57,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subBlocks.length).filter(id => subBlocks(id).showInItemList).
+    (0 until subBlocks.length).filter(id => subBlocks(id).showInItemList && subBlocks(id).parent == this).
       foreach(id => add(list, new ItemStack(this, 1, id)))
   }
 
@@ -119,10 +119,10 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.getPickBlock(target, world, x, y, z)
     }
 
-  override def dropBlockAsItemWithChance(world: World, x: Int, y: Int, z: Int, metadata: Int, chance: Float, fortune: Int) =
+  override def getBlockDropped(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) =
     subBlock(metadata) match {
-      case Some(subBlock) if subBlock.drop(world, x, y, z, chance, fortune) => // Delegate took care of it.
-      case _ => super.dropBlockAsItemWithChance(world, x, y, z, metadata, chance, fortune)
+      case Some(subBlock) => subBlock.drops(world, x, y, z, fortune).getOrElse(super.getBlockDropped(world, x, y, z, metadata, fortune))
+      case _ => super.getBlockDropped(world, x, y, z, metadata, fortune)
     }
 
   def dropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {

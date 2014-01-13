@@ -1,14 +1,13 @@
 package li.cil.oc.common.container
 
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
-import li.cil.oc.client.gui.Icons
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.IInventory
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
-import cpw.mods.fml.common.FMLCommonHandler
 
 abstract class Player(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
@@ -29,7 +28,8 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
       // because stacks can change their... "character" just by being inserted in
       // certain containers - by being assigned an address.
     }
-    result
+    if (result != null && result.stackSize > 0) result
+    else null
   }
 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
@@ -55,7 +55,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     null
   }
 
-  private def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
+  protected def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
     val fromStack = from.getStack
     var somethingChanged = false
 
@@ -97,21 +97,9 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
     }
   }
 
-  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None) {
+  def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = -1) {
     val index = getInventory.size
-    addSlotToContainer(new Slot(otherInventory, index, x, y) {
-      setBackgroundIcon(Icons.get(slot))
-
-      override def getSlotStackLimit =
-        slot match {
-          case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
-          case _ => 1
-        }
-
-      override def isItemValid(stack: ItemStack) = {
-        otherInventory.isItemValidForSlot(index, stack)
-      }
-    })
+    addSlotToContainer(new ComponentSlot(otherInventory, index, x, y, slot, tier))
   }
 
   /** Render player inventory at the specified coordinates. */

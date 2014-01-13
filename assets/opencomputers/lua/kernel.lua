@@ -1,3 +1,4 @@
+local hookInterval = 100
 local deadline = 0
 local function checkDeadline()
   if computer.realTime() > deadline then
@@ -66,8 +67,10 @@ sandbox = {
   end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
-    assert((mode or "t") == "t", "unsupported mode")
-    return load(ld, source, "t", env or sandbox)
+    if not allowBytecode() then
+      mode = "t"
+    end
+    return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in lib/base.lua
   next = next,
@@ -92,7 +95,7 @@ sandbox = {
       checkArg(1, co, "thread")
       local args = table.pack(...)
       while true do -- for consecutive sysyields
-        debug.sethook(co, checkDeadline, "", 10000)
+        debug.sethook(co, checkDeadline, "", hookInterval)
         local result = table.pack(
           coroutine.resume(co, table.unpack(args, 1, args.n)))
         debug.sethook(co) -- avoid gc issues
@@ -394,7 +397,7 @@ local function main()
   local co, args = bootstrap(), {n=0}
   while true do
     deadline = computer.realTime() + timeout -- timeout global is set by host
-    debug.sethook(co, checkDeadline, "", 10000)
+    debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
       error(tostring(result[2]), 0)

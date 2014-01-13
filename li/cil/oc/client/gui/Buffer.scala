@@ -1,5 +1,6 @@
 package li.cil.oc.client.gui
 
+import li.cil.oc.Settings
 import li.cil.oc.client.PacketSender
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
@@ -70,12 +71,8 @@ trait Buffer extends GuiScreen {
     if (NEI.isInputFocused) return
 
     val code = Keyboard.getEventKey
-    if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11)
-      if (code == Keyboard.KEY_INSERT && GuiScreen.isShiftKeyDown) {
-        if (Keyboard.getEventKeyState)
-          PacketSender.sendClipboard(buffer.owner, GuiScreen.getClipboardString)
-      }
-      else if (Keyboard.getEventKeyState) {
+    if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
+      if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
         if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
           PacketSender.sendKeyDown(buffer.owner, char, code)
@@ -86,6 +83,11 @@ trait Buffer extends GuiScreen {
         case Some(char) => PacketSender.sendKeyUp(buffer.owner, char, code)
         case _ => // Wasn't pressed while viewing the screen.
       }
+
+      if (isPasteShortcutPressed && Keyboard.getEventKeyState) {
+        PacketSender.sendClipboard(buffer.owner, GuiScreen.getClipboardString)
+      }
+    }
   }
 
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
@@ -106,5 +108,10 @@ trait Buffer extends GuiScreen {
       code == Keyboard.KEY_RSHIFT ||
       code == Keyboard.KEY_LMETA ||
       code == Keyboard.KEY_RMETA
+  }
+
+  private def isPasteShortcutPressed = {
+    val want = Settings.get.pasteShortcut.map(name => Keyboard.getKeyIndex(name.toUpperCase)).filter(_ != Keyboard.KEY_NONE)
+    pressedKeys.keySet.equals(want)
   }
 }

@@ -17,7 +17,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.Array
 
-abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
+abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Screen" + tier
 
   def tier: Int
@@ -276,6 +276,13 @@ abstract class Screen(val parent: SimpleDelegator) extends SimpleDelegate {
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5
 
   // ----------------------------------------------------------------------- //
+
+  override def drops(world: World, x: Int, y: Int, z: Int, fortune: Int) = {
+    // Always drop the new screen block (with proper redstone support).
+    val list = new java.util.ArrayList[ItemStack]()
+    list.add(createItemStack())
+    Some(list)
+  }
 
   override def hasTileEntity = true
 

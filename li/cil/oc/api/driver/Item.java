@@ -75,6 +75,20 @@ public interface Item {
     Slot slot(ItemStack stack);
 
     /**
+     * The tier of the specified item this driver supports.
+     * <p/>
+     * This is used to determine into which slot of a computer the components
+     * this driver supports may go. This will only be called if a previous call
+     * to {@link #worksWith} with the same stack returned true.
+     * <p/>
+     * <em>Important</em>: tiers are zero-indexed.
+     *
+     * @param stack the item stack to get the tier for.
+     * @return the tier of the specified item.
+     */
+    int tier(ItemStack stack);
+
+    /**
      * Get the tag compound based on the item stack to use for persisting the
      * environment associated with the specified item stack.
      * <p/>
@@ -91,7 +105,7 @@ public interface Item {
      *
      * @param stack the item to get the child tag from.
      * @return the tag to use for saving and loading, or <tt>null</tt> to use
-     *         the default tag <tt>oc:data</tt>.
+     * the default tag <tt>oc:data</tt>.
      */
     NBTTagCompound dataTag(ItemStack stack);
 }

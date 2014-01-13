@@ -284,10 +284,16 @@ function term.read(history)
 
   term.setCursorBlink(true)
   while term.isAvailable() do
+    local ocx, ocy = getCursor()
     local ok, name, address, charOrValue, code = pcall(event.pull)
     if not ok then
       cleanup()
       error("interrupted", 0)
+    end
+    local ncx, ncy = getCursor()
+    if ocx ~= ncx or ocy ~= ncy then
+      cleanup()
+      return "" -- soft fail the read if someone messes with the term
     end
     if term.isAvailable() and -- may have changed since pull
        type(address) == "string" and
@@ -339,7 +345,7 @@ function term.write(value, wrap)
     while wrap and unicode.len(line) > w - (cursorX - 1) do
       local partial = unicode.sub(line, 1, w - (cursorX - 1))
       local wordWrapped = partial:match("(.*[^a-zA-Z0-9._])")
-      if wordWrapped or unicode.len(partial) > w then
+      if wordWrapped or unicode.len(line) > w then
         partial = wordWrapped or partial
         line = unicode.sub(line, unicode.len(partial) + 1)
         component.gpu.set(cursorX, cursorY, partial)

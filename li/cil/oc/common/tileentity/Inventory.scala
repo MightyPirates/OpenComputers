@@ -18,7 +18,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
   def getStackInSlot(i: Int) = items(i).orNull
 
   def decrStackSize(slot: Int, amount: Int) = items(slot) match {
-    case Some(stack) if stack.stackSize - amount <= 0 =>
+    case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
       setInventorySlotContents(slot, null)
       stack
     case Some(stack) =>
@@ -33,7 +33,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
       onItemRemoved(slot, items(slot).get)
     }
 
-    if (stack == null || stack.stackSize <= 0) {
+    if (stack == null || stack.stackSize < getInventoryStackRequired) {
       items(slot) = None
     }
     else {
@@ -49,6 +49,8 @@ trait Inventory extends TileEntity with IInventory with Persistable {
 
     onInventoryChanged()
   }
+
+  def getInventoryStackRequired = 1
 
   def getStackInSlotOnClosing(slot: Int) = null
 
@@ -107,7 +109,7 @@ trait Inventory extends TileEntity with IInventory with Persistable {
     nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
-        items(slot) = Some(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
+        items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))
       }
     })
   }

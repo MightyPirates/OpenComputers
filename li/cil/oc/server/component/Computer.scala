@@ -20,8 +20,6 @@ import scala.Array.canBuildFrom
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.math.ScalaNumber
-import scala.runtime.BoxedUnit
 
 class Computer(val owner: tileentity.Computer) extends ManagedComponent with Context with Runnable {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -107,11 +105,30 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   def isPaused = state.synchronized(state.top == Computer.State.Paused && remainingPause > 0)
 
   def start() = state.synchronized(state.top match {
-    case Computer.State.Stopped if owner.installedMemory > 0 && init() =>
-      switchTo(Computer.State.Starting)
-      timeStarted = owner.world.getWorldTime
-      node.sendToReachable("computer.started")
-      true
+    case Computer.State.Stopped =>
+      val rules = owner.world.getWorldInfo.getGameRulesInstance
+      if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
+        crash("computers don't work while time is frozen (gamerule doDaylightCycle is false)")
+        false
+      }
+      else if (owner.installedMemory > 0) {
+        if (Settings.get.ignorePower || node.globalBuffer > cost) {
+          init() && {
+            switchTo(Computer.State.Starting)
+            timeStarted = owner.world.getWorldTime
+            node.sendToReachable("computer.started")
+            true
+          }
+        }
+        else {
+          message = Some("not enough energy")
+          false
+        }
+      }
+      else {
+        message = Some("no memory installed")
+        false
+      }
     case Computer.State.Paused if remainingPause > 0 =>
       remainingPause = 0
       true
@@ -174,6 +191,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           case arg: java.lang.Double => arg
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
+          case arg: Map[String, String] => arg
           case arg =>
             OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             Unit
@@ -482,6 +500,15 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               case tag: NBTTagDouble => tag.data
               case tag: NBTTagString => tag.data
               case tag: NBTTagByteArray => tag.byteArray
+              case tag: NBTTagList =>
+                val data = mutable.Map.empty[String, String]
+                for (i <- 0 until tag.tagCount by 2) {
+                  (tag.tagAt(i), tag.tagAt(i + 1)) match {
+                    case (key: NBTTagString, value: NBTTagString) => data += key.data -> value.data
+                    case _ =>
+                  }
+                }
+                data
               case _ => Unit
             }.toArray)
         })
@@ -561,6 +588,14 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
               case (arg: Double, i) => args.setDouble("arg" + i, arg)
               case (arg: String, i) => args.setString("arg" + i, arg)
               case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
+              case (arg: Map[String, String], i) =>
+                val list = new NBTTagList()
+                for ((key, value) <- arg) {
+                  list.append(key)
+                  list.append(value)
+                }
+                args.setTag("arg" + i, list)
+              case (_, i) => args.setByte("arg" + i, -1)
             }
           })
           signalsNbt.appendTag(signalNbt)
@@ -628,56 +663,6 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
   // ----------------------------------------------------------------------- //
 
   private def init(): Boolean = {
-    // Utility functions for varargs callbacks.
-    def parseArgument(lua: LuaState, index: Int): AnyRef = lua.`type`(index) match {
-      case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
-      case LuaType.NUMBER => Double.box(lua.toNumber(index))
-      case LuaType.STRING => lua.toByteArray(index)
-      case _ => Unit
-    }
-
-    def parseArguments(lua: LuaState, start: Int) =
-      for (index <- start to lua.getTop) yield parseArgument(lua, index)
-
-    def pushList(value: Iterator[(Any, Int)]) {
-      lua.newTable()
-      var count = 0
-      value.foreach {
-        case (x, index) => x match {
-          case (entry: ScalaNumber) =>
-            pushResult(lua, entry.underlying())
-          case (entry) =>
-            pushResult(lua, entry.asInstanceOf[AnyRef])
-        }
-          lua.rawSet(-2, index + 1)
-          count = count + 1
-      }
-      lua.pushString("n")
-      lua.pushInteger(count)
-      lua.rawSet(-3)
-    }
-
-    def pushResult(lua: LuaState, value: AnyRef): Unit = value match {
-      case null | Unit | _: BoxedUnit => lua.pushNil()
-      case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
-      case value: java.lang.Byte => lua.pushNumber(value.byteValue)
-      case value: java.lang.Character => lua.pushString(String.valueOf(value))
-      case value: java.lang.Short => lua.pushNumber(value.shortValue)
-      case value: java.lang.Integer => lua.pushNumber(value.intValue)
-      case value: java.lang.Long => lua.pushNumber(value.longValue)
-      case value: java.lang.Float => lua.pushNumber(value.floatValue)
-      case value: java.lang.Double => lua.pushNumber(value.doubleValue)
-      case value: java.lang.String => lua.pushString(value)
-      case value: Array[Byte] => lua.pushByteArray(value)
-      case value: Array[_] => pushList(value.zipWithIndex.iterator)
-      case value: Product => pushList(value.productIterator.zipWithIndex)
-      case value: Seq[_] => pushList(value.zipWithIndex.iterator)
-      // TODO maps?
-      case _ =>
-        OpenComputers.log.warning("A component callback tried to return an unsupported value of type " + value.getClass.getName + ".")
-        lua.pushNil()
-    }
-
     // Reset error state.
     message = None
 
@@ -687,6 +672,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     LuaStateFactory.createState() match {
       case None =>
         lua = null
+        message = Some("native libraries not available")
         return false
       case Some(value) => lua = value
     }
@@ -823,7 +809,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.setField(-2, "totalMemory")
 
       lua.pushScalaFunction(lua => {
-        lua.pushBoolean(signal(lua.checkString(1), parseArguments(lua, 2): _*))
+        lua.pushBoolean(signal(lua.checkString(1), lua.toSimpleJavaObjects(2): _*))
         1
       })
       lua.setField(-2, "pushSignal")
@@ -926,6 +912,13 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       })
       lua.setGlobal("print")
 
+      // Whether bytecode may be loaded directly.
+      lua.pushScalaFunction(lua => {
+        lua.pushBoolean(Settings.get.allowBytecode)
+        1
+      })
+      lua.setGlobal("allowBytecode")
+
       // How long programs may run without yielding before we stop them.
       lua.pushNumber(Settings.get.timeout)
       lua.setGlobal("timeout")
@@ -983,7 +976,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
       lua.pushScalaFunction(lua => {
         val address = lua.checkString(1)
         val method = lua.checkString(2)
-        val args = parseArguments(lua, 3)
+        val args = lua.toSimpleJavaObjects(3)
         try {
           (Option(node.network.node(address)) match {
             case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
@@ -1002,57 +995,68 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           }) match {
             case results: Array[_] =>
               lua.pushBoolean(true)
-              results.foreach(pushResult(lua, _))
+              results.foreach(result => lua.pushValue(result))
               1 + results.length
             case _ =>
               lua.pushBoolean(true)
               1
           }
-        } catch {
-          case _: LimitReachedException =>
-            0
-          case e: IllegalArgumentException if e.getMessage != null =>
-            lua.pushBoolean(false)
-            lua.pushString(e.getMessage)
-            2
-          case e: Throwable if e.getMessage != null =>
-            lua.pushBoolean(true)
-            lua.pushNil()
-            lua.pushString(e.getMessage)
-            3
-          case _: ArrayIndexOutOfBoundsException =>
-            lua.pushBoolean(false)
-            lua.pushString("index out of bounds")
-            2
-          case _: IllegalArgumentException =>
-            lua.pushBoolean(false)
-            lua.pushString("bad argument")
-            2
-          case _: NoSuchMethodException =>
-            lua.pushBoolean(false)
-            lua.pushString("no such method")
-            2
-          case _: FileNotFoundException =>
-            lua.pushBoolean(true)
-            lua.pushNil()
-            lua.pushString("file not found")
-            3
-          case _: SecurityException =>
-            lua.pushBoolean(true)
-            lua.pushNil()
-            lua.pushString("access denied")
-            3
-          case _: IOException =>
-            lua.pushBoolean(true)
-            lua.pushNil()
-            lua.pushString("i/o error")
-            3
+        }
+        catch {
           case e: Throwable =>
-            OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
-            lua.pushBoolean(true)
-            lua.pushNil()
-            lua.pushString("unknown error")
-            3
+            if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+              OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+            }
+            e match {
+              case _: LimitReachedException =>
+                0
+              case e: IllegalArgumentException if e.getMessage != null =>
+                lua.pushBoolean(false)
+                lua.pushString(e.getMessage)
+                2
+              case e: Throwable if e.getMessage != null =>
+                lua.pushBoolean(true)
+                lua.pushNil()
+                lua.pushString(e.getMessage)
+                if (true) {
+                  lua.pushString(e.getStackTraceString)
+                  4
+                }
+                else 3
+              case _: IndexOutOfBoundsException =>
+                lua.pushBoolean(false)
+                lua.pushString("index out of bounds")
+                2
+              case _: IllegalArgumentException =>
+                lua.pushBoolean(false)
+                lua.pushString("bad argument")
+                2
+              case _: NoSuchMethodException =>
+                lua.pushBoolean(false)
+                lua.pushString("no such method")
+                2
+              case _: FileNotFoundException =>
+                lua.pushBoolean(true)
+                lua.pushNil()
+                lua.pushString("file not found")
+                3
+              case _: SecurityException =>
+                lua.pushBoolean(true)
+                lua.pushNil()
+                lua.pushString("access denied")
+                3
+              case _: IOException =>
+                lua.pushBoolean(true)
+                lua.pushNil()
+                lua.pushString("i/o error")
+                3
+              case e: Throwable =>
+                OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+                lua.pushBoolean(true)
+                lua.pushNil()
+                lua.pushString("unknown error")
+                3
+            }
         }
       })
       lua.setField(-2, "invoke")
@@ -1247,13 +1251,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
           else (signals.synchronized(if (signals.isEmpty) None else Some(signals.dequeue())) match {
             case Some(signal) =>
               lua.pushString(signal.name)
-              signal.args.foreach {
-                case Unit => lua.pushNil()
-                case arg: Boolean => lua.pushBoolean(arg)
-                case arg: Double => lua.pushNumber(arg)
-                case arg: String => lua.pushString(arg)
-                case arg: Array[Byte] => lua.pushByteArray(arg)
-              }
+              signal.args.foreach(arg => lua.pushValue(arg))
               lua.resume(1, 1 + signal.args.length)
             case _ =>
               lua.resume(1, 0)
@@ -1336,7 +1334,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
     catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-        crash("kernel panic")
+        crash("kernel panic: this is a bug, check your log file and report it")
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null) crash("kernel panic:\n" + e.getMessage)
         else crash("kernel panic:\nerror in garbage collection metamethod")
@@ -1346,7 +1344,7 @@ class Computer(val owner: tileentity.Computer) extends ManagedComponent with Con
         crash("not enough memory")
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
-        crash("kernel panic")
+        crash("kernel panic: this is a bug, check your log file and report it")
     }
   }
 }

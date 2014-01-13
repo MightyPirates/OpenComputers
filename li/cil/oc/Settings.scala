@@ -21,6 +21,8 @@ class Settings(config: Config) {
   val screenTextFadeStartDistance = config.getDouble("client.screenTextFadeStartDistance")
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
+  val textAntiAlias = config.getBoolean("client.textAntiAlias")
+  val pasteShortcut = config.getStringList("client.pasteShortcut").toSet
   val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //
@@ -31,15 +33,20 @@ class Settings(config: Config) {
   val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3) =>
-      Array(tier1: Int, tier2: Int, tier3: Int)
+      // For compatibility with older config files.
+      Array(tier1: Int, tier2: Int, tier3: Int, tier3 * 2: Int, tier3 * 4: Int)
+    case Array(tier1, tier2, tier3, tier4, tier5) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int)
     case _ =>
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
-      Array(64, 128, 256)
+      Array(64, 128, 256, 512, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
+  val allowBytecode = config.getBoolean("computer.allowBytecode")
+  val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
 
   // ----------------------------------------------------------------------- //
   // robot
@@ -91,6 +98,7 @@ class Settings(config: Config) {
   val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
+  val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
@@ -137,6 +145,7 @@ class Settings(config: Config) {
   val httpThreads = config.getInt("http.threads") max 1
   val httpHostBlacklist = Array(config.getStringList("http.blacklist"): _*)
   val httpHostWhitelist = Array(config.getStringList("http.whitelist"): _*)
+  val httpTimeout = (config.getInt("http.requestTimeout") max 0) * 1000
 
   // ----------------------------------------------------------------------- //
   // misc

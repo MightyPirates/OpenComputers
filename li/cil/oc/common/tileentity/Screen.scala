@@ -2,8 +2,10 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
-import li.cil.oc.api.network.{SidedEnvironment, Analyzable, Visibility}
+import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
@@ -12,16 +14,46 @@ import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
+import scala.Some
 import scala.collection.mutable
 
-class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with RedstoneAware with Analyzable with Ordered[Screen] {
   def this() = this(0)
+  _isOutputEnabled = true
 
   // ----------------------------------------------------------------------- //
 
-  val pixelCost = {
+  override protected val _buffer = new component.Buffer(this) {
+    @LuaCallback("isOn")
+    def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(origin.isOn)
+
+    @LuaCallback("turnOn")
+    def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
+      if (!origin.isOn) {
+        origin.turnOn()
+        result(true, origin.isOn)
+      }
+      else result(false, origin.isOn)
+    }
+
+    @LuaCallback("turnOff")
+    def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
+      if (origin.isOn) {
+        origin.turnOff()
+        result(true, origin.isOn)
+      }
+      else result(false, origin.isOn)
+    }
+  }
+
+  // This is the energy cost (per tick) to keep the screen running if every
+  // single "pixel" is lit. This cost increases with higher tiers as their
+  // maximum resolution (pixel density) increases. For a basic screen this is
+  // simply the configured cost.
+  val fullyLitCost = {
     val (w, h) = Settings.screenResolutionsByTier(0)
-    Settings.get.screenCost / (w * h)
+    val (mw, mh) = buffer.maxResolution
+    Settings.get.screenCost * (mw * mh) / (w * h)
   }
 
   /**
@@ -36,9 +68,13 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   val screens = mutable.Set(this)
 
-  var litPixels = -1
+  var relativeLitArea = -1.0
 
   var hasPower = true
+
+  var isOn = true
+
+  var hadRedstoneInput = false
 
   var cachedBounds: Option[AxisAlignedBB] = None
 
@@ -90,11 +126,12 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
       return false
     }
-    val (rx, ry) = ((ax - border) / (width - border * 2), (ay - border) / (height - border * 2))
+    val (iw, ih) = (width - border * 2, height - border * 2)
+    val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
     val (bw, bh) = origin.buffer.resolution
-    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth, bh * MonospaceFontRenderer.fontHeight)
+    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth / iw.toDouble, bh * MonospaceFontRenderer.fontHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
@@ -115,10 +152,9 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       (rx, ry)
     }
 
-    // Convert to absolute coordinates and send the (checked) signal.
-    if (!world.isRemote) {
-      val (bx, by) = (brx * bw, bry * bh)
-      origin.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(bx.toInt + 1), Int.box(by.toInt + 1), player.getCommandSenderName)
+    // Convert to absolute coordinates and send the packet to the server.
+    if (world.isRemote) {
+      ClientPacketSender.sendMouseClick(this, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false)
     }
     true
   }
@@ -148,22 +184,41 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     }
   }
 
+  def turnOn() {
+    origin.isOn = true
+    val neededPower = width * height * Settings.get.screenCost * Settings.get.tickFrequency
+    origin.hasPower = buffer.node.changeBuffer(-neededPower) == 0
+    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+  }
+
+  def turnOff() {
+    origin.isOn = false
+    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
-      if (litPixels < 0) {
-        litPixels = 0
-        for (line <- buffer.lines) for (c <- line) {
-          if (c != ' ') litPixels += 1
-        }
+    if (isServer) {
+      updateRedstoneInput()
+    }
+    if (isServer && isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
+      if (relativeLitArea < 0) {
+        // The relative lit area is the number of pixels that are not blank
+        // versus the number of pixels in the *current* resolution. This is
+        // scaled to multi-block screens, since we only compute this for the
+        // origin. We add 1 to make sure we at least consume `screenCost`.
+        val (w, h) = buffer.resolution
+        relativeLitArea = 1 + width * height * buffer.lines.foldLeft(0) {
+          (acc, line) => acc + line.count(' ' !=)
+        } / (w * h).toDouble
       }
       val hadPower = hasPower
-      val neededPower = (Settings.get.screenCost + pixelCost * litPixels) * Settings.get.tickFrequency
+      val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
       hasPower = buffer.node.tryChangeBuffer(-neededPower)
       if (hasPower != hadPower) {
-        ServerPacketSender.sendScreenPowerChange(this, hasPower)
+        ServerPacketSender.sendScreenPowerChange(this, isOn && hasPower)
       }
     }
     if (shouldCheckForMultiBlock) {
@@ -218,7 +273,11 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
           }
           val buffer = screen.buffer
           val (w, h) = buffer.resolution
-          buffer.buffer.fill(0, 0, w, h, ' ')
+          buffer.foreground = 0xFFFFFF
+          buffer.background = 0x000000
+          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+            onScreenFill(0, 0, w, h, ' ')
+          }
         }
       )
     }
@@ -233,8 +292,17 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     }
   }
 
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    cleanup()
+  }
+
   override def invalidate() {
     super.invalidate()
+    cleanup()
+  }
+
+  protected def cleanup() {
     if (currentGui.isDefined) {
       Minecraft.getMinecraft.displayGuiScreen(null)
     }
@@ -244,13 +312,36 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier")
+    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
     super.readFromNBT(nbt)
+    // This check is just to avoid powering off any screens that have been
+    // placed before this was introduced.
+    if (nbt.hasKey(Settings.namespace + "isOn")) {
+      isOn = nbt.getBoolean(Settings.namespace + "isOn")
+    }
+    if (nbt.hasKey(Settings.namespace + "isOn")) {
+      hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
+    }
+    hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
+    nbt.setBoolean(Settings.namespace + "isOn", isOn)
+    nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
+    nbt.setBoolean(Settings.namespace + "hadRedstoneInput", hadRedstoneInput)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    hasPower = nbt.getBoolean("hasPower")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("hasPower", isOn && hasPower)
   }
 
   // ----------------------------------------------------------------------- //
@@ -279,6 +370,17 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin.node
 
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    val hasRedstoneInput = screens.map(_.maxInput).max > 0
+    if (hasRedstoneInput != hadRedstoneInput) {
+      hadRedstoneInput = hasRedstoneInput
+      if (hasRedstoneInput) {
+        if (origin.isOn) turnOff() else turnOn()
+      }
+    }
+  }
+
   override def onRotationChanged() {
     super.onRotationChanged()
     screens.clone().foreach(_.checkMultiBlock())
@@ -286,22 +388,22 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     super.onScreenCopy(col, row, w, h, tx, ty)
-    litPixels = -1
+    relativeLitArea = -1
   }
 
   override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
     super.onScreenFill(col, row, w, h, c)
-    litPixels = -1
+    relativeLitArea = -1
   }
 
   override def onScreenResolutionChange(w: Int, h: Int) {
     super.onScreenResolutionChange(w, h)
-    litPixels = -1
+    relativeLitArea = -1
   }
 
   override def onScreenSet(col: Int, row: Int, s: String) {
     super.onScreenSet(col, row, s)
-    litPixels = -1
+    relativeLitArea = -1
   }
 
   @SideOnly(Side.CLIENT)
@@ -353,7 +455,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
         case _ => false
       }
     }
-    tryMergeTowards(width, 0) || tryMergeTowards(0, height) || tryMergeTowards(-1, 0) || tryMergeTowards(0, -1)
+    tryMergeTowards(0, height) || tryMergeTowards(0, -1) || tryMergeTowards(width, 0) || tryMergeTowards(-1, 0)
   }
 
   private def project(t: Screen) = {

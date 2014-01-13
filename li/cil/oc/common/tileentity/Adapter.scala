@@ -1,18 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.{Loader, Optional}
-import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
-import scala.collection.convert.WrapAsScala._
-import scala.collection.mutable
 import scala.{Array, Some}
 
-@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Adapter extends Environment with IPeripheral {
+class Adapter extends Environment with Inventory {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -32,18 +28,24 @@ class Adapter extends Environment with IPeripheral {
   def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
-      driver.Registry.driverFor(world, x, y, z) match {
+      driver.Registry.blockDriverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
-            if (newDriver != driver) {
+            if (newDriver != driver || !isBlockSupported(x, y, z)) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
-              val environment = newDriver.createEnvironment(world, x, y, z)
-              blocks(d.ordinal()) = Some((environment, newDriver))
-              blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-              node.connect(environment.node)
+              if (isBlockSupported(x, y, z)) {
+                val environment = newDriver.createEnvironment(world, x, y, z)
+                blocks(d.ordinal()) = Some((environment, newDriver))
+                blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+                node.connect(environment.node)
+              }
+              else {
+                blocks(d.ordinal()) = None
+                blocksData(d.ordinal()) = None
+              }
             } // else: the more things change, the more they stay the same.
-          case _ =>
+          case _ if isBlockSupported(x, y, z) =>
             // A challenger appears.
             val environment = newDriver.createEnvironment(world, x, y, z)
             blocks(d.ordinal()) = Some((environment, newDriver))
@@ -54,6 +56,7 @@ class Adapter extends Environment with IPeripheral {
             }
             blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
             node.connect(environment.node)
+          case _ => // Not supported by filter.
         }
         case _ => blocks(d.ordinal()) match {
           case Some((environment, driver)) =>
@@ -69,19 +72,6 @@ class Adapter extends Environment with IPeripheral {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("send")
-  @Optional.Method(modid = "ComputerCraft")
-  def send(context: Context, args: Arguments) = {
-    val port = args.checkInteger(0)
-    val answerPort = args.checkInteger(1)
-    for ((computer: IComputerAccess, ports) <- openPorts if ports.contains(port)) {
-      computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.drop(2): _*))
-    }
-    null
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
@@ -89,33 +79,15 @@ class Adapter extends Environment with IPeripheral {
     }
   }
 
-  override def onMessage(message: Message) {
-    super.onMessage(message)
-    if (Loader.isModLoaded("ComputerCraft")) {
-      if (message.name == "network.message") message.data match {
-        case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
-          queueMessage(port, answerPort.toInt, args)
-        case Array(port: Integer, args@_*) =>
-          queueMessage(port, -1, args)
-        case _ =>
-      }
-    }
-  }
-
-  private def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
-    for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-      if (openPorts(computer).contains(port))
-        computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
-          case x: Array[Byte] => new String(x, "UTF-8")
-          case x => x
-        }: _*))
-    }
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
+
+    items(0) match {
+      case Some(stack) if driver.Registry.blockDriverFor(stack).isEmpty => setInventorySlotContents(0, null)
+      case _ =>
+    }
 
     val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
@@ -153,66 +125,30 @@ class Adapter extends Environment with IPeripheral {
 
   // ----------------------------------------------------------------------- //
 
-  private val computers = mutable.ArrayBuffer.empty[AnyRef]
+  def getSizeInventory = 1
 
-  private val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+  def getInvName = Settings.namespace + "container.Adapter"
 
-  @Optional.Method(modid = "ComputerCraft")
-  override def getType = "oc_adapter"
+  def getInventoryStackLimit = 0
 
-  @Optional.Method(modid = "ComputerCraft")
-  override def attach(computer: IComputerAccess) {
-    computers += computer
-    openPorts += computer -> mutable.Set.empty
-  }
+  override def getInventoryStackRequired = 0
 
-  @Optional.Method(modid = "ComputerCraft")
-  override def detach(computer: IComputerAccess) {
-    computers -= computer
-    openPorts -= computer
-  }
+  def isItemValidForSlot(i: Int, stack: ItemStack) =
+    stack != null && stack.stackSize > 0 && driver.Registry.blockDriverFor(stack).isDefined
 
-  @Optional.Method(modid = "ComputerCraft")
-  override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "transmit", "isWireless")
-
-  @Optional.Method(modid = "ComputerCraft")
-  override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = getMethodNames()(method) match {
-    case "open" =>
-      val port = checkPort(arguments, 0)
-      if (openPorts(computer).size >= 128)
-        throw new IllegalArgumentException("too many open channels")
-      Array(Boolean.box(openPorts(computer).add(port)))
-    case "isOpen" =>
-      val port = checkPort(arguments, 0)
-      Array(Boolean.box(openPorts(computer).contains(port)))
-    case "close" =>
-      val port = checkPort(arguments, 0)
-      Array(Boolean.box(openPorts(computer).remove(port)))
-    case "closeAll" =>
-      openPorts(computer).clear()
-      null
-    case "transmit" =>
-      val sendPort = checkPort(arguments, 0)
-      val answerPort = checkPort(arguments, 1)
-      node.sendToReachable("network.message", Seq(Int.box(sendPort), Int.box(answerPort)) ++ arguments.drop(2): _*)
-      null
-    case "isWireless" => Array(java.lang.Boolean.FALSE)
-    case _ => null
-  }
-
-  @Optional.Method(modid = "ComputerCraft")
-  override def canAttachToSide(side: Int) = true
-
-  private def checkPort(args: Array[AnyRef], index: Int) = {
-    if (args.length < index - 1 || !args(index).isInstanceOf[Double])
-      throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
-    val port = args(index).asInstanceOf[Double].toInt
-    if (port < 1 || port > 0xFFFF)
-      throw new IllegalArgumentException("bad argument #%d (number in [1, 65535] expected)".format(index + 1))
-    port
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    neighborChanged()
   }
 
   // ----------------------------------------------------------------------- //
+
+  private def isBlockSupported(x: Int, y: Int, z: Int) =
+    items(0).isDefined && (items(0).get.getItem match {
+      case block: ItemBlock =>
+        block.getBlockID == world.getBlockId(x, y, z) && block.getMetadata(block.getDamage(items(0).get)) == world.getBlockMetadata(x, y, z)
+      case _ => false
+    })
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 

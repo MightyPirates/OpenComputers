@@ -5,6 +5,7 @@ import cpw.mods.fml.common.{Optional, Loader}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import mods.immibis.redlogic.api.wiring.{IInsulatedRedstoneWire, IBundledUpdatable, IBundledEmitter}
+import mrtjp.projectred.api.{ProjectRedAPI, IBundledTile}
 import net.minecraft.block.Block
 import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
@@ -13,9 +14,10 @@ import scala.Array
 
 @Optional.InterfaceList(Array(
   new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic")
+  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic"),
+  new Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = "ProjRed|Transmission")
 ))
-trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable {
+trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable with IBundledTile {
 
   private val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
 
@@ -27,7 +29,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   override def isOutputEnabled_=(value: Boolean) = {
     if (value != isOutputEnabled) {
-      if (!isOutputEnabled) {
+      if (!value) {
         for (i <- 0 until _bundledOutput.length) {
           for (j <- 0 until _bundledOutput(i).length) {
             _bundledOutput(i)(j) = 0
@@ -86,14 +88,20 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     super.load(nbt)
 
     nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledInput(side))
+      case (input, side) if side < _bundledInput.length =>
+        val safeLength = input.intArray.length min _bundledInput(side).length
+        input.intArray.copyToArray(_bundledInput(side), 0, safeLength)
     }
     nbt.getTagList(Settings.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_bundledOutput(side))
+      case (input, side) if side < _bundledOutput.length =>
+        val safeLength = input.intArray.length min _bundledOutput(side).length
+        input.intArray.copyToArray(_bundledOutput(side), 0, safeLength)
     }
 
     nbt.getTagList(Settings.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) => input.intArray.copyToArray(_rednetInput(side))
+      case (input, side) if side < _rednetInput.length =>
+        val safeLength = input.intArray.length min _rednetInput(side).length
+        input.intArray.copyToArray(_rednetInput(side), 0, safeLength)
     }
   }
 
@@ -109,7 +117,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   // ----------------------------------------------------------------------- //
 
   protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
-    if (Loader.isModLoaded("RedLogic")) {
+    val redLogic = if (Loader.isModLoaded("RedLogic")) {
       world.getBlockTileEntity(
         x + side.offsetX,
         y + side.offsetY,
@@ -130,6 +138,15 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         case _ => null
       }
     } else null
+    val projectRed = if (Loader.isModLoaded("ProjRed|Transmission")) {
+      Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
+    } else null
+    (redLogic, projectRed) match {
+      case (a: Array[Int], b: Array[Int]) => (a, b).zipped.map((r1, r2) => math.max(r1, r2))
+      case (a: Array[Int], _) => a
+      case (_, b: Array[Int]) => b
+      case _ => null
+    }
   }
 
   override protected def onRedstoneOutputChanged(side: ForgeDirection) {
@@ -163,8 +180,16 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "RedLogic")
-  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = _bundledOutput(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).map(value => math.min(math.max(value, 0), 255).toByte)
+  def getBundledCableStrength(blockFace: Int, toDirection: Int): Array[Byte] = bundledOutput(ForgeDirection.getOrientation(toDirection)).map(value => math.min(math.max(value, 0), 255).toByte)
 
   @Optional.Method(modid = "RedLogic")
   def onBundledInputChanged() = checkRedstoneInputChanged()
+
+  // ----------------------------------------------------------------------- //
+
+  @Optional.Method(modid = "ProjRed|Transmission")
+  def canConnectBundled(side: Int) = isOutputEnabled
+
+  @Optional.Method(modid = "ProjRed|Transmission")
+  def getBundledSignal(side: Int) = bundledOutput(ForgeDirection.getOrientation(side)).map(value => math.min(math.max(value, 0), 255).toByte)
 }

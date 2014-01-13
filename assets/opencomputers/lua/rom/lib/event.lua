@@ -76,7 +76,7 @@ function event.ignore(name, callback)
       if listeners[name][i] == callback then
         table.remove(listeners[name], i)
         if #listeners[name] == 0 then
-          list.listeners[name] = nil
+          listeners[name] = nil
         end
         return true
       end

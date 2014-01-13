@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.{TileEntity => MCTileEntity, TileEntityFurnace}
 import scala.Some
 
-class Generator(val owner: MCTileEntity) extends ManagedComponent {
+class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().

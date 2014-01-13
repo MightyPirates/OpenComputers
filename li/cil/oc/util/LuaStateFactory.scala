@@ -5,12 +5,14 @@ import com.naef.jnlua.{LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
+import java.util.logging.Level
 import li.cil.oc.server.component.Computer
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
+import org.apache.commons.lang3.SystemUtils
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -26,6 +28,8 @@ object LuaStateFactory {
 
   /** Set to true in initialization code below if available. */
   private var haveNativeLibrary = false
+
+  private var isWindows = false
 
   private var _is64Bit = false
 
@@ -76,7 +80,13 @@ object LuaStateFactory {
             break()
         }
     }
+    isWindows = extension == ".dll"
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
+
+    if (isWindows && SystemUtils.IS_OS_WINDOWS_XP) {
+      OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting it in April 2014.")
+      break()
+    }
 
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")
@@ -92,7 +102,7 @@ object LuaStateFactory {
     }
 
     // Found file with proper extension. Create a temporary file.
-    val file = new File(tmpPath + library)
+    val file = new File(tmpPath + "OpenComputersMod-" + library)
     // Try to delete an old instance of the library, in case we have an update
     // and deleteOnExit fails (which it regularly does on Windows it seems).
     try {
@@ -145,145 +155,160 @@ object LuaStateFactory {
   def createState(): Option[LuaState] = {
     if (!haveNativeLibrary) return None
 
-    val state = new LuaState(Int.MaxValue)
     try {
-      // Load all libraries.
-      state.openLib(LuaState.Library.BASE)
-      state.openLib(LuaState.Library.BIT32)
-      state.openLib(LuaState.Library.COROUTINE)
-      state.openLib(LuaState.Library.DEBUG)
-      state.openLib(LuaState.Library.ERIS)
-      state.openLib(LuaState.Library.MATH)
-      state.openLib(LuaState.Library.STRING)
-      state.openLib(LuaState.Library.TABLE)
-      state.pop(8)
+      val state = new LuaState(Int.MaxValue)
+      try {
+        // Load all libraries.
+        state.openLib(LuaState.Library.BASE)
+        state.openLib(LuaState.Library.BIT32)
+        state.openLib(LuaState.Library.COROUTINE)
+        state.openLib(LuaState.Library.DEBUG)
+        state.openLib(LuaState.Library.ERIS)
+        state.openLib(LuaState.Library.MATH)
+        state.openLib(LuaState.Library.STRING)
+        state.openLib(LuaState.Library.TABLE)
+        state.pop(8)
 
-      // Prepare table for os stuff.
-      state.newTable()
-      state.setGlobal("os")
+        // Prepare table for os stuff.
+        state.newTable()
+        state.setGlobal("os")
 
-      // Kill compat entries.
-      state.pushNil()
-      state.setGlobal("unpack")
-      state.pushNil()
-      state.setGlobal("loadstring")
-      state.getGlobal("math")
-      state.pushNil()
-      state.setField(-2, "log10")
-      state.pop(1)
-      state.getGlobal("table")
-      state.pushNil()
-      state.setField(-2, "maxn")
-      state.pop(1)
+        // Kill compat entries.
+        state.pushNil()
+        state.setGlobal("unpack")
+        state.pushNil()
+        state.setGlobal("loadstring")
+        state.getGlobal("math")
+        state.pushNil()
+        state.setField(-2, "log10")
+        state.pop(1)
+        state.getGlobal("table")
+        state.pushNil()
+        state.setField(-2, "maxn")
+        state.pop(1)
 
-      // Remove some other functions we don't need and are dangerous.
-      state.pushNil()
-      state.setGlobal("dofile")
-      state.pushNil()
-      state.setGlobal("loadfile")
+        // Remove some other functions we don't need and are dangerous.
+        state.pushNil()
+        state.setGlobal("dofile")
+        state.pushNil()
+        state.setGlobal("loadfile")
 
-      state.getGlobal("math")
+        state.getGlobal("math")
 
-      // We give each Lua state it's own randomizer, since otherwise they'd
-      // use the good old rand() from C. Which can be terrible, and isn't
-      // necessarily thread-safe.
-      val random = new Random
-      state.pushScalaFunction(lua => {
-        lua.getTop match {
-          case 0 => lua.pushNumber(random.nextDouble())
-          case 1 =>
-            val u = lua.checkInteger(1)
-            lua.checkArg(1, 1 < u, "interval is empty")
-            lua.pushInteger(1 + random.nextInt(u))
-          case 2 =>
-            val l = lua.checkInteger(1)
-            val u = lua.checkInteger(2)
-            lua.checkArg(1, l < u, "interval is empty")
-            lua.pushInteger(l + random.nextInt(u - (l - 1)))
-          case _ => throw new IllegalArgumentException("wrong number of arguments")
-        }
-        1
-      })
-      state.setField(-2, "random")
-
-      state.pushScalaFunction(lua => {
-        random.setSeed(lua.checkInteger(1))
-        0
-      })
-      state.setField(-2, "randomseed")
-
-      // Pop the math table.
-      state.pop(1)
-
-      // Provide some better Unicode support.
-      state.newTable()
-
-      // TODO find (probably not necessary?)
-
-      // TODO format (probably not necessary?)
-
-      // TODO gmatch (probably not necessary?)
-
-      // TODO gsub (probably not necessary?)
-
-      // TODO match (probably not necessary?)
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(lua.checkString(1).toLowerCase)
-        1
-      })
-      state.setField(-2, "lower")
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(lua.checkString(1).toUpperCase)
-        1
-      })
-      state.setField(-2, "upper")
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
-        1
-      })
-      state.setField(-2, "char")
-
-      state.pushScalaFunction(lua => {
-        lua.pushInteger(lua.checkString(1).length)
-        1
-      })
-      state.setField(-2, "len")
-
-      state.pushScalaFunction(lua => {
-        lua.pushString(lua.checkString(1).reverse)
-        1
-      })
-      state.setField(-2, "reverse")
-
-      state.pushScalaFunction(lua => {
-        val string = lua.checkString(1)
-        val start = math.max(0, lua.checkInteger(2) match {
-          case i if i < 0 => string.length + i
-          case i => i - 1
+        // We give each Lua state it's own randomizer, since otherwise they'd
+        // use the good old rand() from C. Which can be terrible, and isn't
+        // necessarily thread-safe.
+        val random = new Random
+        state.pushScalaFunction(lua => {
+          lua.getTop match {
+            case 0 => lua.pushNumber(random.nextDouble())
+            case 1 =>
+              val u = lua.checkInteger(1)
+              lua.checkArg(1, 1 < u, "interval is empty")
+              lua.pushInteger(1 + random.nextInt(u))
+            case 2 =>
+              val l = lua.checkInteger(1)
+              val u = lua.checkInteger(2)
+              lua.checkArg(1, l < u, "interval is empty")
+              lua.pushInteger(l + random.nextInt(u - (l - 1)))
+            case _ => throw new IllegalArgumentException("wrong number of arguments")
+          }
+          1
         })
-        val end =
-          if (lua.getTop > 2) math.min(string.length, lua.checkInteger(3) match {
-            case i if i < 0 => string.length + i + 1
-            case i => i
+        state.setField(-2, "random")
+
+        state.pushScalaFunction(lua => {
+          random.setSeed(lua.checkInteger(1))
+          0
+        })
+        state.setField(-2, "randomseed")
+
+        // Pop the math table.
+        state.pop(1)
+
+        // Provide some better Unicode support.
+        state.newTable()
+
+        // TODO find (probably not necessary?)
+
+        // TODO format (probably not necessary?)
+
+        // TODO gmatch (probably not necessary?)
+
+        // TODO gsub (probably not necessary?)
+
+        // TODO match (probably not necessary?)
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(lua.checkString(1).toLowerCase)
+          1
+        })
+        state.setField(-2, "lower")
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(lua.checkString(1).toUpperCase)
+          1
+        })
+        state.setField(-2, "upper")
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
+          1
+        })
+        state.setField(-2, "char")
+
+        state.pushScalaFunction(lua => {
+          lua.pushInteger(lua.checkString(1).length)
+          1
+        })
+        state.setField(-2, "len")
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(lua.checkString(1).reverse)
+          1
+        })
+        state.setField(-2, "reverse")
+
+        state.pushScalaFunction(lua => {
+          val string = lua.checkString(1)
+          val start = math.max(0, lua.checkInteger(2) match {
+            case i if i < 0 => string.length + i
+            case i => i - 1
           })
-          else string.length
-        if (end <= start) lua.pushString("")
-        else lua.pushString(string.substring(start, end))
-        1
-      })
-      state.setField(-2, "sub")
+          val end =
+            if (lua.getTop > 2) math.min(string.length, lua.checkInteger(3) match {
+              case i if i < 0 => string.length + i + 1
+              case i => i
+            })
+            else string.length
+          if (end <= start) lua.pushString("")
+          else lua.pushString(string.substring(start, end))
+          1
+        })
+        state.setField(-2, "sub")
 
-      state.setGlobal("unicode")
+        state.setGlobal("unicode")
 
-      Some(state)
-    } catch {
-      case ex: Throwable =>
-        ex.printStackTrace()
-        state.close()
-        return None
+        return Some(state)
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Failed creating Lua state.", t)
+          state.close()
+      }
     }
+    catch {
+      case _: UnsatisfiedLinkError =>
+        OpenComputers.log.severe("Failed loading the native libraries.")
+        if (isWindows) {
+          OpenComputers.log.severe(
+            "Please ensure you have the Visual C++ 2012 Runtime installed " +
+              "(when on 64 Bit, both the 32 bit and 64 bit version of the " +
+              "runtime).")
+        }
+      case t: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Failed creating Lua state.", t)
+    }
+    None
   }
 }

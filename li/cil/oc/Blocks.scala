@@ -3,6 +3,9 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import net.minecraft.block.Block
+import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -18,8 +21,8 @@ object Blocks {
   var case1, case2, case3: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
-  var powerDistributor: PowerDistributor = _
   var powerConverter: PowerConverter = _
+  var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
   var robotProxy: RobotProxy = _
   var robotAfterimage: RobotAfterimage = _
@@ -71,12 +74,35 @@ object Blocks {
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = new RobotProxy(blockSpecialWithRedstone)
     router = new Router(blockSimple)
-    screen1 = new Screen.Tier1(blockSimple)
-    screen2 = new Screen.Tier2(blockSimple)
-    screen3 = new Screen.Tier3(blockSimple)
+    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
+    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
+    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
+
+    // For automatic conversion from old format (when screens did not take
+    // redstone inputs) to keep save format compatible.
+    blockSimple.subBlocks += screen1
+    blockSimple.subBlocks += screen2
+    blockSimple.subBlocks += screen3
 
     redstone = new Redstone(blockSimpleWithRedstone)
     serverRack = new Rack(blockSimple)
     accessPoint = new AccessPoint(blockSimple)
+
+    register("oc:craftingCable", cable.createItemStack())
+    register("oc:craftingCapacitor", capacitor.createItemStack())
+    register("oc:craftingCaseBasic", case1.createItemStack())
+    register("oc:craftingCaseAdvanced", case2.createItemStack())
+    register("oc:craftingCaseElite", case3.createItemStack())
+    register("oc:craftingDiskDrive", diskDrive.createItemStack())
+    register("oc:craftingScreenBasic", screen1.createItemStack())
+    register("oc:craftingScreenAdvanced", screen2.createItemStack())
+    register("oc:craftingScreenElite", screen3.createItemStack())
+    register("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
+  }
+
+  private def register(name: String, item: ItemStack) {
+    if (!OreDictionary.getOres(name).contains(item)) {
+      OreDictionary.registerOre(name, item)
+    }
   }
 }

@@ -3,11 +3,15 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.common.tileentity.PassiveNode
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
 import scala.collection.JavaConverters._
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -353,6 +357,28 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
+  @ForgeSubscribe
+  def onWorldLoad(e: WorldEvent.Load) {
+    val world = e.world
+    if (!world.isRemote) {
+      for (t <- world.loadedTileEntityList) t match {
+        case p: TileEntity with PassiveNode => p.getBlockType.updateTick(world, p.xCoord, p.yCoord, p.zCoord, world.rand)
+        case _ =>
+      }
+    }
+  }
+
+  @ForgeSubscribe
+  def onChunkLoad(e: ChunkEvent.Load) {
+    val world = e.world
+    if (!world.isRemote) {
+      for (t <- e.getChunk.chunkTileEntityMap.values) t match {
+        case p: TileEntity with PassiveNode => p.getBlockType.updateTick(world, p.xCoord, p.yCoord, p.zCoord, world.rand)
+        case _ =>
+      }
+    }
+  }
+
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
     if (!tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {

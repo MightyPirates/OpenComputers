@@ -10,7 +10,7 @@ end
 
 local filename = shell.resolve(args[1])
 
-local readonly = options.r or fs.get(filename).isReadOnly()
+local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
 if fs.isDirectory(filename) or readonly and not fs.exists(filename) then
   print("file not found")
@@ -209,6 +209,7 @@ local function insert(value)
 end
 
 local function enter()
+  term.setCursorBlink(false)
   local cx, cy = term.getCursor()
   local cbx, cby = getCursor()
   local w, h = getSize()
@@ -260,10 +261,13 @@ local function onKeyDown(char, code)
       local new = not fs.exists(filename)
       local f, reason = io.open(filename, "w")
       if f then
-        local chars = 0
+        local chars, firstLine = 0, true
         for _, line in ipairs(buffer) do
+          if not firstLine then
+            line = "\n" .. line
+          end
+          firstLine = false
           f:write(line)
-          f:write("\n")
           chars = chars + unicode.len(line)
         end
         f:close()
@@ -330,6 +334,9 @@ do
       end
     end
     f:close()
+    if #buffer == 0 then
+      table.insert(buffer, "")
+    end
     local format
     if readonly then
       format = [["%s" [readonly] %dL,%dC]]

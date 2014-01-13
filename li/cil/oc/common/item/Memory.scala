@@ -13,7 +13,7 @@ class Memory(val parent: Delegator, val tier: Int) extends Delegate {
 
   val kiloBytes = Settings.get.ramSizes(tier)
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.rare).apply(tier max 0 min 4)
 
   override def displayName(stack: ItemStack) =
     Some(parent.getItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))

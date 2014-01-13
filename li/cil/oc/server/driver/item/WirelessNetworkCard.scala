@@ -13,4 +13,6 @@ object WirelessNetworkCard extends Item {
     if (container != null) new component.WirelessNetworkCard(container) else null
 
   def slot(stack: ItemStack) = Slot.Card
+
+  override def tier(stack: ItemStack) = 1
 }

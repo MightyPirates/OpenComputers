@@ -7,7 +7,7 @@ import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
   addSlotToContainer(178 + 0 * slotSize, 218, api.driver.Slot.Tool)
-  addSlotToContainer(178 + 1 * slotSize, 218, api.driver.Slot.Card)
+  addSlotToContainer(178 + 1 * slotSize, 218, api.driver.Slot.Card, 1)
   addSlotToContainer(178 + 2 * slotSize, 218, api.driver.Slot.Disk)
   addSlotToContainer(178 + 3 * slotSize, 218, api.driver.Slot.Upgrade)
 

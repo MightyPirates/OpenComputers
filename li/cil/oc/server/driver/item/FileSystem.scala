@@ -43,6 +43,12 @@ object FileSystem extends Item {
       case _ => throw new IllegalArgumentException()
     }
 
+  override def tier(stack: ItemStack) =
+    Items.multi.subItem(stack) match {
+      case Some(hdd: HardDiskDrive) => hdd.tier
+      case _ => 0
+    }
+
   private def createEnvironment(stack: ItemStack, capacity: Int) = {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,

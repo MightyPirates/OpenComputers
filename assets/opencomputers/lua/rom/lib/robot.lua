@@ -117,19 +117,19 @@ function robot.durability()
 end
 
 
-function robot.swing(side)
+function robot.swing(side, sneaky)
   checkArg(1, side, "nil", "number")
-  return component.computer.swing(sides.front, side)
+  return component.computer.swing(sides.front, side, sneaky ~= nil and sneaky ~= false)
 end
 
-function robot.swingUp(side)
+function robot.swingUp(side, sneaky)
   checkArg(1, side, "nil", "number")
-  return component.computer.swing(sides.up, side)
+  return component.computer.swing(sides.up, side, sneaky ~= nil and sneaky ~= false)
 end
 
-function robot.swingDown(side)
+function robot.swingDown(side, sneaky)
   checkArg(1, side, "nil", "number")
-  return component.computer.swing(sides.down, side)
+  return component.computer.swing(sides.down, side, sneaky ~= nil and sneaky ~= false)
 end
 
 function robot.use(side, sneaky, duration)

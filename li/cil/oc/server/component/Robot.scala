@@ -324,6 +324,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       else {
         ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
       }
+    val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
     def triggerDelay(delay: Double = Settings.get.swingDelay) = {
       context.pause(delay)
@@ -358,6 +359,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
 
     for (side <- sides) {
       val player = robot.player(facing, side)
+      player.setSneaking(sneaky)
+
       val (success, what) = Option(pick(player, Settings.get.swingRange)) match {
         case Some(hit) =>
           hit.typeOfHit match {
@@ -378,6 +381,8 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
               else (false, "air")
           }
       }
+
+      player.setSneaking(false)
       if (success) {
         return result(true, what)
       }
@@ -477,21 +482,28 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
   @LuaCallback("move")
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     val direction = checkSideForMovement(args, 0)
-    val (something, what) = blockContent(direction)
-    if (something) {
-      result(false, what)
+    if (robot.isAnimatingMove) {
+      // This shouldn't really happen due to delays being enforced, but just to
+      // be on the safe side...
+      result(false, "already moving")
     }
     else {
-      if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
-        result(false, "not enough energy")
-      }
-      else if (robot.move(direction)) {
-        context.pause(Settings.get.moveDelay)
-        result(true)
+      val (something, what) = blockContent(direction)
+      if (something) {
+        result(false, what)
       }
       else {
-        robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
-        result(false, "impossible move")
+        if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+          result(false, "not enough energy")
+        }
+        else if (robot.move(direction)) {
+          context.pause(Settings.get.moveDelay)
+          result(true)
+        }
+        else {
+          robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
+          result(false, "impossible move")
+        }
       }
     }
   }
@@ -578,7 +590,7 @@ class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotConte
       player.side.offsetZ * range)
     val hit = world.clip(origin, target)
     player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || player.getPosition(1).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }

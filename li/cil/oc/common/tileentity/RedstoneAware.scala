@@ -8,6 +8,7 @@ import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
+import net.minecraft.block.Block
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
@@ -30,7 +31,7 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   def isOutputEnabled_=(value: Boolean) = {
     if (value != isOutputEnabled) {
       _isOutputEnabled = value
-      if (!isOutputEnabled) {
+      if (!value) {
         for (i <- 0 until _output.length) {
           _output(i) = 0
         }
@@ -41,6 +42,8 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   }
 
   def input(side: ForgeDirection) = _input(side.ordinal())
+
+  def maxInput = ForgeDirection.VALID_DIRECTIONS.map(input).max
 
   def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
 
@@ -74,8 +77,10 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
 
-    nbt.getIntArray(Settings.namespace + "rs.input").copyToArray(_input)
-    nbt.getIntArray(Settings.namespace + "rs.output").copyToArray(_output)
+    val input = nbt.getIntArray(Settings.namespace + "rs.input")
+    input.copyToArray(_input, 0, input.length min _input.length)
+    val output = nbt.getIntArray(Settings.namespace + "rs.output")
+    output.copyToArray(_output, 0, output.length min _output.length)
   }
 
   override def save(nbt: NBTTagCompound) = {
@@ -101,16 +106,12 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
   // ----------------------------------------------------------------------- //
 
   protected def computeInput(side: ForgeDirection) = {
-    val vanilla = world.getIndirectPowerLevelTo(
-      x + side.offsetX,
-      y + side.offsetY,
-      z + side.offsetZ,
-      side.ordinal())
+    val (sx, sy, sz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+    // See BlockRedstoneLogic.getInputStrength() for reference.
+    val vanilla = math.max(world.getIndirectPowerLevelTo(sx, sy, sz, side.ordinal()),
+      if (world.getBlockId(sx, sy, sz) == Block.redstoneWire.blockID) world.getBlockMetadata(sx, sy, sz) else 0)
     val redLogic = if (Loader.isModLoaded("RedLogic")) {
-      world.getBlockTileEntity(
-        x + side.offsetX,
-        y + side.offsetY,
-        z + side.offsetZ) match {
+      world.getBlockTileEntity(sx, sy, sz) match {
         case emitter: IRedstoneEmitter =>
           var strength = 0
           for (i <- -1 to 5) {

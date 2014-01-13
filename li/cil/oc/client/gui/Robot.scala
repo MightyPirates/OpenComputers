@@ -17,6 +17,8 @@ import net.minecraft.inventory.Slot
 import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import li.cil.oc.common.container.ComponentSlot
+import net.minecraft.client.renderer.texture.TextureMap
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with Buffer {
   xSize = 256
@@ -68,8 +70,16 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawSlotInventory(slot: Slot) {
     RenderState.makeItBlend()
+    GL11.glDepthMask(false)
     super.drawSlotInventory(slot)
+    GL11.glDepthMask(true)
     GL11.glDisable(GL11.GL_BLEND)
+    if (!slot.getHasStack) slot match {
+      case component: ComponentSlot if component.tierIcon != null =>
+        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+      case _ =>
+    }
   }
 
   def drawBuffer() {

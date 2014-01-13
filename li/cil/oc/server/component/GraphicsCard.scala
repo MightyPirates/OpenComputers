@@ -33,7 +33,7 @@ abstract class GraphicsCard extends ManagedComponent {
 
   override def update() {
     super.update()
-    if (screenInstance.isEmpty && screenAddress.isDefined) {
+    if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
         case Some(node: Node) if node.host.isInstanceOf[Buffer] =>
           screenInstance = Some(node.host.asInstanceOf[Buffer])
@@ -202,6 +202,23 @@ abstract class GraphicsCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override def onMessage(message: Message) {
+    super.onMessage(message)
+    if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
+      screenInstance match {
+        case Some(buffer) => buffer.synchronized {
+          val (w, h) = buffer.resolution
+          buffer.foreground = 0xFFFFFF
+          buffer.background = 0x000000
+          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+            buffer.owner.onScreenFill(0, 0, w, h, ' ')
+          }
+        }
+        case _ =>
+      }
+    }
+  }
+
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node || screenAddress.exists(_ == node.address)) {
@@ -216,7 +233,10 @@ abstract class GraphicsCard extends ManagedComponent {
     super.load(nbt)
 
     if (nbt.hasKey("screen")) {
-      screenAddress = Some(nbt.getString("screen"))
+      nbt.getString("screen") match {
+        case screen: String if !screen.isEmpty => screenAddress = Some(screen)
+        case _ => screenAddress = None
+      }
       screenInstance = None
     }
   }

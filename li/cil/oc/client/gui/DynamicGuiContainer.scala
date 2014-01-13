@@ -1,9 +1,11 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.Settings
+import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
 import net.minecraft.util.{StatCollector, ResourceLocation}
 import org.lwjgl.opengl.GL11
@@ -30,8 +32,16 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
       GL11.glEnable(GL11.GL_LIGHTING)
     }
     RenderState.makeItBlend()
+    GL11.glDepthMask(false)
     super.drawSlotInventory(slot)
+    GL11.glDepthMask(true)
     GL11.glDisable(GL11.GL_BLEND)
+    if (!slot.getHasStack) slot match {
+      case component: ComponentSlot if component.tierIcon != null =>
+        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+      case _ =>
+    }
   }
 
   private def drawSlotBackground(x: Int, y: Int) {

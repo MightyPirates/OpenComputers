@@ -6,10 +6,10 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
-object Crafting extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.crafting)
+object UpgradeGenerator extends Item {
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeGenerator)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.Crafting(container)
+  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.UpgradeGenerator(container)
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 }

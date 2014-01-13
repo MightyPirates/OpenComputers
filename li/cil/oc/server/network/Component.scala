@@ -204,6 +204,16 @@ object Component {
       }
     }
 
+    def checkTable(index: Int) = {
+      checkIndex(index, "table")
+      args(index) match {
+        case value: java.util.Map[_, _] => value
+        case value: Map[_, _] => value
+        case value: mutable.Map[_, _] => value
+        case value => throw typeError(index, value, "table")
+      }
+    }
+
     def isBoolean(index: Int) =
       index >= 0 && index < count && (args(index) match {
         case value: java.lang.Boolean => true
@@ -236,6 +246,14 @@ object Component {
         case _ => false
       })
 
+    def isTable(index: Int) =
+      index >= 0 && index < count && (args(index) match {
+        case value: java.util.Map[_, _] => true
+        case value: Map[_, _] => true
+        case value: mutable.Map[_, _] => true
+        case _ => false
+      })
+
     private def checkIndex(index: Int, name: String) =
       if (index < 0) throw new IndexOutOfBoundsException()
       else if (args.length <= index) throw new IllegalArgumentException(
@@ -253,6 +271,9 @@ object Component {
       case _: java.lang.Double => "double"
       case _: java.lang.String => "string"
       case _: Array[Byte] => "string"
+      case value: java.util.Map[_, _] => "table"
+      case value: Map[_, _] => "table"
+      case value: mutable.Map[_, _] => "table"
       case _ => value.getClass.getSimpleName
     }
   }

@@ -91,10 +91,12 @@ object Cable {
   def neighbors(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     var result = 0
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+      val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (world.getBlockId(tx, ty, tz) != 0) world.getBlockTileEntity(tx, ty, tz) match {
         case robot: tileentity.RobotProxy =>
         case host: SidedEnvironment =>
-          if (host.canConnect(side.getOpposite)) {
+          val connects = if (host.getWorldObj.isRemote) host.canConnect(side.getOpposite) else host.sidedNode(side.getOpposite) != null
+          if (connects) {
             result |= side.flag
           }
         case host: Environment => result |= side.flag

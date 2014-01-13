@@ -28,7 +28,16 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t) => p.player match {
         case player: EntityPlayer if t.computer.canInteract(player.getCommandSenderName) =>
           if (p.readBoolean()) {
-            if (!t.computer.isPaused) t.computer.start()
+            if (!t.computer.isPaused) {
+              t.computer.start()
+              t.computer.lastError match {
+                case Some(message) => p.player match {
+                  case player: EntityPlayer => player.addChatMessage(message)
+                  case _ =>
+                }
+                case _ =>
+              }
+            }
           }
           else t.computer.stop()
         case _ =>
