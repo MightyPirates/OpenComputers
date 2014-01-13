@@ -4,23 +4,23 @@
     "modid": "OpenComputers",
     "name": "OpenComputers",
     "description": "This mod adds modular computers and robots that can be programmed in Lua.",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "mcversion": "1.6.4",
     "url": "https://github.com/MightyPirates/OpenComputers/wiki",
     "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
     "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
     "logoFile" : "assets/opencomputers/textures/gui/logo.png",
     "requiredMods": [ "Forge@[9.11.1.940,)" ],
-  "dependencies": [
-    "BuildCraft|Energy",
-    "ComputerCraft",
-    "IC2",
-    "MineFactoryReloaded",
-    "ProjRed|Transmission",
-    "RedLogic",
-    "StargateTech2",
-    "ThermalExpansion"
-  ],
+    "dependencies": [
+      "BuildCraft|Energy",
+      "ComputerCraft",
+      "IC2",
+      "MineFactoryReloaded",
+      "ProjRed|Transmission",
+      "RedLogic",
+      "StargateTech2",
+      "ThermalExpansion"
+    ],
     "useDependencyInformation": "true"
   }]
 }
