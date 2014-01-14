@@ -1,6 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Optional.Interface
 import cpw.mods.fml.common.{Optional, Loader}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
@@ -13,9 +12,9 @@ import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 import scala.Array
 
 @Optional.InterfaceList(Array(
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic"),
-  new Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = "ProjRed|Transmission")
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledUpdatable", modid = "RedLogic"),
+  new Optional.Interface(iface = "mrtjp.projectred.api.IBundledTile", modid = "ProjRed|Transmission")
 ))
 trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable with IBundledTile {
 
