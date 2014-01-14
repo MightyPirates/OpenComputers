@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
@@ -10,8 +11,11 @@ import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
+import stargatetech2.api.bus.IBusDevice
 
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with Analyzable with Context {
+// See AbstractBusAware as to why we have to define the IBusDevice here.
+@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Context {
   protected val _computer = if (isRemote) null else new component.Computer(this)
 
   def computer = _computer
