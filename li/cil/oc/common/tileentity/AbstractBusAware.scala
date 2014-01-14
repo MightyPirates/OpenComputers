@@ -4,14 +4,26 @@ import cpw.mods.fml.common.{Loader, Optional}
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network.Node
 import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
+import li.cil.oc.util.mods.StargateTech2
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.MinecraftForge
 import stargatetech2.api.StargateTechAPI
-import stargatetech2.api.bus.{BusEvent, IBusDevice}
+import stargatetech2.api.bus.{IBusInterface, IBusDevice}
 
-@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevice {
+// IMPORTANT: for some reason that is beyond me we cannot implement the
+// IBusDevice here directly, since we'll get an error if the interface is not
+// provided (i.e. if SGT2 isn't installed), even if we tell FML to strip it.
+// Assuming FML properly strips the interface (and it looks like it does, when
+// inspecting it in the debugger, i.e. getInterfaces() doesn't contain it), it
+// probably is something derping up in the class loader... the thing that
+// confuses me the most, though, is that it apparently works for redstone and
+// the CC interface, so... yeah. I'm out of ideas.
+trait AbstractBusAware extends TileEntity with ComponentInventory { self: IBusDevice =>
+  protected var _isAbstractBusAvailable: Boolean = _
+
+  protected lazy val fakeInterface = Array[AnyRef](StargateTechAPI.api.getFactory.getIBusInterface(this, null))
+
+  @Optional.Method(modid = "StargateTech2")
   def getInterfaces(side: Int) =
     if (isAbstractBusAvailable) {
       if (isServer) {
@@ -19,13 +31,9 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
           case Some(abstractBus: component.AbstractBus) => abstractBus.busInterface
         }
       }
-      else fakeInterface
+      else fakeInterface.map(_.asInstanceOf[IBusInterface])
     }
     else null
-
-  protected var _isAbstractBusAvailable = false
-
-  private lazy val fakeInterface = Array(StargateTechAPI.api.getFactory.getIBusInterface(this, null))
 
   def getWorld = world
 
@@ -84,22 +92,24 @@ trait AbstractBusAware extends TileEntity with ComponentInventory with IBusDevic
     removeAbstractBus()
   }
 
+  // IMPORTANT: all the Loader.isModLoaded checks are there to a void class
+  // not found errors! Also, don't try to move them further down in the logic
+  // (e.g. into StargateTech2) since that would not help avoid the error anymore.
+
   protected def addAbstractBus() {
-    // Mod loaded check to avoid class not found errors.
     if (isServer && Loader.isModLoaded("StargateTech2")) {
-      MinecraftForge.EVENT_BUS.post(new BusEvent.AddToNetwork(world, x, y, z))
+      StargateTech2.addDevice(world, x, y, z)
     }
   }
 
   protected def removeAbstractBus() {
-    // Mod loaded check to avoid class not found errors.
     if (isServer && Loader.isModLoaded("StargateTech2")) {
-      MinecraftForge.EVENT_BUS.post(new BusEvent.RemoveFromNetwork(world, x, y, z))
+      StargateTech2.removeDevice(world, x, y, z)
     }
   }
 
-  protected def hasAbstractBusCard = components exists {
+  protected def hasAbstractBusCard = Loader.isModLoaded("StargateTech2") && (components exists {
     case Some(_: component.AbstractBus) => true
     case _ => false
-  }
+  })
 }

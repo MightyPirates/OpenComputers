@@ -1,6 +1,5 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Optional.Interface
 import cpw.mods.fml.common.{Loader, Optional}
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
@@ -13,9 +12,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 @Optional.InterfaceList(Array(
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = "RedLogic"),
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
-  new Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IConnectable", modid = "RedLogic"),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
+  new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
 trait RedstoneAware extends RotationAware with network.Environment with Persistable with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
   protected val _input = Array.fill(6)(-1)
