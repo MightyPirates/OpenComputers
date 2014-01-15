@@ -14,7 +14,6 @@ oc:block.DiskDrive.name=Diskettenlaufwerk
 oc:block.Keyboard.name=Tastatur
 oc:block.PowerConverter.name=Leistungswandler
 oc:block.PowerDistributor.name=Stromverteiler
-oc:block.Rack.name=Serverschrank
 oc:block.Redstone.name=Redstone-I/O
 oc:block.Robot.name=Roboter
 oc:block.RobotAfterimage.name=Roboter
@@ -22,6 +21,7 @@ oc:block.Router.name=Router
 oc:block.Screen0.name=Einfacher Bildschirm
 oc:block.Screen1.name=Hochwertiger Bildschirm
 oc:block.Screen2.name=Ausgezeichneter Bildschirm
+oc:block.ServerRack.name=Serverschrank
 
 # Items
 oc:item.AbstractBusCard.name=Abstrakter-Bus-Karte
@@ -127,6 +127,7 @@ oc:tooltip.Router=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet
 oc:tooltip.Screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] Höchstauflösung: §f%sx%s§7.[nl] Maximale Farbtiefe: §f%s§7.
 oc:tooltip.Server=Ein Server kann wie gewöhnlich Computergehäuse mit Komponenten verbessert werden. Um den Server zu starten muss er in einem Servergehäuse installiert werden.
 oc:tooltip.Server.Components=Installierte Komponenten:
+oc:tooltip.ServerRack=Erlaubt die Installation von bis zu vier Servern.
 oc:tooltip.TooLong=Shift gedrückt halten für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
 oc:tooltip.UpgradeCrafting=Ermöglicht Robotern, in dem oberen linken Bereich ihres Inventars Dinge zu fertigen. Gegenstände müssen so angeordnet sein, wie sie es in einer Werkbank wären.

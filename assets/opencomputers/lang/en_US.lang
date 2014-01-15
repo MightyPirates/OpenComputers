@@ -14,7 +14,6 @@ oc:block.DiskDrive.name=Disk Drive
 oc:block.Keyboard.name=Keyboard
 oc:block.PowerConverter.name=Power Converter
 oc:block.PowerDistributor.name=Power Distributor
-oc:block.Rack.name=Server Rack
 oc:block.Redstone.name=Redstone I/O
 oc:block.Robot.name=Robot
 oc:block.RobotAfterimage.name=Robot
@@ -22,6 +21,7 @@ oc:block.Router.name=Router
 oc:block.Screen0.name=Basic Screen
 oc:block.Screen1.name=Advanced Screen
 oc:block.Screen2.name=Superior Screen
+oc:block.ServerRack.name=Server Rack
 
 # Items
 oc:item.AbstractBusCard.name=Abstract Bus Card
@@ -127,6 +127,7 @@ oc:tooltip.Router=Allows connecting different networks to each other. Only netwo
 oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Case.[nl] Maximum resolution: §f%sx%s§7.[nl] Maximum color depth: §f%s§7.
 oc:tooltip.Server=This is a server, there are many like it, but this one can be upgraded with components much like a computer case can be. It can be run by inserting it into a server rack.
 oc:tooltip.Server.Components=Installed components:
+oc:tooltip.ServerRack=Allows the installation of up to four servers.
 oc:tooltip.TooLong=Hold shift for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
 oc:tooltip.UpgradeCrafting=Enables robots to use the top left area of their inventory for crafting objects. Items have to be aligned as they would be in a crafting table.
