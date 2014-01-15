@@ -11,7 +11,7 @@ import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class Rack(val parent: SimpleDelegator) extends SimpleDelegate {
+class Rack(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "ServerRack"
 
   private val icons = Array.fill[Icon](6)(null)

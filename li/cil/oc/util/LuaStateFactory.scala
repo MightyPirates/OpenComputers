@@ -6,13 +6,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.logging.Level
-import li.cil.oc.server.component.Computer
+import li.cil.oc.server.component.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
+import org.apache.commons.lang3.SystemUtils
 import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
-import org.apache.commons.lang3.SystemUtils
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -95,7 +95,7 @@ object LuaStateFactory {
     }
 
     val library = "native." + architecture + extension
-    val libraryUrl = classOf[Computer].getResource(libPath + library)
+    val libraryUrl = classOf[Machine].getResource(libPath + library)
     if (libraryUrl == null) {
       OpenComputers.log.warning("Unsupported platform, you won't be able to host games with working computers.")
       break()

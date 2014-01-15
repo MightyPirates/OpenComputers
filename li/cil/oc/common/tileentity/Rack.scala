@@ -1,23 +1,72 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.{Analyzable, Visibility}
-import li.cil.oc.server.component
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.api.network.{Node, Analyzable, Visibility}
+import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Items, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
+import stargatetech2.api.bus.IBusDevice
 
-class Rack extends Environment with Inventory with Analyzable {
+// See AbstractBusAware as to why we have to define the IBusDevice here.
+@Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
+class Rack extends Environment with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  val servers = Array.fill(getSizeInventory)(None: Option[component.Computer])
+  val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   // For client side, where we don't create the component.
-  private val _isRunning = Array.fill(getSizeInventory)(None: Option[Boolean])
+  private val _isRunning = new Array[Boolean](getSizeInventory)
 
   private var hasChanged = false
 
+  // ----------------------------------------------------------------------- //
+
+  def isRunning(number: Int) =
+    if (isServer) servers(number).fold(false)(_.machine.isRunning)
+    else _isRunning(number)
+
+  @SideOnly(Side.CLIENT)
+  def setRunning(number: Int, value: Boolean) = {
+    _isRunning(number) = value
+    world.markBlockForRenderUpdate(x, y, z)
+    this
+  }
+
+  def anyRunning = (0 until servers.length).exists(isRunning)
+
+  // ----------------------------------------------------------------------- //
+
   def markAsChanged() = hasChanged = true
+
+  def installedComponents = servers.flatMap {
+    case Some(server) => server.inventory.components collect {
+      case Some(component) => component
+    }
+    case _ => Iterable.empty
+  }
+
+  def hasAbstractBusCard = servers exists {
+    case Some(server) => server.machine.isRunning && server.inventory.items.exists {
+      case Some(stack) => driver.item.AbstractBusCard.worksWith(stack)
+      case _ => false
+    }
+    case _ => false
+  }
+
+  def hasRedstoneCard = servers exists {
+    case Some(server) => server.machine.isRunning && server.inventory.items.exists {
+      case Some(stack) => driver.item.RedstoneCard.worksWith(stack)
+      case _ => false
+    }
+    case _ => false
+  }
+
+  // ----------------------------------------------------------------------- //
 
   def getSizeInventory = 4
 
@@ -27,23 +76,110 @@ class Rack extends Environment with Inventory with Analyzable {
 
   def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
 
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    servers.collect {
+      case Some(server) => server.machine.lastError match {
+        case Some(value) =>
+          // TODO check if already in, expand value string with additional messages
+          stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
+        case _ =>
+      }
+    }
+    null
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def updateEntity() {
+    if (isServer) {
+      if (node != null && node.network != null) {
+        servers collect {
+          case Some(server) => server.machine.update()
+        }
+
+        if (hasChanged) {
+          hasChanged = false
+          world.markTileEntityChunkModified(x, y, z, this)
+        }
+
+        for (i <- 0 until servers.length) {
+          val isRunning = servers(i).fold(false)(_.machine.isRunning)
+          if (_isRunning(i) != isRunning) {
+            _isRunning(i) = isRunning
+            ServerPacketSender.sendServerState(this, i)
+          }
+        }
+        isOutputEnabled = hasRedstoneCard
+        isAbstractBusAvailable = hasAbstractBusCard
+
+        updateRedstoneInput()
+        servers collect {
+          case Some(server) => server.inventory.updateComponents()
+        }
+      }
+    }
     super.updateEntity()
-    for (server <- servers) server match {
-      case Some(computer) => computer.update()
-      case _ =>
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    for (slot <- 0 until getSizeInventory) {
+      if (getStackInSlot(slot) != null) {
+        val server = new component.Server(this, slot)
+        servers(slot) = Some(server)
+      }
+    }
+    for ((serverNbt, slot) <- nbt.getTagList(Settings.namespace + "servers").iterator[NBTTagCompound].zipWithIndex if slot < servers.length) {
+      servers(slot) match {
+        case Some(server) => server.load(serverNbt)
+        case _ =>
+      }
+    }
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    nbt.setNewTagList(Settings.namespace + "servers", servers map {
+      case Some(server) =>
+        val serverNbt = new NBTTagCompound()
+        server.save(serverNbt)
+        serverNbt
+      case _ => new NBTTagCompound()
+    })
+    super.writeToNBT(nbt)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    Array.copy(nbt.getByteArray("isRunning").byteArray.map(_ == 1), 0, _isRunning, 0, math.min(_isRunning.length, _isRunning.length))
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setByteArray("isRunning", _isRunning.map(state => (if (state) 1 else 0): Byte))
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      servers collect {
+        case Some(server) => node.connect(server.machine.node)
+      }
     }
   }
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     if (isServer) {
-      val computer = new component.Computer(new component.Server(this, slot))
-      servers(slot) = Some(computer)
-      this.node.connect(computer.node)
-    }
-    else {
-      _isRunning(slot) = Some(false)
+      val server = new component.Server(this, slot)
+      servers(slot) = Some(server)
+      node.connect(server.machine.node)
     }
   }
 
@@ -51,27 +187,35 @@ class Rack extends Environment with Inventory with Analyzable {
     super.onItemRemoved(slot, stack)
     if (isServer) {
       servers(slot) match {
-        case Some(computer) => computer.node.remove()
+        case Some(server) =>
+          server.machine.node.remove()
+          server.inventory.containerOverride = stack
+          server.inventory.save(new NBTTagCompound()) // Only flush components.
+          server.inventory.onInventoryChanged()
         case _ =>
       }
       servers(slot) = None
     }
-    else {
-      _isRunning(slot) = None
+  }
+
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    if (isServer) {
+      isOutputEnabled = hasRedstoneCard
+      isAbstractBusAvailable = hasAbstractBusCard
     }
   }
 
-  def isRunning(number: Int) =
-    if (isServer) servers(number) match {
-      case Some(server) => server.isRunning
-      case _ => false
-    }
-    else _isRunning(number) match {
-      case Some(state) => state
-      case _ => false
-    }
+  override protected def onRotationChanged() {
+    super.onRotationChanged()
+    checkRedstoneInputChanged()
+  }
 
-  def isServerInstalled(number: Int) = if (isServer) servers(number).isDefined else _isRunning(number).isDefined
+  override protected def onRedstoneInputChanged(side: ForgeDirection) {
+    super.onRedstoneInputChanged(side)
+    servers collect {
+      case Some(server) => server.machine.signal("redstone_changed", server.machine.address, Int.box(toLocal(side).ordinal()))
+    }
+  }
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 }

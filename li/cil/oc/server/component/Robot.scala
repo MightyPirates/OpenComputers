@@ -17,7 +17,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends Computer(robot) with RobotContext {
+class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContext {
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world

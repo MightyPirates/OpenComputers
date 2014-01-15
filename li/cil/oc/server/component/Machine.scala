@@ -22,7 +22,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class Computer(val owner: Computer.Owner) extends ManagedComponent with Context with Runnable {
+class Machine(val owner: Machine.Owner) extends ManagedComponent with Context with Runnable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
@@ -36,7 +36,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
-  private val state = mutable.Stack(Computer.State.Stopped)
+  private val state = mutable.Stack(Machine.State.Stopped)
 
   private var lua: LuaState = null
 
@@ -48,7 +48,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
 
   private val _users = mutable.Set.empty[String]
 
-  private val signals = new mutable.Queue[Computer.Signal]
+  private val signals = new mutable.Queue[Machine.Signal]
 
   private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
 
@@ -101,12 +101,12 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
 
-  def isRunning = state.synchronized(state.top != Computer.State.Stopped && state.top != Computer.State.Stopping)
+  def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
 
-  def isPaused = state.synchronized(state.top == Computer.State.Paused && remainingPause > 0)
+  def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
   def start() = state.synchronized(state.top match {
-    case Computer.State.Stopped =>
+    case Machine.State.Stopped =>
       val rules = owner.world.getWorldInfo.getGameRulesInstance
       if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
         crash("computers don't work while time is frozen (gamerule doDaylightCycle is false)")
@@ -115,7 +115,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
       else if (owner.installedMemory > 0) {
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
-            switchTo(Computer.State.Starting)
+            switchTo(Machine.State.Starting)
             timeStarted = owner.world.getWorldTime
             node.sendToReachable("computer.started")
             true
@@ -130,11 +130,11 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
         message = Some("no memory installed")
         false
       }
-    case Computer.State.Paused if remainingPause > 0 =>
+    case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
       true
-    case Computer.State.Stopping =>
-      switchTo(Computer.State.Restarting)
+    case Machine.State.Stopping =>
+      switchTo(Machine.State.Restarting)
       true
     case _ =>
       false
@@ -142,17 +142,17 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
 
   def pause(seconds: Double): Boolean = {
     val ticksToPause = math.max((seconds * 20).toInt, 0)
-    def shouldPause(state: Computer.State.Value) = state match {
-      case Computer.State.Stopping | Computer.State.Stopped => false
-      case Computer.State.Paused if ticksToPause <= remainingPause => false
+    def shouldPause(state: Machine.State.Value) = state match {
+      case Machine.State.Stopping | Machine.State.Stopped => false
+      case Machine.State.Paused if ticksToPause <= remainingPause => false
       case _ => true
     }
     if (shouldPause(state.synchronized(state.top))) {
       // Check again when we get the lock, might have changed since.
       this.synchronized(state.synchronized(if (shouldPause(state.top)) {
-        if (state.top != Computer.State.Paused) {
-          assert(!state.contains(Computer.State.Paused))
-          state.push(Computer.State.Paused)
+        if (state.top != Machine.State.Paused) {
+          assert(!state.contains(Machine.State.Paused))
+          state.push(Machine.State.Paused)
         }
         remainingPause = ticksToPause
         owner.markAsChanged()
@@ -163,10 +163,10 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   }
 
   def stop() = state.synchronized(state.top match {
-    case Computer.State.Stopped | Computer.State.Stopping =>
+    case Machine.State.Stopped | Machine.State.Stopping =>
       false
     case _ =>
-      state.push(Computer.State.Stopping)
+      state.push(Machine.State.Stopping)
       true
   })
 
@@ -176,11 +176,11 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   }
 
   def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
-    case Computer.State.Stopped | Computer.State.Stopping => false
+    case Machine.State.Stopped | Machine.State.Stopping => false
     case _ => signals.synchronized {
       if (signals.size >= 256) false
       else {
-        signals.enqueue(new Computer.Signal(name, args.map {
+        signals.enqueue(new Machine.Signal(name, args.map {
           case null | Unit | None => Unit
           case arg: java.lang.Boolean => arg
           case arg: java.lang.Byte => arg.toDouble
@@ -220,7 +220,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
 
   override val canUpdate = true
 
-  override def update() = if (state.synchronized(state.top != Computer.State.Stopped)) {
+  override def update() = if (state.synchronized(state.top != Machine.State.Stopped)) {
     // Add components that were added since the last update to the actual list
     // of components if we can see them. We use this delayed approach to avoid
     // issues with components that have a visibility lower than their
@@ -247,11 +247,11 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
     // Make sure we have enough power.
     if (worldTime % Settings.get.tickFrequency == 0) {
       state.synchronized(state.top match {
-        case Computer.State.Paused |
-             Computer.State.Restarting |
-             Computer.State.Stopping |
-             Computer.State.Stopped => // No power consumption.
-        case Computer.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
+        case Machine.State.Paused |
+             Machine.State.Restarting |
+             Machine.State.Stopping |
+             Machine.State.Stopped => // No power consumption.
+        case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
           if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
             crash("not enough energy")
           }
@@ -278,20 +278,20 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
     // guaranteed that the executor thread isn't running anymore.
     state.synchronized(state.top match {
       // Booting up.
-      case Computer.State.Starting =>
+      case Machine.State.Starting =>
         verifyComponents()
-        switchTo(Computer.State.Yielded)
+        switchTo(Machine.State.Yielded)
       // Computer is rebooting.
-      case Computer.State.Restarting =>
+      case Machine.State.Restarting =>
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
-      case Computer.State.Sleeping if remainIdle <= 0 || !signals.isEmpty =>
-        switchTo(Computer.State.Yielded)
+      case Machine.State.Sleeping if remainIdle <= 0 || !signals.isEmpty =>
+        switchTo(Machine.State.Yielded)
       // Resume in case we paused  because the game was paused.
-      case Computer.State.Paused =>
+      case Machine.State.Paused =>
         if (remainingPause > 0) {
           remainingPause -= 1
         }
@@ -301,7 +301,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
           switchTo(state.top) // Trigger execution if necessary.
         }
       // Perform a synchronized call (message sending).
-      case Computer.State.SynchronizedCall =>
+      case Machine.State.SynchronizedCall =>
         // These three asserts are all guaranteed by run().
         assert(lua.getTop == 2)
         assert(lua.isThread(1))
@@ -313,7 +313,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
         callCounts.clear()
         // We switch into running state, since we'll behave as though the call
         // were performed from our executor thread.
-        switchTo(Computer.State.Running)
+        switchTo(Machine.State.Running)
         try {
           // Synchronized call protocol requires the called function to return
           // a table, which holds the results of the call, to be passed back
@@ -322,14 +322,14 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
           lua.checkType(2, LuaType.TABLE)
           // Check if the callback called pause() or stop().
           state.top match {
-            case Computer.State.Running =>
-              switchTo(Computer.State.SynchronizedReturn)
-            case Computer.State.Paused =>
+            case Machine.State.Running =>
+              switchTo(Machine.State.SynchronizedReturn)
+            case Machine.State.Paused =>
               state.pop() // Paused
               state.pop() // Running, no switchTo to avoid new future.
-              state.push(Computer.State.SynchronizedReturn)
-              state.push(Computer.State.Paused)
-            case Computer.State.Stopping => // Nothing to do, we'll die anyway.
+              state.push(Machine.State.SynchronizedReturn)
+              state.push(Machine.State.Paused)
+            case Machine.State.Stopping => // Nothing to do, we'll die anyway.
             case _ => throw new AssertionError()
           }
         } catch {
@@ -352,7 +352,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
     // might turn into a deadlock depending on where it currently is.
     state.synchronized(state.top) match {
       // Computer is shutting down.
-      case Computer.State.Stopping => this.synchronized(state.synchronized {
+      case Machine.State.Stopping => this.synchronized(state.synchronized {
         close()
         rom.foreach(_.node.remove())
         tmp.foreach(_.node.remove())
@@ -457,17 +457,17 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) = this.synchronized {
-    assert(state.top == Computer.State.Stopped)
+    assert(state.top == Machine.State.Stopped)
     assert(_users.isEmpty)
     assert(signals.isEmpty)
     state.clear()
 
     super.load(nbt)
 
-    state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Computer.State(s.data)))
+    state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Machine.State(s.data)))
     nbt.getTagList("users").foreach[NBTTagString](u => _users += u.data)
 
-    if (state.size > 0 && state.top != Computer.State.Stopped && init()) {
+    if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
       // Unlimit memory use while unpersisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -482,9 +482,9 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
           // the save was corrupt (maybe someone modified the Lua files).
           throw new IllegalArgumentException("Invalid kernel.")
         }
-        if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
+        if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
           unpersist(nbt.getByteArray("stack"))
-          if (!(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
+          if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
             // Same as with the above, should not really happen normally, but
             // could for the same reasons.
             throw new IllegalArgumentException("Invalid stack.")
@@ -497,7 +497,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
         signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
           val argsNbt = signalNbt.getCompoundTag("args")
           val argsLength = argsNbt.getInteger("length")
-          new Computer.Signal(signalNbt.getString("name"),
+          new Machine.Signal(signalNbt.getString("name"),
             (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
               case tag: NBTTagByte if tag.data == -1 => Unit
               case tag: NBTTagByte => tag.data == 1
@@ -535,14 +535,14 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
       } catch {
         case e: LuaRuntimeException =>
           OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-          state.push(Computer.State.Stopping)
+          state.push(Machine.State.Stopping)
       }
     }
     else close() // Clean up in case we got a weird state stack.
   }
 
   override def save(nbt: NBTTagCompound): Unit = this.synchronized {
-    assert(state.top != Computer.State.Running) // Lock on 'this' should guarantee this.
+    assert(state.top != Machine.State.Running) // Lock on 'this' should guarantee this.
 
     // Make sure we don't continue running until everything has saved.
     pause(0.05)
@@ -555,7 +555,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
     nbt.setNewTagList("state", state.map(_.id))
     nbt.setNewTagList("users", _users)
 
-    if (state.top != Computer.State.Stopped) {
+    if (state.top != Machine.State.Stopped) {
       // Unlimit memory while persisting.
       lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -566,8 +566,8 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
         nbt.setByteArray("kernel", persist(1))
         // While in a driver call we have one object on the global stack: either
         // the function to call the driver with, or the result of the call.
-        if (state.contains(Computer.State.SynchronizedCall) || state.contains(Computer.State.SynchronizedReturn)) {
-          assert(if (state.contains(Computer.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
+        if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
+          assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
           nbt.setByteArray("stack", persist(2))
         }
 
@@ -1069,7 +1069,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
 
       initPerms()
 
-      lua.load(classOf[Computer].getResourceAsStream(Settings.scriptPath + "kernel.lua"), "=kernel", "t")
+      lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "kernel.lua"), "=kernel", "t")
       lua.newThread() // Left as the first value on the stack.
 
       // Clear any left-over signals from a previous run.
@@ -1155,9 +1155,9 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   }
 
   private def close() = state.synchronized(
-    if (state.size == 0 || state.top != Computer.State.Stopped) {
+    if (state.size == 0 || state.top != Machine.State.Stopped) {
       state.clear()
-      state.push(Computer.State.Stopped)
+      state.push(Machine.State.Stopped)
       if (lua != null) {
         lua.setTotalMemory(Integer.MAX_VALUE)
         lua.close()
@@ -1176,12 +1176,12 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
 
   // ----------------------------------------------------------------------- //
 
-  private def switchTo(value: Computer.State.Value) = {
+  private def switchTo(value: Machine.State.Value) = {
     val result = state.pop()
     state.push(value)
-    if (value == Computer.State.Yielded || value == Computer.State.SynchronizedReturn) {
+    if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Computer.threadPool.submit(this)
+      Machine.threadPool.submit(this)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -1198,17 +1198,17 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = this.synchronized {
     val enterState = state.synchronized {
-      if (state.top == Computer.State.Stopped ||
-        state.top == Computer.State.Stopping ||
-        state.top == Computer.State.Paused) {
+      if (state.top == Machine.State.Stopped ||
+        state.top == Machine.State.Stopping ||
+        state.top == Machine.State.Paused) {
         return
       }
       // See if the game appears to be paused, in which case we also pause.
       if (isGamePaused) {
-        state.push(Computer.State.Paused)
+        state.push(Machine.State.Paused)
         return
       }
-      switchTo(Computer.State.Running)
+      switchTo(Machine.State.Running)
     }
 
     try {
@@ -1224,12 +1224,12 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
       // Resume the Lua state and remember the number of results we get.
       cpuStart = System.nanoTime()
       val (results, runtime) = enterState match {
-        case Computer.State.SynchronizedReturn =>
+        case Machine.State.SynchronizedReturn =>
           // If we were doing a synchronized call, continue where we left off.
           assert(lua.getTop == 2)
           assert(lua.isTable(2))
           (lua.resume(1, 1), System.nanoTime() - cpuStart)
-        case Computer.State.Yielded =>
+        case Machine.State.Yielded =>
           if (kernelMemory == 0) {
             // We're doing the initialization run.
             if (lua.resume(1, 0) > 0) {
@@ -1270,20 +1270,20 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
       state.synchronized(if (lua.status(1) == LuaState.YIELD) {
         // Check if someone called pause() or stop() in the meantime.
         state.top match {
-          case Computer.State.Running =>
+          case Machine.State.Running =>
             // If we get one function it must be a wrapper for a synchronized
             // call. The protocol is that a closure is pushed that is then called
             // from the main server thread, and returns a table, which is in turn
             // passed to the originating coroutine.yield().
             if (results == 1 && lua.isFunction(2)) {
-              switchTo(Computer.State.SynchronizedCall)
+              switchTo(Machine.State.SynchronizedCall)
             }
             // Check if we are shutting down, and if so if we're rebooting. This
             // is signalled by boolean values, where `false` means shut down,
             // `true` means reboot (i.e shutdown then start again).
             else if (results == 1 && lua.isBoolean(2)) {
-              if (lua.toBoolean(2)) switchTo(Computer.State.Restarting)
-              else switchTo(Computer.State.Stopping)
+              if (lua.toBoolean(2)) switchTo(Machine.State.Restarting)
+              else switchTo(Machine.State.Stopping)
             }
             else {
               // If we have a single number, that's how long we may wait before
@@ -1298,19 +1298,19 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
                 // Immediately check for signals to allow processing more than one
                 // signal per game tick.
                 if (signals.isEmpty && sleep > 0) {
-                  switchTo(Computer.State.Sleeping)
+                  switchTo(Machine.State.Sleeping)
                   remainIdle = sleep
                 } else {
-                  switchTo(Computer.State.Yielded)
+                  switchTo(Machine.State.Yielded)
                 }
               }
             }
-          case Computer.State.Paused =>
+          case Machine.State.Paused =>
             state.pop() // Paused
             state.pop() // Running, no switchTo to avoid new future.
-            state.push(Computer.State.Yielded)
-            state.push(Computer.State.Paused)
-          case Computer.State.Stopping => // Nothing to do, we'll die anyway.
+            state.push(Machine.State.Yielded)
+            state.push(Machine.State.Paused)
+          case Machine.State.Stopping => // Nothing to do, we'll die anyway.
           case _ => throw new AssertionError(
             "Invalid state in executor post-processing.")
         }
@@ -1353,7 +1353,7 @@ class Computer(val owner: Computer.Owner) extends ManagedComponent with Context 
   }
 }
 
-object Computer {
+object Machine {
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
   private class Signal(val name: String, val args: Array[Any])

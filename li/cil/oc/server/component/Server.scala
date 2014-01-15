@@ -7,15 +7,19 @@ import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 
-class Server(val rack: tileentity.Rack, val number: Int) extends Computer.Owner {
+class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
+  val machine = new Machine(this)
+
   val inventory = new NetworkedInventory with ComponentInventory {
-    def container = rack.getStackInSlot(number)
+    var containerOverride: ItemStack = _
 
-    def node() = rack.servers(number) match {
-      case Some(computer) => computer.node
-      case _ => null
-    }
+    def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
+
+    def node() = machine.node
 
     def onMessage(message: Message) {}
 
@@ -40,6 +44,18 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Computer.Owner 
   override def onConnect(node: Node) = inventory.onConnect(node)
 
   override def onDisconnect(node: Node) = inventory.onDisconnect(node)
+
+  def load(nbt: NBTTagCompound) {
+    machine.load(nbt.getCompoundTag("machine"))
+  }
+
+  def save(nbt: NBTTagCompound) {
+    nbt.setNewCompoundTag("machine", machine.save)
+    // Dummy tag compound, we just want to flush the components to the actual
+    // tag compound, which is the one of the stack representing us.
+    inventory.save(new NBTTagCompound())
+    inventory.onInventoryChanged()
+  }
 
   // Required due to abstract overrides in component inventory.
   trait NetworkedInventory extends ServerInventory with api.network.Environment {

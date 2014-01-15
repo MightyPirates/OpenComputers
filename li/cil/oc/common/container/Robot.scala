@@ -32,5 +32,5 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   }
 
   override def canInteractWith(player: EntityPlayer) =
-    super.canInteractWith(player) && robot.computer.canInteract(player.getCommandSenderName)
+    super.canInteractWith(player) && robot.canInteract(player.getCommandSenderName)
 }

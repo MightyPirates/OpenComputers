@@ -85,7 +85,9 @@ object Blocks {
     blockSimple.subBlocks += screen3
 
     redstone = new Redstone(blockSimpleWithRedstone)
-    serverRack = new Rack(blockSimple)
+
+    // v1.2.0
+    serverRack = new Rack(blockSimpleWithRedstone)
     accessPoint = new AccessPoint(blockSimple)
 
     register("oc:craftingCable", cable.createItemStack())

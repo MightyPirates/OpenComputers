@@ -2,10 +2,10 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.api.network.Node
+import li.cil.oc.api.network
+import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
 import li.cil.oc.util.mods.StargateTech2
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus.{IBusInterface, IBusDevice}
@@ -18,18 +18,20 @@ import stargatetech2.api.bus.{IBusInterface, IBusDevice}
 // probably is something derping up in the class loader... the thing that
 // confuses me the most, though, is that it apparently works for redstone and
 // the CC interface, so... yeah. I'm out of ideas.
-trait AbstractBusAware extends TileEntity with ComponentInventory { self: IBusDevice =>
+trait AbstractBusAware extends TileEntity with network.Environment { self: IBusDevice =>
   protected var _isAbstractBusAvailable: Boolean = _
 
   protected lazy val fakeInterface = Array[AnyRef](StargateTechAPI.api.getFactory.getIBusInterface(this, null))
 
+  def installedComponents: Iterable[ManagedEnvironment]
+
   @Optional.Method(modid = "StargateTech2")
-  def getInterfaces(side: Int) =
+  def getInterfaces(side: Int): Array[IBusInterface] =
     if (isAbstractBusAvailable) {
       if (isServer) {
-        components collect {
-          case Some(abstractBus: component.AbstractBus) => abstractBus.busInterface
-        }
+        installedComponents.collect {
+          case abstractBus: component.AbstractBus => abstractBus.busInterface
+        }.toArray
       }
       else fakeInterface.map(_.asInstanceOf[IBusInterface])
     }
@@ -48,8 +50,10 @@ trait AbstractBusAware extends TileEntity with ComponentInventory { self: IBusDe
   def isAbstractBusAvailable_=(value: Boolean) = {
     if (value != isAbstractBusAvailable) {
       _isAbstractBusAvailable = value
-      if (isAbstractBusAvailable) addAbstractBus()
-      else removeAbstractBus()
+      if (isServer && Loader.isModLoaded("StargateTech2")) {
+        if (isAbstractBusAvailable) StargateTech2.addDevice(world, x, y, z)
+        else StargateTech2.removeDevice(world, x, y, z)
+      }
       world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
       if (isServer) ServerPacketSender.sendAbstractBusState(this)
       else world.markBlockForRenderUpdate(x, y, z)
@@ -68,48 +72,8 @@ trait AbstractBusAware extends TileEntity with ComponentInventory { self: IBusDe
     nbt.setBoolean("isAbstractBusAvailable", isAbstractBusAvailable)
   }
 
-  override protected def onItemAdded(slot: Int, stack: ItemStack) {
-    super.onItemAdded(slot, stack)
-    if (isServer) {
-      isAbstractBusAvailable = hasAbstractBusCard
-    }
-  }
-
-  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
-    super.onItemRemoved(slot, stack)
-    if (isServer) {
-      isAbstractBusAvailable = hasAbstractBusCard
-    }
-  }
-
-  abstract override def onConnect(node: Node) {
-    super.onConnect(node)
-    isAbstractBusAvailable = hasAbstractBusCard
-  }
-
-  abstract override def onDisconnect(node: Node) {
+  abstract override def onDisconnect(node: network.Node) {
     super.onDisconnect(node)
-    removeAbstractBus()
+    isAbstractBusAvailable = false
   }
-
-  // IMPORTANT: all the Loader.isModLoaded checks are there to a void class
-  // not found errors! Also, don't try to move them further down in the logic
-  // (e.g. into StargateTech2) since that would not help avoid the error anymore.
-
-  protected def addAbstractBus() {
-    if (isServer && Loader.isModLoaded("StargateTech2")) {
-      StargateTech2.addDevice(world, x, y, z)
-    }
-  }
-
-  protected def removeAbstractBus() {
-    if (isServer && Loader.isModLoaded("StargateTech2")) {
-      StargateTech2.removeDevice(world, x, y, z)
-    }
-  }
-
-  protected def hasAbstractBusCard = Loader.isModLoaded("StargateTech2") && (components exists {
-    case Some(_: component.AbstractBus) => true
-    case _ => false
-  })
 }

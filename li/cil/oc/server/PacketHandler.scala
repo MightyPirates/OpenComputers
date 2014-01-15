@@ -31,7 +31,7 @@ class PacketHandler extends CommonPacketHandler {
       }
       case Some(r: Rack) => r.servers(p.readInt()) match {
         case Some(server) => p.player match {
-          case player: EntityPlayer => trySetComputerPower(server, p.readBoolean(), player)
+          case player: EntityPlayer => trySetComputerPower(server.machine, p.readBoolean(), player)
           case _ =>
         }
         case _ => // Invalid packet.
@@ -39,7 +39,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  private def trySetComputerPower(computer: component.Computer, value: Boolean, player: EntityPlayer) {
+  private def trySetComputerPower(computer: component.Machine, value: Boolean, player: EntityPlayer) {
     if (computer.canInteract(player.getCommandSenderName)) {
       if (value) {
         if (!computer.isPaused) {

@@ -34,7 +34,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def isRunning = robot.isRunning
 
-  override def isRunning_=(value: Boolean) = robot.isRunning_=(value)
+  override def setRunning(value: Boolean) = robot.setRunning(value)
 
   def selectedSlot() = robot.selectedSlot
 

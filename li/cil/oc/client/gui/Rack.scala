@@ -18,7 +18,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   protected override def actionPerformed(button: GuiButton) {
-    if (button.id >= 0 && button.id <= 3 && rack.isServerInstalled(button.id)) {
+    if (button.id >= 0 && button.id <= 3) {
       ClientPacketSender.sendServerPower(rack, button.id, !rack.isRunning(button.id))
     }
   }
@@ -33,7 +33,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def initGui() {
     super.initGui()
     for (i <- 0 to 3) {
-      powerButtons(i) = new ImageButton(0, guiLeft + 94, guiTop + 7 + i * 18, 18, 18, powerIcon)
+      powerButtons(i) = new ImageButton(i, guiLeft + 94, guiTop + 7 + i * 18, 18, 18, powerIcon)
       add(buttonList, powerButtons(i))
     }
   }

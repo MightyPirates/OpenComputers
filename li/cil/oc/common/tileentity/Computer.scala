@@ -15,8 +15,8 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Context with component.Computer.Owner {
-  protected val _computer = if (isRemote) null else new component.Computer(this)
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Context with component.Machine.Owner {
+  protected val _computer = if (isRemote) null else new component.Machine(this)
 
   def computer = _computer
 
@@ -45,7 +45,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   def isRunning = _isRunning
 
   @SideOnly(Side.CLIENT)
-  def isRunning_=(value: Boolean) = {
+  def setRunning(value: Boolean) = {
     _isRunning = value
     world.markBlockForRenderUpdate(x, y, z)
     this
@@ -65,8 +65,17 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def markAsChanged() = hasChanged = true
 
+  def installedComponents = components collect {
+    case Some(component) => component
+  }
+
+  def hasAbstractBusCard = items.exists {
+    case Some(item) => computer.isRunning && driver.item.AbstractBusCard.worksWith(item)
+    case _ => false
+  }
+
   def hasRedstoneCard = items.exists {
-    case Some(item) => driver.item.RedstoneCard.worksWith(item)
+    case Some(item) => computer.isRunning && driver.item.RedstoneCard.worksWith(item)
     case _ => false
   }
 
@@ -99,17 +108,13 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
         if (_isRunning != computer.isRunning) {
           _isRunning = computer.isRunning
-          isOutputEnabled = hasRedstoneCard && computer.isRunning
+          isOutputEnabled = hasRedstoneCard
+          isAbstractBusAvailable = hasAbstractBusCard
           ServerPacketSender.sendComputerState(this)
         }
 
         updateRedstoneInput()
-
-        if (updatingComponents.length > 0) {
-          for (component <- updatingComponents) {
-            component.update()
-          }
-        }
+        updateComponents()
       }
     }
 
@@ -131,7 +136,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    isRunning_=(nbt.getBoolean("isRunning"))
+    setRunning(nbt.getBoolean("isRunning"))
     _users.clear()
     _users ++= nbt.getTagList("users").iterator[NBTTagString].map(_.data)
   }
@@ -148,7 +153,8 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     super.onInventoryChanged()
     if (isServer) {
       computer.recomputeMemory()
-      isOutputEnabled = hasRedstoneCard && computer.isRunning
+      isOutputEnabled = hasRedstoneCard
+      isAbstractBusAvailable = hasAbstractBusCard
     }
   }
 

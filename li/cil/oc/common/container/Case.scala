@@ -25,5 +25,5 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
   addPlayerInventorySlots(8, 84)
 
   override def canInteractWith(player: EntityPlayer) =
-    super.canInteractWith(player) && computer.computer.canInteract(player.getCommandSenderName)
+    super.canInteractWith(player) && computer.canInteract(player.getCommandSenderName)
 }

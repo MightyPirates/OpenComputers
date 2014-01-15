@@ -11,7 +11,7 @@ import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
 
 trait ComponentInventory extends Inventory with network.Environment {
-  protected lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
+  lazy val components = Array.fill[Option[ManagedEnvironment]](getSizeInventory)(None)
   protected val updatingComponents = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   // ----------------------------------------------------------------------- //
@@ -27,6 +27,14 @@ trait ComponentInventory extends Inventory with network.Environment {
     }
     case _ => 0
   }))
+
+  def updateComponents() {
+    if (updatingComponents.length > 0) {
+      for (component <- updatingComponents) {
+        component.update()
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

@@ -130,8 +130,8 @@ class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with 
     // when their update() runs).
     if (node.network != null) {
       for (node <- node.reachableNodes) node.host match {
-        case host: tileentity.Computer if !host.computer.isPaused =>
-          host.computer.pause(0.1)
+        case host: tileentity.Computer if !host.isPaused =>
+          host.pause(0.1)
         case _ =>
       }
     }
