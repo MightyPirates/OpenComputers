@@ -204,6 +204,9 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
     }
+    else {
+      world.markBlockForRenderUpdate(x, y, z)
+    }
   }
 
   override protected def onRotationChanged() {

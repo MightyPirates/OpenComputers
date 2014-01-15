@@ -47,7 +47,7 @@ class Item(id: Int) extends ItemBlock(id) {
         case rotatable: tileentity.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           rotatable match {
-            case _@(_: tileentity.Computer | _: tileentity.DiskDrive) =>
+            case _@(_: tileentity.Computer | _: tileentity.DiskDrive | _: tileentity.Rack) =>
               rotatable.pitch = ForgeDirection.NORTH
             case _ =>
           }

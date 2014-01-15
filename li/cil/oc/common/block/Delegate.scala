@@ -104,6 +104,9 @@ trait Delegate {
   def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
   @SideOnly(Side.CLIENT)
+  def mixedBrightness(world: IBlockAccess, x: Int, y: Int, z: Int) = -1
+
+  @SideOnly(Side.CLIENT)
   def color = 0xFFFFFF
 
   @SideOnly(Side.CLIENT)

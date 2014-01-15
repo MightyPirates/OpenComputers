@@ -46,7 +46,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
-    subBlock(world.getBlockMetadata(x, y, z))
+    if (world.getBlockId(x, y, z) == blockID) subBlock(world.getBlockMetadata(x, y, z))
+    else None
 
   def subBlock(metadata: Int): Option[Child] =
     metadata match {
@@ -318,10 +319,19 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => 255
     }
 
+  @SideOnly(Side.CLIENT)
+  override def getMixedBrightnessForBlock(world: IBlockAccess, x: Int, y: Int, z: Int) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) =>
+        val result = subBlock.mixedBrightness(world, x, y, z)
+        if (result < 0) super.getMixedBrightnessForBlock(world, x, y, z) else result
+      case _ => super.getMixedBrightnessForBlock(world, x, y, z)
+    }
+
   override def getLightValue(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.luminance(world, x, y, z)
-      case _ => 0
+      case _ => super.getLightValue(world, x, y, z)
     }
 
   @SideOnly(Side.CLIENT)
