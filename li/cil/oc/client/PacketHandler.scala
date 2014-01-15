@@ -45,6 +45,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenPowerChange => onScreenPowerChange(p)
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
+      case PacketType.ServerPresence => onServerPresence(p)
       case _ => // Invalid packet.
     }
 
@@ -224,6 +225,12 @@ class PacketHandler extends CommonPacketHandler {
         val row = p.readInt()
         val s = p.readUTF()
         t.buffer.set(col, row, s)
+      case _ => // Invalid packet.
+    }
+
+  def onServerPresence(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(t) => for (i <- 0 until t.isPresent.length) t.isPresent(i) = p.readBoolean()
       case _ => // Invalid packet.
     }
 }

@@ -14,6 +14,8 @@ import scala.collection.mutable
 class Server(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Server"
 
+  override def maxStackSize = 1
+
   private val helperInventory = new ServerInventory {
     var container: ItemStack = null
   }

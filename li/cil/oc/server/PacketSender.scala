@@ -232,6 +232,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendServerPresence(t: Rack) {
+    val pb = new PacketBuilder(PacketType.ServerPresence)
+
+    pb.writeTileEntity(t)
+    t.servers.foreach(server => pb.writeBoolean(server.isDefined))
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendServerState(t: Rack, number: Int) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 

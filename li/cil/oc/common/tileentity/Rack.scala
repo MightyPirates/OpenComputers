@@ -24,6 +24,9 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
 
   private var hasChanged = false
 
+  // For client side rendering.
+  var isPresent = new Array[Boolean](getSizeInventory)
+
   // ----------------------------------------------------------------------- //
 
   def isRunning(number: Int) =
@@ -156,11 +159,13 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     Array.copy(nbt.getByteArray("isRunning").byteArray.map(_ == 1), 0, _isRunning, 0, math.min(_isRunning.length, _isRunning.length))
+    Array.copy(nbt.getByteArray("isPresent").byteArray.map(_ == 1), 0, isPresent, 0, math.min(isPresent.length, isPresent.length))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setByteArray("isRunning", _isRunning.map(state => (if (state) 1 else 0): Byte))
+    nbt.setByteArray("isRunning", _isRunning.map(value => (if (value) 1 else 0): Byte))
+    nbt.setByteArray("isPresent", servers.map(value => (if (value.isDefined) 1 else 0): Byte))
   }
 
   // ----------------------------------------------------------------------- //
@@ -203,6 +208,7 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
+      ServerPacketSender.sendServerPresence(this)
     }
     else {
       world.markBlockForRenderUpdate(x, y, z)
