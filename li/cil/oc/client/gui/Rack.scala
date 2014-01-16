@@ -8,8 +8,8 @@ import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.{ResourceLocation, StatCollector}
-import org.lwjgl.opengl.GL11
 import net.minecraftforge.common.ForgeDirection
+import org.lwjgl.opengl.GL11
 
 class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
   protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
