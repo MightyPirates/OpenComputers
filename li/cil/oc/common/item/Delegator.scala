@@ -48,8 +48,10 @@ class Delegator(id: Int) extends Item(id) {
   override def getSubItems(itemId: Int, tab: CreativeTabs, list: util.List[_]) {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
-    (0 until subItems.length).filter(id => subItems(id).showInItemList).
-      foreach(id => add(list, new ItemStack(this, 1, id)))
+    (0 until subItems.length).filter(subItems(_).showInItemList).
+      map(subItems(_).createItemStack()).
+      sortBy(_.getUnlocalizedName).
+      foreach(add(list, _))
   }
 
   // ----------------------------------------------------------------------- //

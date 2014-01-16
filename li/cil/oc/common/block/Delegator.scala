@@ -59,7 +59,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
     (0 until subBlocks.length).filter(id => subBlocks(id).showInItemList && subBlocks(id).parent == this).
-      foreach(id => add(list, new ItemStack(this, 1, id)))
+      map(new ItemStack(this, 1, _)).
+      sortBy(_.getUnlocalizedName).
+      foreach(add(list, _))
   }
 
   // ----------------------------------------------------------------------- //
