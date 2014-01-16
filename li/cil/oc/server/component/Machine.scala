@@ -718,8 +718,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
             state.push(Machine.State.Yielded)
             state.push(Machine.State.Paused)
           case Machine.State.Stopping => // Nothing to do, we'll die anyway.
-          case _ => throw new AssertionError(
-            "Invalid state in executor post-processing.")
+          case _ => throw new AssertionError("Invalid state in executor post-processing.")
         }
         assert(state.top != Machine.State.Running)
       }

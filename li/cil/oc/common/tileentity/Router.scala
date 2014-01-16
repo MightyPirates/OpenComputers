@@ -1,65 +1,19 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.api.network.{Node, Message, Visibility}
-import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Settings, api}
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.Blocks
+import li.cil.oc.api.network.Message
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends TileEntity with api.network.SidedEnvironment with IPeripheral with PassiveNode {
-  private val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
-
-  // ----------------------------------------------------------------------- //
-
-  @SideOnly(Side.CLIENT)
-  def canConnect(side: ForgeDirection) = true
-
-  def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
-
-  // ----------------------------------------------------------------------- //
+class Router extends Hub with IPeripheral with PassiveNode {
 
   override def canUpdate = false
 
   override def validate() {
     super.validate()
     worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, 0, 0)
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    for (plug <- plugs if plug.node != null) {
-      plug.node.remove()
-    }
-  }
-
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    for (plug <- plugs if plug.node != null) {
-      plug.node.remove()
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def readFromNBT(nbt: NBTTagCompound) {
-    super.readFromNBT(nbt)
-    nbt.getTagList(Settings.namespace + "plugs").iterator[NBTTagCompound].zip(plugs).foreach {
-      case (plugNbt, plug) => plug.node.load(plugNbt)
-    }
-  }
-
-  override def writeToNBT(nbt: NBTTagCompound) {
-    super.writeToNBT(nbt)
-    nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
-      val plugNbt = new NBTTagCompound()
-      plug.node.save(plugNbt)
-      plugNbt
-    }))
   }
 
   // ----------------------------------------------------------------------- //
@@ -124,8 +78,6 @@ class Router extends TileEntity with api.network.SidedEnvironment with IPeripher
     port
   }
 
-  // ----------------------------------------------------------------------- //
-
   private def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
       if (openPorts(computer).contains(port))
@@ -136,31 +88,16 @@ class Router extends TileEntity with api.network.SidedEnvironment with IPeripher
     }
   }
 
-  private class Plug(val side: ForgeDirection) extends api.network.Environment {
-    val node = api.Network.newNode(this, Visibility.Network).create()
-
-    def onMessage(message: Message) {
-      if (isPrimary && message.name == "network.message") {
-        plugsInOtherNetworks.foreach(_.node.sendToReachable(message.name, message.data: _*))
-        if (Loader.isModLoaded("ComputerCraft")) {
-          message.data match {
-            case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
-              queueMessage(port, answerPort.toInt, args)
-            case Array(port: Integer, args@_*) =>
-              queueMessage(port, -1, args)
-            case _ =>
-          }
-        }
+  override protected def onPlugMessage(plug: Plug, message: Message) {
+    super.onPlugMessage(plug, message)
+    if (message.name == "network.message" && Loader.isModLoaded("ComputerCraft")) {
+      message.data match {
+        case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
+          queueMessage(port, answerPort.toInt, args)
+        case Array(port: Integer, args@_*) =>
+          queueMessage(port, -1, args)
+        case _ =>
       }
     }
-
-    def onDisconnect(node: Node) {}
-
-    def onConnect(node: Node) {}
-
-    private def isPrimary = plugs(plugs.indexWhere(_.node.network == node.network)) == this
-
-    private def plugsInOtherNetworks = plugs.filter(_.node.network != node.network)
   }
-
 }

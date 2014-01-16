@@ -2,10 +2,10 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Node, Analyzable, Visibility}
+import li.cil.oc.api.network.{Node, Analyzable}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Items, Settings, api}
+import li.cil.oc.{Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -14,10 +14,10 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends Environment with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
-  val node = api.Network.newNode(this, Visibility.None).create()
-
+class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
+
+  val sides = Array.fill(servers.length)(ForgeDirection.UNKNOWN)
 
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
@@ -26,6 +26,10 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
 
   // For client side rendering.
   var isPresent = new Array[Boolean](getSizeInventory)
+
+  // ----------------------------------------------------------------------- //
+
+  override def canConnect(side: ForgeDirection) = side != facing
 
   // ----------------------------------------------------------------------- //
 
@@ -69,6 +73,19 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
     case _ => false
   }
 
+  def reconnectServer(number: Int, server: component.Server) {
+    val serverSide = sides(number)
+    val serverNode = server.machine.node
+    for (side <- ForgeDirection.VALID_DIRECTIONS) {
+      if (serverSide == side || serverSide == ForgeDirection.UNKNOWN) {
+        sidedNode(side).connect(serverNode)
+      }
+      else {
+        sidedNode(side).disconnect(serverNode)
+      }
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   def getSizeInventory = 4
@@ -97,7 +114,7 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
 
   override def updateEntity() {
     if (isServer) {
-      if (node != null && node.network != null) {
+      if (addedToNetwork) {
         servers collect {
           case Some(server) => server.machine.update()
         }
@@ -170,11 +187,15 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node == this.node) {
-      servers collect {
-        case Some(server) => node.connect(server.machine.node)
+  override protected def onPlugConnect(plug: Plug, node: Node) {
+    if (node == plug.node) {
+      for (number <- 0 until servers.length) {
+        val serverSide = sides(number)
+        servers(number) match {
+          case Some(server) if serverSide == plug.side || serverSide == ForgeDirection.UNKNOWN =>
+            plug.node.connect(server.machine.node)
+          case _ =>
+        }
       }
     }
   }
@@ -184,7 +205,7 @@ class Rack extends Environment with Inventory with Rotatable with BundledRedston
     if (isServer) {
       val server = new component.Server(this, slot)
       servers(slot) = Some(server)
-      node.connect(server.machine.node)
+      reconnectServer(slot, server)
     }
   }
 

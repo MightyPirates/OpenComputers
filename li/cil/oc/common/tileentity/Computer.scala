@@ -98,7 +98,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
       // the network. We skip the update this round to allow other tile entities
       // to join the network, too, avoiding issues of missing nodes (e.g. in the
       // GPU which would otherwise loose track of its screen).
-      if (node != null && node.network != null) {
+      if (addedToNetwork) {
         computer.update()
 
         if (hasChanged) {
