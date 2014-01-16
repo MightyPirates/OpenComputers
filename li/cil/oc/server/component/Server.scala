@@ -37,6 +37,14 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
     case _ => 0
   }))
 
+  lazy val maxComponents = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
+    case Some(item) => Registry.itemDriverFor(item) match {
+      case Some(driver: driver.Processor) => driver.supportedComponents(item)
+      case _ => 0
+    }
+    case _ => 0
+  }))
+
   def world = rack.world
 
   def markAsChanged() = rack.markAsChanged()

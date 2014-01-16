@@ -27,6 +27,8 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def computer = robot.computer
 
+  def maxComponents = robot.maxComponents
+
   // ----------------------------------------------------------------------- //
 
   // Note: we implement IRobotContext in the TE to allow external components

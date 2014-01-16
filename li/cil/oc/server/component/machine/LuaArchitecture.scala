@@ -19,11 +19,15 @@ class LuaArchitecture(val machine: Machine) extends Architecture {
 
   private val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
 
+  // ----------------------------------------------------------------------- //
+
   private def node = machine.node
 
   private def state = machine.state
 
   private def components = machine.components
+
+  // ----------------------------------------------------------------------- //
 
   def isInitialized = kernelMemory > 0
 
@@ -36,6 +40,8 @@ class LuaArchitecture(val machine: Machine) extends Architecture {
       }
     case _ =>
   }
+
+  // ----------------------------------------------------------------------- //
 
   def runSynchronized() {
     // These three asserts are all guaranteed by run().
@@ -172,6 +178,8 @@ class LuaArchitecture(val machine: Machine) extends Architecture {
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   def init(): Boolean = {
     // Creates a new state with all base libraries and the persistence library
@@ -542,6 +550,8 @@ class LuaArchitecture(val machine: Machine) extends Architecture {
     lua = null
     kernelMemory = 0
   }
+
+  // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
     // Unlimit memory use while unpersisting.

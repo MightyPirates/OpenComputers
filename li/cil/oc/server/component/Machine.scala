@@ -97,6 +97,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         crash("computers don't work while time is frozen (gamerule doDaylightCycle is false)")
         false
       }
+      else if (components.size + addedComponents.size > owner.maxComponents) {
+        message = Some("too many components")
+        false
+      }
       else if (owner.installedMemory > 0) {
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
@@ -260,6 +264,12 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     // reachability).
     processAddedComponents()
 
+    // Component overflow check, crash if too many components are connected, to
+    // avoid confusion on the user's side due to components not showing up.
+    if (components.size > owner.maxComponents) {
+      crash("too many components")
+    }
+
     // Update world time for time().
     worldTime = owner.world.getWorldTime
 
@@ -314,6 +324,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       case Machine.State.Restarting =>
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
+        tmp.foreach(tmp => node.connect(tmp.node))
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
@@ -360,6 +371,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
             OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
             crash("protocol error")
         }
+        assert(state.top != Machine.State.Running)
       case _ => // Nothing special to do, just avoid match errors.
     })
 
@@ -370,8 +382,8 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       // Computer is shutting down.
       case Machine.State.Stopping => this.synchronized(state.synchronized {
         close()
-        rom.foreach(_.node.remove())
-        tmp.foreach(_.node.remove())
+        tmp.foreach(_.node.remove()) // To force deleting contents.
+        tmp.foreach(tmp => node.connect(tmp.node))
         node.sendToReachable("computer.stopped")
       })
       case _ =>
@@ -674,43 +686,48 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       val result = architecture.runThreaded(enterState)
 
       // Check if someone called pause() or stop() in the meantime.
-      state.synchronized(state.top match {
-        case Machine.State.Running =>
-          result match {
-            case result: ExecutionResult.Sleep =>
-              signals.synchronized {
-                // Immediately check for signals to allow processing more than one
-                // signal per game tick.
-                if (signals.isEmpty && result.ticks > 0) {
-                  switchTo(Machine.State.Sleeping)
-                  remainIdle = result.ticks
-                } else {
-                  switchTo(Machine.State.Yielded)
+      state.synchronized {
+        state.top match {
+          case Machine.State.Running =>
+            result match {
+              case result: ExecutionResult.Sleep =>
+                signals.synchronized {
+                  // Immediately check for signals to allow processing more than one
+                  // signal per game tick.
+                  if (signals.isEmpty && result.ticks > 0) {
+                    switchTo(Machine.State.Sleeping)
+                    remainIdle = result.ticks
+                  } else {
+                    switchTo(Machine.State.Yielded)
+                  }
                 }
-              }
-            case result: ExecutionResult.SynchronizedCall =>
-              switchTo(Machine.State.SynchronizedCall)
-            case result: ExecutionResult.Shutdown =>
-              if (result.reboot) {
-                switchTo(Machine.State.Restarting)
-              }
-              else {
-                switchTo(Machine.State.Stopping)
-              }
-            case result: ExecutionResult.Error =>
-          }
-        case Machine.State.Paused =>
-          state.pop() // Paused
-          state.pop() // Running, no switchTo to avoid new future.
-          state.push(Machine.State.Yielded)
-          state.push(Machine.State.Paused)
-        case Machine.State.Stopping => // Nothing to do, we'll die anyway.
-        case _ => throw new AssertionError(
-          "Invalid state in executor post-processing.")
-      })
+              case result: ExecutionResult.SynchronizedCall =>
+                switchTo(Machine.State.SynchronizedCall)
+              case result: ExecutionResult.Shutdown =>
+                if (result.reboot) {
+                  switchTo(Machine.State.Restarting)
+                }
+                else {
+                  switchTo(Machine.State.Stopping)
+                }
+              case result: ExecutionResult.Error =>
+            }
+          case Machine.State.Paused =>
+            state.pop() // Paused
+            state.pop() // Running, no switchTo to avoid new future.
+            state.push(Machine.State.Yielded)
+            state.push(Machine.State.Paused)
+          case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+          case _ => throw new AssertionError(
+            "Invalid state in executor post-processing.")
+        }
+        assert(state.top != Machine.State.Running)
+      }
     }
     catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARNING, "Architecture's runThreaded threw an error. This should never happen!", e)
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Architecture's runThreaded threw an error. This should never happen!", e)
+        crash("kernel panic: architecture threw an exception, see log file")
     }
 
     // Keep track of time spent executing the computer.
@@ -762,6 +779,8 @@ object Machine {
 
   trait Owner {
     def installedMemory: Int
+
+    def maxComponents: Int
 
     def world: World
 

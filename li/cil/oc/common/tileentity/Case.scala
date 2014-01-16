@@ -10,6 +10,8 @@ import net.minecraft.nbt.NBTTagCompound
 class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   def this() = this(0, false)
 
+  def maxComponents = Settings.componentCountByTier(tier)
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
