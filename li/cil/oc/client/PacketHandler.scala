@@ -82,7 +82,10 @@ class PacketHandler extends CommonPacketHandler {
   def onComputerState(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
       case Some(t: Computer) => t.setRunning(p.readBoolean())
-      case Some(t: Rack) => t.setRunning(p.readInt(), p.readBoolean())
+      case Some(t: Rack) =>
+        val number = p.readInt()
+        t.setRunning(number, p.readBoolean())
+        t.sides(number) = p.readDirection()
       case _ => // Invalid packet.
     }
 

@@ -33,5 +33,6 @@ object PacketType extends Enumeration {
   KeyUp,
   Clipboard,
   MouseClickOrDrag,
-  MouseScroll = Value
+  MouseScroll,
+  ServerSide = Value
 }

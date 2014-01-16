@@ -75,6 +75,12 @@ oc:gui.Analyzer.Users=Users
 oc:gui.Robot.Power=Energy
 oc:gui.Robot.TurnOff=Turn off
 oc:gui.Robot.TurnOn=Turn on
+oc:gui.ServerRack.All=All
+oc:gui.ServerRack.Back=Back
+oc:gui.ServerRack.Bottom=Bottom
+oc:gui.ServerRack.Left=Left
+oc:gui.ServerRack.Right=Right
+oc:gui.ServerRack.Top=Top
 
 # Containers
 oc:container.Adapter=Adapter

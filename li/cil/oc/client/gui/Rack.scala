@@ -9,11 +9,24 @@ import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.{ResourceLocation, StatCollector}
 import org.lwjgl.opengl.GL11
+import net.minecraftforge.common.ForgeDirection
 
 class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
-  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/power.png")
+  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
+  protected val sideIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
 
   protected var powerButtons = new Array[ImageButton](4)
+
+  protected var sideButtons = new Array[GuiButton](4)
+
+  def sideName(number: Int) = StatCollector.translateToLocal(Settings.namespace + (rack.sides(number) match {
+    case ForgeDirection.UP => "gui.ServerRack.Top"
+    case ForgeDirection.DOWN => "gui.ServerRack.Bottom"
+    case ForgeDirection.EAST => "gui.ServerRack.Left"
+    case ForgeDirection.WEST => "gui.ServerRack.Right"
+    case ForgeDirection.NORTH => "gui.ServerRack.Back"
+    case _ => "gui.ServerRack.All"
+  }))
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
@@ -21,11 +34,24 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     if (button.id >= 0 && button.id <= 3) {
       ClientPacketSender.sendServerPower(rack, button.id, !rack.isRunning(button.id))
     }
+    if (button.id >= 4 && button.id <= 7) {
+      val number = button.id - 4
+      val nextSide = rack.sides(number) match {
+        case ForgeDirection.UP => ForgeDirection.DOWN
+        case ForgeDirection.DOWN => ForgeDirection.EAST
+        case ForgeDirection.EAST => ForgeDirection.WEST
+        case ForgeDirection.WEST => ForgeDirection.NORTH
+        case ForgeDirection.NORTH => ForgeDirection.UNKNOWN
+        case _ => ForgeDirection.UP
+      }
+      ClientPacketSender.sendServerSide(rack, number, nextSide)
+    }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     for (i <- 0 to 3) {
       powerButtons(i).toggled = rack.isRunning(i)
+      sideButtons(i).displayString = sideName(i)
     }
     super.drawScreen(mouseX, mouseY, dt)
   }
@@ -33,8 +59,12 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def initGui() {
     super.initGui()
     for (i <- 0 to 3) {
-      powerButtons(i) = new ImageButton(i, guiLeft + 94, guiTop + 7 + i * 18, 18, 18, powerIcon)
+      powerButtons(i) = new ImageButton(i, guiLeft + 84, guiTop + 7 + i * 18, 18, 18, powerIcon)
       add(buttonList, powerButtons(i))
+    }
+    for (i <- 0 to 3) {
+      sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, sideIcon, sideName(i), canToggle = false)
+      add(buttonList, sideButtons(i))
     }
   }
 

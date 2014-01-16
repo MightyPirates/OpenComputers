@@ -77,7 +77,7 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
     val serverSide = sides(number)
     val serverNode = server.machine.node
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      if (serverSide == side || serverSide == ForgeDirection.UNKNOWN) {
+      if (toGlobal(serverSide) == side || serverSide == ForgeDirection.UNKNOWN) {
         sidedNode(side).connect(serverNode)
       }
       else {
@@ -147,6 +147,8 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
+    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").byteArray.map(ForgeDirection.getOrientation(_))
+    Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
         val server = new component.Server(this, slot)
@@ -162,6 +164,7 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
+    nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "servers", servers map {
       case Some(server) =>
         val serverNbt = new NBTTagCompound()
@@ -175,14 +178,19 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    Array.copy(nbt.getByteArray("isRunning").byteArray.map(_ == 1), 0, _isRunning, 0, math.min(_isRunning.length, _isRunning.length))
-    Array.copy(nbt.getByteArray("isPresent").byteArray.map(_ == 1), 0, isPresent, 0, math.min(isPresent.length, isPresent.length))
+    val isRunningNbt = nbt.getByteArray("isRunning").byteArray.map(_ == 1)
+    Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
+    val isPresentNbt = nbt.getByteArray("isPresent").byteArray.map(_ == 1)
+    Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
+    val sidesNbt = nbt.getByteArray("sides").byteArray.map(ForgeDirection.getOrientation(_))
+    Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setByteArray("isRunning", _isRunning.map(value => (if (value) 1 else 0): Byte))
-    nbt.setByteArray("isPresent", servers.map(value => (if (value.isDefined) 1 else 0): Byte))
+    nbt.setByteArray("isRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
+    nbt.setByteArray("isPresent", servers.map(value => (if (value.isDefined) 1 else 0).toByte))
+    nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
   }
 
   // ----------------------------------------------------------------------- //
@@ -192,7 +200,7 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
       for (number <- 0 until servers.length) {
         val serverSide = sides(number)
         servers(number) match {
-          case Some(server) if serverSide == plug.side || serverSide == ForgeDirection.UNKNOWN =>
+          case Some(server) if toGlobal(serverSide) == plug.side || serverSide == ForgeDirection.UNKNOWN =>
             plug.node.connect(server.machine.node)
           case _ =>
         }
@@ -248,4 +256,5 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
     }
   }
 
+  override def rotate(axis: ForgeDirection) = false
 }

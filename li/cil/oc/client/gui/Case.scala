@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
   protected val computerBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
-  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/power.png")
+  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
 
   protected var powerButton: ImageButton = _
 

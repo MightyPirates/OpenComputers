@@ -25,7 +25,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   ySize = 242
 
   private val robotBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
-  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/power.png")
+  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
   private val selection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
 
   protected var powerButton: ImageButton = _

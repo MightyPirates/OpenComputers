@@ -247,6 +247,7 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeInt(number)
     pb.writeBoolean(t.isRunning(number))
+    pb.writeDirection(t.sides(number))
 
     pb.sendToNearbyPlayers(t)
   }

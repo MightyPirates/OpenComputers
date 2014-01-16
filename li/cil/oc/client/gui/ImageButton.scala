@@ -8,7 +8,12 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 @SideOnly(Side.CLIENT)
-class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int, val image: ResourceLocation) extends GuiButton(id, x, y, w, h, null) {
+class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
+                  val image: ResourceLocation, text: String = null,
+                  val canToggle: Boolean = true,
+                  val textColor: Int = 0xE0E0E0,
+                  val textDisabledColor: Int = 0xA0A0A0,
+                  val textHoverColor: Int = 0xFFFFA0) extends GuiButton(id, x, y, w, h, text) {
 
   var toggled = false
 
@@ -24,7 +29,7 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int, val image: ResourceLo
       val y1 = yPosition + height
 
       val u0 = if (toggled) 0.5 else 0
-      val u1 = u0 + 0.5
+      val u1 = u0 + (if (canToggle) 0.5 else 1)
       val v0 = if (getHoverState(field_82253_i) == 2) 0.5 else 0
       val v1 = v0 + 0.5
 
@@ -35,6 +40,14 @@ class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int, val image: ResourceLo
       t.addVertexWithUV(x1, y0, zLevel, u1, v0)
       t.addVertexWithUV(x0, y0, zLevel, u0, v0)
       t.draw()
+
+      if (displayString != null) {
+        val color =
+          if (!enabled) textDisabledColor
+          else if (field_82253_i) textHoverColor
+          else textColor
+        drawCenteredString(mc.fontRenderer, displayString, xPosition + width / 2, yPosition + (height - 8) / 2, color)
+      }
     }
   }
 }

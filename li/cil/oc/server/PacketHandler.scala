@@ -5,7 +5,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.{ForgeDirection, DimensionManager}
 import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
@@ -20,6 +20,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.ServerSide => onServerSide(p)
       case _ => // Invalid packet.
     }
 
@@ -104,6 +105,25 @@ class PacketHandler extends CommonPacketHandler {
           val y = p.readInt()
           val scroll = p.readByte()
           s.origin.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
+        case _ =>
+      }
+      case _ => // Invalid packet.
+    }
+
+  def onServerSide(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(rack) => p.player match {
+        case player: EntityPlayer if rack.isUseableByPlayer(player) =>
+          val number = p.readInt()
+          val side = p.readDirection()
+          if (rack.sides(number) != side && side != ForgeDirection.SOUTH) {
+            rack.sides(number) = side
+            rack.servers(number) match {
+              case Some(server) => rack.reconnectServer(number, server)
+              case _ =>
+            }
+          }
+          PacketSender.sendServerState(rack, number)
         case _ =>
       }
       case _ => // Invalid packet.

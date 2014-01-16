@@ -3,6 +3,7 @@ package li.cil.oc.client
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
+import net.minecraftforge.common.ForgeDirection
 
 object PacketSender {
   def sendComputerPower(t: Computer, power: Boolean) {
@@ -76,6 +77,16 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeInt(number)
     pb.writeBoolean(power)
+
+    pb.sendToServer()
+  }
+
+  def sendServerSide(t: Rack, number: Int, side: ForgeDirection) {
+    val pb = new PacketBuilder(PacketType.ServerSide)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(number)
+    pb.writeDirection(side)
 
     pb.sendToServer()
   }

@@ -75,6 +75,12 @@ oc:gui.Analyzer.Users=Benutzer
 oc:gui.Robot.Power=Energie
 oc:gui.Robot.TurnOff=Ausschalten
 oc:gui.Robot.TurnOn=Einschalten
+oc:gui.ServerRack.All=Alle
+oc:gui.ServerRack.Back=Hinten
+oc:gui.ServerRack.Bottom=Unten
+oc:gui.ServerRack.Left=Links
+oc:gui.ServerRack.Right=Rechts
+oc:gui.ServerRack.Top=Oben
 
 # Containers
 oc:container.Adapter=Adapter

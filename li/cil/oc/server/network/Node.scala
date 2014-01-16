@@ -35,7 +35,7 @@ trait Node extends api.network.Node with Persistable {
   def connect(node: ImmutableNode) = network.connect(this, node)
 
   def disconnect(node: ImmutableNode) =
-    if (network != null) network.disconnect(this, node)
+    if (network != null && isInSameNetwork(node)) network.disconnect(this, node)
 
   def remove() = if (network != null) network.remove(this)
 
