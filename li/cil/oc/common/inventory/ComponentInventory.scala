@@ -1,8 +1,8 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node, ManagedEnvironment}
-import li.cil.oc.api.{network, driver}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
@@ -19,14 +19,6 @@ trait ComponentInventory extends Inventory with network.Environment {
   def componentContainer: TileEntity
 
   // ----------------------------------------------------------------------- //
-
-  def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
-      case Some(driver: driver.Memory) => driver.amount(item)
-      case _ => 0
-    }
-    case _ => 0
-  }))
 
   def updateComponents() {
     if (updatingComponents.length > 0) {

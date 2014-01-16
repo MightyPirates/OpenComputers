@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
+import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
@@ -10,13 +11,32 @@ import net.minecraft.nbt.NBTTagCompound
 class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   def this() = this(0, false)
 
-  def maxComponents = Settings.componentCountByTier(tier)
+  var maxComponents = 0
+
+  def recomputeMaxComponents() {
+    maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
+      case Some(item) => Registry.itemDriverFor(item) match {
+        case Some(driver: driver.Processor) => driver.supportedComponents(item)
+        case _ => 0
+      }
+      case _ => 0
+    }))
+  }
+
+  def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
+    case Some(item) => Registry.itemDriverFor(item) match {
+      case Some(driver: driver.Memory) => driver.amount(item)
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
     super.readFromNBT(nbt)
+    recomputeMaxComponents()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -26,12 +46,17 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
 
   // ----------------------------------------------------------------------- //
 
+  override def onInventoryChanged() {
+    super.onInventoryChanged()
+    recomputeMaxComponents()
+  }
+
   def getInvName = Settings.namespace + "container.Case"
 
   def getSizeInventory = tier match {
-    case 0 => 4
-    case 1 => 6
-    case 2 => 8
+    case 0 => 5
+    case 1 => 7
+    case 2 => 9
     case _ => 0
   }
 
@@ -48,6 +73,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (2, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (3, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
+      case (4, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case _ => false // Invalid slot.
     }
     case 1 => (slot, Registry.itemDriverFor(stack)) match {
@@ -55,6 +81,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (2 | 3, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (4 | 5, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
+      case (6, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case _ => false // Invalid slot.
     }
     case 2 => (slot, Registry.itemDriverFor(stack)) match {
@@ -63,6 +90,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case (3 | 4, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (5 | 6, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
+      case (8, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case _ => false // Invalid slot.
     }
     case _ => false
@@ -76,6 +104,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case (2 | 3) => 1
       case 4 => 1
       case 5 => 0
+      case 6 => 1
       case _ => -1 // Invalid slot.
     }
     case 2 => slot match {
@@ -85,6 +114,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case 5 => 2
       case 6 => 1
       case 7 => 0
+      case 8 => 2
       case _ => -1 // Invalid slot.
     }
     case _ => -1
