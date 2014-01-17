@@ -15,6 +15,10 @@ object Items {
   var terminal: item.Terminal = _
 
   // ----------------------------------------------------------------------- //
+  // Servers
+  var server: item.Server = _
+
+  // ----------------------------------------------------------------------- //
   // Memory
   var ram1, ram2, ram3, ram4, ram5: item.Memory = _
 
@@ -22,8 +26,6 @@ object Items {
   // Storage
   var floppyDisk: item.FloppyDisk = _
   var hdd1, hdd2, hdd3: item.HardDiskDrive = _
-  // Servers
-  var server: item.Server = _
 
   // ----------------------------------------------------------------------- //
   // Cards
@@ -137,29 +139,28 @@ object Items {
     register("oc:craftingCircuitBoardPrinted", pcb.createItemStack())
     register("oc:craftingCard", card.createItemStack())
     register("oc:craftingWire", cuttingWire.createItemStack())
-    register("oc:circuitBasic", chip1.createItemStack())
-    register("oc:circuitAdvanced", chip2.createItemStack())
-    register("oc:circuitElite", chip3.createItemStack())
+    register("oc:circuitTier1", chip1.createItemStack())
+    register("oc:circuitTier2", chip2.createItemStack())
+    register("oc:circuitTier3", chip3.createItemStack())
     register("oc:craftingTransistor", transistor.createItemStack())
     register("oc:craftingCU", cu.createItemStack())
     register("oc:craftingALU", alu.createItemStack())
-    register("oc:craftingCPU", cpu0.createItemStack())
     register("oc:craftingCPUTier1", cpu0.createItemStack())
     register("oc:craftingCPUTier2", cpu1.createItemStack())
     register("oc:craftingCPUTier3", cpu2.createItemStack())
     register("oc:componentCardRedstone", rs.createItemStack())
     register("oc:componentCardLan", lan.createItemStack())
-    register("oc:craftingGPUBasic", gpu1.createItemStack())
-    register("oc:craftingGPUAdvanced", gpu2.createItemStack())
-    register("oc:craftingGPUElite", gpu3.createItemStack())
-    register("oc:craftingRAMBasic", ram1.createItemStack())
-    register("oc:craftingRAMAdvanced", ram2.createItemStack())
-    register("oc:craftingRAMElite", ram3.createItemStack())
-    register("oc:craftingRAMElite2", ram4.createItemStack())
-    register("oc:craftingRAMElite3", ram5.createItemStack())
-    register("oc:craftingHDDBasic", hdd1.createItemStack())
-    register("oc:craftingHDDAdvanced", hdd2.createItemStack())
-    register("oc:craftingHDDElite", hdd3.createItemStack())
+    register("oc:craftingGPUTier1", gpu1.createItemStack())
+    register("oc:craftingGPUTier2", gpu2.createItemStack())
+    register("oc:craftingGPUTier3", gpu3.createItemStack())
+    register("oc:craftingRAMTier1", ram1.createItemStack())
+    register("oc:craftingRAMTier2", ram2.createItemStack())
+    register("oc:craftingRAMTier3", ram3.createItemStack())
+    register("oc:craftingRAMTier4", ram4.createItemStack())
+    register("oc:craftingRAMTier5", ram5.createItemStack())
+    register("oc:craftingHDDTier1", hdd1.createItemStack())
+    register("oc:craftingHDDTier2", hdd2.createItemStack())
+    register("oc:craftingHDDTier3", hdd3.createItemStack())
     register("oc:craftingButtonGroup", buttonGroup.createItemStack())
     register("oc:craftingArrowKey", arrowKeys.createItemStack())
     register("oc:craftingNumPad", numPad.createItemStack())

@@ -3,21 +3,35 @@
 
 analyzer {
   input: [["", torchRedstoneActive, ""]
-          ["oc:craftingTransistor", "oc:circuitBasic", nuggetGold]
+          ["oc:craftingTransistor", "oc:circuitTier1", nuggetGold]
           ["oc:craftingTransistor", "oc:craftingCircuitBoardPrinted", nuggetGold]]
 }
 
+server {
+  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
+          ["oc:circuitTier3", "oc:craftingCaseTier3", "oc:circuitTier3"]
+          ["oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]]
+}
+
 ram1 {
-  input: [["oc:circuitBasic", "oc:circuitBasic", "oc:circuitBasic"]
+  input: [["oc:circuitTier1", "oc:circuitTier1", "oc:circuitTier1"]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]]
 }
 ram2 {
-  input: [["oc:circuitAdvanced", "oc:circuitAdvanced", "oc:circuitAdvanced"]
-          ["oc:craftingRAMBasic", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMBasic"]]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
+          ["oc:craftingRAMTier1", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier1"]]
 }
 ram3 {
-  input: [["oc:circuitElite", "oc:circuitElite", "oc:circuitElite"]
-          ["oc:craftingRAMAdvanced", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMAdvanced"]]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
+          ["oc:craftingRAMTier2", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier2"]]
+}
+ram4 {
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+          ["oc:craftingRAMTier3", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier3"]]
+}
+ram5 {
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+          ["oc:craftingRAMTier4", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier4"]]
 }
 
 floppy {
@@ -26,19 +40,19 @@ floppy {
           [nuggetIron, paper, nuggetIron]]
 }
 hdd1 {
-  input: [["oc:circuitBasic", "oc:craftingDisk", ingotIron]
+  input: [["oc:circuitTier1", "oc:craftingDisk", ingotIron]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingDisk", craftingPiston]
-          ["oc:circuitBasic", "oc:craftingDisk", ingotIron]]
+          ["oc:circuitTier1", "oc:craftingDisk", ingotIron]]
 }
 hdd2 {
-  input: [[ingotGold, "oc:craftingHDDBasic", ingotGold]
-          ["oc:circuitAdvanced", "oc:craftingCircuitBoardPrinted", "oc:circuitAdvanced"]
-          [ingotGold, "oc:craftingHDDBasic", ingotGold]]
+  input: [[ingotGold, "oc:craftingHDDTier1", ingotGold]
+          ["oc:circuitTier2", "oc:craftingCircuitBoardPrinted", "oc:circuitTier2"]
+          [ingotGold, "oc:craftingHDDTier1", ingotGold]]
 }
 hdd3 {
-  input: [["oc:circuitElite", "oc:craftingHDDAdvanced", "oc:circuitElite"]
-          ["oc:craftingRAMBasic", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMBasic"]
-          ["oc:circuitElite", "oc:craftingHDDAdvanced", "oc:circuitElite"]]
+  input: [["oc:circuitTier3", "oc:craftingHDDTier2", "oc:circuitTier3"]
+          ["oc:craftingRAMTier1", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier1"]
+          ["oc:circuitTier3", "oc:craftingHDDTier2", "oc:circuitTier3"]]
 }
 
 abstractBusCard {
@@ -46,53 +60,53 @@ abstractBusCard {
           ["", "oc:craftingCard", ""]]
 }
 graphicsCard1 {
-  input: [["oc:circuitBasic", "oc:craftingALU", "oc:craftingRAMBasic"]
+  input: [["oc:circuitTier1", "oc:craftingALU", "oc:craftingRAMTier1"]
           ["", "oc:craftingCard", ""]]
 }
 graphicsCard2 {
-  input: [["oc:circuitAdvanced", "oc:circuitAdvanced", "oc:craftingRAMAdvanced"]
-          ["", "oc:craftingGPUBasic", ""]]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:craftingRAMTier2"]
+          ["", "oc:craftingGPUTier1", ""]]
 }
 graphicsCard3 {
-  input: [["oc:circuitElite", "oc:circuitElite", "oc:craftingRAMElite"]
-          ["", "oc:craftingGPUAdvanced", ""]]
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:craftingRAMTier4"]
+          ["", "oc:craftingGPUTier2", ""]]
 }
 redstoneCard {
-  input: [[torchRedstoneActive, "oc:circuitBasic", ""]
+  input: [[torchRedstoneActive, "oc:circuitTier1", ""]
           ["", "oc:craftingCard", ""]]
 }
 lanCard {
-  input: [["oc:craftingCable", "oc:circuitBasic", ""]
+  input: [["oc:craftingCable", "oc:circuitTier1", ""]
           ["", "oc:craftingCard", ""]]
 }
 wlanCard {
-  input: [[enderPearl, "oc:circuitAdvanced", ""]
+  input: [[enderPearl, "oc:circuitTier2", ""]
           ["", "oc:componentCardLan", ""]]
 }
 
 craftingUpgrade {
   input: [[ingotIron, craftingPiston, ingotIron]
-          ["oc:circuitBasic", workbench, "oc:circuitBasic"]
+          ["oc:circuitTier1", workbench, "oc:circuitTier1"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 generatorUpgrade {
   input: [[ingotIron, "", ingotIron]
-          ["oc:circuitBasic", craftingPiston, "oc:circuitBasic"]
+          ["oc:circuitTier1", craftingPiston, "oc:circuitTier1"]
           ["oc:craftingCircuitBoardPrinted", ingotIron, "oc:craftingCircuitBoardPrinted"]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
-          ["oc:circuitElite", {item=map, subID=any}, "oc:circuitElite"]
+          ["oc:circuitTier3", {item=map, subID=any}, "oc:circuitTier3"]
           [ingotGold, potion, ingotGold]]
 }
 signUpgrade {
   input: [[ingotIron, dyePowder, ingotIron]
-          ["oc:circuitBasic", stickWood, "oc:circuitBasic"]
+          ["oc:circuitTier1", stickWood, "oc:circuitTier1"]
           [ingotIron, pistonStickyBase, ingotIron]]
 }
 solarGeneratorUpgrade {
   input: [[glass, glass, glass]
-          ["oc:circuitElite", "oc:craftingGenerator", "oc:circuitElite"]]
+          ["oc:circuitTier3", "oc:craftingGenerator", "oc:circuitTier3"]]
 }
 
 nuggetIron {
@@ -139,12 +153,12 @@ chip1 {
 }
 chip2 {
   input: [[nuggetGold, {item=dyePowder, subID=4} , nuggetGold]
-          ["oc:circuitBasic", diamond, "oc:circuitBasic"]
+          ["oc:circuitTier1", diamond, "oc:circuitTier1"]
           [nuggetGold, {item=dyePowder, subID=4}, nuggetGold]]
 }
 chip3 {
   input: [[yellowDust, comparator, yellowDust]
-          ["oc:circuitAdvanced", emerald, "oc:circuitAdvanced"]
+          ["oc:circuitTier2", emerald, "oc:circuitTier2"]
           [yellowDust, comparator, yellowDust]]
 }
 alu {
@@ -153,9 +167,19 @@ alu {
           [nuggetIron, redstone, nuggetIron]]
 }
 cpu0 {
-  input: [["oc:circuitBasic", redstone, "oc:circuitBasic"]
+  input: [["oc:circuitTier1", redstone, "oc:circuitTier1"]
           [fenceIron, "oc:craftingCU", fenceIron]
-          ["oc:circuitBasic", "oc:craftingALU", "oc:circuitBasic"]]
+          ["oc:circuitTier1", "oc:craftingALU", "oc:circuitTier1"]]
+}
+cpu1 {
+  input: [["oc:circuitTier2", "oc:craftingRAMTier2", "oc:circuitTier2"]
+          ["oc:craftingRAMTier2", "oc:craftingCPUTier1", "oc:craftingRAMTier2"]
+          ["oc:circuitTier2", "oc:craftingRAMTier2", "oc:circuitTier2"]]
+}
+cpu2 {
+  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
+          ["oc:craftingRAMTier4", "oc:craftingCPUTier2", "oc:craftingRAMTier4"]
+          ["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]]
 }
 cu {
   input: [[nuggetGold, torchRedstoneActive, nuggetGold]
@@ -176,14 +200,14 @@ printedCircuitBoard {
   input: ["oc:craftingCircuitBoard", nuggetGold, "oc:craftingAcid"]
 }
 card {
-  input: [[nuggetIron, "oc:circuitBasic", "oc:craftingTransistor"]
+  input: [[nuggetIron, "oc:circuitTier1", "oc:craftingTransistor"]
           [nuggetIron, "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]
           [nuggetIron, nuggetGold, nuggetGold]]
 }
 
 adapter {
   input: [[ingotIron, "oc:craftingCable", ingotIron]
-          ["oc:craftingCable", "oc:circuitBasic", "oc:craftingCable"]
+          ["oc:craftingCable", "oc:circuitTier1", "oc:craftingCable"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 cable {
@@ -199,28 +223,28 @@ capacitor {
 }
 charger {
   input: [[ingotIron, ingotGold, ingotIron]
-          ["oc:craftingCapacitor", "oc:circuitAdvanced", "oc:craftingCapacitor"]
+          ["oc:craftingCapacitor", "oc:circuitTier2", "oc:craftingCapacitor"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 case1 {
-  input: [[ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]
-          [fenceIron, "oc:craftingCPU", fenceIron]
-          [ingotIron, "oc:circuitBasic", ingotIron]]
+  input: [[ingotIron, "oc:circuitTier1", ingotIron]
+          [fenceIron, chest, fenceIron]
+          [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 case2 {
-  input: [[ingotGold, "oc:craftingCircuitBoardPrinted", ingotGold]
-          ["oc:circuitAdvanced", "oc:craftingCaseBasic", "oc:circuitAdvanced"]
-          [ingotGold, "oc:circuitAdvanced", ingotGold]]
+  input: [[ingotGold, "oc:circuitTier2", ingotGold]
+          ["oc:circuitTier2", "oc:craftingCaseTier1", "oc:circuitTier2"]
+          [ingotGold, "oc:craftingCircuitBoardPrinted", ingotGold]]
 }
 case3 {
-  input: [["oc:circuitElite", "oc:craftingCircuitBoardPrinted", "oc:circuitElite"]
-          [diamond, "oc:craftingCaseAdvanced", diamond]
-          ["oc:circuitElite", "oc:craftingCircuitBoardPrinted", "oc:circuitElite"]]
+  input: [[diamond, "oc:circuitTier3", diamond]
+          ["oc:circuitTier3", "oc:craftingCaseTier2", "oc:circuitTier3"]
+          [diamond, "oc:craftingCircuitBoardPrinted", diamond]]
 }
 diskDrive {
-  input: [[ingotIron, "oc:circuitBasic", ingotIron]
+  input: [[ingotIron, "oc:circuitTier1", ingotIron]
           [craftingPiston, stickWood, ""]
-          [ingotIron, "oc:circuitBasic", ingotIron]]
+          [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 keyboard {
   input: [["oc:craftingButtonGroup", "oc:craftingButtonGroup", "oc:craftingButtonGroup"]
@@ -228,13 +252,18 @@ keyboard {
 }
 powerConverter {
   input: [[ingotIron, "oc:craftingCable", ingotIron]
-          [ingotGold, "oc:circuitBasic", ingotGold]
+          [ingotGold, "oc:circuitTier1", ingotGold]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 powerDistributor {
   input: [[ingotIron, ingotGold, ingotIron]
-          ["oc:craftingCable", "oc:circuitBasic", "oc:craftingCable"]
+          ["oc:craftingCable", "oc:circuitTier1", "oc:craftingCable"]
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
+}
+rack {
+  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
+          [fenceIron, chest, fenceIron]
+          ["oc:craftingRouter", "oc:craftingCircuitBoardPrinted","oc:craftingPowerDistributor"]]
 }
 redstone {
   input: [[ingotIron, blockRedstone, ingotIron]
@@ -242,8 +271,8 @@ redstone {
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 robot {
-  input: [["oc:craftingScreenBasic", "oc:craftingGPUBasic", "oc:craftingDiskDrive"]
-          [dispenser, "oc:craftingCaseBasic", "oc:craftingRAMBasic"]
+  input: [["oc:craftingScreenTier1", "oc:craftingGPUTier1", "oc:craftingDiskDrive"]
+          [dispenser, "oc:craftingCaseTier1", "oc:craftingRAMTier1"]
           ["oc:craftingCapacitor", minecartHopper, "oc:craftingCapacitor"]]
 }
 router {
@@ -258,11 +287,11 @@ screen1 {
 }
 screen2 {
   input: [[ingotGold, {item=dyePowder, subID=1}, ingotGold]
-          ["oc:circuitAdvanced", {item=dyePowder, subID=2}, "oc:craftingScreenBasic"]
+          ["oc:circuitTier2", {item=dyePowder, subID=2}, "oc:craftingScreenTier1"]
           [ingotGold, {item=dyePowder, subID=4}, ingotGold]]
 }
 screen3 {
-  input: [[obsidian, "oc:craftingCircuitBoardPrinted", "oc:circuitElite"]
-          [blazeRod, netherquartz, "oc:craftingScreenAdvanced"]
-          [obsidian, "oc:craftingCircuitBoardPrinted", "oc:circuitElite"]]
+  input: [[obsidian, "oc:craftingCircuitBoardPrinted", "oc:circuitTier3"]
+          [blazeRod, netherquartz, "oc:craftingScreenTier2"]
+          [obsidian, "oc:craftingCircuitBoardPrinted", "oc:circuitTier3"]]
 }

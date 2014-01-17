@@ -3,9 +3,8 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
-trait PowerInformation extends TileEntity { self: MCTileEntity =>
+trait PowerInformation extends TileEntity {
   private var lastSentRatio = -1.0
 
   def globalBuffer: Double

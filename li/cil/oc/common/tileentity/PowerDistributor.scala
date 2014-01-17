@@ -9,46 +9,21 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class PowerDistributor extends Environment with SidedEnvironment with PowerInformation with Analyzable {
-  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withConnector().create())
-
+class PowerDistributor extends Environment with PowerBalancer with Analyzable {
   val node = null
+
+  private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
+    withConnector(Settings.get.bufferDistributor).
+    create())
 
   @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = true
 
   def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
 
-  var globalBuffer, globalBufferSize = 0.0
-
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
-
-  override def updateEntity() {
-    super.updateEntity()
-    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
-      // Yeeeeah, so that just happened... it's not a beauty, but it works.
-      nodes(0).network.synchronized(nodes(1).network.synchronized(nodes(2).network.synchronized(nodes(3).network.synchronized(nodes(4).network.synchronized(nodes(5).network.synchronized {
-        var sumBuffer, sumSize = 0.0
-        for (node <- nodes if isPrimary(node)) {
-          sumBuffer += node.globalBuffer
-          sumSize += node.globalBufferSize
-        }
-        if (sumSize > 0) {
-          val ratio = sumBuffer / sumSize
-          for (node <- nodes if isPrimary(node)) {
-            node.changeBuffer(node.globalBufferSize * ratio - node.globalBuffer)
-          }
-        }
-        globalBuffer = sumBuffer
-        globalBufferSize = sumSize
-      })))))
-      updatePowerInformation()
-    }
-  }
-
-  private def isPrimary(connector: Connector) = nodes(nodes.indexWhere(_.network == connector.network)) == connector
 
   // ----------------------------------------------------------------------- //
 

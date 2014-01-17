@@ -40,7 +40,7 @@ trait Hub extends Environment with SidedEnvironment {
   // ----------------------------------------------------------------------- //
 
   protected class Plug(val side: ForgeDirection) extends api.network.Environment {
-    val node = api.Network.newNode(this, Visibility.Network).create()
+    val node = createNode(this)
 
     def onMessage(message: Message) {
       if (isPrimary) {
@@ -66,4 +66,6 @@ trait Hub extends Environment with SidedEnvironment {
       plug.plugsInOtherNetworks.foreach(_.node.sendToReachable(message.name, message.data: _*))
     }
   }
+
+  protected def createNode(plug: Plug): Node = api.Network.newNode(plug, Visibility.Network).create()
 }

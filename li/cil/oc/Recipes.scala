@@ -52,6 +52,7 @@ object Recipes {
       // Try to keep this in the same order as the fields in the Items class
       // to make it easier to match them and check if anything is missing.
       addRecipe(Items.analyzer.createItemStack(), recipes, "analyzer")
+      //addRecipe(Items.analyzer.createItemStack(), recipes, "terminal")
 
       addRecipe(Items.ram1.createItemStack(), recipes, "ram1")
       addRecipe(Items.ram2.createItemStack(), recipes, "ram2")
@@ -64,7 +65,11 @@ object Recipes {
       addRecipe(Items.hdd2.createItemStack(), recipes, "hdd2")
       addRecipe(Items.hdd3.createItemStack(), recipes, "hdd3")
 
-      addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")
+      addRecipe(Items.server.createItemStack(), recipes, "server")
+
+      if (Loader.isModLoaded("StargateTech2")) {
+        addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")
+      }
       addRecipe(Items.gpu1.createItemStack(), recipes, "graphicsCard1")
       addRecipe(Items.gpu2.createItemStack(), recipes, "graphicsCard2")
       addRecipe(Items.gpu3.createItemStack(), recipes, "graphicsCard3")
@@ -106,6 +111,7 @@ object Recipes {
 
       // Try to keep this in the same order as the fields in the Blocks class
       // to make it easier to match them and check if anything is missing.
+      addRecipe(Blocks.accessPoint.createItemStack(), recipes, "accessPoint")
       addRecipe(Blocks.adapter.createItemStack(), recipes, "adapter")
       addRecipe(Blocks.cable.createItemStack(), recipes, "cable")
       addRecipe(Blocks.capacitor.createItemStack(), recipes, "capacitor")
@@ -123,6 +129,7 @@ object Recipes {
       addRecipe(Blocks.screen1.createItemStack(), recipes, "screen1")
       addRecipe(Blocks.screen2.createItemStack(), recipes, "screen2")
       addRecipe(Blocks.screen3.createItemStack(), recipes, "screen3")
+      addRecipe(Blocks.serverRack.createItemStack(), recipes, "rack")
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))

@@ -2,10 +2,10 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Node, Analyzable}
+import li.cil.oc.api.network.{Visibility, Node, Analyzable}
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Items, Settings}
+import li.cil.oc.{api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -14,7 +14,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
+class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Array.fill(servers.length)(ForgeDirection.UNKNOWN)
@@ -207,6 +207,10 @@ class Rack extends Hub with Inventory with Rotatable with BundledRedstoneAware w
       }
     }
   }
+
+  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).
+    withConnector(Settings.get.bufferDistributor).
+    create()
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)

@@ -106,6 +106,7 @@ class Settings(config: Config) {
   val bufferComputer = config.getDouble("power.buffer.computer") max 0
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
   val bufferConverter = config.getDouble("power.buffer.converter") max 0
+  val bufferDistributor = config.getDouble("power.buffer.distributor") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
