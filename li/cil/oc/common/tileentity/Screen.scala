@@ -154,7 +154,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
     // Convert to absolute coordinates and send the packet to the server.
     if (world.isRemote) {
-      ClientPacketSender.sendMouseClick(this, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false)
+      ClientPacketSender.sendMouseClick(this.buffer, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false)
     }
     true
   }

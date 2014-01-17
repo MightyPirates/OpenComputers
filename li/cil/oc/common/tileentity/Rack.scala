@@ -3,12 +3,13 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Visibility, Node, Analyzable}
+import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 
@@ -19,13 +20,15 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   val sides = Array.fill(servers.length)(ForgeDirection.UNKNOWN)
 
+  val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
+
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
   private var hasChanged = false
 
   // For client side rendering.
-  var isPresent = new Array[Boolean](getSizeInventory)
+  var isPresent = Array.fill[Option[String]](getSizeInventory)(None)
 
   // ----------------------------------------------------------------------- //
 
@@ -147,8 +150,6 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").byteArray.map(ForgeDirection.getOrientation(_))
-    Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     for (slot <- 0 until getSizeInventory) {
       if (getStackInSlot(slot) != null) {
         val server = new component.Server(this, slot)
@@ -161,10 +162,15 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
         case _ =>
       }
     }
+    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").byteArray.map(ForgeDirection.getOrientation(_))
+    Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
+    val terminalsNbt = nbt.getTagList(Settings.namespace + "terminals").iterator[NBTTagCompound].toArray
+    for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
+      terminals(i).load(terminalsNbt(i))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "servers", servers map {
       case Some(server) =>
         val serverNbt = new NBTTagCompound()
@@ -173,6 +179,12 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       case _ => new NBTTagCompound()
     })
     super.writeToNBT(nbt)
+    nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
+    nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
+      val terminalNbt = new NBTTagCompound()
+      t.save(terminalNbt)
+      terminalNbt
+    }))
   }
 
   @SideOnly(Side.CLIENT)
@@ -180,17 +192,26 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     super.readFromNBTForClient(nbt)
     val isRunningNbt = nbt.getByteArray("isRunning").byteArray.map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
-    val isPresentNbt = nbt.getByteArray("isPresent").byteArray.map(_ == 1)
+    val isPresentNbt = nbt.getTagList("isPresent").iterator[NBTTagString].map(value => if (value.data == "") None else Some(value.data)).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
     val sidesNbt = nbt.getByteArray("sides").byteArray.map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
+    val terminalsNbt = nbt.getTagList("terminals").iterator[NBTTagCompound].toArray
+    for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
+      terminals(i).buffer.buffer.load(terminalsNbt(i))
+    }
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setByteArray("isRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
-    nbt.setByteArray("isPresent", servers.map(value => (if (value.isDefined) 1 else 0).toByte))
+    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(null, value.fold("")(_.machine.address))))
     nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
+    nbt.setNewTagList("terminals", terminals.map(t => {
+      val terminalNbt = new NBTTagCompound()
+      t.buffer.buffer.save(terminalNbt)
+      terminalNbt
+    }))
   }
 
   // ----------------------------------------------------------------------- //
@@ -202,6 +223,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
         servers(number) match {
           case Some(server) if toGlobal(serverSide) == plug.side || serverSide == ForgeDirection.UNKNOWN =>
             plug.node.connect(server.machine.node)
+            terminals(number).connect(server.machine.node)
           case _ =>
         }
       }
@@ -218,6 +240,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       val server = new component.Server(this, slot)
       servers(slot) = Some(server)
       reconnectServer(slot, server)
+      terminals(slot).connect(server.machine.node)
     }
   }
 

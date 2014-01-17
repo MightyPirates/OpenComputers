@@ -711,6 +711,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
                   switchTo(Machine.State.Stopping)
                 }
               case result: ExecutionResult.Error =>
+                crash(result.message)
             }
           case Machine.State.Paused =>
             state.pop() // Paused

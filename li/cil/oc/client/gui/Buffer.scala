@@ -43,7 +43,7 @@ trait Buffer extends GuiScreen {
     super.onGuiClosed()
     buffer.owner.currentGui = None
     for ((code, char) <- pressedKeys) {
-      PacketSender.sendKeyUp(buffer.owner, char, code)
+      PacketSender.sendKeyUp(buffer, char, code)
     }
     Keyboard.enableRepeatEvents(false)
   }
@@ -75,17 +75,17 @@ trait Buffer extends GuiScreen {
       if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
         if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
-          PacketSender.sendKeyDown(buffer.owner, char, code)
+          PacketSender.sendKeyDown(buffer, char, code)
           pressedKeys += code -> char
         }
       }
       else pressedKeys.remove(code) match {
-        case Some(char) => PacketSender.sendKeyUp(buffer.owner, char, code)
+        case Some(char) => PacketSender.sendKeyUp(buffer, char, code)
         case _ => // Wasn't pressed while viewing the screen.
       }
 
       if (isPasteShortcutPressed && Keyboard.getEventKeyState) {
-        PacketSender.sendClipboard(buffer.owner, GuiScreen.getClipboardString)
+        PacketSender.sendClipboard(buffer, GuiScreen.getClipboardString)
       }
     }
   }
@@ -93,7 +93,7 @@ trait Buffer extends GuiScreen {
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
     if (button == 2) {
-      PacketSender.sendClipboard(buffer.owner, GuiScreen.getClipboardString)
+      PacketSender.sendClipboard(buffer, GuiScreen.getClipboardString)
     }
   }
 

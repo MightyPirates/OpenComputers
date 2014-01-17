@@ -2,6 +2,7 @@ package li.cil.oc.client
 
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.component
 import li.cil.oc.common.tileentity._
 import net.minecraftforge.common.ForgeDirection
 
@@ -15,61 +16,93 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown(t: Buffer, char: Char, code: Int) =
-    if (t.hasKeyboard) {
-      val pb = new PacketBuilder(PacketType.KeyDown)
+  def sendKeyDown(b: component.Buffer, char: Char, code: Int) {
+    val pb = new PacketBuilder(PacketType.KeyDown)
 
-      pb.writeTileEntity(t)
-      pb.writeChar(char)
-      pb.writeInt(code)
-
-      pb.sendToServer()
+    b.owner match {
+      case t: Buffer if t.hasKeyboard =>
+        pb.writeTileEntity(t)
+      case t: component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+      case _ => return
     }
+    pb.writeChar(char)
+    pb.writeInt(code)
 
-  def sendKeyUp(t: Buffer, char: Char, code: Int) =
-    if (t.hasKeyboard) {
-      val pb = new PacketBuilder(PacketType.KeyUp)
+    pb.sendToServer()
+  }
 
-      pb.writeTileEntity(t)
-      pb.writeChar(char)
-      pb.writeInt(code)
+  def sendKeyUp(b: component.Buffer, char: Char, code: Int) {
+    val pb = new PacketBuilder(PacketType.KeyUp)
 
-      pb.sendToServer()
+    b.owner match {
+      case t: Buffer if t.hasKeyboard =>
+        pb.writeTileEntity(t)
+      case t: component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+      case _ => return
     }
+    pb.writeChar(char)
+    pb.writeInt(code)
 
-  def sendClipboard(t: Buffer, value: String) =
-    if (value != null && !value.isEmpty && t.hasKeyboard) {
+    pb.sendToServer()
+  }
+
+  def sendClipboard(b: component.Buffer, value: String) {
+    if (value != null && !value.isEmpty) {
       val pb = new PacketBuilder(PacketType.Clipboard)
 
-      pb.writeTileEntity(t)
+      b.owner match {
+        case t: Buffer if t.hasKeyboard =>
+          pb.writeTileEntity(t)
+        case t: component.Terminal =>
+          pb.writeTileEntity(t.rack)
+          pb.writeInt(t.number)
+        case _ => return
+      }
       pb.writeUTF(value.substring(0, math.min(value.length, 1024)))
 
       pb.sendToServer()
     }
+  }
 
-  def sendMouseClick(t: Buffer, x: Int, y: Int, drag: Boolean) =
-    if (t.tier > 0) {
-      val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
+  def sendMouseClick(b: component.Buffer, x: Int, y: Int, drag: Boolean) {
+    val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
-      pb.writeTileEntity(t)
-      pb.writeInt(x)
-      pb.writeInt(y)
-      pb.writeBoolean(drag)
-
-      pb.sendToServer()
+    b.owner match {
+      case t: Buffer if t.tier > 0 =>
+        pb.writeTileEntity(t)
+      case t: component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+      case _ => return
     }
+    pb.writeInt(x)
+    pb.writeInt(y)
+    pb.writeBoolean(drag)
 
-  def sendMouseScroll(t: Buffer, x: Int, y: Int, scroll: Int) =
-    if (t.tier > 0) {
-      val pb = new PacketBuilder(PacketType.MouseScroll)
+    pb.sendToServer()
+  }
 
-      pb.writeTileEntity(t)
-      pb.writeInt(x)
-      pb.writeInt(y)
-      pb.writeByte(scroll)
+  def sendMouseScroll(b: component.Buffer, x: Int, y: Int, scroll: Int) {
+    val pb = new PacketBuilder(PacketType.MouseScroll)
 
-      pb.sendToServer()
+    b.owner match {
+      case t: Buffer if t.tier > 0 =>
+        pb.writeTileEntity(t)
+      case t: component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+      case _ => return
     }
+    pb.writeInt(x)
+    pb.writeInt(y)
+    pb.writeByte(scroll)
+
+    pb.sendToServer()
+  }
 
   def sendServerPower(t: Rack, number: Int, power: Boolean) {
     val pb = new PacketBuilder(PacketType.ComputerPower)

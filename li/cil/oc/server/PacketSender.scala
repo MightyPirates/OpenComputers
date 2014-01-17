@@ -1,6 +1,7 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.common
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
@@ -156,20 +157,38 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenColorChange(t: Buffer, foreground: Int, background: Int) {
+  def sendScreenColorChange(b: common.component.Buffer, foreground: Int, background: Int) {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(foreground)
     pb.writeInt(background)
 
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenCopy(t: Buffer, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+  def sendScreenCopy(b: common.component.Buffer, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     val pb = new PacketBuilder(PacketType.ScreenCopy)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
@@ -180,19 +199,37 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenDepthChange(t: Buffer, value: PackedColor.Depth.Value) {
+  def sendScreenDepthChange(b: common.component.Buffer, value: PackedColor.Depth.Value) {
     val pb = new PacketBuilder(PacketType.ScreenDepthChange)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(value.id)
 
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenFill(t: Buffer, col: Int, row: Int, w: Int, h: Int, c: Char) {
+  def sendScreenFill(b: common.component.Buffer, col: Int, row: Int, w: Int, h: Int, c: Char) {
     val pb = new PacketBuilder(PacketType.ScreenFill)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
@@ -211,20 +248,38 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendScreenResolutionChange(t: Buffer, w: Int, h: Int) {
+  def sendScreenResolutionChange(b: common.component.Buffer, w: Int, h: Int) {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(w)
     pb.writeInt(h)
 
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenSet(t: Buffer, col: Int, row: Int, s: String) {
+  def sendScreenSet(b: common.component.Buffer, col: Int, row: Int, s: String) {
     val pb = new PacketBuilder(PacketType.ScreenSet)
 
-    pb.writeTileEntity(t)
+    val t = b.owner match {
+      case t: Buffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeUTF(s)
@@ -236,7 +291,13 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ServerPresence)
 
     pb.writeTileEntity(t)
-    t.servers.foreach(server => pb.writeBoolean(server.isDefined))
+    t.servers.foreach {
+      case Some(server) =>
+        pb.writeBoolean(true)
+        pb.writeUTF(server.machine.address)
+      case _ =>
+        pb.writeBoolean(false)
+    }
 
     pb.sendToNearbyPlayers(t)
   }

@@ -3,14 +3,12 @@ package li.cil.oc.client.gui
 import li.cil.oc.client.PacketSender
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.common.tileentity
+import li.cil.oc.common
 import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Screen(val screen: tileentity.Screen) extends Buffer {
-  protected def buffer = screen.origin.buffer
-
+class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends Buffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var x, y = 0
@@ -27,14 +25,14 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
       val (bw, bh) = buffer.resolution
       if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
         val scroll = math.signum(Mouse.getEventDWheel)
-        PacketSender.sendMouseScroll(buffer.owner, bx, by, scroll)
+        PacketSender.sendMouseScroll(buffer, bx, by, scroll)
       }
     }
   }
 
   override protected def mouseClicked(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseClicked(mouseX, mouseY, button)
-    if (screen.tier > 0) {
+    if (hasMouse) {
       if (button == 0) {
         clickOrDrag(mouseX, mouseY)
       }
@@ -43,7 +41,7 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
 
   protected override def mouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLast: Long) {
     super.mouseClickMove(mouseX, mouseY, button, timeSinceLast)
-    if (screen.tier > 0 && timeSinceLast > 10) {
+    if (hasMouse && timeSinceLast > 10) {
       if (button == 0) {
         clickOrDrag(mouseX, mouseY)
       }
@@ -64,7 +62,7 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
     val (bw, bh) = buffer.resolution
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {
-        PacketSender.sendMouseClick(buffer.owner, bx, by, mx > 0 && my > 0)
+        PacketSender.sendMouseClick(buffer, bx, by, mx > 0 && my > 0)
         mx = bx
         my = by
       }
@@ -79,7 +77,7 @@ class Screen(val screen: tileentity.Screen) extends Buffer {
   def drawBuffer() {
     GL11.glTranslatef(x, y, 0)
     BufferRenderer.drawBackground()
-    if (screen.origin.hasPower) {
+    if (hasPower()) {
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
       RenderState.makeItBlend()
       BufferRenderer.drawText()

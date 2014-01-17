@@ -3,7 +3,6 @@ package li.cil.oc.server.component
 import cpw.mods.fml.common.IPlayerTracker
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Node, Visibility, Message}
-import li.cil.oc.common.tileentity.Environment
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.{Event, ForgeSubscribe}
@@ -12,7 +11,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(owner: Environment) extends ManagedComponent {
+abstract class Keyboard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
@@ -71,9 +70,7 @@ class Keyboard(owner: Environment) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  def isUseableByPlayer(p: EntityPlayer) =
-    owner.world.getBlockTileEntity(owner.x, owner.y, owner.z) == owner &&
-      p.getDistanceSq(owner.x + 0.5, owner.y + 0.5, owner.z + 0.5) <= 64
+  def isUseableByPlayer(p: EntityPlayer): Boolean
 
   protected def signal(args: AnyRef*) =
     node.sendToReachable("computer.checked_signal", args: _*)

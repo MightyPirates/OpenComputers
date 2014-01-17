@@ -29,6 +29,8 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
     override def getInventoryStackLimit = 1
   }
 
+  // ----------------------------------------------------------------------- //
+
   def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.itemDriverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
@@ -48,6 +50,8 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
   def world = rack.world
 
   def markAsChanged() = rack.markAsChanged()
+
+  // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) = inventory.onConnect(node)
 

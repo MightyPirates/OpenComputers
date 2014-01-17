@@ -167,44 +167,53 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onScreenColorChange(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        t.buffer.foreground = p.readInt()
-        t.buffer.background = p.readInt()
-      case _ => // Invalid packet.
+  def onScreenColorChange(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    buffer.foreground = p.readInt()
+    buffer.background = p.readInt()
+  }
 
-  def onScreenCopy(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val w = p.readInt()
-        val h = p.readInt()
-        val tx = p.readInt()
-        val ty = p.readInt()
-        t.buffer.copy(col, row, w, h, tx, ty)
-      case _ => // Invalid packet.
+  def onScreenCopy(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    val col = p.readInt()
+    val row = p.readInt()
+    val w = p.readInt()
+    val h = p.readInt()
+    val tx = p.readInt()
+    val ty = p.readInt()
+    buffer.copy(col, row, w, h, tx, ty)
+  }
 
-  def onScreenDepthChange(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) => t.buffer.depth = PackedColor.Depth(p.readInt())
-      case _ => // Invalid packet.
+  def onScreenDepthChange(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    buffer.depth = PackedColor.Depth(p.readInt())
+  }
 
-  def onScreenFill(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val w = p.readInt()
-        val h = p.readInt()
-        val c = p.readChar()
-        t.buffer.fill(col, row, w, h, c)
-      case _ => // Invalid packet.
+  def onScreenFill(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    val col = p.readInt()
+    val row = p.readInt()
+    val w = p.readInt()
+    val h = p.readInt()
+    val c = p.readChar()
+    buffer.fill(col, row, w, h, c)
+  }
 
   def onScreenPowerChange(p: PacketParser) =
     p.readTileEntity[Screen]() match {
@@ -212,28 +221,37 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onScreenResolutionChange(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        val w = p.readInt()
-        val h = p.readInt()
-        t.buffer.resolution = (w, h)
-      case _ => // Invalid packet.
+  def onScreenResolutionChange(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    val w = p.readInt()
+    val h = p.readInt()
+    buffer.resolution = (w, h)
+  }
 
-  def onScreenSet(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(t) =>
-        val col = p.readInt()
-        val row = p.readInt()
-        val s = p.readUTF()
-        t.buffer.set(col, row, s)
-      case _ => // Invalid packet.
+  def onScreenSet(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: Buffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
     }
+    val col = p.readInt()
+    val row = p.readInt()
+    val s = p.readUTF()
+    buffer.set(col, row, s)
+  }
 
   def onServerPresence(p: PacketParser) =
     p.readTileEntity[Rack]() match {
-      case Some(t) => for (i <- 0 until t.isPresent.length) t.isPresent(i) = p.readBoolean()
+      case Some(t) => for (i <- 0 until t.isPresent.length) {
+        if (p.readBoolean()) {
+          t.isPresent(i) = Some(p.readUTF())
+        }
+        else t.isPresent(i) = None
+      }
       case _ => // Invalid packet.
     }
 }

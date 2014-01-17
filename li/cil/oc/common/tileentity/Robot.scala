@@ -61,7 +61,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
     }
-    val keyboard = new component.Keyboard(this) {
+    val keyboard = new component.Keyboard {
       override def isUseableByPlayer(p: EntityPlayer) =
         world.getBlockTileEntity(x, y, z) == proxy &&
           p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
@@ -306,11 +306,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    if (isServer) {
-      buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
-      gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
-      keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
-    }
+    buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
+    gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
+    keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }

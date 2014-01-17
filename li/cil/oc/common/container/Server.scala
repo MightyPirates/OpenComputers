@@ -6,7 +6,7 @@ import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends Player(playerInventory, serverInventory) {
   for (i <- 0 to 1) {
-    addSlotToContainer(76, 7 + i * slotSize, api.driver.Slot.Card, 1)
+    addSlotToContainer(76, 7 + i * slotSize, api.driver.Slot.Card, 2 - i)
   }
 
   for (i <- 0 to 3) {

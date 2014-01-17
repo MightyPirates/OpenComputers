@@ -8,7 +8,7 @@ import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with Persistable {
+class Buffer(val owner: Buffer.Owner) extends api.network.Environment with Persistable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -139,4 +139,31 @@ class Buffer(val owner: tileentity.Buffer) extends api.network.Environment with 
     nbt.setNewCompoundTag("node", node.save)
     nbt.setNewCompoundTag("buffer", buffer.save)
   }
+}
+
+object Buffer {
+  import li.cil.oc.client.gui
+
+  trait Owner {
+    protected var _currentGui: Option[gui.Buffer] = None
+
+    def currentGui = _currentGui
+
+    def currentGui_=(value: Option[gui.Buffer]) = _currentGui = value
+
+    def tier: Int
+
+    def onScreenColorChange(foreground: Int, background: Int)
+
+    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
+
+    def onScreenDepthChange(depth: PackedColor.Depth.Value)
+
+    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
+
+    def onScreenResolutionChange(w: Int, h: Int)
+
+    def onScreenSet(col: Int, row: Int, s: String)
+  }
+
 }

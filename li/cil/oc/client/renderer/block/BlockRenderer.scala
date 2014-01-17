@@ -103,7 +103,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         val front = rack.facing
         def renderSide(side: ForgeDirection, lx: Double, lz: Double, hx: Double, hz: Double) {
           if (side == front) {
-            for (i <- 0 until 4 if rack.isPresent(i)) {
+            for (i <- 0 until 4 if rack.isPresent(i).isDefined) {
               side match {
                 case ForgeDirection.WEST =>
                   renderer.setRenderBounds(lx, v2 - (i + 1) * fs, lz + u1, u2, v2 - i * fs, hz - u1)

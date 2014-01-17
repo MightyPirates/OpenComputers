@@ -12,7 +12,11 @@ import net.minecraftforge.common.ForgeDirection
 class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable with PassiveNode {
   def this() = this(false)
 
-  val keyboard = if (isRemote) null else new component.Keyboard(this)
+  val keyboard = if (isRemote) null else new component.Keyboard {
+    def isUseableByPlayer(p: EntityPlayer) =
+      world.getBlockTileEntity(x, y, z) == Keyboard.this &&
+        p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+  }
 
   def node = if (isClient) null else keyboard.node
 

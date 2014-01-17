@@ -56,59 +56,68 @@ class PacketHandler extends CommonPacketHandler {
   }
 
   def onKeyDown(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) =>
+    p.readTileEntity[TileEntity]() match {
+      case Some(t: Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
-        s.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
-      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+        t.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
+      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
   def onKeyUp(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) =>
+    p.readTileEntity[TileEntity]() match {
+      case Some(t: Screen) =>
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
-        s.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
-      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+        t.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
+      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
 
   def onClipboard(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) =>
+    p.readTileEntity[TileEntity]() match {
+      case Some(t: Screen) =>
         val value = p.readUTF()
-        s.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
-      case Some(e) => e.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
+        t.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
+      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
       case _ => // Invalid packet.
     }
 
-  def onMouseClick(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) => p.player match {
-        case player: EntityPlayer =>
-          val x = p.readInt()
-          val y = p.readInt()
-          val what = if (p.readBoolean()) "drag" else "touch"
-          s.origin.node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), player.getCommandSenderName)
-        case _ =>
-      }
+  def onMouseClick(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayer =>
+        val node = p.readTileEntity[TileEntity]() match {
+          case Some(t: Screen) => t.origin.node
+          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
+          case _ => return // Invalid packet.
+        }
+        val x = p.readInt()
+        val y = p.readInt()
+        val what = if (p.readBoolean()) "drag" else "touch"
+        node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), player.getCommandSenderName)
       case _ => // Invalid packet.
     }
+  }
 
-  def onMouseScroll(p: PacketParser) =
-    p.readTileEntity[Buffer]() match {
-      case Some(s: Screen) => p.player match {
-        case player: EntityPlayer =>
-          val x = p.readInt()
-          val y = p.readInt()
-          val scroll = p.readByte()
-          s.origin.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
-        case _ =>
-      }
+  def onMouseScroll(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayer =>
+        val node = p.readTileEntity[TileEntity]() match {
+          case Some(t: Screen) => t.origin.node
+          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
+          case _ => return // Invalid packet.
+        }
+        val x = p.readInt()
+        val y = p.readInt()
+        val scroll = p.readByte()
+        node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
       case _ => // Invalid packet.
     }
+  }
 
   def onServerSide(p: PacketParser) =
     p.readTileEntity[Rack]() match {
