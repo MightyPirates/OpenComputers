@@ -22,6 +22,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
+  var range = 16 * 16
+
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
 
@@ -102,15 +104,16 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   // ----------------------------------------------------------------------- //
 
   def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    servers.collect {
-      case Some(server) => server.machine.lastError match {
-        case Some(value) =>
-          // TODO check if already in, expand value string with additional messages
-          stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
-        case _ =>
+    if (side == facing.ordinal) {
+      val l = 2 / 16.0
+      val h = 14 / 16.0
+      val slot = ((hitY - l) / (h - l) * 4).toInt
+      if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
+        servers(slot).get.machine.node
       }
+      else null
     }
-    null
+    else sidedNode(ForgeDirection.getOrientation(side))
   }
 
   // ----------------------------------------------------------------------- //
@@ -168,6 +171,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
       terminals(i).load(terminalsNbt(i))
     }
+    range = nbt.getInteger(Settings.namespace + "range")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -185,6 +189,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       t.save(terminalNbt)
       terminalNbt
     }))
+    nbt.setInteger(Settings.namespace + "range", range)
   }
 
   @SideOnly(Side.CLIENT)
@@ -198,8 +203,9 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
     val terminalsNbt = nbt.getTagList("terminals").iterator[NBTTagCompound].toArray
     for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
-      terminals(i).buffer.buffer.load(terminalsNbt(i))
+      terminals(i).readFromNBTForClient(terminalsNbt(i))
     }
+    range = nbt.getInteger("range")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
@@ -209,9 +215,10 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList("terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
-      t.buffer.buffer.save(terminalNbt)
+      t.writeToNBTForClient(terminalNbt)
       terminalNbt
     }))
+    nbt.setInteger("range", range)
   }
 
   // ----------------------------------------------------------------------- //

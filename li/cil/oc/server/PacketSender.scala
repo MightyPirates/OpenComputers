@@ -309,6 +309,7 @@ object PacketSender {
     pb.writeInt(number)
     pb.writeBoolean(t.isRunning(number))
     pb.writeDirection(t.sides(number))
+    pb.writeUTF(t.terminals(number).key.getOrElse(""))
 
     pb.sendToNearbyPlayers(t)
   }

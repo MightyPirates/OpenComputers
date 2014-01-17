@@ -6,9 +6,11 @@ import li.cil.oc.{Settings, Items}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 import scala.collection.convert.WrapAsScala._
+import net.minecraft.util.StatCollector
+import net.minecraft.client.Minecraft
 
 object GuiHandler extends CommonGuiHandler {
-  override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int) =
+  override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
     world.getBlockTileEntity(x, y, z) match {
       case adapter: tileentity.Adapter if id == GuiType.Adapter.id =>
         new gui.Adapter(player.inventory, adapter)
@@ -33,24 +35,39 @@ object GuiHandler extends CommonGuiHandler {
           val stack = player.getCurrentEquippedItem
           if (stack.hasTagCompound) {
             val address = stack.getTagCompound.getString(Settings.namespace + "server")
-            if (address != null && !address.isEmpty) {
+            val key = stack.getTagCompound.getString(Settings.namespace + "key")
+            if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
               // Check if bound to server is loaded. TODO optimize this?
               world.loadedTileEntityList.flatMap {
                 case rack: tileentity.Rack => rack.terminals
                 case _ => Iterable.empty
-              } find (_.rack.isPresent.exists {
+              } find (term => term.rack.isPresent(term.number) match {
                 case Some(value) => value == address
                 case _ => false
               }) match {
                 case Some(term) =>
                   // TODO check reachability
-                  new gui.Screen(term.buffer, true, () => true)
+                  def inRange = player.isEntityAlive && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range
+                  if (inRange) {
+                    if (term.key.isDefined && term.key.get == key) return new gui.Screen(term.buffer, true, () => {
+                      // Check if someone else bound a term to our server.
+                      if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
+                        Minecraft.getMinecraft.displayGuiScreen(null)
+                      }
+                      // Check whether we're still in range.
+                      if (!inRange) {
+                        Minecraft.getMinecraft.displayGuiScreen(null)
+                      }
+                      true
+                    })
+                    else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.InvalidKey"))
+                  }
+                  else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
                 case _ => null
               }
             }
-            else null
           }
-          else null
+          null
         case _ => null
       }
     }

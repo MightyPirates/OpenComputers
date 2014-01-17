@@ -13,7 +13,6 @@ object Blocks {
   var blockSpecial: SpecialDelegator = _
   var blockSpecialWithRedstone: SpecialDelegator = _
 
-  var accessPoint: AccessPoint = _
   var adapter: Adapter = _
   var cable: Cable = _
   var capacitor: Capacitor = _
@@ -41,7 +40,6 @@ object Blocks {
     GameRegistry.registerBlock(blockSpecial, classOf[Item], Settings.namespace + "special")
     GameRegistry.registerBlock(blockSpecialWithRedstone, classOf[Item], Settings.namespace + "special_redstone")
 
-    GameRegistry.registerTileEntity(classOf[tileentity.AccessPoint], Settings.namespace + "accessPoint")
     GameRegistry.registerTileEntity(classOf[tileentity.Adapter], Settings.namespace + "adapter")
     GameRegistry.registerTileEntity(classOf[tileentity.Cable], Settings.namespace + "cable")
     GameRegistry.registerTileEntity(classOf[tileentity.Capacitor], Settings.namespace + "capacitor")
@@ -88,7 +86,6 @@ object Blocks {
 
     // v1.2.0
     serverRack = new Rack(blockSpecialWithRedstone)
-    accessPoint = new AccessPoint(blockSimple)
 
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())

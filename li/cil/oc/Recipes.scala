@@ -110,8 +110,7 @@ object Recipes {
       addRecipe(Items.card.createItemStack(), recipes, "card")
 
       // Try to keep this in the same order as the fields in the Blocks class
-      // to make it easier to match them and check if anything is missing.
-      addRecipe(Blocks.accessPoint.createItemStack(), recipes, "accessPoint")
+      // to make it easier to match them and check if anything is missing.Point")
       addRecipe(Blocks.adapter.createItemStack(), recipes, "adapter")
       addRecipe(Blocks.cable.createItemStack(), recipes, "cable")
       addRecipe(Blocks.capacitor.createItemStack(), recipes, "capacitor")
@@ -324,12 +323,6 @@ object Recipes {
     val index = id.intValue
     if (index < 0 || index >= Item.itemsList.length || Item.itemsList(index) == null) throw new RecipeException("Invalid item ID: " + index)
     Item.itemsList(index)
-  }
-
-  private def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
-    case Nil => List(Nil)
-    case h :: t => for (xh <- h;
-                        xt <- cartesianProduct(t)) yield xh :: xt
   }
 
   private class RecipeException(message: String) extends RuntimeException(message)

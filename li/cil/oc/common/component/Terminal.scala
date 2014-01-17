@@ -1,12 +1,14 @@
 package li.cil.oc.common.component
 
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Node, Visibility}
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.item
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.PackedColor.Depth
-import li.cil.oc.{Settings, common}
+import li.cil.oc.{Items, Settings, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 
@@ -15,10 +17,19 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   val keyboard = if (buffer.node != null) {
     buffer.node.setVisibility(Visibility.Neighbors)
     new component.Keyboard {
-      override def isUseableByPlayer(p: EntityPlayer) = true // TODO if player has bound terminal
+      override def isUseableByPlayer(p: EntityPlayer) = {
+        val stack = p.getCurrentEquippedItem
+        Items.multi.subItem(stack) match {
+          case Some(t: item.Terminal) if key.isDefined && stack.hasTagCompound =>
+            key.get == stack.getTagCompound.getString(Settings.namespace + "key")
+          case _ => false
+        }
+      }
     }
   }
   else null
+
+  var key: Option[String] = None
 
   def isServer = rack.isServer
 
@@ -35,11 +46,34 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   def load(nbt: NBTTagCompound) {
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
     keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
+    if (nbt.hasKey(Settings.namespace + "key")) {
+      key = Option(nbt.getString(Settings.namespace + "key"))
+    }
   }
 
   def save(nbt: NBTTagCompound) {
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
+    key match {
+      case Some(value) => nbt.setString(Settings.namespace + "key", value)
+      case _ =>
+    }
+  }
+
+  @SideOnly(Side.CLIENT)
+  def readFromNBTForClient(nbt: NBTTagCompound) {
+    buffer.buffer.load(nbt)
+    if (nbt.hasKey("key")) {
+      key = Option(nbt.getString("key"))
+    }
+  }
+
+  def writeToNBTForClient(nbt: NBTTagCompound) {
+    buffer.buffer.save(nbt)
+    key match {
+      case Some(value) => nbt.setString("key", value)
+      case _ =>
+    }
   }
 
   // ----------------------------------------------------------------------- //

@@ -54,6 +54,7 @@ oc:item.PrintedCircuitBoard.name=Printed Circuit Board (PCB)
 oc:item.RawCircuitBoard.name=Raw Circuit Board
 oc:item.RedstoneCard.name=Redstone Card
 oc:item.Server.name=Server
+oc:item.Terminal.name=Remote Terminal
 oc:item.Transistor.name=Transistor
 oc:item.UpgradeCrafting.name=Crafting Upgrade
 oc:item.UpgradeGenerator.name=Generator Upgrade
@@ -81,6 +82,8 @@ oc:gui.ServerRack.Bottom=Bottom
 oc:gui.ServerRack.Left=Left
 oc:gui.ServerRack.Right=Right
 oc:gui.ServerRack.Top=Top
+oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bound to the server.
+oc:gui.Terminal.OutOfRange=No signal.
 
 # Containers
 oc:container.Adapter=Adapter
@@ -134,6 +137,7 @@ oc:tooltip.Screen=Display text, controlled by a Graphics Card in a Case.[nl] Max
 oc:tooltip.Server=This is a server, there are many like it, but this one can be upgraded with components much like a computer case can be. It can be run by inserting it into a server rack.
 oc:tooltip.Server.Components=Installed components:
 oc:tooltip.ServerRack=Allows the installation of up to four servers.
+oc:tooltip.Terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard.
 oc:tooltip.TooLong=Hold shift for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
 oc:tooltip.UpgradeCrafting=Enables robots to use the top left area of their inventory for crafting objects. Items have to be aligned as they would be in a crafting table.

@@ -54,6 +54,7 @@ oc:item.PrintedCircuitBoard.name=Gedruckte Leiterplatte (PCB)
 oc:item.RawCircuitBoard.name=Leiterplattenrohling
 oc:item.RedstoneCard.name=Redstonekarte
 oc:item.Server.name=Server
+oc:item.Terminal.name=Fernbedienung
 oc:item.Transistor.name=Transistor
 oc:item.UpgradeCrafting.name=Fertigungs-Upgrade
 oc:item.UpgradeGenerator.name=Generator-Upgrade
@@ -81,6 +82,8 @@ oc:gui.ServerRack.Bottom=Unten
 oc:gui.ServerRack.Left=Links
 oc:gui.ServerRack.Right=Rechts
 oc:gui.ServerRack.Top=Oben
+oc:gui.Terminal.InvalidKey=Ungültiger Schlüssel, vermutlich wurde eine andere Fernbedienung an den Server gebunden.
+oc:gui.Terminal.OutOfRange=Kein Signal.
 
 # Containers
 oc:container.Adapter=Adapter
@@ -134,6 +137,7 @@ oc:tooltip.Screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] H�
 oc:tooltip.Server=Ein Server kann wie gewöhnlich Computergehäuse mit Komponenten verbessert werden. Um den Server zu starten muss er in einem Servergehäuse installiert werden.
 oc:tooltip.Server.Components=Installierte Komponenten:
 oc:tooltip.ServerRack=Erlaubt die Installation von bis zu vier Servern.
+oc:tooltip.Terminal=Erlaubt es einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem.
 oc:tooltip.TooLong=Shift gedrückt halten für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
 oc:tooltip.UpgradeCrafting=Ermöglicht Robotern, in dem oberen linken Bereich ihres Inventars Dinge zu fertigen. Gegenstände müssen so angeordnet sein, wie sie es in einer Werkbank wären.

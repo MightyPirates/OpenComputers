@@ -2,8 +2,10 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+import java.util.UUID
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -35,14 +37,18 @@ class Terminal(val parent: Delegator) extends Delegate {
       case rack: tileentity.Rack if side == rack.facing.ordinal() =>
         val l = 2 / 16.0
         val h = 14 / 16.0
-        val s = (((1 - hitY) - l) / (h - l) * 4).toInt
-        if (s >= 0 && s <= 3 && rack.items(s).isDefined) {
+        val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
+        if (slot >= 0 && slot <= 3 && rack.items(slot).isDefined) {
           if (!world.isRemote) {
-            rack.servers(s) match {
+            rack.servers(slot) match {
               case Some(server) =>
                 if (!stack.hasTagCompound) {
                   stack.setTagCompound(new NBTTagCompound("tag"))
                 }
+                val key = UUID.randomUUID().toString
+                rack.terminals(slot).key = Some(key)
+                ServerPacketSender.sendServerState(rack, slot)
+                stack.getTagCompound.setString(Settings.namespace + "key", key)
                 stack.getTagCompound.setString(Settings.namespace + "server", server.machine.address)
                 player.inventory.onInventoryChanged()
               case _ => // Huh?
@@ -57,8 +63,9 @@ class Terminal(val parent: Delegator) extends Delegate {
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking && stack.hasTagCompound) {
-      val address = stack.getTagCompound.getString(Settings.namespace + "server")
-      if (address != null && !address.isEmpty) {
+      val key = stack.getTagCompound.getString(Settings.namespace + "key")
+      val server = stack.getTagCompound.getString(Settings.namespace + "server")
+      if (key != null && !key.isEmpty && server != null && !server.isEmpty) {
         if (world.isRemote) {
           player.openGui(OpenComputers, GuiType.Terminal.id, world, 0, 0, 0)
         }
