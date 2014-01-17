@@ -4,7 +4,7 @@
     "modid": "OpenComputers",
     "name": "OpenComputers",
     "description": "This mod adds modular computers and robots that can be programmed in Lua.",
-    "version": "1.1.2a",
+    "version": "1.1.2b",
     "mcversion": "1.6.4",
     "url": "https://github.com/MightyPirates/OpenComputers/wiki",
     "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],

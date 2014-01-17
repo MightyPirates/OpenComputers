@@ -151,6 +151,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       if (created) {
         assert(world.getBlockTileEntity(nx, ny, nz) == proxy)
         assert(x == nx && y == ny && z == nz)
+        world.setBlock(ox, oy, oz, 0, 0, 1)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
