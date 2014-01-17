@@ -74,7 +74,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var xp = 0.0
 
-  def xpForNextLevel = Settings.get.baseXpToLevel + Math.pow((level + 1) * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
+  def xpForNextLevel = xpForLevel(level + 1)
+
+  def xpForLevel(level: Int) = Settings.get.baseXpToLevel + Math.pow(level * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
 
   var level = 0
 

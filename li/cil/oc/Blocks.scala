@@ -2,10 +2,11 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{block, tileentity}
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
+import net.minecraft.nbt.NBTTagCompound
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -32,7 +33,15 @@ object Blocks {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
     blockSimpleWithRedstone = new SimpleRedstoneDelegator(Settings.get.blockId2)
     blockSpecial = new SpecialDelegator(Settings.get.blockId3)
-    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Settings.get.blockId4)
+    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Settings.get.blockId4) {
+      override def subBlockItemStacks() = super.subBlockItemStacks() ++ Iterable({
+        val stack = new ItemStack(this, 1, robotProxy.blockId)
+        stack.setTagCompound(new NBTTagCompound("tag"))
+        stack.getTagCompound.setDouble(Settings.namespace + "xp", Settings.get.baseXpToLevel + math.pow(30.0001 * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth))
+        stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", (Settings.get.bufferRobot + Settings.get.bufferPerLevel * 30).toInt)
+        stack
+      })
+    }
 
     GameRegistry.registerBlock(blockSimple, classOf[Item], Settings.namespace + "simple")
     GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Settings.namespace + "simple_redstone")
