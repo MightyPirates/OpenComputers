@@ -1,51 +1,54 @@
-package = {}
+local package = {}
 
 package.path = "./?.lua;/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua"
 
 local loading = {}
 
 local loaded = {}
-package.loaded = setmetatable({}, {__index = loaded, __newindex = function(t, k, v) loaded[k] = v end})
+package.loaded = loaded
 
 local preload = {}
-package.preload = setmetatable({}, {__index = preload, __newindex = function(t, k, v) preload[k] = v end})
+package.preload = preload
 
 package.searchers = {}
 
 function package.searchpath(name, path, sep, rep)
-  assert(name, "You must specify a name!")
-  assert(path, "You must specify a path!")
+  checkArg(1, name, "string")
+  checkArg(2, path, "string")
   sep = sep or '.'
   rep = rep or '/'
-  sep, rep = '%'..sep, '%'..rep
+  sep, rep = '%' .. sep, '%' .. rep
   name = string.gsub(name, sep, rep)
   local errorFiles = {}
-  for sPath in string.gmatch(path, "([^;]+)") do
-    sPath = string.gsub(sPath, "?", name)
-    sPath = shell.resolve(sPath)
-    if fs.exists(sPath) then
-      local file = io.open(sPath, "r")
+  for subPath in string.gmatch(path, "([^;]+)") do
+    subPath = string.gsub(subPath, "?", name)
+    subPath = shell.resolve(subPath)
+    if fs.exists(subPath) then
+      local file = io.open(subPath, "r")
       if file then
         file:close()
-        return sPath
-      else
-        table.insert(errorFiles, "Tried to open: "..sPath)
+        return subPath
       end
     end
+    table.insert(errorFiles, "\tno file '" .. subPath .. "'")
   end
-  return nil, table.concat(errorFiles, " ")
+  return nil, table.concat(errorFiles, "\n")
 end
 
 local function preloadSearcher(module)
-  return preload[module]
+  if preload[module] ~= nil then
+    return preload[module]
+  else
+    return "\tno field package.preload['" .. module .. "']"
+  end
 end
 
 local function pathSearcher(module)
-  local sPath, err = package.searchpath(module, package.path)
-  if sPath then
-    return loadfile(sPath, "bt", _G), sPath
+  local filepath, reason = package.searchpath(module, package.path)
+  if filepath then
+    return loadfile(filepath, "bt", _G), filepath
   else
-    return err
+    return reason
   end
 end
 
@@ -53,25 +56,26 @@ table.insert(package.searchers, preloadSearcher)
 table.insert(package.searchers, pathSearcher)
 
 function require(module)
+  checkArg(1, module, "string")
   if loaded[module] then
     return loaded[module]
   elseif not loading[module] then
     loading[module] = true
-    local loader, value, errorMsg = nil, nil, {"Could not load "..module}
+    local loader, value, errorMsg = nil, nil, {"module '" .. module .. "' not found:"}
     for i=1, #package.searchers do
       local f, extra = package.searchers[i](module)
       if f and type(f) ~= "string" then
         loader = f
         value = extra
         break
-      else
+      elseif f then
         table.insert(errorMsg, f)
       end
     end
     if loader then
-      local ret = loader(module, value)
-      if ret then
-        loaded[module] = ret
+      local result = loader(module, value)
+      if result then
+        loaded[module] = result
       elseif not loaded[module] then
         loaded[module] = true
       end
@@ -79,9 +83,13 @@ function require(module)
       return loaded[module]
     else
       loading[module] = false
-      error(table.concat(errorMsg, '\n'))
+      error(table.concat(errorMsg, "\n"))
     end
   else
-    error "Already loading: "..module
+    error("already loading: " .. module)
   end
 end
+
+-------------------------------------------------------------------------------
+
+_G.package = package
