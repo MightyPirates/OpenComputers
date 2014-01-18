@@ -1,13 +1,14 @@
 package li.cil.oc.util
 
-import LuaState._
 import com.naef.jnlua
+import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport.Loader
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.logging.Level
 import li.cil.oc.server.component.Machine
+import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
 import org.lwjgl.LWJGLUtil

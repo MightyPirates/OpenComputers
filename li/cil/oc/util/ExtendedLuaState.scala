@@ -1,19 +1,22 @@
 package li.cil.oc.util
 
-import com.naef.jnlua.LuaType
+import com.naef.jnlua.{LuaType, JavaFunction, LuaState}
 import li.cil.oc.OpenComputers
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
-import li.cil.oc.util.LuaState
 
 object ExtendedLuaState {
 
   implicit def extendLuaState(state: LuaState) = new ExtendedLuaState(state)
 
   class ExtendedLuaState(val lua: LuaState) {
+    def pushScalaFunction(f: (LuaState) => Int) = lua.pushJavaFunction(new JavaFunction {
+      override def invoke(state: LuaState) = f(state)
+    })
+
     def pushValue(value: Any) {
       (value match {
         case number: ScalaNumber => number.underlying
@@ -73,7 +76,7 @@ object ExtendedLuaState {
       case LuaType.BOOLEAN => Boolean.box(lua.toBoolean(index))
       case LuaType.NUMBER => Double.box(lua.toNumber(index))
       case LuaType.STRING => lua.toByteArray(index)
-      case LuaType.TABLE => lua.toMap(index)
+      case LuaType.TABLE => lua.toJavaObject(index, classOf[java.util.Map[_, _]])
       case _ => null
     }
 

@@ -6,7 +6,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.machine.{NativeLuaArchitecture, ExecutionResult, LuaArchitecture}
+import li.cil.oc.server.component.machine.{NativeLuaArchitecture, ExecutionResult}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
@@ -496,45 +496,45 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     nbt.getTagList("users").foreach[NBTTagString](u => _users += u.data)
 
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
-        architecture.load(nbt)
+      architecture.load(nbt)
 
-        components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
-          c.getString("address") -> c.getString("name"))
+      components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
+        c.getString("address") -> c.getString("name"))
 
-        signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
-          val argsNbt = signalNbt.getCompoundTag("args")
-          val argsLength = argsNbt.getInteger("length")
-          new Machine.Signal(signalNbt.getString("name"),
-            (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
-              case tag: NBTTagByte if tag.data == -1 => Unit
-              case tag: NBTTagByte => tag.data == 1
-              case tag: NBTTagDouble => tag.data
-              case tag: NBTTagString => tag.data
-              case tag: NBTTagByteArray => tag.byteArray
-              case tag: NBTTagList =>
-                val data = mutable.Map.empty[String, String]
-                for (i <- 0 until tag.tagCount by 2) {
-                  (tag.tagAt(i), tag.tagAt(i + 1)) match {
-                    case (key: NBTTagString, value: NBTTagString) => data += key.data -> value.data
-                    case _ =>
-                  }
+      signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
+        val argsNbt = signalNbt.getCompoundTag("args")
+        val argsLength = argsNbt.getInteger("length")
+        new Machine.Signal(signalNbt.getString("name"),
+          (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
+            case tag: NBTTagByte if tag.data == -1 => Unit
+            case tag: NBTTagByte => tag.data == 1
+            case tag: NBTTagDouble => tag.data
+            case tag: NBTTagString => tag.data
+            case tag: NBTTagByteArray => tag.byteArray
+            case tag: NBTTagList =>
+              val data = mutable.Map.empty[String, String]
+              for (i <- 0 until tag.tagCount by 2) {
+                (tag.tagAt(i), tag.tagAt(i + 1)) match {
+                  case (key: NBTTagString, value: NBTTagString) => data += key.data -> value.data
+                  case _ =>
                 }
-                data
-              case _ => Unit
-            }.toArray)
-        })
+              }
+              data
+            case _ => Unit
+          }.toArray)
+      })
 
-        rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
-        tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
-        timeStarted = nbt.getLong("timeStarted")
-        cpuTime = nbt.getLong("cpuTime")
-        remainingPause = nbt.getInteger("remainingPause")
-        if (nbt.hasKey("message")) {
-          message = Some(nbt.getString("message"))
-        }
+      rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
+      tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
+      timeStarted = nbt.getLong("timeStarted")
+      cpuTime = nbt.getLong("cpuTime")
+      remainingPause = nbt.getInteger("remainingPause")
+      if (nbt.hasKey("message")) {
+        message = Some(nbt.getString("message"))
+      }
 
-        // Delay execution for a second to allow the world around us to settle.
-        pause(Settings.get.startupDelay)
+      // Delay execution for a second to allow the world around us to settle.
+      pause(Settings.get.startupDelay)
     }
     else close() // Clean up in case we got a weird state stack.
   }
