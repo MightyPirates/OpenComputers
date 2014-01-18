@@ -82,6 +82,7 @@ oc:gui.ServerRack.Bottom=Bottom
 oc:gui.ServerRack.Left=Left
 oc:gui.ServerRack.Right=Right
 oc:gui.ServerRack.Top=Top
+oc:gui.ServerRack.WirelessRange=Range
 oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bound to the server.
 oc:gui.Terminal.OutOfRange=No signal.
 

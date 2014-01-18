@@ -261,7 +261,7 @@ powerDistributor {
           [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
 }
 rack {
-  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
+  input: [["oc:circuitTier3", "oc:componentCardWLan", "oc:circuitTier3"]
           [fenceIron, chest, fenceIron]
           ["oc:craftingRouter", "oc:craftingCircuitBoardPrinted","oc:craftingPowerDistributor"]]
 }

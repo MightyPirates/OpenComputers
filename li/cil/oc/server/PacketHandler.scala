@@ -7,6 +7,7 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
 import scala.Some
+import li.cil.oc.Settings
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -20,6 +21,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
       case _ => // Invalid packet.
     }
@@ -118,6 +120,17 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onServerRange(p: PacketParser) =
+    p.readTileEntity[Rack]() match {
+      case Some(rack) => p.player match {
+        case player: EntityPlayer if rack.isUseableByPlayer(player) =>
+          rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
+          PacketSender.sendServerState(rack)
+        case _ =>
+      }
+      case _ => // Invalid packet.
+    }
 
   def onServerSide(p: PacketParser) =
     p.readTileEntity[Rack]() match {

@@ -82,6 +82,7 @@ oc:gui.ServerRack.Bottom=Unten
 oc:gui.ServerRack.Left=Links
 oc:gui.ServerRack.Right=Rechts
 oc:gui.ServerRack.Top=Oben
+oc:gui.ServerRack.WirelessRange=Reichweite
 oc:gui.Terminal.InvalidKey=Ungültiger Schlüssel, vermutlich wurde eine andere Fernbedienung an den Server gebunden.
 oc:gui.Terminal.OutOfRange=Kein Signal.
 

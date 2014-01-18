@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Visibility, Node, Analyzable}
+import li.cil.oc.api.network.{Connector, Visibility, Node, Analyzable}
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
@@ -22,7 +22,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
-  var range = 16 * 16
+  var range = 16
 
   // For client side, where we don't create the component.
   private val _isRunning = new Array[Boolean](getSizeInventory)
@@ -121,6 +121,20 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   override def updateEntity() {
     if (isServer) {
       if (addedToNetwork) {
+        if (range > 0 && !Settings.get.ignorePower && anyRunning) {
+          val running = servers.count {
+            case Some(server) => server.machine.isRunning
+            case _ => false
+          }
+          var cost = -(running * range * Settings.get.wirelessCostPerRange)
+          for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
+            sidedNode(side) match {
+              case connector: Connector => cost = connector.changeBuffer(cost)
+              case _ =>
+            }
+          }
+        }
+
         servers collect {
           case Some(server) => server.machine.update()
         }

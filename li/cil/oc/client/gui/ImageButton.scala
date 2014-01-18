@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11
 @SideOnly(Side.CLIENT)
 class ImageButton(id: Int, x: Int, y: Int, w: Int, h: Int,
                   val image: ResourceLocation, text: String = null,
-                  val canToggle: Boolean = true,
+                  val canToggle: Boolean = false,
                   val textColor: Int = 0xE0E0E0,
                   val textDisabledColor: Int = 0xA0A0A0,
                   val textHoverColor: Int = 0xFFFFA0) extends GuiButton(id, x, y, w, h, text) {

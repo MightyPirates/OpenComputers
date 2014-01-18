@@ -150,6 +150,7 @@ object Items {
     register("oc:craftingCPUTier3", cpu2.createItemStack())
     register("oc:componentCardRedstone", rs.createItemStack())
     register("oc:componentCardLan", lan.createItemStack())
+    register("oc:componentCardWLan", wlan.createItemStack())
     register("oc:craftingGPUTier1", gpu1.createItemStack())
     register("oc:craftingGPUTier2", gpu2.createItemStack())
     register("oc:craftingGPUTier3", gpu3.createItemStack())
