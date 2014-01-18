@@ -40,7 +40,9 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   @LuaCallback(value = "level", direct = true)
   def level(context: Context, args: Arguments): Array[AnyRef] = {
-    result(robot.level + robot.xp / robot.xpForNextLevel)
+    val xpNeeded = robot.xpForNextLevel - robot.xpForLevel(robot.level)
+    val xpProgress = math.max(0, robot.xp - robot.xpForLevel(robot.level))
+    result(robot.level + xpProgress / xpNeeded)
   }
 
   // ----------------------------------------------------------------------- //

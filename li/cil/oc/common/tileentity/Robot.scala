@@ -74,7 +74,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var xp = 0.0
 
-  def xpForNextLevel = Settings.get.baseXpToLevel + Math.pow((level + 1) * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
+  def xpForNextLevel = xpForLevel(level + 1)
+
+  def xpForLevel(level: Int) = Settings.get.baseXpToLevel + Math.pow(level * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
 
   var level = 0
 
@@ -153,6 +155,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       if (created) {
         assert(world.getBlockTileEntity(nx, ny, nz) == proxy)
         assert(x == nx && y == ny && z == nz)
+        world.setBlock(ox, oy, oz, 0, 0, 1)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
