@@ -6,7 +6,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.machine.{ExecutionResult, LuaArchitecture}
+import li.cil.oc.server.component.machine.{NativeLuaArchitecture, ExecutionResult, LuaArchitecture}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
@@ -33,7 +33,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
-  private val architecture = new LuaArchitecture(this)
+  private val architecture = new NativeLuaArchitecture(this)
 
   private[component] val state = mutable.Stack(Machine.State.Stopped)
 

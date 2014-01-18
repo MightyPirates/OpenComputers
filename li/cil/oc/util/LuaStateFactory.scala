@@ -1,13 +1,13 @@
 package li.cil.oc.util
 
+import LuaState._
+import com.naef.jnlua
 import com.naef.jnlua.NativeSupport.Loader
-import com.naef.jnlua.{LuaState, NativeSupport}
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.logging.Level
 import li.cil.oc.server.component.Machine
-import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
 import org.lwjgl.LWJGLUtil
@@ -133,7 +133,7 @@ object LuaStateFactory {
 
     // Register a custom library loader with JNLua to actually load the ones we
     // just extracted.
-    NativeSupport.getInstance().setLoader(new Loader {
+    jnlua.NativeSupport.getInstance().setLoader(new Loader {
       def load() {
         try {
           System.load(libraryPath)
@@ -156,17 +156,17 @@ object LuaStateFactory {
     if (!haveNativeLibrary) return None
 
     try {
-      val state = new LuaState(Int.MaxValue)
+      val state = new jnlua.LuaState(Int.MaxValue)
       try {
         // Load all libraries.
-        state.openLib(LuaState.Library.BASE)
-        state.openLib(LuaState.Library.BIT32)
-        state.openLib(LuaState.Library.COROUTINE)
-        state.openLib(LuaState.Library.DEBUG)
-        state.openLib(LuaState.Library.ERIS)
-        state.openLib(LuaState.Library.MATH)
-        state.openLib(LuaState.Library.STRING)
-        state.openLib(LuaState.Library.TABLE)
+        state.openLib(jnlua.LuaState.Library.BASE)
+        state.openLib(jnlua.LuaState.Library.BIT32)
+        state.openLib(jnlua.LuaState.Library.COROUTINE)
+        state.openLib(jnlua.LuaState.Library.DEBUG)
+        state.openLib(jnlua.LuaState.Library.ERIS)
+        state.openLib(jnlua.LuaState.Library.MATH)
+        state.openLib(jnlua.LuaState.Library.STRING)
+        state.openLib(jnlua.LuaState.Library.TABLE)
         state.pop(8)
 
         // Prepare table for os stuff.
