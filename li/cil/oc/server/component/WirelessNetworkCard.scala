@@ -1,18 +1,12 @@
 package li.cil.oc.server.component
 
 import java.io._
-import java.net.{SocketTimeoutException, HttpURLConnection, URL}
-import java.util.concurrent.Future
-import java.util.regex.Matcher
 import li.cil.oc.api.network._
-import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{ThreadPoolFactory, WirelessNetwork}
+import li.cil.oc.util.WirelessNetwork
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
-import scala.collection.mutable
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
@@ -22,11 +16,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     create()
 
   var strength = 0.0
-
-  var response: Option[Future[_]] = None
-
-  // node address -> list per request -> list of signals as (request url, packets)
-  private val queues = mutable.Map.empty[String, mutable.Queue[(String, mutable.Queue[Array[Byte]])]]
 
   // ----------------------------------------------------------------------- //
 
@@ -41,78 +30,19 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
-  @LuaCallback(value = "isHttpEnabled", direct = true)
-  def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
-
   override def send(context: Context, args: Arguments) = {
     val address = args.checkString(0)
-    if (isHttpRequest(address)) {
-      checkAddress(address)
-      val post = if (args.isString(1)) Option(args.checkString(1)) else None
-      WirelessNetworkCard.threadPool.submit(new Runnable {
-        def run() = try {
-          val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-          val url = new URL(address)
-          url.openConnection(proxy) match {
-            case http: HttpURLConnection => try {
-              http.setDoInput(true)
-              if (post.isDefined) {
-                http.setRequestMethod("POST")
-                http.setDoOutput(true)
-                http.setReadTimeout(Settings.get.httpTimeout)
-
-                val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-                out.write(post.get)
-                out.close()
-              }
-              else {
-                http.setRequestMethod("GET")
-                http.setDoOutput(false)
-              }
-
-              val input = http.getInputStream
-              val data = mutable.ArrayBuffer.empty[Byte]
-              val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
-              var count = 0
-              do {
-                count = input.read(buffer)
-                if (count > 0) {
-                  data ++= buffer.take(count)
-                }
-              } while (count != -1)
-              input.close()
-              queues.synchronized(queues.getOrElseUpdate(context.address, mutable.Queue.empty) += address -> (mutable.Queue(data.toArray.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
-            }
-            finally {
-              http.disconnect()
-            }
-            case other => context.signal("http_response", address, Unit, "connection failed")
-          }
-        }
-        catch {
-          case e: FileNotFoundException =>
-            context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
-          case _: SocketTimeoutException =>
-            context.signal("http_response", address, Unit, "timeout")
-          case e: Throwable =>
-            context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
-        }
-      })
-      result(true)
-    }
-    else {
-      val port = checkPort(args.checkInteger(1))
-      checkPacketSize(args.drop(2))
-      if (strength > 0) {
-        checkPower()
-        for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-             if card.node.address == address && card.openPorts.contains(port)) {
-          card.node.sendToReachable("computer.signal",
-            Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
-        }
+    val port = checkPort(args.checkInteger(1))
+    checkPacketSize(args.drop(2))
+    if (strength > 0) {
+      checkPower()
+      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
+           if card.node.address == address && card.openPorts.contains(port)) {
+        card.node.sendToReachable("computer.signal",
+          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
       }
-      super.send(context, args)
     }
+    super.send(context, args)
   }
 
   override def broadcast(context: Context, args: Arguments) = {
@@ -137,31 +67,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     }
   }
 
-  private def isHttpRequest(address: String) = {
-    try {
-      new URL(address)
-      true
-    }
-    catch {
-      case e: Throwable => false
-    }
-  }
-
-  private def checkAddress(address: String) {
-    val url = new URL(address)
-    val protocol = url.getProtocol
-    if (!protocol.matches("^https?$")) {
-      throw new FileNotFoundException("unsupported protocol")
-    }
-    val host = Matcher.quoteReplacement(url.getHost)
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(host.matches)) {
-      throw new FileNotFoundException("domain is not whitelisted")
-    }
-    if (Settings.get.httpHostBlacklist.exists(host.matches)) {
-      throw new FileNotFoundException("domain is blacklisted")
-    }
-  }
-
   // ----------------------------------------------------------------------- //
 
   override val canUpdate = true
@@ -169,28 +74,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def update() {
     super.update()
     WirelessNetwork.update(this)
-
-    queues.synchronized {
-      for ((nodeAddress, queue) <- queues if queue.nonEmpty) {
-        node.network.node(nodeAddress) match {
-          case computer: Node =>
-            computer.host match {
-              case context: Context =>
-                val (address, packets) = queue.front
-                if (context.signal("http_response", address, packets.front)) {
-                  packets.dequeue()
-                }
-              case _ => queue.clear()
-            }
-          case _ => queue.clear()
-        }
-        // Remove all responses that have no more packets (usually only the
-        // first on when it has been processed).
-        queue.dequeueAll(_._2.isEmpty)
-      }
-      // Remove all targets that have no more responses.
-      queues.retain((_, queue) => queue.nonEmpty)
-    }
   }
 
   override def onConnect(node: Node) {
@@ -213,50 +96,10 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
-    queues.synchronized {
-      queues.clear()
-      if (nbt.hasKey("queues")) {
-        queues ++= nbt.getTagList("queues").iterator[NBTTagCompound].map(nodeNbt => {
-          val nodeAddress = nodeNbt.getString("nodeAddress")
-          val responses = mutable.Queue(nodeNbt.getTagList("responses").iterator[NBTTagCompound].map(responseNbt => {
-            val address = responseNbt.getString("address")
-            val data = responseNbt.getByteArray("data")
-            (address, mutable.Queue(data.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null))
-          }): _*)
-          nodeAddress -> responses
-        })
-      }
-    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     nbt.setDouble("strength", strength)
-    queues.synchronized {
-      if (!queues.isEmpty) {
-        nbt.setNewTagList("queues", queues.toIterable.map(
-          node => {
-            val (nodeAddress, responses) = node
-            val nodeNbt = new NBTTagCompound()
-            nodeNbt.setString("nodeAddress", nodeAddress)
-            nodeNbt.setNewTagList("responses", responses.toIterable.map(
-              response => {
-                val (address, packets) = response
-                val responseNbt = new NBTTagCompound()
-                responseNbt.setString("address", address)
-                val data = mutable.ArrayBuffer.empty[Byte]
-                packets.toIterable.dropRight(1).foreach(data.appendAll(_))
-                responseNbt.setByteArray("data", data.toArray)
-                responseNbt
-              }
-            ))
-          }
-        ))
-      }
-    }
   }
-}
-
-object WirelessNetworkCard {
-  private val threadPool = ThreadPoolFactory.create("HTTP", Settings.get.httpThreads)
 }

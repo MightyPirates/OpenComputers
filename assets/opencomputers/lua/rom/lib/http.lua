@@ -4,13 +4,9 @@ function http.request(url, data)
   checkArg(1, url, "string")
   checkArg(2, data, "string", "table", "nil")
 
-  local m = component.modem
-  if not m or not m.isWireless() then
-    error("no primary wireless modem found")
-  end
-
-  if not m.isHttpEnabled() then
-    error("http support is not enabled")
+  local m = component.internet
+  if not m then
+    error("no primary internet card found")
   end
 
   local post
@@ -23,7 +19,7 @@ function http.request(url, data)
     end
   end
 
-  local result, reason = m.send(url, post)
+  local result, reason = m.request(url, post)
   if not result then
     error(reason)
   end

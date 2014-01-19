@@ -7,17 +7,6 @@ if #args < 2 then
   return
 end
 
-local m = component.modem
-if not m or not m.isWireless() then
-  print("no primary wireless modem found")
-  return
-end
-
-if not m.isHttpEnabled() then
-  print("http support is not enabled")
-  return
-end
-
 local id = args[1]
 local filename = shell.resolve(args[2])
 
@@ -35,12 +24,19 @@ if not f then
 end
 
 local url = "http://pastebin.com/raw.php?i=" .. id
-for chunk in http.request(url) do
-  if not options.k then
-    string.gsub(chunk, "\r\n", "\n")
+local result, response = pcall(http.request, url)
+if result then
+  for chunk in response do
+    if not options.k then
+      string.gsub(chunk, "\r\n", "\n")
+    end
+    f:write(chunk)
   end
-  f:write(chunk)
-end
 
-f:close()
-print("saved data to " .. filename)
+  f:close()
+  print("saved data to " .. filename)
+else
+  f:close()
+  fs.remove(filename)
+  print("http request failed: " .. response)
+end

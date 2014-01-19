@@ -31,6 +31,7 @@ class Proxy {
     api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
+    api.Driver.add(driver.item.InternetCard)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Processor)
