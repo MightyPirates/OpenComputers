@@ -1,3 +1,5 @@
+local component = require("component")
+
 local removing = {}
 local primaries = {}
 
@@ -55,14 +57,16 @@ function component.setPrimary(componentType, address)
   end
   primaries[componentType] = address and component.proxy(address) or nil
   if wasAvailable then
-    computer.pushSignal("component_unavailable", componentType)
+    require("computer").pushSignal("component_unavailable", componentType)
   end
   if component.isAvailable(componentType) then
-    computer.pushSignal("component_available", componentType)
+    require("computer").pushSignal("component_available", componentType)
   end
 end
 
 -------------------------------------------------------------------------------
+
+local event = require("event")
 
 local function onComponentAdded(_, address, componentType)
   if not component.isAvailable(componentType) then
@@ -78,7 +82,5 @@ local function onComponentRemoved(_, address, componentType)
   end
 end
 
-return function()
-  event.listen("component_added", onComponentAdded)
-  event.listen("component_removed", onComponentRemoved)
-end
+event.listen("component_added", onComponentAdded)
+event.listen("component_removed", onComponentRemoved)

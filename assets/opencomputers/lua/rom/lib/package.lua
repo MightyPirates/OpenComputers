@@ -4,7 +4,17 @@ package.path = "./?.lua;/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua"
 
 local loading = {}
 
-local loaded = {}
+local loaded = {
+  ["_G"] = _G,
+  ["bit32"] = bit32,
+  ["coroutine"] = coroutine,
+  ["io"] = io,
+  ["math"] = math,
+  ["os"] = os,
+  ["package"] = package,
+  ["string"] = string,
+  ["table"] = table
+}
 package.loaded = loaded
 
 local preload = {}
@@ -22,8 +32,10 @@ function package.searchpath(name, path, sep, rep)
   local errorFiles = {}
   for subPath in string.gmatch(path, "([^;]+)") do
     subPath = string.gsub(subPath, "?", name)
-    subPath = shell.resolve(subPath)
-    if fs.exists(subPath) then
+    if loaded.shell then
+      subPath = require("shell").resolve(subPath)
+    end
+    if require("filesystem").exists(subPath) then
       local file = io.open(subPath, "r")
       if file then
         file:close()
@@ -92,4 +104,4 @@ end
 
 -------------------------------------------------------------------------------
 
-_G.package = package
+return package

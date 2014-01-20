@@ -1,3 +1,6 @@
+local computer = require("computer")
+local keyboard = require("keyboard")
+
 local event, listeners, timers = {}, {}, {}
 local lastInterrupt = -math.huge
 
@@ -180,4 +183,4 @@ end
 
 -------------------------------------------------------------------------------
 
-_G.event = event
+return event

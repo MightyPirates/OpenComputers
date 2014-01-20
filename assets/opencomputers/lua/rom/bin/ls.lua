@@ -1,3 +1,7 @@
+local component = require("component")
+local fs = require("filesystem")
+local shell = require("shell")
+
 local dirs, options = shell.parse(...)
 if #dirs == 0 then
   table.insert(dirs, ".")

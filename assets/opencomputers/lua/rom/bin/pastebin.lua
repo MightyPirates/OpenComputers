@@ -1,3 +1,6 @@
+local fs = require("filesystem")
+local shell = require("shell")
+
 local args, options = shell.parse(...)
 if #args < 2 then
   print("Usage: pastebin [-f] <id> <file>")
@@ -24,7 +27,7 @@ if not f then
 end
 
 local url = "http://pastebin.com/raw.php?i=" .. id
-local result, response = pcall(http.request, url)
+local result, response = pcall(internet.request, url)
 if result then
   for chunk in response do
     if not options.k then

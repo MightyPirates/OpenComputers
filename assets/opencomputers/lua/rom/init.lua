@@ -1,12 +1,12 @@
-fs.mount(computer.romAddress(), "/")
-if computer.tmpAddress() then fs.mount(computer.tmpAddress(), "/tmp") end
+local component = require("component")
+local computer = require("computer")
 
 for c, t in component.list() do
   computer.pushSignal("component_added", c, t)
 end
 os.sleep(0.5) -- Allow signal processing by libraries.
 
-term.clear()
+require("term").clear()
 
 while true do
   local result, reason = os.execute("/bin/sh -v")

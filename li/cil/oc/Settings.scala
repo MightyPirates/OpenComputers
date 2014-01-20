@@ -149,6 +149,9 @@ class Settings(config: Config) {
   val httpHostWhitelist = Array(config.getStringList("http.whitelist"): _*)
   val httpTimeout = (config.getInt("http.requestTimeout") max 0) * 1000
 
+  val tcpEnabled = true //config.getBoolean("internet.enableTcp")
+  val maxConnections = 4 // config.getInt("internet.maxConnections") max 0
+
   // ----------------------------------------------------------------------- //
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1

@@ -1,3 +1,6 @@
+local component = require("component")
+local unicode = require("unicode")
+
 local filesystem, fileStream = {}, {}
 local isAutorunEnabled = true
 local mtab = {children={}}
@@ -344,8 +347,10 @@ function filesystem.copy(fromPath, toPath)
 end
 
 function fileStream:close()
-  self.fs.close(self.handle)
-  self.handle = nil
+  if self.handle then
+    self.fs.close(self.handle)
+    self.handle = nil
+  end
 end
 
 function fileStream:read(n)
@@ -398,7 +403,8 @@ function filesystem.open(path, mode)
     local function close()
       fs.close(handle)
     end
-    event.timer(0, close)
+    -- Required locally because this is a bootstrapped file.
+    require("event").timer(0, close)
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,
@@ -408,41 +414,4 @@ end
 
 -------------------------------------------------------------------------------
 
-local function onComponentAdded(_, address, componentType)
-  if componentType == "filesystem" then
-    local proxy = component.proxy(address)
-    if proxy then
-      local name = address:sub(1, 3)
-      while filesystem.exists(filesystem.concat("/mnt", name)) and
-            name:len() < address:len() -- just to be on the safe side
-      do
-        name = address:sub(1, name:len() + 1)
-      end
-      name = filesystem.concat("/mnt", name)
-      filesystem.mount(proxy, name)
-      if isAutorunEnabled then
-        local result, reason = shell.execute(filesystem.concat(name, "autorun"), _ENV, proxy)
-        if not result then
-          error (reason)
-        end
-      end
-    end
-  end
-end
-
-local function onComponentRemoved(_, address, componentType)
-  if componentType == "filesystem" then
-    if filesystem.get(shell.getWorkingDirectory()).address == address then
-      shell.setWorkingDirectory("/")
-    end
-    filesystem.umount(address)
-  end
-end
-
-_G.filesystem = filesystem
-_G.fs = filesystem
-
-return function()
-  event.listen("component_added", onComponentAdded)
-  event.listen("component_removed", onComponentRemoved)
-end
+return filesystem

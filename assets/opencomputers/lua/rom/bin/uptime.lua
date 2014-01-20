@@ -1,3 +1,5 @@
+local computer = require("computer")
+
 local seconds = math.floor(computer.uptime())
 local minutes, hours = 0, 0
 if seconds >= 60 then

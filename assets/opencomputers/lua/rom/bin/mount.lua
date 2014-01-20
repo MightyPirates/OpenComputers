@@ -1,5 +1,7 @@
-local args = shell.parse(...)
+local fs = require("filesystem")
+local shell = require("shell")
 
+local args = shell.parse(...)
 if #args == 0 then
   for proxy, path in fs.mounts() do
     local label = proxy.getLabel() or proxy.address
@@ -8,7 +10,6 @@ if #args == 0 then
   end
   return
 end
-
 if #args < 2 then
   print("Usage: mount [<label|address> <path>]")
   print("Note that the address may be abbreviated.")

@@ -1,3 +1,10 @@
+local component = require("component")
+local computer = require("computer")
+local event = require("event")
+local shell = require("shell")
+local term = require("term")
+local text = require("text")
+
 local args, options = shell.parse(...)
 local history = {}
 

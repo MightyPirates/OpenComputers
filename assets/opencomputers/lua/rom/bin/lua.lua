@@ -1,6 +1,11 @@
-print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
+local component = require("component")
+local term = require("term")
+
 local history = {}
 local env = setmetatable({}, {__index=_ENV})
+
+print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
+
 while term.isAvailable() do
   local foreground = component.gpu.setForeground(0x00FF00)
   term.write("lua> ")

@@ -1,5 +1,9 @@
+local component = require("component")
+local computer = require("computer")
+local sides = require("sides")
+
 if not computer.isRobot() then
-  return
+  return nil, "not a robot"
 end
 
 local robot = {}
@@ -183,5 +187,6 @@ function robot.turnAround()
   return turn() and turn()
 end
 
+-------------------------------------------------------------------------------
 
-_G.robot = robot
+return robot

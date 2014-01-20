@@ -1,4 +1,10 @@
-if not robot then
+local component = require("component")
+local computer = require("computer")
+local robot = require("robot")
+local shell = require("shell")
+local sides = require("sides")
+
+if not computer.isRobot() then
   error("can only run on robots", 0)
 end
 

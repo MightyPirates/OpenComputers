@@ -1,3 +1,5 @@
+local shell = require("shell")
+
 local args = shell.parse(...)
 if #args < 1 then
   print("Usage: unalias <name>")

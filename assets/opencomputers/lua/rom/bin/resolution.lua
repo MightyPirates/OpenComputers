@@ -1,3 +1,7 @@
+local component = require("component")
+local shell = require("shell")
+local term = require("term")
+
 local args = shell.parse(...)
 if #args == 0 then
   print(component.gpu.getResolution())
