@@ -299,8 +299,12 @@ local function onKeyDown(char, code)
     end
   elseif readonly and code == keyboard.keys.q then
     running = false
-  elseif not keyboard.isControl(char) and not readonly then
-    insert(unicode.char(char))
+  elseif not readonly then
+    if not keyboard.isControl(char) then
+      insert(unicode.char(char))
+    elseif unicode.char(char) == "\t" then
+      insert("  ")
+    end
   end
 end
 
