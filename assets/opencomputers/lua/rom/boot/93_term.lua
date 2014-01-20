@@ -1,3 +1,4 @@
+local computer = require("computer")
 local event = require("event")
 
 local gpuAvailable, screenAvailable = false, false
@@ -14,7 +15,7 @@ local function onComponentAvailable(_, componentType)
     screenAvailable = true
   end
   if not wasAvailable and isAvailable() then
-    require("computer").pushSignal("term_available")
+    computer.pushSignal("term_available")
   end
 end
 
@@ -26,7 +27,7 @@ local function onComponentUnavailable(_, componentType)
     screenAvailable = false
   end
   if wasAvailable and not isAvailable() then
-    require("computer").pushSignal("term_unavailable")
+    computer.pushSignal("term_unavailable")
   end
 end
 

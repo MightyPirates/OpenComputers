@@ -1,8 +1,11 @@
 local component = require("component")
+local package = require("package")
 local term = require("term")
 
 local history = {}
-local env = setmetatable({}, {__index=_ENV})
+local env = setmetatable({}, {__index = function(t, k)
+  return _ENV[k] or package.loaded[k]
+end})
 
 print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
 
