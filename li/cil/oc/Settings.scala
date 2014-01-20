@@ -142,15 +142,14 @@ class Settings(config: Config) {
   val maxReadBuffer = config.getInt("filesystem.maxReadBuffer") max 0
 
   // ----------------------------------------------------------------------- //
-  // http
-  val httpEnabled = config.getBoolean("http.enable")
-  val httpThreads = config.getInt("http.threads") max 1
-  val httpHostBlacklist = Array(config.getStringList("http.blacklist"): _*)
-  val httpHostWhitelist = Array(config.getStringList("http.whitelist"): _*)
-  val httpTimeout = (config.getInt("http.requestTimeout") max 0) * 1000
-
-  val tcpEnabled = true //config.getBoolean("internet.enableTcp")
-  val maxConnections = 4 // config.getInt("internet.maxConnections") max 0
+  // internet
+  val httpEnabled = config.getBoolean("internet.enableHttp")
+  val tcpEnabled = config.getBoolean("internet.enableTcp")
+  val httpHostBlacklist = Array(config.getStringList("internet.blacklist"): _*)
+  val httpHostWhitelist = Array(config.getStringList("internet.whitelist"): _*)
+  val httpThreads = config.getInt("internet.requestThreads") max 1
+  val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
+  val maxConnections = config.getInt("internet.maxTcpConnections") max 0
 
   // ----------------------------------------------------------------------- //
   // misc

@@ -1,4 +1,5 @@
 local fs = require("filesystem")
+local internet = require("internet")
 local shell = require("shell")
 
 local args, options = shell.parse(...)
