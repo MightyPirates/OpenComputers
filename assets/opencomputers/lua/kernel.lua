@@ -227,6 +227,7 @@ sandbox = {
     tmpname = nil, -- in boot/*_os.lua
   },
 
+  _OSVERSION = "OpenOS 1.1",
   checkArg = checkArg
 }
 sandbox._G = sandbox
