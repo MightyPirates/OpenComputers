@@ -58,7 +58,7 @@ end
 local sandbox
 sandbox = {
   assert = assert,
-  dofile = nil, -- in lib/base.lua
+  dofile = nil, -- in boot/*_base.lua
   error = error,
   _G = nil, -- see below
   getmetatable = function(t)
@@ -72,11 +72,11 @@ sandbox = {
     end
     return load(ld, source, mode, env or sandbox)
   end,
-  loadfile = nil, -- in lib/base.lua
+  loadfile = nil, -- in boot/*_base.lua
   next = next,
   pairs = pairs,
   pcall = pcall,
-  print = nil, -- in lib/base.lua
+  print = nil, -- in boot/*_base.lua
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,
@@ -219,12 +219,12 @@ sandbox = {
     difftime = function(t2, t1)
       return t2 - t1
     end,
-    execute = nil, -- in lib/os.lua
-    exit = nil, -- in lib/os.lua
-    remove = nil, -- in lib/os.lua
-    rename = nil, -- in lib/os.lua
+    execute = nil, -- in boot/*_os.lua
+    exit = nil, -- in boot/*_os.lua
+    remove = nil, -- in boot/*_os.lua
+    rename = nil, -- in boot/*_os.lua
     time = os.time,
-    tmpname = nil, -- in lib/os.lua
+    tmpname = nil, -- in boot/*_os.lua
   },
 
   checkArg = checkArg
