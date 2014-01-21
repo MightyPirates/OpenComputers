@@ -6,9 +6,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
-import li.cil.oc.server.component.machine.{NativeLuaArchitecture, ExecutionResult}
+import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture, ExecutionResult}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.ThreadPoolFactory
+import li.cil.oc.util.{LuaStateFactory, ThreadPoolFactory}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
@@ -33,7 +33,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
-  private val architecture = new NativeLuaArchitecture(this)
+  private val architecture =
+    if (LuaStateFactory.isAvailable) new NativeLuaArchitecture(this)
+    else new LuaJLuaArchitecture(this)
 
   private[component] val state = mutable.Stack(Machine.State.Stopped)
 
@@ -536,7 +538,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
 
       // Delay execution for a second to allow the world around us to settle.
-      pause(Settings.get.startupDelay)
+      if (state.top != Machine.State.Restarting) {
+        pause(Settings.get.startupDelay)
+      }
     }
     else close() // Clean up in case we got a weird state stack.
   }

@@ -448,7 +448,4 @@ end
 
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
-return xpcall(main, function(...)
-  print(...)
-  return ...
-end)
+return pcall(main)

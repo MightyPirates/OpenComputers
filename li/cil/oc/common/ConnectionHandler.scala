@@ -14,7 +14,7 @@ object ConnectionHandler extends IConnectionHandler {
       case p: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
           p.addChatMessage(
-            "§aOpenComputers§f: native Lua libraries are not available, computers will not be runnable.")
+            "§aOpenComputers§f: native Lua libraries are not available, computers will not be able to persist their state. They will reboot on chunk reloads.")
         }
         if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
           p.addChatMessage(

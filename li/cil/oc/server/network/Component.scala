@@ -199,6 +199,7 @@ object Component {
     def checkByteArray(index: Int) = {
       checkIndex(index, "string")
       args(index) match {
+        case value: java.lang.String => value.getBytes("UTF-8")
         case value: Array[Byte] => value
         case value => throw typeError(index, value, "string")
       }
@@ -242,6 +243,7 @@ object Component {
 
     def isByteArray(index: Int) =
       index >= 0 && index < count && (args(index) match {
+        case value: java.lang.String => true
         case value: Array[Byte] => true
         case _ => false
       })

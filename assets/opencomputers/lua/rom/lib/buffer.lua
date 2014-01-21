@@ -19,7 +19,7 @@ function buffer.new(mode, stream)
 end
 
 function buffer:close()
-  if string.find(self.mode, "w", 1, true) then
+  if string.find(self.mode, "w", 1, true) or string.find(self.mode, "a", 1, true) then
     self:flush()
   end
   return self.stream:close()
