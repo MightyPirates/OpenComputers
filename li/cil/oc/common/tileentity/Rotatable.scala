@@ -165,9 +165,8 @@ trait Rotatable extends RotationAware with Persistable {
   override def load(nbt: NBTTagCompound) = {
     super.load(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
-    if (_pitch == ForgeDirection.UNKNOWN) _pitch = ForgeDirection.NORTH
     _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
-    if (_yaw == ForgeDirection.UNKNOWN) _yaw = ForgeDirection.SOUTH
+    validatePitchAndYaw()
     updateTranslation()
   }
 
@@ -182,6 +181,7 @@ trait Rotatable extends RotationAware with Persistable {
     super.readFromNBTForClient(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
     _yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
+    validatePitchAndYaw()
     updateTranslation()
   }
 
@@ -189,6 +189,15 @@ trait Rotatable extends RotationAware with Persistable {
     super.writeToNBTForClient(nbt)
     nbt.setInteger("pitch", _pitch.ordinal)
     nbt.setInteger("yaw", _yaw.ordinal)
+  }
+
+  private def validatePitchAndYaw() {
+    if (!Set(ForgeDirection.UP, ForgeDirection.DOWN, ForgeDirection.NORTH).contains(_pitch)) {
+      _pitch = ForgeDirection.NORTH
+    }
+    if (!Set(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.EAST, ForgeDirection.WEST).contains(_yaw)) {
+      _yaw = ForgeDirection.SOUTH
+    }
   }
 
   // ----------------------------------------------------------------------- //
