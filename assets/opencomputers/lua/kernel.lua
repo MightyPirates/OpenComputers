@@ -411,12 +411,16 @@ local function main()
     end
 
     -- Run library startup scripts. These mostly initialize event handlers.
-    local init = {}
+    local scripts = {}
     for _, file in rom.inits() do
       local path = "boot/" .. file
       if not rom.isDirectory(path) then
-        dofile(path)
+        table.insert(scripts, path)
       end
+    end
+    table.sort(scripts)
+    for i = 1, #scripts do
+      dofile(scripts[i])
     end
 
     -- Step out of the fast lane, all the basic stuff should now be loaded.
