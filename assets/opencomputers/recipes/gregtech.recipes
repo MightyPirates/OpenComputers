@@ -261,7 +261,7 @@ powerDistributor {
           ["oc:craftingCircuitBoardPrinted", plateAluminium, craftingToolWrench]]
 }
 rack {
-  input: [[craftingToolScrewdriver, "oc:craftingRAMTier4", craftingToolWrench]
+  input: [[craftingToolScrewdriver, "oc:componentCardWLan", craftingToolWrench]
           ["ic2.reactorVentDiamond", chest, "ic2.reactorVentDiamond"]
           ["oc:craftingRouter", "oc:craftingCircuitBoardPrinted","oc:craftingPowerDistributor"]]
 }

@@ -1,3 +1,6 @@
+local fs = require("filesystem")
+local shell = require("shell")
+
 local args, options = shell.parse(...)
 if #args < 2 then
   print("Usage: mv [-f] <from> <to>")

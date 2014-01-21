@@ -34,6 +34,8 @@ object LuaStateFactory {
 
   private var _is64Bit = false
 
+  def isAvailable = haveNativeLibrary
+
   def is64Bit = _is64Bit
 
   // Since we use native libraries we have to do some work. This includes
@@ -147,6 +149,12 @@ object LuaStateFactory {
     })
 
     haveNativeLibrary = true
+  }
+
+  // Try creating a state once, to verify the libs are working.
+  createState() match {
+    case Some(state) => state.close()
+    case _ => haveNativeLibrary = false
   }
 
   // ----------------------------------------------------------------------- //
@@ -301,12 +309,6 @@ object LuaStateFactory {
     catch {
       case _: UnsatisfiedLinkError =>
         OpenComputers.log.severe("Failed loading the native libraries.")
-        if (isWindows) {
-          OpenComputers.log.severe(
-            "Please ensure you have the Visual C++ 2012 Runtime installed " +
-              "(when on 64 Bit, both the 32 bit and 64 bit version of the " +
-              "runtime).")
-        }
       case t: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Failed creating Lua state.", t)
     }

@@ -31,6 +31,7 @@ object Items {
   // Cards
   var abstractBus: item.AbstractBusCard = _
   var gpu1, gpu2, gpu3: item.GraphicsCard = _
+  var internet: item.InternetCard = _
   var lan: item.NetworkCard = _
   var rs: item.RedstoneCard = _
   var wlan: item.WirelessNetworkCard = _
@@ -128,6 +129,7 @@ object Items {
     terminal = new item.Terminal(multi)
     cpu1 = new item.CPU(multi, 1)
     cpu2 = new item.CPU(multi, 2)
+    internet = new item.InternetCard(multi)
 
     // ----------------------------------------------------------------------- //
 
@@ -150,6 +152,7 @@ object Items {
     register("oc:craftingCPUTier3", cpu2.createItemStack())
     register("oc:componentCardRedstone", rs.createItemStack())
     register("oc:componentCardLan", lan.createItemStack())
+    register("oc:componentCardWLan", wlan.createItemStack())
     register("oc:craftingGPUTier1", gpu1.createItemStack())
     register("oc:craftingGPUTier2", gpu2.createItemStack())
     register("oc:craftingGPUTier3", gpu3.createItemStack())

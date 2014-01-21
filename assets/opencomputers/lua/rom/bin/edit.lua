@@ -1,3 +1,12 @@
+local component = require("component")
+local event = require("event")
+local fs = require("filesystem")
+local keyboard = require("keyboard")
+local shell = require("shell")
+local term = require("term")
+local text = require("text")
+local unicode = require("unicode")
+
 if not term.isAvailable() then
   return
 end
@@ -290,8 +299,12 @@ local function onKeyDown(char, code)
     end
   elseif readonly and code == keyboard.keys.q then
     running = false
-  elseif not keyboard.isControl(char) and not readonly then
-    insert(unicode.char(char))
+  elseif not readonly then
+    if not keyboard.isControl(char) then
+      insert(unicode.char(char))
+    elseif unicode.char(char) == "\t" then
+      insert("  ")
+    end
   end
 end
 

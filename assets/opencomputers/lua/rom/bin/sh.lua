@@ -1,8 +1,15 @@
+local component = require("component")
+local computer = require("computer")
+local event = require("event")
+local shell = require("shell")
+local term = require("term")
+local text = require("text")
+
 local args, options = shell.parse(...)
 local history = {}
 
 if options.v then
-  print("OpenOS v1.0 (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
+  print(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
 end
 
 while true do
@@ -12,7 +19,7 @@ while true do
     end
     term.clear()
     if options.v then
-      print("OpenOS v1.0 (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
+      print(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
     end
   end
   while term.isAvailable() do

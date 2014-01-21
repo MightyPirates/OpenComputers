@@ -383,7 +383,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       case Machine.State.Stopping => this.synchronized(state.synchronized {
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
-        tmp.foreach(tmp => node.connect(tmp.node))
+        if (node.network != null) {
+          tmp.foreach(tmp => node.connect(tmp.node))
+        }
         node.sendToReachable("computer.stopped")
       })
       case _ =>

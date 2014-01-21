@@ -1,3 +1,7 @@
+local component = require("component")
+local computer = require("computer")
+local event = require("event")
+
 local removing = {}
 local primaries = {}
 
@@ -78,7 +82,5 @@ local function onComponentRemoved(_, address, componentType)
   end
 end
 
-return function()
-  event.listen("component_added", onComponentAdded)
-  event.listen("component_removed", onComponentRemoved)
-end
+event.listen("component_added", onComponentAdded)
+event.listen("component_removed", onComponentRemoved)

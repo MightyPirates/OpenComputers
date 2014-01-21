@@ -1,5 +1,7 @@
-local args, options = shell.parse(...)
+local fs = require("filesystem")
+local shell = require("shell")
 
+local args, options = shell.parse(...)
 if #args < 1 then
   print("Usage: label [-a] <fs> [<label>]")
   print(" -a  File system is specified via label or address instead of by path.")

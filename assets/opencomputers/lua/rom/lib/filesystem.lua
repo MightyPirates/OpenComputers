@@ -1,6 +1,9 @@
+local component = require("component")
+local unicode = require("unicode")
+
 local filesystem, fileStream = {}, {}
 local isAutorunEnabled = true
-local mtab = {children={}}
+local mtab = {children={}, links={}}
 
 local function segments(path)
   path = path:gsub("\\", "/")
@@ -28,19 +31,29 @@ local function segments(path)
   return parts
 end
 
-local function findNode(path, create)
+local function findNode(path, create, depth)
   checkArg(1, path, "string")
+  depth = depth or 0
+  if depth > 100 then
+    error("link cycle detected")
+  end
   local parts = segments(path)
   local node = mtab
-  for i = 1, #parts do
-    if not node.children[parts[i]] then
-      if create then
-        node.children[parts[i]] = {children={}, parent=node}
+  while #parts > 0 do
+    local part = parts[1]
+    if not node.children[part] then
+      if node.links[part] then
+        return findNode(filesystem.concat(node.links[part], table.concat(parts, "/", 2)), create, depth + 1)
       else
-        return node, table.concat(parts, "/", i)
+        if create then
+          node.children[part] = {children={}, links={}, parent=node}
+        else
+          return node, table.concat(parts, "/")
+        end
       end
     end
-    node = node.children[parts[i]]
+    node = node.children[part]
+    table.remove(parts, 1)
   end
   return node
 end
@@ -108,6 +121,24 @@ function filesystem.get(path)
   return nil, "no such file system"
 end
 
+function filesystem.isLink(path)
+  local node, rest = findNode(filesystem.path(path))
+  return not rest and node.links[filesystem.name(path)] ~= nil
+end
+
+function filesystem.link(target, linkpath)
+  checkArg(1, target, "string")
+  checkArg(2, linkpath, "string")
+
+  if filesystem.exists(linkpath) then
+    return nil, "file already exists"
+  end
+
+  local node = findNode(filesystem.path(linkpath), true)
+  node.links[filesystem.name(linkpath)] = target
+  return true
+end
+
 function filesystem.mount(fs, path)
   checkArg(1, fs, "string", "table")
   if type(fs) == "string" then
@@ -115,6 +146,10 @@ function filesystem.mount(fs, path)
   end
   assert(type(fs) == "table", "bad argument #1 (file system proxy or address expected)")
   checkArg(2, path, "string")
+
+  if path ~= "/" and filesystem.exists(path) then
+    return nil, "file already exists"
+  end
 
   local node = findNode(path, true)
   if node.fs then
@@ -214,7 +249,7 @@ end
 
 function filesystem.exists(path)
   local node, rest = findNode(path)
-  if not rest then -- virtual directory
+  if not rest or node.links[rest] then -- virtual directory or symbolic link
     return true
   end
   if node.fs then
@@ -263,8 +298,11 @@ function filesystem.list(path)
     result = {}
   end
   if not rest then
-    for k, _ in pairs(node.children) do
+    for k in pairs(node.children) do
       table.insert(result, k .. "/")
+    end
+    for k in pairs(node.links) do
+      table.insert(result, k)
     end
   end
   table.sort(result)
@@ -276,6 +314,9 @@ function filesystem.list(path)
 end
 
 function filesystem.makeDirectory(path)
+  if filesystem.exists(path) then
+    return nil, "file or directory with that name already exists"
+  end
   local node, rest = findNode(path)
   if node.fs and rest then
     return node.fs.makeDirectory(rest)
@@ -287,29 +328,49 @@ function filesystem.makeDirectory(path)
 end
 
 function filesystem.remove(path)
-  local node, rest = findNode(path)
-  if node.fs and rest then
-    return node.fs.remove(rest)
+  local node, rest = findNode(filesystem.path(path))
+  local name = filesystem.name(path)
+  if node.children[name] then
+    node.children[name] = nil
+    return true
+  elseif node.links[name] then
+    node.links[name] = nil
+    return true
+  else
+    node, rest = findNode(path)
+    if node.fs and rest then
+      return node.fs.remove(rest)
+    end
+    return nil, "no such file or directory"
   end
-  return nil, "no such non-virtual directory"
 end
 
 function filesystem.rename(oldPath, newPath)
-  local oldNode, oldRest = findNode(oldPath)
-  local newNode, newRest = findNode(newPath)
-  if oldNode.fs and oldRest and newNode.fs and newRest then
-    if oldNode.fs.address == newNode.fs.address then
-      return oldNode.fs.rename(oldRest, newRest)
-    else
-      local result, reason = filesystem.copy(oldPath, newPath)
-      if result then
-        return filesystem.remove(oldPath)
+  if filesystem.isLink(oldPath) then
+    local node, rest = findNode(filesystem.path(oldPath))
+    local target = node.links[filesystem.name(oldPath)]
+    local result, reason = filesystem.link(target, newPath)
+    if result then
+      filesystem.remove(oldPath)
+    end
+    return result, reason
+  else
+    local oldNode, oldRest = findNode(oldPath)
+    local newNode, newRest = findNode(newPath)
+    if oldNode.fs and oldRest and newNode.fs and newRest then
+      if oldNode.fs.address == newNode.fs.address then
+        return oldNode.fs.rename(oldRest, newRest)
       else
-        return nil, reason
+        local result, reason = filesystem.copy(oldPath, newPath)
+        if result then
+          return filesystem.remove(oldPath)
+        else
+          return nil, reason
+        end
       end
     end
+    return nil, "trying to read from or write to virtual directory"
   end
-  return nil, "trying to read from or write to virtual directory"
 end
 
 function filesystem.copy(fromPath, toPath)
@@ -344,8 +405,10 @@ function filesystem.copy(fromPath, toPath)
 end
 
 function fileStream:close()
-  self.fs.close(self.handle)
-  self.handle = nil
+  if self.handle then
+    self.fs.close(self.handle)
+    self.handle = nil
+  end
 end
 
 function fileStream:read(n)
@@ -398,7 +461,8 @@ function filesystem.open(path, mode)
     local function close()
       fs.close(handle)
     end
-    event.timer(0, close)
+    -- Required locally because this is a bootstrapped file.
+    require("event").timer(0, close)
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,
@@ -408,41 +472,4 @@ end
 
 -------------------------------------------------------------------------------
 
-local function onComponentAdded(_, address, componentType)
-  if componentType == "filesystem" then
-    local proxy = component.proxy(address)
-    if proxy then
-      local name = address:sub(1, 3)
-      while filesystem.exists(filesystem.concat("/mnt", name)) and
-            name:len() < address:len() -- just to be on the safe side
-      do
-        name = address:sub(1, name:len() + 1)
-      end
-      name = filesystem.concat("/mnt", name)
-      filesystem.mount(proxy, name)
-      if isAutorunEnabled then
-        local result, reason = shell.execute(filesystem.concat(name, "autorun"), _ENV, proxy)
-        if not result then
-          error (reason)
-        end
-      end
-    end
-  end
-end
-
-local function onComponentRemoved(_, address, componentType)
-  if componentType == "filesystem" then
-    if filesystem.get(shell.getWorkingDirectory()).address == address then
-      shell.setWorkingDirectory("/")
-    end
-    filesystem.umount(address)
-  end
-end
-
-_G.filesystem = filesystem
-_G.fs = filesystem
-
-return function()
-  event.listen("component_added", onComponentAdded)
-  event.listen("component_removed", onComponentRemoved)
-end
+return filesystem

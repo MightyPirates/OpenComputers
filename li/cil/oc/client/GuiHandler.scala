@@ -47,7 +47,7 @@ object GuiHandler extends CommonGuiHandler {
               }) match {
                 case Some(term) =>
                   // TODO check reachability
-                  def inRange = player.isEntityAlive && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range
+                  def inRange = player.isEntityAlive && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                   if (inRange) {
                     if (term.key.isDefined && term.key.get == key) return new gui.Screen(term.buffer, true, () => {
                       // Check if someone else bound a term to our server.

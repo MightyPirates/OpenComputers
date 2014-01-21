@@ -31,7 +31,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, powerIcon)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, powerIcon, canToggle = true)
     add(buttonList, powerButton)
   }
 

@@ -1,3 +1,9 @@
+local component = require("component")
+local keyboard = require("keyboard")
+local shell = require("shell")
+local term = require("term")
+local unicode = require("unicode")
+
 local args = shell.parse(...)
 if #args == 0 then
   print("Usage: less <filename1>")

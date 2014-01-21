@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.{Optional, Loader}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.ProjectRed
 import mods.immibis.redlogic.api.wiring.{IInsulatedRedstoneWire, IBundledUpdatable, IBundledEmitter}
 import mrtjp.projectred.api.{ProjectRedAPI, IBundledTile}
 import net.minecraft.block.Block
@@ -137,7 +138,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         case _ => null
       }
     } else null
-    val projectRed = if (Loader.isModLoaded("ProjRed|Transmission")) {
+    val projectRed = if (ProjectRed.isAvailable && ProjectRed.isAPIAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
     } else null
     (redLogic, projectRed) match {

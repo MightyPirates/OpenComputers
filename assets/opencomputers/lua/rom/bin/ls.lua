@@ -1,3 +1,7 @@
+local component = require("component")
+local fs = require("filesystem")
+local shell = require("shell")
+
 local dirs, options = shell.parse(...)
 if #dirs == 0 then
   table.insert(dirs, ".")
@@ -39,7 +43,9 @@ for i = 1, #dirs do
       end
     end
     for _, f in ipairs(lsf) do
-      if f:sub(-4) == ".lua" then
+      if fs.isLink(fs.concat(path, f)) then
+        setColor(0xFFAA00)
+      elseif f:sub(-4) == ".lua" then
         setColor(0x00FF00)
       else
         setColor(0xFFFFFF)

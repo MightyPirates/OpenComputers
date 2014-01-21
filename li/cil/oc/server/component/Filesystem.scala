@@ -102,38 +102,37 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         owners.get(context.address) match {
-          case Some(set) => if (set.remove(handle)) file.close()
-          case _ => // Not the owner of this handle.
+          case Some(set) if set.remove(handle) => file.close()
+          case _ => throw new IOException("bad file descriptor")
         }
-      case _ => throw new IllegalArgumentException("bad file descriptor")
+      case _ => throw new IOException("bad file descriptor")
     }
     null
   }
 
   @LuaCallback("open")
   def open(context: Context, args: Arguments): Array[AnyRef] = {
-    if (owners.get(context.address).fold(false)(_.size >= Settings.get.maxHandles))
+    if (owners.get(context.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
-    else {
-      val path = args.checkString(0)
-      val mode = if (args.count > 1) args.checkString(1) else "r"
-      val handle = fileSystem.open(clean(path), parseMode(mode))
-      if (handle > 0) {
-        owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
-      }
-      result(handle)
     }
+    val path = args.checkString(0)
+    val mode = if (args.count > 1) args.checkString(1) else "r"
+    val handle = fileSystem.open(clean(path), parseMode(mode))
+    if (handle > 0) {
+      owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
+    }
+    result(handle)
   }
 
   @LuaCallback("read")
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
-    val n = args.checkInteger(1)
+    val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     checkOwner(context.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         // Limit size of read buffer to avoid crazy allocations.
-        val buffer = new Array[Byte](math.min(n, Settings.get.maxReadBuffer))
+        val buffer = new Array[Byte](n)
         val read = file.read(buffer)
         if (read >= 0) {
           val bytes =
@@ -152,7 +151,7 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
         else {
           result(Unit)
         }
-      case _ => throw new IllegalArgumentException("bad file descriptor")
+      case _ => throw new IOException("bad file descriptor")
     }
   }
 
@@ -281,5 +280,5 @@ class FileSystem(val fileSystem: api.fs.FileSystem, var label: Label) extends Ma
 
   private def checkOwner(owner: String, handle: Int) =
     if (!owners.contains(owner) || !owners(owner).contains(handle))
-      throw new IllegalArgumentException("bad file descriptor")
+      throw new IOException("bad file descriptor")
 }

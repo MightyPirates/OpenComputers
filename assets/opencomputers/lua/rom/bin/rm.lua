@@ -1,3 +1,5 @@
+local shell = require("shell")
+
 local args = shell.parse(...)
 if #args == 0 then
   print("Usage: rm <filename1> [<filename2> [...]]")

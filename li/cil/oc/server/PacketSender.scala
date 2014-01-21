@@ -302,6 +302,16 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendServerState(t: Rack) {
+    val pb = new PacketBuilder(PacketType.ComputerState)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(-1)
+    pb.writeInt(t.range)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendServerState(t: Rack, number: Int) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 

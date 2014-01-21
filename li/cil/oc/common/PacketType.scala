@@ -34,5 +34,6 @@ object PacketType extends Enumeration {
   Clipboard,
   MouseClickOrDrag,
   MouseScroll,
-  ServerSide = Value
+  ServerSide,
+  ServerRange = Value
 }

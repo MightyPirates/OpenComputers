@@ -1,6 +1,7 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
+import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc._
 import li.cil.oc.server.component.Keyboard
@@ -31,6 +32,7 @@ class Proxy {
     api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
+    api.Driver.add(driver.item.InternetCard)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Processor)
@@ -51,7 +53,8 @@ class Proxy {
     driver.Registry.locked = true
 
     GameRegistry.registerPlayerTracker(Keyboard)
-    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+    NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
     MinecraftForge.EVENT_BUS.register(Network)
+    MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }
 }

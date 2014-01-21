@@ -1,5 +1,10 @@
+local component = require("component")
+local event = require("event")
+local keyboard = require("keyboard")
+local text = require("text")
+local unicode = require("unicode")
+
 local term = {}
-local gpuAvailable, screenAvailable = false, false
 local cursorX, cursorY = 1, 1
 local cursorBlink = nil
 
@@ -71,7 +76,7 @@ function term.setCursorBlink(enabled)
 end
 
 function term.isAvailable()
-  return gpuAvailable and screenAvailable
+  return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
 function term.read(history)
@@ -367,33 +372,4 @@ end
 
 -------------------------------------------------------------------------------
 
-local function onComponentAvailable(_, componentType)
-  local wasAvailable = term.isAvailable()
-  if componentType == "gpu" then
-    gpuAvailable = true
-  elseif componentType == "screen" then
-    screenAvailable = true
-  end
-  if not wasAvailable and term.isAvailable() then
-    computer.pushSignal("term_available")
-  end
-end
-
-local function onComponentUnavailable(_, componentType)
-  local wasAvailable = term.isAvailable()
-  if componentType == "gpu" then
-    gpuAvailable = false
-  elseif componentType == "screen" then
-    screenAvailable = false
-  end
-  if wasAvailable and not term.isAvailable() then
-    computer.pushSignal("term_unavailable")
-  end
-end
-
-_G.term = term
-
-return function()
-  event.listen("component_available", onComponentAvailable)
-  event.listen("component_unavailable", onComponentUnavailable)
-end
+return term

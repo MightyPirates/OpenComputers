@@ -1,3 +1,6 @@
+local fs = require("filesystem")
+local shell = require("shell")
+
 local args, options = shell.parse(...)
 
 local mounts = {}

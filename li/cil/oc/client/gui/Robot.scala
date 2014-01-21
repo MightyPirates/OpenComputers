@@ -64,7 +64,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, powerIcon)
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, powerIcon, canToggle = true)
     add(buttonList, powerButton)
   }
 

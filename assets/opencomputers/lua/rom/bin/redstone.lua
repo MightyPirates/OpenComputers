@@ -1,4 +1,10 @@
+local colors = require("colors")
+local component = require("component")
+local shell = require("shell")
+local sides = require("sides")
+
 local rs = component.redstone
+
 local args, options = shell.parse(...)
 if #args < 1 then
   if rs.setBundledOutput then

@@ -14,6 +14,7 @@ end
 function text.padRight(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
+  local unicode = require("unicode")
   if not value or unicode.len(value) == 0 then
     return string.rep(" ", length)
   else
@@ -24,6 +25,7 @@ end
 function text.padLeft(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
+  local unicode = require("unicode")
   if not value or unicode.len(value) == 0 then
     return string.rep(" ", length)
   else
@@ -112,4 +114,6 @@ function text.unserialize(data)
   return output
 end
 
-_G.text = text
+-------------------------------------------------------------------------------
+
+return text

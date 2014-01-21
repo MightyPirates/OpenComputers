@@ -1,3 +1,7 @@
+local event = require("event")
+local fs = require("filesystem")
+local unicode = require("unicode")
+
 local shell = {}
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
@@ -69,6 +73,7 @@ end
 function shell.setWorkingDirectory(dir)
   checkArg(1, dir, "string")
   dir = fs.canonical(dir) .. "/"
+  if dir == "//" then dir = "/" end
   if fs.isDirectory(dir) then
     cwd = dir
     return true
@@ -166,4 +171,4 @@ end
 
 -------------------------------------------------------------------------------
 
-_G.shell = shell
+return shell

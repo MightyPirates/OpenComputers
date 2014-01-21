@@ -114,6 +114,15 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendServerRange(t: Rack, range: Int) {
+    val pb = new PacketBuilder(PacketType.ServerRange)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(range)
+
+    pb.sendToServer()
+  }
+
   def sendServerSide(t: Rack, number: Int, side: ForgeDirection) {
     val pb = new PacketBuilder(PacketType.ServerSide)
 

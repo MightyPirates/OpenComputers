@@ -1,3 +1,9 @@
+local computer = require("computer")
+local event = require("event")
+local fs = require("filesystem")
+local shell = require("shell")
+local unicode = require("unicode")
+
 os.execute = function(command)
   if not command then
     return type(shell) == "table"
