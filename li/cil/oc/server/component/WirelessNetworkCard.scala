@@ -15,7 +15,7 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     withConnector().
     create()
 
-  var strength = 0.0
+  var strength = Settings.get.maxWirelessRange
 
   // ----------------------------------------------------------------------- //
 
@@ -95,7 +95,9 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
+    if (nbt.hasKey("strength")) {
+      strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
+    }
   }
 
   override def save(nbt: NBTTagCompound) {

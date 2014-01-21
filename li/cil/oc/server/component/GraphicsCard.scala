@@ -145,7 +145,14 @@ abstract class GraphicsCard extends ManagedComponent {
   def get(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
-    screen(s => result(s.get(x, y)))
+    screen(s => {
+      val char = s.get(x, y)
+      val color = s.color(y)(x)
+      val depth = s.depth
+      val foreground = PackedColor.unpackForeground(color, depth)
+      val background = PackedColor.unpackBackground(color, depth)
+      result(char, foreground, background)
+    })
   }
 
   def set(context: Context, args: Arguments): Array[AnyRef] = {
