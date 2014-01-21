@@ -24,6 +24,8 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
 
   private var doneWithInitRun = false
 
+  private var memory = 0
+
   // ----------------------------------------------------------------------- //
 
   private def node = machine.node
@@ -34,7 +36,7 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
 
   def isInitialized = doneWithInitRun
 
-  def recomputeMemory() {}
+  def recomputeMemory() = memory = machine.owner.installedMemory
 
   // ----------------------------------------------------------------------- //
 
@@ -59,15 +61,6 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
             val result = thread.resume(LuaValue.NONE)
             // We expect to get nothing here, if we do we had an error.
             if (result.narg == 1) {
-              // Run the garbage collector to get rid of stuff left behind after
-              // the initialization phase to get a good estimate of the base
-              // memory usage the kernel has (including libraries). We remember
-              // that size to grant user-space programs a fixed base amount of
-              // memory, regardless of the memory need of the underlying system
-              // (which may change across releases).
-              // TODO             kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
-              recomputeMemory()
-
               // Fake zero sleep to avoid stopping if there are no signals.
               LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
             }
@@ -121,7 +114,6 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
           new ExecutionResult.Shutdown(false)
         }
         else {
-          // TODO          lua.setTotalMemory(Int.MaxValue)
           val error = results.tojstring(3)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
@@ -253,13 +245,9 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
     // Are we a robot? (No this is not a CAPTCHA.)
     computer.set("isRobot", (_: Varargs) => LuaValue.valueOf(machine.isRobot))
 
-    computer.set("freeMemory", (_: Varargs) =>
-    // This is *very* unlikely, but still: avoid this getting larger than
-    // what we report as the total memory.
-      LuaValue.valueOf(32 * 1024)) // ((lua.getFreeMemory min (lua.getTotalMemory - kernelMemory)) / ramScale).toInt
+    computer.set("freeMemory", (_: Varargs) => LuaValue.valueOf(memory / 2))
 
-    // Allow the system to read how much memory it uses and has available.
-    computer.set("totalMemory", (_: Varargs) => LuaValue.valueOf(64 * 1024)) // ((lua.getTotalMemory - kernelMemory) / ramScale).toInt
+    computer.set("totalMemory", (_: Varargs) => LuaValue.valueOf(memory))
 
     computer.set("pushSignal", (args: Varargs) => LuaValue.valueOf(machine.signal(args.checkjstring(1), toSimpleJavaObjects(args, 2): _*)))
 
@@ -378,6 +366,8 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
     })
 
     lua.set("component", component)
+
+    recomputeMemory()
 
     val kernel = lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "kernel.lua"), "=kernel", "t", lua)
     thread = new LuaThread(lua, kernel) // Left as the first value on the stack.
