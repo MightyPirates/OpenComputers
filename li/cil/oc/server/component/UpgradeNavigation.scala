@@ -1,19 +1,18 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.util.RotationHelper
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import li.cil.oc.api.{Rotatable, Network}
+import net.minecraft.tileentity.TileEntity
 
-class UpgradeNavigation(val owner: MCTileEntity, val xCenter: Int, val zCenter: Int, val size: Int) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+class UpgradeNavigation(val owner: TileEntity, val xCenter: Int, val zCenter: Int, val size: Int) extends ManagedComponent {
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("navigation", Visibility.Neighbors).
     create()
 
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("getPosition")
-  def getPosition(context: RobotContext, args: Arguments): Array[AnyRef] = {
+  def getPosition(context: Context, args: Arguments): Array[AnyRef] = {
     val x = owner.xCoord
     val y = owner.yCoord
     val z = owner.zCoord
@@ -27,12 +26,15 @@ class UpgradeNavigation(val owner: MCTileEntity, val xCenter: Int, val zCenter: 
   }
 
   @LuaCallback("getFacing")
-  def getFacing(context: RobotContext, args: Arguments): Array[AnyRef] = {
-    result(RotationHelper.fromYaw(context.player().rotationYaw).ordinal())
+  def getFacing(context: Context, args: Arguments): Array[AnyRef] = {
+    owner match {
+      case rotatable: Rotatable => result(rotatable.facing.ordinal)
+      case _ => throw new Exception("illegal state")
+    }
   }
 
   @LuaCallback("getRange")
-  def getRange(context: RobotContext, args: Arguments): Array[AnyRef] = {
+  def getRange(context: Context, args: Arguments): Array[AnyRef] = {
     result(size / 2)
   }
 }

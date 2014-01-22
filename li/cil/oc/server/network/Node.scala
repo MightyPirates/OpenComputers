@@ -1,13 +1,13 @@
 package li.cil.oc.server.network
 
 import li.cil.oc.api
+import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
-import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-trait Node extends api.network.Node with Persistable {
+trait Node extends api.network.Node {
   val host: Environment
   val reachability: Visibility
 
@@ -65,15 +65,13 @@ trait Node extends api.network.Node with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  def load(nbt: NBTTagCompound) = {
     if (nbt.hasKey("address")) {
       address = nbt.getString("address")
     }
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  def save(nbt: NBTTagCompound) = {
     if (address != null) {
       nbt.setString("address", address)
     }

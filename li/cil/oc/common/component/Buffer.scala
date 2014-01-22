@@ -3,12 +3,12 @@ package li.cil.oc.common.component
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{Persistable, PackedColor, TextBuffer}
+import li.cil.oc.util.{PackedColor, TextBuffer}
 import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class Buffer(val owner: Buffer.Owner) extends api.network.Environment with Persistable {
+class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -113,12 +113,12 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment with Persi
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
+  def load(nbt: NBTTagCompound) = {
     node.load(nbt.getCompoundTag("node"))
     buffer.load(nbt.getCompoundTag("buffer"))
   }
 
-  override def save(nbt: NBTTagCompound) = {
+  def save(nbt: NBTTagCompound) = {
     // Happy thread synchronization hack! Here's the problem: GPUs allow direct
     // calls for modifying screens to give a more responsive experience. This
     // causes the following problem: when saving, if the screen is saved first,
@@ -142,6 +142,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment with Persi
 }
 
 object Buffer {
+
   import li.cil.oc.client.gui
 
   trait Owner {

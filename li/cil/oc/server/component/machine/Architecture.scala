@@ -1,7 +1,7 @@
 package li.cil.oc.server.component.machine
 
-import li.cil.oc.server.component.Machine
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.component.machine.Machine
 
 /**
  * This trait abstracts away any language specific details for the Machine.

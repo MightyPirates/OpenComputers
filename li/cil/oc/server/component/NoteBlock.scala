@@ -1,12 +1,12 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
 import net.minecraft.block.material.Material
 import net.minecraft.tileentity.TileEntityNote
 
 class NoteBlock(entity: TileEntityNote) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("note_block").
     create()
 

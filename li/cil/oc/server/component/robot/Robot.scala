@@ -1,9 +1,9 @@
-package li.cil.oc.server.component
+package li.cil.oc.server.component.robot
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{RobotContext, LuaCallback, Arguments, Context}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.robot.{Player, ActivationType}
+import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}

@@ -4,12 +4,11 @@ import li.cil.oc.Settings
 import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.math.ScalaNumber
 
-abstract class Environment extends TileEntity with network.Environment with Persistable {
+abstract class Environment extends TileEntity with network.Environment {
   protected var addedToNetwork = false
 
   // ----------------------------------------------------------------------- //
@@ -48,7 +47,6 @@ abstract class Environment extends TileEntity with network.Environment with Pers
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    load(nbt)
     if (node != null && node.host == this) {
       node.load(nbt.getCompoundTag(Settings.namespace + "node"))
     }
@@ -56,7 +54,6 @@ abstract class Environment extends TileEntity with network.Environment with Pers
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    save(nbt)
     if (node != null && node.host == this) {
       nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
     }

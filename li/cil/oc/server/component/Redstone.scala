@@ -1,12 +1,12 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.RedstoneAware
 import net.minecraftforge.common.ForgeDirection
 
 class Redstone(val owner: RedstoneAware) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("redstone", Visibility.Neighbors).
     create()
 

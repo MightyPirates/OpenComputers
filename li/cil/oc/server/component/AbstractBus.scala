@@ -1,15 +1,16 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Arguments, Context, LuaCallback, Visibility}
-import li.cil.oc.common.tileentity
-import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+import scala.Some
 import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
-import stargatetech2.api.bus.{BusPacketLIP, BusPacket, IBusDriver, IBusInterface}
+import stargatetech2.api.bus._
 
-class AbstractBus(val owner: tileentity.Computer) extends ManagedComponent with IBusDriver {
-  val node = api.Network.newNode(this, Visibility.Neighbors).
+class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent with IBusDriver {
+  val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
     withConnector().
     create()

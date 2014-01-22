@@ -1,13 +1,14 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.{Settings, api}
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraft.world.biome.BiomeGenDesert
 
-class UpgradeSolarGenerator(val owner: MCTileEntity) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+class UpgradeSolarGenerator(val owner: TileEntity) extends ManagedComponent {
+  val node = Network.newNode(this, Visibility.Network).
     withConnector().
     create()
 

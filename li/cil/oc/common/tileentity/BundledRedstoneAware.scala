@@ -84,8 +84,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     super.updateRedstoneInput()
   }
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
 
     nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
       case (input, side) if side < _bundledInput.length =>
@@ -105,8 +105,8 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     }
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
 
     nbt.setNewTagList(Settings.namespace + "rs.bundledInput", _bundledInput.view)
     nbt.setNewTagList(Settings.namespace + "rs.bundledOutput", _bundledOutput.view)

@@ -3,10 +3,9 @@ package li.cil.oc.server.network
 import li.cil.oc.Settings
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
-import li.cil.oc.util.Persistable
 import net.minecraft.nbt.NBTTagCompound
 
-trait Connector extends Node with network.Connector with Persistable {
+trait Connector extends Node with network.Connector {
   var localBufferSize: Double
 
   var localBuffer = 0.0

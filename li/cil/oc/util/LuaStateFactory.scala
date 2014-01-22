@@ -7,13 +7,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
 import java.util.logging.Level
-import li.cil.oc.server.component.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
 import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
+import li.cil.oc.server.component.machine.Machine
 
 /**
  * Factory singleton used to spawn new LuaState instances.

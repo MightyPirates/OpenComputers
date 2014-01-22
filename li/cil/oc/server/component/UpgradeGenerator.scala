@@ -1,8 +1,9 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -10,7 +11,7 @@ import net.minecraft.tileentity.{TileEntity => MCTileEntity, TileEntityFurnace}
 import scala.Some
 
 class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
     create()

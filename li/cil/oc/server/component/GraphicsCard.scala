@@ -1,15 +1,16 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.PackedColor
-import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 
 abstract class GraphicsCard extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Neighbors).
+  val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
     create()

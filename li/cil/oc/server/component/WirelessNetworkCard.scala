@@ -1,16 +1,17 @@
 package li.cil.oc.server.component
 
 import java.io._
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.WirelessNetwork
-import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
-  override val node = api.Network.newNode(this, Visibility.Network).
+  override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().
     create()

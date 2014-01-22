@@ -1,14 +1,26 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.common.inventory
-import li.cil.oc.util.Persistable
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
+import net.minecraft.nbt.NBTTagCompound
 
-trait Inventory extends TileEntity with inventory.Inventory with Persistable {
+trait Inventory extends TileEntity with inventory.Inventory {
   lazy val items = Array.fill[Option[ItemStack]](getSizeInventory)(None)
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    load(nbt)
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    save(nbt)
+  }
 
   // ----------------------------------------------------------------------- //
 

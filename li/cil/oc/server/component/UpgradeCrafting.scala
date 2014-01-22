@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.api
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{Container, InventoryCrafting}
@@ -13,7 +13,7 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import scala.collection.mutable
 
 class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()
 

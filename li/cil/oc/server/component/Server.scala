@@ -10,6 +10,7 @@ import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.server.component.machine.Machine
 
 class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
   val machine = new Machine(this)

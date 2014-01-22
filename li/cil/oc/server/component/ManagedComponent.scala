@@ -10,11 +10,11 @@ abstract class ManagedComponent extends ManagedEnvironment {
 
   def update() {}
 
-  def onMessage(message: Message) {}
+  def onConnect(node: Node) {}
 
   def onDisconnect(node: Node) {}
 
-  def onConnect(node: Node) {}
+  def onMessage(message: Message) {}
 
   def load(nbt: NBTTagCompound) = {
     if (node != null) node.load(nbt.getCompoundTag("node"))

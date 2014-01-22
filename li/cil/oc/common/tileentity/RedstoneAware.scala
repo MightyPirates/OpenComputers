@@ -3,9 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.{Loader, Optional}
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
-import li.cil.oc.api.network
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.Persistable
 import mods.immibis.redlogic.api.wiring._
 import net.minecraft.block.Block
 import net.minecraft.nbt.NBTTagCompound
@@ -16,7 +14,7 @@ import net.minecraftforge.common.ForgeDirection
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneEmitter", modid = "RedLogic"),
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
-trait RedstoneAware extends RotationAware with network.Environment with Persistable with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
+trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
   protected val _input = Array.fill(6)(-1)
 
   protected val _output = Array.fill(6)(0)
@@ -73,8 +71,8 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
 
     val input = nbt.getIntArray(Settings.namespace + "rs.input")
     input.copyToArray(_input, 0, input.length min _input.length)
@@ -82,8 +80,8 @@ trait RedstoneAware extends RotationAware with network.Environment with Persista
     output.copyToArray(_output, 0, output.length min _output.length)
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
 
     nbt.setIntArray(Settings.namespace + "rs.input", _input)
     nbt.setIntArray(Settings.namespace + "rs.output", _output)

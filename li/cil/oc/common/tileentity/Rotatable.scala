@@ -2,15 +2,15 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.Persistable
 import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
-trait Rotatable extends RotationAware with Persistable {
+trait Rotatable extends RotationAware with api.Rotatable {
   // ----------------------------------------------------------------------- //
   // Lookup tables
   // ----------------------------------------------------------------------- //
@@ -162,16 +162,16 @@ trait Rotatable extends RotationAware with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
     _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
     _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
     validatePitchAndYaw()
     updateTranslation()
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
     nbt.setInteger(Settings.namespace + "pitch", _pitch.ordinal)
     nbt.setInteger(Settings.namespace + "yaw", _yaw.ordinal)
   }

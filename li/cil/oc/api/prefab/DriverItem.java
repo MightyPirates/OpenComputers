@@ -47,6 +47,11 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
     }
 
     @Override
+    public int tier(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
     public NBTTagCompound dataTag(ItemStack stack) {
         if (!stack.hasTagCompound()) {
             stack.setTagCompound(new NBTTagCompound("tag"));

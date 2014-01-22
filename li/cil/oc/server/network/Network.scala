@@ -452,7 +452,7 @@ object Network extends api.detail.NetworkAPI {
 
     def withComponent(name: String) = withComponent(name, _reachability)
 
-    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Connector {
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new Connector {
       val host = _host
       val reachability = _reachability
       var localBufferSize = _bufferSize
@@ -461,7 +461,7 @@ object Network extends api.detail.NetworkAPI {
   }
 
   class ComponentConnectorBuilder(val _host: Environment, val _reachability: Visibility, val _name: String, val _visibility: Visibility, val _bufferSize: Double) extends api.detail.Builder.ComponentConnectorBuilder {
-    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new MutableNode with Component with Connector with api.network.ComponentConnector {
+    def create() = if (FMLCommonHandler.instance.getEffectiveSide == Side.SERVER) new ComponentConnector {
       val host = _host
       val reachability = _reachability
       val name = _name

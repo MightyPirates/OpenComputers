@@ -1,14 +1,15 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.{NBTTagInt, NBTTagCompound}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class NetworkCard extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     create()
 

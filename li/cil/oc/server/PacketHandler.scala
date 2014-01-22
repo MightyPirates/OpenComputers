@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
 import scala.Some
 import li.cil.oc.Settings
+import li.cil.oc.server.component.machine.Machine
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -42,7 +43,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  private def trySetComputerPower(computer: component.Machine, value: Boolean, player: EntityPlayer) {
+  private def trySetComputerPower(computer: Machine, value: Boolean, player: EntityPlayer) {
     if (computer.canInteract(player.getCommandSenderName)) {
       if (value) {
         if (!computer.isPaused) {

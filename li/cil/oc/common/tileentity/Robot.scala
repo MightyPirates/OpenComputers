@@ -5,7 +5,7 @@ import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
-import li.cil.oc.server.component.robot.Player
+import li.cil.oc.server.component.robot
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
@@ -56,7 +56,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override val _buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
-  override val _computer = if (isRemote) null else new component.Robot(this)
+  override val _computer = if (isRemote) null else new robot.Robot(this)
   val (gpu, keyboard) = if (isServer) {
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
@@ -98,7 +98,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var turnAxis = 0
 
-  private lazy val player_ = new Player(this)
+  private lazy val player_ = new robot.Player(this)
 
   def addXp(value: Double) {
     if (level < 30 && isServer) {

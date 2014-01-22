@@ -11,7 +11,7 @@ import net.minecraft.nbt._
  * relatively fast updates, given a smart algorithm (using copy()/fill()
  * instead of set()ing everything).
  */
-class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Depth.Value) extends Persistable {
+class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Depth.Value) {
   def this(size: (Int, Int), depth: PackedColor.Depth.Value) = this(size._1, size._2, depth)
 
   private var _depth = initialDepth
@@ -165,7 +165,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     changed
   }
 
-  override def load(nbt: NBTTagCompound): Unit = {
+  def load(nbt: NBTTagCompound): Unit = {
     val w = nbt.getInteger("width") max 1 min Settings.screenResolutionsByTier(2)._1
     val h = nbt.getInteger("height") max 1 min Settings.screenResolutionsByTier(2)._2
     size = (w, h)
@@ -197,7 +197,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     }
   }
 
-  override def save(nbt: NBTTagCompound): Unit = {
+  def save(nbt: NBTTagCompound): Unit = {
     nbt.setInteger("width", width)
     nbt.setInteger("height", height)
 

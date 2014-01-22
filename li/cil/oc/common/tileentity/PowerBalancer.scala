@@ -4,7 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.api.network.{Connector, SidedEnvironment}
 import net.minecraftforge.common.ForgeDirection
 
-trait PowerBalancer extends TileEntity with SidedEnvironment with PowerInformation {
+trait PowerBalancer extends PowerInformation with SidedEnvironment {
   var globalBuffer, globalBufferSize = 0.0
 
   override def updateEntity() {

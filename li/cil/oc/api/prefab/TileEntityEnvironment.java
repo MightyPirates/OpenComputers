@@ -18,14 +18,9 @@ import net.minecraft.tileentity.TileEntity;
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class TileEntityEnvironment extends TileEntity implements Environment {
-    // See constructor.
-    protected Node node;
-
-    // See updateEntity().
-    protected boolean addedToNetwork = false;
-
     /**
-     * This expects a node that is used to represent this tile entity.
+     * This must be set in subclasses to the node that is used to represent
+     * this tile entity.
      * <p/>
      * You must only create new nodes using the factory method in the network
      * API, {@link li.cil.oc.api.Network#newNode(Environment, Visibility)}.
@@ -36,7 +31,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
      * // usually be this tile entity. The second one is it's reachability,
      * // which determines how other nodes in the same network can query this
      * // node. See {@link li.cil.oc.api.network.Network#nodes(li.cil.oc.api.network.Node)}.
-     * super(Network.newNode(this, Visibility.Network)
+     * node = Network.newNode(this, Visibility.Network)
      *       // This call allows the node to consume energy from the
      *       // component network it is in and act as a consumer, or to
      *       // inject energy into that network and act as a producer.
@@ -55,12 +50,13 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
      *       // If you do not need Lua callbacks remove this call.
      *       .withComponent("example", Visibility.Neighbors)
      *       // Finalizes the construction of the node and returns it.
-     *       .create());
+     *       .create();
      * </pre>
      */
-    protected TileEntityEnvironment(Node node) {
-        this.node = node;
-    }
+    protected Node node;
+
+    // See updateEntity().
+    protected boolean addedToNetwork = false;
 
     // ----------------------------------------------------------------------- //
 

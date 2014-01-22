@@ -2,12 +2,11 @@ package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.Persistable
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
-trait Inventory extends IInventory with Persistable {
+trait Inventory extends IInventory {
   def items: Array[Option[ItemStack]]
 
   // ----------------------------------------------------------------------- //
@@ -59,9 +58,7 @@ trait Inventory extends IInventory with Persistable {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-
+  def load(nbt: NBTTagCompound) {
     nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
@@ -70,9 +67,7 @@ trait Inventory extends IInventory with Persistable {
     })
   }
 
-  override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-
+  def save(nbt: NBTTagCompound) {
     nbt.setNewTagList(Settings.namespace + "items",
       items.zipWithIndex collect {
         case (Some(stack), slot) => (stack, slot)

@@ -1,7 +1,7 @@
 package li.cil.oc.server.component.robot
 
 import li.cil.oc.Settings
-import li.cil.oc.common.tileentity.Robot
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.{IndustrialCraft2, PortalGun}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
@@ -19,7 +19,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true

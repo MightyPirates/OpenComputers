@@ -3,7 +3,6 @@ package li.cil.oc.server.component.machine
 import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import li.cil.oc.server.component.Machine
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, server, Settings}
@@ -11,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import li.cil.oc.server.component.machine.Machine
 
 class NativeLuaArchitecture(val machine: Machine) extends Architecture {
   private var lua: LuaState = null

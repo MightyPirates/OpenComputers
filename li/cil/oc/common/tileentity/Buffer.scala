@@ -26,13 +26,13 @@ trait Buffer extends Environment with component.Buffer.Owner {
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
-    super.load(nbt)
+  override def readFromNBT(nbt: NBTTagCompound) = {
+    super.readFromNBT(nbt)
     buffer.load(nbt)
   }
 
-  override def save(nbt: NBTTagCompound) = {
-    super.save(nbt)
+  override def writeToNBT(nbt: NBTTagCompound) = {
+    super.writeToNBT(nbt)
     buffer.save(nbt)
   }
 

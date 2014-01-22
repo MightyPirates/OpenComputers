@@ -1,11 +1,12 @@
-package li.cil.oc.server.component
+package li.cil.oc.server.component.machine
 
 import java.util.logging.Level
-import li.cil.oc.api
 import li.cil.oc.api.network._
+import li.cil.oc.api.{FileSystem, Network}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture, ExecutionResult}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{LuaStateFactory, ThreadPoolFactory}
@@ -20,16 +21,16 @@ import scala.Some
 import scala.collection.mutable
 
 class Machine(val owner: Machine.Owner) extends ManagedComponent with Context with Runnable {
-  val node = api.Network.newNode(this, Visibility.Network).
+  val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
     create()
 
-  val rom = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+  val rom = Option(FileSystem.asManagedEnvironment(FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"), "rom"))
 
   val tmp = if (Settings.get.tmpSize > 0) {
-    Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    Option(FileSystem.asManagedEnvironment(FileSystem.
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
