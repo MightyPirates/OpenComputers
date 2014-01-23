@@ -309,7 +309,7 @@ object Recipes {
   private def tryGetId(ingredient: java.util.Map[AnyRef, AnyRef]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {
       case id: Number => id.intValue
-      case "any" => 32767
+      case "any" => OreDictionary.WILDCARD_VALUE
       case id: String => Integer.valueOf(id)
       case _ => 0
     } else 0

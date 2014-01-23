@@ -2,6 +2,7 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
+import li.cil.oc.util.ItemCosts
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
@@ -9,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack, Item}
 import net.minecraft.util.Icon
 import net.minecraft.world.World
+import org.lwjgl.input
 import scala.collection.mutable
 
 class Delegator(id: Int) extends Item(id) {
@@ -110,6 +112,9 @@ class Delegator(id: Int) extends Item(id) {
     subItem(stack) match {
       case Some(subItem) => subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
       case _ => // Nothing to add.
+    }
+    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMETA)) {
+      ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
   }
 

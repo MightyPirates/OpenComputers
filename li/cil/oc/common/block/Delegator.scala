@@ -6,6 +6,7 @@ import java.util
 import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.ItemCosts
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -18,6 +19,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import org.lwjgl.input
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
 
@@ -311,6 +313,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
       case _ =>
+    }
+    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMETA)) {
+      ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
   }
 
