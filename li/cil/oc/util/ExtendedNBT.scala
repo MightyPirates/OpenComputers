@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import net.minecraft.nbt._
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 object ExtendedNBT {
 
@@ -78,13 +79,13 @@ object ExtendedNBT {
 
     def append(values: NBTBase*): Unit = append(values)
 
-    def iterator[Tag <: NBTBase] = (0 until nbt.tagCount).map(nbt.tagAt).collect {
+    def iterator[Tag <: NBTBase : ClassTag] = (0 until nbt.tagCount).map(nbt.tagAt).collect {
       case tag: Tag => tag
     }
 
-    def foreach[Tag <: NBTBase](f: (Tag) => Unit) = iterator[Tag].foreach(f)
+    def foreach[Tag <: NBTBase : ClassTag](f: (Tag) => Unit) = iterator[Tag].foreach(f)
 
-    def map[Tag <: NBTBase, Value](f: (Tag) => Value) = iterator[Tag].map(f)
+    def map[Tag <: NBTBase : ClassTag, Value](f: (Tag) => Value) = iterator[Tag].map(f)
   }
 
 }

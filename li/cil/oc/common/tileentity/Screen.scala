@@ -16,9 +16,11 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
+import scala.language.postfixOps
 
 class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with RedstoneAware with Analyzable with Ordered[Screen] {
   def this() = this(0)
+
   _isOutputEnabled = true
 
   // ----------------------------------------------------------------------- //

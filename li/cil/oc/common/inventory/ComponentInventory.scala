@@ -30,39 +30,33 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  abstract override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node == this.node) {
-      for ((stack, slot) <- items.zipWithIndex collect {
-        case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
-      } if components(slot).isEmpty && isComponentSlot(slot)) {
-        components(slot) = Registry.itemDriverFor(stack) match {
-          case Some(driver) =>
-            Option(driver.createEnvironment(stack, componentContainer)) match {
-              case Some(component) =>
-                component.load(dataTag(driver, stack))
-                if (component.canUpdate) {
-                  assert(!updatingComponents.contains(component))
-                  updatingComponents += component
-                }
-                Some(component)
-              case _ => None
-            }
-          case _ => None
-        }
+  def connectComponents() {
+    for ((stack, slot) <- items.zipWithIndex collect {
+      case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
+    } if components(slot).isEmpty && isComponentSlot(slot)) {
+      components(slot) = Registry.itemDriverFor(stack) match {
+        case Some(driver) =>
+          Option(driver.createEnvironment(stack, componentContainer)) match {
+            case Some(component) =>
+              component.load(dataTag(driver, stack))
+              if (component.canUpdate) {
+                assert(!updatingComponents.contains(component))
+                updatingComponents += component
+              }
+              Some(component)
+            case _ => None
+          }
+        case _ => None
       }
-      components collect {
-        case Some(component) => connectItemNode(component.node)
-      }
+    }
+    components collect {
+      case Some(component) => connectItemNode(component.node)
     }
   }
 
-  abstract override def onDisconnect(node: Node) {
-    super.onDisconnect(node)
-    if (node == this.node) {
-      components collect {
-        case Some(component) => component.node.remove()
-      }
+  def disconnectComponents() {
+    components collect {
+      case Some(component) => component.node.remove()
     }
   }
 

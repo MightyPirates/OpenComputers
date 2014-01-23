@@ -7,7 +7,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.ManagedComponent
-import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture, ExecutionResult}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{LuaStateFactory, ThreadPoolFactory}
 import li.cil.oc.{OpenComputers, Settings}
@@ -184,7 +183,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           case arg: java.lang.Double => arg
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
-          case arg: Map[String, String] => arg
+          case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
           case arg =>
             OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             Unit
@@ -584,11 +583,11 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
             case (arg: Double, i) => args.setDouble("arg" + i, arg)
             case (arg: String, i) => args.setString("arg" + i, arg)
             case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
-            case (arg: Map[String, String], i) =>
+            case (arg: Map[_, _], i) =>
               val list = new NBTTagList()
               for ((key, value) <- arg) {
-                list.append(key)
-                list.append(value)
+                list.append(key.toString)
+                list.append(value.toString)
               }
               args.setTag("arg" + i, list)
             case (_, i) => args.setByte("arg" + i, -1)

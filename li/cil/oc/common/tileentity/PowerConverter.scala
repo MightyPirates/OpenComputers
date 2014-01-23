@@ -199,10 +199,13 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
   def receiveElectricity(from: ForgeDirection, receive: ElectricityPack, doReceive: Boolean) = {
     if (receive != null) {
       if (doReceive) {
-        node.changeBuffer(receive.getWatts * Settings.get.ratioUniversalElectricity)
+        val energy = receive.getWatts * Settings.get.ratioUniversalElectricity
+        val surplus = node.changeBuffer(energy).toFloat
+        receive.getWatts - surplus / Settings.get.ratioUniversalElectricity
       }
-      receive.getWatts
-    } else 0
+      else receive.getWatts
+    }
+    else 0
   }
 
   def getProvide(direction: ForgeDirection) = 0f

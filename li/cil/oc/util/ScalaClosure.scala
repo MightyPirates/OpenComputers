@@ -5,6 +5,7 @@ import org.luaj.vm2.lib.VarArgFunction
 import org.luaj.vm2.{LuaValue, Varargs}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.language.implicitConversions
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
 

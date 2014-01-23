@@ -26,8 +26,6 @@ abstract class GuiHandler extends IGuiHandler {
 
             override def isUseableByPlayer(player: EntityPlayer) = player == player
           })
-        case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
-          null // TODO
         case _ => null
       }
     }

@@ -10,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import li.cil.oc.server.component.machine.Machine
 
 class NativeLuaArchitecture(val machine: Machine) extends Architecture {
   private var lua: LuaState = null

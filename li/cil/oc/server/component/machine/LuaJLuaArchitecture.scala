@@ -1,8 +1,8 @@
 package li.cil.oc.server.component.machine
 
+import Machine.State
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import Machine.State
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
 import li.cil.oc.{OpenComputers, server, Settings}
@@ -11,7 +11,6 @@ import org.luaj.vm2._
 import org.luaj.vm2.lib.jse.JsePlatform
 import scala.Some
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.server.component.machine.Machine
 
 class LuaJLuaArchitecture(machine: Machine) extends Architecture {
   private var lua: Globals = _

@@ -1,34 +1,20 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api
 import li.cil.oc.api.driver
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.server.component.machine.Machine
 
 class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
   val machine = new Machine(this)
 
-  val inventory = new NetworkedInventory with ComponentInventory {
-    var containerOverride: ItemStack = _
-
-    def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
-
-    def node() = machine.node
-
-    def onMessage(message: Message) {}
-
-    def componentContainer = rack
-
-    // Resolves conflict between ComponentInventory and ServerInventory.
-    override def getInventoryStackLimit = 1
-  }
+  val inventory = new NetworkedInventory()
 
   // ----------------------------------------------------------------------- //
 
@@ -71,10 +57,31 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
   }
 
   // Required due to abstract overrides in component inventory.
-  trait NetworkedInventory extends ServerInventory with api.network.Environment {
-    def onConnect(node: Node) {}
+  class NetworkedInventory extends ServerInventory with ComponentInventory {
+    def onConnect(node: Node) {
+      if (node == this.node) {
+        connectComponents()
+      }
+    }
 
-    def onDisconnect(node: Node) {}
+    def onDisconnect(node: Node) {
+      if (node == this.node) {
+        disconnectComponents()
+      }
+    }
+
+    var containerOverride: ItemStack = _
+
+    def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
+
+    def node() = machine.node
+
+    def onMessage(message: Message) {}
+
+    def componentContainer = rack
+
+    // Resolves conflict between ComponentInventory and ServerInventory.
+    override def getInventoryStackLimit = 1
   }
 
 }

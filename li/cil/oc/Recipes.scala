@@ -165,7 +165,7 @@ object Recipes {
 
   private def addShapedRecipe(output: ItemStack, recipe: Config) {
     val rows = recipe.getList("input").unwrapped().map {
-      case row: java.util.List[Object] => row.map(parseIngredient)
+      case row: java.util.List[AnyRef]@unchecked => row.map(parseIngredient)
       case other => throw new RecipeException("Invalid row entry for shaped recipe (not a list: " + other + ").")
     }
     output.stackSize = tryGetCount(recipe)
@@ -192,7 +192,7 @@ object Recipes {
 
   private def addShapelessRecipe(output: ItemStack, recipe: Config) {
     val input = recipe.getValue("input").unwrapped() match {
-      case list: java.util.List[Object] => list.map(parseIngredient)
+      case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
       case other => Seq(parseIngredient(other))
     }
     output.stackSize = tryGetCount(recipe)
@@ -204,7 +204,7 @@ object Recipes {
 
   private def addAssemblyRecipe(output: ItemStack, recipe: Config) {
     val input = (recipe.getValue("input").unwrapped() match {
-      case list: java.util.List[Object] => list.map(parseIngredient)
+      case list: java.util.List[AnyRef]@unchecked => list.map(parseIngredient)
       case other => Seq(parseIngredient(other))
     }) map {
       case stack: ItemStack => stack
@@ -250,7 +250,7 @@ object Recipes {
   }
 
   private def parseIngredient(entry: AnyRef) = entry match {
-    case map: java.util.HashMap[String, _] =>
+    case map: java.util.Map[AnyRef, AnyRef]@unchecked =>
       if (map.contains("oreDict")) {
         map.get("oreDict") match {
           case value: String => value
@@ -305,7 +305,7 @@ object Recipes {
 
   private def tryGetCount(recipe: Config) = if (recipe.hasPath("output")) recipe.getInt("output") else 1
 
-  private def tryGetId(ingredient: java.util.HashMap[String, _]): Int =
+  private def tryGetId(ingredient: java.util.Map[AnyRef, AnyRef]): Int =
     if (ingredient.contains("subID")) ingredient.get("subID") match {
       case id: Number => id.intValue
       case "any" => 32767

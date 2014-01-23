@@ -238,16 +238,6 @@ object LuaStateFactory {
         // Provide some better Unicode support.
         state.newTable()
 
-        // TODO find (probably not necessary?)
-
-        // TODO format (probably not necessary?)
-
-        // TODO gmatch (probably not necessary?)
-
-        // TODO gsub (probably not necessary?)
-
-        // TODO match (probably not necessary?)
-
         state.pushScalaFunction(lua => {
           lua.pushString(lua.checkString(1).toLowerCase)
           1
