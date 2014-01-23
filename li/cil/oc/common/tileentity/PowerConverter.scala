@@ -73,7 +73,8 @@ class PowerConverter extends Environment with Analyzable with IEnergySink with I
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")) {
+    // The null check is for Waila... doesn't crash, but logs stupid errors.
+    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power") && getPowerProvider != null) {
       nbt.setNewCompoundTag(Settings.namespace + "bc", getPowerProvider.writeToNBT)
     }
   }
