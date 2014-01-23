@@ -501,7 +501,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override def getInventoryStackLimit = 64
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
-    if ((1 to 2 contains slot) && stack != null && stack.stackSize > 1) {
+    if ((1 until actualSlot(0) contains slot) && stack != null && stack.stackSize > 1) {
       super.setInventorySlotContents(slot, stack.splitStack(1))
       if (stack.stackSize > 0 && isServer) {
         val p = player()
@@ -541,7 +541,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     toLocal(ForgeDirection.getOrientation(side)) match {
       case ForgeDirection.WEST => Array(0)
       case ForgeDirection.EAST => Array(1)
-      case ForgeDirection.NORTH => Array(2)
-      case _ => (actualSlot(3) until getSizeInventory).toArray
+      case ForgeDirection.NORTH => Array(2, 3)
+      case _ => (actualSlot(0) until getSizeInventory).toArray
     }
 }

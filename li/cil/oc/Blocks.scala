@@ -102,6 +102,7 @@ object Blocks {
     register("oc:craftingCaseTier2", case2.createItemStack())
     register("oc:craftingCaseTier3", case3.createItemStack())
     register("oc:craftingDiskDrive", diskDrive.createItemStack())
+    register("oc:craftingKeyboard", keyboard.createItemStack())
     register("oc:craftingPowerDistributor", powerDistributor.createItemStack())
     register("oc:craftingRouter", router.createItemStack())
     register("oc:craftingScreenTier1", screen1.createItemStack())

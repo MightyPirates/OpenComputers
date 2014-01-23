@@ -6,6 +6,11 @@ analyzer {
           ["oc:craftingTransistor", "oc:circuitTier1", nuggetGold]
           ["oc:craftingTransistor", "oc:craftingCircuitBoardPrinted", nuggetGold]]
 }
+terminal {
+  input: [[nuggetIron, "oc:craftingSolarGenerator", nuggetIron]
+          ["oc:circuitTier3", "oc:craftingScreenTier2", "oc:componentCardWLan"]
+          [nuggetIron, "oc:craftingKeyboard", nuggetIron]]
+}
 
 server {
   input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
@@ -71,6 +76,10 @@ graphicsCard3 {
   input: [["oc:circuitTier3", "oc:circuitTier3", "oc:craftingRAMTier4"]
           ["", "oc:craftingGPUTier2", ""]]
 }
+internetCard {
+  input: [[web, "oc:circuitTier3", torchRedstoneActive]
+          ["", "oc:componentCardWLan", obsidian]]
+}
 redstoneCard {
   input: [[torchRedstoneActive, "oc:circuitTier1", ""]
           ["", "oc:craftingCard", ""]]
@@ -112,7 +121,7 @@ solarGeneratorUpgrade {
 nuggetIron {
   type: shapeless
   input: ingotIron
-  count: 9
+  output: 9
 }
 cuttingWire {
   input: [[stickWood, nuggetIron, stickWood]]

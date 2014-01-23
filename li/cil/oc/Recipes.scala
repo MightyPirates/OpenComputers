@@ -52,7 +52,7 @@ object Recipes {
       // Try to keep this in the same order as the fields in the Items class
       // to make it easier to match them and check if anything is missing.
       addRecipe(Items.analyzer.createItemStack(), recipes, "analyzer")
-      //addRecipe(Items.analyzer.createItemStack(), recipes, "terminal")
+      addRecipe(Items.terminal.createItemStack(), recipes, "terminal")
 
       addRecipe(Items.ram1.createItemStack(), recipes, "ram1")
       addRecipe(Items.ram2.createItemStack(), recipes, "ram2")
@@ -73,6 +73,7 @@ object Recipes {
       addRecipe(Items.gpu1.createItemStack(), recipes, "graphicsCard1")
       addRecipe(Items.gpu2.createItemStack(), recipes, "graphicsCard2")
       addRecipe(Items.gpu3.createItemStack(), recipes, "graphicsCard3")
+      addRecipe(Items.internet.createItemStack(), recipes, "internetCard")
       addRecipe(Items.lan.createItemStack(), recipes, "lanCard")
       addRecipe(Items.rs.createItemStack(), recipes, "redstoneCard")
       addRecipe(Items.wlan.createItemStack(), recipes, "wlanCard")
@@ -83,7 +84,7 @@ object Recipes {
       addRecipe(Items.upgradeSign.createItemStack(), recipes, "signUpgrade")
       addRecipe(Items.upgradeSolarGenerator.createItemStack(), recipes, "solarGeneratorUpgrade")
 
-      if (OreDictionary.getOres("nuggetIron").contains(Items.ironNugget.createItemStack())) {
+      if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
         addRecipe(Items.ironNugget.createItemStack(), recipes, "nuggetIron")
       }
       addRecipe(Items.cuttingWire.createItemStack(), recipes, "cuttingWire")

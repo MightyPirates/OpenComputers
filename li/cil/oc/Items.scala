@@ -170,6 +170,7 @@ object Items {
     register("oc:craftingDisk", disk.createItemStack())
     register("oc:craftingAcid", acid.createItemStack())
     register("oc:craftingGenerator", upgradeGenerator.createItemStack())
+    register("oc:craftingSolarGenerator", upgradeSolarGenerator.createItemStack())
   }
 
   def register(name: String, item: ItemStack) {
