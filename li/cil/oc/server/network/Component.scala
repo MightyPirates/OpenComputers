@@ -3,8 +3,8 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Method, InvocationTargetException}
-import li.cil.oc.api
-import li.cil.oc.api.network._
+import li.cil.oc.api.network
+import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
@@ -12,7 +12,7 @@ import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
 
-trait Component extends Node with api.network.Component {
+trait Component extends network.Component with Node {
   val name: String
 
   def visibility = _visibility
@@ -50,18 +50,18 @@ trait Component extends Node with api.network.Component {
     }
   }
 
-  def canBeSeenFrom(other: api.network.Node) = visibility match {
+  def canBeSeenFrom(other: ImmutableNode) = visibility match {
     case Visibility.None => false
     case Visibility.Network => canBeReachedFrom(other)
     case Visibility.Neighbors => isNeighborOf(other)
   }
 
-  private def addTo(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
+  private def addTo(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.host match {
     case machine: Machine => machine.addComponent(this)
     case _ =>
   })
 
-  private def removeFrom(nodes: Iterable[api.network.Node]) = nodes.foreach(_.host match {
+  private def removeFrom(nodes: Iterable[ImmutableNode]) = nodes.foreach(_.host match {
     case machine: Machine => machine.removeComponent(this)
     case _ =>
   })

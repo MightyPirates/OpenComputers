@@ -1,13 +1,12 @@
 package li.cil.oc.server.network
 
 import li.cil.oc.api
-import li.cil.oc.api.Persistable
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
-trait Node extends api.network.Node {
+trait Node extends ImmutableNode {
   val host: Environment
   val reachability: Visibility
 
@@ -39,18 +38,6 @@ trait Node extends api.network.Node {
 
   def remove() = if (network != null) network.remove(this)
 
-  def sendToAddress(target: String, name: String, data: AnyRef*) =
-    if (network != null) network.sendToAddress(this, target, name, data: _*)
-
-  def sendToNeighbors(name: String, data: AnyRef*) =
-    if (network != null) network.sendToNeighbors(this, name, data: _*)
-
-  def sendToReachable(name: String, data: AnyRef*) =
-    if (network != null) network.sendToReachable(this, name, data: _*)
-
-  def sendToVisible(name: String, data: AnyRef*) =
-    if (network != null) network.sendToVisible(this, name, data: _*)
-
   private def isInSameNetwork(other: ImmutableNode) = network != null && network == other.network
 
   // ----------------------------------------------------------------------- //
@@ -76,4 +63,21 @@ trait Node extends api.network.Node {
       nbt.setString("address", address)
     }
   }
+}
+
+// We have to mixin the vararg methods individually in the actual
+// implementations of the different node variants (see Network class) because
+// for some reason it fails compiling on Linux otherwise (no clue why).
+trait NodeVarargPart extends ImmutableNode {
+  def sendToAddress(target: String, name: String, data: AnyRef*) =
+    if (network != null) network.sendToAddress(this, target, name, data: _*)
+
+  def sendToNeighbors(name: String, data: AnyRef*) =
+    if (network != null) network.sendToNeighbors(this, name, data: _*)
+
+  def sendToReachable(name: String, data: AnyRef*) =
+    if (network != null) network.sendToReachable(this, name, data: _*)
+
+  def sendToVisible(name: String, data: AnyRef*) =
+    if (network != null) network.sendToVisible(this, name, data: _*)
 }

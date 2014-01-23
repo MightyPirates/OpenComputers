@@ -5,7 +5,7 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode}
 import net.minecraft.nbt.NBTTagCompound
 
-trait Connector extends Node with network.Connector {
+trait Connector extends network.Connector with Node {
   var localBufferSize: Double
 
   var localBuffer = 0.0
