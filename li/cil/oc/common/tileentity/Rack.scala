@@ -189,13 +189,15 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
-    nbt.setNewTagList(Settings.namespace + "servers", servers map {
-      case Some(server) =>
-        val serverNbt = new NBTTagCompound()
-        server.save(serverNbt)
-        serverNbt
-      case _ => new NBTTagCompound()
-    })
+    if (!new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))) {
+      nbt.setNewTagList(Settings.namespace + "servers", servers map {
+        case Some(server) =>
+          val serverNbt = new NBTTagCompound()
+          server.save(serverNbt)
+          serverNbt
+        case _ => new NBTTagCompound()
+      })
+    }
     super.writeToNBT(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {

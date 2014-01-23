@@ -131,7 +131,9 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
+    if (!new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))) {
+      nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
+    }
   }
 
   @SideOnly(Side.CLIENT)
