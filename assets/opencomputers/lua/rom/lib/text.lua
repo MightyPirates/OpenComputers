@@ -40,7 +40,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function text.serialize(value)
+function text.serialize(value,safe)
   local kw =  {["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true,
                ["elseif"]=true, ["end"]=true, ["false"]=true, ["for"]=true,
                ["function"]=true, ["goto"]=true, ["if"]=true, ["in"]=true,
@@ -69,7 +69,11 @@ function text.serialize(value)
       return string.format("%q", v)
     elseif t == "table" then
       if ts[v] then
-        error("tables with cycles are not supported")
+        if safe then
+          r = r .. "recursive"
+        else
+          error("tables with cycles are not supported")
+        end
       end
       ts[v] = true
       local i, r = 1, nil
@@ -92,10 +96,14 @@ function text.serialize(value)
           r = r .. "=" .. s(v)
         end
       end
-      ts[v] = false -- allow writing same table more than once
+      ts[v] = nil -- allow writing same table more than once
       return (r or "{") .. "}"
     else
-      error("unsupported type: " .. t)
+      if safe then
+        r = r .. t
+      else
+        error("unsupported type: " .. t)
+      end
     end
   end
   return s(value)
