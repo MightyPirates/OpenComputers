@@ -23,7 +23,7 @@ local function call(callback, ...)
     pcall(event.onError, message)
     return
   end
-  return result
+  return message
 end
 
 local function dispatch(signal, ...)

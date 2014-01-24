@@ -47,7 +47,7 @@ function text.serialize(value,safe)
                ["local"]=true, ["nil"]=true, ["not"]=true, ["or"]=true,
                ["repeat"]=true, ["return"]=true, ["then"]=true, ["true"]=true,
                ["until"]=true, ["while"]=true}
-  local id = "^[%a_]([%w_]*)$"
+  local id = "^[%a_][%w_]*$"
   local ts = {}
   local function s(v)
     local t = type(v)
