@@ -1,6 +1,7 @@
 local component = require("component")
 local package = require("package")
 local term = require("term")
+local text = require("text")
 
 local history = {}
 local env = setmetatable({}, {__index = function(t, k)
@@ -28,10 +29,10 @@ while term.isAvailable() do
     if not result[1] then
       print(result[2])
     else
-      for i=1,result.n do
-        result[i]=text.serialize(result[i], true)
+      for i = 1, result.n do
+        result[i] = text.serialize(result[i], true)
       end
-      print(table.unpack(result,2,result.n))
+      print(table.unpack(result, 2, result.n))
     end
   else
     print(result)
