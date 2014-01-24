@@ -47,7 +47,7 @@ function text.serialize(value)
                ["local"]=true, ["nil"]=true, ["not"]=true, ["or "]=true,
                ["repeat"]=true, ["return"]=true, ["then"]=true, ["true"]=true,
                ["until"]=true, ["while"]=true}
-  local id = "[%a_][%w_]*"
+  local id = "^[%a_][%w_]*$"
   local ts = {}
   local function s(v)
     local t = type(v)
@@ -84,7 +84,7 @@ function text.serialize(value)
           i = i + 1
           r = r .. s(v)
         else
-          if tk == "string" and not kw[tk] and string.match(id, k) then
+          if tk == "string" and not kw[k] and string.match(k, id) then
             r = r .. k
           else
             r = r .. "[" .. s(k) .. "]"
