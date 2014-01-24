@@ -21,7 +21,9 @@ local function call(callback, ...)
   local result, message = pcall(callback, ...)
   if not result and type(event.onError) == "function" then
     pcall(event.onError, message)
+    return
   end
+  return message
 end
 
 local function dispatch(signal, ...)
@@ -34,7 +36,9 @@ local function dispatch(signal, ...)
       return list
     end
     for _, callback in ipairs(callbacks()) do
-      call(callback, signal, ...)
+      if call(callback, signal, ...) == false then
+        event.ignore(signal, callback) -- alternative method of removing a listener
+      end
     end
   end
 end
@@ -136,7 +140,6 @@ function event.pull(...)
   local deadline = seconds and
                    (computer.uptime() + seconds) or
                    (hasFilter and math.huge or 0)
-
   repeat
     local closest = seconds and deadline or math.huge
     for _, timer in pairs(timers) do
