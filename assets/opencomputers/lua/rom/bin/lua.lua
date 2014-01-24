@@ -29,7 +29,7 @@ while term.isAvailable() do
       print(result[2])
     else
       for i=1,result.n do
-        result[i]=serialize(result[i], true)
+        result[i]=text.serialize(result[i], true)
       end
       print(table.unpack(result,2,result.n))
     end
