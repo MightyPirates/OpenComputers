@@ -34,6 +34,6 @@ while term.isAvailable() do
       print(table.unpack(result,2,result.n))
     end
   else
-    print(text.serialize(result, true))
+    print(result)
   end
 end
