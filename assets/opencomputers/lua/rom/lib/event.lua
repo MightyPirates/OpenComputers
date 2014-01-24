@@ -138,8 +138,8 @@ function event.pull(...)
   end
 
   local deadline = seconds and
-    (computer.uptime() + seconds) or
-    (hasFilter and math.huge or 0)
+                   (computer.uptime() + seconds) or
+                   (hasFilter and math.huge or 0)
   repeat
     local closest = seconds and deadline or math.huge
     for _, timer in pairs(timers) do
@@ -162,9 +162,9 @@ end
 
 function event.shouldInterrupt()
   return computer.uptime() - lastInterrupt > 1 and
-    keyboard.isControlDown() and
-    keyboard.isAltDown() and
-    keyboard.isKeyDown(keyboard.keys.c)
+         keyboard.isControlDown() and
+         keyboard.isAltDown() and
+         keyboard.isKeyDown(keyboard.keys.c)
 end
 
 function event.timer(interval, callback, times)
