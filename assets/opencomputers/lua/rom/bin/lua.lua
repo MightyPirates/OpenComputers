@@ -25,8 +25,13 @@ while term.isAvailable() do
   local code = expression or statement
   if code then
     local result = table.pack(pcall(code))
-    if not result[1] or result.n > 1 then
-      print(table.unpack(result, 2, result.n))
+    if not result[1] then
+      print(result[2])
+    else
+      for i=1,result.n do
+        result[i]=text.serialize(result[i], true)
+      end
+      print(table.unpack(result,2,result.n))
     end
   else
     print(result)
