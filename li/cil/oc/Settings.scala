@@ -1,6 +1,7 @@
 package li.cil.oc
 
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
+import cpw.mods.fml.common.Loader
 import java.io._
 import li.cil.oc.util.PackedColor
 import scala.collection.convert.WrapAsScala._
@@ -90,12 +91,8 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // power
 
-  val ignorePower = config.getBoolean("power.ignorePower")
+  val ignorePower = config.getBoolean("power.ignorePower") || !Loader.isModLoaded("UniversalElectricity")
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
-  val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
-  val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
-  val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
-  val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")

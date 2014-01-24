@@ -33,7 +33,7 @@ class UpgradeSolarGenerator(val owner: TileEntity) extends ManagedComponent {
       isSunShining = isSunVisible(world, x, y + 1, z)
     }
     if (isSunShining) {
-      node.changeBuffer(Settings.get.ratioBuildCraft * Settings.get.solarGeneratorEfficiency)
+      node.changeBuffer(Settings.get.solarGeneratorEfficiency)
     }
   }
 

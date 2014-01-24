@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import universalelectricity.api.CompatibilityType
 
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerConverter"
@@ -24,23 +25,28 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    def addRatio(name: String, ratio: Float) {
+    def addExtension(x: Double) =
+      if (x >= 10e9)  formatter.format(x / 10e9) + "G"
+      else if (x >= 10e6) formatter.format(x / 10e6) + "M"
+      else if (x >= 10e3) formatter.format(x / 10e3) + "K"
+      else formatter.format(x)
+    def addRatio(name: String, ratio: Double) {
       val (a, b) =
-        if (ratio > 1) (1f, ratio)
-        else (1f / ratio, 1f)
-      tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, formatter.format(a), formatter.format(b)))
+        if (ratio > 1) (1.0, ratio)
+        else (1.0 / ratio, 1.0)
+      tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
-    if (Loader.isModLoaded("BuildCraft|Energy")) {
-      addRatio("BC", Settings.get.ratioBuildCraft)
+    if (CompatibilityType.BUILDCRAFT.isLoaded) {
+      addRatio("BC", 1)
     }
-    if (Loader.isModLoaded("IC2")) {
-      addRatio("IC2", Settings.get.ratioIndustrialCraft2)
+    if (CompatibilityType.INDUSTRIALCRAFT.isLoaded) {
+      addRatio("IC2", CompatibilityType.INDUSTRIALCRAFT.reciprocal_ratio / CompatibilityType.BUILDCRAFT.reciprocal_ratio)
     }
-    if (Loader.isModLoaded("ThermalExpansion")) {
-      addRatio("TE", Settings.get.ratioThermalExpansion)
+    if (CompatibilityType.THERMAL_EXPANSION.isLoaded) {
+      addRatio("TE", CompatibilityType.THERMAL_EXPANSION.reciprocal_ratio / CompatibilityType.BUILDCRAFT.reciprocal_ratio)
     }
-    {
-      addRatio("UE", Settings.get.ratioUniversalElectricity)
+    if (Loader.isModLoaded("UniversalElectricity")) {
+      addRatio("UE", CompatibilityType.BUILDCRAFT.ratio)
     }
   }
 
