@@ -106,7 +106,11 @@ function text.serialize(value,safe)
       end
     end
   end
-  return s(value)
+  local out = value
+  if safe and #out>1000 then
+    out = out:sub(1,1000) .. "..."
+  end
+  return out
 end
 
 function text.unserialize(data)
