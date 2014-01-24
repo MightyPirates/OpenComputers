@@ -314,7 +314,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
       case _ =>
     }
-    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMETA)) {
+    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
   }

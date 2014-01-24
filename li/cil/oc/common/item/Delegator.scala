@@ -113,7 +113,7 @@ class Delegator(id: Int) extends Item(id) {
       case Some(subItem) => subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
       case _ => // Nothing to add.
     }
-    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMETA)) {
+    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
   }
