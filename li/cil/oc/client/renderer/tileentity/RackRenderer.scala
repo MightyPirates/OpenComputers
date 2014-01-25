@@ -1,17 +1,15 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object RackRenderer extends TileEntitySpecialRenderer {
-  private val frontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/rack_front_on.png")
 
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val rack = tileEntity.asInstanceOf[Rack]
@@ -35,12 +33,12 @@ object RackRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
       GL11.glScalef(1, -1, 1)
 
-      bindTexture(frontOn)
+      bindTexture(TexturePreloader.blockRackFrontOn)
 
       val v1 = 2 / 16f
       val fs = 3 / 16f
       for (i <- 0 until 4 if rack.isRunning(i)) {
-        val l = v1 +i * fs
+        val l = v1 + i * fs
         val h = v1 + (i + 1) * fs
         val t = Tessellator.instance
         t.startDrawingQuads()

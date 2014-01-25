@@ -128,7 +128,7 @@ cuttingWire {
 }
 acid {
   type: shapeless
-  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone, {item=dyePowder, subID=1}]
+  input: [bucketWater, sugar, slimeball, fermentedSpiderEye, bone]
 }
 disk {
   input: [["", nuggetIron, ""]
@@ -152,13 +152,13 @@ numPad {
 
 transistor {
   input: [[nuggetIron, nuggetIron, nuggetIron]
-          [nuggetGold, redstone, nuggetGold]
-          ["", torchRedstoneActive, ""]]
+          [nuggetGold, paper, nuggetGold]
+          ["", redstone, ""]]
 }
 chip1 {
-  input: [[nuggetIron, fenceIron, nuggetIron]
-          [redstone, "oc:craftingTransistor", redstone]
-          [nuggetIron, fenceIron, nuggetIron]]
+  input: [[nuggetIron, "", nuggetIron]
+          ["oc:craftingTransistor", nuggetGold, "oc:craftingTransistor"]
+          [nuggetIron, "", nuggetIron]]
 }
 chip2 {
   input: [[nuggetGold, {item=dyePowder, subID=4} , nuggetGold]
@@ -176,19 +176,19 @@ alu {
           [nuggetIron, redstone, nuggetIron]]
 }
 cpu0 {
-  input: [["oc:circuitTier1", redstone, "oc:circuitTier1"]
-          [fenceIron, "oc:craftingCU", fenceIron]
-          ["oc:circuitTier1", "oc:craftingALU", "oc:circuitTier1"]]
+  input: [[nuggetIron, redstone, nuggetIron]
+          ["oc:circuitTier1", "oc:craftingCU", "oc:circuitTier1"]
+          [nuggetIron, "oc:craftingALU", nuggetIron]]
 }
 cpu1 {
-  input: [["oc:circuitTier2", "oc:craftingRAMTier2", "oc:circuitTier2"]
-          ["oc:craftingRAMTier2", "oc:craftingCPUTier1", "oc:craftingRAMTier2"]
-          ["oc:circuitTier2", "oc:craftingRAMTier2", "oc:circuitTier2"]]
+  input: [[nuggetGold, "oc:craftingRAMTier2", nuggetGold]
+          ["oc:circuitTier2", "oc:craftingCPUTier1", "oc:circuitTier2"]
+          [nuggetGold, "oc:craftingRAMTier2", nuggetGold]]
 }
 cpu2 {
-  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
-          ["oc:craftingRAMTier4", "oc:craftingCPUTier2", "oc:craftingRAMTier4"]
-          ["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]]
+  input: [[diamond, "oc:craftingRAMTier4", diamond]
+          ["oc:circuitTier3", "oc:craftingCPUTier2", "oc:circuitTier3"]
+          [diamond, "oc:craftingRAMTier4", diamond]]
 }
 cu {
   input: [[nuggetGold, torchRedstoneActive, nuggetGold]

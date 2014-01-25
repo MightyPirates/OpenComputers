@@ -1,19 +1,16 @@
 package li.cil.oc.client.renderer.gui
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.util.{RenderState, PackedColor}
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
-import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object BufferRenderer {
   val margin = 7
 
   val innerMargin = 1
-
-  private val borders = new ResourceLocation(Settings.resourceDomain, "textures/gui/borders.png")
 
   private var textureManager: Option[TextureManager] = None
 
@@ -32,7 +29,7 @@ object BufferRenderer {
 
       GL11.glNewList(displayLists, GL11.GL_COMPILE)
 
-      textureManager.get.bindTexture(borders)
+      textureManager.get.bindTexture(TexturePreloader.guiBorders)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(

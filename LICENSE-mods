@@ -2,10 +2,7 @@ OpenComputers uses APIs from a couple of other mods.
 
 To support accepting energy from their respective power systems:
 - BuildCraft [1], license: Minecraft Mod Public License, see homepage.
-- IndustrialCraft² [2], license none provided with the API, so I assume
-  the API is public domain.
 - Universal Electricity [3], license: Lesser General Public License [4].
-- Thermal Expansion [5], license: Lesser General Public License [4].
 
 To support bundled redstone input and output:
 - RedLogic [6], license: MIT License, see thread.
@@ -16,10 +13,8 @@ For providing a peripheral and reading their floppy disks:
 - ComputerCraft [8], copyright Daniel Ratcliffe.
 
 [1] http://www.mod-buildcraft.com/
-[2] http://forum.industrial-craft.net/
 [3] http://universalelectricity.com/
 [4] http://www.gnu.org/copyleft/lesser.html
-[5] http://teamcofh.com/
 [6] http://www.minecraftforum.net/topic/1852277-162-redlogic-wip-replacement-for-rp2-wiringlogiccontrollighting/
 [7] http://www.minecraftforum.net/topic/2016680-162164-powercrystals-mods-minefactoryreloaded-powercrystalscore-and-netherores-updated/
 [8] http://www.computercraft.info/

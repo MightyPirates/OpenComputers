@@ -2,18 +2,15 @@ package li.cil.oc.client.gui
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.{ResourceLocation, StatCollector}
+import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) extends DynamicGuiContainer(new container.Case(playerInventory, computer)) {
-  protected val computerBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
-  protected val powerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
-
   protected var powerButton: ImageButton = _
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
@@ -31,7 +28,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, powerIcon, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -53,7 +50,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(computerBackground)
+    mc.renderEngine.bindTexture(TexturePreloader.guiComputer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

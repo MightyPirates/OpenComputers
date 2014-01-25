@@ -1,17 +1,14 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.tileentity.Cable
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object CableRenderer extends TileEntitySpecialRenderer {
-  private val texture = new ResourceLocation(Settings.resourceDomain, "textures/blocks/cable.png")
-
   private val displayLists = GLAllocation.generateDisplayLists(64)
 
   def compileLists() {
@@ -123,7 +120,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
   compileLists()
 
   def renderCable(neighbors: Int) {
-    bindTexture(texture)
+    bindTexture(TexturePreloader.blockCable)
     GL11.glCallList(displayLists + neighbors)
   }
 

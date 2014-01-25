@@ -1,15 +1,14 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.{ResourceLocation, StatCollector}
+import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends DynamicGuiContainer(new container.Server(playerInventory, serverInventory)) {
-  protected val serverBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
@@ -21,7 +20,7 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(serverBackground)
+    mc.renderEngine.bindTexture(TexturePreloader.guiServer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

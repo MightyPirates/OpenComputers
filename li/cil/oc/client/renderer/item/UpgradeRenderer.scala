@@ -1,11 +1,12 @@
 package li.cil.oc.client.renderer.item
 
+import li.cil.oc.Items
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.server.driver.item.Item
-import li.cil.oc.{Settings, Items}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{ResourceLocation, AxisAlignedBB}
+import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.client.IItemRenderer
 import net.minecraftforge.client.IItemRenderer.{ItemRendererHelper, ItemRenderType}
 import org.lwjgl.opengl.GL11
@@ -34,7 +35,7 @@ object UpgradeRenderer extends IItemRenderer {
       case Some(subItem) if subItem == Items.upgradeCrafting =>
         // TODO display list?
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
-        tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png"))
+        tm.bindTexture(TexturePreloader.upgradeCrafting)
 
         // Front.
         t.startDrawingQuads()
@@ -75,7 +76,7 @@ object UpgradeRenderer extends IItemRenderer {
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
-        tm.bindTexture(new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png"))
+        tm.bindTexture(TexturePreloader.upgradeGenerator)
 
         // Back.
         t.startDrawingQuads()

@@ -35,6 +35,7 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, UpgradeRenderer)
 
     MinecraftForge.EVENT_BUS.register(gui.Icons)
+    MinecraftForge.EVENT_BUS.register(TexturePreloader)
   }
 
   override def postInit(e: FMLPostInitializationEvent) {
