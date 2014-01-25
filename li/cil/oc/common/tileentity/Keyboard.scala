@@ -22,7 +22,8 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override lazy val isClient = keyboard == null
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = node
+  // Override automatic analyzer implementation for sided environments.
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
   @SideOnly(Side.CLIENT)
   def canConnect(side: ForgeDirection) = side == facing.getOpposite

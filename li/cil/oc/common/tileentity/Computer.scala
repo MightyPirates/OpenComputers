@@ -9,6 +9,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 import scala.collection.mutable
@@ -173,16 +174,18 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Node = {
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (computer != null) computer.lastError match {
       case Some(value) =>
-        stats.setString(Settings.namespace + "gui.Analyzer.LastError", value)
+        player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+          Settings.namespace + "gui.Analyzer.LastError", value))
       case _ =>
     }
     val list = users
     if (list.size > 0) {
-      stats.setString(Settings.namespace + "gui.Analyzer.Users", list.mkString(", "))
+      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+        Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
     }
-    computer.node
+    Array(computer.node)
   }
 }

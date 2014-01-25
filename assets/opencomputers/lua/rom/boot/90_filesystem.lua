@@ -15,10 +15,10 @@ local function onComponentAdded(_, address, componentType)
       end
       name = fs.concat("/mnt", name)
       fs.mount(proxy, name)
-      if isAutorunEnabled then
+      if fs.isAutorunEnabled() then
         local result, reason = shell.execute(fs.concat(name, "autorun"), _ENV, proxy)
-        if not result then
-          error (reason)
+        if not result and reason ~= "file not found" then
+          error(reason)
         end
       end
     end

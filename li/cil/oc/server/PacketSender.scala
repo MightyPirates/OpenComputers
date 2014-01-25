@@ -7,7 +7,6 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.util.PackedColor
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
 object PacketSender {
@@ -20,10 +19,9 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendAnalyze(stats: NBTTagCompound, address: String, player: Player) {
+  def sendAnalyze(address: String, player: Player) {
     val pb = new PacketBuilder(PacketType.Analyze)
 
-    pb.writeNBT(stats)
     pb.writeUTF(address)
 
     pb.sendToPlayer(player)

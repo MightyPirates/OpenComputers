@@ -6,16 +6,15 @@ import li.cil.oc.server.driver.Registry
 import li.cil.oc.{Blocks, api, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 
 class DiskDrive extends Environment with ComponentInventory with Rotatable with Analyzable with PassiveNode {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
     components(0) match {
-      case Some(environment) => environment.node
+      case Some(environment) => Array(environment.node)
       case _ => null
     }
 

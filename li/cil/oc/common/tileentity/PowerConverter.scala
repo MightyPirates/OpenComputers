@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network._
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 import universalelectricity.api.{CompatibilityType, UniversalClass}
@@ -14,7 +13,7 @@ class PowerConverter extends Environment with Analyzable with IEnergyInterface w
     withConnector(Settings.get.bufferConverter).
     create()
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   def canConnect(direction: ForgeDirection) = direction != null && direction != ForgeDirection.UNKNOWN
 

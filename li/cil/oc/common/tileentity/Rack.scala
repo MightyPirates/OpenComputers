@@ -103,17 +103,17 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing.ordinal) {
       val l = 2 / 16.0
       val h = 14 / 16.0
       val slot = ((hitY - l) / (h - l) * 4).toInt
       if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
-        servers(slot).get.machine.node
+        Array(servers(slot).get.machine.node)
       }
       else null
     }
-    else sidedNode(ForgeDirection.getOrientation(side))
+    else Array(sidedNode(ForgeDirection.getOrientation(side)))
   }
 
   // ----------------------------------------------------------------------- //

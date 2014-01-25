@@ -9,21 +9,20 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.packet.{Packet1Login, NetHandler}
 import net.minecraft.network.{NetLoginHandler, INetworkManager}
 import net.minecraft.server.MinecraftServer
+import net.minecraft.util.ChatMessageComponent
 
 object ConnectionHandler extends IConnectionHandler {
   def playerLoggedIn(player: Player, netHandler: NetHandler, manager: INetworkManager) {
     if (netHandler.isServerHandler) player match {
       case p: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          p.addChatMessage(
-            "§aOpenComputers§f: native Lua libraries are not available, computers will not be able to persist their state. They will reboot on chunk reloads.")
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningLuaFallback"))
         }
         if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
-          p.addChatMessage(
-            "§aOpenComputers§f: you are using a version of Project: Red that is incompatible with OpenComputers. Try updating your version of Project: Red.")
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningProjectRed"))
         }
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
-          p.addChatMessage("§aOpenComputers§f: Universal Electricity 3 is not available. Computers, screens and all other components will §lnot§f require energy. Note that UE3 is also used to additionally support BuildCraft, IndustrialCraft2 and Thermal Expansion.")
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningPower"))
         }
       case _ =>
     }

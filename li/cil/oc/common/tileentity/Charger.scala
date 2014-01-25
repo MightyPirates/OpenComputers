@@ -6,6 +6,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 
 class Charger extends Environment with RedstoneAware with Analyzable {
@@ -19,7 +20,12 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   var invertSignal = false
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.ChargerSpeed",
+      (chargeSpeed * 100).toInt + "%"))
+    null
+  }
 
   override def updateEntity() {
     super.updateEntity()
