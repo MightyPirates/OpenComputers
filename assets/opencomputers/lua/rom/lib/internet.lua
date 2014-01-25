@@ -12,7 +12,7 @@ function internet.request(url, data)
 
   local inet = component.internet
   if not inet then
-    error("no primary internet card found")
+    error("no primary internet card found", 2)
   end
 
   local post
@@ -27,19 +27,30 @@ function internet.request(url, data)
 
   local result, reason = inet.request(url, post)
   if not result then
-    error(reason)
+    error(reason, 2)
   end
 
-  return function()
+  function pullResponse()
     while true do
       local _, responseUrl, result, reason = event.pull("http_response")
       if responseUrl == url then
-        if not result and reason then
-          error(reason)
-        end
-        return result
+        return result, reason
       end
     end
+  end
+
+  -- Wait for the first response, which tells us whether it was a success.
+  local result, reason = pullResponse()
+  if not result and reason then
+    error(reason, 2)
+  end
+  return function()
+    local thisResult
+    if result then
+      thisResult = result
+      result = pullResponse()
+    end
+    return thisResult
   end
 end
 
