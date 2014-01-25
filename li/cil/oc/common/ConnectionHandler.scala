@@ -2,6 +2,7 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
+import li.cil.oc.Settings
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
 import net.minecraft.entity.player.EntityPlayerMP
@@ -21,7 +22,7 @@ object ConnectionHandler extends IConnectionHandler {
           p.addChatMessage(
             "§aOpenComputers§f: you are using a version of Project: Red that is incompatible with OpenComputers. Try updating your version of Project: Red.")
         }
-        if (!Loader.isModLoaded("UniversalElectricity")) {
+        if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
           p.addChatMessage("§aOpenComputers§f: Universal Electricity 3 is not available. Computers, screens and all other components will §lnot§f require energy. Note that UE3 is also used to additionally support BuildCraft, IndustrialCraft2 and Thermal Expansion.")
         }
       case _ =>

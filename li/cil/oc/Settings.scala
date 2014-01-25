@@ -91,7 +91,8 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // power
 
-  val ignorePower = config.getBoolean("power.ignorePower") || !Loader.isModLoaded("UniversalElectricity")
+  val pureIgnorePower = config.getBoolean("power.ignorePower")
+  val ignorePower = pureIgnorePower || !Loader.isModLoaded("UniversalElectricity")
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")

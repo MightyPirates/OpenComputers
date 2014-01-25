@@ -1,7 +1,5 @@
 package universalelectricity.api.net;
 
-import net.minecraftforge.common.ForgeDirection;
-
 /**
  * Applied to TileEntities that has an instance of an electricity network.
  * 
