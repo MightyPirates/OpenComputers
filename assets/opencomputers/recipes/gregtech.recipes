@@ -113,8 +113,7 @@ cuttingWire {
 }
 acid {
   type: shapeless
-  input: [bucketWater, dustEmerald, fermentedSpiderEye, slimeball]
-  output: 4
+  output: 0
 }
 disk {
   input: [["", plateAluminium, ""]
@@ -197,7 +196,7 @@ circuitBoard {
 }
 printedCircuitBoard {
   type:shaped
-  input: [[dustTinyGold, "oc:craftingAcid"]
+  input: [[dustTinyGold,  {item=item.GT_Cells, subID=40}]
           ["oc:craftingCircuitBoard", dustTinyGold]]
 }
 card {

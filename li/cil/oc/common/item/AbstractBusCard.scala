@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 class AbstractBusCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "AbstractBusCard"
 
-  override val showInItemList = Loader.isModLoaded("StargateTech2")
+  showInItemList = Loader.isModLoaded("StargateTech2")
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))

@@ -13,7 +13,7 @@ trait Delegate {
 
   val unlocalizedName: String
 
-  val showInItemList = true
+  var showInItemList = true
 
   val itemId = parent.add(this)
 

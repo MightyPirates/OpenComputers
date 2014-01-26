@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 class IronNugget(val parent: Delegator) extends Delegate {
   val unlocalizedName = "IronNugget"
 
-  override val showInItemList = !Loader.isModLoaded("gregtech_addon")
+  showInItemList = !Loader.isModLoaded("gregtech_addon")
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
