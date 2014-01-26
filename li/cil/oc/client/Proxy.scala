@@ -12,6 +12,8 @@ import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.{Proxy => CommonProxy}
 import li.cil.oc.{Items, Settings, OpenComputers}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.ReloadableResourceManager
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 
@@ -35,7 +37,12 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, UpgradeRenderer)
 
     MinecraftForge.EVENT_BUS.register(gui.Icons)
-    MinecraftForge.EVENT_BUS.register(TexturePreloader)
+
+    Minecraft.getMinecraft.getResourceManager match {
+      case manager: ReloadableResourceManager =>
+        manager.registerReloadListener(TexturePreloader)
+      case _ =>
+    }
   }
 
   override def postInit(e: FMLPostInitializationEvent) {

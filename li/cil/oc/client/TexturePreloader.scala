@@ -1,11 +1,10 @@
 package li.cil.oc.client
 
 import li.cil.oc.Settings
+import net.minecraft.client.resources.{ResourceManager, ResourceManagerReloadListener}
 import net.minecraft.util.ResourceLocation
-import net.minecraftforge.client.event.TextureStitchEvent
-import net.minecraftforge.event.ForgeSubscribe
 
-object TexturePreloader {
+object TexturePreloader extends ResourceManagerReloadListener {
   val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
   val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
@@ -31,35 +30,30 @@ object TexturePreloader {
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
 
-  @ForgeSubscribe
-  def onItemIconRegister(e: TextureStitchEvent.Pre) {
-    val iconRegister = e.map
-    if (iconRegister.textureType == 1) {
-      iconRegister.registerIcon(fontAntiAliased.toString)
-      iconRegister.registerIcon(fontAliased.toString)
+  def onResourceManagerReload(manager: ResourceManager) {
+    manager.getResource(fontAntiAliased)
+    manager.getResource(fontAliased)
 
-      iconRegister.registerIcon(guiBackground.toString)
-      iconRegister.registerIcon(guiBorders.toString)
-      iconRegister.registerIcon(guiButtonPower.toString)
-      iconRegister.registerIcon(guiButtonRange.toString)
-      iconRegister.registerIcon(guiButtonSide.toString)
-      iconRegister.registerIcon(guiComputer.toString)
-      iconRegister.registerIcon(guiRange.toString)
-      iconRegister.registerIcon(guiRobot.toString)
-      iconRegister.registerIcon(guiRobotSelection.toString)
-      iconRegister.registerIcon(guiServer.toString)
-      iconRegister.registerIcon(guiSlot.toString)
+    manager.getResource(guiBackground)
+    manager.getResource(guiBorders)
+    manager.getResource(guiButtonPower)
+    manager.getResource(guiButtonRange)
+    manager.getResource(guiButtonSide)
+    manager.getResource(guiComputer)
+    manager.getResource(guiRange)
+    manager.getResource(guiRobot)
+    manager.getResource(guiRobotSelection)
+    manager.getResource(guiServer)
+    manager.getResource(guiSlot)
 
-      iconRegister.registerIcon(blockCable.toString)
-      iconRegister.registerIcon(blockCaseFrontOn.toString)
-      iconRegister.registerIcon(blockPowerDistributorOn.toString)
-      iconRegister.registerIcon(blockRackFrontOn.toString)
-      iconRegister.registerIcon(blockRobot.toString)
-      iconRegister.registerIcon(blockScreenUpIndicator.toString)
+    manager.getResource(blockCable)
+    manager.getResource(blockCaseFrontOn)
+    manager.getResource(blockPowerDistributorOn)
+    manager.getResource(blockRackFrontOn)
+    manager.getResource(blockRobot)
+    manager.getResource(blockScreenUpIndicator)
 
-      iconRegister.registerIcon(upgradeCrafting.toString)
-      iconRegister.registerIcon(upgradeGenerator.toString)
-    }
+    manager.getResource(upgradeCrafting)
+    manager.getResource(upgradeGenerator)
   }
-
 }

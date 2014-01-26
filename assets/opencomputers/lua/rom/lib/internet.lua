@@ -103,7 +103,7 @@ function internet.socket(address, port)
   end
 
   local inet = component.internet
-  local handle, reason = inet.open(address)
+  local handle, reason = inet.connect(address)
   if not handle then
     return nil, reason
   end

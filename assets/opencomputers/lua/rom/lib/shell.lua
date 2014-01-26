@@ -123,7 +123,7 @@ function shell.execute(program, env, ...)
   if not filename then
     return nil, reason
   end
-  local code, reason = loadfile(filename, "t", setmetatable({}, {__index=env}))
+  local code, reason = loadfile(filename, "t", setmetatable({}, {__index=env or _ENV}))
   if not code then
     return nil, reason
   end
