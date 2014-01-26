@@ -31,6 +31,14 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     case _ => 0
   }))
 
+  def hasCPU = items.exists {
+    case Some(stack) => Registry.itemDriverFor(stack) match {
+      case Some(driver) => driver.slot(stack) == Slot.Processor
+      case _ => false
+    }
+    case _ => false
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {

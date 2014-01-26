@@ -96,11 +96,14 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     case Machine.State.Stopped =>
       val rules = owner.world.getWorldInfo.getGameRulesInstance
       if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
-        crash("computers don't work while time is frozen (gamerule doDaylightCycle is false)")
+        crash(Settings.namespace + "gui.Error.DaylightCycle")
         false
       }
       else if (components.size + addedComponents.size > owner.maxComponents) {
-        message = Some("too many components")
+        message = owner match {
+          case t: tileentity.Case if !t.hasCPU => Some(Settings.namespace + "gui.Error.NoCPU")
+          case _ => Some(Settings.namespace + "gui.Error.ComponentOverflow")
+        }
         false
       }
       else if (owner.installedMemory > 0) {
@@ -113,12 +116,12 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           }
         }
         else {
-          message = Some("not enough energy")
+          message = Some(Settings.namespace + "gui.Error.NoEnergy")
           false
         }
       }
       else {
-        message = Some("no memory installed")
+        message = Some(Settings.namespace + "gui.Error.NoRAM")
         false
       }
     case Machine.State.Paused if remainingPause > 0 =>
@@ -269,7 +272,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
     if (components.size > owner.maxComponents) {
-      crash("too many components")
+      crash(Settings.namespace + "gui.Error.ComponentOverflow")
     }
 
     // Update world time for time().
@@ -294,11 +297,11 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
              Machine.State.Stopped => // No power consumption.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
           if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
-            crash("not enough energy")
+            crash(Settings.namespace + "gui.Error.NoEnergy")
           }
         case _ =>
           if (!node.tryChangeBuffer(-cost)) {
-            crash("not enough energy")
+            crash(Settings.namespace + "gui.Error.NoEnergy")
           }
       })
     }
@@ -368,10 +371,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           }
         } catch {
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
-            crash("not enough memory")
+            crash(Settings.namespace + "gui.Error.OutOfMemory")
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
-            crash("protocol error")
+            crash(Settings.namespace + "gui.Error.InternalError")
         }
         assert(state.top != Machine.State.Running)
       case _ => // Nothing special to do, just avoid match errors.
@@ -733,7 +736,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     catch {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Architecture's runThreaded threw an error. This should never happen!", e)
-        crash("kernel panic: architecture threw an exception, see log file")
+        crash(Settings.namespace + "gui.Error.InternalError")
     }
 
     // Keep track of time spent executing the computer.

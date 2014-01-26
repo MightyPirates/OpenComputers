@@ -178,7 +178,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     if (computer != null) computer.lastError match {
       case Some(value) =>
         player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-          Settings.namespace + "gui.Analyzer.LastError", value))
+          Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
       case _ =>
     }
     val list = users

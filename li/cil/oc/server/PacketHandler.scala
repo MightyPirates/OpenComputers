@@ -9,6 +9,7 @@ import net.minecraftforge.common.{ForgeDirection, DimensionManager}
 import scala.Some
 import li.cil.oc.Settings
 import li.cil.oc.server.component.machine.Machine
+import net.minecraft.util.ChatMessageComponent
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -49,7 +50,7 @@ class PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case Some(message) => player.addChatMessage(message)
+            case Some(message) => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(message))
             case _ =>
           }
         }

@@ -16,13 +16,13 @@ object ConnectionHandler extends IConnectionHandler {
     if (netHandler.isServerHandler) player match {
       case p: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningLuaFallback"))
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningLuaFallback"))
         }
         if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningProjectRed"))
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningProjectRed"))
         }
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.chat.WarningPower"))
+          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
         }
       case _ =>
     }
