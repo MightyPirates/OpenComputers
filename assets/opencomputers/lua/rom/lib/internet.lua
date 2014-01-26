@@ -90,9 +90,13 @@ function socketStream.write(self, value)
     return nil, "connection is closed"
   end
   while #value > 0 do
-    local written = self.inet.write(self.handle, value)
+    local written, reason = self.inet.write(self.handle, value)
+    if not written then
+      return nil, reason
+    end
     value = string.sub(value, written + 1)
   end
+  return true
 end
 
 function internet.socket(address, port)
