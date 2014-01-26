@@ -73,16 +73,7 @@ function socketStream.read(self, n)
   if not self.handle then
     return nil, "connection is closed"
   end
-  local value = ""
-  while n > #value do
-    local read = self.inet.read(self.handle, n)
-    if read then
-      value = value .. read
-    else
-      break
-    end
-  end
-  return value
+  return self.inet.read(self.handle, n)
 end
 
 function socketStream.write(self, value)
