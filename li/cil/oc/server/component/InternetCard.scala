@@ -145,7 +145,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     result(handle)
   }
 
-  @LuaCallback(value = "close")
+  @LuaCallback("close")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
@@ -155,7 +155,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     null
   }
 
-  @LuaCallback(value = "write")
+  @LuaCallback("write")
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
@@ -167,7 +167,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     }
   }
 
-  @LuaCallback(value = "read")
+  @LuaCallback("read")
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
@@ -279,20 +279,25 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  private def checkUri(address: String) = {
-    val parsed = new URI(address)
-    if (parsed.getHost != null && parsed.getPort != -1) {
-      checkLists(Matcher.quoteReplacement(parsed.getHost))
-      parsed
-    }
-    else {
-      val simple = new URI("protocol://" + address)
-      if (simple.getHost != null && simple.getPort != -1) {
-        checkLists(Matcher.quoteReplacement(simple.getHost))
-        simple
+  private def checkUri(address: String): URI = {
+    try {
+      val parsed = new URI(address)
+      if (parsed.getHost != null && parsed.getPort != -1) {
+        checkLists(Matcher.quoteReplacement(parsed.getHost))
+        return parsed
       }
-      else parsed
     }
+    catch {
+      case _: Throwable =>
+    }
+
+    val simple = new URI("oc://" + address)
+    if (simple.getHost != null && simple.getPort != -1) {
+      checkLists(Matcher.quoteReplacement(simple.getHost))
+      return simple
+    }
+
+    throw new IllegalArgumentException("address could not be parsed")
   }
 
   private def checkAddress(address: String) = {
