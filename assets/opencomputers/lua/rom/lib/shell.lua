@@ -1,6 +1,7 @@
 local event = require("event")
 local fs = require("filesystem")
 local unicode = require("unicode")
+local text = require("text")
 
 local shell = {}
 local cwd = "/"
