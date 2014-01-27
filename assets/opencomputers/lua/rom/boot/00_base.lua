@@ -16,6 +16,14 @@ function loadfile(filename, mode, env)
   if not source then
     return nil, reason
   end
+  if string.sub(source, 1, 1) == "#" then
+    local endline = string.find(source, "\n", 2, true)
+    if endline then
+      source = string.sub(source, endline + 1)
+    else
+      source = ""
+    end
+  end
   return load(source, "=" .. filename, mode, env)
 end
 
