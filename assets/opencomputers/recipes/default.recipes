@@ -162,12 +162,12 @@ chip1 {
 }
 chip2 {
   input: [[nuggetGold, {item=dyePowder, subID=4} , nuggetGold]
-          ["oc:circuitTier1", diamond, "oc:circuitTier1"]
+          ["oc:circuitTier1", netherquartz, "oc:circuitTier1"]
           [nuggetGold, {item=dyePowder, subID=4}, nuggetGold]]
 }
 chip3 {
   input: [[yellowDust, comparator, yellowDust]
-          ["oc:circuitTier2", emerald, "oc:circuitTier2"]
+          ["oc:circuitTier2", diamond, "oc:circuitTier2"]
           [yellowDust, comparator, yellowDust]]
 }
 alu {

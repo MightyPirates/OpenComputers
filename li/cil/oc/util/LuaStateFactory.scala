@@ -239,18 +239,6 @@ object LuaStateFactory {
         state.newTable()
 
         state.pushScalaFunction(lua => {
-          lua.pushString(lua.checkString(1).toLowerCase)
-          1
-        })
-        state.setField(-2, "lower")
-
-        state.pushScalaFunction(lua => {
-          lua.pushString(lua.checkString(1).toUpperCase)
-          1
-        })
-        state.setField(-2, "upper")
-
-        state.pushScalaFunction(lua => {
           lua.pushString(String.valueOf((1 to lua.getTop).map(lua.checkInteger).map(_.toChar).toArray))
           1
         })
@@ -261,6 +249,12 @@ object LuaStateFactory {
           1
         })
         state.setField(-2, "len")
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(lua.checkString(1).toLowerCase)
+          1
+        })
+        state.setField(-2, "lower")
 
         state.pushScalaFunction(lua => {
           lua.pushString(lua.checkString(1).reverse)
@@ -285,6 +279,12 @@ object LuaStateFactory {
           1
         })
         state.setField(-2, "sub")
+
+        state.pushScalaFunction(lua => {
+          lua.pushString(lua.checkString(1).toUpperCase)
+          1
+        })
+        state.setField(-2, "upper")
 
         state.setGlobal("unicode")
 

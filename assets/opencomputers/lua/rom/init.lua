@@ -8,6 +8,7 @@ os.sleep(0.5) -- Allow signal processing by libraries.
 
 require("term").clear()
 
+computer.pushSignal("init") -- so libs know components are initialized.
 while true do
   local result, reason = os.execute("/bin/sh -v")
   if not result then

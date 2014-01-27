@@ -180,7 +180,17 @@ sandbox = {
     pi = math.pi,
     pow = math.pow,
     rad = math.rad,
-    random = math.random,
+    random = function(low, high)
+      if low then
+        checkArg(1, low, "number")
+        if high then
+          checkArg(1, high, "number")
+          return math.random(low, high)
+        end
+        return math.random(low)
+      end
+      return math.random()
+    end,
     randomseed = function(seed)
       checkArg(1, seed, "number")
       math.randomseed(seed)
@@ -321,12 +331,38 @@ local libcomputer = {
 }
 
 local libunicode = {
-  char = unicode.char,
-  len = unicode.len,
-  lower = unicode.lower,
-  reverse = unicode.reverse,
-  sub = unicode.sub,
-  upper = unicode.upper
+  char = function(...)
+    local args = table.pack(...)
+    for i = 1, args.n do
+      checkArg(i, args[i], "number")
+    end
+    return unicode.char(...)
+  end,
+  len = function(s)
+    checkArg(1, s, "string")
+    return unicode.len(s)
+  end,
+  lower = function(s)
+    checkArg(1, s, "string")
+    return unicode.lower(s)
+  end,
+  reverse = function(s)
+    checkArg(1, s, "string")
+    return unicode.reverse(s)
+  end,
+  sub = function(s, i, j)
+    checkArg(1, s, "string")
+    checkArg(2, i, "number")
+    checkArg(3, j, "number", "nil")
+    if j then
+      return unicode.sub(s, i, j)
+    end
+    return unicode.sub(s, i)
+  end,
+  upper = function(s)
+    checkArg(1, s, "string")
+    return unicode.upper(s)
+  end
 }
 
 -------------------------------------------------------------------------------
