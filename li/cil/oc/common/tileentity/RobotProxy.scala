@@ -127,9 +127,9 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    robot.onAnalyze(stats, player, side, hitX, hitY, hitZ)
-    node
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    robot.onAnalyze(player, side, hitX, hitY, hitZ)
+    Array(node)
   }
 
   // ----------------------------------------------------------------------- //

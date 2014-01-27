@@ -109,7 +109,7 @@ function event.listen(name, callback)
 end
 
 function event.onError(message)
-  local log = io.open("tmp/event.log", "a")
+  local log = io.open("/tmp/event.log", "a")
   if log then
     log:write(message .. "\n")
     log:close()

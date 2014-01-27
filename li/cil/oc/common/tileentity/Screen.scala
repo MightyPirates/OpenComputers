@@ -156,7 +156,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
     // Convert to absolute coordinates and send the packet to the server.
     if (world.isRemote) {
-      ClientPacketSender.sendMouseClick(this.buffer, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false)
+      ClientPacketSender.sendMouseClick(this.buffer, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false, 0)
     }
     true
   }
@@ -164,7 +164,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   def walk(entity: Entity) {
     val (x, y) = localPosition
     entity match {
-      case player: EntityPlayer =>
+      case player: EntityPlayer if Settings.get.inputUsername =>
         origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y), player.getCommandSenderName)
       case _ =>
         origin.node.sendToReachable("computer.signal", "walk", Int.box(x + 1), Int.box(height - y))
@@ -370,7 +370,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = origin.node
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)

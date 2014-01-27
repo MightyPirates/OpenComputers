@@ -1,3 +1,5 @@
+local unicode = require("unicode")
+
 local text = {}
 
 function text.detab(value, tabWidth)
@@ -40,7 +42,9 @@ end
 
 -------------------------------------------------------------------------------
 
-function text.serialize(value,safe)
+-- Important: pretty formatting will allow presenting non-serializable values
+-- but may generate output that cannot be unserialized back.
+function text.serialize(value, pretty)
   local kw =  {["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true,
                ["elseif"]=true, ["end"]=true, ["false"]=true, ["for"]=true,
                ["function"]=true, ["goto"]=true, ["if"]=true, ["in"]=true,
@@ -69,8 +73,8 @@ function text.serialize(value,safe)
       return string.format("%q", v)
     elseif t == "table" then
       if ts[v] then
-        if safe then
-          r = r .. "recursive"
+        if pretty then
+          return "recursion"
         else
           error("tables with cycles are not supported")
         end
@@ -99,18 +103,19 @@ function text.serialize(value,safe)
       ts[v] = nil -- allow writing same table more than once
       return (r or "{") .. "}"
     else
-      if safe then
-        r = r .. t
+      if pretty then
+        return tostring(t)
       else
         error("unsupported type: " .. t)
       end
     end
   end
-  local out = value
-  if safe and #out>1000 then
-    out = out:sub(1,1000) .. "..."
+  local result = s(value)
+  local limit = type(pretty) == "number" and pretty or 1000
+  if pretty and unicode.len(result) > limit then
+    return result:sub(1, limit) .. "..."
   end
-  return out
+  return result
 end
 
 function text.unserialize(data)

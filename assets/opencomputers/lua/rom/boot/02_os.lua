@@ -50,7 +50,7 @@ end
 function os.tmpname()
   if fs.exists("tmp") then
     for i = 1, 10 do
-      local name = "tmp/" .. math.random(1, 0x7FFFFFFF)
+      local name = "/tmp/" .. math.random(1, 0x7FFFFFFF)
       if not fs.exists(name) then
         return name
       end

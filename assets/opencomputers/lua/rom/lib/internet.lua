@@ -12,7 +12,7 @@ function internet.request(url, data)
 
   local inet = component.internet
   if not inet then
-    error("no primary internet card found")
+    error("no primary internet card found", 2)
   end
 
   local post
@@ -27,19 +27,30 @@ function internet.request(url, data)
 
   local result, reason = inet.request(url, post)
   if not result then
-    error(reason)
+    error(reason, 2)
   end
 
-  return function()
+  function pullResponse()
     while true do
       local _, responseUrl, result, reason = event.pull("http_response")
       if responseUrl == url then
-        if not result and reason then
-          error(reason)
-        end
-        return result
+        return result, reason
       end
     end
+  end
+
+  -- Wait for the first response, which tells us whether it was a success.
+  local result, reason = pullResponse()
+  if not result and reason then
+    error(reason, 2)
+  end
+  return function()
+    local thisResult
+    if result then
+      thisResult = result
+      result = pullResponse()
+    end
+    return thisResult
   end
 end
 
@@ -62,16 +73,7 @@ function socketStream.read(self, n)
   if not self.handle then
     return nil, "connection is closed"
   end
-  local value = ""
-  while n > #value do
-    local read = self.inet.read(self.handle, n)
-    if read then
-      value = value .. read
-    else
-      break
-    end
-  end
-  return value
+  return self.inet.read(self.handle, n)
 end
 
 function socketStream.write(self, value)
@@ -79,9 +81,13 @@ function socketStream.write(self, value)
     return nil, "connection is closed"
   end
   while #value > 0 do
-    local written = self.inet.write(self.handle, value)
+    local written, reason = self.inet.write(self.handle, value)
+    if not written then
+      return nil, reason
+    end
     value = string.sub(value, written + 1)
   end
+  return true
 end
 
 function internet.socket(address, port)
@@ -92,7 +98,7 @@ function internet.socket(address, port)
   end
 
   local inet = component.internet
-  local handle, reason = inet.open(address)
+  local handle, reason = inet.connect(address)
   if not handle then
     return nil, reason
   end

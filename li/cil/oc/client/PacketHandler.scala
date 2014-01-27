@@ -7,12 +7,9 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagString, NBTBase, NBTTagCompound}
-import net.minecraft.util.StatCollector
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 import scala.Some
-import scala.collection.convert.WrapAsScala._
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -57,13 +54,6 @@ class PacketHandler extends CommonPacketHandler {
 
   def onAnalyze(p: PacketParser) {
     val player = p.player.asInstanceOf[EntityPlayer]
-    val stats = p.readNBT().asInstanceOf[NBTTagCompound]
-    stats.getTags.map(_.asInstanceOf[NBTBase]).map(tag => {
-      ("§6" + StatCollector.translateToLocal(tag.getName) + "§f: " + (tag match {
-        case value: NBTTagString => value.data
-        case _ => "ERROR: invalid value type. Stat values must be strings."
-      })).trim
-    }).toArray.sorted.foreach(player.addChatMessage)
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)

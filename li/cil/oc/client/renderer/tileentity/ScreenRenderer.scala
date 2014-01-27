@@ -5,6 +5,7 @@ import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
@@ -14,13 +15,10 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
-  private val upIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
-
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
@@ -116,7 +114,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
         })) {
         GL11.glPushMatrix()
         transform()
-        bindTexture(upIndicator)
+        bindTexture(TexturePreloader.blockScreenUpIndicator)
         GL11.glDepthMask(false)
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
         val t = Tessellator.instance

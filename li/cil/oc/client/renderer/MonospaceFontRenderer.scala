@@ -1,18 +1,15 @@
 package li.cil.oc.client.renderer
 
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  val font = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
-  val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
-
   private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
 
   private var instance: Option[Renderer] = None
@@ -73,9 +70,9 @@ object MonospaceFontRenderer {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
       if (Settings.get.textAntiAlias)
-        textureManager.bindTexture(MonospaceFontRenderer.font)
+        textureManager.bindTexture(TexturePreloader.fontAntiAliased)
       else
-        textureManager.bindTexture(MonospaceFontRenderer.fontAliased)
+        textureManager.bindTexture(TexturePreloader.fontAliased)
       GL11.glPushMatrix()
       GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
       GL11.glTranslatef(x, y, 0)

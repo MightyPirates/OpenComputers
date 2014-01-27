@@ -66,15 +66,15 @@ oc:item.UpgradeSolarGenerator.name=Melhoramento: Gerador Solar
 oc:item.WirelessNetworkCard.name=Placa de Rede sem Fios
 
 # GUI
-oc:gui.Analyzer.Address=Endereço
-oc:gui.Analyzer.ComponentName=Nome do Componente
-oc:gui.Analyzer.LastError=Último erro
-oc:gui.Analyzer.RobotName=Nome
-oc:gui.Analyzer.RobotOwner=Proprietário
-oc:gui.Analyzer.RobotXp=Experiência
-oc:gui.Analyzer.StoredEnergy=Energia Armazenada
-oc:gui.Analyzer.TotalEnergy=Total de Energia Armazenada
-oc:gui.Analyzer.Users=Utilizadores
+oc:gui.Analyzer.Address=§6Endereço§f: %s
+oc:gui.Analyzer.ComponentName=§6Nome do Componente§f: %s
+oc:gui.Analyzer.LastError=§6Último erro§f: %s
+oc:gui.Analyzer.RobotName=§6Nome§f: %s
+oc:gui.Analyzer.RobotOwner=§6Proprietário§f: %s
+oc:gui.Analyzer.RobotXp=§6Experiência§f: %s
+oc:gui.Analyzer.StoredEnergy=§6Energia Armazenada§f: %s
+oc:gui.Analyzer.TotalEnergy=§6Total de Energia Armazenada§f: %s
+oc:gui.Analyzer.Users=§6Utilizadores§f: %s
 oc:gui.Robot.Power=Energia
 oc:gui.Robot.TurnOff=Desligar
 oc:gui.Robot.TurnOn=Ligar

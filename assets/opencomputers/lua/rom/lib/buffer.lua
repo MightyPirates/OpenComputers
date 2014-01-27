@@ -5,12 +5,17 @@ local buffer = {}
 
 function buffer.new(mode, stream)
   local result = {
-    mode = mode or "r",
+    mode = {},
     stream = stream,
-    buffer = "",
-    bufferSize = math.max(128, math.min(8 * 1024, computer.freeMemory() / 8)),
+    bufferRead = "",
+    bufferWrite = "",
+    bufferSize = math.max(512, math.min(8 * 1024, computer.freeMemory() / 8)),
     bufferMode = "full"
   }
+  mode = mode or "r"
+  for i = 1, unicode.len(mode) do
+    result.mode[unicode.sub(mode, i, i)] = true
+  end
   local metatable = {
     __index = buffer,
     __metatable = "file"
@@ -19,16 +24,16 @@ function buffer.new(mode, stream)
 end
 
 function buffer:close()
-  if string.find(self.mode, "w", 1, true) or string.find(self.mode, "a", 1, true) then
+  if self.mode.w or self.mode.a then
     self:flush()
   end
   return self.stream:close()
 end
 
 function buffer:flush()
-  local result, reason = self.stream:write(self.buffer)
+  local result, reason = self.stream:write(self.bufferWrite)
   if result then
-    self.buffer = ""
+    self.bufferWrite = ""
   else
     if reason then
       return nil, reason
@@ -55,7 +60,7 @@ function buffer:read(...)
   local function readChunk()
     local result, reason = self.stream:read(self.bufferSize)
     if result then
-      self.buffer = self.buffer .. result
+      self.bufferRead = self.bufferRead .. result
       return self
     else -- error or eof
       return nil, reason
@@ -65,7 +70,7 @@ function buffer:read(...)
   local function readBytesOrChars(n)
     n = math.max(n, 0)
     local len, sub
-    if string.find(self.mode, "b", 1, true) then
+    if self.mode.b then
       len = rawlen
       sub = string.sub
     else
@@ -74,7 +79,7 @@ function buffer:read(...)
     end
     local buffer = ""
     repeat
-      if len(self.buffer) == 0 then
+      if len(self.bufferRead) == 0 then
         local result, reason = readChunk()
         if not result then
           if reason then
@@ -85,8 +90,8 @@ function buffer:read(...)
         end
       end
       local left = n - len(buffer)
-      buffer = buffer .. sub(self.buffer, 1, left)
-      self.buffer = sub(self.buffer, left + 1)
+      buffer = buffer .. sub(self.bufferRead, 1, left)
+      self.bufferRead = sub(self.bufferRead, left + 1)
     until len(buffer) == n
     return buffer
   end
@@ -94,20 +99,20 @@ function buffer:read(...)
   local function readLine(chop)
     local start = 1
     while true do
-      local l = self.buffer:find("\n", start, true)
+      local l = self.bufferRead:find("\n", start, true)
       if l then
-        local result = self.buffer:sub(1, l + (chop and -1 or 0))
-        self.buffer = self.buffer:sub(l + 1)
+        local result = self.bufferRead:sub(1, l + (chop and -1 or 0))
+        self.bufferRead = self.bufferRead:sub(l + 1)
         return result
       else
-        start = #self.buffer
+        start = #self.bufferRead
         local result, reason = readChunk()
         if not result then
           if reason then
             return nil, reason
           else -- eof
-            local result = #self.buffer > 0 and self.buffer or nil
-            self.buffer = ""
+            local result = #self.bufferRead > 0 and self.bufferRead or nil
+            self.bufferRead = ""
             return result
           end
         end
@@ -122,8 +127,8 @@ function buffer:read(...)
         return nil, reason
       end
     until not result -- eof
-    local result = self.buffer
-    self.buffer = ""
+    local result = self.bufferRead
+    self.bufferRead = ""
     return result
   end
 
@@ -148,6 +153,10 @@ function buffer:read(...)
         error("bad argument #" .. n .. " (invalid format)")
       end
     end
+  end
+
+  if self.mode.w or self.mode.a then
+    self:flush()
   end
 
   local results = {}
@@ -175,11 +184,11 @@ function buffer:seek(whence, offset)
   assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
   if whence == "cur" then
-    offset = offset - #self.buffer
+    offset = offset - #self.bufferRead
   end
   local result, reason = self.stream:seek(whence, offset)
   if result then
-    self.buffer = ""
+    self.bufferRead = ""
     return result
   else
     return nil, reason
@@ -215,7 +224,7 @@ function buffer:write(...)
     local result, reason
 
     if self.bufferMode == "full" then
-      if self.bufferSize - #self.buffer < #arg then
+      if self.bufferSize - #self.bufferWrite < #arg then
         result, reason = self:flush()
         if not result then
           return nil, reason
@@ -224,7 +233,7 @@ function buffer:write(...)
       if #arg > self.bufferSize then
         result, reason = self.stream:write(arg)
       else
-        self.buffer = self.buffer .. arg
+        self.bufferWrite = self.bufferWrite .. arg
         result = self
       end
 
@@ -252,7 +261,7 @@ function buffer:write(...)
       if #arg > self.bufferSize then
         result, reason = self.stream:write(arg)
       else
-        self.buffer = self.buffer .. arg
+        self.bufferWrite = self.bufferWrite .. arg
         result = self
       end
 

@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.Some
 
@@ -123,11 +124,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    stats.setString(Settings.namespace + "gui.Analyzer.RobotOwner", owner)
-    stats.setString(Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName)
-    stats.setString(Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f"))
-    super.onAnalyze(stats, player, side, hitX, hitY, hitZ)
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.RobotOwner", owner))
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f")))
+    super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
 
   def player(facing: ForgeDirection = facing, side: ForgeDirection = facing) = {

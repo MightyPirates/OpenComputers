@@ -55,15 +55,15 @@ oc:item.UpgradeGenerator.name=发电机升级
 oc:item.WirelessNetworkCard.name=无线网卡
 
 # GUI
-oc:gui.Analyzer.Address=地址
-oc:gui.Analyzer.ComponentName=设备组件名
-oc:gui.Analyzer.LastError=上一个错误
-oc:gui.Analyzer.RobotName=名称
-oc:gui.Analyzer.RobotOwner=主人
-oc:gui.Analyzer.RobotXp=经验
-oc:gui.Analyzer.StoredEnergy=储能
-oc:gui.Analyzer.TotalEnergy=总储能
-oc:gui.Analyzer.Users=用户
+oc:gui.Analyzer.Address=§6地址§f: %s
+oc:gui.Analyzer.ComponentName=§6设备组件名§f: %s
+oc:gui.Analyzer.LastError=§6上一个错误§f: %s
+oc:gui.Analyzer.RobotName=§6名称§f: %s
+oc:gui.Analyzer.RobotOwner=§6主人§f: %s
+oc:gui.Analyzer.RobotXp=§6经验§f: %s
+oc:gui.Analyzer.StoredEnergy=§6储能§f: %s
+oc:gui.Analyzer.TotalEnergy=§6总储能§f: %s
+oc:gui.Analyzer.Users=§6用户§f: %s
 oc:gui.Robot.Power=能量
 oc:gui.Robot.TurnOff=关闭
 oc:gui.Robot.TurnOn=开启

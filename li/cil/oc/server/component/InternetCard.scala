@@ -8,7 +8,6 @@ import java.util.regex.Matcher
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
@@ -22,8 +21,20 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   protected val connections = mutable.Map.empty[Int, SocketChannel]
 
-  // node address -> list per request -> list of signals as (request url, packets)
-  protected val queues = mutable.Map.empty[String, mutable.Queue[(String, mutable.Queue[Array[Byte]])]]
+  // For HTTP requests the state switches like so:
+  // Pre: request == None && queue == None
+  // request = value
+  // thread {
+  //   queue = value
+  //   request = None
+  // }
+  // while (request == None && queue contains elements) { signal(queue.pop()) }
+  // queue = None
+  // Post: request == None && queue == None
+
+  protected var request: Option[(String, Option[String])] = None
+
+  protected var queue: Option[(String, mutable.Queue[Array[Byte]])] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -32,10 +43,26 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   @LuaCallback("request")
   def request(context: Context, args: Arguments): Array[AnyRef] = {
+    if (context.address != owner.address) {
+      throw new IllegalArgumentException("can only be used by the owning computer")
+    }
     val address = args.checkString(0)
-    if (!Settings.get.httpEnabled) return result(false, "http requests are unavailable")
-    val url = checkAddress(address)
+    if (!Settings.get.httpEnabled) {
+      return result(false, "http requests are unavailable")
+    }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
+    this.synchronized {
+      if (request.isDefined || queue.isDefined) {
+        return result(false, "already busy with another request")
+      }
+      scheduleRequest(address, post)
+    }
+    result(true)
+  }
+
+  protected def scheduleRequest(address: String, post: Option[String]) {
+    val url = checkAddress(address)
+    request = Some((address, post))
     InternetCard.threadPool.submit(new Runnable {
       def run() = try {
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
@@ -67,24 +94,34 @@ class InternetCard(val owner: Context) extends ManagedComponent {
               }
             } while (count != -1)
             input.close()
-            queues.synchronized(queues.getOrElseUpdate(context.address, mutable.Queue.empty) += address -> (mutable.Queue(data.toArray.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
+            queue = Some(address -> (mutable.Queue(data.toArray.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
           }
           finally {
             http.disconnect()
           }
-          case other => context.signal("http_response", address, Unit, "connection failed")
+          case other => owner.signal("http_response", address, Unit, "connection failed")
         }
       }
       catch {
         case e: FileNotFoundException =>
-          context.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
+          owner.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
         case _: SocketTimeoutException =>
-          context.signal("http_response", address, Unit, "timeout")
+          owner.signal("http_response", address, Unit, "timeout")
         case e: Throwable =>
-          context.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
+          owner.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
+      }
+      finally {
+        InternetCard.this.synchronized {
+          if (request.isDefined) {
+            request = None
+          }
+          else {
+            // Got disconnected in the meantime.
+            queue = None
+          }
+        }
       }
     })
-    result(true)
   }
 
   @LuaCallback(value = "isTcpEnabled", direct = true)
@@ -108,7 +145,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     result(handle)
   }
 
-  @LuaCallback(value = "close")
+  @LuaCallback("close")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
@@ -118,7 +155,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     null
   }
 
-  @LuaCallback(value = "write")
+  @LuaCallback("write")
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
@@ -130,7 +167,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     }
   }
 
-  @LuaCallback(value = "read")
+  @LuaCallback("read")
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
@@ -154,30 +191,32 @@ class InternetCard(val owner: Context) extends ManagedComponent {
   override def update() {
     super.update()
 
-    queues.synchronized {
-      for ((nodeAddress, queue) <- queues if queue.nonEmpty) {
-        node.network.node(nodeAddress) match {
-          case computer: Node =>
-            computer.host match {
-              case context: Context =>
-                val (address, packets) = queue.front
-                if (context.signal("http_response", address, packets.front)) {
-                  packets.dequeue()
-                }
-              case _ => queue.clear()
-            }
-          case _ => queue.clear()
+    this.synchronized {
+      if (request.isEmpty && queue.isDefined) {
+        val (address, packets) = queue.get
+        if (owner.signal("http_response", address, packets.front)) {
+          packets.dequeue()
         }
-        // Remove all responses that have no more packets (usually only the
-        // first on when it has been processed).
-        queue.dequeueAll(_._2.isEmpty)
+        if (packets.isEmpty) {
+          queue = None
+        }
       }
-      // Remove all targets that have no more responses.
-      queues.retain((_, queue) => queue.nonEmpty)
     }
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      for ((_, socket) <- connections) {
+        socket.close()
+      }
+      connections.clear()
+      request = None
+      queue = None
+    }
+  }
 
   override def onMessage(message: Message) {
     super.onMessage(message)
@@ -185,6 +224,10 @@ class InternetCard(val owner: Context) extends ManagedComponent {
       case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && message.source.address == owner.address =>
         connections.values.foreach(_.close())
         connections.clear()
+        InternetCard.this.synchronized {
+          request = None
+          queue = None
+        }
       case _ =>
     }
   }
@@ -193,64 +236,68 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    queues.synchronized {
-      queues.clear()
-      if (nbt.hasKey("queues")) {
-        queues ++= nbt.getTagList("queues").iterator[NBTTagCompound].map(nodeNbt => {
-          val nodeAddress = nodeNbt.getString("nodeAddress")
-          val responses = mutable.Queue(nodeNbt.getTagList("responses").iterator[NBTTagCompound].map(responseNbt => {
-            val address = responseNbt.getString("address")
-            val data = responseNbt.getByteArray("data")
-            (address, mutable.Queue(data.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null))
-          }): _*)
-          nodeAddress -> responses
-        })
+    if (nbt.hasKey("url")) {
+      val address = nbt.getString("url")
+      val data = nbt.getByteArray("data")
+      queue = Some(address -> (mutable.Queue(data.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
+    }
+    if (nbt.hasKey("request")) {
+      val address = nbt.getString("request")
+      val post =
+        if (nbt.hasKey("postData")) Option(nbt.getString("postData"))
+        else None
+      // Restart request?
+      if (!queue.isDefined) {
+        scheduleRequest(address, post)
       }
+      // Otherwise this should have been None anyway...
     }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    queues.synchronized {
-      if (!queues.isEmpty) {
-        nbt.setNewTagList("queues", queues.toIterable.map(
-          node => {
-            val (nodeAddress, responses) = node
-            val nodeNbt = new NBTTagCompound()
-            nodeNbt.setString("nodeAddress", nodeAddress)
-            nodeNbt.setNewTagList("responses", responses.toIterable.map(
-              response => {
-                val (address, packets) = response
-                val responseNbt = new NBTTagCompound()
-                responseNbt.setString("address", address)
-                val data = mutable.ArrayBuffer.empty[Byte]
-                packets.toIterable.dropRight(1).foreach(data.appendAll(_))
-                responseNbt.setByteArray("data", data.toArray)
-                responseNbt
-              }
-            ))
+    this.synchronized {
+      request match {
+        case Some((address, data)) =>
+          nbt.setString("request", address)
+          data match {
+            case Some(value) => nbt.setString("postData", value)
+            case _ =>
           }
-        ))
+        case _ =>
+      }
+      queue match {
+        case Some((address, packets)) =>
+          nbt.setString("url", address)
+          val data = mutable.ArrayBuffer.empty[Byte]
+          packets.toIterable.dropRight(1).foreach(data.appendAll(_))
+          nbt.setByteArray("data", data.toArray)
+        case _ =>
       }
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  private def checkUri(address: String) = {
-    val parsed = new URI(address)
-    if (parsed.getHost != null && parsed.getPort != -1) {
-      checkLists(Matcher.quoteReplacement(parsed.getHost))
-      parsed
-    }
-    else {
-      val simple = new URI("protocol://" + address)
-      if (simple.getHost != null && simple.getPort != -1) {
-        checkLists(Matcher.quoteReplacement(simple.getHost))
-        simple
+  private def checkUri(address: String): URI = {
+    try {
+      val parsed = new URI(address)
+      if (parsed.getHost != null && parsed.getPort != -1) {
+        checkLists(Matcher.quoteReplacement(parsed.getHost))
+        return parsed
       }
-      else parsed
     }
+    catch {
+      case _: Throwable =>
+    }
+
+    val simple = new URI("oc://" + address)
+    if (simple.getHost != null && simple.getPort != -1) {
+      checkLists(Matcher.quoteReplacement(simple.getHost))
+      return simple
+    }
+
+    throw new IllegalArgumentException("address could not be parsed")
   }
 
   private def checkAddress(address: String) = {

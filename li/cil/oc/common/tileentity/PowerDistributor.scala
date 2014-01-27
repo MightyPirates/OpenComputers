@@ -23,7 +23,7 @@ class PowerDistributor extends Environment with PowerBalancer with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(stats: NBTTagCompound, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   // ----------------------------------------------------------------------- //
 

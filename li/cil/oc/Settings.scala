@@ -1,6 +1,7 @@
 package li.cil.oc
 
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
+import cpw.mods.fml.common.Loader
 import java.io._
 import li.cil.oc.util.PackedColor
 import scala.collection.convert.WrapAsScala._
@@ -90,12 +91,9 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // power
 
-  val ignorePower = config.getBoolean("power.ignorePower")
+  val pureIgnorePower = config.getBoolean("power.ignorePower")
+  val ignorePower = pureIgnorePower || !Loader.isModLoaded("UniversalElectricity")
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
-  val ratioBuildCraft = config.getDouble("power.ratioBuildCraft").toFloat
-  val ratioIndustrialCraft2 = config.getDouble("power.ratioIndustrialCraft2").toFloat
-  val ratioUniversalElectricity = config.getDouble("power.ratioUniversalElectricity").toFloat
-  val ratioThermalExpansion = config.getDouble("power.ratioThermalExpansion").toFloat
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
@@ -155,6 +153,7 @@ class Settings(config: Config) {
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
+  val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val commandUser = config.getString("misc.commandUser").trim
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0

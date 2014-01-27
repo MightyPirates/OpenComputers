@@ -93,7 +93,7 @@ class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
       if (remainingTicks == 0 && inventory.isEmpty) {
         updateClient()
       }
-      node.changeBuffer(Settings.get.ratioBuildCraft * Settings.get.generatorEfficiency)
+      node.changeBuffer(Settings.get.generatorEfficiency)
     }
   }
 

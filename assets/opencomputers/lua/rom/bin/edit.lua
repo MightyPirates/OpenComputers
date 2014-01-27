@@ -354,7 +354,7 @@ do
     if readonly then
       format = [["%s" [readonly] %dL,%dC]]
     else
-      format = [["%s" [New File] %dL,%dC]]
+      format = [["%s" %dL,%dC]]
     end
     setStatus(string.format(format, fs.name(filename), #buffer, chars))
   else

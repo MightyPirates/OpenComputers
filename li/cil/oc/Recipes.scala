@@ -187,8 +187,15 @@ object Recipes {
       shape += pattern.toString
       input ++= ingredients
     }
-
-    GameRegistry.addRecipe(new ShapedOreRecipe(output, shape ++ input: _*))
+    if (input.size > 0 && output.stackSize > 0) {
+      GameRegistry.addRecipe(new ShapedOreRecipe(output, shape ++ input: _*))
+    }
+    else {
+      Items.multi.subItem(output) match {
+        case Some(stack) => stack.showInItemList = false
+        case _ =>
+      }
+    }
   }
 
   private def addShapelessRecipe(output: ItemStack, recipe: Config) {
@@ -200,6 +207,12 @@ object Recipes {
 
     if (input.size > 0 && output.stackSize > 0) {
       GameRegistry.addRecipe(new ShapelessOreRecipe(output, input: _*))
+    }
+    else {
+      Items.multi.subItem(output) match {
+        case Some(stack) => stack.showInItemList = false
+        case _ =>
+      }
     }
   }
 

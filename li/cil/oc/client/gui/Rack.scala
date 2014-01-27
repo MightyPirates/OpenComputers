@@ -2,22 +2,17 @@ package li.cil.oc.client.gui
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.{GuiScreen, GuiButton}
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.{ResourceLocation, StatCollector}
+import net.minecraft.util.StatCollector
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends DynamicGuiContainer(new container.Rack(playerInventory, rack)) {
-  protected val buttonPowerIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
-  protected val buttonSideIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
-  protected val buttonRangeIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_range.png")
-  protected val rangeIcon = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
-
   protected var powerButtons = new Array[ImageButton](4)
 
   protected var sideButtons = new Array[GuiButton](4)
@@ -76,15 +71,15 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
   override def initGui() {
     super.initGui()
     for (i <- 0 to 3) {
-      powerButtons(i) = new ImageButton(i, guiLeft + 84, guiTop + 7 + i * 18, 18, 18, buttonPowerIcon, canToggle = true)
+      powerButtons(i) = new ImageButton(i, guiLeft + 84, guiTop + 7 + i * 18, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
       add(buttonList, powerButtons(i))
     }
     for (i <- 0 to 3) {
-      sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, buttonSideIcon, sideName(i))
+      sideButtons(i) = new ImageButton(4 + i, guiLeft + 126, guiTop + 7 + i * 18, 42, 18, TexturePreloader.guiButtonSide, sideName(i))
       add(buttonList, sideButtons(i))
     }
     for (i <- 0 to 1) {
-      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 43, 16, 18, buttonRangeIcon, if (i == 0) "-" else "+")
+      rangeButtons(i) = new ImageButton(8 + i, guiLeft + 8 + i * 48, guiTop + 43, 16, 18, TexturePreloader.guiButtonRange, if (i == 0) "-" else "+")
       add(buttonList, rangeButtons(i))
     }
   }
@@ -108,7 +103,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       val w = 30
       val h = 18
       val t = Tessellator.instance
-      mc.getTextureManager.bindTexture(rangeIcon)
+      mc.getTextureManager.bindTexture(TexturePreloader.guiRange)
       GL11.glColor3f(1, 1, 1)
       GL11.glDepthMask(false)
       t.startDrawingQuads()

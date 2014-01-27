@@ -17,5 +17,5 @@ object InternetCard extends Item {
 
   def slot(stack: ItemStack) = Slot.Card
 
-  override def tier(stack: ItemStack) = 2
+  override def tier(stack: ItemStack) = 1
 }

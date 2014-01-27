@@ -1,17 +1,14 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
-  private val sideOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/power_distributor_on.png")
-
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
     if (distributor.globalBuffer > 0) {
@@ -27,7 +24,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       GL11.glScalef(1.002f, -1.002f, 1.002f)
       GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-      bindTexture(sideOn)
+      bindTexture(TexturePreloader.blockPowerDistributorOn)
 
       val t = Tessellator.instance
       t.startDrawingQuads()

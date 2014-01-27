@@ -1,19 +1,16 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Settings
+import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
-import net.minecraft.util.{StatCollector, ResourceLocation}
+import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
-  protected val slotBackground = new ResourceLocation(Settings.resourceDomain, "textures/gui/slot.png")
-  protected val background = new ResourceLocation(Settings.resourceDomain, "textures/gui/background.png")
-
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
       StatCollector.translateToLocal("container.inventory"),
@@ -21,7 +18,7 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    mc.renderEngine.bindTexture(background)
+    mc.renderEngine.bindTexture(TexturePreloader.guiBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 
@@ -46,7 +43,7 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
 
   private def drawSlotBackground(x: Int, y: Int) {
     GL11.glColor4f(1, 1, 1, 1)
-    mc.renderEngine.bindTexture(slotBackground)
+    mc.renderEngine.bindTexture(TexturePreloader.guiSlot)
     val t = Tessellator.instance
     t.startDrawingQuads()
     t.addVertexWithUV(x, y + 18, zLevel, 0, 1)
