@@ -58,7 +58,7 @@ end
 local function pathSearcher(module)
   local filepath, reason = package.searchpath(module, package.path)
   if filepath then
-    local loader, reason = loadfile(filepath, "bt", _G), filepath
+    local loader, reason = loadfile(filepath, "bt", _G)
     if loader then
       return loader, filepath
     else
