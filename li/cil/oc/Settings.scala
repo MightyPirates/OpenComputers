@@ -153,7 +153,7 @@ class Settings(config: Config) {
   // misc
   val maxScreenWidth = config.getInt("misc.maxScreenWidth") max 1
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
-  val inputUsername = config.getBoolean("inputUsername")
+  val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val commandUser = config.getString("misc.commandUser").trim
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
