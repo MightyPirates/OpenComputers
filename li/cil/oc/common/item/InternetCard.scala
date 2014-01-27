@@ -10,7 +10,7 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 class InternetCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "InternetCard"
 
-  override def rarity = EnumRarity.rare
+  override def rarity = EnumRarity.uncommon
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
