@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import cpw.mods.fml.common.IPlayerTracker
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
@@ -23,8 +24,14 @@ abstract class Keyboard extends ManagedComponent {
   @ForgeSubscribe
   def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {
     pressedKeys.get(e.player) match {
-      case Some(keys) => for ((code, char) <- keys)
-        signal(e.player, "key_up", char, code, e.player.getCommandSenderName)
+      case Some(keys) => for ((code, char) <- keys) {
+        if (Settings.get.inputUsername) {
+          signal(e.player, "key_up", char, code, e.player.getCommandSenderName)
+        }
+        else {
+          signal(e.player, "key_up", char, code)
+        }
+      }
       case _ =>
     }
     pressedKeys.remove(e.player)
@@ -49,19 +56,34 @@ abstract class Keyboard extends ManagedComponent {
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyDown" =>
         if (isUseableByPlayer(p)) {
           pressedKeys.getOrElseUpdate(p, mutable.Map.empty[Integer, Character]) += code -> char
-          signal(p, "key_down", char, code, p.getCommandSenderName)
+          if (Settings.get.inputUsername) {
+            signal(p, "key_down", char, code, p.getCommandSenderName)
+          }
+          else {
+            signal(p, "key_down", char, code)
+          }
         }
       case Array(p: EntityPlayer, char: Character, code: Integer) if message.name == "keyboard.keyUp" =>
         pressedKeys.get(p) match {
           case Some(keys) if keys.contains(code) =>
             keys -= code
-            signal(p, "key_up", char, code, p.getCommandSenderName)
+            if (Settings.get.inputUsername) {
+              signal(p, "key_up", char, code, p.getCommandSenderName)
+            }
+            else {
+              signal(p, "key_up", char, code)
+            }
           case _ =>
         }
       case Array(p: EntityPlayer, value: String) if message.name == "keyboard.clipboard" =>
         if (isUseableByPlayer(p)) {
           for (line <- value.linesWithSeparators) {
-            signal(p, "clipboard", line, p.getCommandSenderName)
+            if (Settings.get.inputUsername) {
+              signal(p, "clipboard", line, p.getCommandSenderName)
+            }
+            else {
+              signal(p, "clipboard", line)
+            }
           }
         }
       case _ =>

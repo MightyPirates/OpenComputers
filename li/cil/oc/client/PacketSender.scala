@@ -68,7 +68,7 @@ object PacketSender {
     }
   }
 
-  def sendMouseClick(b: component.Buffer, x: Int, y: Int, drag: Boolean) {
+  def sendMouseClick(b: component.Buffer, x: Int, y: Int, drag: Boolean, button: Int) {
     val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
     b.owner match {
@@ -82,6 +82,7 @@ object PacketSender {
     pb.writeInt(x)
     pb.writeInt(y)
     pb.writeBoolean(drag)
+    pb.writeByte(button.toByte)
 
     pb.sendToServer()
   }

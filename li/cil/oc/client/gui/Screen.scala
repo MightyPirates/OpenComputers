@@ -33,8 +33,8 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
   override protected def mouseClicked(mouseX: Int, mouseY: Int, button: Int) {
     super.mouseClicked(mouseX, mouseY, button)
     if (hasMouse) {
-      if (button == 0) {
-        clickOrDrag(mouseX, mouseY)
+      if (button == 0 || button == 1) {
+        clickOrDrag(mouseX, mouseY, button)
       }
     }
   }
@@ -42,8 +42,8 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
   protected override def mouseClickMove(mouseX: Int, mouseY: Int, button: Int, timeSinceLast: Long) {
     super.mouseClickMove(mouseX, mouseY, button, timeSinceLast)
     if (hasMouse && timeSinceLast > 10) {
-      if (button == 0) {
-        clickOrDrag(mouseX, mouseY)
+      if (button == 0 || button == 1) {
+        clickOrDrag(mouseX, mouseY, button)
       }
     }
   }
@@ -56,13 +56,13 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     }
   }
 
-  private def clickOrDrag(mouseX: Int, mouseY: Int) {
+  private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
     val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
     val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
     val (bw, bh) = buffer.resolution
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {
-        PacketSender.sendMouseClick(buffer, bx, by, mx > 0 && my > 0)
+        PacketSender.sendMouseClick(buffer, bx, by, mx > 0 && my > 0, button)
         mx = bx
         my = by
       }

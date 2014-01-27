@@ -102,7 +102,13 @@ class PacketHandler extends CommonPacketHandler {
         val x = p.readInt()
         val y = p.readInt()
         val what = if (p.readBoolean()) "drag" else "touch"
-        node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), player.getCommandSenderName)
+        val button = p.readByte()
+        if (Settings.get.inputUsername) {
+          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+        }
+        else {
+          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button))
+        }
       case _ => // Invalid packet.
     }
   }
@@ -118,7 +124,12 @@ class PacketHandler extends CommonPacketHandler {
         val x = p.readInt()
         val y = p.readInt()
         val scroll = p.readByte()
-        node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
+        if (Settings.get.inputUsername) {
+          node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
+        }
+        else {
+          node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll))
+        }
       case _ => // Invalid packet.
     }
   }
