@@ -1,6 +1,45 @@
 local io, file = {}, {}
 
 local input, output
+local programs = setmetatable({}, {__mode="k"}) -- maps program envs to i/o
+function io.progs() return programs end
+local function findOverride(filter)
+  local override
+  pcall(function()
+    for level = 1, math.huge do
+      local path, env = require("shell").running(level)
+      if not path or override then
+        return
+      end
+      if programs[env] then
+        override = filter(programs[env])
+      end
+    end
+  end)
+  return override
+end
+
+local function setInput(value)
+  if not pcall(function()
+    local path, env = require("shell").running()
+    programs[env] = programs[env] or {}
+    programs[env].input = value
+  end)
+  then
+    input = value
+  end
+end
+
+local function setOutput(value)
+  if not pcall(function()
+    local path, env = require("shell").running()
+    programs[env] = programs[env] or {}
+    programs[env].output = value
+  end)
+  then
+    output = value
+  end
+end
 
 -------------------------------------------------------------------------------
 
@@ -17,30 +56,30 @@ function io.input(file)
     if type(file) == "string" then
       local result, reason = io.open(file)
       if not result then
-        error(reason)
+        error(reason, 2)
       end
-      input = result
+      setInput(result)
     elseif io.type(file) then
-      input = file
+      setInput(file)
     else
-      error("bad argument #1 (string or file expected, got " .. type(file) .. ")")
+      error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
   end
-  return input
+  return findOverride(function(env) return env.input end) or input
 end
 
 function io.lines(filename, ...)
   if filename then
     local result, reason = io.open(filename)
     if not result then
-      error(reason)
+      error(reason, 2)
     end
     local args = table.pack(...)
     return function()
       local result = table.pack(file:read(table.unpack(args, 1, args.n)))
       if not result[1] then
         if result[2] then
-          error(result[2])
+          error(result[2], 2)
         else -- eof
           file:close()
           return nil
@@ -68,16 +107,16 @@ function io.output(file)
     if type(file) == "string" then
       local result, reason = io.open(file, "w")
       if not result then
-        error(reason)
+        error(reason, 2)
       end
-      output = result
+      setOutput(result)
     elseif io.type(file) then
-      output = file
+      setOutput(file)
     else
-      error("bad argument #1 (string or file expected, got " .. type(file) .. ")")
+      error("bad argument #1 (string or file expected, got " .. type(file) .. ")", 2)
     end
   end
-  return output
+  return findOverride(function(env) return env.output end) or output
 end
 
 -- TODO io.popen = function(prog, mode) end

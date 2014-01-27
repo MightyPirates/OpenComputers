@@ -1,12 +1,14 @@
 OpenComputers
 =============
-OpenComputers is a Minecraft mod that adds programmable computers and robots to the game. Computers and robots are programmed in Lua and are fully persistent, meaning programs will continue running across reloads. To achieve this the mod uses a native library. This limits the supported platforms to those the library is available for, which at this time are: Windows, Linux and MacOS. Note that Windows XP and older as well as PowerPC Macs are *not* supported.
+OpenComputers is a Minecraft mod that adds programmable computers and robots to the game. Computers and robots are programmed in Lua and are fully persistent, meaning programs will continue running across reloads. To achieve this the mod comes with a native library. This limits the platforms with full support to those the library is available for, which at this time are: Windows, Linux and MacOS. On systems the native library is not available for, the mod will fall back to using LuaJ, which means computers will *not* persist and won't be limited in how much memory they use.
 
 For more information on the mod, please [see the wiki](https://github.com/MightyPirates/OpenComputers/wiki). If you still have questions, visit the [community forums](http://oc.cil.li/).
 
 Contributing
 ------------
 If you'd like to contribute, the easiest way to do so is to provide a translation. See [`assets/opencomputers/lang`](https://github.com/MightyPirates/OpenComputers/tree/master/assets/opencomputers/lang) for already existing translations. New translations should be based on the English localization, since it will usually be the most up-to-date.
+
+If you'd like to contribute code, please have a look at the [code conventions](https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions). If you plan to make a big contribution, use common sense and ask first and talk things through with me.
 
 You can also implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
 

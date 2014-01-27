@@ -70,6 +70,10 @@ sandbox = {
     if not allowBytecode() then
       mode = "t"
     end
+    pcall(function()
+      local _, penv = sandbox.require("shell").running()
+      env = env or penv
+    end)
     return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in boot/*_base.lua

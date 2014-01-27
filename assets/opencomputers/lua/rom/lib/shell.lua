@@ -123,12 +123,16 @@ function shell.execute(program, env, ...)
   if not filename then
     return nil, reason
   end
-  local code, reason = loadfile(filename, "t", setmetatable({}, {__index=env or _ENV}))
+  if #running > 0 then
+    env = env or running[#running].env
+  end
+  env = setmetatable({}, {__index=env or _ENV})
+  local code, reason = loadfile(filename, "t", env)
   if not code then
     return nil, reason
   end
   local co, args, result = coroutine.create(code), table.pack(true, ...), nil
-  table.insert(running, filename)
+  table.insert(running, {path=filename, env=env})
   -- Emulate CC behavior by making yields a filtered event.pull()
   repeat
     result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
@@ -167,7 +171,10 @@ end
 
 function shell.running(level)
   level = level or 1
-  return running[1 + (#running - level)]
+  local info = running[1 + (#running - level)]
+  if info then
+    return info.path, info.env
+  end
 end
 
 -------------------------------------------------------------------------------

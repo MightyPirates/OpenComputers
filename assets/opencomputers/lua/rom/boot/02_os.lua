@@ -24,7 +24,7 @@ os.execute = function(command)
   for part in tail:gmatch("%S+") do
     table.insert(args, part)
   end
-  return shell.execute(head, _ENV, table.unpack(args))
+  return shell.execute(head, nil, table.unpack(args))
 end
 
 function os.exit()
