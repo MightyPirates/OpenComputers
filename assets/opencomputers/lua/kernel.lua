@@ -240,7 +240,10 @@ sandbox = {
     time = os.time,
     tmpname = nil, -- in boot/*_os.lua
   },
-
+  
+  debug = {
+    traceback = debug.traceback
+  },
   _OSVERSION = "OpenOS 1.1",
   checkArg = checkArg
 }
