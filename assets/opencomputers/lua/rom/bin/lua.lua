@@ -8,7 +8,13 @@ local env = setmetatable({}, {__index = function(t, k)
   return _ENV[k] or package.loaded[k]
 end})
 
+component.gpu.setForeground(0xFFFFFF)
 print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
+component.gpu.setForeground(0xFFFF00)
+print("Enter a statement and press enter to evaluate it.")
+print("Prefix an expression with '=' to print its value.")
+print("Press Ctrl+C to exit the interpreter.")
+component.gpu.setForeground(0xFFFFFF)
 
 while term.isAvailable() do
   local foreground = component.gpu.setForeground(0x00FF00)
