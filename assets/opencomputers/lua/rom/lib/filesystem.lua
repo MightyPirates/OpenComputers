@@ -46,26 +46,33 @@ local function findNode(path, create, depth)
         return findNode(filesystem.concat(node.links[part], table.concat(parts, "/", 2)), create, depth + 1)
       else
         if create then
-          node.children[part] = {children={}, links={}, parent=node}
+          node.children[part] = {name=part, parent=node, children={}, links={}}
         else
-          return node, table.concat(parts, "/")
+          local vnode, vrest = node, table.concat(parts, "/")
+          local rest = vrest
+          while node and not node.fs do
+            rest = filesystem.concat(node.name, rest)
+            node = node.parent
+          end
+          return node, rest, vnode, vrest
         end
       end
     end
     node = node.children[part]
     table.remove(parts, 1)
   end
-  return node
+  local vnode, vrest = node, nil
+  local rest = nil
+  while node and not node.fs do
+    rest = rest and filesystem.concat(node.name, rest) or node.name
+    node = node.parent
+  end
+  return node, rest, vnode, vrest
 end
 
 local function removeEmptyNodes(node)
-  while node and node.parent and not node.fs and not next(node.children) do
-    for k, c in pairs(node.parent.children) do
-      if c == node then
-        node.parent.children[k] = nil
-        break
-      end
-    end
+  while node and node.parent and not node.fs and not next(node.children) and not next(node.links) do
+    node.parent.children[node.name] = nil
     node = node.parent
   end
 end
@@ -106,24 +113,23 @@ function filesystem.get(path)
   local node, rest = findNode(path)
   if node.fs then
     local proxy = node.fs
-    path = "/"
-    while node.parent do
-      for name, child in pairs(node.parent.children) do
-        if child == node then
-          path = "/" .. name .. path
-          break
-        end
-      end
+    path = ""
+    while node and node.parent do
+      path = filesystem.concat(node.name, path)
       node = node.parent
     end
-    return proxy, filesystem.canonical(path)
+    path = filesystem.canonical(path)
+    if path ~= "/" then
+      path = "/" .. path
+    end
+    return proxy, path
   end
   return nil, "no such file system"
 end
 
 function filesystem.isLink(path)
-  local node, rest = findNode(filesystem.path(path))
-  return not rest and node.links[filesystem.name(path)] ~= nil
+  local node, rest, vnode, vrest = findNode(filesystem.path(path))
+  return not vrest and vnode.links[filesystem.name(path)] ~= nil
 end
 
 function filesystem.link(target, linkpath)
@@ -134,8 +140,8 @@ function filesystem.link(target, linkpath)
     return nil, "file already exists"
   end
 
-  local node = findNode(filesystem.path(linkpath), true)
-  node.links[filesystem.name(linkpath)] = target
+  local node, rest, vnode, vrest = findNode(filesystem.path(linkpath), true)
+  vnode.links[filesystem.name(linkpath)] = target
   return true
 end
 
@@ -151,11 +157,11 @@ function filesystem.mount(fs, path)
     return nil, "file already exists"
   end
 
-  local node = findNode(path, true)
-  if node.fs then
+  local node, rest, vnode, vrest = findNode(path, true)
+  if vnode.fs then
     return nil, "another filesystem is already mounted here"
   end
-  node.fs = fs
+  vnode.fs = fs
   return true
 end
 
@@ -223,10 +229,10 @@ end
 function filesystem.umount(fsOrPath)
   checkArg(1, fsOrPath, "string", "table")
   if type(fsOrPath) == "string" then
-    local node, rest = findNode(fsOrPath)
-    if not rest and node.fs then
-      node.fs = nil
-      removeEmptyNodes(node)
+    local node, rest, vnode, vrest = findNode(fsOrPath)
+    if not vrest and vnode.fs then
+      vnode.fs = nil
+      removeEmptyNodes(vnode)
       return true
     end
   end
@@ -234,9 +240,9 @@ function filesystem.umount(fsOrPath)
     local queue = {mtab}
     for proxy, path in filesystem.mounts() do
       if string.sub(proxy.address, 1, address:len()) == address then
-        local node = findNode(path)
-        node.fs = nil
-        removeEmptyNodes(node)
+        local node, rest, vnode, vrest = findNode(path)
+        vnode.fs = nil
+        removeEmptyNodes(vnode)
         return true
       end
     end
@@ -248,8 +254,8 @@ function filesystem.umount(fsOrPath)
 end
 
 function filesystem.exists(path)
-  local node, rest = findNode(path)
-  if not rest or node.links[rest] then -- virtual directory or symbolic link
+  local node, rest, vnode, vrest = findNode(path)
+  if not vrest or vnode.links[vrest] then -- virtual directory or symbolic link
     return true
   end
   if node.fs then
@@ -259,53 +265,66 @@ function filesystem.exists(path)
 end
 
 function filesystem.size(path)
-  local node, rest = findNode(path)
+  local node, rest, vnode, vrest = findNode(path)
+  if not vnode.fs and (not vrest or vnode.links[vrest]) then
+    return 0 -- virtual directory or symlink
+  end
   if node.fs and rest then
     return node.fs.size(rest)
   end
-  return 0 -- no such file or directory or it's a virtual directory
+  return 0 -- no such file or directory
 end
 
 function filesystem.isDirectory(path)
-  local node, rest = findNode(path)
-  if node.fs and rest then
-    return node.fs.isDirectory(rest)
-  else
-    return not rest or unicode.len(rest) == 0
+  local node, rest, vnode, vrest = findNode(path)
+  if not vnode.fs and not vrest then
+    return true -- virtual directory
   end
+  if node.fs then
+    return not rest or node.fs.isDirectory(rest)
+  end
+  return false
 end
 
 function filesystem.lastModified(path)
-  local node, rest = findNode(path)
+  local node, rest, vnode, vrest = findNode(path)
+  if not vnode.fs and not vrest then
+    return 0 -- virtual directory
+  end
   if node.fs and rest then
     return node.fs.lastModified(rest)
   end
-  return 0 -- no such file or directory or it's a virtual directory
+  return 0 -- no such file or directory
 end
 
 function filesystem.list(path)
-  local node, rest = findNode(path)
-  if not node.fs and rest then
+  local node, rest, vnode, vrest = findNode(path)
+  if not vnode.fs and vrest and not node.fs then
     return nil, "no such file or directory"
   end
   local result, reason
   if node.fs then
     result, reason = node.fs.list(rest or "")
-    if not result then
-      return nil, reason or "no such directory"
-    end
-  else
-    result = {}
   end
-  if not rest then
-    for k in pairs(node.children) do
+  result = result or {}
+  if not vrest then
+    for k in pairs(vnode.children) do
       table.insert(result, k .. "/")
     end
-    for k in pairs(node.links) do
+    for k in pairs(vnode.links) do
       table.insert(result, k)
     end
   end
   table.sort(result)
+  local i, f = 1, nil
+  while i <= #result do
+    if result[i] == f then
+      table.remove(result, i)
+    else
+      f = result[i]
+    end
+    i = i + 1
+  end
   local i = 0
   return function()
     i = i + 1
@@ -328,13 +347,15 @@ function filesystem.makeDirectory(path)
 end
 
 function filesystem.remove(path)
-  local node, rest = findNode(filesystem.path(path))
+  local node, rest, vnode, vrest = findNode(filesystem.path(path))
   local name = filesystem.name(path)
-  if node.children[name] then
-    node.children[name] = nil
+  if vnode.children[name] then
+    vnode.children[name] = nil
+    removeEmptyNodes(vnode)
     return true
-  elseif node.links[name] then
-    node.links[name] = nil
+  elseif vnode.links[name] then
+    vnode.links[name] = nil
+    removeEmptyNodes(vnode)
     return true
   else
     node, rest = findNode(path)
@@ -347,8 +368,8 @@ end
 
 function filesystem.rename(oldPath, newPath)
   if filesystem.isLink(oldPath) then
-    local node, rest = findNode(filesystem.path(oldPath))
-    local target = node.links[filesystem.name(oldPath)]
+    local node, rest, vnode, vrest = findNode(filesystem.path(oldPath))
+    local target = vnode.links[filesystem.name(oldPath)]
     local result, reason = filesystem.link(target, newPath)
     if result then
       filesystem.remove(oldPath)
