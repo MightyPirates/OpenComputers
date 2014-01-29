@@ -1,8 +1,8 @@
 package li.cil.oc.util
 
 import li.cil.oc.OpenComputers
-import org.luaj.vm2.lib.VarArgFunction
-import org.luaj.vm2.{LuaValue, Varargs}
+import org.luaj.vm3.lib.VarArgFunction
+import org.luaj.vm3.{LuaValue, Varargs}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.language.implicitConversions

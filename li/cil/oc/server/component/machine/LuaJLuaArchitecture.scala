@@ -7,8 +7,8 @@ import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
 import li.cil.oc.{OpenComputers, server, Settings}
 import net.minecraft.nbt.NBTTagCompound
-import org.luaj.vm2._
-import org.luaj.vm2.lib.jse.JsePlatform
+import org.luaj.vm3._
+import org.luaj.vm3.lib.jse.JsePlatform
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
