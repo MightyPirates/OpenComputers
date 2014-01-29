@@ -18,7 +18,7 @@ component.gpu.setForeground(0xFFFFFF)
 
 while term.isAvailable() do
   local foreground = component.gpu.setForeground(0x00FF00)
-  term.write("lua> ")
+  term.write(tostring(env._PROMPT or "lua> "))
   component.gpu.setForeground(foreground)
   local command = term.read(history)
   if command == nil then -- eof

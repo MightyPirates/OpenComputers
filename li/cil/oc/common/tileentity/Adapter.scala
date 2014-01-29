@@ -7,13 +7,20 @@ import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.{Array, Some}
+import net.minecraft.entity.player.EntityPlayer
 
-class Adapter extends Environment with Inventory {
+class Adapter extends Environment with Inventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
+
+  // ----------------------------------------------------------------------- //
+
+  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
+    case Some(((environment, _))) => environment.node
+  }
 
   // ----------------------------------------------------------------------- //
 

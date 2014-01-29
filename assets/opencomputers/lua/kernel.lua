@@ -94,7 +94,13 @@ sandbox = {
   xpcall = xpcall,
 
   coroutine = {
-    create = coroutine.create,
+    create = function(f)
+      local co = coroutine.create(f)
+      pcall(function()
+        sandbox.require("shell").register(co)
+      end)
+      return co
+    end,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
       checkArg(1, co, "thread")
       local args = table.pack(...)
