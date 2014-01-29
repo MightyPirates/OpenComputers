@@ -13,7 +13,7 @@ import net.minecraftforge.common.ForgeDirection
 class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "RobotAfterimage"
 
-  override val showInItemList = false
+  showInItemList = false
 
   private var icon: Icon = _
 

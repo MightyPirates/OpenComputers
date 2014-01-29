@@ -5,6 +5,7 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import java.io.{FileReader, File}
 import java.util.logging.Level
+import li.cil.oc.common.block.Delegator
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
@@ -149,19 +150,26 @@ object Recipes {
           case "shapeless" => addShapelessRecipe(output, recipe)
           case "furnace" => addFurnaceRecipe(output, recipe)
           case "assembly" => addAssemblyRecipe(output, recipe)
-          case other => OpenComputers.log.warning("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
+          case other =>
+            OpenComputers.log.warning("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
+            hide(output)
         }
       }
       catch {
-        case e: RecipeException => OpenComputers.log.warning("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
+        case e: RecipeException =>
+          OpenComputers.log.warning("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
+          hide(output)
       }
     }
     else {
       OpenComputers.log.info("No recipe for '" + name + "', you will not be able to craft this item.")
+      hide(output)
     }
   }
   catch {
-    case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
+    case e: Throwable =>
+      OpenComputers.log.log(Level.SEVERE, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
+      hide(output)
   }
 
   private def addShapedRecipe(output: ItemStack, recipe: Config) {
@@ -190,12 +198,7 @@ object Recipes {
     if (input.size > 0 && output.stackSize > 0) {
       GameRegistry.addRecipe(new ShapedOreRecipe(output, shape ++ input: _*))
     }
-    else {
-      Items.multi.subItem(output) match {
-        case Some(stack) => stack.showInItemList = false
-        case _ =>
-      }
-    }
+    else hide(output)
   }
 
   private def addShapelessRecipe(output: ItemStack, recipe: Config) {
@@ -208,12 +211,7 @@ object Recipes {
     if (input.size > 0 && output.stackSize > 0) {
       GameRegistry.addRecipe(new ShapelessOreRecipe(output, input: _*))
     }
-    else {
-      Items.multi.subItem(output) match {
-        case Some(stack) => stack.showInItemList = false
-        case _ =>
-      }
-    }
+    else hide(output)
   }
 
   private def addAssemblyRecipe(output: ItemStack, recipe: Config) {
@@ -337,6 +335,16 @@ object Recipes {
     val index = id.intValue
     if (index < 0 || index >= Item.itemsList.length || Item.itemsList(index) == null) throw new RecipeException("Invalid item ID: " + index)
     Item.itemsList(index)
+  }
+
+  private def hide(value: ItemStack) {
+    Items.multi.subItem(value) match {
+      case Some(stack) => stack.showInItemList = false
+      case _ => Delegator.subBlock(value) match {
+        case Some(block) => block.showInItemList = false
+        case _ =>
+      }
+    }
   }
 
   private class RecipeException(message: String) extends RuntimeException(message)

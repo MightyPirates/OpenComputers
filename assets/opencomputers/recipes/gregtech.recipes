@@ -1,6 +1,8 @@
 # Do not change this file, it is rewritten each time you start the game.
 # Instead, use the user.recipes file to edit recipes by redefining them there.
 
+include file("hardmode.recipes")
+
 analyzer {
   input: [["oc:craftingTransistor", torchRedstoneActive, "oc:craftingTransistor"]
           ["oc:circuitTier2", "item.GT_Scanner", "oc:circuitTier2"]

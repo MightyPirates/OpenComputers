@@ -4,6 +4,7 @@
 # already known recipes).
 
 include file("default.recipes")
+#include file("hardmode.recipes")
 #include file("gregtech.recipes")
 #include file("your_custom.recipes")
 

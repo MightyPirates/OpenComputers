@@ -15,7 +15,7 @@ import net.minecraftforge.common.ForgeDirection
 trait Delegate {
   val unlocalizedName: String
 
-  val showInItemList = true
+  var showInItemList = true
 
   def blockId: Int
 
