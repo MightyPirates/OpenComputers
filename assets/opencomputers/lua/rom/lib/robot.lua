@@ -3,7 +3,7 @@ local computer = require("computer")
 local sides = require("sides")
 
 if not computer.isRobot() then
-  return nil, "not a robot"
+  error("not a robot")
 end
 
 local robot = {}

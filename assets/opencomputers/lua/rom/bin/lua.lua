@@ -3,9 +3,16 @@ local package = require("package")
 local term = require("term")
 local text = require("text")
 
+local function optrequire(...)
+  local success, module = pcall(require, ...)
+  if success then
+    return module
+  end
+end
+
 local history = {}
 local env = setmetatable({}, {__index = function(t, k)
-  return _ENV[k] or package.loaded[k]
+  return _ENV[k] or optrequire(k)
 end})
 
 component.gpu.setForeground(0xFFFFFF)

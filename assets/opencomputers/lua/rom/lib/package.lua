@@ -74,12 +74,12 @@ table.insert(package.searchers, pathSearcher)
 
 function require(module)
   checkArg(1, module, "string")
-  if loaded[module] then
+  if loaded[module] ~= nil then
     return loaded[module]
   elseif not loading[module] then
     loading[module] = true
     local loader, value, errorMsg = nil, nil, {"module '" .. module .. "' not found:"}
-    for i=1, #package.searchers do
+    for i = 1, #package.searchers do
       local f, extra = package.searchers[i](module)
       if f and type(f) ~= "string" then
         loader = f
@@ -90,20 +90,23 @@ function require(module)
       end
     end
     if loader then
-      local result = loader(module, value)
+      local success, result = pcall(loader, module, value)
+      loading[module] = false
+      if not success then
+        error(result, 2)
+      end
       if result then
         loaded[module] = result
       elseif not loaded[module] then
         loaded[module] = true
       end
-      loading[module] = false
       return loaded[module]
     else
       loading[module] = false
-      error(table.concat(errorMsg, "\n"))
+      error(table.concat(errorMsg, "\n"), 2)
     end
   else
-    error("already loading: " .. module)
+    error("already loading: " .. module, 2)
   end
 end
 
