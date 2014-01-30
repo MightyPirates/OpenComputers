@@ -39,7 +39,7 @@ for i = 1, #dirs do
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
         io.write(d, "\t")
-        if options.l then
+        if options.l or io.output() ~= io.stdout then
           io.write("\n")
         end
       end
@@ -57,6 +57,8 @@ for i = 1, #dirs do
         if options.l then
           setColor(0xFFFFFF)
           io.write(fs.size(fs.concat(path, f)), "\n")
+        elseif io.output() ~= io.stdout then
+          io.write("\n")
         end
       end
     end

@@ -63,11 +63,7 @@ local function findFile(name, ext)
   return false
 end
 
-local function parseCommand(command)
-  local tokens, reason = text.tokenize(command)
-  if not tokens then
-    return nil, reason
-  end
+local function parseCommand(tokens)
   local program, args, input, output = tokens[1], {}, nil, nil
   if not program then
     return
@@ -106,7 +102,7 @@ local function parseCommand(command)
         state = "output"
       elseif tokens[i] == ">>" then
         if not input then
-          return nil, "parse error near '>>"
+          return nil, "parse error near '>>'"
         end
         state = "append"
       elseif not input then
@@ -119,6 +115,87 @@ local function parseCommand(command)
     end
   end
   return program, args, input, output, state
+end
+
+local function parseCommands(command)
+  local tokens, reason = text.tokenize(command)
+  if not tokens then
+    return nil, reason
+  end
+
+  local commands, command = {}, {}
+  for i = 1, #tokens do
+    if tokens[i] == "|" then
+      if #command == 0 then
+        return nil, "parse error near '|'"
+      end
+      table.insert(commands, command)
+      command = {}
+    else
+      table.insert(command, tokens[i])
+    end
+  end
+  if #command > 0 then
+    table.insert(commands, command)
+  end
+
+  for i = 1, #commands do
+    commands[i] = table.pack(parseCommand(commands[i]))
+  end
+
+  return commands
+end
+
+-------------------------------------------------------------------------------
+
+local memoryStream = {}
+
+function memoryStream.close(self)
+  self.closed = true
+end
+
+function memoryStream.seek()
+  return nil, "bad file descriptor"
+end
+
+function memoryStream.read(self, n)
+  if self.closed then
+    if self.buffer == "" and self.redirect.read then
+      return self.redirect.read:read(n)
+    end
+    return nil -- eof
+  end
+  if self.buffer == "" then
+    self.args = table.pack(coroutine.yield(table.unpack(self.result)))
+  end
+  local result = string.sub(self.buffer, 1, n)
+  self.buffer = string.sub(self.buffer, n + 1)
+  return result
+end
+
+function memoryStream.write(self, value)
+  local ok
+  if self.redirect.write then
+    ok = self.redirect.write:write(value)
+  end
+  if not self.closed then
+    self.buffer = self.buffer .. value
+    self.result = table.pack(coroutine.resume(self.next, table.unpack(self.args)))
+    ok = true
+  end
+  if ok then
+    return true
+  end
+  return nil, "stream is closed"
+end
+
+function memoryStream.new()
+  local stream = {closed = false, buffer = "",
+                  redirect = {}, result = {}, args = {}}
+  local metatable = {__index = memoryStream,
+                     __gc = memoryStream.close,
+                     __metatable = "memorystream"}
+  return setmetatable(stream, metatable)
 end
 
 -------------------------------------------------------------------------------
@@ -189,61 +266,105 @@ end
 
 function shell.execute(command, env, ...)
   checkArg(1, command, "string")
-  local program, args, input, output, mode = parseCommand(command)
-  if not program then
-    return false, args
+  local commands, reason = parseCommands(command)
+  if not commands then
+    return false, reason
   end
-  if not program then
+  if #commands == 0 then
     return true
   end
-  local thread, reason = shell.load(program, env, function()
+
+  -- Piping data between programs works like so:
+  -- program1 gets its output replaced with our custom stream.
+  -- program2 gets its input replaced with our custom stream.
+  -- repeat for all programs
+  -- custom stream triggers execution of 'next' program after write.
+  -- custom stream triggers yield before read if buffer is empty.
+  -- custom stream may have 'redirect' entries for fallback/duplication.
+  local threads, pipes, inputs, outputs = {}, {}, {}, {}
+  for i = 1, #commands do
+    local program, args, input, output, mode = table.unpack(commands[i])
     local reason
-    if input then
-      input, reason = io.open(shell.resolve(input))
-      if not input then
-        error(reason)
-      end
-      io.input(input)
-    end
-    if output then
-      output, reason = io.open(shell.resolve(output), mode == "append" and "a" or "w")
-      if not output then
-        if input then
-          input:close()
+    threads[i], reason = shell.load(program, env, function()
+      if input then
+        local file, reason = io.open(shell.resolve(input))
+        if not file then
+          error(reason)
         end
-        error(reason)
+        table.insert(inputs, file)
+        if pipes[i - 1] then
+          pipes[i - 1].stream.redirect.read = file
+          io.input(pipes[i - 1])
+        else
+          io.input(file)
+        end
+      elseif pipes[i - 1] then
+        io.input(pipes[i - 1])
       end
-      io.output(output)
-      if mode == "append" then
-        io.write("\n")
+      if output then
+        local file, reason = io.open(shell.resolve(output), mode == "append" and "a" or "w")
+        if not file then
+          error(reason)
+        end
+        if mode == "append" then
+          io.write("\n")
+        end
+        table.insert(outputs, file)
+        if pipes[i] then
+          pipes[i].stream.redirect.write = file
+          io.output(pipes[i])
+        else
+          io.output(file)
+        end
+      elseif pipes[i] then
+        io.output(pipes[i])
       end
+    end, command)
+    if not threads[i] then
+      return false, reason
     end
-  end, command)
-  if not thread then
-    return nil, reason
+
+    if i < #commands then
+      pipes[i] = require("buffer").new("rw", memoryStream.new())
+      pipes[i]:setvbuf("no")
+    end
+    if i > 1 then
+      pipes[i - 1].stream.next = threads[i]
+      pipes[i - 1].stream.args = args
+    end
   end
+
+  local args = select(2, table.unpack(commands[1]))
   table.insert(args, 1, true)
   for _, arg in ipairs(table.pack(...)) do
     table.insert(args, arg)
   end
+  args.n = #args
   local result = nil
-  -- Emulate CC behavior by making yields a filtered event.pull()
-  repeat
-    result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
-    if coroutine.status(thread) == "dead" then
-      break
+  for i = 1, #threads do
+    -- Emulate CC behavior by making yields a filtered event.pull()
+    while args[1] and coroutine.status(threads[i]) ~= "dead" do
+      result = table.pack(coroutine.resume(threads[i], table.unpack(args, 2, args.n)))
+      if coroutine.status(threads[i]) ~= "dead" then
+        if type(result[2]) == "string" then
+          args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
+        else
+          args = {true, n=1}
+        end
+      end
     end
-    if type(result[2]) == "string" then
-      args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-    else
-      args = {true, n=1}
+    if pipes[i] then
+      pipes[i]:close()
     end
-  until not args[1]
-  if input then
+    if i < #threads and not result[1] then
+      io.write(result[2])
+    end
+  end
+  for _, input in ipairs(inputs) do
     input:close()
   end
-  if output then
-    output: close()
+  for _, output in ipairs(outputs) do
+    output:close()
   end
   if not args[1] then
     return false, args[2]
@@ -255,7 +376,7 @@ function shell.load(path, env, init, name)
   checkArg(1, path, "string")
   checkArg(2, env, "table", "nil")
   checkArg(3, init, "function", "nil")
-  checkArg(4, init, "string", "nil")
+  checkArg(4, name, "string", "nil")
   local filename, reason = shell.resolve(path, "lua")
   if not filename then
     return nil, reason
