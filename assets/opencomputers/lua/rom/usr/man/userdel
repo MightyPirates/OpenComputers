@@ -1,0 +1,12 @@
+NAME
+  userdel - removes a player from the list of authorized users
+
+SYNOPSIS
+  userdel NAME
+
+DESCRIPTION
+  Removes a player from the list of users authorized to use this computer. See `useradd`.
+
+EXAMPLES
+  userdel Steve
+    Removes the player named `Steve` from the userlist.

@@ -1,0 +1,16 @@
+NAME
+  useradd - adds a player to the list of authorized users
+
+SYNOPSIS
+  useradd NAME
+
+DESCRIPTION
+  Adds a player to the list of users that can use the computer. To add a player, he has to be logged in when the command is run. Note that the names are case sensitive. Users can be removed again using `userdel`.
+
+  As long as the list of players registered on a computer is empty, the computer can be used by all players. Once there is at least one entry in the list of users, only the players in the list can use the computer. This includes modifying its inventory, performing keyboard and mouse input as well as breaking the computer block.
+
+  Computer ownership can be disabled in the configuration.
+
+EXAMPLES
+  useradd Steve
+    Adds the player named `Steve` to the list of users.

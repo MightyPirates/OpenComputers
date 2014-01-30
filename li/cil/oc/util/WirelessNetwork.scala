@@ -114,7 +114,6 @@ object WirelessNetwork {
       val top = crossProduct(v, side)
 
       // Accumulated obstructions and number of samples.
-      //val delta = v.lengthVector
       var hardness = 0.0
       val samples = math.max(1, math.sqrt(gap).toInt)
 

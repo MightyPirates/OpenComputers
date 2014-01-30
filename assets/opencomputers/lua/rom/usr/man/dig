@@ -1,0 +1,18 @@
+NAME
+  dig - excavate an area
+
+SYNOPSIS
+  dig SIZE
+
+DESCRIPTION
+  Makes the robot it is run on excavate an area of the specified size. When the robot's inventory is full, it will return to its starting position and drop everything towards the direction originally behind it. So when placing a robot so that it faces away from a chest behind it, it will place everything it finds into that chest. The robot will continue digging down until it hits a block it cannot break (when given a diamond pickaxe usually bedrock).
+
+  Note that this program performs no energy checks, meaning robots that run out of energy will simply stop where they are, possibly down in the hole they've been digging.
+
+OPTIONS
+  -s
+    shutdown the robot when done
+
+EXAMPLES
+  dig 3
+    Excavates a 3 by 3 area.

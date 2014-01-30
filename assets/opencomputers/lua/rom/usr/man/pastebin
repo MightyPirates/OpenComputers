@@ -1,0 +1,23 @@
+NAME
+  pastebin - download and upload programs from and to pastebin
+
+SYNOPSIS
+  pastebin get PASTID FILE
+  pastebin put FILE
+  pastebin run PASTEID [ARGUMENT]...
+
+DESCRIPTION
+  The pastebin program allows downloading programs from pastebin, identified by their paste ID. I can also be used to upload programs to pastebin.
+
+  The pastebin program requires an internet card and internet access to be enabled in the mod's configuration.
+
+OPTIONS
+  -f
+    do not prompt before overwriting
+
+EXAMPLES
+  pastebin get AbCdEfGh test
+    Downloads the paste with ID `AbCdEfGh` and writes it to file `test`.
+
+  pastebin put prog.lua
+    Uploads the program `prog.lua` to pastebin.
