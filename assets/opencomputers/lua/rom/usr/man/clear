@@ -1,0 +1,12 @@
+NAME
+  clear - clears the terminal
+
+SYNOPSIS
+  clear
+
+DESCRIPTION
+  Clears any text from the screen, using the current background and foreground (text) colors and resets the cursor position to (1, 1).
+
+EXAMPLES
+  clear
+    Clears the screen/

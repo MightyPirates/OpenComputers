@@ -1,0 +1,15 @@
+NAME
+  cd - change the current working directory
+
+SYNOPSIS
+  cd path
+
+DESCRIPTION
+  `cd` allows changing the current working directory, i.e the directory based on which relative paths are resloved.
+
+EXAMPLES
+  cd a
+    Changes to directory `a` in the current working directory.
+
+  cd /bin
+    Changes to directory `/bin`, using the specified absolute path.

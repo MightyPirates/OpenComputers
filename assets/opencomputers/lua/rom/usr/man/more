@@ -1,0 +1,12 @@
+NAME
+  more - primitive file viewer
+
+SYNOPSIS
+  more FILE
+
+DESCRIPTION
+  `more` allows viewing the contents of a file one screenful at a time.
+
+EXAMPLES
+  more /home/a.txt
+    Displays the contents of file `/home/a.txt`

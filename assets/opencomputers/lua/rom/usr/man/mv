@@ -1,0 +1,19 @@
+NAME
+  mv - move (rename) files
+
+SYNOPSIS
+  mv SOURCE DEST
+
+DESCRIPTION
+  Renames files - and folders, as long they remain on the same file system. Files that are 'renamed' to another file system will actually be copied, then deleted.
+
+OPTIONS
+  -f
+    do not prompt before overwriting
+
+EXAMPLES
+  mv a b
+    Renames file `a` to `b`.
+
+  mv /home/a /var/b
+    Moves file from `/home/a` to `/var/b`.

@@ -1,0 +1,15 @@
+NAME
+  man - help program, providing help on various programs and topics
+
+SYNOPSIS
+  man topic
+
+DESCRIPTION
+  `man` is the system's help viewer. Each help topic is normally the name of a program or library. Topics are stored as individual text files in the `/usr/man` folder. Additional help topics can be provided by creating a symbolic link to a file. 
+
+EXAMPLES
+  man man
+    Display the help for the `man` program.
+
+  man ls
+    Display the help for the `ls` program.

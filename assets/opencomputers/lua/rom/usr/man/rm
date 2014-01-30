@@ -1,0 +1,12 @@
+NAME
+  rm - remove files or directories
+
+SYNOPSIS
+  rm FILE...
+
+DESCRIPTION
+  Removes all of the specified files, one by one. Can also be used to remove directories, mounts and symlinks.
+
+EXAMPLES
+  rm a
+    Deletes the file `a`.

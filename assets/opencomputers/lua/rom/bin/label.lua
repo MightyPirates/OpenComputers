@@ -15,7 +15,7 @@ else
   proxy, reaons = fs.get(args[1])
 end
 if not proxy then
-  print(reason)
+  io.write(reason)
   return
 end
 

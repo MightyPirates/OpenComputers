@@ -2,7 +2,7 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args < 1 then
-  print("Usage: unalias <name>")
+  io.write("Usage: unalias <name>")
   return
 end
 

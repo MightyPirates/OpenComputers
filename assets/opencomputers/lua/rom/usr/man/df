@@ -1,0 +1,15 @@
+NAME
+  df - report file system disk space usage
+
+SYNOPSIS
+  df [FILE]...
+
+DESCRIPTION
+  `cp` allows copying single files on a filesystem and across filesystems.
+
+EXAMPLES
+  df
+    Show global file system disk usage.
+
+  df /home /var
+    Show disk usage of file systems mounted at `/home` and `/var`.

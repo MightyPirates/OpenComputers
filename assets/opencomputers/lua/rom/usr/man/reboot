@@ -1,0 +1,12 @@
+NAME
+  reboot - restarts the computer
+
+SYNOPSIS
+  reboot
+
+DESCRIPTION
+  `reboot` will immediately issue a reboot of the computer, shutting it down then starting it back up.
+
+EXAMPLES
+  reboot
+    Reboots the computer.

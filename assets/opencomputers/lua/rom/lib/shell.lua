@@ -7,7 +7,7 @@ local shell = {}
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", list="ls", move="mv", rename="mv", copy="cp",
-                 del="rm", md="mkdir", cls="clear", more="less", rs="redstone",
+                 del="rm", md="mkdir", cls="clear", less="more", rs="redstone",
                  view="edit -r", help="man", ["?"]="man"}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
@@ -63,12 +63,7 @@ local function findFile(name, ext)
   return false
 end
 
-local function parseCommand(tokens)
-  local program, args, input, output = tokens[1], {}, nil, nil
-  if not program then
-    return
-  end
-
+local function resolveAlias(program, args)
   local lastProgram = nil
   while true do
     local alias = text.tokenize(shell.getAlias(program) or program)
@@ -77,10 +72,22 @@ local function parseCommand(tokens)
     end
     lastProgram = program
     program = alias[1]
-    for i = 2, #alias do
-      table.insert(args, alias[i])
+    if args then
+      for i = 2, #alias do
+        table.insert(args, alias[i])
+      end
     end
   end
+  return program
+end
+
+local function parseCommand(tokens)
+  local program, args, input, output = tokens[1], {}, nil, nil
+  if not program then
+    return
+  end
+
+  program = resolveAlias(program, args)
 
   local state = "args"
   for i = 2, #tokens do

@@ -1,0 +1,15 @@
+NAME
+  which - locate a command
+
+SYNOPSIS
+  which COMMAND
+
+DESCRIPTION
+  This program writes the full path to each of the specified programs to the standard output. If a program is an alias, this is indicated. If a program cannot be found and error message will be written.
+
+EXAMPLES
+  which ls
+    Displays `/bin/ls.lua`.
+
+  which doesntexist dir
+    Displays `doesntexist: file not found` and `dir: aliased to ls`.

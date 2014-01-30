@@ -1,0 +1,15 @@
+NAME
+  echo - display a line of test
+
+SYNOPSIS
+  echo [STRING]...
+
+DESCRIPTION
+  `echo` writes the provided string(s) to the standard output.
+
+EXAMPLES
+  echo test
+    Print `test` to the terminal.
+
+  echo "a   b" > test
+    Writes the string `a   b` to the standard output, which is redirected into file `test`.

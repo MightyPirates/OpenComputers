@@ -1,0 +1,16 @@
+NAME
+  label - show or change the label of file systems
+
+SYNOPSIS
+  label FILE [STRING]
+  label -a ADDRESS [STRING]
+
+DESCRIPTION
+  `label` allows reading and writing the label of file systems. The file system can either be specified by a path to or into a mount, or by its address.
+
+EXAMPLES
+  label /home
+    Write the label of the file system mounted at `/home` to the standard output.
+
+  label -a 93f test
+    Change the label of the file system of which the address starts with `93f` to `test`.

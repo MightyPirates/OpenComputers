@@ -1,0 +1,12 @@
+NAME
+  shutdown - shut down the computer
+
+SYNOPSIS
+  shutdown
+
+DESCRIPTION
+  Immediately shuts down the computer.
+
+EXAMPLES
+  shutdown
+    Stops the computer.

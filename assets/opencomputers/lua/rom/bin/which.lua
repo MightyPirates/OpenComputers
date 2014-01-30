@@ -6,9 +6,16 @@ if #args == 0 then
   return
 end
 
-local result, reason = shell.resolve(args[1], "lua")
-if result then
-  io.write(result)
-else
-  io.write(reason)
+for i = 1, #args do
+  local result, reason = shell.getAlias(args[i])
+  if result then
+    result = args[i] .. ": aliased to " .. result
+  else
+    result, reason = shell.resolve(args[i], "lua")
+  end
+  if result then
+    io.write(result, "\n")
+  else
+    io.write(args[i], ": ", reason, "\n")
+  end
 end

@@ -1,0 +1,12 @@
+NAME
+  pwd - print name of current/working directory
+
+SYNOPSIS
+  pwd
+
+DESCRIPTION
+  `pwd` writes the name of the current working directory to the standard output.
+
+EXAMPLES
+  pwd
+    Write the current directory to the terminal.

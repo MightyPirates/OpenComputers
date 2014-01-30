@@ -1,0 +1,12 @@
+NAME
+  unalias - removes aliases for programs
+
+SYNOPSIS
+  unalias name
+
+DESCRIPTION
+  Allows removal of aliases created with the `alias` command.
+
+EXAMPLES
+  unalias dir
+    Removes the `dir` alias (usually an alias for `ls`).

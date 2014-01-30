@@ -1,0 +1,12 @@
+NAME
+  uptime - how long has the computer been running
+
+SYNOPSIS
+  uptime
+
+DESCRIPTION
+  Writes the time in real time hours, minutes and seconds the computer has been running to the standard output.
+
+EXAMPLES
+  uptime
+    Displays the time the computer has been running.
