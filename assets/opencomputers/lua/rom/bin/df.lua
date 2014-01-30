@@ -12,7 +12,7 @@ else
   for i = 1, #args do
     local proxy, path = fs.get(args[i])
     if not proxy then
-      print(args[i] .. ": no such file or directory")
+      io.write(args[i], ": no such file or directory\n")
     else
       mounts[path] = proxy
     end
@@ -43,5 +43,5 @@ end
 
 -- TODO tabulate
 for _, entry in ipairs(result) do
-  print(table.concat(entry, "\t"))
+  io.write(table.concat(entry, "\t"), "\n")
 end

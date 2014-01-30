@@ -3,10 +3,10 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args < 1 then
-  print("Usage: userdel <name>")
+  io.write("Usage: userdel <name>")
   return
 end
 
 if not computer.removeUser(args[1]) then
-  print("no such user")
+  io.write("no such user")
 end

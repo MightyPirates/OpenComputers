@@ -1,1 +1,1 @@
-print(os.date("%F %T"))
+io.write(os.date("%F %T"))

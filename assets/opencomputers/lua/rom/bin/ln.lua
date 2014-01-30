@@ -4,7 +4,7 @@ local shell = require("shell")
 
 local dirs = shell.parse(...)
 if #dirs == 0 then
-  print("Usage: ln <target> [<name>]")
+  io.write("Usage: ln <target> [<name>]")
   return
 end
 
@@ -18,5 +18,5 @@ end
 
 local result, reason = fs.link(target, linkpath)
 if not result then
-  print(reason)
+  io.write(reason)
 end

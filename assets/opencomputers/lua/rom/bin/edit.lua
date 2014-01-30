@@ -13,7 +13,7 @@ end
 
 local args, options = shell.parse(...)
 if #args == 0 then
-  print("Usage: edit <filename>")
+  io.write("Usage: edit <filename>")
   return
 end
 
@@ -22,7 +22,7 @@ local filename = shell.resolve(args[1])
 local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
 if fs.isDirectory(filename) or readonly and not fs.exists(filename) then
-  print("file not found")
+  io.write("file not found")
   return
 end
 

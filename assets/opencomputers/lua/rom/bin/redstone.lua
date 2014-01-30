@@ -8,9 +8,9 @@ local rs = component.redstone
 local args, options = shell.parse(...)
 if #args < 1 then
   if rs.setBundledOutput then
-    print("Usage: redstone <side> [-b <color>] [<value>]")
+    io.write("Usage: redstone <side> [-b <color>] [<value>]")
   else
-    print("Usage: redstone <side> [<value>]")
+    io.write("Usage: redstone <side> [<value>]")
   end
   return
 end
@@ -43,8 +43,8 @@ if options.b then
     end
     rs.setBundledOutput(side, color, value)
   end
-  print("in: " .. rs.getBundledInput(side, color))
-  print("out: " .. rs.getBundledOutput(side, color))
+  io.write("in: ", rs.getBundledInput(side, color), "\n")
+  io.write("out: ", rs.getBundledOutput(side, color))
 else
   if #args > 1 then
     local value = args[2]
@@ -55,6 +55,6 @@ else
     end
     rs.setOutput(side, value)
   end
-  print("in: " .. rs.getInput(side))
-  print("out: " .. rs.getOutput(side))
+  io.write("in: ", rs.getInput(side), "\n")
+  io.write("out: ", rs.getOutput(side))
 end

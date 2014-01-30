@@ -3,8 +3,8 @@ local shell = require("shell")
 
 local args, options = shell.parse(...)
 if #args < 2 then
-  print("Usage: cp [-f] <from> <to>")
-  print(" -f: overwrite file if it already exists.")
+  io.write("Usage: cp [-f] <from> <to>\n")
+  io.write(" -f: overwrite file if it already exists.")
   return
 end
 
@@ -18,5 +18,5 @@ if fs.exists(to) and not options.f then
 end
 local result, reason = fs.copy(from, to)
 if not result then
-  print(reason)
+  io.write(reason)
 end

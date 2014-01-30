@@ -8,23 +8,7 @@ os.execute = function(command)
   if not command then
     return type(shell) == "table"
   end
-  checkArg(1, command, "string")
-  local head, tail = nil, ""
-  repeat
-    local oldHead = head
-    head = command:match("^%S+")
-    tail = unicode.sub(command, unicode.len(head) + 1) .. tail
-    if head == oldHead then -- say no to infinite recursion, live longer
-      command = nil
-    else
-      command = shell.getAlias(head)
-    end
-  until command == nil
-  local args = {}
-  for part in tail:gmatch("%S+") do
-    table.insert(args, part)
-  end
-  return shell.execute(head, nil, table.unpack(args))
+  return shell.execute(command)
 end
 
 function os.exit()

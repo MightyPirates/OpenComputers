@@ -1,4 +1,4 @@
 local computer = require("computer")
 
-print("Rebooting...")
+io.write("Rebooting...")
 computer.shutdown(true)

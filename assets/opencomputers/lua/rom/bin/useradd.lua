@@ -3,11 +3,11 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args < 1 then
-  print("Usage: useradd <name>")
+  io.write("Usage: useradd <name>")
   return
 end
 
 local result, reason = computer.addUser(args[1])
 if not result then
-  print(reason)
+  io.write(reason)
 end

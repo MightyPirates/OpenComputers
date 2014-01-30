@@ -10,8 +10,8 @@ end
 
 local args, options = shell.parse(...)
 if #args < 1 then
-  print("Usage: dig [-s] <size>")
-  print(" -s: shutdown when done.")
+  io.write("Usage: dig [-s] <size>\n")
+  io.write(" -s: shutdown when done.")
   return
 end
 

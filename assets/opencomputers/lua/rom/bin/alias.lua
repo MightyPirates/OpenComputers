@@ -4,16 +4,16 @@ local args = shell.parse(...)
 
 if #args == 0 then
   for name, value in shell.aliases() do
-    print(name, value)
+    io.write(name, " ", value, "\n")
   end
 elseif #args == 1 then
   local value = shell.getAlias(args[1])
   if value then
-    print(value)
+    io.write(value)
   else
-    print("no such alias")
+    io.write("no such alias")
   end
 else
   shell.setAlias(args[1], args[2])
-  print("alias created: " .. args[1] .. " -> " .. args[2])
+  io.write("alias created: ", args[1], " -> ", args[2])
 end

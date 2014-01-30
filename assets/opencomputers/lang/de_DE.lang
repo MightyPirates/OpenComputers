@@ -60,7 +60,7 @@ oc:item.Transistor.name=Transistor
 oc:item.UpgradeCrafting.name=Fertigungs-Upgrade
 oc:item.UpgradeGenerator.name=Generator-Upgrade
 oc:item.UpgradeNavigation.name=Navigationsupgrade
-oc:item.UpgradeSign.name=Schild-I/O Upgrade
+oc:item.UpgradeSign.name=Schild-I/O-Upgrade
 oc:item.UpgradeSolarGenerator.name=Solargenerator-Upgrade
 oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
 

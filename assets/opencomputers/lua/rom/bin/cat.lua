@@ -2,20 +2,24 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args == 0 then
-  print("Usage: cat <filename1> [<filename2> [...]]")
-  return
-end
-
-for i = 1, #args do
-  local file, reason = io.open(shell.resolve(args[i]))
-  if not file then
-    print(reason)
-    return
-  end
   repeat
-    local line = file:read()
-    if line then
-      print(line)
+    local read = io.read("*L")
+    if read then
+      io.write(read)
     end
-  until not line
+  until not read
+else
+  for i = 1, #args do
+    local file, reason = io.open(shell.resolve(args[i]))
+    if not file then
+      io.write(reason)
+      return
+    end
+    repeat
+      local line = file:read("*L")
+      if line then
+        io.write(line)
+      end
+    until not line
+  end
 end

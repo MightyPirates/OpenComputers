@@ -284,7 +284,9 @@ function term.read(history)
       table.remove(history)
     end
     term.setCursorBlink(false)
-    print()
+    if term.getCursor() > 1 then
+      print()
+    end
   end
 
   term.setCursorBlink(true)

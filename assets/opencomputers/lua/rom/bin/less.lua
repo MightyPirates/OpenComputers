@@ -6,13 +6,13 @@ local unicode = require("unicode")
 
 local args = shell.parse(...)
 if #args == 0 then
-  print("Usage: less <filename1>")
+  io.write("Usage: less <filename1>")
   return
 end
 
 local file, reason = io.open(shell.resolve(args[1]))
 if not file then
-  print(reason)
+  io.write(reason)
   return
 end
 
@@ -30,10 +30,10 @@ while true do
       end
     end
     if unicode.len(line) > w then
-      print(unicode.sub(line, 1, w))
+      io.write(unicode.sub(line, 1, w), "\n")
       line = unicode.sub(line, w + 1)
     else
-      print(line)
+      io.write(line, "\n")
       line = nil
     end
     i = i + 1

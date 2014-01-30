@@ -16,11 +16,11 @@ local env = setmetatable({}, {__index = function(t, k)
 end})
 
 component.gpu.setForeground(0xFFFFFF)
-print("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio")
+io.write("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio\n")
 component.gpu.setForeground(0xFFFF00)
-print("Enter a statement and hit enter to evaluate it.")
-print("Prefix an expression with '=' to show its value.")
-print("Press Ctrl+C to exit the interpreter.")
+io.write("Enter a statement and hit enter to evaluate it.\n")
+io.write("Prefix an expression with '=' to show its value.\n")
+io.write("Press Ctrl+C to exit the interpreter.\n")
 component.gpu.setForeground(0xFFFFFF)
 
 while term.isAvailable() do
@@ -43,14 +43,16 @@ while term.isAvailable() do
   if code then
     local result = table.pack(pcall(code))
     if not result[1] then
-      print(result[2])
+      io.write(result[2], "\n")
     else
-      for i = 1, result.n do
-        result[i] = text.serialize(result[i], true)
+      for i = 2, result.n do
+        io.write(text.serialize(result[i], true), "\t")
       end
-      print(table.unpack(result, 2, result.n))
+      if result.n > 1 then
+        io.write("\n")
+      end
     end
   else
-    print(reason)
+    io.write(reason, "\n")
   end
 end

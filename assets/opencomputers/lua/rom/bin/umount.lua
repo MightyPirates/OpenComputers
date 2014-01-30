@@ -4,8 +4,8 @@ local shell = require("shell")
 local args, options = shell.parse(...)
 
 if #args < 1 then
-  print("Usage: umount [-a] <mount>")
-  print(" -a  Remove any mounts by file system label or address instead of by path. Note that the address may be abbreviated.")
+  io.write("Usage: umount [-a] <mount>\n")
+  io.write(" -a  Remove any mounts by file system label or address instead of by path. Note that the address may be abbreviated.")
   return
 end
 
@@ -21,16 +21,16 @@ else
   if proxy then
     proxy = reason -- = path
     if proxy ~= path then
-      print("not a mount point")
+      io.write("not a mount point")
       return
     end
   end
 end
 if not proxy then
-  print(reason)
+  io.write(reason)
   return
 end
 
 if not fs.umount(proxy) then
-  print("nothing to unmount here")
+  io.write("nothing to unmount here")
 end

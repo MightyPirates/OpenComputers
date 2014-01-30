@@ -3,7 +3,7 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args == 0 then
-  print("Usage: mkdir <dirname1> [<dirname2> [...]]")
+  io.write("Usage: mkdir <dirname1> [<dirname2> [...]]")
   return
 end
 
@@ -18,6 +18,6 @@ for i = 1, #args do
         reason = "unknown reason"
       end
     end
-    print(path .. ": " .. reason)
+    io.write(path, ": ", reason, "\n")
   end
 end

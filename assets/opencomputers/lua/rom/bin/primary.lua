@@ -3,8 +3,8 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args == 0 then
-  print("Usage: primary <type> [<address>]")
-  print("Note that the address may be abbreviated.")
+  io.write("Usage: primary <type> [<address>]\n")
+  io.write("Note that the address may be abbreviated.")
   return
 end
 
@@ -13,7 +13,7 @@ local componentType = args[1]
 if #args > 1 then
   local address = args[2]
   if not component.get(address) then
-    print("no component with this address")
+    io.write("no component with this address")
     return
   else
     component.setPrimary(componentType, address)
@@ -21,7 +21,7 @@ if #args > 1 then
   end
 end
 if component.isAvailable(componentType) then
-  print(component.getPrimary(componentType).address)
+  io.write(component.getPrimary(componentType).address)
 else
-  print("no primary component for this type")
+  io.write("no primary component for this type")
 end

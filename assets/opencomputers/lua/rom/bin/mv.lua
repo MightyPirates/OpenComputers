@@ -3,8 +3,8 @@ local shell = require("shell")
 
 local args, options = shell.parse(...)
 if #args < 2 then
-  print("Usage: mv [-f] <from> <to>")
-  print(" -f: overwrite file if it already exists.")
+  io.write("Usage: mv [-f] <from> <to>\n")
+  io.write(" -f: overwrite file if it already exists.")
   return
 end
 
@@ -15,11 +15,11 @@ if fs.isDirectory(to) then
 end
 if fs.exists(to) then
   if not options.f then
-    error("target file exists")
+    io.write("target file exists")
   end
   fs.remove(to)
 end
 local result, reason = os.rename(from, to)
 if not result then
-  print(reason or "unknown error")
+  io.write(reason or "unknown error")
 end

@@ -8,7 +8,7 @@ local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {dir="ls", list="ls", move="mv", rename="mv", copy="cp",
                  del="rm", md="mkdir", cls="clear", more="less", rs="redstone",
-                 view="edit -r"}
+                 view="edit -r", help="man", ["?"]="man"}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
 
@@ -61,6 +61,64 @@ local function findFile(name, ext)
     end
   end
   return false
+end
+
+local function parseCommand(command)
+  local tokens, reason = text.tokenize(command)
+  if not tokens then
+    return nil, reason
+  end
+  local program, args, input, output = tokens[1], {}, nil, nil
+  if not program then
+    return
+  end
+
+  local lastProgram = nil
+  while true do
+    local alias = text.tokenize(shell.getAlias(program) or program)
+    if alias[1] == lastProgram then
+      break
+    end
+    lastProgram = program
+    program = alias[1]
+    for i = 2, #alias do
+      table.insert(args, alias[i])
+    end
+  end
+
+  local state = "args"
+  for i = 2, #tokens do
+    if state == "args" then
+      if tokens[i] == "<" then
+        state = "input"
+      elseif tokens[i] == ">" then
+        state = "output"
+      elseif tokens[i] == ">>" then
+        state = "append"
+      else
+        table.insert(args, tokens[i])
+      end
+    elseif state == "input" then
+      if tokens[i] == ">" then
+        if not input then
+          return nil, "parse error near '>'"
+        end
+        state = "output"
+      elseif tokens[i] == ">>" then
+        if not input then
+          return nil, "parse error near '>>"
+        end
+        state = "append"
+      elseif not input then
+        input = tokens[i]
+      end
+    elseif state == "output" or state == "append" then
+      if not output then
+        output = tokens[i]
+      end
+    end
+  end
+  return program, args, input, output, state
 end
 
 -------------------------------------------------------------------------------
@@ -129,16 +187,50 @@ function shell.resolve(path, ext)
   end
 end
 
-function shell.execute(program, env, ...)
-  local co, reason = shell.load(program, env)
-  if not co then
+function shell.execute(command, env, ...)
+  checkArg(1, command, "string")
+  local program, args, input, output, mode = parseCommand(command)
+  if not program then
+    return false, args
+  end
+  if not program then
+    return true
+  end
+  local thread, reason = shell.load(program, env, function()
+    local reason
+    if input then
+      input, reason = io.open(shell.resolve(input))
+      if not input then
+        error(reason)
+      end
+      io.input(input)
+    end
+    if output then
+      output, reason = io.open(shell.resolve(output), mode == "append" and "a" or "w")
+      if not output then
+        if input then
+          input:close()
+        end
+        error(reason)
+      end
+      io.output(output)
+      if mode == "append" then
+        io.write("\n")
+      end
+    end
+  end, command)
+  if not thread then
     return nil, reason
   end
-  local args, result = table.pack(true, ...), nil
+  table.insert(args, 1, true)
+  for _, arg in ipairs(table.pack(...)) do
+    table.insert(args, arg)
+  end
+  local result = nil
   -- Emulate CC behavior by making yields a filtered event.pull()
   repeat
-    result = table.pack(coroutine.resume(co, table.unpack(args, 2, args.n)))
-    if coroutine.status(co) == "dead" then
+    result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
+    if coroutine.status(thread) == "dead" then
       break
     end
     if type(result[2]) == "string" then
@@ -147,15 +239,24 @@ function shell.execute(program, env, ...)
       args = {true, n=1}
     end
   until not args[1]
+  if input then
+    input:close()
+  end
+  if output then
+    output: close()
+  end
   if not args[1] then
     return false, args[2]
   end
   return table.unpack(result, 1, result.n)
 end
 
-function shell.load(program, env, init)
-  checkArg(1, program, "string")
-  local filename, reason = shell.resolve(program, "lua")
+function shell.load(path, env, init, name)
+  checkArg(1, path, "string")
+  checkArg(2, env, "table", "nil")
+  checkArg(3, init, "function", "nil")
+  checkArg(4, init, "string", "nil")
+  local filename, reason = shell.resolve(path, "lua")
   if not filename then
     return nil, reason
   end
@@ -171,28 +272,30 @@ function shell.load(program, env, init)
   end
 
   isLoading = true
-  local co = coroutine.create(function(...)
+  local thread = coroutine.create(function(...)
     if init then
       init()
     end
     return code(...)
   end)
   isLoading = false
-  running[co] = {
+  running[thread] = {
     path = filename,
+    command = name,
     env = env,
     parent = process,
-    instances = setmetatable({co}, {__mode="v"})
+    instances = setmetatable({thread}, {__mode="v"})
   }
-  return co
+  return thread
 end
 
-function shell.register(co)
-  if findProcess(co) then
+function shell.register(thread)
+  checkArg(1, thread, "thread")
+  if findProcess(thread) then
     return false -- already attached somewhere
   end
   if not isLoading then
-    table.insert(findProcess().instances, co)
+    table.insert(findProcess().instances, thread)
   end
   return true
 end
@@ -221,7 +324,7 @@ function shell.running(level)
     process = process.parent
   end
   if process then
-    return process.path, process.env
+    return process.path, process.env, process.command
   end
 end
 

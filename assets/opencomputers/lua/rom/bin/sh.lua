@@ -41,6 +41,8 @@ while true do
       local result, reason = os.execute(command)
       if not result then
         print(reason)
+      elseif term.getCursor() > 1 then
+        print()
       end
     end
   end

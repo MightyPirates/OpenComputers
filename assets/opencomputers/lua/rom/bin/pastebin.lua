@@ -7,7 +7,7 @@ local shell = require("shell")
 local term = require("term")
 
 if not component.isAvailable("internet") then
-  print("This program requires an internet card to run.")
+  io.write("This program requires an internet card to run.")
   return
 end
 
@@ -17,7 +17,7 @@ local args, options = shell.parse(...)
 local function get(pasteId, filename)
   local f, reason = io.open(filename, "w")
   if not f then
-    print("Failed opening file for writing: " .. reason)
+    io.write("Failed opening file for writing: ", reason)
     return
   end
 
@@ -25,7 +25,7 @@ local function get(pasteId, filename)
   local url = "http://pastebin.com/raw.php?i=" .. pasteId
   local result, response = pcall(internet.request, url)
   if result then
-    print("success.")
+    io.write("success.\n")
     for chunk in response do
       if not options.k then
         string.gsub(chunk, "\r\n", "\n")
@@ -34,11 +34,11 @@ local function get(pasteId, filename)
     end
 
     f:close()
-    print("Saved data to " .. filename)
+    io.write("Saved data to ", filename, "\n")
   else
     f:close()
     fs.remove(filename)
-    print("HTTP request failed: " .. response)
+    io.write("HTTP request failed: ", response, "\n")
   end
 end
 
@@ -58,11 +58,11 @@ end
 function run(pasteId, ...)
   local tmpFile = os.tmpname()
   get(pasteId, tmpFile)
-  print("Running...")
+  io.write("Running...\n")
 
-  local success, reason = shell.execute(tmpFile, _ENV, ...)
+  local success, reason = shell.execute(tmpFile, nil, ...)
   if not success then
-    print(reason)
+    io.write(reason)
   end
   fs.remove(tmpFile)
 end
@@ -74,14 +74,14 @@ function put(path)
   if configFile then
     local result, reason = pcall(configFile)
     if not result then
-      print("Failed loading config: " .. reason)
+      io.write("Failed loading config: ", reason)
     end
   end
   config.key = config.key or "fd92bd40a84c127eeb6804b146793c97"
   local file, reason = io.open(path, "r")
 
   if not file then
-    print("Failed opening file for reading: " .. reason)
+    io.write("Failed opening file for reading: ", reason)
     return
   end
 
@@ -104,16 +104,16 @@ function put(path)
       info = info .. chunk
     end
     if string.match(info, "^Bad API request, ") then
-      print("failed.")
-      print(info)
+      io.write("failed.\n")
+      io.write(info)
     else
-      print("success.")
+      io.write("success.\n")
       local pasteId = string.match(info, "[^/]+$")
-      print("Uploaded as " .. info)
-      print('Run "pastebin get ' .. pasteId .. '" to download anywhere.')
+      io.write("Uploaded as ", info, "\n")
+      io.write('Run "pastebin get ', pasteId, '" to download anywhere.')
     end
   else
-    print("failed: " .. response)
+    io.write("failed: ", response)
   end
 end
 
@@ -128,7 +128,7 @@ elseif command == "get" then
     local path = shell.resolve(args[3])
     if fs.exists(path) then
       if not options.f or not os.remove(path) then
-        print("file already exists")
+        io.write("file already exists")
         return
       end
     end
@@ -143,10 +143,10 @@ elseif command == "run" then
 end
 
 -- If we come here there was some invalid input.
-print("Usages:")
-print("pastebin put [-f] <file>")
-print("pastebin get [-f] <id> <file>")
-print("pastebin run [-f] <id> [<arguments...>]")
-print(" -f: Force overwriting existing files.")
-print(" -k: keep line endings as-is (will convert")
-print("     Windows line endings to Unix otherwise).")
+io.write("Usages:\n")
+io.write("pastebin put [-f] <file>\n")
+io.write("pastebin get [-f] <id> <file>\n")
+io.write("pastebin run [-f] <id> [<arguments...>]\n")
+io.write(" -f: Force overwriting existing files.\n")
+io.write(" -k: keep line endings as-is (will convert\n")
+io.write("     Windows line endings to Unix otherwise).")
