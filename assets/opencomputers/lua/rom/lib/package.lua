@@ -27,7 +27,7 @@ function package.searchpath(name, path, sep, rep)
   checkArg(2, path, "string")
   sep = sep or '.'
   rep = rep or '/'
-  sep, rep = '%' .. sep, '%' .. rep
+  sep, rep = '%' .. sep, rep
   name = string.gsub(name, sep, rep)
   local errorFiles = {}
   for subPath in string.gmatch(path, "([^;]+)") do
