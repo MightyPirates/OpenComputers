@@ -3,6 +3,7 @@ package li.cil.oc.util
 import li.cil.oc.Settings
 import li.cil.oc.server.component.WirelessNetworkCard
 import net.minecraft.block.Block
+import net.minecraft.util.Vec3
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
@@ -61,7 +62,9 @@ object WirelessNetwork {
           filter(_ != card).
           map(zipWithDistance(card)).
           filter(_._2 <= range * range).
-          map { case (c, distance) => (c, Math.sqrt(distance)) }.
+          map {
+          case (c, distance) => (c, Math.sqrt(distance))
+        }.
           filter(isUnobstructed(card))
       case _ => Iterable.empty[(WirelessNetworkCard, Double)] // Should not be possible.
     }
@@ -96,7 +99,7 @@ object WirelessNetwork {
       val target = pool.getVecFromPool(card.owner.xCoord, card.owner.yCoord, card.owner.zCoord)
 
       // Vector from reference card (sender) to this one (receiver).
-      val delta = origin.subtract(target)
+      val delta = subtract(target, origin)
       val v = delta.normalize()
 
       // Get the vectors that are orthogonal to the direction vector.
@@ -107,8 +110,8 @@ object WirelessNetwork {
       else {
         pool.getVecFromPool(0, 1, 0)
       }
-      val side = v.crossProduct(up)
-      val top = v.crossProduct(side)
+      val side = crossProduct(v, up)
+      val top = crossProduct(v, side)
 
       // Accumulated obstructions and number of samples.
       //val delta = v.lengthVector
@@ -141,4 +144,8 @@ object WirelessNetwork {
     }
     else true
   }
+
+  private def subtract(v1: Vec3, v2: Vec3) = v1.myVec3LocalPool.getVecFromPool(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
+
+  private def crossProduct(v1: Vec3, v2: Vec3) = v1.myVec3LocalPool.getVecFromPool(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
 }
