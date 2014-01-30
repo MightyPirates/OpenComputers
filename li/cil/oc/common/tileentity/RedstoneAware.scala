@@ -15,9 +15,9 @@ import net.minecraftforge.common.ForgeDirection
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IRedstoneUpdatable", modid = "RedLogic")
 ))
 trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitter with IRedstoneUpdatable {
-  protected val _input = Array.fill(6)(-1)
+  protected[tileentity] val _input = Array.fill(6)(-1)
 
-  protected val _output = Array.fill(6)(0)
+  protected[tileentity] val _output = Array.fill(6)(0)
 
   protected var _isOutputEnabled = false
 

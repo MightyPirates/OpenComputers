@@ -164,31 +164,31 @@ trait Rotatable extends RotationAware with api.Rotatable {
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    _pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
-    _yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
+    pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
+    yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
     validatePitchAndYaw()
     updateTranslation()
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
-    nbt.setInteger(Settings.namespace + "pitch", _pitch.ordinal)
-    nbt.setInteger(Settings.namespace + "yaw", _yaw.ordinal)
+    nbt.setInteger(Settings.namespace + "pitch", pitch.ordinal)
+    nbt.setInteger(Settings.namespace + "yaw", yaw.ordinal)
   }
 
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    _pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
-    _yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
+    pitch = ForgeDirection.getOrientation(nbt.getInteger("pitch"))
+    yaw = ForgeDirection.getOrientation(nbt.getInteger("yaw"))
     validatePitchAndYaw()
     updateTranslation()
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setInteger("pitch", _pitch.ordinal)
-    nbt.setInteger("yaw", _yaw.ordinal)
+    nbt.setInteger("pitch", pitch.ordinal)
+    nbt.setInteger("yaw", yaw.ordinal)
   }
 
   private def validatePitchAndYaw() {

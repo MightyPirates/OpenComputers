@@ -19,11 +19,11 @@ import scala.Array
 ))
 trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBundledUpdatable with IBundledTile {
 
-  private val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
+  protected[tileentity] val _bundledInput = Array.fill(6)(Array.fill(16)(-1))
 
-  private val _rednetInput = Array.fill(6)(Array.fill(16)(-1))
+  protected[tileentity] val _rednetInput = Array.fill(6)(Array.fill(16)(-1))
 
-  private val _bundledOutput = Array.fill(6)(Array.fill(16)(0))
+  protected[tileentity] val _bundledOutput = Array.fill(6)(Array.fill(16)(0))
 
   // ----------------------------------------------------------------------- //
 

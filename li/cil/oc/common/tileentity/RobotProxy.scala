@@ -134,25 +134,19 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
+  override protected[tileentity] val _input = robot._input
+
+  override protected[tileentity] val _output = robot._output
+
+  override protected[tileentity] val _bundledInput = robot._bundledInput
+
+  override protected[tileentity] val _rednetInput = robot._rednetInput
+
+  override protected[tileentity] val _bundledOutput = robot._bundledOutput
+
   override def isOutputEnabled = robot.isOutputEnabled
 
   override def isOutputEnabled_=(value: Boolean) = robot.isOutputEnabled_=(value)
-
-  override def input(side: ForgeDirection) = robot.input(side)
-
-  override def output(side: ForgeDirection) = robot.output(side)
-
-  override def output(side: ForgeDirection, value: Int) = robot.output(side, value)
-
-  override def bundledInput(side: ForgeDirection, color: Int) = robot.bundledInput(side, color)
-
-  override def rednetInput(side: ForgeDirection, color: Int, value: Int) = robot.rednetInput(side, color, value)
-
-  override def bundledOutput(side: ForgeDirection) = robot.bundledOutput(side)
-
-  override def bundledOutput(side: ForgeDirection, color: Int) = robot.bundledOutput(side, color)
-
-  override def bundledOutput(side: ForgeDirection, color: Int, value: Int) = robot.bundledOutput(side, color, value)
 
   override def checkRedstoneInputChanged() = robot.checkRedstoneInputChanged()
 
