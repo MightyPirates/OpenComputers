@@ -8,8 +8,8 @@ DESCRIPTION
   A very simple text file editor. To create new files with `edit`, open a file in a writable file system that doesn't exist and save.
 
 OPTIONS
-  -v
-    view mode, opens file as read only
+  -r
+    opens file as read only
 
 EXAMPLES
   edit /tmp/test.txt

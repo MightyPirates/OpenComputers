@@ -6,9 +6,7 @@ local text = require("text")
 local shell = {}
 local cwd = "/"
 local path = {"/bin/", "/usr/bin/", "/home/bin/"}
-local aliases = {dir="ls", list="ls", move="mv", rename="mv", copy="cp",
-                 del="rm", md="mkdir", cls="clear", less="more", rs="redstone",
-                 view="edit -r", help="man", ["?"]="man"}
+local aliases = {}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
 
