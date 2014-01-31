@@ -9,7 +9,8 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import scala.Array
 
 class Memory(val parent: Delegator, val tier: Int) extends Delegate {
-  val unlocalizedName = "Memory"
+  val baseName = "Memory"
+  val unlocalizedName = baseName + tier
 
   val kiloBytes = Settings.get.ramSizes(tier)
 
@@ -19,7 +20,7 @@ class Memory(val parent: Delegator, val tier: Int) extends Delegate {
     Some(parent.getItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    tooltip.addAll(Tooltip.get(baseName))
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 

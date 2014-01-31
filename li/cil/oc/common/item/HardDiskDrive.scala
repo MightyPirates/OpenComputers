@@ -8,7 +8,8 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import scala.Array
 
 class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
-  val unlocalizedName = "HardDiskDrive"
+  val baseName = "HardDiskDrive"
+  val unlocalizedName = baseName + tier
 
   val kiloBytes = Settings.get.hddSizes(tier)
 
