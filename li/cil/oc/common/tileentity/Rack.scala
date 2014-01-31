@@ -107,7 +107,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     if (side == facing.ordinal) {
       val l = 2 / 16.0
       val h = 14 / 16.0
-      val slot = ((hitY - l) / (h - l) * 4).toInt
+      val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
       if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
         Array(servers(slot).get.machine.node)
       }

@@ -27,6 +27,7 @@ function buffer:close()
   if self.mode.w or self.mode.a then
     self:flush()
   end
+  self.closed = true
   return self.stream:close()
 end
 
@@ -211,6 +212,9 @@ function buffer:setvbuf(mode, size)
 end
 
 function buffer:write(...)
+  if self.closed then
+    return nil, "bad file descriptor"
+  end
   local args = table.pack(...)
   for i = 1, args.n do
     if type(args[i]) == "number" then

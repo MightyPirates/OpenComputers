@@ -155,15 +155,15 @@ end
 
 local memoryStream = {}
 
-function memoryStream.close(self)
+function memoryStream:close()
   self.closed = true
 end
 
-function memoryStream.seek()
+function memoryStream:seek()
   return nil, "bad file descriptor"
 end
 
-function memoryStream.read(self, n)
+function memoryStream:read(n)
   if self.closed then
     if self.buffer == "" and self.redirect.read then
       return self.redirect.read:read(n)
@@ -178,7 +178,7 @@ function memoryStream.read(self, n)
   return result
 end
 
-function memoryStream.write(self, value)
+function memoryStream:write(value)
   local ok
   if self.redirect.write then
     ok = self.redirect.write:write(value)

@@ -58,25 +58,25 @@ end
 
 local socketStream = {}
 
-function socketStream.close(self)
+function socketStream:close()
   if self.handle then
     self.inet.close(self.handle)
     self.handle = nil
   end
 end
 
-function socketStream.seek()
+function socketStream:seek()
   return nil, "bad file descriptor"
 end
 
-function socketStream.read(self, n)
+function socketStream:read(n)
   if not self.handle then
     return nil, "connection is closed"
   end
   return self.inet.read(self.handle, n)
 end
 
-function socketStream.write(self, value)
+function socketStream:write(value)
   if not self.handle then
     return nil, "connection is closed"
   end
