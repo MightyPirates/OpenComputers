@@ -119,10 +119,10 @@ object Items {
     upgradeSign = new item.UpgradeSign(multi)
     upgradeNavigation = new item.UpgradeNavigation(multi)
 
+    abstractBus = new item.AbstractBusCard(multi)
+
     ram4 = new item.Memory(multi, 3)
     ram5 = new item.Memory(multi, 4)
-
-    abstractBus = new item.AbstractBusCard(multi)
 
     // v1.2.0
     server = new item.Server(multi)
