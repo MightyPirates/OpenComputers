@@ -78,6 +78,7 @@ object Blocks {
     keyboard = new Keyboard(blockSpecial)
     powerDistributor = new PowerDistributor(blockSimple)
     powerConverter = new PowerConverter(blockSimple)
+    redstone = new Redstone(blockSimpleWithRedstone)
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = new RobotProxy(blockSpecialWithRedstone)
     router = new Router(blockSimple)
@@ -90,8 +91,6 @@ object Blocks {
     blockSimple.subBlocks += screen1
     blockSimple.subBlocks += screen2
     blockSimple.subBlocks += screen3
-
-    redstone = new Redstone(blockSimpleWithRedstone)
 
     // v1.2.0
     serverRack = new Rack(blockSpecialWithRedstone)
