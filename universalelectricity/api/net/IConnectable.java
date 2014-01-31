@@ -13,5 +13,6 @@ public interface IConnectable
 	 * 
 	 * @return Return true, if the connection is possible.
 	 */
+	@Deprecated
 	public boolean canConnect(ForgeDirection direction);
 }

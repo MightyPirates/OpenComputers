@@ -7,7 +7,7 @@
     "version": "1.2.0",
     "mcversion": "1.6.4",
     "url": "https://github.com/MightyPirates/OpenComputers/wiki",
-    "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
+    "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
     "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
     "logoFile" : "assets/opencomputers/textures/gui/logo.png",
     "requiredMods": [ "Forge@[9.11.1.940,)" ],

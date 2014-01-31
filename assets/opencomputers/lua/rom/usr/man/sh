@@ -9,7 +9,7 @@ DESCRIPTION
 
   Arguments to programs can be quoted, to provide strings with multiple spaces in them, for example:
     echo "a   b"
-  will print the string `a   b` to the screen.
+  will print the string `a   b` to the screen. It is also possible to use single quotes (echo 'a b').
 
 
   The OpenOS shell provides basic redirects and piping:

@@ -81,6 +81,11 @@ public class Vector2 implements Cloneable
 		return yDiference / xDifference;
 	}
 
+	public Vector2 midPoint(Vector2 pos)
+	{
+		return new Vector2((x + pos.x) / 2, (y + pos.y) / 2);
+	}
+
 	public double distance(Vector2 target)
 	{
 		Vector2 difference = this.clone().subtract(target);
@@ -110,7 +115,7 @@ public class Vector2 implements Cloneable
 
 	public Vector2 invert()
 	{
-		this.multiply(-1);
+		this.scale(-1);
 		return this;
 	}
 
