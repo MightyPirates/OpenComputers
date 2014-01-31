@@ -501,12 +501,15 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
     state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Machine.State(s.data)))
     nbt.getTagList("users").foreach[NBTTagString](u => _users += u.data)
+    if (nbt.hasKey("message")) {
+      message = Some(nbt.getString("message"))
+    }
+
+    components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
+      c.getString("address") -> c.getString("name"))
 
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
       architecture.load(nbt)
-
-      components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
-        c.getString("address") -> c.getString("name"))
 
       signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
         val argsNbt = signalNbt.getCompoundTag("args")
@@ -536,9 +539,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       timeStarted = nbt.getLong("timeStarted")
       cpuTime = nbt.getLong("cpuTime")
       remainingPause = nbt.getInteger("remainingPause")
-      if (nbt.hasKey("message")) {
-        message = Some(nbt.getString("message"))
-      }
 
       // Delay execution for a second to allow the world around us to settle.
       if (state.top != Machine.State.Restarting) {
@@ -561,18 +561,19 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
     nbt.setNewTagList("state", state.map(_.id))
     nbt.setNewTagList("users", _users)
+    message.foreach(nbt.setString("message", _))
+
+    val componentsNbt = new NBTTagList()
+    for ((address, name) <- components) {
+      val componentNbt = new NBTTagCompound()
+      componentNbt.setString("address", address)
+      componentNbt.setString("name", name)
+      componentsNbt.appendTag(componentNbt)
+    }
+    nbt.setTag("components", componentsNbt)
 
     if (state.top != Machine.State.Stopped) {
       architecture.save(nbt)
-
-      val componentsNbt = new NBTTagList()
-      for ((address, name) <- components) {
-        val componentNbt = new NBTTagCompound()
-        componentNbt.setString("address", address)
-        componentNbt.setString("name", name)
-        componentsNbt.appendTag(componentNbt)
-      }
-      nbt.setTag("components", componentsNbt)
 
       val signalsNbt = new NBTTagList()
       for (s <- signals.iterator) {
@@ -606,7 +607,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       nbt.setLong("timeStarted", timeStarted)
       nbt.setLong("cpuTime", cpuTime)
       nbt.setInteger("remainingPause", remainingPause)
-      message.foreach(nbt.setString("message", _))
     }
   }
 

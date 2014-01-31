@@ -10,6 +10,7 @@ import li.cil.oc.{api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 
@@ -109,7 +110,19 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       val h = 14 / 16.0
       val slot = (((1 - hitY) - l) / (h - l) * 4).toInt
       if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
-        Array(servers(slot).get.machine.node)
+        val computer = servers(slot).get.machine
+        computer.lastError match {
+          case Some(value) =>
+            player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+              Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
+          case _ =>
+        }
+        val list = computer.users
+        if (list.size > 0) {
+          player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+            Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
+        }
+        Array(computer.node)
       }
       else null
     }
