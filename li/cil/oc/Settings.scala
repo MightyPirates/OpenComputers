@@ -70,6 +70,7 @@ class Settings(config: Config) {
   val exponentialXpGrowth = config.getDouble("robot.xp.exponentialGrowth") max 1
   val robotActionXp = config.getDouble("robot.xp.actionXp") max 0
   val robotExhaustionXpRate = config.getDouble("robot.xp.exhaustionXpRate") max 0
+  val robotOreXpRate = config.getDouble("robot.xp.oreXpRate") max 0
   val bufferPerLevel = config.getDouble("robot.xp.bufferPerLevel") max 0
   val toolEfficiencyPerLevel = config.getDouble("robot.xp.toolEfficiencyPerLevel") max 0
   val harvestSpeedBoostPerLevel = config.getDouble("robot.xp.harvestSpeedBoostPerLevel") max 0

@@ -153,7 +153,9 @@ class Adapter extends Environment with Inventory with Analyzable {
   private def isBlockSupported(x: Int, y: Int, z: Int) =
     items(0).isDefined && (items(0).get.getItem match {
       case block: ItemBlock =>
-        block.getBlockID == world.getBlockId(x, y, z) && block.getMetadata(block.getDamage(items(0).get)) == world.getBlockMetadata(x, y, z)
+        val stackDriver = driver.Registry.blockDriverFor(items(0).get)
+        val blockDriver = driver.Registry.blockDriverFor(world, x, y, z)
+        stackDriver.isDefined && blockDriver.isDefined && stackDriver.get == blockDriver.get
       case _ => false
     })
 

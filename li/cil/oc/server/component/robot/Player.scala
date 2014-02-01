@@ -4,6 +4,7 @@ import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.{IndustrialCraft2, PortalGun}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
+import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
 import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
@@ -283,6 +284,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
         for (drop <- itemsDropped) {
           drop.delayBeforeCanPickup = 0
           drop.onCollideWithPlayer(this)
+        }
+        if (!EnchantmentHelper.getSilkTouchModifier(this)) {
+          val fortune = EnchantmentHelper.getFortuneModifier(this)
+          val xp = block.getExpDrop(world, metadata, fortune)
+          robot.addXp(xp * Settings.get.robotOreXpRate)
         }
       }
       if (stack != null) {

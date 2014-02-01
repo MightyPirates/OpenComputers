@@ -500,6 +500,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         }
         else if (robot.move(direction)) {
           context.pause(Settings.get.moveDelay)
+          robot.addXp(Settings.get.robotExhaustionXpRate * 0.01)
           result(true)
         }
         else {
