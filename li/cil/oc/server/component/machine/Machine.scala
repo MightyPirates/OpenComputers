@@ -508,6 +508,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
       c.getString("address") -> c.getString("name"))
 
+    rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
+    tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
+
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
       architecture.load(nbt)
 
@@ -534,8 +537,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           }.toArray)
       })
 
-      rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
-      tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
       timeStarted = nbt.getLong("timeStarted")
       cpuTime = nbt.getLong("cpuTime")
       remainingPause = nbt.getInteger("remainingPause")
@@ -572,6 +573,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
     nbt.setTag("components", componentsNbt)
 
+    rom.foreach(rom => nbt.setNewCompoundTag("rom", rom.save))
+    tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
+
     if (state.top != Machine.State.Stopped) {
       architecture.save(nbt)
 
@@ -600,9 +604,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         signalsNbt.appendTag(signalNbt)
       }
       nbt.setTag("signals", signalsNbt)
-
-      rom.foreach(rom => nbt.setNewCompoundTag("rom", rom.save))
-      tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
 
       nbt.setLong("timeStarted", timeStarted)
       nbt.setLong("cpuTime", cpuTime)

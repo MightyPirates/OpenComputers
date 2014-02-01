@@ -159,9 +159,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
       world.setBlockToAir(nx, ny, nz)
-      val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1)
+      // In some cases (though I couldn't quite figure out which one) setBlock
+      // will return true, even though the block was not created / adjusted.
+      val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1) &&
+        world.getBlockTileEntity(nx, ny, nz) == proxy
       if (created) {
-        assert(world.getBlockTileEntity(nx, ny, nz) == proxy)
         assert(x == nx && y == ny && z == nz)
         world.setBlock(ox, oy, oz, 0, 0, 1)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)

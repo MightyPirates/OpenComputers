@@ -37,7 +37,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   // Note: we implement IContext in the TE to allow external components to cast
   // their owner to it (to allow interacting with their owning computer).
 
-  def address() = computer.address
+  def address = computer.address
 
   def canInteract(player: String) =
     if (isServer) computer.canInteract(player)

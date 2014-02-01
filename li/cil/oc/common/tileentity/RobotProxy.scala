@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
@@ -61,10 +61,17 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (node != null && node.network == null) {
+    robot.updateEntity()
+    if (!addedToNetwork) {
+      addedToNetwork = true
+      // Use the same address we use internally on the outside.
+      if (isServer) {
+        val nbt = new NBTTagCompound()
+        nbt.setString("address", robot.address)
+        node.load(nbt)
+      }
       Network.joinOrCreateNetwork(this)
     }
-    robot.updateEntity()
   }
 
   override def validate() {
@@ -127,10 +134,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    robot.onAnalyze(player, side, hitX, hitY, hitZ)
-    Array(node)
-  }
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = robot.onAnalyze(player, side, hitX, hitY, hitZ)
 
   // ----------------------------------------------------------------------- //
 
