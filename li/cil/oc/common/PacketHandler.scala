@@ -43,12 +43,7 @@ abstract class PacketHandler extends IPacketHandler {
   protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
     val packetType = PacketType(readByte())
 
-    def readTileEntity[T: ClassTag](): Option[T] = {
-      val dimension = readInt()
-      val x = readInt()
-      val y = readInt()
-      val z = readInt()
-
+    def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
         case None => // Invalid dimension.
         case Some(world) =>
@@ -66,6 +61,14 @@ abstract class PacketHandler extends IPacketHandler {
           }
       }
       None
+    }
+
+    def readTileEntity[T: ClassTag](): Option[T] = {
+      val dimension = readInt()
+      val x = readInt()
+      val y = readInt()
+      val z = readInt()
+      getTileEntity(dimension, x, y, z)
     }
 
     def readDirection() = ForgeDirection.getOrientation(readInt())

@@ -138,11 +138,19 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotMove(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.move(p.readDirection())
-      case _ => // Invalid packet.
+  def onRobotMove(p: PacketParser) = {
+    val dimension = p.readInt()
+    val x = p.readInt()
+    val y = p.readInt()
+    val z = p.readInt()
+    val direction = p.readDirection()
+    p.getTileEntity[RobotProxy](dimension, x, y, z) match {
+      case Some(t) => t.robot.move(direction)
+      case _ =>
+        // Invalid packet, robot may be coming from outside our loaded area.
+        PacketSender.sendRobotStateRequest(dimension, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
     }
+  }
 
   def onRobotSelectedSlotChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {

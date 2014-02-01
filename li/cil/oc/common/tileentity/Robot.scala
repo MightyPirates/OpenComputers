@@ -141,9 +141,12 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def actualSlot(n: Int) = n + 4
 
-  def move(direction: ForgeDirection) = {
+  def move(direction: ForgeDirection): Boolean = {
     val (ox, oy, oz) = (x, y, z)
     val (nx, ny, nz) = (x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ)
+    if (!world.blockExists(nx, ny, nz)) {
+      return false // Don't fall off the earth.
+    }
     val blockId = world.getBlockId(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
     try {
@@ -155,6 +158,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       // worked before the client is notified so that we can use the same trick on
       // the client by sending a corresponding packet. This also saves us from
       // having to send the complete state again (e.g. screen buffer) each move.
+      world.setBlockToAir(nx, ny, nz)
       val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1)
       if (created) {
         assert(world.getBlockTileEntity(nx, ny, nz) == proxy)

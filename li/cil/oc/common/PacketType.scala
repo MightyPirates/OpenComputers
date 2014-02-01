@@ -34,6 +34,7 @@ object PacketType extends Enumeration {
   Clipboard,
   MouseClickOrDrag,
   MouseScroll,
+  RobotStateRequest,
   ServerSide,
   ServerRange = Value
 }

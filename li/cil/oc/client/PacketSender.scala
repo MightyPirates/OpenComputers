@@ -105,6 +105,17 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendRobotStateRequest(dimension: Int, x: Int, y: Int, z: Int) {
+    val pb = new PacketBuilder(PacketType.RobotStateRequest)
+
+    pb.writeInt(dimension)
+    pb.writeInt(x)
+    pb.writeInt(y)
+    pb.writeInt(z)
+
+    pb.sendToServer()
+  }
+
   def sendServerPower(t: Rack, number: Int, power: Boolean) {
     val pb = new PacketBuilder(PacketType.ComputerPower)
 

@@ -156,7 +156,9 @@ trait Rotatable extends RotationAware with api.Rotatable {
     if (isServer) {
       ServerPacketSender.sendRotatableState(this)
     }
-    world.markBlockForUpdate(x, y, z)
+    else {
+      world.markBlockForUpdate(x, y, z)
+    }
     world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
   }
 

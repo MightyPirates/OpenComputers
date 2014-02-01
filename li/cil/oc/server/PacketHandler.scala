@@ -1,15 +1,15 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.Settings
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.server.component.machine.Machine
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
 import scala.Some
-import li.cil.oc.Settings
-import li.cil.oc.server.component.machine.Machine
-import net.minecraft.util.ChatMessageComponent
 
 class PacketHandler extends CommonPacketHandler {
   protected def world(player: Player, dimension: Int) =
@@ -23,6 +23,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
       case _ => // Invalid packet.
@@ -133,6 +134,12 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
   }
+
+  def onRobotStateRequest(p: PacketParser) =
+    p.readTileEntity[RobotProxy]() match {
+      case Some(proxy) => proxy.world.markBlockForUpdate(proxy.x, proxy.y, proxy.z)
+      case _ => // Invalid packet.
+    }
 
   def onServerRange(p: PacketParser) =
     p.readTileEntity[Rack]() match {
