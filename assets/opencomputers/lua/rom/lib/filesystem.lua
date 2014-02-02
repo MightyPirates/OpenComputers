@@ -184,7 +184,7 @@ function filesystem.mounts()
     if #queue == 0 then
       return nil
     else
-      while true do
+      while #queue > 0 do
         local node = table.remove(queue)
         for _, child in pairs(node.children) do
           table.insert(queue, child)

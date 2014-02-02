@@ -34,9 +34,13 @@ local function onComponentAdded(_, address, componentType)
       fs.mount(proxy, name)
       if fs.isAutorunEnabled() then
         local function run()
-          local result, reason = shell.execute(fs.concat(name, "autorun"), _ENV, proxy)
-          if not result and reason ~= "file not found" then
-            error(reason, 0)
+          local file = shell.resolve(fs.concat(name, "autorun"), "lua") or
+                       shell.resolve(fs.concat(name, ".autorun"), "lua")
+          if file then
+            local result, reason = shell.execute(file, _ENV, proxy)
+            if not result then
+              error(reason, 0)
+            end
           end
         end
         if isInitialized then

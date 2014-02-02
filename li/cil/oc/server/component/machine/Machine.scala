@@ -79,6 +79,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   private val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
 
+  private def componentCount = components.count {
+    case (_, name) => name != "filesystem"
+  } + addedComponents.count(_.name != "filesystem")
+
   // ----------------------------------------------------------------------- //
 
   def address = node.address
@@ -99,7 +103,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         crash(Settings.namespace + "gui.Error.DaylightCycle")
         false
       }
-      else if (components.size + addedComponents.size > owner.maxComponents) {
+      else if (componentCount > owner.maxComponents) {
         message = owner match {
           case t: tileentity.Case if !t.hasCPU => Some(Settings.namespace + "gui.Error.NoCPU")
           case _ => Some(Settings.namespace + "gui.Error.ComponentOverflow")
@@ -271,7 +275,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
-    if (components.size > owner.maxComponents) {
+    if (componentCount > owner.maxComponents) {
       crash(Settings.namespace + "gui.Error.ComponentOverflow")
     }
 

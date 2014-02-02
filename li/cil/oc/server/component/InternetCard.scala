@@ -5,19 +5,24 @@ import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.util.regex.Matcher
-import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ThreadPoolFactory
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.Array
 import scala.collection.mutable
+import scala.collection.convert.WrapAsScala._
 
 class InternetCard(val owner: Context) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
+
+  val romInternet = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/internet"), "internet"))
 
   protected val connections = mutable.Map.empty[Int, SocketChannel]
 
@@ -206,6 +211,13 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      romInternet.foreach(rom => node.neighbors.head.connect(rom.node))
+    }
+  }
+
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
@@ -215,6 +227,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
       connections.clear()
       request = None
       queue = None
+      romInternet.foreach(_.node.remove())
     }
   }
 
