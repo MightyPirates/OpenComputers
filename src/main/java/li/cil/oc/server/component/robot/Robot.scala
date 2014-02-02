@@ -4,12 +4,14 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, api, Settings}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
@@ -32,15 +34,6 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
-
-  override def onConnect(node: Node) {
-    super.onConnect(node)
-    if (node == this.node) {
-      romRobot.foreach(rom => node.connect(rom.node))
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
 
   override def isRobot = true
 
@@ -536,6 +529,27 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     else {
       result(false, "not enough energy")
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      romRobot.foreach(rom => node.connect(rom.node))
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    romRobot.foreach(_.load(nbt.getCompoundTag("romRobot")))
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    romRobot.foreach(rom => nbt.setNewCompoundTag("romRobot", rom.save))
   }
 
   // ----------------------------------------------------------------------- //

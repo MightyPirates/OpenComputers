@@ -10,6 +10,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.Array
@@ -249,6 +250,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
+    romInternet.foreach(_.load(nbt.getCompoundTag("romInternet")))
     if (nbt.hasKey("url")) {
       val address = nbt.getString("url")
       val data = nbt.getByteArray("data")
@@ -269,6 +271,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+    romInternet.foreach(rom => nbt.setNewCompoundTag("romInternet", rom.save))
     this.synchronized {
       request match {
         case Some((address, data)) =>
