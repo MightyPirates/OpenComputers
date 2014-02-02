@@ -1,6 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import java.util.logging.Level
+import li.cil.oc.OpenComputers
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
@@ -30,7 +32,9 @@ trait TileEntity extends MCTileEntity {
   }
 
   override def onDataPacket(manager: INetworkManager, packet: Packet132TileEntityData) {
-    readFromNBTForClient(packet.data)
+    try readFromNBTForClient(packet.data) catch {
+      case e: Throwable => OpenComputers.log.log(Level.WARNING, "There was a problem handling a TileEntity description packet. Please report this if you see it!", e)
+    }
   }
 
   @SideOnly(Side.CLIENT)

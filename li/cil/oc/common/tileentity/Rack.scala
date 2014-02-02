@@ -224,7 +224,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    val isRunningNbt = nbt.getByteArray("isRunning").byteArray.map(_ == 1)
+    val isRunningNbt = nbt.getByteArray("isServerRunning").byteArray.map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
     val isPresentNbt = nbt.getTagList("isPresent").iterator[NBTTagString].map(value => if (value.data == "") None else Some(value.data)).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
@@ -239,7 +239,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setByteArray("isRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
+    nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
     nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(null, value.fold("")(_.machine.address))))
     nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList("terminals", terminals.map(t => {
