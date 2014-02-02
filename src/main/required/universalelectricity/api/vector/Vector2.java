@@ -150,7 +150,9 @@ public class Vector2 implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		return ("X:" + this.x + "Y:" + this.y).hashCode();
+		long x = Double.doubleToLongBits(this.x);
+		long y = Double.doubleToLongBits(this.y);
+		return 31 * (int)(x ^ (x >>> 32)) + (int)(y ^ (y >>> 32));
 	}
 
 	@Override

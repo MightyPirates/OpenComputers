@@ -816,7 +816,13 @@ public class Vector3 implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		return ("X:" + this.x + "Y:" + this.y + "Z:" + this.z).hashCode();
+		long x = Double.doubleToLongBits(this.x);
+		long y = Double.doubleToLongBits(this.y);
+		long z = Double.doubleToLongBits(this.z);
+		int hash = (int)(x ^ (x >>> 32));
+		hash = 31 * hash + (int)(y ^ (y >>> 32));
+		hash = 31 * hash + (int)(z ^ (z >>> 32));
+		return hash;
 	}
 
 	@Override

@@ -21,6 +21,8 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
   private var shouldMove = false
   private var moving = false
 
+  private var signalDelay = 10
+
   // ----------------------------------------------------------------------- //
 
   @LuaCallback("move")
@@ -79,8 +81,11 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   override def update() {
     if (node != null && node.network != null && moving) {
-      moving = false
-      node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(true))
+      signalDelay = signalDelay - 1
+      if (signalDelay <= 0) {
+        moving = false
+        node.sendToReachable("computer.signal", "carriage_moved", Boolean.box(true))
+      }
     }
     super.update()
     if (shouldMove) {

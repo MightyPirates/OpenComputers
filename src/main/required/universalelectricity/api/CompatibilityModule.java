@@ -192,21 +192,21 @@ public abstract class CompatibilityModule
 		return 0;
 	}
 
-	public static long getEnergyItem(ItemStack is)
+	public static long getEnergyItem(ItemStack itemStack)
 	{
-		if (isHandler(is.getItem()))
+		if (itemStack != null && isHandler(itemStack.getItem()))
 		{
-			return energyHandlerCache.get(is.getItem().getClass()).doGetEnergyItem(is);
+			return energyHandlerCache.get(itemStack.getItem().getClass()).doGetEnergyItem(itemStack);
 		}
 
 		return 0;
 	}
 
-	public static long getMaxEnergyItem(ItemStack is)
+	public static long getMaxEnergyItem(ItemStack itemStack)
 	{
-		if (isHandler(is.getItem()))
+		if (itemStack != null && isHandler(itemStack.getItem()))
 		{
-			return energyHandlerCache.get(is.getItem().getClass()).doGetMaxEnergyItem(is);
+			return energyHandlerCache.get(itemStack.getItem().getClass()).doGetMaxEnergyItem(itemStack);
 		}
 
 		return 0;

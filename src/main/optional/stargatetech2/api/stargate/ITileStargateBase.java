@@ -19,7 +19,8 @@ public interface ITileStargateBase extends ITileStargate{
 	 * Used to try making the Stargate dial an address.
 	 * 
 	 * @param address The address this Stargate should dial.
+	 * @param timeout How many seconds the connection will last. (1 - 38; default: 38);
 	 * @return whether the dialing sequence started (true) or failed (false).
 	 */
-	public boolean dial(Address address);
+	public boolean dial(Address address, int timeout);
 }
