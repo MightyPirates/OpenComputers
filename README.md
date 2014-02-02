@@ -6,11 +6,11 @@ For more information on the mod, please [see the wiki](https://github.com/Mighty
 
 Contributing
 ------------
-If you'd like to contribute, the easiest way to do so is to provide a translation. See [`assets/opencomputers/lang`](https://github.com/MightyPirates/OpenComputers/tree/master/assets/opencomputers/lang) for already existing translations. New translations should be based on the English localization, since it will usually be the most up-to-date.
+If you'd like to contribute, the easiest way to do so is to provide a translation. See [`assets/opencomputers/lang`](https://github.com/MightyPirates/OpenComputers/tree/master/src/main/resources/assets/opencomputers/lang) for already existing translations. New translations should be based on the English localization, since it will usually be the most up-to-date.
 
 If you'd like to contribute code, please have a look at the [code conventions](https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions). If you plan to make a big contribution, use common sense and ask first and talk things through with me.
 
-You can also implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
+You can also implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
 
 If you encounter any bugs, please report them [in the issue tracker](https://github.com/MightyPirates/OpenComputers/issues?state=open), if they have not already been reported. If you report a crash, always provide your log file.
 
