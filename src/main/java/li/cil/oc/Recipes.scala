@@ -6,7 +6,7 @@ import cpw.mods.fml.common.registry.GameRegistry
 import java.io.{FileReader, File}
 import java.util.logging.Level
 import li.cil.oc.common.block.Delegator
-import li.cil.oc.util.mods.GregTech
+import li.cil.oc.util.mods.{StargateTech2, GregTech}
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
@@ -68,7 +68,7 @@ object Recipes {
 
       addRecipe(Items.server.createItemStack(), recipes, "server")
 
-      if (Loader.isModLoaded("StargateTech2")) {
+      if (StargateTech2.isAvailable) {
         addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")
       }
       addRecipe(Items.gpu1.createItemStack(), recipes, "graphicsCard1")

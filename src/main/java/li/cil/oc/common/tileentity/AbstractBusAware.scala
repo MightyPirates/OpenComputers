@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.server.{PacketSender => ServerPacketSender, component}
-import li.cil.oc.util.mods.StargateTech2
+import li.cil.oc.util.mods.{StargateTech2API, StargateTech2}
 import net.minecraft.nbt.NBTTagCompound
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus.{IBusInterface, IBusDevice}
@@ -50,9 +50,9 @@ trait AbstractBusAware extends TileEntity with network.Environment { self: IBusD
   def isAbstractBusAvailable_=(value: Boolean) = {
     if (value != isAbstractBusAvailable) {
       _isAbstractBusAvailable = value
-      if (isServer && Loader.isModLoaded("StargateTech2")) {
-        if (isAbstractBusAvailable) StargateTech2.addDevice(world, x, y, z)
-        else StargateTech2.removeDevice(world, x, y, z)
+      if (isServer && StargateTech2.isAvailable) {
+        if (isAbstractBusAvailable) StargateTech2API.addDevice(world, x, y, z)
+        else StargateTech2API.removeDevice(world, x, y, z)
       }
       world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
       if (isServer) ServerPacketSender.sendAbstractBusState(this)
