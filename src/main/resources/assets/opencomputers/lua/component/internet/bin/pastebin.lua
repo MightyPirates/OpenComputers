@@ -4,7 +4,6 @@ local component = require("component")
 local fs = require("filesystem")
 local internet = require("internet")
 local shell = require("shell")
-local term = require("term")
 
 if not component.isAvailable("internet") then
   io.write("This program requires an internet card to run.")
@@ -13,7 +12,7 @@ end
 
 local args, options = shell.parse(...)
 
---This gets code from the website and stores it in the specified file
+-- This gets code from the website and stores it in the specified file.
 local function get(pasteId, filename)
   local f, reason = io.open(filename, "w")
   if not f then
@@ -21,7 +20,7 @@ local function get(pasteId, filename)
     return
   end
 
-  term.write("Downloading from pastebin.com... ")
+  io.write("Downloading from pastebin.com... ")
   local url = "http://pastebin.com/raw.php?i=" .. pasteId
   local result, response = pcall(internet.request, url)
   if result then
@@ -88,7 +87,7 @@ function put(path)
   local data = file:read("*a")
   file:close()
 
-  term.write("Uploading to pastebin.com... ")
+  io.write("Uploading to pastebin.com... ")
   local result, response = pcall(internet.request,
         "http://pastebin.com/api/api_post.php", 
         "api_option=paste&" ..
