@@ -66,7 +66,7 @@ object ZipFileInputStreamFileSystem {
     build[String, ArchiveDirectory]()
 
   def fromFile(file: io.File, innerPath: String) = this.synchronized {
-    Option(cache.get(file.getPath, new Callable[ArchiveDirectory] {
+    Option(cache.get(file.getPath + ":" + innerPath, new Callable[ArchiveDirectory] {
       def call = try {
         val zip = new ZipFile(file.getPath)
         val cleanedPath = innerPath.stripPrefix("/").stripSuffix("/") + "/"
