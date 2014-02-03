@@ -2,7 +2,7 @@ package li.cil.oc.server.component.robot
 
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{IndustrialCraft2, PortalGun}
+import li.cil.oc.util.mods.PortalGun
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
@@ -33,6 +33,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   inventory = robotInventory
 
   var facing, side = ForgeDirection.UNKNOWN
+
+  var customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided: ItemStack = _
 
   def world = robot.worldObj
 
@@ -156,24 +158,21 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       val oldDamage = if (stack != null) stack.getItemDamage else 0
       val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
       val heldTicks = math.max(0, math.min(stack.getMaxItemUseDuration, (duration * 20).toInt))
-      val newStack = if (IndustrialCraft2.isMiningLaser(stack)) {
-        // Fire the mining laser from a little bit ahead of us, to avoid hitting
-        // the robot itself.
-        val offset = facing
-        posX += offset.offsetX * 0.5
-        posY += offset.offsetY * 0.5
-        posZ += offset.offsetZ * 0.5
-        val result = stack.useItemRightClick(world, this)
-        posX -= offset.offsetX * 0.5
-        posY -= offset.offsetY * 0.5
-        posZ -= offset.offsetZ * 0.5
-        result
-      }
-      else stack.useItemRightClick(world, this)
+      // Change the offset at which items are used, to avoid hitting
+      // the robot itself (e.g. with bows, potions, mining laser, ...).
+      val offset = facing
+      posX += offset.offsetX * 0.6
+      posY += offset.offsetY * 0.6
+      posZ += offset.offsetZ * 0.6
+      val newStack = stack.useItemRightClick(world, this)
       if (isUsingItem) {
-        getItemInUse.onPlayerStoppedUsing(world, this, getItemInUse.getMaxItemUseDuration - heldTicks)
+        val remaining = customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.getMaxItemUseDuration - heldTicks
+        customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided.onPlayerStoppedUsing(world, this, remaining)
         clearItemInUse()
       }
+      posX -= offset.offsetX * 0.6
+      posY -= offset.offsetY * 0.6
+      posZ -= offset.offsetZ * 0.6
       robot.computer.pause(heldTicks / 20.0)
       // These are functions to avoid null pointers if newStack is null.
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
@@ -336,6 +335,16 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     }
 
   // ----------------------------------------------------------------------- //
+
+  override def setItemInUse(stack: ItemStack, useDuration: Int) {
+    super.setItemInUse(stack, useDuration)
+    customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided = stack
+  }
+
+  override def clearItemInUse() {
+    super.clearItemInUse()
+    customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided = null
+  }
 
   override def addExhaustion(amount: Float) {
     if (Settings.get.robotExhaustionCost > 0) {
