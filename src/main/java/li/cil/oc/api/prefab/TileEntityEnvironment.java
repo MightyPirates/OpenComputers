@@ -38,16 +38,16 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
      *       // If you do not need energy remove this call.
      *       .withConnector()
      *       // This call marks the tile entity as a component. This means you
-     *       // can mark methods in it using the {@link li.cil.oc.api.network.LuaCallback}
-     *       // annotation, making them callable from Lua. The first parameter
-     *       // is the name by which the component will be known in Lua, in this
-     *       // case it could be accessed as <tt>component.example</tt>. The
-     *       // second parameter is the component's visibility. This is like the
-     *       // node's reachability, but only applies to Lua. For example,
-     *       // network cards can only be <em>seen</em> by the computer they're
-     *       // installed in, but can be <em>reached</em> by all other network
-     *       // cards in the same network.
-     *       // If you do not need Lua callbacks remove this call.
+     *       // can mark methods in it using the {@link li.cil.oc.api.network.Callback}
+     *       // annotation, making them callable from user code. The first
+     *       // parameter is the name by which the component will be known in
+     *       // the computer, in this case it could be accessed as
+     *       // <tt>component.example</tt>. The second parameter is the
+     *       // component's visibility. This is like the node's reachability,
+     *       // but only applies to computers. For example, network cards can
+     *       // only be <em>seen</em> by the computer they're installed in, but
+     *       // can be <em>reached</em> by all other network cards in the same
+     *       // network. If you do not need callbacks remove this call.
      *       .withComponent("example", Visibility.Neighbors)
      *       // Finalizes the construction of the node and returns it.
      *       .create();

@@ -12,19 +12,19 @@ class Redstone(val owner: RedstoneAware) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     result(owner.input(side))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     result(owner.output(side))
   }
 
-  @LuaCallback()
+  @Callback()
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val value = args.checkInteger(1)

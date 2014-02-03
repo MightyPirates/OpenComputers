@@ -8,7 +8,7 @@ import li.cil.oc.api.driver.Item;
  * This API allows registering new drivers with the mod.
  * <p/>
  * Drivers are used to make items and third-party blocks available in the mod's
- * component network, and optionally to Lua programs. If you implement a new
+ * component network, and optionally to user programs. If you implement a new
  * block that should interact with the mod's component network it is enough to
  * have it implement {@link li.cil.oc.api.network.Environment} - no driver is
  * needed in that case.

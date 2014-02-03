@@ -20,10 +20,10 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getStrength(context: Context, args: Arguments): Array[AnyRef] = result(strength)
 
-  @LuaCallback
+  @Callback
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
     strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
     result(strength)

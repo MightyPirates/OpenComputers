@@ -114,17 +114,17 @@ object Component {
     while (c != classOf[Object]) {
       val ms = c.getDeclaredMethods
 
-      ms.filter(_.isAnnotationPresent(classOf[LuaCallback])).foreach(m =>
+      ms.filter(_.isAnnotationPresent(classOf[network.Callback])).foreach(m =>
         if (m.getParameterTypes.size != 2 ||
           (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
           m.getParameterTypes()(1) != classOf[Arguments]) {
-          throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
+          throw new IllegalArgumentException("Invalid use of Callback annotation (invalid signature).")
         }
         else if (m.getReturnType != classOf[Array[AnyRef]]) {
-          throw new IllegalArgumentException("Invalid use of LuaCallback annotation (invalid signature).")
+          throw new IllegalArgumentException("Invalid use of Callback annotation (invalid signature).")
         }
         else {
-          val a = m.getAnnotation[LuaCallback](classOf[LuaCallback])
+          val a = m.getAnnotation[network.Callback](classOf[network.Callback])
           val name = if (a.value != null && a.value.trim != "") a.value else m.getName
           if (!callbacks.contains(name)) {
             callbacks += name -> new Callback(m, a.direct, a.limit)

@@ -3,7 +3,7 @@ package li.cil.oc.api.network;
 import java.util.Map;
 
 /**
- * This interface provides access to arguments passed to a {@link LuaCallback}.
+ * This interface provides access to arguments passed to a {@link Callback}.
  * <p/>
  * It allows checking for the presence of arguments in a uniform manner, taking
  * care of proper type checking based on what can be passed along by Lua.

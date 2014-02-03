@@ -39,12 +39,12 @@ package li.cil.oc.api.network;
  * Item environments are always managed, so you will always have to provide a
  * driver for items that should interact with the component network.
  * <p/>
- * To interact with environments from Lua you will have to do two things:
+ * To interact with environments from user code you will have to do two things:
  * <ol>
  * <li>Make the environment's {@link #node} a {@link Component} and ensure
  * its {@link Component#visibility} is set to a value where it can
  * be seen by computers in the network.</li>
- * <li>Annotate methods in the environment as {@link LuaCallback}s.</li>
+ * <li>Annotate methods in the environment as {@link Callback}s.</li>
  * </ol>
  */
 public interface Environment {

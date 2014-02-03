@@ -1,7 +1,7 @@
 package li.cil.oc.api.network;
 
 /**
- * This is used to provide some context to {@link LuaCallback}s, i.e. the
+ * This is used to provide some context to {@link Callback}s, i.e. the
  * computer from which the callback was called.
  */
 public interface Context {
@@ -145,14 +145,16 @@ public interface Context {
      * Note that only a limited amount of types is supported for arguments:
      * <ul>
      * <li><tt>null</tt> and Scala's <tt>Unit</tt> and <tt>None</tt> (all appear
-     * as <tt>nil</tt> on the Lua side)</li>
+     * as <tt>nil</tt> on the Lua side, for example)</li>
      * <li>Boolean values.</li>
      * <li>Numeric types (byte, short, int, long, float, double).</li>
      * <li>Strings.</li>
-     * <li>Byte arrays (which appear as strings on the Lua side).</li>
+     * <li>Byte arrays (which appear as strings on the Lua side, e.g.).</li>
+     * <li>Maps if and only if both keys and values are strings.</li>
      * </ul>
      * If an unsupported type is specified the method will enqueue nothing
-     * instead, resulting in a <tt>nil</tt> on the Lua side, and log a warning.
+     * instead, resulting in a <tt>nil</tt> on the Lua side, e.g., and log a
+     * warning.
      *
      * @param name the name of the signal to push.
      * @param args additional arguments to pass along with the signal.

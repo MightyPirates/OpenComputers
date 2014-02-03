@@ -11,7 +11,7 @@ class UpgradeNavigation(val owner: TileEntity, val xCenter: Int, val zCenter: In
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def getPosition(context: Context, args: Arguments): Array[AnyRef] = {
     val x = owner.xCoord
     val y = owner.yCoord
@@ -25,7 +25,7 @@ class UpgradeNavigation(val owner: TileEntity, val xCenter: Int, val zCenter: In
       result(Unit, "out of range")
   }
 
-  @LuaCallback
+  @Callback
   def getFacing(context: Context, args: Arguments): Array[AnyRef] = {
     owner match {
       case rotatable: Rotatable => result(rotatable.facing.ordinal)
@@ -33,7 +33,7 @@ class UpgradeNavigation(val owner: TileEntity, val xCenter: Int, val zCenter: In
     }
   }
 
-  @LuaCallback
+  @Callback
   def getRange(context: Context, args: Arguments): Array[AnyRef] = {
     result(size / 2)
   }

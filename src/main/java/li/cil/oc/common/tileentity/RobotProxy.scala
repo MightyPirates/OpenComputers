@@ -46,15 +46,15 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def start(context: Context, args: Arguments): Array[AnyRef] =
     result(!computer.isPaused && computer.start())
 
-  @LuaCallback
+  @Callback
   def stop(context: Context, args: Arguments): Array[AnyRef] =
     result(computer.stop())
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(computer.isRunning)
 

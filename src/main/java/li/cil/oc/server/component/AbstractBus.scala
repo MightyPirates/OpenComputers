@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Arguments, Context, LuaCallback, Visibility}
+import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsScala._
@@ -53,25 +53,25 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def getEnabled(context: Context, args: Arguments): Array[AnyRef] = result(isEnabled)
 
-  @LuaCallback
+  @Callback
   def setEnabled(context: Context, args: Arguments): Array[AnyRef] = {
     isEnabled = args.checkBoolean(0)
     result(isEnabled)
   }
 
-  @LuaCallback
+  @Callback
   def getAddress(context: Context, args: Arguments): Array[AnyRef] = result(address)
 
-  @LuaCallback
+  @Callback
   def setAddress(context: Context, args: Arguments): Array[AnyRef] = {
     address = args.checkInteger(0) & 0xFFFF
     result(address)
   }
 
-  @LuaCallback
+  @Callback
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)
@@ -83,7 +83,7 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
     else result(false, "not enough energy")
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //

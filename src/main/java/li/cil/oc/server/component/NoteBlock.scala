@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
+import li.cil.oc.api.network.{Callback, Context, Arguments, Visibility}
 import net.minecraft.block.material.Material
 import net.minecraft.tileentity.TileEntityNote
 
@@ -12,16 +12,16 @@ class NoteBlock(entity: TileEntityNote) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def getPitch(context: Context, args: Arguments): Array[AnyRef] = result(entity.note + 1)
 
-  @LuaCallback
+  @Callback
   def setPitch(context: Context, args: Arguments): Array[AnyRef] = {
     setPitch(args.checkInteger(0))
     result(true)
   }
 
-  @LuaCallback
+  @Callback
   def trigger(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count > 0) {
       setPitch(args.checkInteger(0))

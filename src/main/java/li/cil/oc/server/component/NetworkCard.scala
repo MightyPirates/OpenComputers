@@ -17,13 +17,13 @@ class NetworkCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.add(port))
   }
 
-  @LuaCallback
+  @Callback
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 0) {
       openPorts.clear()
@@ -35,16 +35,16 @@ class NetworkCard extends ManagedComponent {
     }
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def isOpen(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.contains(port))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(false)
 
-  @LuaCallback
+  @Callback
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
@@ -53,7 +53,7 @@ class NetworkCard extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback
+  @Callback
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     checkPacketSize(args.drop(1))
@@ -61,7 +61,7 @@ class NetworkCard extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //

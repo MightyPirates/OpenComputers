@@ -49,7 +49,7 @@ abstract class GraphicsCard extends ManagedComponent {
     }
   }
 
-  @LuaCallback
+  @Callback
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
@@ -70,7 +70,7 @@ abstract class GraphicsCard extends ManagedComponent {
     }
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.background))
 
@@ -79,7 +79,7 @@ abstract class GraphicsCard extends ManagedComponent {
     screen(s => result(s.background = color))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(s.foreground))
 
@@ -88,11 +88,11 @@ abstract class GraphicsCard extends ManagedComponent {
     screen(s => result(s.foreground = color))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(PackedColor.Depth.bits(s.depth)))
 
-  @LuaCallback
+  @Callback
   def setDepth(context: Context, args: Arguments): Array[AnyRef] = {
     val depth = args.checkInteger(0)
     screen(s => result(s.depth = depth match {
@@ -103,7 +103,7 @@ abstract class GraphicsCard extends ManagedComponent {
     }))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => result(PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id)) match {
       case PackedColor.Depth.OneBit => 1
@@ -111,14 +111,14 @@ abstract class GraphicsCard extends ManagedComponent {
       case PackedColor.Depth.EightBit => 8
     }))
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (w, h) = s.resolution
       result(w, h)
     })
 
-  @LuaCallback
+  @Callback
   def setResolution(context: Context, args: Arguments): Array[AnyRef] = {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
@@ -127,7 +127,7 @@ abstract class GraphicsCard extends ManagedComponent {
     else throw new IllegalArgumentException("unsupported resolution")
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def maxResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (gmw, gmh) = maxResolution
@@ -135,14 +135,14 @@ abstract class GraphicsCard extends ManagedComponent {
       result(math.min(gmw, smw), math.min(gmh, smh))
     })
 
-  @LuaCallback
+  @Callback
   def getSize(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => s.owner match {
       case screen: tileentity.Screen => result(screen.width, screen.height)
       case _ => result(1, 1)
     })
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def get(context: Context, args: Arguments): Array[AnyRef] = {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
@@ -276,19 +276,19 @@ object GraphicsCard {
     val maxDepth = Settings.screenDepthsByTier(0)
     val maxResolution = Settings.screenResolutionsByTier(0)
 
-    @LuaCallback(direct = true, limit = 1)
+    @Callback(direct = true, limit = 1)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @LuaCallback(direct = true, limit = 1)
+    @Callback(direct = true, limit = 1)
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @LuaCallback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4)
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @LuaCallback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2)
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @LuaCallback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2)
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 
@@ -296,19 +296,19 @@ object GraphicsCard {
     val maxDepth = Settings.screenDepthsByTier(1)
     val maxResolution = Settings.screenResolutionsByTier(1)
 
-    @LuaCallback(direct = true, limit = 2)
+    @Callback(direct = true, limit = 2)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @LuaCallback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4)
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @LuaCallback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8)
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @LuaCallback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4)
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @LuaCallback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4)
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 
@@ -316,19 +316,19 @@ object GraphicsCard {
     val maxDepth = Settings.screenDepthsByTier(2)
     val maxResolution = Settings.screenResolutionsByTier(2)
 
-    @LuaCallback(direct = true, limit = 4)
+    @Callback(direct = true, limit = 4)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
 
-    @LuaCallback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8)
     override def fill(context: Context, args: Arguments) = super.fill(context, args)
 
-    @LuaCallback(direct = true, limit = 16)
+    @Callback(direct = true, limit = 16)
     override def set(context: Context, args: Arguments) = super.set(context, args)
 
-    @LuaCallback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8)
     override def setBackground(context: Context, args: Arguments) = super.setBackground(context, args)
 
-    @LuaCallback(direct = true, limit = 8)
+    @Callback(direct = true, limit = 8)
     override def setForeground(context: Context, args: Arguments) = super.setForeground(context, args)
   }
 

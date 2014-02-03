@@ -9,7 +9,7 @@
  * with foreign objects. You need a driver if you wish to connect some object
  * to the internal {@link li.cil.oc.api.network.Network}, for example because
  * you wish to interact with other blocks / components of the mod. The most
- * typical scenario for this will be adding a new object that Lua programs
+ * typical scenario for this will be adding a new object that user programs
  * should be able to interact with: a {@link li.cil.oc.api.network.Component}.
  * <p/>
  * Note that for tile entities you implement yourself, you will not have to
@@ -21,7 +21,7 @@
  * <dt>The {@link li.cil.oc.api.FileSystem} API</dt>
  * <dd>
  * This API provides facilities that make it easier to create file systems that
- * can be interacted with from Lua programs via the file system driver that
+ * can be interacted with from user programs via the file system driver that
  * comes with the mod.
  * </dd>
  * <dt>The {@link li.cil.oc.api.Network} API</dt>

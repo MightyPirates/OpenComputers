@@ -11,7 +11,7 @@ package li.cil.oc.api.network;
  * There are three types of nodes:
  * <ul>
  * <li>{@link Node}, the most basic form.</li>
- * <li>{@link Component}, used to expose callbacks to Lua.</li>
+ * <li>{@link Component}, used to expose callbacks to user code.</li>
  * <li>{@link Connector}, used for consuming of producing energy.</li>
  * </ul>
  * <p/>
@@ -151,7 +151,7 @@ public interface Network {
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
-     * a signal and inject that signal into the Lua VM, so no message not used
+     * a signal and inject that signal into the machine, so no message not used
      * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
@@ -171,7 +171,7 @@ public interface Network {
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
-     * a signal and inject that signal into the Lua VM, so no message not used
+     * a signal and inject that signal into the machine, so no message not used
      * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
@@ -190,7 +190,7 @@ public interface Network {
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
-     * a signal and inject that signal into the Lua VM, so no message not used
+     * a signal and inject that signal into the machine, so no message not used
      * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.
@@ -212,7 +212,7 @@ public interface Network {
      * Messages should have a unique name to allow differentiating them when
      * handling them in a network node. For example, computers will try to parse
      * messages named <tt>computer.signal</tt> by converting the message data to
-     * a signal and inject that signal into the Lua VM, so no message not used
+     * a signal and inject that signal into the machine, so no message not used
      * for this purpose should be named <tt>computer.signal</tt>.
      *
      * @param source the node that sends the message.

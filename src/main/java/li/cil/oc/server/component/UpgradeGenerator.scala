@@ -22,7 +22,7 @@ class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def insert(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else 64
     val player = context.player
@@ -49,7 +49,7 @@ class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback
+  @Callback
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
       case Some(stack) => result(stack.stackSize)
@@ -57,7 +57,7 @@ class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
     }
   }
 
-  @LuaCallback
+  @Callback
   def remove(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     inventory match {

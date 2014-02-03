@@ -17,7 +17,7 @@ class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
     withComponent("crafting").
     create()
 
-  @LuaCallback
+  @Callback
   def craft(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     result(CraftingInventory.craft(context, count))

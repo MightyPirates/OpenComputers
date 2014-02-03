@@ -43,7 +43,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   def saveUpgrade() = robot.saveUpgrade()
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def level(context: Context, args: Arguments): Array[AnyRef] = {
     val xpNeeded = robot.xpForNextLevel - robot.xpForLevel(robot.level)
     val xpProgress = math.max(0, robot.xp - robot.xpForLevel(robot.level))
@@ -52,7 +52,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def select(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count > 0 && args.checkAny(0) != null) {
       val slot = checkSlot(args, 0)
@@ -64,7 +64,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     result(selectedSlot - actualSlot(0) + 1)
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     val slot =
       if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
@@ -75,7 +75,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     })
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def space(context: Context, args: Arguments): Array[AnyRef] = {
     val slot =
       if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
@@ -86,7 +86,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     })
   }
 
-  @LuaCallback
+  @Callback
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
     result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
@@ -96,7 +96,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     })
   }
 
-  @LuaCallback
+  @Callback
   def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
     val count = checkOptionalItemCount(args, 1)
@@ -132,7 +132,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     })
   }
 
-  @LuaCallback
+  @Callback
   def compare(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     stackInSlot(selectedSlot) match {
@@ -149,7 +149,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     result(false)
   }
 
-  @LuaCallback
+  @Callback
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
@@ -213,7 +213,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     else result(false)
   }
 
-  @LuaCallback
+  @Callback
   def place(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =
@@ -255,7 +255,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     result(false)
   }
 
-  @LuaCallback
+  @Callback
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
@@ -311,7 +311,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
     val (something, what) = blockContent(side)
@@ -320,7 +320,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def swing(context: Context, args: Arguments): Array[AnyRef] = {
     // Swing the equipped tool (left click).
     val facing = checkSideForAction(args, 0)
@@ -398,7 +398,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     result(false)
   }
 
-  @LuaCallback
+  @Callback
   def use(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val sides =
@@ -472,7 +472,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     result(false)
   }
 
-  @LuaCallback
+  @Callback
   def durability(context: Context, args: Arguments): Array[AnyRef] = {
     Option(robot.getStackInSlot(0)) match {
       case Some(item) =>
@@ -486,7 +486,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     val direction = checkSideForMovement(args, 0)
     if (robot.isAnimatingMove) {
@@ -516,7 +516,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     }
   }
 
-  @LuaCallback
+  @Callback
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
     if (robot.computer.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {

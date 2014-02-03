@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation can be used for methods in an {@link Environment} to mark
- * them for exposure to Lua.
+ * them for exposure to computers.
  * <p/>
  * Any method exposed like this can be enumerated and called from a computer
  * that can see the node of the environment.
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Note that methods annotated with this interface must have the following
  * signature:
  * <pre>
- *     Object[] f(Computer computer, Arguments arguments);
+ *     Object[] f(Context context, Arguments arguments);
  * </pre>
  *
  * @see Context
@@ -23,9 +23,11 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LuaCallback {
+public @interface Callback {
     /**
-     * The name under which to make the callback available in Lua.
+     * The name under which to make the callback available.
+     * <p/>
+     * This defaults to the name of the annotated method if left empty.
      */
     String value() default "";
 
@@ -55,7 +57,7 @@ public @interface LuaCallback {
      * You should generally apply a limit if the callback allocates persisting
      * memory (i.e. memory that isn't freed once the call returns), sends
      * network messages, or uses any other kind of resource for which it'd be
-     * bad if it were to be used from the Lua side in an unchecked, unregulated
+     * bad if it were to be used from user programs in an unchecked, unregulated
      * manner.
      * <p/>
      * Note that the limit does <em>not</em> apply when the method is invoked

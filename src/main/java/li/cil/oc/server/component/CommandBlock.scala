@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{LuaCallback, Context, Arguments, Visibility}
+import li.cil.oc.api.network.{Callback, Context, Arguments, Visibility}
 import net.minecraft.tileentity.TileEntityCommandBlock
 
 class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
@@ -12,10 +12,10 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def getValue(context: Context, args: Arguments): Array[AnyRef] = result(entity.getCommand)
 
-  @LuaCallback
+  @Callback
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val value = args.checkString(0)
     entity.setCommand(value)
@@ -23,7 +23,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback
+  @Callback
   def run(context: Context, args: Arguments): Array[AnyRef] = {
     val name = if (Settings.get.commandUser != null && !Settings.get.commandUser.isEmpty)
       Settings.get.commandUser

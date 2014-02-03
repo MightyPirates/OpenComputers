@@ -1,25 +1,25 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Arguments, Context, LuaCallback}
+import li.cil.oc.api.network.{Arguments, Context, Callback}
 import li.cil.oc.common.tileentity.BundledRedstoneAware
 
 class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     result(owner.bundledInput(side, color))
   }
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def getBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     result(owner.bundledOutput(side, color))
   }
 
-  @LuaCallback
+  @Callback
   def setBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)

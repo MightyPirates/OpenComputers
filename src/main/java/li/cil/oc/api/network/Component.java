@@ -75,7 +75,7 @@ public interface Component extends Node {
      *
      * @param method    the name of the method to call.
      * @param context   the context from which the method is called, usually the
-     *                  instance of the computer running the Lua script that made
+     *                  instance of the computer running the script that made
      *                  the call.
      * @param arguments the arguments passed to the method.
      * @return the list of results, or <tt>null</tt> if there is no result.

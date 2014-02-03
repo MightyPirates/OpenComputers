@@ -170,7 +170,7 @@ public interface FileSystem extends Persistable {
     /**
      * Sets the time a file or folder was supposedly last modified.
      * <p/>
-     * This is not available to the Lua side via the file system driver. It is
+     * This is not available to the user side via the file system driver. It is
      * intended to be used when initializing a file system to a set of known
      * modification times (for example, this is used when creating a virtual
      * file system from a set of real files).

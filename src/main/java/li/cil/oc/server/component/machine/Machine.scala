@@ -246,15 +246,15 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback
+  @Callback
   def start(context: Context, args: Arguments): Array[AnyRef] =
     result(!isPaused && start())
 
-  @LuaCallback
+  @Callback
   def stop(context: Context, args: Arguments): Array[AnyRef] =
     result(stop())
 
-  @LuaCallback(direct = true)
+  @Callback(direct = true)
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
