@@ -53,25 +53,25 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("getEnabled")
+  @LuaCallback
   def getEnabled(context: Context, args: Arguments): Array[AnyRef] = result(isEnabled)
 
-  @LuaCallback("setEnabled")
+  @LuaCallback
   def setEnabled(context: Context, args: Arguments): Array[AnyRef] = {
     isEnabled = args.checkBoolean(0)
     result(isEnabled)
   }
 
-  @LuaCallback("getAddress")
+  @LuaCallback
   def getAddress(context: Context, args: Arguments): Array[AnyRef] = result(address)
 
-  @LuaCallback("setAddress")
+  @LuaCallback
   def setAddress(context: Context, args: Arguments): Array[AnyRef] = {
     address = args.checkInteger(0) & 0xFFFF
     result(address)
   }
 
-  @LuaCallback("send")
+  @LuaCallback
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)
@@ -83,7 +83,7 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
     else result(false, "not enough energy")
   }
 
-  @LuaCallback(value = "maxPacketSize", direct = true)
+  @LuaCallback(direct = true)
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //

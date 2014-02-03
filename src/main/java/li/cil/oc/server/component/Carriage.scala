@@ -25,7 +25,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("move")
+  @LuaCallback
   def move(context: Context, args: Arguments): Array[AnyRef] = {
     direction = checkDirection(args)
     simulating = if (args.count > 1) args.checkBoolean(1) else false
@@ -34,7 +34,7 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback("simulate")
+  @LuaCallback
   def simulate(context: Context, args: Arguments): Array[AnyRef] = {
     // IMPORTANT: we have to do the simulation asynchronously, too, because
     // that may also try to persist the computer that called us, and it must
@@ -46,11 +46,11 @@ class Carriage(controller: AnyRef) extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback("getAnchored")
+  @LuaCallback
   def getAnchored(context: Context, args: Arguments): Array[AnyRef] =
     result(anchored)
 
-  @LuaCallback("setAnchored")
+  @LuaCallback
   def setAnchored(context: Context, args: Arguments): Array[AnyRef] = {
     anchored = args.checkBoolean(0)
     result(anchored)

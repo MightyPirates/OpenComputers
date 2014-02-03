@@ -5,21 +5,21 @@ import li.cil.oc.common.tileentity.BundledRedstoneAware
 
 class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {
 
-  @LuaCallback(value = "getBundledInput", direct = true)
+  @LuaCallback(direct = true)
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     result(owner.bundledInput(side, color))
   }
 
-  @LuaCallback(value = "getBundledOutput", direct = true)
+  @LuaCallback(direct = true)
   def getBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)
     result(owner.bundledOutput(side, color))
   }
 
-  @LuaCallback("setBundledOutput")
+  @LuaCallback
   def setBundledOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val color = checkColor(args, 1)

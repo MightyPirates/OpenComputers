@@ -20,10 +20,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(value = "getLabel", direct = true)
+  @LuaCallback(direct = true)
   def getLabel(context: Context, args: Arguments): Array[AnyRef] = result(label.getLabel)
 
-  @LuaCallback("setLabel")
+  @LuaCallback
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
     if (label == null) throw new Exception("filesystem does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
@@ -31,12 +31,12 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     result(label.getLabel)
   }
 
-  @LuaCallback(value = "isReadOnly", direct = true)
+  @LuaCallback(direct = true)
   def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isReadOnly)
   }
 
-  @LuaCallback(value = "spaceTotal", direct = true)
+  @LuaCallback(direct = true)
   def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = {
     val space = fileSystem.spaceTotal
     if (space < 0)
@@ -45,32 +45,32 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
       result(space)
   }
 
-  @LuaCallback(value = "spaceUsed", direct = true)
+  @LuaCallback(direct = true)
   def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.spaceUsed)
   }
 
-  @LuaCallback(value = "exists", direct = true)
+  @LuaCallback(direct = true)
   def exists(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.exists(clean(args.checkString(0))))
   }
 
-  @LuaCallback(value = "size", direct = true)
+  @LuaCallback(direct = true)
   def size(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.size(clean(args.checkString(0))))
   }
 
-  @LuaCallback(value = "isDirectory", direct = true)
+  @LuaCallback(direct = true)
   def isDirectory(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.isDirectory(clean(args.checkString(0))))
   }
 
-  @LuaCallback(value = "lastModified", direct = true)
+  @LuaCallback(direct = true)
   def lastModified(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.lastModified(clean(args.checkString(0))))
   }
 
-  @LuaCallback("list")
+  @LuaCallback
   def list(context: Context, args: Arguments): Array[AnyRef] = {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) => Array(list)
@@ -78,26 +78,26 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
   }
 
-  @LuaCallback("makeDirectory")
+  @LuaCallback
   def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
     result(recurse(clean(args.checkString(0))))
   }
 
-  @LuaCallback("remove")
+  @LuaCallback
   def remove(context: Context, args: Arguments): Array[AnyRef] = {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
     result(recurse(clean(args.checkString(0))))
   }
 
-  @LuaCallback("rename")
+  @LuaCallback
   def rename(context: Context, args: Arguments): Array[AnyRef] = {
     result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
   }
 
-  @LuaCallback("close")
+  @LuaCallback
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
@@ -111,7 +111,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     null
   }
 
-  @LuaCallback("open")
+  @LuaCallback
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     if (owners.get(context.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
@@ -125,7 +125,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     result(handle)
   }
 
-  @LuaCallback("read")
+  @LuaCallback
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
@@ -156,7 +156,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
   }
 
-  @LuaCallback("seek")
+  @LuaCallback
   def seek(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
@@ -175,7 +175,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
   }
 
-  @LuaCallback("write")
+  @LuaCallback
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)

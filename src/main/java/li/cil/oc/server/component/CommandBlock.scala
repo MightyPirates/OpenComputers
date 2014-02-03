@@ -12,10 +12,10 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("getValue")
+  @LuaCallback
   def getValue(context: Context, args: Arguments): Array[AnyRef] = result(entity.getCommand)
 
-  @LuaCallback("setValue")
+  @LuaCallback
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val value = args.checkString(0)
     entity.setCommand(value)
@@ -23,7 +23,7 @@ class CommandBlock(entity: TileEntityCommandBlock) extends ManagedComponent {
     result(true)
   }
 
-  @LuaCallback("run")
+  @LuaCallback
   def run(context: Context, args: Arguments): Array[AnyRef] = {
     val name = if (Settings.get.commandUser != null && !Settings.get.commandUser.isEmpty)
       Settings.get.commandUser

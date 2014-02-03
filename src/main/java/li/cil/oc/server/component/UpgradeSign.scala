@@ -12,8 +12,8 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback("getValue")
-  def read(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback
+  def getValue(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = owner match {
       case rotatable: Rotatable => rotatable.facing
       case _ => throw new Exception("illegal state")
@@ -24,8 +24,8 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
     }
   }
 
-  @LuaCallback("setValue")
-  def write(context: Context, args: Arguments): Array[AnyRef] = {
+  @LuaCallback
+  def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.size > 15) line.substring(0, 15) else line)
     val facing = owner match {
       case rotatable: Rotatable => rotatable.facing

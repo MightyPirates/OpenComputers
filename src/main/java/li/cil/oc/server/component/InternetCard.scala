@@ -44,10 +44,10 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @LuaCallback(value = "isHttpEnabled", direct = true)
+  @LuaCallback(direct = true)
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @LuaCallback("request")
+  @LuaCallback
   def request(context: Context, args: Arguments): Array[AnyRef] = {
     if (context.address != owner.address) {
       throw new IllegalArgumentException("can only be used by the owning computer")
@@ -130,10 +130,10 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     })
   }
 
-  @LuaCallback(value = "isTcpEnabled", direct = true)
+  @LuaCallback(direct = true)
   def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @LuaCallback(value = "connect")
+  @LuaCallback
   def connect(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = if (args.count > 1) args.checkInteger(1) else -1
@@ -151,7 +151,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     result(handle)
   }
 
-  @LuaCallback("close")
+  @LuaCallback
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
@@ -161,7 +161,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     null
   }
 
-  @LuaCallback("write")
+  @LuaCallback
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
@@ -173,7 +173,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     }
   }
 
-  @LuaCallback("read")
+  @LuaCallback
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))

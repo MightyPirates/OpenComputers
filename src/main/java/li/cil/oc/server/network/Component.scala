@@ -125,11 +125,9 @@ object Component {
         }
         else {
           val a = m.getAnnotation[LuaCallback](classOf[LuaCallback])
-          if (a.value == null || a.value == "") {
-            throw new IllegalArgumentException("Invalid use of LuaCallback annotation (name must not be null or empty).")
-          }
-          else if (!callbacks.contains(a.value)) {
-            callbacks += a.value -> new Callback(m, a.direct, a.limit)
+          val name = if (a.value != null && a.value.trim != "") a.value else m.getName
+          if (!callbacks.contains(name)) {
+            callbacks += name -> new Callback(m, a.direct, a.limit)
           }
         }
       )

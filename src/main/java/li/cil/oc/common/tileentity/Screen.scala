@@ -26,10 +26,10 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   // ----------------------------------------------------------------------- //
 
   override protected val _buffer = new component.Buffer(this) {
-    @LuaCallback("isOn")
+    @LuaCallback
     def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(origin.isOn)
 
-    @LuaCallback("turnOn")
+    @LuaCallback
     def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
       if (!origin.isOn) {
         origin.turnOn()
@@ -38,7 +38,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       else result(false, origin.isOn)
     }
 
-    @LuaCallback("turnOff")
+    @LuaCallback
     def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
       if (origin.isOn) {
         origin.turnOff()

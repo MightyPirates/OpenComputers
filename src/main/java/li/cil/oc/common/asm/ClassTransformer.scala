@@ -1,8 +1,7 @@
 package li.cil.oc.common.asm
 
 import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionParser}
-import li.cil.oc.OpenComputers
+import li.cil.oc.util.mods.StargateTech2
 import net.minecraft.launchwrapper.IClassTransformer
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.{ClassWriter, ClassReader}
@@ -15,18 +14,12 @@ class ClassTransformer extends IClassTransformer {
         return basicClass
       }
 
-      val mod = Loader.instance.getIndexedModList.get("StargateTech2")
-      val have = new DefaultArtifactVersion(mod.getVersion)
-      val want = VersionParser.parseRange("[0.6.0,)")
-
-      if (want.containsVersion(have)) {
+      if (StargateTech2.isAvailable) {
         // All green, API version is new enough.
         return basicClass
       }
 
       // Version of SGT2 is too old, abstract bus API doesn't exist.
-      OpenComputers.log.warning("Your version of StargateTech2 is out-dated, please upgrade for Abstract Bus support.")
-
       val classNode = new ClassNode()
       new ClassReader(basicClass).accept(classNode, 0)
 
