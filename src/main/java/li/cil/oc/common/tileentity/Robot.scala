@@ -120,7 +120,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  def maxComponents = 12
+  def maxComponents = 8
 
   // ----------------------------------------------------------------------- //
 

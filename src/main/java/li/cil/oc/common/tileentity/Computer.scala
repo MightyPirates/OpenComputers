@@ -175,12 +175,14 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   // ----------------------------------------------------------------------- //
 
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (computer != null) computer.lastError match {
+    computer.lastError match {
       case Some(value) =>
         player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
           Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
       case _ =>
     }
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + maxComponents))
     val list = users
     if (list.size > 0) {
       player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(

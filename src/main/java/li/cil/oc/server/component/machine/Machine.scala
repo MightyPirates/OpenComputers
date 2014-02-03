@@ -79,7 +79,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   private val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
 
-  private def componentCount = components.count {
+  def componentCount = components.count {
     case (_, name) => name != "filesystem"
   } + addedComponents.count(_.name != "filesystem")
 

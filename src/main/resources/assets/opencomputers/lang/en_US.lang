@@ -74,6 +74,7 @@ oc:item.WirelessNetworkCard.name=Wireless Network Card
 oc:gui.Analyzer.Address=§6Address§f: %s
 oc:gui.Analyzer.ChargerSpeed=§6Charge speed§f: %s
 oc:gui.Analyzer.ComponentName=§6Component name§f: %s
+oc:gui.Analyzer.Components=§6Number of connected components§f: %s
 oc:gui.Analyzer.LastError=§6Last error§f: %s
 oc:gui.Analyzer.RobotName=§6Name§f: %s
 oc:gui.Analyzer.RobotOwner=§6Owner§f: %s

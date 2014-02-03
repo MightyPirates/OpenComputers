@@ -117,6 +117,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
               Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
           case _ =>
         }
+        player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+          Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + servers(slot).get.maxComponents))
         val list = computer.users
         if (list.size > 0) {
           player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
