@@ -81,7 +81,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   def componentCount = components.count {
     case (_, name) => name != "filesystem"
-  } + addedComponents.count(_.name != "filesystem")
+  } + addedComponents.count(_.name != "filesystem") - 1 // -1 = this computer
 
   // ----------------------------------------------------------------------- //
 
@@ -98,6 +98,8 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   def start() = state.synchronized(state.top match {
     case Machine.State.Stopped =>
+      processAddedComponents()
+      verifyComponents()
       val rules = owner.world.getWorldInfo.getGameRulesInstance
       if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
         crash(Settings.namespace + "gui.Error.DaylightCycle")

@@ -2,7 +2,7 @@ package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
-import java.lang.reflect.{Method, InvocationTargetException}
+import java.lang.reflect.{Modifier, Method, InvocationTargetException}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
@@ -11,6 +11,7 @@ import scala.Some
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
+import li.cil.oc.OpenComputers
 
 trait Component extends network.Component with Node {
   val name: String
@@ -118,10 +119,13 @@ object Component {
         if (m.getParameterTypes.size != 2 ||
           (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
           m.getParameterTypes()(1) != classOf[Arguments]) {
-          throw new IllegalArgumentException("Invalid use of Callback annotation (invalid signature).")
+          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
         }
         else if (m.getReturnType != classOf[Array[AnyRef]]) {
-          throw new IllegalArgumentException("Invalid use of Callback annotation (invalid signature).")
+          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
+        }
+        else if (!Modifier.isPublic(m.getModifiers)) {
+          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
         }
         else {
           val a = m.getAnnotation[network.Callback](classOf[network.Callback])
