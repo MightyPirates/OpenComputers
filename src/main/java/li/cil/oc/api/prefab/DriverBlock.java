@@ -4,6 +4,7 @@ import li.cil.oc.api.Driver;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * If you wish to create a block component for a third-party block, i.e. a block
@@ -50,12 +51,12 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
     }
 
     protected boolean worksWith(int referenceId, int referenceMetadata) {
-        for (ItemStack block : blocks) {
-            if (block != null && block.getItem() instanceof ItemBlock) {
-                ItemBlock itemBlock = (ItemBlock) block.getItem();
-                int id = itemBlock.getBlockID();
-                int metadata = itemBlock.getMetadata(block.getItemDamage());
-                if (referenceId == id && referenceMetadata == metadata) {
+        for (ItemStack supportedBlock : blocks) {
+            if (supportedBlock != null && supportedBlock.getItem() instanceof ItemBlock) {
+                ItemBlock supportedItemBlock = (ItemBlock) supportedBlock.getItem();
+                int supportedId = supportedItemBlock.getBlockID();
+                int supportedMetadata = supportedItemBlock.getMetadata(supportedBlock.getItemDamage());
+                if (referenceId == supportedId && (referenceMetadata == supportedMetadata || supportedBlock.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
                     return true;
                 }
             }
