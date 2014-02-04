@@ -20,11 +20,13 @@ object Recipes {
   def init() {
     try {
       val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
+      val hardmodeRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "hardmode.recipes")
       val gregTechRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "gregtech.recipes")
       val userRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "user.recipes")
 
       defaultRecipes.getParentFile.mkdirs()
       FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/default.recipes"), defaultRecipes)
+      FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/hardmode.recipes"), hardmodeRecipes)
       FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/gregtech.recipes"), gregTechRecipes)
       if (!userRecipes.exists()) {
         FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
