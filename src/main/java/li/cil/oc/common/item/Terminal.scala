@@ -16,6 +16,8 @@ import net.minecraft.world.World
 class Terminal(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Terminal"
 
+  override def maxStackSize = 1
+
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
