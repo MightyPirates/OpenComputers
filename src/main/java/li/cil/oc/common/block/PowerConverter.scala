@@ -1,5 +1,6 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Loader
 import java.text.DecimalFormat
 import java.util
 import li.cil.oc.Settings
@@ -11,7 +12,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import universalelectricity.api.CompatibilityType
 
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerConverter"
@@ -35,16 +35,16 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
         else (1.0 / ratio, 1.0)
       tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
-    if (CompatibilityType.BUILDCRAFT.isLoaded) {
+    if (Loader.isModLoaded("BuildCraft|Energy")) {
       addRatio("BC", 1)
     }
-    if (CompatibilityType.INDUSTRIALCRAFT.isLoaded) {
-      addRatio("IC2", CompatibilityType.INDUSTRIALCRAFT.reciprocal_ratio / CompatibilityType.BUILDCRAFT.reciprocal_ratio)
+    if (Loader.isModLoaded("IC2")) {
+      addRatio("IC2", Settings.ratioIC2 / Settings.ratioBC)
     }
-    if (CompatibilityType.THERMAL_EXPANSION.isLoaded) {
-      addRatio("TE", CompatibilityType.THERMAL_EXPANSION.reciprocal_ratio / CompatibilityType.BUILDCRAFT.reciprocal_ratio)
+    if (Loader.isModLoaded("ThermalExpansion")) {
+      addRatio("TE", Settings.ratioTE / Settings.ratioBC)
     }
-    addRatio("UE", CompatibilityType.BUILDCRAFT.ratio)
+    addRatio("UE", 1.0 / Settings.ratioBC)
   }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))

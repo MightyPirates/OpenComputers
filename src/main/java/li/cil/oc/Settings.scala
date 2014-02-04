@@ -171,6 +171,13 @@ object Settings {
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
   val componentCountByTier = Array(8, 12, 16)
 
+  // From UniversalElectricity's CompatibilityType class, to avoid having to
+  // ship the UE API (causes weird issues because the way we build the mod it
+  // gets obfuscated which some other mods don't seem to like).
+  val ratioTE = 5628.0
+  val ratioIC2 = 22512.0
+  val ratioBC = 56280.0
+
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 
   private var settings: Settings = _

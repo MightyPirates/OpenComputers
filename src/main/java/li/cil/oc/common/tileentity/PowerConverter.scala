@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Optional
 import li.cil.oc.api.network._
 import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
@@ -7,8 +8,8 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import universalelectricity.api.UniversalClass
 import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
-import universalelectricity.api.{CompatibilityType, UniversalClass}
 
 // Because @UniversalClass injects custom invalidate and validate methods for
 // IC2 setup/teardown we have to use a base class and implement our own logic
@@ -16,6 +17,10 @@ import universalelectricity.api.{CompatibilityType, UniversalClass}
 // since mixins are linked up at compile time, whereas UniversalClass injects
 // its methods at runtime.
 @UniversalClass
+@Optional.InterfaceList(Array(
+  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
+  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
+))
 abstract class PowerConverterBase extends TileEntity with network.Environment with IEnergyInterface with IEnergyContainer {
   def node: Connector
 
@@ -42,9 +47,9 @@ abstract class PowerConverterBase extends TileEntity with network.Environment wi
 
   def getEnergyCapacity(from: ForgeDirection) = if (node != null) toUE(node.globalBufferSize) else Long.MaxValue
 
-  protected def toUE(energy: Double) = (energy * CompatibilityType.BUILDCRAFT.reciprocal_ratio).toLong
+  protected def toUE(energy: Double) = (energy * Settings.ratioBC).toLong
 
-  protected def fromUE(energy: Long) = energy * CompatibilityType.BUILDCRAFT.ratio
+  protected def fromUE(energy: Long) = energy / Settings.ratioBC
 }
 
 class PowerConverter extends PowerConverterBase with Analyzable {
