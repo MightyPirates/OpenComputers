@@ -22,7 +22,7 @@ object Processor extends Item with driver.Processor {
 
   def supportedComponents(stack: ItemStack) =
     Items.multi.subItem(stack) match {
-      case Some(cpu: item.CPU) => Settings.componentCountByTier(cpu.tier)
+      case Some(cpu: item.CPU) => Settings.get.cpuComponentSupport(cpu.tier)
       case _ => 0
     }
 }

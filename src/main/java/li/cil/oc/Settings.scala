@@ -43,6 +43,13 @@ class Settings(config: Config) {
       Array(64, 128, 256, 512, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
+  val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Int, tier2: Int, tier3: Int)
+    case _ =>
+      OpenComputers.log.warning("Bad number of CPU component counts, ignoring.")
+      Array(8, 12, 16)
+  }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
@@ -169,7 +176,6 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
-  val componentCountByTier = Array(8, 12, 16)
 
   // From UniversalElectricity's CompatibilityType class, to avoid having to
   // ship the UE API (causes weird issues because the way we build the mod it
