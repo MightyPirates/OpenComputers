@@ -60,7 +60,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
      *       .create(), ...);
      * </pre>
      */
-    protected TileEntitySidedEnvironment(Node... nodes) {
+    protected TileEntitySidedEnvironment(final Node... nodes) {
         Array.copy(nodes, 0, this.nodes, 0, Math.min(nodes.length, this.nodes.length));
     }
 
@@ -72,7 +72,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
     // exists for a side won't work on the client.
 
     @Override
-    public Node sidedNode(ForgeDirection side) {
+    public Node sidedNode(final ForgeDirection side) {
         return side == ForgeDirection.UNKNOWN ? null : nodes[side.ordinal()];
     }
 
@@ -117,7 +117,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void readFromNBT(final NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         int index = 0;
         for (Node node : nodes) {
@@ -143,7 +143,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
         for (Node node : nodes) {
             // See readFromNBT() regarding host check.
             if (node != null && node.host() == this) {
-                NBTTagCompound nodeNbt = new NBTTagCompound();
+                final NBTTagCompound nodeNbt = new NBTTagCompound();
                 node.save(nodeNbt);
                 nbt.setCompoundTag("oc:node" + index, nodeNbt);
             }

@@ -11,27 +11,27 @@ public interface Builder<T extends Node> {
     T create();
 
     public static interface NodeBuilder extends Builder<Node> {
-        ComponentBuilder withComponent(String name);
+        ComponentBuilder withComponent(final String name);
 
-        ComponentBuilder withComponent(String name, Visibility visibility);
+        ComponentBuilder withComponent(final String name, final Visibility visibility);
 
         ConnectorBuilder withConnector();
 
-        ConnectorBuilder withConnector(double bufferSize);
+        ConnectorBuilder withConnector(final double bufferSize);
     }
 
-    static interface ComponentBuilder extends Builder<Component> {
+    public static interface ComponentBuilder extends Builder<Component> {
         ComponentConnectorBuilder withConnector();
 
-        ComponentConnectorBuilder withConnector(double bufferSize);
+        ComponentConnectorBuilder withConnector(final double bufferSize);
     }
 
-    static interface ConnectorBuilder extends Builder<Connector> {
-        ComponentConnectorBuilder withComponent(String name);
+    public static interface ConnectorBuilder extends Builder<Connector> {
+        ComponentConnectorBuilder withComponent(final String name);
 
-        ComponentConnectorBuilder withComponent(String name, Visibility visibility);
+        ComponentConnectorBuilder withComponent(final String name, final Visibility visibility);
     }
 
-    static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {
+    public static interface ComponentConnectorBuilder extends Builder<ComponentConnector> {
     }
 }

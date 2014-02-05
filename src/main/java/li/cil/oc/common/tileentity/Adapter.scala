@@ -2,12 +2,13 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
-import li.cil.oc.server.driver.MultiBlockDriver
 import li.cil.oc.{Settings, api}
+import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
+import scala.collection.convert.WrapAsScala._
 import scala.{Array, Some}
 
 class Adapter extends Environment with Inventory with Analyzable {
@@ -93,7 +94,7 @@ class Adapter extends Environment with Inventory with Analyzable {
     super.readFromNBT(nbt)
 
     items(0) match {
-      case Some(stack) if driver.Registry.blockDriverFor(world, stack).isEmpty => setInventorySlotContents(0, null)
+      case Some(stack) if !driver.Registry.hasBlockDriverFor(world, stack) => setInventorySlotContents(0, null)
       case _ =>
     }
 
@@ -142,7 +143,7 @@ class Adapter extends Environment with Inventory with Analyzable {
   override def getInventoryStackRequired = 0
 
   def isItemValidForSlot(i: Int, stack: ItemStack) =
-    stack != null && stack.stackSize > 0 && driver.Registry.blockDriverFor(world, stack).isDefined
+    stack != null && stack.stackSize > 0 && driver.Registry.hasBlockDriverFor(world, stack)
 
   override def onInventoryChanged() {
     super.onInventoryChanged()
@@ -154,10 +155,23 @@ class Adapter extends Environment with Inventory with Analyzable {
   private def isBlockSupported(x: Int, y: Int, z: Int) =
     items(0) match {
       case Some(stack) =>
-        (driver.Registry.blockDriverFor(world, stack), driver.Registry.blockDriverFor(world, x, y, z)) match {
-          case (Some(stackDriver: MultiBlockDriver), Some(blockDriver)) => stackDriver == blockDriver
-          case (Some(stackDriver), Some(blockDriver: MultiBlockDriver)) => blockDriver.blocks.contains(stackDriver)
+        (stack.getItem match {
+          case itemBlock: ItemBlock =>
+            // Straightforward item block check.
+            val blockId = itemBlock.getBlockID
+            val metadata = itemBlock.getMetadata(stack.getItemDamage)
+            world.getBlockId(x, y, z) == blockId && world.getBlockMetadata(x, y, z) == metadata
           case _ => false
+        }) || {
+          // Backward check: dropped items from block.
+          val blockId = world.getBlockId(x, y, z)
+          val isValidBlock = blockId >= 0 && blockId < Block.blocksList.length && Block.blocksList(blockId) != null
+          if (isValidBlock) {
+            val block = Block.blocksList(blockId)
+            block.getBlockDropped(world, x, y, z, world.getBlockMetadata(x, y, z), 0).exists(stack.isItemEqual) ||
+              stack.itemID == block.idDropped(0, world.rand, 0)
+          }
+          else false
         }
       case _ => false
     }

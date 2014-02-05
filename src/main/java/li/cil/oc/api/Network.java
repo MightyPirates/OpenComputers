@@ -41,7 +41,7 @@ public final class Network {
      *
      * @param tileEntity the tile entity to initialize.
      */
-    public static void joinOrCreateNetwork(TileEntity tileEntity) {
+    public static void joinOrCreateNetwork(final TileEntity tileEntity) {
         if (instance != null) instance.joinOrCreateNetwork(tileEntity);
     }
 
@@ -55,7 +55,7 @@ public final class Network {
      * @param node the node to create the network for.
      * @throws IllegalArgumentException if the node already is in a network.
      */
-    public static void joinNewNetwork(Node node) {
+    public static void joinNewNetwork(final Node node) {
         if (instance != null) instance.joinNewNetwork(node);
     }
 
@@ -96,7 +96,7 @@ public final class Network {
      * @param reachability the reachability of the node.
      * @return a new node builder.
      */
-    public static Builder.NodeBuilder newNode(Environment host, Visibility reachability) {
+    public static Builder.NodeBuilder newNode(final Environment host, final Visibility reachability) {
         if (instance != null) return instance.newNode(host, reachability);
         return null;
     }

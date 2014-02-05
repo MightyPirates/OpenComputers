@@ -5,6 +5,7 @@ local sides = {
   [3] = "front",
   [4] = "right",
   [5] = "left",
+  [6] = "unknown",
 
   bottom = 0,
   top = 1,
@@ -12,6 +13,7 @@ local sides = {
   front = 3,
   right = 4,
   left = 5,
+  unknown = 6,
 
   down = 0,
   up = 1,

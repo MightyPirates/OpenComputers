@@ -25,9 +25,9 @@ import net.minecraftforge.oredict.OreDictionary;
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
-    protected ItemStack[] blocks;
+    protected final ItemStack[] blocks;
 
-    protected DriverBlock(ItemStack... blocks) {
+    protected DriverBlock(final ItemStack... blocks) {
         this.blocks = blocks.clone();
 
         // Make the driver known with OpenComputers. This is required, otherwise
@@ -37,12 +37,12 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
     }
 
     @Override
-    public boolean worksWith(World world, int x, int y, int z) {
+    public boolean worksWith(final World world, final int x, final int y, final int z) {
         return worksWith(world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z));
     }
 
     @Override
-    public boolean worksWith(World world, ItemStack stack) {
+    public boolean worksWith(final World world, final ItemStack stack) {
         if (stack != null) {
             for (ItemStack supportedBlock : blocks) {
                 if (stack.isItemEqual(supportedBlock)) {
@@ -50,19 +50,19 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
                 }
             }
             if (stack.getItem() instanceof ItemBlock) {
-                ItemBlock reference = (ItemBlock) stack.getItem();
+                final ItemBlock reference = (ItemBlock) stack.getItem();
                 return worksWith(reference.getBlockID(), reference.getMetadata(stack.getItemDamage()));
             }
         }
         return false;
     }
 
-    protected boolean worksWith(int referenceId, int referenceMetadata) {
+    protected boolean worksWith(final int referenceId, final int referenceMetadata) {
         for (ItemStack supportedBlock : blocks) {
             if (supportedBlock != null && supportedBlock.getItem() instanceof ItemBlock) {
-                ItemBlock supportedItemBlock = (ItemBlock) supportedBlock.getItem();
-                int supportedId = supportedItemBlock.getBlockID();
-                int supportedMetadata = supportedItemBlock.getMetadata(supportedBlock.getItemDamage());
+                final ItemBlock supportedItemBlock = (ItemBlock) supportedBlock.getItem();
+                final int supportedId = supportedItemBlock.getBlockID();
+                final int supportedMetadata = supportedItemBlock.getMetadata(supportedBlock.getItemDamage());
                 if (referenceId == supportedId && (referenceMetadata == supportedMetadata || supportedBlock.getItemDamage() == OreDictionary.WILDCARD_VALUE)) {
                     return true;
                 }

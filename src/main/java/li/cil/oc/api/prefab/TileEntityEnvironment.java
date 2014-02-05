@@ -66,7 +66,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void onConnect(Node node) {
+    public void onConnect(final Node node) {
         // This is called when the call to Network.joinOrCreateNetwork(this) in
         // updateEntity was successful, in which case `node == this`.
         // This is also called for any other node that gets connected to the
@@ -76,7 +76,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void onDisconnect(Node node) {
+    public void onDisconnect(final Node node) {
         // This is called when this node is removed from its network when the
         // tile entity is removed from the world (see onChunkUnload() and
         // invalidate()), in which case `node == this`.
@@ -87,7 +87,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(final Message message) {
         // This is used to deliver messages sent via node.sendToXYZ. Handle
         // messages at your own discretion. If you do not wish to handle a
         // message you should *not* throw an exception, though.
@@ -128,7 +128,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     // ----------------------------------------------------------------------- //
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void readFromNBT(final NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         // The host check may be superfluous for you. It's just there to allow
         // some special cases, where getNode() returns some node managed by
@@ -144,11 +144,11 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt) {
+    public void writeToNBT(final NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         // See readFromNBT() regarding host check.
         if (node != null && node.host() == this) {
-            NBTTagCompound nodeNbt = new NBTTagCompound();
+            final NBTTagCompound nodeNbt = new NBTTagCompound();
             node.save(nodeNbt);
             nbt.setCompoundTag("oc:node", nodeNbt);
         }

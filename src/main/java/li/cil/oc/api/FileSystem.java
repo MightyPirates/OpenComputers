@@ -44,7 +44,7 @@ public final class FileSystem {
      * @param root   an optional subdirectory.
      * @return a file system wrapping the specified folder.
      */
-    public static li.cil.oc.api.fs.FileSystem fromClass(Class<?> clazz, String domain, String root) {
+    public static li.cil.oc.api.fs.FileSystem fromClass(final Class<?> clazz, final String domain, final String root) {
         if (instance != null) return instance.fromClass(clazz, domain, root);
         return null;
     }
@@ -72,7 +72,7 @@ public final class FileSystem {
      * @param buffered whether data should only be written to disk when saving.
      * @return a file system wrapping the specified folder.
      */
-    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(String root, long capacity, boolean buffered) {
+    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(final String root, final long capacity, final boolean buffered) {
         if (instance != null) return instance.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
@@ -86,7 +86,7 @@ public final class FileSystem {
      * @param capacity the amount of space in bytes to allow being used.
      * @return a file system wrapping the specified folder.
      */
-    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(String root, long capacity) {
+    public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(final String root, final long capacity) {
         return fromSaveDirectory(root, capacity, true);
     }
 
@@ -101,7 +101,7 @@ public final class FileSystem {
      * @param capacity the capacity of the file system.
      * @return a file system residing in memory.
      */
-    public static li.cil.oc.api.fs.FileSystem fromMemory(long capacity) {
+    public static li.cil.oc.api.fs.FileSystem fromMemory(final long capacity) {
         if (instance != null) return instance.fromMemory(capacity);
         return null;
     }
@@ -112,7 +112,7 @@ public final class FileSystem {
      * @param mount the mount to wrap with a file system.
      * @return a file system wrapping the specified mount.
      */
-    public static li.cil.oc.api.fs.FileSystem fromComputerCraft(IMount mount) {
+    public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IMount mount) {
         if (instance != null) return instance.fromComputerCraft(mount);
         return null;
     }
@@ -123,7 +123,7 @@ public final class FileSystem {
      * @param mount the mount to wrap with a file system.
      * @return a file system wrapping the specified mount.
      */
-    public static li.cil.oc.api.fs.FileSystem fromComputerCraft(IWritableMount mount) {
+    public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IWritableMount mount) {
         if (instance != null) return instance.fromComputerCraft(mount);
         return null;
     }
@@ -142,7 +142,7 @@ public final class FileSystem {
      * @param label      the label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, Label label) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label) {
         if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
         return null;
     }
@@ -155,7 +155,7 @@ public final class FileSystem {
      * @param label      the read-only label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem, String label) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label) {
         if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
         return null;
     }
@@ -168,7 +168,7 @@ public final class FileSystem {
      * @param fileSystem the file system to wrap.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(li.cil.oc.api.fs.FileSystem fileSystem) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem) {
         if (instance != null) return instance.asManagedEnvironment(fileSystem);
         return null;
     }

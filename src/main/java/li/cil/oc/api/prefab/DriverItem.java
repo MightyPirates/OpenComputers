@@ -23,9 +23,9 @@ import net.minecraft.nbt.NBTTagCompound;
  */
 @SuppressWarnings("UnusedDeclaration")
 public abstract class DriverItem implements li.cil.oc.api.driver.Item {
-    protected ItemStack[] items;
+    protected final ItemStack[] items;
 
-    protected DriverItem(ItemStack... items) {
+    protected DriverItem(final ItemStack... items) {
         this.items = items.clone();
 
         // Make the driver known with OpenComputers. This is required, otherwise
@@ -35,7 +35,7 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
     }
 
     @Override
-    public boolean worksWith(ItemStack stack) {
+    public boolean worksWith(final ItemStack stack) {
         if (stack != null) {
             for (ItemStack item : items) {
                 if (item != null && item.isItemEqual(stack)) {
@@ -47,16 +47,16 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
     }
 
     @Override
-    public int tier(ItemStack stack) {
+    public int tier(final ItemStack stack) {
         return 0;
     }
 
     @Override
-    public NBTTagCompound dataTag(ItemStack stack) {
+    public NBTTagCompound dataTag(final ItemStack stack) {
         if (!stack.hasTagCompound()) {
             stack.setTagCompound(new NBTTagCompound("tag"));
         }
-        NBTTagCompound nbt = stack.getTagCompound();
+        final NBTTagCompound nbt = stack.getTagCompound();
         // This is the suggested key under which to store item component data.
         // You are free to change this as you please.
         if (!nbt.hasKey("oc:data")) {

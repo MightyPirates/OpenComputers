@@ -128,7 +128,10 @@ trait Component extends network.Component with Node {
 object Component {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
-  def callbacks(host: Environment) = cache.getOrElseUpdate(host.getClass, analyze(host))
+  def callbacks(host: Environment) = host match {
+    case multi: MultiBlockEnvironment => analyze(host)
+    case _ => cache.getOrElseUpdate(host.getClass, analyze(host))
+  }
 
   private def analyze(host: Environment) = {
     val callbacks = mutable.Map.empty[String, Callback]

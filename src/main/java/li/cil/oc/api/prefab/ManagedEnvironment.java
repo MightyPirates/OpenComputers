@@ -27,26 +27,26 @@ public abstract class ManagedEnvironment implements li.cil.oc.api.network.Manage
     }
 
     @Override
-    public void onConnect(Node node) {
+    public void onConnect(final Node node) {
     }
 
     @Override
-    public void onDisconnect(Node node) {
+    public void onDisconnect(final Node node) {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(final Message message) {
     }
 
     @Override
-    public void load(NBTTagCompound nbt) {
+    public void load(final NBTTagCompound nbt) {
         if (node != null) node.load(nbt.getCompoundTag("node"));
     }
 
     @Override
-    public void save(NBTTagCompound nbt) {
+    public void save(final NBTTagCompound nbt) {
         if (node != null) {
-            NBTTagCompound nodeTag = new NBTTagCompound();
+            final NBTTagCompound nodeTag = new NBTTagCompound();
             node.save(nodeTag);
             nbt.setCompoundTag("node", nodeTag);
         }

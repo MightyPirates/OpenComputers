@@ -115,6 +115,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
             if (from.stackSize == 0) {
               robot.setInventorySlotContents(selectedSlot, null)
             }
+            robot.onInventoryChanged()
             true
           }
           else false
@@ -634,7 +635,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
   // ----------------------------------------------------------------------- //
 
   private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.getItem == stackB.getItem &&
+    stackA.itemID == stackB.itemID &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))

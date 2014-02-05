@@ -38,15 +38,10 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (!blocks.contains(driver)) items += driver
   }
 
+  def hasBlockDriverFor(world: World, stack: ItemStack) = blocks.exists(_.worksWith(world, stack))
+
   def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if drivers.length == 1 => Some(drivers.head)
-      case drivers if !drivers.isEmpty => Some(new MultiBlockDriver(drivers.sortBy(_.getClass.getName): _*))
-      case _ => None
-    }
-
-  def blockDriverFor(world: World, stack: ItemStack) =
-    blocks.filter(_.worksWith(world, stack)) match {
       case drivers if drivers.length == 1 => Some(drivers.head)
       case drivers if !drivers.isEmpty => Some(new MultiBlockDriver(drivers.sortBy(_.getClass.getName): _*))
       case _ => None

@@ -29,9 +29,9 @@ class MultiBlockDriver(val blocks: driver.Block*) extends driver.Block {
       new MultiBlockEnvironment(name, list: _*)
   }
 
-  override def worksWith(world: World, stack: ItemStack) = blocks.exists(_.worksWith(world, stack))
+  override def worksWith(world: World, stack: ItemStack) = blocks.forall(_.worksWith(world, stack))
 
-  override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.exists(_.worksWith(world, x, y, z))
+  override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
 
   override def equals(obj: Any) = obj match {
     case multi: MultiBlockDriver if multi.blocks.length == blocks.length =>

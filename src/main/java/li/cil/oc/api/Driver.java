@@ -26,7 +26,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(Block driver) {
+    public static void add(final Block driver) {
         if (instance != null) instance.add(driver);
     }
 
@@ -38,7 +38,7 @@ public final class Driver {
      *
      * @param driver the driver to register.
      */
-    public static void add(Item driver) {
+    public static void add(final Item driver) {
         if (instance != null) instance.add(driver);
     }
 
