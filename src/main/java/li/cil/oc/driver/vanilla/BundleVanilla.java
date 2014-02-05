@@ -20,5 +20,6 @@ public final class BundleVanilla implements IDriverBundle {
         Driver.add(new DriverInventory());
         Driver.add(new DriverMobSpawner());
         Driver.add(new DriverRecordPlayer());
+        Driver.add(new DriverSign());
     }
 }
