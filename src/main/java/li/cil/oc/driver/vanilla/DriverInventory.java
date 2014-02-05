@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public class DriverInventory implements li.cil.oc.api.driver.Block {
+public final class DriverInventory implements li.cil.oc.api.driver.Block {
     @Override
     public boolean worksWith(final World world, final ItemStack stack) {
         final Class clazz = TileEntityLookup.get(world, stack);

@@ -10,7 +10,7 @@ import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public class DriverFrequencyOwner extends TileEntityDriver {
+public final class DriverFrequencyOwner extends TileEntityDriver {
     // See https://bitbucket.org/ChickenBones/enderstorage/
     private static final Class<?> TileFrequencyOwner = Reflection.getClass("codechicken.enderstorage.common.TileFrequencyOwner");
 

@@ -1,9 +1,12 @@
 package li.cil.oc.driver.buildcraft;
 
 import li.cil.oc.api.Driver;
-import li.cil.oc.driver.IDriverBundle;
+import li.cil.oc.driver.IModHandler;
+import net.minecraft.item.ItemStack;
 
-public final class BundleBuildCraft implements IDriverBundle {
+import java.util.Map;
+
+public final class HandlerBuildCraft implements IModHandler {
     @Override
     public String getModId() {
         return "BuildCraft|Core";
@@ -13,5 +16,9 @@ public final class BundleBuildCraft implements IDriverBundle {
     public void initialize() {
         Driver.add(new DriverPipe());
         Driver.add(new DriverPowerReceptor());
+    }
+
+    @Override
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 }

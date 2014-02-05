@@ -1,6 +1,5 @@
 package li.cil.oc.util;
 
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidTankInfo;
 
@@ -9,20 +8,6 @@ import java.util.Map;
 
 public final class TypeConversion {
     private TypeConversion() {
-    }
-
-    public static Map toMap(final ItemStack value) {
-        if (value == null) {
-            return null;
-        }
-        final Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", value.itemID);
-        map.put("damage", value.getItemDamage());
-        map.put("maxDamage", value.getMaxDamage());
-        map.put("size", value.stackSize);
-        map.put("maxSize", value.getMaxStackSize());
-        map.put("hasTag", value.hasTagCompound());
-        return map;
     }
 
     public static Map toMap(final FluidTankInfo value) {
