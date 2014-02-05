@@ -1,4 +1,4 @@
-This is an addon to OpenComputers, providing drivers for additional blocks to be accessible via the Adapter block. It is *not* a full re-implementation of OpenPeripherals for OpenComputers, it only provides drivers for blocks - for now, anyway.
+This is an addon for OpenComputers, providing drivers for additional blocks to be accessible via the Adapter block. It is *not* a full re-implementation of OpenPeripherals for OpenComputers, it's a little more simplistic in its architecture only provides drivers for a subset of the blocks OP supports - for now, anyway.
 
 Contributing
 ------------

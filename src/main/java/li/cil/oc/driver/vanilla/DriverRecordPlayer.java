@@ -7,6 +7,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverBlock;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
 import net.minecraft.block.Block;
+import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityRecordPlayer;
 import net.minecraft.world.World;
@@ -30,10 +31,10 @@ public final class DriverRecordPlayer extends DriverBlock {
         @Callback
         public Object[] getRecord(final Context context, final Arguments args) {
             final ItemStack record = tileEntity.func_96097_a();
-            if (record == null) {
+            if (record == null || !(record.getItem() instanceof ItemRecord)) {
                 return null;
             }
-            return new Object[]{record.itemID};
+            return new Object[]{((ItemRecord) record.getItem()).getRecordTitle()};
         }
     }
 }
