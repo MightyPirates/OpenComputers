@@ -1,12 +1,16 @@
 package li.cil.oc.driver.vanilla;
 
+import li.cil.oc.driver.IDriverBundle;
 import li.cil.oc.api.Driver;
 
-public final class ComponentsVanilla {
-    private ComponentsVanilla() {
+public final class BundleVanilla implements IDriverBundle {
+    @Override
+    public String getModId() {
+        return null;
     }
 
-    public static void register() {
+    @Override
+    public void initialize() {
         Driver.add(new DriverBeacon());
         Driver.add(new DriverBrewingStand());
         Driver.add(new DriverComparator());
