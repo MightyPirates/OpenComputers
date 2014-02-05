@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import li.cil.oc.driver.Registry;
 import li.cil.oc.driver.buildcraft.HandlerBuildCraft;
 import li.cil.oc.driver.enderstorage.HandlerEnderStorage;
+import li.cil.oc.driver.ic2.HandlerIndustrialCraft2;
 import li.cil.oc.driver.thermalexpansion.HandlerThermalExpansion;
 import li.cil.oc.driver.vanilla.HandlerVanilla;
 
@@ -17,6 +18,7 @@ public class OpenComponents {
     public void init(final FMLInitializationEvent e) {
         Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerEnderStorage());
+        Registry.add(new HandlerIndustrialCraft2());
         Registry.add(new HandlerThermalExpansion());
         Registry.add(new HandlerVanilla());
     }

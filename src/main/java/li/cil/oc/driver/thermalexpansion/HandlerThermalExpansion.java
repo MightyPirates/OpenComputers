@@ -18,7 +18,7 @@ public final class HandlerThermalExpansion implements IModHandler {
     public void initialize() {
         Driver.add(new DriverEnderAttuned());
         Driver.add(new DriverEnergyHandler());
-        Driver.add(new DriverEnergyInfo());  ;
+        Driver.add(new DriverEnergyInfo());
         Driver.add(new DriverRedstoneControl());
         Driver.add(new DriverSecureTile());
     }
