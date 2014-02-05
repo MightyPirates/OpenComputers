@@ -12,8 +12,8 @@ import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverMobSpawner extends DriverBlock {
-    public DriverMobSpawner() {
+public final class DriverMobSpawner extends DriverBlock {
+    DriverMobSpawner() {
         super(new ItemStack(Block.mobSpawner, 1, OreDictionary.WILDCARD_VALUE));
     }
 
@@ -22,7 +22,7 @@ public class DriverMobSpawner extends DriverBlock {
         return new Environment((TileEntityMobSpawner) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> {
         public Environment(final TileEntityMobSpawner tileEntity) {
             super(tileEntity, "mob_spawner");
         }

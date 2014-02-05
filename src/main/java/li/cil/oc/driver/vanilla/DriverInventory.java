@@ -29,7 +29,7 @@ public class DriverInventory implements li.cil.oc.api.driver.Block {
         return new Environment((IInventory) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<IInventory> {
+    public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
         public Environment(final IInventory tileEntity) {
             super(tileEntity, "inventory");
         }

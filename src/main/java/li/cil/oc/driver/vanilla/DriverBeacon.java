@@ -13,8 +13,8 @@ import net.minecraft.tileentity.TileEntityBeacon;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverBeacon extends DriverBlock {
-    public DriverBeacon() {
+public final class DriverBeacon extends DriverBlock {
+    DriverBeacon() {
         super(new ItemStack(Block.beacon, 1, OreDictionary.WILDCARD_VALUE));
     }
 
@@ -23,7 +23,7 @@ public class DriverBeacon extends DriverBlock {
         return new Environment((TileEntityBeacon) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityBeacon> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityBeacon> {
         public Environment(final TileEntityBeacon tileEntity) {
             super(tileEntity, "beacon");
         }

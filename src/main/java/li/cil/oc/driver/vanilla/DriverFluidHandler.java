@@ -5,9 +5,8 @@ import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.util.TileEntityLookup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
+import li.cil.oc.driver.TileEntityDriver;
+import li.cil.oc.util.TypeConversion;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidTankInfo;
@@ -15,17 +14,10 @@ import net.minecraftforge.fluids.IFluidHandler;
 
 import java.util.Map;
 
-public class DriverFluidHandler implements li.cil.oc.api.driver.Block {
+public final class DriverFluidHandler extends TileEntityDriver {
     @Override
-    public boolean worksWith(final World world, final ItemStack stack) {
-        final Class clazz = TileEntityLookup.get(world, stack);
-        return clazz != null && IFluidHandler.class.isAssignableFrom(clazz);
-    }
-
-    @Override
-    public boolean worksWith(final World world, final int x, final int y, final int z) {
-        final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
-        return tileEntity != null && tileEntity instanceof IFluidHandler;
+    public Class<?> getFilterClass() {
+        return IFluidHandler.class;
     }
 
     @Override
@@ -33,7 +25,7 @@ public class DriverFluidHandler implements li.cil.oc.api.driver.Block {
         return new Environment((IFluidHandler) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<IFluidHandler> {
+    public static final class Environment extends ManagedTileEntityEnvironment<IFluidHandler> {
         public Environment(final IFluidHandler tileEntity) {
             super(tileEntity, "fluid_handler");
         }
@@ -44,7 +36,7 @@ public class DriverFluidHandler implements li.cil.oc.api.driver.Block {
             FluidTankInfo[] info = tileEntity.getTankInfo(side);
             Map[] result = new Map[info.length];
             for (int i = 0; i < info.length; ++i) {
-                result[i] = DriverFluidTank.convertInfo(info[i]);
+                result[i] = TypeConversion.toMap(info[i]);
             }
             return new Object[]{result};
         }

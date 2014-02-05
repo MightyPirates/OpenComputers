@@ -13,9 +13,10 @@ import net.minecraft.tileentity.TileEntityBrewingStand;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverBrewingStand extends DriverBlock {
-    public DriverBrewingStand() {
-        super(new ItemStack(Item.brewingStand), new ItemStack(Block.brewingStand, 1, OreDictionary.WILDCARD_VALUE));
+public final class DriverBrewingStand extends DriverBlock {
+    DriverBrewingStand() {
+        super(new ItemStack(Item.brewingStand),
+                new ItemStack(Block.brewingStand, 1, OreDictionary.WILDCARD_VALUE));
     }
 
     @Override
@@ -23,7 +24,7 @@ public class DriverBrewingStand extends DriverBlock {
         return new Environment((TileEntityBrewingStand) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityBrewingStand> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityBrewingStand> {
         public Environment(final TileEntityBrewingStand tileEntity) {
             super(tileEntity, "brewing_stand");
         }

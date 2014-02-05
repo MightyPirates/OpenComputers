@@ -13,8 +13,8 @@ import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverComparator extends DriverBlock {
-    public DriverComparator() {
+public final class DriverComparator extends DriverBlock {
+    DriverComparator() {
         super(new ItemStack(Item.comparator),
                 new ItemStack(Block.redstoneComparatorIdle, 1, OreDictionary.WILDCARD_VALUE),
                 new ItemStack(Block.redstoneComparatorActive, 1, OreDictionary.WILDCARD_VALUE));
@@ -25,7 +25,7 @@ public class DriverComparator extends DriverBlock {
         return new Environment((TileEntityComparator) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityComparator> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityComparator> {
         public Environment(final TileEntityComparator tileEntity) {
             super(tileEntity, "comparator");
         }

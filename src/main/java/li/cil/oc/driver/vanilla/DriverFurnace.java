@@ -12,8 +12,8 @@ import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverFurnace extends DriverBlock {
-    public DriverFurnace() {
+public final class DriverFurnace extends DriverBlock {
+    DriverFurnace() {
         super(new ItemStack(Block.furnaceIdle, 1, OreDictionary.WILDCARD_VALUE),
                 new ItemStack(Block.furnaceBurning, 1, OreDictionary.WILDCARD_VALUE));
     }
@@ -23,7 +23,7 @@ public class DriverFurnace extends DriverBlock {
         return new Environment((TileEntityFurnace) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityFurnace> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityFurnace> {
         public Environment(final TileEntityFurnace tileEntity) {
             super(tileEntity, "furnace");
         }

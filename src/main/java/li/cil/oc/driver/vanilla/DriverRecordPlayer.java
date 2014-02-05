@@ -12,8 +12,8 @@ import net.minecraft.tileentity.TileEntityRecordPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class DriverRecordPlayer extends DriverBlock {
-    public DriverRecordPlayer() {
+public final class DriverRecordPlayer extends DriverBlock {
+    DriverRecordPlayer() {
         super(new ItemStack(Block.jukebox, 1, OreDictionary.WILDCARD_VALUE));
     }
 
@@ -22,7 +22,7 @@ public class DriverRecordPlayer extends DriverBlock {
         return new Environment((TileEntityRecordPlayer) world.getBlockTileEntity(x, y, z));
     }
 
-    public class Environment extends ManagedTileEntityEnvironment<TileEntityRecordPlayer> {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityRecordPlayer> {
         public Environment(final TileEntityRecordPlayer tileEntity) {
             super(tileEntity, "jukebox");
         }
