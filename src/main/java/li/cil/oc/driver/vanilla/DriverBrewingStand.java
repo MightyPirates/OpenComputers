@@ -4,19 +4,15 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.prefab.DriverBlock;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.tileentity.TileEntityBrewingStand;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
-public final class DriverBrewingStand extends DriverBlock {
-    DriverBrewingStand() {
-        super(new ItemStack(Item.brewingStand),
-                new ItemStack(Block.brewingStand, 1, OreDictionary.WILDCARD_VALUE));
+public final class DriverBrewingStand extends TileEntityDriver {
+    @Override
+    public Class<?> getFilterClass() {
+        return TileEntityBrewingStand.class;
     }
 
     @Override
