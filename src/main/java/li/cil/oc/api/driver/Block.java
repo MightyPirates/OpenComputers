@@ -50,10 +50,11 @@ public interface Block {
      * Note that the passed item stacks are not necessarily item blocks, they
      * can be anything at all.
      *
+     * @param world the world containing the adapter that does the checking.
      * @param stack the item stack to check.
      * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
      */
-    boolean worksWith(ItemStack stack);
+    boolean worksWith(World world, ItemStack stack);
 
     /**
      * Create a new managed environment interfacing the specified block.

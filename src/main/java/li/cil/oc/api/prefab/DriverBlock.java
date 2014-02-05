@@ -42,10 +42,17 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
     }
 
     @Override
-    public boolean worksWith(ItemStack stack) {
-        if (stack != null && stack.getItem() instanceof ItemBlock) {
-            ItemBlock reference = (ItemBlock) stack.getItem();
-            return worksWith(reference.getBlockID(), reference.getMetadata(stack.getItemDamage()));
+    public boolean worksWith(World world, ItemStack stack) {
+        if (stack != null) {
+            for (ItemStack supportedBlock : blocks) {
+                if (stack.isItemEqual(supportedBlock)) {
+                    return true;
+                }
+            }
+            if (stack.getItem() instanceof ItemBlock) {
+                ItemBlock reference = (ItemBlock) stack.getItem();
+                return worksWith(reference.getBlockID(), reference.getMetadata(stack.getItemDamage()));
+            }
         }
         return false;
     }

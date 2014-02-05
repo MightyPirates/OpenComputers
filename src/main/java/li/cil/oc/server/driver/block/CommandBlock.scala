@@ -11,7 +11,7 @@ object CommandBlock extends driver.Block {
   def worksWith(world: World, x: Int, y: Int, z: Int) =
     world.getBlockId(x, y, z) == Block.commandBlock.blockID
 
-  def worksWith(stack: ItemStack) = stack != null && (stack.getItem match {
+  def worksWith(world: World, stack: ItemStack) = stack != null && (stack.getItem match {
     case itemBlock: ItemBlock => itemBlock.getBlockID == Block.commandBlock.blockID
     case _ => false
   })

@@ -3,22 +3,40 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Modifier, Method, InvocationTargetException}
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
+import li.cil.oc.server.driver.MultiBlockEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
-import li.cil.oc.OpenComputers
 
 trait Component extends network.Component with Node {
   val name: String
 
   def visibility = _visibility
 
-  private lazy val callbacks = Component.callbacks(host.getClass)
+  private lazy val callbacks = Component.callbacks(host)
+
+  private lazy val hosts = host match {
+    case multi: MultiBlockEnvironment =>
+      callbacks.map {
+        case (method, callback) =>
+          multi.environments.find {
+            case (_, environment) => environment.getClass == callback.method.getDeclaringClass
+          } match {
+            case Some((_, environment)) => method -> Some(environment)
+            case _ => method -> None
+          }
+      }
+    case _ =>
+      callbacks.map {
+        case (method, callback) => method -> Some(host)
+      }
+  }
 
   private var _visibility = Visibility.None
 
@@ -73,7 +91,10 @@ trait Component extends network.Component with Node {
 
   def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
-      case Some(callback) => callback(host, context, new Component.VarArgs(Seq(arguments: _*)))
+      case Some(callback) => hosts(method) match {
+        case Some(environment) => callback(environment, context, new Component.VarArgs(Seq(arguments: _*)))
+        case _ => throw new NoSuchMethodException()
+      }
       case _ => throw new NoSuchMethodException()
     }
 
@@ -107,36 +128,44 @@ trait Component extends network.Component with Node {
 object Component {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
-  def callbacks(clazz: Class[_]) = cache.getOrElseUpdate(clazz, analyze(clazz))
+  def callbacks(host: Environment) = cache.getOrElseUpdate(host.getClass, analyze(host))
 
-  private def analyze(clazz: Class[_]) = {
+  private def analyze(host: Environment) = {
     val callbacks = mutable.Map.empty[String, Callback]
-    var c = clazz
-    while (c != classOf[Object]) {
-      val ms = c.getDeclaredMethods
+    val seeds = host match {
+      case multi: MultiBlockEnvironment => multi.environments.map {
+        case (_, environment) => environment.getClass: Class[_]
+      }
+      case _ => Seq(host.getClass: Class[_])
+    }
+    for (seed <- seeds) {
+      var c: Class[_] = seed
+      while (c != classOf[Object]) {
+        val ms = c.getDeclaredMethods
 
-      ms.filter(_.isAnnotationPresent(classOf[network.Callback])).foreach(m =>
-        if (m.getParameterTypes.size != 2 ||
-          (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
-          m.getParameterTypes()(1) != classOf[Arguments]) {
-          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
-        }
-        else if (m.getReturnType != classOf[Array[AnyRef]]) {
-          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
-        }
-        else if (!Modifier.isPublic(m.getModifiers)) {
-          OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
-        }
-        else {
-          val a = m.getAnnotation[network.Callback](classOf[network.Callback])
-          val name = if (a.value != null && a.value.trim != "") a.value else m.getName
-          if (!callbacks.contains(name)) {
-            callbacks += name -> new Callback(m, a.direct, a.limit)
+        ms.filter(_.isAnnotationPresent(classOf[network.Callback])).foreach(m =>
+          if (m.getParameterTypes.size != 2 ||
+            (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
+            m.getParameterTypes()(1) != classOf[Arguments]) {
+            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
           }
-        }
-      )
+          else if (m.getReturnType != classOf[Array[AnyRef]]) {
+            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
+          }
+          else if (!Modifier.isPublic(m.getModifiers)) {
+            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
+          }
+          else {
+            val a = m.getAnnotation[network.Callback](classOf[network.Callback])
+            val name = if (a.value != null && a.value.trim != "") a.value else m.getName
+            if (!callbacks.contains(name)) {
+              callbacks += name -> new Callback(m, a.direct, a.limit)
+            }
+          }
+        )
 
-      c = c.getSuperclass
+        c = c.getSuperclass
+      }
     }
     callbacks.toMap
   }

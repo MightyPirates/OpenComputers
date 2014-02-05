@@ -2,12 +2,13 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
+import li.cil.oc.server.driver.MultiBlockDriver
 import li.cil.oc.{Settings, api}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.{Array, Some}
-import net.minecraft.entity.player.EntityPlayer
 
 class Adapter extends Environment with Inventory with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
@@ -92,7 +93,7 @@ class Adapter extends Environment with Inventory with Analyzable {
     super.readFromNBT(nbt)
 
     items(0) match {
-      case Some(stack) if driver.Registry.blockDriverFor(stack).isEmpty => setInventorySlotContents(0, null)
+      case Some(stack) if driver.Registry.blockDriverFor(world, stack).isEmpty => setInventorySlotContents(0, null)
       case _ =>
     }
 
@@ -141,7 +142,7 @@ class Adapter extends Environment with Inventory with Analyzable {
   override def getInventoryStackRequired = 0
 
   def isItemValidForSlot(i: Int, stack: ItemStack) =
-    stack != null && stack.stackSize > 0 && driver.Registry.blockDriverFor(stack).isDefined
+    stack != null && stack.stackSize > 0 && driver.Registry.blockDriverFor(world, stack).isDefined
 
   override def onInventoryChanged() {
     super.onInventoryChanged()
@@ -151,13 +152,15 @@ class Adapter extends Environment with Inventory with Analyzable {
   // ----------------------------------------------------------------------- //
 
   private def isBlockSupported(x: Int, y: Int, z: Int) =
-    items(0).isDefined && (items(0).get.getItem match {
-      case block: ItemBlock =>
-        val stackDriver = driver.Registry.blockDriverFor(items(0).get)
-        val blockDriver = driver.Registry.blockDriverFor(world, x, y, z)
-        stackDriver.isDefined && blockDriver.isDefined && stackDriver.get == blockDriver.get
+    items(0) match {
+      case Some(stack) =>
+        (driver.Registry.blockDriverFor(world, stack), driver.Registry.blockDriverFor(world, x, y, z)) match {
+          case (Some(stackDriver: MultiBlockDriver), Some(blockDriver)) => stackDriver == blockDriver
+          case (Some(stackDriver), Some(blockDriver: MultiBlockDriver)) => blockDriver.blocks.contains(stackDriver)
+          case _ => false
+        }
       case _ => false
-    })
+    }
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 

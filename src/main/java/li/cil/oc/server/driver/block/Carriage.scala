@@ -14,7 +14,7 @@ object Carriage extends driver.Block {
       case _ => false
     }
 
-  def worksWith(stack: ItemStack) = RedstoneInMotion.isCarriageController(stack)
+  def worksWith(world: World, stack: ItemStack) = RedstoneInMotion.isCarriageController(stack)
 
   def createEnvironment(world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {

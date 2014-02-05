@@ -39,15 +39,17 @@ private[oc] object Registry extends api.detail.DriverAPI {
   }
 
   def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
-    blocks.find(_.worksWith(world, x, y, z)) match {
-      case None => None
-      case Some(driver) => Some(driver)
+    blocks.filter(_.worksWith(world, x, y, z)) match {
+      case drivers if drivers.length == 1 => Some(drivers.head)
+      case drivers if !drivers.isEmpty => Some(new MultiBlockDriver(drivers.sortBy(_.getClass.getName): _*))
+      case _ => None
     }
 
-  def blockDriverFor(stack: ItemStack) =
-    blocks.find(_.worksWith(stack)) match {
-      case None => None
-      case Some(driver) => Some(driver)
+  def blockDriverFor(world: World, stack: ItemStack) =
+    blocks.filter(_.worksWith(world, stack)) match {
+      case drivers if drivers.length == 1 => Some(drivers.head)
+      case drivers if !drivers.isEmpty => Some(new MultiBlockDriver(drivers.sortBy(_.getClass.getName): _*))
+      case _ => None
     }
 
   def itemDriverFor(stack: ItemStack) =
