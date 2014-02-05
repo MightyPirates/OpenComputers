@@ -1,7 +1,5 @@
 package mrtjp.projectred.api;
 
-import java.util.List;
-
 import net.minecraft.tileentity.TileEntity;
 
 /**
@@ -13,18 +11,25 @@ import net.minecraft.tileentity.TileEntity;
 public interface ISpecialLinkState
 {
     /**
+     * If this special link state should be used for the given tile, this
+     * should return true.
+     *
+     * @param tile The tile in question
+     * @return True if this special link state applies to the tile.
+     */
+    public boolean matches(TileEntity tile);
+
+    /**
      * This method should utilize the given tile to find all other tiles that
      * connects back and forth. For example, if we have TesseractA (param tile)
-     * connected to TesseractB, which connects to a few pipes, this method
-     * should return the tile of all pipes connected to TesseractB.
-     * 
+     * connected to TesseractB, which connects to a pipe, this method
+     * should return the tile (TileMultipart) of that pipe.
+     *
      * The given tile is what the pipes found, the returned list is what the
      * pipe should consider as found.
-     * 
-     * @param te The tile in question.
-     * @return A list of all connected pipes (as tiles, should be
-     *         TileMultipart). This MUST be null if there are no connections of
-     *         this special type.
+     *
+     * @param tile The tile in question.
+     * @return A list of all connected pipes (as TileMultiparts).
      */
-    public List<TileEntity> getLinks(TileEntity te);
+    public TileEntity getLink(TileEntity tile);
 }

@@ -1,7 +1,5 @@
 package mrtjp.projectred.api;
 
-import net.minecraft.world.World;
-
 /**
  * Central API class for ProjectRed If ProjectRed is installed, the appropriate
  * field will contain an implementor of these methods. <br>
@@ -16,7 +14,7 @@ public final class ProjectRedAPI
      * API used for interacting with wires
      */
     public static ITransmissionAPI transmissionAPI;
-    
+
     /**
      * API used for interacting with pipes
      */

@@ -7,7 +7,7 @@ import li.cil.oc.OpenComputers
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
-import li.cil.oc.server.driver.MultiBlockEnvironment
+import li.cil.oc.server.driver.CompoundBlockEnvironment
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
@@ -22,7 +22,7 @@ trait Component extends network.Component with Node {
   private lazy val callbacks = Component.callbacks(host)
 
   private lazy val hosts = host match {
-    case multi: MultiBlockEnvironment =>
+    case multi: CompoundBlockEnvironment =>
       callbacks.map {
         case (method, callback) =>
           multi.environments.find {
@@ -129,14 +129,14 @@ object Component {
   private val cache = mutable.Map.empty[Class[_], immutable.Map[String, Callback]]
 
   def callbacks(host: Environment) = host match {
-    case multi: MultiBlockEnvironment => analyze(host)
+    case multi: CompoundBlockEnvironment => analyze(host)
     case _ => cache.getOrElseUpdate(host.getClass, analyze(host))
   }
 
   private def analyze(host: Environment) = {
     val callbacks = mutable.Map.empty[String, Callback]
     val seeds = host match {
-      case multi: MultiBlockEnvironment => multi.environments.map {
+      case multi: CompoundBlockEnvironment => multi.environments.map {
         case (_, environment) => environment.getClass: Class[_]
       }
       case _ => Seq(host.getClass: Class[_])
