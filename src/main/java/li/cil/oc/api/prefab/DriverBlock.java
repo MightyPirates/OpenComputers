@@ -45,7 +45,7 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
     public boolean worksWith(final World world, final ItemStack stack) {
         if (stack != null) {
             for (ItemStack supportedBlock : blocks) {
-                if (stack.isItemEqual(supportedBlock)) {
+                if (stack.itemID == supportedBlock.itemID && (!stack.getHasSubtypes() || stack.getItemDamage() == supportedBlock.getItemDamage())) {
                     return true;
                 }
             }

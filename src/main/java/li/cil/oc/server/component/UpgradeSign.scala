@@ -26,7 +26,7 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
 
   @Callback
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
-    val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.size > 15) line.substring(0, 15) else line)
+    val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line)
     val facing = owner match {
       case rotatable: Rotatable => rotatable.facing
       case _ => throw new Exception("illegal state")
