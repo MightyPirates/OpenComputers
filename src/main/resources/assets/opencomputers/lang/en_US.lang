@@ -106,7 +106,6 @@ oc:gui.Terminal.InvalidKey=Invalid key, most likely another terminal has been bo
 oc:gui.Terminal.OutOfRange=No signal.
 
 # Containers
-oc:container.Adapter=Adapter
 oc:container.Case=Computer
 oc:container.DiskDrive=Disk Drive
 oc:container.Rack=Server Rack

@@ -1,7 +1,6 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 /**
@@ -39,22 +38,6 @@ public interface Block {
      * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
      */
     boolean worksWith(World world, int x, int y, int z);
-
-    /**
-     * Used to determine the block types this driver handles.
-     * <p/>
-     * This is used to determine whether there is a driver for the specified
-     * block type when an Adapter block is being configured, i.e. when the
-     * player tries to place an item into the adapter's GUI.
-     * <p/>
-     * Note that the passed item stacks are not necessarily item blocks, they
-     * can be anything at all.
-     *
-     * @param world the world containing the adapter that does the checking.
-     * @param stack the item stack to check.
-     * @return <tt>true</tt> if the block is supported; <tt>false</tt> otherwise.
-     */
-    boolean worksWith(World world, ItemStack stack);
 
     /**
      * Create a new managed environment interfacing the specified block.

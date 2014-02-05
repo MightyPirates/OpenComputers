@@ -17,8 +17,6 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     else new CompoundBlockEnvironment(tryGetName(world, x, y, z), list: _*)
   }
 
-  override def worksWith(world: World, stack: ItemStack) = blocks.forall(_.worksWith(world, stack))
-
   override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
 
   override def equals(obj: Any) = obj match {

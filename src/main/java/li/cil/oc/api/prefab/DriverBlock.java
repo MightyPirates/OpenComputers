@@ -1,6 +1,5 @@
 package li.cil.oc.api.prefab;
 
-import li.cil.oc.api.Driver;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -8,15 +7,12 @@ import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * If you wish to create a block component for a third-party block, i.e. a block
- * for which you do not control the tile entity, such as vanially blocks, you
+ * for which you do not control the tile entity, such as vanilla blocks, you
  * will need a block driver.
  * <p/>
  * This prefab allows creating a driver that works for a specified list of item
  * stacks (to support different blocks with the same id but different metadata
  * values).
- * <p/>
- * Note that if you use this prefab you <em>must instantiate your driver in the
- * init phase</em>, since it automatically registers itself with OpenComputers.
  * <p/>
  * You still have to provide the implementation for creating its environment, if
  * any.
@@ -29,32 +25,11 @@ public abstract class DriverBlock implements li.cil.oc.api.driver.Block {
 
     protected DriverBlock(final ItemStack... blocks) {
         this.blocks = blocks.clone();
-
-        // Make the driver known with OpenComputers. This is required, otherwise
-        // the mod won't know this driver exists. It must be called in the init
-        // phase.
-        Driver.add(this);
     }
 
     @Override
     public boolean worksWith(final World world, final int x, final int y, final int z) {
         return worksWith(world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z));
-    }
-
-    @Override
-    public boolean worksWith(final World world, final ItemStack stack) {
-        if (stack != null) {
-            for (ItemStack supportedBlock : blocks) {
-                if (stack.itemID == supportedBlock.itemID && (!stack.getHasSubtypes() || stack.getItemDamage() == supportedBlock.getItemDamage())) {
-                    return true;
-                }
-            }
-            if (stack.getItem() instanceof ItemBlock) {
-                final ItemBlock reference = (ItemBlock) stack.getItem();
-                return worksWith(reference.getBlockID(), reference.getMetadata(stack.getItemDamage()));
-            }
-        }
-        return false;
     }
 
     protected boolean worksWith(final int referenceId, final int referenceMetadata) {

@@ -1,8 +1,8 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.{OpenComputers, Settings}
-import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -41,17 +41,6 @@ class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
   override def createTileEntity(world: World) = Some(new tileentity.Adapter)
 
   // ----------------------------------------------------------------------- //
-
-  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
-                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Adapter.id, world, x, y, z)
-      }
-      true
-    }
-    else false
-  }
 
   override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
     world.getBlockTileEntity(x, y, z) match {

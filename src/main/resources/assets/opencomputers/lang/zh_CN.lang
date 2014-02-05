@@ -69,7 +69,6 @@ oc:gui.Robot.TurnOff=关闭
 oc:gui.Robot.TurnOn=开启
 
 # Containers
-oc:container.Adapter=适配器
 oc:container.Case=计算机
 oc:container.DiskDrive=磁盘驱动
 

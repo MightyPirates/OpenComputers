@@ -1,6 +1,5 @@
 package li.cil.oc.api.prefab;
 
-import li.cil.oc.api.Driver;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -13,9 +12,6 @@ import net.minecraft.nbt.NBTTagCompound;
  * values). It also takes care of creating and getting the tag compound on an
  * item stack to save data to or load data from.
  * <p/>
- * Note that if you use this prefab you <em>must instantiate your driver in the
- * init phase</em>, since it automatically registers itself with OpenComputers.
- * <p/>
  * You still have to specify your component's slot type and provide the
  * implementation for creating its environment, if any.
  *
@@ -27,11 +23,6 @@ public abstract class DriverItem implements li.cil.oc.api.driver.Item {
 
     protected DriverItem(final ItemStack... items) {
         this.items = items.clone();
-
-        // Make the driver known with OpenComputers. This is required, otherwise
-        // the mod won't know this driver exists. It must be called in the init
-        // phase.
-        Driver.add(this);
     }
 
     @Override

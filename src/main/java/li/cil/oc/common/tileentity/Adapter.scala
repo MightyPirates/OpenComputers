@@ -3,15 +3,12 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network._
 import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
-import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
-import scala.collection.convert.WrapAsScala._
 import scala.{Array, Some}
 
-class Adapter extends Environment with Inventory with Analyzable {
+class Adapter extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -40,21 +37,15 @@ class Adapter extends Environment with Inventory with Analyzable {
       driver.Registry.blockDriverFor(world, x, y, z) match {
         case Some(newDriver) => blocks(d.ordinal()) match {
           case Some((oldEnvironment, driver)) =>
-            if (newDriver != driver || !isBlockSupported(x, y, z)) {
+            if (newDriver != driver) {
               // This is... odd. Maybe moved by some other mod?
               node.disconnect(oldEnvironment.node)
-              if (isBlockSupported(x, y, z)) {
-                val environment = newDriver.createEnvironment(world, x, y, z)
-                blocks(d.ordinal()) = Some((environment, newDriver))
-                blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
-                node.connect(environment.node)
-              }
-              else {
-                blocks(d.ordinal()) = None
-                blocksData(d.ordinal()) = None
-              }
+              val environment = newDriver.createEnvironment(world, x, y, z)
+              blocks(d.ordinal()) = Some((environment, newDriver))
+              blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
+              node.connect(environment.node)
             } // else: the more things change, the more they stay the same.
-          case _ if isBlockSupported(x, y, z) =>
+          case _ =>
             // A challenger appears.
             val environment = newDriver.createEnvironment(world, x, y, z)
             blocks(d.ordinal()) = Some((environment, newDriver))
@@ -65,7 +56,6 @@ class Adapter extends Environment with Inventory with Analyzable {
             }
             blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
             node.connect(environment.node)
-          case _ => // Not supported by filter.
         }
         case _ => blocks(d.ordinal()) match {
           case Some((environment, driver)) =>
@@ -92,11 +82,6 @@ class Adapter extends Environment with Inventory with Analyzable {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-
-    items(0) match {
-      case Some(stack) if !driver.Registry.hasBlockDriverFor(world, stack) => setInventorySlotContents(0, null)
-      case _ =>
-    }
 
     val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks")
     (0 until (blocksNbt.tagCount min blocksData.length)).
@@ -131,50 +116,6 @@ class Adapter extends Environment with Inventory with Analyzable {
     }
     nbt.setTag(Settings.namespace + "adapter.blocks", blocksNbt)
   }
-
-  // ----------------------------------------------------------------------- //
-
-  def getSizeInventory = 1
-
-  def getInvName = Settings.namespace + "container.Adapter"
-
-  def getInventoryStackLimit = 0
-
-  override def getInventoryStackRequired = 0
-
-  def isItemValidForSlot(i: Int, stack: ItemStack) =
-    stack != null && stack.stackSize > 0 && driver.Registry.hasBlockDriverFor(world, stack)
-
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
-    neighborChanged()
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  private def isBlockSupported(x: Int, y: Int, z: Int) =
-    items(0) match {
-      case Some(stack) =>
-        (stack.getItem match {
-          case itemBlock: ItemBlock =>
-            // Straightforward item block check.
-            val blockId = itemBlock.getBlockID
-            val metadata = itemBlock.getMetadata(stack.getItemDamage)
-            world.getBlockId(x, y, z) == blockId && world.getBlockMetadata(x, y, z) == metadata
-          case _ => false
-        }) || {
-          // Backward check: dropped items from block.
-          val blockId = world.getBlockId(x, y, z)
-          val isValidBlock = blockId >= 0 && blockId < Block.blocksList.length && Block.blocksList(blockId) != null
-          if (isValidBlock) {
-            val block = Block.blocksList(blockId)
-            stack.itemID == block.idDropped(0, world.rand, 0) &&
-              stack.getItemDamage == block.getDamageValue(world, x, y, z)
-          }
-          else false
-        }
-      case _ => false
-    }
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 
