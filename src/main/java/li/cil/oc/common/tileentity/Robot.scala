@@ -130,7 +130,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
       Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f")))
+      Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f"), level: Integer))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
 
