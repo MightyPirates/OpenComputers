@@ -40,7 +40,6 @@ private[oc] object Registry extends api.detail.DriverAPI {
 
   def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if drivers.length == 1 => Some(drivers.head)
       case drivers if !drivers.isEmpty => Some(new CompoundBlockDriver(drivers.sortBy(_.getClass.getName): _*))
       case _ => None
     }

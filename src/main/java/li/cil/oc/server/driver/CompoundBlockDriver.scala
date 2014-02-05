@@ -1,8 +1,12 @@
 package li.cil.oc.server.driver
 
+import com.google.common.base.Strings
+import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
 import net.minecraft.block.Block
+import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
@@ -14,7 +18,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       }
     } filter (_ != null)
     if (list.isEmpty) null
-    else new CompoundBlockEnvironment(tryGetName(world, x, y, z), list: _*)
+    else new CompoundBlockEnvironment(cleanName(tryGetName(world, x, y, z)), list: _*)
   }
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
@@ -26,31 +30,42 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     case _ => false
   }
 
-  private def tryGetName(world: World, x: Int, y: Int, z: Int) = {
-    val blockId = world.getBlockId(x, y, z)
-    val isValidBlock = blockId >= 0 && blockId < Block.blocksList.length && Block.blocksList(blockId) != null
-    if (isValidBlock) {
+  private def tryGetName(world: World, x: Int, y: Int, z: Int): String = {
+    try world.getBlockTileEntity(x, y, z) match {
+      case inventory: IInventory => return inventory.getInvName.stripPrefix("container.")
+    } catch {
+      case _: Throwable =>
+    }
+    try world.getBlockTileEntity(x, y, z) match {
+      case tileEntity: TileEntity =>
+        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_70323_b")
+        return map.get(tileEntity.getClass)
+    } catch {
+      case _: Throwable =>
+    }
+    try {
+      val blockId = world.getBlockId(x, y, z)
       val block = Block.blocksList(blockId)
-      val itemStack = try Option(block.getPickBlock(null, world, x, y, z)) catch {
+      val stack = try Option(block.getPickBlock(null, world, x, y, z)) catch {
         case _: Throwable =>
           if (Item.itemsList(blockId) != null) {
             Some(new ItemStack(blockId, 1, block.getDamageValue(world, x, y, z)))
           }
           else None
       }
-      itemStack match {
-        case Some(stack) => cleanName(stack.getUnlocalizedName)
-        case _ => "multi"
+      if (stack.isDefined) {
+        return cleanName(stack.get.getUnlocalizedName.stripPrefix("tile."))
       }
+    } catch {
+      case _: Throwable =>
     }
-    else "multi"
+    "component"
   }
 
   private def cleanName(name: String) = {
-    val withoutNameSpace = if (name.contains(":")) name.substring(name.indexOf(":") + 1) else name
-    val withoutPrefixes = if (withoutNameSpace.contains(".")) withoutNameSpace.substring(withoutNameSpace.lastIndexOf(".") + 1) else withoutNameSpace
-    val safeStart = if (withoutPrefixes.matches("""^[^a-zA-Z_]""")) "_" + withoutPrefixes else withoutPrefixes
-    val identifier = safeStart.replaceAll("""[^\w_]""", "_")
-    identifier
+    val safeStart = if (name.matches( """^[^a-zA-Z_]""")) "_" + name else name
+    val identifier = safeStart.replaceAll( """[^\w_]""", "_").trim
+    if (Strings.isNullOrEmpty(identifier)) "component"
+    else identifier.toLowerCase
   }
 }
