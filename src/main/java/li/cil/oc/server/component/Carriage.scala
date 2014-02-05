@@ -4,8 +4,9 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.mods.RedstoneInMotion
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 
-class Carriage(controller: AnyRef) extends ManagedComponent {
+class Carriage(controller: TileEntity) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("carriage").
     create()
