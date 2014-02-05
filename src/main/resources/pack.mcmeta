@@ -1,0 +1,12 @@
+{
+  "pack": {
+    "pack_format": 1,
+    "description": "OpenComponents"
+  },
+  "language":{
+     "en_US":{
+        "name": "English",
+        "region": "United States"
+     }
+  }
+}
