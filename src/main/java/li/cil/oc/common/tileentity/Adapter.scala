@@ -168,8 +168,8 @@ class Adapter extends Environment with Inventory with Analyzable {
           val isValidBlock = blockId >= 0 && blockId < Block.blocksList.length && Block.blocksList(blockId) != null
           if (isValidBlock) {
             val block = Block.blocksList(blockId)
-            block.getBlockDropped(world, x, y, z, world.getBlockMetadata(x, y, z), 0).exists(stack.isItemEqual) ||
-              stack.itemID == block.idDropped(0, world.rand, 0)
+            stack.itemID == block.idDropped(0, world.rand, 0) &&
+              stack.getItemDamage == block.getDamageValue(world, x, y, z)
           }
           else false
         }

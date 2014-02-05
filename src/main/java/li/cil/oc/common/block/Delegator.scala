@@ -114,10 +114,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   override def damageDropped(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.itemDamage
-      case _ => super.damageDropped(metadata)
+      case _ => metadata
     }
-
-  override def getDamageValue(world: World, x: Int, y: Int, z: Int) = world.getBlockMetadata(x, y, z)
 
   override def getPickBlock(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
