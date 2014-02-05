@@ -35,12 +35,17 @@ public final class DriverInventory implements li.cil.oc.api.driver.Block {
         }
 
         @Callback
-        public Object[] getCapacity(final Context context, final Arguments args) {
+        public Object[] getInventoryName(final Context context, final Arguments args) {
+            return new Object[]{tileEntity.getInvName()};
+        }
+
+        @Callback
+        public Object[] getInventorySize(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getSizeInventory()};
         }
 
         @Callback
-        public Object[] getSlotCount(final Context context, final Arguments args) {
+        public Object[] getSlotStackSize(final Context context, final Arguments args) {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
@@ -51,19 +56,18 @@ public final class DriverInventory implements li.cil.oc.api.driver.Block {
         }
 
         @Callback
-        public Object[] getSlotSpace(final Context context, final Arguments args) {
+        public Object[] getSlotMaxStackSize(final Context context, final Arguments args) {
             final int slot = checkSlot(args, 0);
             final ItemStack stack = tileEntity.getStackInSlot(slot);
             if (stack != null) {
-                final int maxStack = Math.min(tileEntity.getInventoryStackLimit(), stack.getMaxStackSize());
-                return new Object[]{maxStack - stack.stackSize};
+                return new Object[]{Math.min(tileEntity.getInventoryStackLimit(), stack.getMaxStackSize())};
             } else {
                 return new Object[]{tileEntity.getInventoryStackLimit()};
             }
         }
 
         @Callback
-        public Object[] compare(final Context context, final Arguments args) {
+        public Object[] compareStacks(final Context context, final Arguments args) {
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
             if (slotA == slotB) {
@@ -81,7 +85,7 @@ public final class DriverInventory implements li.cil.oc.api.driver.Block {
         }
 
         @Callback
-        public Object[] transfer(final Context context, final Arguments args) {
+        public Object[] transferStack(final Context context, final Arguments args) {
             final int slotA = checkSlot(args, 0);
             final int slotB = checkSlot(args, 1);
             final int count = Math.max(0, Math.min(args.count() > 2 && args.checkAny(2) != null ? args.checkInteger(2) : 64, tileEntity.getInventoryStackLimit()));
