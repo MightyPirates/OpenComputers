@@ -158,14 +158,15 @@ class PacketHandler extends CommonPacketHandler {
         case player: EntityPlayer if rack.isUseableByPlayer(player) =>
           val number = p.readInt()
           val side = p.readDirection()
-          if (rack.sides(number) != side && side != ForgeDirection.SOUTH) {
+          if (rack.sides(number) != side && side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) {
             rack.sides(number) = side
             rack.servers(number) match {
               case Some(server) => rack.reconnectServer(number, server)
               case _ =>
             }
+            PacketSender.sendServerState(rack, number)
           }
-          PacketSender.sendServerState(rack, number)
+          else PacketSender.sendServerState(rack, number, Some(player))
         case _ =>
       }
       case _ => // Invalid packet.

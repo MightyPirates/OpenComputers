@@ -310,7 +310,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: Rack, number: Int) {
+  def sendServerState(t: Rack, number: Int, player: Option[Player] = None) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
@@ -319,6 +319,9 @@ object PacketSender {
     pb.writeDirection(t.sides(number))
     pb.writeUTF(t.terminals(number).key.getOrElse(""))
 
-    pb.sendToNearbyPlayers(t)
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToNearbyPlayers(t)
+    }
   }
 }

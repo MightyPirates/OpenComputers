@@ -119,6 +119,16 @@ class Delegator(id: Int) extends Item(id) {
   }
 
   @SideOnly(Side.CLIENT)
+  override def getIcon(stack: ItemStack, pass: Int) =
+    subItem(stack) match {
+      case Some(subItem) => subItem.icon(stack, pass) match {
+        case Some(icon) => icon
+        case _ => super.getIcon(stack, pass)
+      }
+      case _ => super.getIcon(stack, pass)
+    }
+
+  @SideOnly(Side.CLIENT)
   override def getIconFromDamage(damage: Int): Icon =
     subItem(damage) match {
       case Some(subItem) => subItem.icon match {

@@ -25,7 +25,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     case ForgeDirection.EAST => "gui.ServerRack.Left"
     case ForgeDirection.WEST => "gui.ServerRack.Right"
     case ForgeDirection.NORTH => "gui.ServerRack.Back"
-    case _ => "gui.ServerRack.All"
+    case _ => "gui.ServerRack.None"
   }))
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
@@ -36,13 +36,12 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
     }
     if (button.id >= 4 && button.id <= 7) {
       val number = button.id - 4
-      val nextSide = rack.sides(number) match {
-        case ForgeDirection.UP => ForgeDirection.DOWN
-        case ForgeDirection.DOWN => ForgeDirection.EAST
-        case ForgeDirection.EAST => ForgeDirection.WEST
-        case ForgeDirection.WEST => ForgeDirection.NORTH
-        case ForgeDirection.NORTH => ForgeDirection.UNKNOWN
-        case _ => ForgeDirection.UP
+      val sides = ForgeDirection.values
+      val currentSide = rack.sides(number)
+      val searchSides = sides.drop(currentSide.ordinal() + 1) ++ sides.take(currentSide.ordinal() + 1)
+      val nextSide = searchSides.find(side => side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) match {
+        case Some(side) => side
+        case _ => ForgeDirection.UNKNOWN
       }
       ClientPacketSender.sendServerSide(rack, number, nextSide)
     }

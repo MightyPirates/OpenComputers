@@ -62,6 +62,9 @@ trait Delegate {
   protected def icon_=(value: Icon) = _icon = Option(value)
 
   @SideOnly(Side.CLIENT)
+  def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
+
+  @SideOnly(Side.CLIENT)
   def registerIcons(iconRegister: IconRegister) {}
 
   // ----------------------------------------------------------------------- //

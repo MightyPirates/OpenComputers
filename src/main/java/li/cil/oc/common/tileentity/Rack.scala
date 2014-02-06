@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Connector, Visibility, Node, Analyzable}
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
@@ -19,7 +20,8 @@ import stargatetech2.api.bus.IBusDevice
 class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
-  val sides = Array(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN)
+  val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
+    padTo(servers.length, ForgeDirection.UNKNOWN).toArray
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
@@ -83,12 +85,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     val serverSide = sides(number)
     val serverNode = server.machine.node
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      if (toGlobal(serverSide) == side || serverSide == ForgeDirection.UNKNOWN) {
-        sidedNode(side).connect(serverNode)
-      }
-      else {
-        sidedNode(side).disconnect(serverNode)
-      }
+      if (toGlobal(serverSide) == side) sidedNode(side).connect(serverNode)
+      else sidedNode(side).disconnect(serverNode)
     }
   }
 
@@ -172,6 +170,14 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
         updateRedstoneInput()
         servers collect {
           case Some(server) => server.inventory.updateComponents()
+        }
+      }
+      else {
+        for ((serverOption, terminal) <- servers.zip(terminals)) serverOption match {
+          case Some(server) =>
+            Network.joinNewNetwork(server.machine.node)
+            terminal.connect(server.machine.node)
+          case _ =>
         }
       }
     }
@@ -259,7 +265,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       for (number <- 0 until servers.length) {
         val serverSide = sides(number)
         servers(number) match {
-          case Some(server) if toGlobal(serverSide) == plug.side || serverSide == ForgeDirection.UNKNOWN =>
+          case Some(server) if toGlobal(serverSide) == plug.side =>
             plug.node.connect(server.machine.node)
             terminals(number).connect(server.machine.node)
           case _ =>
@@ -278,6 +284,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       val server = new component.Server(this, slot)
       servers(slot) = Some(server)
       reconnectServer(slot, server)
+      Network.joinNewNetwork(server.machine.node)
       terminals(slot).connect(server.machine.node)
     }
   }

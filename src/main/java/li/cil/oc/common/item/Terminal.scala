@@ -4,13 +4,14 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
 import java.util.UUID
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.Tooltip
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.Icon
 import net.minecraft.world.World
 
 class Terminal(val parent: Delegator) extends Delegate {
@@ -18,20 +19,33 @@ class Terminal(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
+  private var iconOn: Option[Icon] = None
+  private var iconOff: Option[Icon] = None
+
+  def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
+
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")) {
+    if (hasServer(stack)) {
       val server = stack.getTagCompound.getString(Settings.namespace + "server")
       tooltip.add("§8" + server.substring(0, 13) + "...§7")
     }
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
+  // TODO check if server is in range and running
+  // Unlike in the GUI handler the result should definitely be cached here.
+  @SideOnly(Side.CLIENT)
+  override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
+
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":terminal")
+    icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":terminal"))
+
+    iconOn = Option(iconRegister.registerIcon(Settings.resourceDomain + ":terminal_on"))
+    iconOff = Option(iconRegister.registerIcon(Settings.resourceDomain + ":terminal_off"))
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
