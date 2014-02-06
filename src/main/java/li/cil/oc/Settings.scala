@@ -163,7 +163,6 @@ class Settings(config: Config) {
   val maxScreenHeight = config.getInt("misc.maxScreenHeight") max 1
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
-  val commandUser = config.getString("misc.commandUser").trim
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10 // TODO config?
