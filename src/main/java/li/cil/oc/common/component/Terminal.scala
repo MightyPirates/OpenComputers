@@ -2,8 +2,8 @@ package li.cil.oc.common.component
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Node, Visibility}
-import li.cil.oc.common.tileentity
 import li.cil.oc.common.item
+import li.cil.oc.common.tileentity
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -17,6 +17,8 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   val keyboard = if (buffer.node != null) {
     buffer.node.setVisibility(Visibility.Neighbors)
     new component.Keyboard {
+      node.setVisibility(Visibility.Neighbors)
+
       override def isUseableByPlayer(p: EntityPlayer) = {
         val stack = p.getCurrentEquippedItem
         Items.multi.subItem(stack) match {

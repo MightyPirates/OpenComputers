@@ -19,7 +19,7 @@ import stargatetech2.api.bus.IBusDevice
 class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
-  val sides = Array.fill(servers.length)(ForgeDirection.UNKNOWN)
+  val sides = Array(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN)
 
   val terminals = (0 until servers.length).map(new common.component.Terminal(this, _)).toArray
 
