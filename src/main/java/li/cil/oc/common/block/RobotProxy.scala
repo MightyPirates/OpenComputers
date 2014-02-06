@@ -143,10 +143,11 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }
   }
 
-  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
+  override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer): Boolean = {
     world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
+        if (robot.player == player) return false
         if (!world.isRemote && (!player.capabilities.isCreativeMode || proxy.globalBuffer > 1 || proxy.robot.xp > 0)) {
           parent.dropBlockAsItem(world, x, y, z, robot.createItemStack())
         }
