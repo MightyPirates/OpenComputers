@@ -36,7 +36,7 @@ public final class Reflection {
         }
     }
 
-    public static Object invoke(final Object instance, final String methodName, final Object... args) {
+    public static Object invoke(final Object instance, final String methodName, final Object... args) throws Throwable {
         try {
             outer:
             for (Method method : instance.getClass().getMethods()) {
@@ -63,8 +63,16 @@ public final class Reflection {
             }
             return null;
         } catch (InvocationTargetException e) {
-            return null;
+            throw e.getCause();
         } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    public static Object tryInvoke(final Object instance, final String methodName, final Object... args) {
+        try {
+            return invoke(instance, methodName, args);
+        } catch (Throwable ignored) {
             return null;
         }
     }

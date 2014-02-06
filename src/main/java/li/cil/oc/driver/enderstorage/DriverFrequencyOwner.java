@@ -42,7 +42,7 @@ public final class DriverFrequencyOwner extends TileEntityDriver {
             }
             final String owner = (String) Reflection.get(tileEntity, "owner");
             if (owner == null || owner.isEmpty() || "global".equals(owner)) {
-                Reflection.invoke(tileEntity, "setFreq", frequency);
+                Reflection.tryInvoke(tileEntity, "setFreq", frequency);
             } else {
                 return new Object[]{false, "cannot change frequency of owned storage"};
             }
