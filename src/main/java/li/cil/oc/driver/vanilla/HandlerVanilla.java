@@ -36,5 +36,9 @@ public final class HandlerVanilla implements IModHandler {
         map.put("size", stack.stackSize);
         map.put("maxSize", stack.getMaxStackSize());
         map.put("hasTag", stack.hasTagCompound());
+        map.put("name", stack.getUnlocalizedName());
+        if(stack.getDisplayName()!= null){
+            map.put("label",stack.getDisplayName());
+        }
     }
 }
