@@ -1,12 +1,38 @@
-package li.cil.oc
+package li.cil.oc.common
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.PlayerEvent.ItemCraftedEvent
+import cpw.mods.fml.common.eventhandler.{Event, SubscribeEvent}
+import cpw.mods.fml.common.gameevent.PlayerEvent._
+import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.{Items, Settings}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.ProjectRed
+import net.minecraft.entity.player.{EntityPlayerMP, EntityPlayer}
 import net.minecraft.item.{ItemMap, ItemStack}
+import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
 
-object CraftingHandler {
+object EventHandler {
+  @SubscribeEvent
+  def playerLoggedIn(e: PlayerLoggedInEvent) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {
+      case player: EntityPlayerMP =>
+        if (!LuaStateFactory.isAvailable) {
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningLuaFallback")))
+        }
+        if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningProjectRed")))
+        }
+        if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
+        }
+      case _ =>
+    }
+  }
+
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
     val player = e.player

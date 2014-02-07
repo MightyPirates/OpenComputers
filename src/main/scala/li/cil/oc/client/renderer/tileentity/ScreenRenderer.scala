@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListener}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.WorldTickEvent
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
@@ -246,7 +246,6 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GLAllocation.deleteDisplayLists(e.getValue)
   }
 
-
   @SubscribeEvent
-  def onTick(e: WorldTickEvent) = cache.cleanUp()
+  def onTick(e: ClientTickEvent) = cache.cleanUp()
 }

@@ -1,14 +1,13 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.common.eventhandler.{Event, SubscribeEvent}
+import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent.{PlayerLoggedOutEvent, PlayerChangedDimensionEvent, PlayerRespawnEvent}
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.common.MinecraftForge
 import scala.collection.mutable
-import cpw.mods.fml.common.FMLCommonHandler
 
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
@@ -23,32 +22,46 @@ abstract class Keyboard extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @SubscribeEvent
-  def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {
-    pressedKeys.get(e.player) match {
+  def onPlayerRespawn(e: PlayerRespawnEvent) {
+    releasePressedKeys(e.player)
+  }
+
+  @SubscribeEvent
+  def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
+    releasePressedKeys(e.player)
+  }
+
+  @SubscribeEvent
+  def onPlayerLogout(e: PlayerLoggedOutEvent) {
+    releasePressedKeys(e.player)
+  }
+
+  def releasePressedKeys(player: EntityPlayer) {
+    pressedKeys.get(player) match {
       case Some(keys) => for ((code, char) <- keys) {
         if (Settings.get.inputUsername) {
-          signal(e.player, "key_up", char, code, e.player.getCommandSenderName)
+          signal(player, "key_up", char, code, player.getCommandSenderName)
         }
         else {
-          signal(e.player, "key_up", char, code)
+          signal(player, "key_up", char, code)
         }
       }
       case _ =>
     }
-    pressedKeys.remove(e.player)
+    pressedKeys.remove(player)
   }
 
   // ----------------------------------------------------------------------- //
 
   override def onConnect(node: Node) {
     if (node == this.node) {
-      FMLCommonHandler.instance().bus().register(this)
+      FMLCommonHandler.instance.bus.register(this)
     }
   }
 
   override def onDisconnect(node: Node) {
     if (node == this.node) {
-      FMLCommonHandler.instance().bus().unregister(this)
+      FMLCommonHandler.instance.bus.unregister(this)
     }
   }
 
@@ -97,27 +110,4 @@ abstract class Keyboard extends ManagedComponent {
 
   protected def signal(args: AnyRef*) =
     node.sendToReachable("computer.checked_signal", args: _*)
-}
-
-
-object Keyboard {
-
-  @SubscribeEvent
-  def onPlayerRespawn(e: PlayerRespawnEvent) {
-    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
-  }
-
-  @SubscribeEvent
-  def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
-    //TODO Throws exception
-    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
-  }
-
-  @SubscribeEvent
-  def onPlayerLogout(e: PlayerLoggedOutEvent) {
-    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
-  }
-
-  class ReleasePressedKeys(val player: EntityPlayer) extends Event
-
 }
