@@ -2,8 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
-import li.cil.oc.common.{block, tileentity}
-import net.minecraft.block.Block
+import li.cil.oc.common.tileentity
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraft.nbt.NBTTagCompound
@@ -31,13 +30,13 @@ object Blocks {
   var serverRack: Rack = _
 
   def init() {
-    blockSimple = new SimpleDelegator(Settings.get.blockId1)
-    blockSimpleWithRedstone = new SimpleRedstoneDelegator(Settings.get.blockId2)
-    blockSpecial = new SpecialDelegator(Settings.get.blockId3)
-    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Settings.get.blockId4) {
+    blockSimple = new SimpleDelegator()
+    blockSimpleWithRedstone = new SimpleRedstoneDelegator()
+    blockSpecial = new SpecialDelegator()
+    blockSpecialWithRedstone = new SpecialRedstoneDelegator() {
       override def subBlockItemStacks() = super.subBlockItemStacks() ++ Iterable({
         val stack = new ItemStack(this, 1, robotProxy.blockId)
-        stack.setTagCompound(new NBTTagCompound("tag"))
+        stack.setTagCompound(new NBTTagCompound())
         stack.getTagCompound.setDouble(Settings.namespace + "xp", Settings.get.baseXpToLevel + math.pow(30.0001 * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth))
         stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", (Settings.get.bufferRobot + Settings.get.bufferPerLevel * 30).toInt)
         stack
@@ -107,7 +106,7 @@ object Blocks {
     register("oc:craftingScreenTier1", screen1.createItemStack())
     register("oc:craftingScreenTier2", screen2.createItemStack())
     register("oc:craftingScreenTier3", screen3.createItemStack())
-    register("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
+    register("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch, 1, 0))
   }
 
   private def register(name: String, item: ItemStack) {

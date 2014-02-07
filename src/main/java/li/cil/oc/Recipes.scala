@@ -135,7 +135,7 @@ object Recipes {
       addRecipe(Blocks.serverRack.createItemStack(), recipes, "rack")
 
       // Navigation upgrade recrafting.
-      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(net.minecraft.init.Items.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
@@ -254,10 +254,10 @@ object Recipes {
 
     input match {
       case stack: ItemStack =>
-        FurnaceRecipes.smelting().addSmelting(stack.itemID, stack.getItemDamage, output, 0)
+        FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
       case name: String =>
         for (stack <- OreDictionary.getOres(name)) {
-          FurnaceRecipes.smelting().addSmelting(stack.itemID, stack.getItemDamage, output, 0)
+          FurnaceRecipes.smelting.func_151394_a(stack, output, 0)
         }
       case _ =>
     }
@@ -274,8 +274,11 @@ object Recipes {
       else if (map.contains("item")) {
         map.get("item") match {
           case name: String =>
-            Item.itemsList.find(itemNameEquals(_, name)) match {
-              case Some(item) => new ItemStack(item, 1, tryGetId(map))
+            // TODO Item.itemRegistry.getObject?
+            Item.itemRegistry.find {
+              case item: Item => itemNameEquals(item, name)
+            } match {
+              case Some(item: Item) => new ItemStack(item, 1, tryGetId(map))
               case _ => throw new RecipeException("No item found with name '" + name + "'.")
             }
           case id: Number => new ItemStack(validateItemId(id), 1, tryGetId(map))
@@ -285,8 +288,11 @@ object Recipes {
       else if (map.contains("block")) {
         map.get("block") match {
           case name: String =>
-            Block.blocksList.find(blockNameEquals(_, name)) match {
-              case Some(block) => new ItemStack(block, 1, tryGetId(map))
+            // TODO Block.blockRegistry.getObject?
+            Block.blockRegistry.find {
+              case block: Block => blockNameEquals(block, name)
+            } match {
+              case Some(block: Block) => new ItemStack(block, 1, tryGetId(map))
               case _ => throw new RecipeException("No block found with name '" + name + "'.")
             }
           case id: Number => new ItemStack(validateBlockId(id), 1, tryGetId(map))
@@ -298,12 +304,19 @@ object Recipes {
       if (name == null || name.trim.isEmpty) null
       else if (OreDictionary.getOres(name) != null && !OreDictionary.getOres(name).isEmpty) name
       else {
-        Item.itemsList.find(itemNameEquals(_, name)) match {
-          case Some(item) => new ItemStack(item, 1, 0)
-          case _ => Block.blocksList.find(blockNameEquals(_, name)) match {
-            case Some(block) => new ItemStack(block, 1, 0)
-            case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
-          }
+        // TODO Item.itemRegistry.getObject?
+        Item.itemRegistry.find {
+          case item: Item => itemNameEquals(item, name)
+        } match {
+          case Some(item: Item) => new ItemStack(item, 1, 0)
+          case _ =>
+            // TODO Block.blockRegistry.getObject?
+            Block.blockRegistry.find {
+              case block: Block => blockNameEquals(block, name)
+            } match {
+              case Some(block: Block) => new ItemStack(block, 1, 0)
+              case _ => throw new RecipeException("No ore dictionary entry, item or block found for ingredient with name '" + name + "'.")
+            }
         }
       }
     case other => throw new RecipeException("Invalid ingredient type (not a map or string): " + other)
@@ -329,14 +342,16 @@ object Recipes {
 
   private def validateBlockId(id: Number) = {
     val index = id.intValue
-    if (index < 1 || index >= Block.blocksList.length || Block.blocksList(index) == null) throw new RecipeException("Invalid block ID: " + index)
-    Block.blocksList(index)
+    val block = Block.getBlockById(index)
+    if (block == null) throw new RecipeException("Invalid block ID: " + index)
+    block
   }
 
   private def validateItemId(id: Number) = {
     val index = id.intValue
-    if (index < 0 || index >= Item.itemsList.length || Item.itemsList(index) == null) throw new RecipeException("Invalid item ID: " + index)
-    Item.itemsList(index)
+    val item = Item.getItemById(index)
+    if (item == null) throw new RecipeException("Invalid item ID: " + index)
+    item
   }
 
   private def hide(value: ItemStack) {

@@ -14,7 +14,7 @@ object IndustrialCraft2 {
   }
 
   def isMiningLaser(stack: ItemStack) = stack != null && Loader.isModLoaded("IC2") && (miningLaser match {
-    case Some(laser) => laser.itemID == stack.itemID
+    case Some(laser) => laser.getItem == stack.getItem
     case _ => false
   })
 }

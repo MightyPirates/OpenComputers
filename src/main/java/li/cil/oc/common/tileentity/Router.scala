@@ -13,7 +13,7 @@ class Router extends Hub with IPeripheral with PassiveNode {
 
   override def validate() {
     super.validate()
-    worldObj.scheduleBlockUpdateFromLoad(xCoord, yCoord, zCoord, Blocks.router.parent.blockID, 0, 0)
+    worldObj.scheduleBlockUpdateWithPriority(xCoord, yCoord, zCoord, Blocks.router.parent, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //

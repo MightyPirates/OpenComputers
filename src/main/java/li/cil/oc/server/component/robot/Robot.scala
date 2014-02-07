@@ -6,15 +6,16 @@ import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, api, Settings}
-import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
+import net.minecraft.init.Blocks
 import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.MovingObjectPosition.MovingObjectType
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
@@ -114,7 +115,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
             if (from.stackSize == 0) {
               robot.setInventorySlotContents(selectedSlot, null)
             }
-            robot.onInventoryChanged()
+            robot.markDirty()
             true
           }
           else false
@@ -139,7 +140,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       case Some(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
           val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-          val idMatches = item.getBlockID == world.getBlockId(bx, by, bz)
+          val idMatches = item.field_150939_a == world.getBlock(bx, by, bz)
           val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(bx, by, bz)
           return result(idMatches && subTypeMatches)
         case _ =>
@@ -182,15 +183,15 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
           success = true
         }
         if (success) {
-          inventory.onInventoryChanged()
+          inventory.markDirty()
         }
         player.inventory.addItemStackToInventory(dropped)
         success
       }
 
-      world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+      world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
         case chest: TileEntityChest =>
-          val inventory = Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord)
+          val inventory = Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord)
           result(tryDropIntoInventory(inventory,
             slot => inventory.isItemValidForSlot(slot, dropped)))
         case inventory: ISidedInventory =>
@@ -233,7 +234,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       val player = robot.player(facing, side)
       player.setSneaking(sneaky)
       val success = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-        case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
+        case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
         case None if Settings.get.canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
@@ -276,14 +277,14 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         }
       }
       if (success) {
-        inventory.onInventoryChanged()
+        inventory.markDirty()
       }
       success
     }
 
-    world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+    world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
       case chest: TileEntityChest if chest.isUseableByPlayer(player) =>
-        val inventory = Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord)
+        val inventory = Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord)
         result(trySuckFromInventory(inventory, slot => true))
       case inventory: ISidedInventory if inventory.isUseableByPlayer(player) =>
         result(trySuckFromInventory(inventory,
@@ -368,25 +369,29 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       val player = robot.player(facing, side)
       player.setSneaking(sneaky)
 
-      val (success, what) = Option(pick(player, Settings.get.swingRange)) match {
-        case Some(hit) =>
-          hit.typeOfHit match {
-            case EnumMovingObjectType.ENTITY =>
-              attack(hit.entityHit)
-            case EnumMovingObjectType.TILE =>
-              click(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
-          }
-        case _ => // Retry with full block bounds, disregarding swing range.
-          player.closestEntity[EntityLivingBase]() match {
-            case Some(entity) =>
-              attack(entity)
-            case _ =>
-              if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
-                triggerDelay()
-                (true, "fire")
-              }
-              else (false, "air")
-          }
+      val (success, what) = {
+        val hit = pick(player, Settings.get.swingRange)
+        (Option(hit) match {
+          case Some(info) => info.typeOfHit
+          case _ => MovingObjectType.MISS
+        }) match {
+          case MovingObjectType.ENTITY =>
+            attack(hit.entityHit)
+          case MovingObjectType.BLOCK =>
+            click(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+          case _ =>
+            // Retry with full block bounds, disregarding swing range.
+            player.closestEntity[EntityLivingBase]() match {
+              case Some(entity) =>
+                attack(entity)
+              case _ =>
+                if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
+                  triggerDelay()
+                  (true, "fire")
+                }
+                else (false, "air")
+            }
+        }
       }
 
       player.setSneaking(false)
@@ -442,10 +447,10 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         result
       }
       val (success, what) = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-        case Some(hit) if hit.typeOfHit == EnumMovingObjectType.ENTITY && interact(hit.entityHit) =>
+        case Some(hit) if hit.typeOfHit == MovingObjectType.ENTITY && interact(hit.entityHit) =>
           triggerDelay()
           (true, "item_interacted")
-        case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
+        case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
@@ -578,15 +583,14 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         (true, "entity")
       case _ =>
         val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        val id = world.getBlockId(bx, by, bz)
-        val block = Block.blocksList(id)
-        if (id == 0 || block == null || block.isAirBlock(world, bx, by, bz)) {
+        val block = world.getBlock(bx, by, bz)
+        if (block == null || block.isAir(world, bx, by, bz)) {
           (false, "air")
         }
-        else if (FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]) {
+        else if (FluidRegistry.lookupFluidForBlock(block) != null) {
           (false, "liquid")
         }
-        else if (block.isBlockReplaceable(world, bx, by, bz)) {
+        else if (block.isReplaceable(world, bx, by, bz)) {
           (false, "replaceable")
         }
         else {
@@ -617,7 +621,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       player.side.offsetX * range,
       player.side.offsetY * range,
       player.side.offsetZ * range)
-    val hit = world.clip(origin, target)
+    val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity[Entity]() match {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
@@ -634,7 +638,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
   // ----------------------------------------------------------------------- //
 
   private def haveSameItemType(stackA: ItemStack, stackB: ItemStack) =
-    stackA.itemID == stackB.itemID &&
+    stackA.getItem == stackB.getItem &&
       (!stackA.getHasSubtypes || stackA.getItemDamage == stackB.getItemDamage)
 
   private def stackInSlot(slot: Int) = Option(robot.getStackInSlot(slot))

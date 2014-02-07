@@ -7,15 +7,6 @@ import li.cil.oc.util.PackedColor
 import scala.collection.convert.WrapAsScala._
 
 class Settings(config: Config) {
-  val itemId = config.getInt("ids.item")
-  val (blockId1, blockId2, blockId3, blockId4) = Array(config.getIntList("ids.block"): _*) match {
-    case Array(id1, id2, id3, id4) =>
-      (id1: Int, id2: Int, id3: Int, id4: Int)
-    case _ =>
-      OpenComputers.log.warning("Bad number of block ids, ignoring.")
-      (3650, 3651, 3652, 3653)
-  }
-
   // ----------------------------------------------------------------------- //
   // client
 

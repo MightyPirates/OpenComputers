@@ -29,18 +29,20 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
     else inventorySlots.find(slot => getStackInSlot(slot) == null && isItemValidForSlot(slot, stack)).getOrElse(-1)
   }
 
-  override def setCurrentItem(itemId: Int, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
+  override def func_146030_a(p_146030_1_ : Item, p_146030_2_ : Int, p_146030_3_ : Boolean, p_146030_4_ : Boolean) = setCurrentItem(p_146030_1_, p_146030_2_, p_146030_3_, p_146030_4_)
+
+  def setCurrentItem(item: Item, itemDamage: Int, checkDamage: Boolean, create: Boolean) {}
 
   override def changeCurrentItem(direction: Int) {}
 
-  override def clearInventory(itemId: Int, itemDamage: Int) = 0
+  override def clearInventory(item: Item, itemDamage: Int) = 0
 
   override def func_70439_a(item: Item, itemDamage: Int) {}
 
   override def decrementAnimations() {}
 
-  override def consumeInventoryItem(itemId: Int): Boolean = {
-    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.itemID == itemId && stack.stackSize > 0) {
+  override def consumeInventoryItem(item: Item): Boolean = {
+    for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
       stack.stackSize -= 1
       if (stack.stackSize <= 0) {
         setInventorySlotContents(slot, null)
@@ -50,7 +52,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
     false
   }
 
-  override def hasItem(itemId: Int) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.itemID == itemId)
+  override def hasItem(item: Item) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.getItem == item)
 
   override def addItemStackToInventory(stack: ItemStack) = {
     if (stack == null || stack.stackSize == 0) false
@@ -109,7 +111,9 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) = robot.setInventorySlotContents(slot, stack)
 
-  override def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.getStrVsBlock(block))
+  override def func_146023_a(p_146023_1_ : Block) = getStrVsBlock(p_146023_1_)
+
+  def getStrVsBlock(block: Block) = Option(getCurrentItem).fold(1f)(_.func_150997_a(block))
 
   override def writeToNBT(nbt: NBTTagList) = nbt
 
@@ -119,7 +123,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def getStackInSlot(slot: Int) = robot.getStackInSlot(slot)
 
-  override def getInvName = robot.getInvName
+  override def getInventoryName = robot.getInventoryName
 
   override def getInventoryStackLimit = robot.getInventoryStackLimit
 
@@ -131,7 +135,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def dropAllItems() = robot.dropAllSlots()
 
-  override def onInventoryChanged() = robot.onInventoryChanged()
+  override def markDirty() = robot.markDirty()
 
   override def hasItemStack(stack: ItemStack) = (firstInventorySlot until getSizeInventory).map(getStackInSlot).filter(_ != null).exists(_.isItemEqual(stack))
 

@@ -2,8 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
-import net.minecraft.block.Block
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
 object Items {
@@ -67,7 +66,7 @@ object Items {
   var card: item.CardBase = _
 
   def init() {
-    multi = new item.Delegator(Settings.get.itemId)
+    multi = new item.Delegator()
 
     GameRegistry.registerItem(multi, Settings.namespace + "item")
 
@@ -133,8 +132,8 @@ object Items {
 
     // ----------------------------------------------------------------------- //
 
-    registerExclusive("craftingPiston", new ItemStack(Block.pistonBase), new ItemStack(Block.pistonStickyBase))
-    registerExclusive("nuggetGold", new ItemStack(Item.goldNugget))
+    registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
+    registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
     registerExclusive("nuggetIron", ironNugget.createItemStack())
     register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
     register("oc:craftingCircuitBoard", circuitBoard.createItemStack())

@@ -1,8 +1,8 @@
 package li.cil.oc.util
 
 import java.util
-import li.cil.oc.Items
 import net.minecraft.block.Block
+import net.minecraft.init.{Items, Blocks}
 import net.minecraft.item.crafting._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
@@ -13,35 +13,35 @@ import scala.collection.mutable
 object ItemCosts {
   protected val cache = mutable.Map.empty[ItemStack, Iterable[(ItemStack, Double)]]
 
-  cache += Items.ironNugget.createItemStack() -> Iterable((new ItemStack(Item.ingotIron), 1.0 / 9.0))
+  cache += li.cil.oc.Items.ironNugget.createItemStack() -> Iterable((new ItemStack(Items.iron_ingot), 1.0 / 9.0))
 
   def terminate(item: Item, meta: Int = 0) = cache += new ItemStack(item, 1, meta) -> mutable.Iterable((new ItemStack(item, 1, meta), 1))
 
   def terminate(block: Block) = cache += new ItemStack(block) -> mutable.Iterable((new ItemStack(block), 1))
 
-  terminate(Block.blockClay)
-  terminate(Block.cobblestone)
-  terminate(Block.glass)
-  terminate(Block.planks)
-  terminate(Block.sand)
-  terminate(Block.stone)
-  terminate(Item.blazeRod)
-  terminate(Item.bucketEmpty)
-  terminate(Item.coal)
-  terminate(Item.diamond)
-  for (i <- 0 to 15) terminate(Item.dyePowder, i)
-  terminate(Item.emerald)
-  terminate(Item.enderPearl)
-  terminate(Item.eyeOfEnder)
-  terminate(Item.ghastTear)
-  terminate(Item.glowstone)
-  terminate(Item.ingotGold)
-  terminate(Item.ingotIron)
-  terminate(Item.netherQuartz)
-  terminate(Item.netherStar)
-  terminate(Item.redstone)
-  terminate(Item.slimeBall)
-  terminate(Item.stick)
+  terminate(Blocks.clay)
+  terminate(Blocks.cobblestone)
+  terminate(Blocks.glass)
+  terminate(Blocks.planks)
+  terminate(Blocks.sand)
+  terminate(Blocks.stone)
+  terminate(Items.blaze_rod)
+  terminate(Items.bucket)
+  terminate(Items.coal)
+  terminate(Items.diamond)
+  for (i <- 0 to 15) terminate(Items.dye, i)
+  terminate(Items.emerald)
+  terminate(Items.ender_pearl)
+  terminate(Items.ender_eye)
+  terminate(Items.ghast_tear)
+  terminate(Items.glowstone_dust)
+  terminate(Items.gold_ingot)
+  terminate(Items.iron_ingot)
+  terminate(Items.quartz)
+  terminate(Items.nether_star)
+  terminate(Items.redstone)
+  terminate(Items.slime_ball)
+  terminate(Items.stick)
 
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {
     tooltip.add("Materials:")
@@ -82,18 +82,11 @@ object ItemCosts {
                 case Some(recipe: ShapelessRecipes) => (recipe.recipeItems.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
                 case Some(recipe: ShapedOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
                 case Some(recipe: ShapelessOreRecipe) => (recipe.getInput.flatMap(accumulate(_, path :+ stack)).toIterable, recipe.getRecipeOutput.stackSize)
-                case _ => FurnaceRecipes.smelting.getSmeltingList.asInstanceOf[util.Map[Integer, ItemStack]].find {
+                case _ => FurnaceRecipes.smelting.getSmeltingList.asInstanceOf[util.Map[ItemStack, ItemStack]].find {
                   case (_, value) => fuzzyEquals(stack, value)
                 } match {
-                  case Some((blockId, result)) => (accumulate(new ItemStack(blockId, 1, 0), path :+ stack), result.stackSize)
-                  case _ => FurnaceRecipes.smelting.getMetaSmeltingList.find {
-                    case (_, value) => fuzzyEquals(stack, value)
-                  } match {
-                    case Some((data, result)) =>
-                      val (itemId, metadata) = (data.get(0), data.get(1))
-                      (accumulate(new ItemStack(itemId, 1, metadata), path :+ stack), result.stackSize)
-                    case _ => (Iterable((stack, 1.0)), 1)
-                  }
+                  case Some((rein, raus)) => (accumulate(rein, path :+ stack), raus.stackSize)
+                  case _ => (Iterable((stack, 1.0)), 1)
                 }
               }
               val scaled = deflate(ingredients.map {
@@ -122,5 +115,5 @@ object ItemCosts {
     accumulate(what)
   }
 
-  def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) = stack1.isItemEqual(stack2) || (stack1.itemID == stack2.itemID && (stack1.getItemDamage == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage == OreDictionary.WILDCARD_VALUE))
+  def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) = stack1.isItemEqual(stack2) || (stack1.getItem == stack2.getItem && (stack1.getItemDamage == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage == OreDictionary.WILDCARD_VALUE))
 }

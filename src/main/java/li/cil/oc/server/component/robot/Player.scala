@@ -1,26 +1,41 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.Settings
+import com.mojang.authlib.GameProfile
+import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
 import li.cil.oc.util.mods.PortalGun
-import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
+import net.minecraft.block.{BlockPistonBase, Block}
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayer.EnumStatus
 import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
+import net.minecraft.init.Blocks
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
 import net.minecraft.world.World
-import net.minecraftforge.common.{ForgeHooks, ForgeDirection}
+import net.minecraftforge.common.ForgeHooks
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
-import net.minecraftforge.event.{Event, ForgeEventFactory}
+import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+object Player {
+  def profileFor(robot: tileentity.Robot) = {
+    val randomId = (robot.world.rand.nextInt(0xFFFFFF) + 1).toString
+    val name = Settings.get.nameFormat.
+      replace("$player$", robot.owner).
+      replace("$random$", randomId)
+    new GameProfile(name, "Robot")
+  }
+}
+
+class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Player.profileFor(robot)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -117,10 +132,9 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       }
     }
 
-    val blockId = world.getBlockId(x, y, z)
-    val block = Block.blocksList(blockId)
+    val block = world.getBlock(x, y, z)
     val canActivate = block != null && Settings.get.allowActivateBlocks
-    val shouldActivate = canActivate && (!isSneaking || (item == null || item.shouldPassSneakingClickToBlock(world, x, y, z)))
+    val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
     if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ)) {
       return ActivationType.BlockActivated
     }
@@ -215,14 +229,12 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       return 0
     }
 
-    val blockId = world.getBlockId(x, y, z)
-    val block = Block.blocksList(blockId)
+    val block = world.getBlock(x, y, z)
     val metadata = world.getBlockMetadata(x, y, z)
-    val mayClickBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
+    val mayClickBlock = event.useBlock != Event.Result.DENY && block != null
     val canClickBlock = mayClickBlock &&
-      !block.isAirBlock(world, x, y, z) &&
-      FluidRegistry.lookupFluidForBlock(block) == null &&
-      !block.isInstanceOf[BlockFluid]
+      !block.isAir(world, x, y, z) &&
+      FluidRegistry.lookupFluidForBlock(block) == null
     if (!canClickBlock) {
       return 0
     }
@@ -240,7 +252,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       return 0
     }
 
-    val cobwebOverride = block == Block.web && Settings.get.screwCobwebs
+    val cobwebOverride = block == Blocks.web && Settings.get.screwCobwebs
 
     if (!ForgeHooks.canHarvestBlock(block, this, metadata) && !cobwebOverride) {
       return 0
@@ -251,17 +263,18 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       return 0
     }
 
-    world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
+    world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))
 
     val hardness = block.getBlockHardness(world, x, y, z)
-    val strength = getCurrentPlayerStrVsBlock(block, false, metadata)
+    // TODO test if this is the right replacement for getCurrentPlayerStrengthVsBlock
+    val strength = getBreakSpeed(block, false, metadata)
     val breakTime =
       if (cobwebOverride) Settings.get.swingDelay
       else hardness * 1.5 / strength
 
     if (stack != null) {
       val oldDamage = stack.getItemDamage
-      stack.onBlockDestroyed(world, blockId, x, y, z, this)
+      stack.func_150999_a(world, block, x, y, z, this)
       if (stack.stackSize == 0) {
         destroyCurrentEquippedItem()
       }
@@ -272,7 +285,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
     val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
     block.onBlockHarvested(world, x, y, z, metadata, this)
-    if (block.removeBlockByPlayer(world, this, x, y, z)) {
+    if (block.removedByPlayer(world, this, x, y, z)) {
       block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
       // Note: the block has been destroyed by `removeBlockByPlayer`. This
       // check only serves to test whether the block can drop anything at all.
@@ -328,8 +341,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   private def isSomeKindOfPiston(stack: ItemStack) =
     stack.getItem match {
-      case itemBlock: ItemBlock if itemBlock.getBlockID > 0 =>
-        val block = Block.blocksList(itemBlock.getBlockID)
+      case itemBlock: ItemBlock =>
+        val block = itemBlock.field_150939_a
         block != null && block.isInstanceOf[BlockPistonBase]
       case _ => false
     }
@@ -404,5 +417,5 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def canCommandSenderUseCommand(i: Int, s: String) = false
 
-  override def sendChatToPlayer(message: ChatMessageComponent) {}
+  override def addChatMessage(message: IChatComponent) {}
 }

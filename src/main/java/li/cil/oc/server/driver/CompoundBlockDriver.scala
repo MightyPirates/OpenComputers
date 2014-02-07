@@ -3,7 +3,6 @@ package li.cil.oc.server.driver
 import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
-import net.minecraft.block.Block
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.tileentity.TileEntity
@@ -31,12 +30,12 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   }
 
   private def tryGetName(world: World, x: Int, y: Int, z: Int): String = {
-    try world.getBlockTileEntity(x, y, z) match {
-      case inventory: IInventory => return inventory.getInvName.stripPrefix("container.")
+    try world.getTileEntity(x, y, z) match {
+      case inventory: IInventory => return inventory.getInventoryName.stripPrefix("container.")
     } catch {
       case _: Throwable =>
     }
-    try world.getBlockTileEntity(x, y, z) match {
+    try world.getTileEntity(x, y, z) match {
       case tileEntity: TileEntity =>
         val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_70323_b")
         return map.get(tileEntity.getClass)
@@ -44,12 +43,11 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       case _: Throwable =>
     }
     try {
-      val blockId = world.getBlockId(x, y, z)
-      val block = Block.blocksList(blockId)
+      val block = world.getBlock(x, y, z)
       val stack = try Option(block.getPickBlock(null, world, x, y, z)) catch {
         case _: Throwable =>
-          if (Item.itemsList(blockId) != null) {
-            Some(new ItemStack(blockId, 1, block.getDamageValue(world, x, y, z)))
+          if (Item.getItemFromBlock(block) != null) {
+            Some(new ItemStack(block, 1, block.getDamageValue(world, x, y, z)))
           }
           else None
       }
