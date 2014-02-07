@@ -4,8 +4,8 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.driver.TileEntityDriver;
 import li.cil.oc.util.TypeConversion;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
@@ -14,9 +14,9 @@ import net.minecraftforge.fluids.IFluidHandler;
 
 import java.util.Map;
 
-public final class DriverFluidHandler extends TileEntityDriver {
+public final class DriverFluidHandler extends DriverTileEntity {
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return IFluidHandler.class;
     }
 

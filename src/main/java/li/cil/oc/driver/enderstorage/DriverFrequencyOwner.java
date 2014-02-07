@@ -4,18 +4,18 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.driver.TileEntityDriver;
 import li.cil.oc.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public final class DriverFrequencyOwner extends TileEntityDriver {
+public final class DriverFrequencyOwner extends DriverTileEntity {
     // See https://bitbucket.org/ChickenBones/enderstorage/
     private static final Class<?> TileFrequencyOwner = Reflection.getClass("codechicken.enderstorage.common.TileFrequencyOwner");
 
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return TileFrequencyOwner;
     }
 

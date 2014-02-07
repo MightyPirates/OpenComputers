@@ -4,14 +4,14 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.tileentity.TileEntityBrewingStand;
 import net.minecraft.world.World;
 
-public final class DriverBrewingStand extends TileEntityDriver {
+public final class DriverBrewingStand extends DriverTileEntity {
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return TileEntityBrewingStand.class;
     }
 

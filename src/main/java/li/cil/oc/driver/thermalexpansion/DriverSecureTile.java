@@ -5,14 +5,14 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.text.WordUtils;
 
-public final class DriverSecureTile extends TileEntityDriver {
+public final class DriverSecureTile extends DriverTileEntity {
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return ISecureTile.class;
     }
 

@@ -4,16 +4,16 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
-import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityRecordPlayer;
 import net.minecraft.world.World;
 
-public final class DriverRecordPlayer extends TileEntityDriver {
+public final class DriverRecordPlayer extends DriverTileEntity {
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return TileEntityRecordPlayer.class;
     }
 
