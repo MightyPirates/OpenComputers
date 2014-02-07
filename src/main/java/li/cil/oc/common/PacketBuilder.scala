@@ -1,17 +1,17 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.network.PacketDispatcher
-import cpw.mods.fml.common.network.Player
+import cpw.mods.fml.common.network.internal.FMLProxyPacket
+import io.netty.buffer.Unpooled
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import li.cil.oc.common.tileentity.TileEntity
+import li.cil.oc.OpenComputers
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
-import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
 class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayOutputStream = new ByteArrayOutputStream) extends DataOutputStream(stream) {
@@ -36,7 +36,7 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
 
-  def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
+  def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
   def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.world, t.x + 0.5, t.y + 0.5, t.z + 0.5, range)
 
@@ -53,15 +53,9 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     }
   }
 
-  def sendToPlayer(player: EntityPlayerMP) = PacketDispatcher.sendPacketToPlayer(packet, player.asInstanceOf[Player])
+  def sendToPlayer(player: EntityPlayerMP) = OpenComputers.channel.sendTo(packet, player)
 
-  def sendToServer() = PacketDispatcher.sendPacketToServer(packet)
+  def sendToServer() = OpenComputers.channel.sendToServer(packet)
 
-  private def packet = {
-    val p = new Packet250CustomPayload
-    p.channel = "OpenComp"
-    p.data = stream.toByteArray
-    p.length = stream.size
-    p
-  }
+  private def packet = new FMLProxyPacket(Unpooled.wrappedBuffer(stream.toByteArray), "OpenComputers")
 }

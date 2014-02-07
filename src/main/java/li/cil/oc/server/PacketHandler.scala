@@ -1,20 +1,25 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.machine.Machine
-import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.{ForgeDirection, DimensionManager}
+import li.cil.oc.Settings
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import net.minecraft.network.NetHandlerPlayServer
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.DimensionManager
+import net.minecraftforge.common.util.ForgeDirection
 
-class PacketHandler extends CommonPacketHandler {
-  override protected def world(player: Player, dimension: Int) =
+object PacketHandler extends CommonPacketHandler {
+  override protected def world(player: EntityPlayer, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))
 
-  override def dispatch(p: PacketParser) =
+  @SubscribeEvent
+  def onPacket(e: ServerCustomPacketEvent) {
+    val p = new PacketParser(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.KeyDown => onKeyDown(p)
@@ -27,6 +32,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ServerSide => onServerSide(p)
       case _ => // Invalid packet.
     }
+  }
 
   def onComputerPower(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
@@ -50,7 +56,7 @@ class PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case Some(message) => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(message))
+            case Some(message) => player.addChatMessage(new ChatComponentTranslation(message))
             case _ =>
           }
         }

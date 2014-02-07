@@ -1,34 +1,17 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.network.IPacketHandler
-import cpw.mods.fml.common.network.Player
-import java.io.ByteArrayInputStream
+import io.netty.buffer.{ByteBufInputStream, ByteBuf}
 import java.io.DataInputStream
-import java.util.logging.Level
-import li.cil.oc.{Blocks, OpenComputers}
+import li.cil.oc.Blocks
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
-import net.minecraft.network.INetworkManager
-import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import scala.reflect.ClassTag
 import scala.reflect.classTag
 
-abstract class PacketHandler extends IPacketHandler {
-  /** Top level dispatcher based on packet type. */
-  def onPacketData(manager: INetworkManager, packet: Packet250CustomPayload, player: Player) {
-    // Don't crash on badly formatted packets (may have been altered by a
-    // malicious client, in which case we don't want to allow it to kill the
-    // server like this). Just spam the log a bit... ;)
-    try {
-      dispatch(new PacketParser(packet, player))
-    } catch {
-      case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Received a badly formatted packet.", e)
-    }
-  }
-
+abstract class PacketHandler {
   /**
    * Gets the world for the specified dimension.
    *
@@ -36,18 +19,16 @@ abstract class PacketHandler extends IPacketHandler {
    * dimension; None otherwise. For the server it returns the world for the
    * specified dimension, if such a dimension exists; None otherwise.
    */
-  protected def world(player: Player, dimension: Int): Option[World]
+  protected def world(player: EntityPlayer, dimension: Int): Option[World]
 
-  protected def dispatch(p: PacketParser)
-
-  protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
+  protected class PacketParser(data: ByteBuf, val player: EntityPlayer) extends DataInputStream(new ByteBufInputStream(data)) {
     val packetType = PacketType(readByte())
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
       world(player, dimension) match {
         case None => // Invalid dimension.
         case Some(world) =>
-          val t = world.getBlockTileEntity(x, y, z)
+          val t = world.getTileEntity(x, y, z)
           if (t != null && classTag[T].runtimeClass.isAssignableFrom(t.getClass)) {
             return Some(t.asInstanceOf[T])
           }
