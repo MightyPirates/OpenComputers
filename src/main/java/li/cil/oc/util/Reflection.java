@@ -36,15 +36,16 @@ public final class Reflection {
         }
     }
 
-    public static Object invoke(final Object instance, final String methodName, final Object... args) throws Throwable {
+    @SuppressWarnings("unchecked")
+    public static <T> T invoke(final Object instance, final String methodName, final Object... args) throws Throwable {
         try {
             outer:
             for (Method method : instance.getClass().getMethods()) {
                 if (method.getName().equals(methodName) && method.getParameterTypes().length == args.length) {
-                    Class<?>[] argTypes = method.getParameterTypes();
+                    final Class<?>[] argTypes = method.getParameterTypes();
                     for (int i = 0; i < argTypes.length; ++i) {
-                        Class<?> have = argTypes[i];
-                        Class<?> given = args[i].getClass();
+                        final Class<?> have = argTypes[i];
+                        final Class<?> given = args[i].getClass();
                         // Fail if not assignable and not assignable to primitive.
                         if (!have.isAssignableFrom(given) && (!have.isPrimitive()
                                 || (!(byte.class.equals(have) && Byte.class.equals(given))
@@ -58,7 +59,7 @@ public final class Reflection {
                             continue outer;
                         }
                     }
-                    return method.invoke(instance, args);
+                    return (T) method.invoke(instance, args);
                 }
             }
             return null;
@@ -66,10 +67,12 @@ public final class Reflection {
             throw e.getCause();
         } catch (IllegalAccessException e) {
             return null;
+        } catch (ClassCastException e) {
+            return null;
         }
     }
 
-    public static Object tryInvoke(final Object instance, final String methodName, final Object... args) {
+    public static <T> T tryInvoke(final Object instance, final String methodName, final Object... args) {
         try {
             return invoke(instance, methodName, args);
         } catch (Throwable ignored) {

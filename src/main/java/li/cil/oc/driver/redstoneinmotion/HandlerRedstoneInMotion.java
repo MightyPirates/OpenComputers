@@ -18,6 +18,6 @@ public final class HandlerRedstoneInMotion implements IModHandler {
     }
 
     @Override
-    public void populate(Map<String, Object> map, ItemStack stack) {
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 }

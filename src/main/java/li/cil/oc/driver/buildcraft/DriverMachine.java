@@ -22,7 +22,7 @@ public final class DriverMachine extends DriverTileEntity {
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IMachine> {
-        public Environment(IMachine tileEntity) {
+        public Environment(final IMachine tileEntity) {
             super(tileEntity, "machine");
         }
 

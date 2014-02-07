@@ -23,7 +23,7 @@ public final class DriverPowerReceptor extends DriverTileEntity {
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IPowerReceptor> {
-        public Environment(IPowerReceptor tileEntity) {
+        public Environment(final IPowerReceptor tileEntity) {
             super(tileEntity, "power_receptor");
         }
 

@@ -22,7 +22,7 @@ public final class DriverPipeTE extends DriverTileEntity {
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IPipeTile> {
-        public Environment(IPipeTile tileEntity) {
+        public Environment(final IPipeTile tileEntity) {
             super(tileEntity, "pipete");
         }
 

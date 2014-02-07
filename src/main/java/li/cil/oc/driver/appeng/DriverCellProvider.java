@@ -1,6 +1,7 @@
 package li.cil.oc.driver.appeng;
 
 import appeng.api.IAEItemStack;
+import appeng.api.Util;
 import appeng.api.me.tiles.ICellProvider;
 import appeng.api.me.util.IMEInventoryHandler;
 import li.cil.oc.api.network.Arguments;
@@ -14,9 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
-
 
 public class DriverCellProvider extends DriverTileEntity {
     @Override
@@ -25,195 +24,177 @@ public class DriverCellProvider extends DriverTileEntity {
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment((ICellProvider) world.getBlockTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<ICellProvider> {
-        public Environment(ICellProvider tileEntity) {
-            super(tileEntity, "celltileEntity");
+        public Environment(final ICellProvider tileEntity) {
+            super(tileEntity, "me_cell_provider");
+        }
+
+        // ----------------------------------------------------------------- //
+        // IMEInventory
+
+        @Callback
+        public Object[] storedItemTypes(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.storedItemTypes()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] storedItemCount(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.storedItemCount()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] remainingItemCount(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.remainingItemCount()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] remainingItemTypes(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.remainingItemTypes()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] containsItemType(final Context context, final Arguments args) {
+            final int itemId = args.checkInteger(0);
+            final int itemDamage = (args.count() > 1) ? args.checkInteger(1) : 0;
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.containsItemType(Util.createItemStack(new ItemStack(itemId, 1, itemDamage)))}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
         public Object[] getTotalItemTypes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.getTotalItemTypes()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getPriority(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.getPriority()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] canHoldNewItem(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.canHoldNewItem()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getFreeBytes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.freeBytes()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getAvailableItems(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                ArrayList<Map> list = new ArrayList<Map>();
-                for (IAEItemStack stack : cell.getAvailableItems()) {
-                    list.add(HandlerAppEng.toMap(stack));
-                }
-                return list.toArray();
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-
-        @Callback
-        public Object[] containsItemType(final Context context, final Arguments args) {
-            try {
-                return new Object[]{((Integer) countOfItemType(context, args)[0]) > 0};
-            } catch (Throwable e) {
-                return new Object[]{null, "Cell Null"};
-            }
-
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.getTotalItemTypes()}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
         public Object[] countOfItemType(final Context context, final Arguments args) {
-
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell == null) {
-                return new Object[]{null, "Cell Null"};
-            }
-            Iterator<IAEItemStack> iterator = cell.getAvailableItems().iterator();
-            long c = 0;
-            while (iterator.hasNext()) {
-                IAEItemStack next = iterator.next();
-                if (next.getItemID() == args.checkInteger(0) && next.getItemDamage() == args.checkInteger(1)) {
-                    c += next.getStackSize();
-                }
-            }
-            return new Object[]{c};
+            final int itemId = args.checkInteger(0);
+            final int itemDamage = (args.count() > 1) ? args.checkInteger(1) : 0;
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.countOfItemType(Util.createItemStack(new ItemStack(itemId, 1, itemDamage)))}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
-        public Object[] getName(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.getName()};
+        public Object[] getAvailableItems(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            if (cell == null) {
+                return new Object[]{null, "no storage cell"};
             }
-            return new Object[]{null, "Cell Null"};
+            final ArrayList<Map> list = new ArrayList<Map>();
+            for (IAEItemStack stack : cell.getAvailableItems()) {
+                list.add(HandlerAppEng.toMap(stack));
+            }
+            return list.toArray();
+        }
+
+        // ----------------------------------------------------------------- //
+        // IMEInventoryHandler
+
+        @Callback
+        public Object[] getPriority(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.getPriority()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] totalBytes(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.totalBytes()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] freeBytes(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.freeBytes()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] usedBytes(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.usedBytes()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] unusedItemCount(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.unusedItemCount()}
+                    : new Object[]{null, "no storage cell"};
+        }
+
+        @Callback
+        public Object[] canHoldNewItem(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.canHoldNewItem()}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
         public Object[] getPreformattedItems(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                ArrayList<Map> list = new ArrayList<Map>();
-                for (ItemStack stack : cell.getPreformattedItems()) {
-                    Map m = Registry.toMap(stack);
-                    list.add(m);
-                }
-                return list.toArray();
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            if (cell == null) {
+                return new Object[]{null, "no storage cell"};
             }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] isFuzzyPreformatted(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.isFuzzyPreformatted()};
+            final ArrayList<Map> list = new ArrayList<Map>();
+            for (ItemStack stack : cell.getPreformattedItems()) {
+                list.add(Registry.toMap(stack));
             }
-            return new Object[]{null, "Cell Null"};
+            return list.toArray();
         }
 
         @Callback
         public Object[] isPreformatted(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.isPreformatted()};
-            }
-            return new Object[]{null, "Cell Null"};
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.isPreformatted()}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
-        public Object[] getRemainingItemCount(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.remainingItemCount()};
-            }
-            return new Object[]{null, "Cell Null"};
+        public Object[] isFuzzyPreformatted(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.isFuzzyPreformatted()}
+                    : new Object[]{null, "no storage cell"};
         }
 
         @Callback
-        public Object[] getRemainingItemTypes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.remainingItemTypes()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getStoredItemCount(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.storedItemCount()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getStoredItemTypes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.storedItemTypes()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getTotalBytes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.totalBytes()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getUnusedItemCount(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.unusedItemCount()};
-            }
-            return new Object[]{null, "Cell Null"};
-        }
-
-        @Callback
-        public Object[] getUnusedBytes(final Context context, final Arguments args) {
-            IMEInventoryHandler cell = tileEntity.provideCell();
-            if (cell != null) {
-                return new Object[]{cell.usedBytes()};
-            }
-            return new Object[]{null, "Cell Null"};
+        public Object[] getName(final Context context, final Arguments args) {
+            final IMEInventoryHandler cell = tileEntity.provideCell();
+            return cell != null
+                    ? new Object[]{cell.getName()}
+                    : new Object[]{null, "no storage cell"};
         }
     }
 }

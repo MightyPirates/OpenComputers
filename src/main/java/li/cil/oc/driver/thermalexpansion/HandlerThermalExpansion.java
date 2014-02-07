@@ -24,7 +24,7 @@ public final class HandlerThermalExpansion implements IModHandler {
     }
 
     @Override
-    public void populate(Map<String, Object> map, ItemStack stack) {
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
         final Item item = stack.getItem();
         if (item instanceof IEnergyContainerItem) {
             final IEnergyContainerItem energyItem = (IEnergyContainerItem) item;

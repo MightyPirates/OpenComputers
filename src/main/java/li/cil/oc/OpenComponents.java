@@ -11,10 +11,14 @@ import li.cil.oc.driver.redstoneinmotion.HandlerRedstoneInMotion;
 import li.cil.oc.driver.thermalexpansion.HandlerThermalExpansion;
 import li.cil.oc.driver.vanilla.HandlerVanilla;
 
+import java.util.logging.Logger;
+
 @Mod(modid = "OpenComputers|Components", useMetadata = true)
 public class OpenComponents {
     @Mod.Instance
     public static OpenComponents instance;
+
+    public static final Logger Log = Logger.getLogger("OpenComponents");
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {

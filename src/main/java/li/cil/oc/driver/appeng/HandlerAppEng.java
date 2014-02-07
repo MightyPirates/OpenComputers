@@ -23,13 +23,13 @@ public final class HandlerAppEng implements IModHandler {
     }
 
     @Override
-    public void populate(Map<String, Object> map, ItemStack stack) {
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 
-    static Map<String, Object> toMap(IAEItemStack stack) {
+    static Map<String, Object> toMap(final IAEItemStack stack) {
         // TODO Do we want to add more (isCraftable?) here? If not, inline.
         // (Do we even need the 'requestable'?)
-        Map<String, Object> map = Registry.toMap(stack.getItemStack());
+        final Map<String, Object> map = Registry.toMap(stack.getItemStack());
         map.put("requestable", stack.getCountRequestable());
         return map;
     }
