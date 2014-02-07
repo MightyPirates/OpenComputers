@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.client.registry.{RenderingRegistry, ClientRegistry}
-import cpw.mods.fml.common.event.{FMLPostInitializationEvent, FMLInitializationEvent}
+import cpw.mods.fml.common.event.{FMLPreInitializationEvent, FMLPostInitializationEvent, FMLInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.client
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
@@ -33,7 +33,7 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, UpgradeRenderer)
 
-    MinecraftForge.EVENT_BUS.register(gui.Icons)
+
     OpenComputers.channel.register(client.PacketHandler)
   }
 
@@ -44,5 +44,11 @@ private[oc] class Proxy extends CommonProxy {
     if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     }
+  }
+
+  override def preInit(e: FMLPreInitializationEvent): Unit = {
+    MinecraftForge.EVENT_BUS.register(gui.Icons)
+    super.preInit(e)
+
   }
 }

@@ -13,7 +13,7 @@ object Icons {
   private val byTier = mutable.Map.empty[Int, IIcon]
 
   @SubscribeEvent
-  def onItemIconRegister(e: TextureStitchEvent.Pre) {
+  def onItemIconRegister(e: TextureStitchEvent) {
     val iconRegister = e.map
     if (iconRegister.getTextureType == 1) {
       bySlotType += Slot.Card -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_card")
