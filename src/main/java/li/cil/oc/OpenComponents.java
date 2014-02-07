@@ -3,6 +3,7 @@ package li.cil.oc;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import li.cil.oc.driver.Registry;
+import li.cil.oc.driver.appeng.HandlerAppEng;
 import li.cil.oc.driver.buildcraft.HandlerBuildCraft;
 import li.cil.oc.driver.enderstorage.HandlerEnderStorage;
 import li.cil.oc.driver.ic2.HandlerIndustrialCraft2;
@@ -17,6 +18,7 @@ public class OpenComponents {
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
+        Registry.add(new HandlerAppEng());
         Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerEnderStorage());
         Registry.add(new HandlerIndustrialCraft2());

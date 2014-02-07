@@ -15,7 +15,9 @@ public final class HandlerBuildCraft implements IModHandler {
     @Override
     public void initialize() {
         Driver.add(new DriverPipe());
+        Driver.add(new DriverPipeTE());
         Driver.add(new DriverPowerReceptor());
+        Driver.add(new DriverMachine());
     }
 
     @Override
