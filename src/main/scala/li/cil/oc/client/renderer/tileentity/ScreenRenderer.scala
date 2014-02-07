@@ -246,7 +246,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GLAllocation.deleteDisplayLists(e.getValue)
   }
 
-  // TODO this doesn't seem to work
+
   @SubscribeEvent
   def onTick(e: WorldTickEvent) = cache.cleanUp()
 }

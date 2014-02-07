@@ -8,6 +8,7 @@ import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.MinecraftForge
 import scala.collection.mutable
+import cpw.mods.fml.common.FMLCommonHandler
 
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
@@ -41,7 +42,7 @@ abstract class Keyboard extends ManagedComponent {
 
   override def onConnect(node: Node) {
     if (node == this.node) {
-      MinecraftForge.EVENT_BUS.register(this)
+      FMLCommonHandler.instance().bus().register(this)
     }
   }
 
@@ -98,22 +99,23 @@ abstract class Keyboard extends ManagedComponent {
     node.sendToReachable("computer.checked_signal", args: _*)
 }
 
-// TODO verify these work (they don't seem to)
+
 object Keyboard {
 
   @SubscribeEvent
   def onPlayerRespawn(e: PlayerRespawnEvent) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
+    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
   }
 
   @SubscribeEvent
   def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
+    //TODO Throws exception
+    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
   }
 
   @SubscribeEvent
   def onPlayerLogout(e: PlayerLoggedOutEvent) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
+    FMLCommonHandler.instance().bus().post(new ReleasePressedKeys(e.player))
   }
 
   class ReleasePressedKeys(val player: EntityPlayer) extends Event

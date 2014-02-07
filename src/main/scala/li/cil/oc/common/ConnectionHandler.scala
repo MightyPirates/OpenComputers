@@ -10,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.{ChatComponentText, ChatComponentTranslation}
 
 object ConnectionHandler {
-  // TODO this doesn't seem to work
+
   @SubscribeEvent
   def playerLoggedIn(e: PlayerLoggedInEvent) {
     if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {
