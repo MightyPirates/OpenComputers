@@ -4,7 +4,7 @@ import li.cil.oc.common.inventory
 import li.cil.oc.api.network.Node
 
 trait ComponentInventory extends Environment with Inventory with inventory.ComponentInventory {
-  def componentContainer = this
+  override def componentContainer = this
 
   override protected def isComponentSlot(slot: Int) = isServer
 

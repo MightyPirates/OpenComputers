@@ -46,7 +46,6 @@ class Capacitor extends Environment with PassiveNode {
   }
 
   def recomputeCapacity(updateSecondGradeNeighbors: Boolean = false) {
-    world.activeChunkSet
     node.setLocalBufferSize(
       Settings.get.bufferCapacitor +
         Settings.get.bufferCapacitorAdjacencyBonus * ForgeDirection.VALID_DIRECTIONS.count(side => {

@@ -17,7 +17,7 @@ class Adapter extends Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
     case Some(((environment, _))) => environment.node
   }
 

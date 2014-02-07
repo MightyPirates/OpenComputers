@@ -70,7 +70,7 @@ object WirelessNetwork {
     }
   }
 
-  private def dimension(card: WirelessNetworkCard) = card.owner.worldObj.provider.dimensionId
+  private def dimension(card: WirelessNetworkCard) = card.owner.getWorldObj.provider.dimensionId
 
   private def offset(card: WirelessNetworkCard, value: Double) =
     (card.owner.xCoord + 0.5 + value, card.owner.yCoord + 0.5 + value, card.owner.zCoord + 0.5 + value)
@@ -92,7 +92,7 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
-      val world = card.owner.worldObj
+      val world = card.owner.getWorldObj
       val pool = world.getWorldVec3Pool
 
       val origin = pool.getVecFromPool(reference.owner.xCoord, reference.owner.yCoord, reference.owner.zCoord)
