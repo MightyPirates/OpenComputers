@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 object RotationHelper {
   def fromYaw(yaw: Float) = {

@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.{Blocks, Settings, api}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
 class Capacitor extends Environment with PassiveNode {
@@ -16,7 +16,7 @@ class Capacitor extends Environment with PassiveNode {
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.capacitor.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateWithPriority(x, y, z, Blocks.capacitor.parent, 0, 0)
   }
 
   override def invalidate() {
@@ -24,7 +24,7 @@ class Capacitor extends Environment with PassiveNode {
     if (isServer) {
       indirectNeighbors.map(coordinate => {
         val (nx, ny, nz) = coordinate
-        world.getBlockTileEntity(nx, ny, nz)
+        world.getTileEntity(nx, ny, nz)
       }).collect {
         case capacitor: Capacitor => capacitor.recomputeCapacity()
       }
@@ -46,17 +46,16 @@ class Capacitor extends Environment with PassiveNode {
   }
 
   def recomputeCapacity(updateSecondGradeNeighbors: Boolean = false) {
-    world.activeChunkSet
     node.setLocalBufferSize(
       Settings.get.bufferCapacitor +
         Settings.get.bufferCapacitorAdjacencyBonus * ForgeDirection.VALID_DIRECTIONS.count(side => {
-          world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+          world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
             case capacitor: Capacitor => true
             case _ => false
           }
         }) +
         Settings.get.bufferCapacitorAdjacencyBonus / 2 * indirectNeighbors.count {
-          case (nx, ny, nz) => world.getBlockTileEntity(nx, ny, nz) match {
+          case (nx, ny, nz) => world.getTileEntity(nx, ny, nz) match {
             case capacitor: Capacitor =>
               if (updateSecondGradeNeighbors) {
                 capacitor.recomputeCapacity()

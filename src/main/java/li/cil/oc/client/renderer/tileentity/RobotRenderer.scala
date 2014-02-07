@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.entity.RenderManager
@@ -12,7 +12,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.MinecraftForgeClient
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object RobotRenderer extends TileEntitySpecialRenderer {
@@ -113,7 +113,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
-    bindTexture(TexturePreloader.blockRobot)
+    bindTexture(Textures.blockRobot)
     if (level > 19) {
       GL11.glColor3f(0.4f, 1, 1)
     }

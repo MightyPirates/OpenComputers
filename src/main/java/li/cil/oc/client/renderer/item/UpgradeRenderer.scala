@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.item
 
 import li.cil.oc.Items
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
@@ -35,7 +35,7 @@ object UpgradeRenderer extends IItemRenderer {
       case Some(subItem) if subItem == Items.upgradeCrafting =>
         // TODO display list?
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
-        tm.bindTexture(TexturePreloader.upgradeCrafting)
+        tm.bindTexture(Textures.upgradeCrafting)
 
         // Front.
         t.startDrawingQuads()
@@ -76,7 +76,7 @@ object UpgradeRenderer extends IItemRenderer {
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
-        tm.bindTexture(TexturePreloader.upgradeGenerator)
+        tm.bindTexture(Textures.upgradeGenerator)
 
         // Back.
         t.startDrawingQuads()

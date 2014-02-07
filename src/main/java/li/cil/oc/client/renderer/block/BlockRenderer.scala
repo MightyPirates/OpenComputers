@@ -6,16 +6,16 @@ import li.cil.oc.common.block.{RobotAfterimage, RobotProxy, Cable, Delegator}
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 import li.cil.oc.Blocks
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
 
-  override def shouldRender3DInInventory() = true
+  override def shouldRender3DInInventory(modelID: Int) = true
 
   override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
     GL11.glPushMatrix()
@@ -30,12 +30,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         RobotRenderer.renderChassis()
       case _ =>
         val renderFace = Array(
-          (icon: Icon) => renderer.renderFaceYNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceYPos(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceZNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceZPos(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceXNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceXPos(block, 0, 0, 0, icon)
+          (icon: IIcon) => renderer.renderFaceYNeg(block, 0, 0, 0, icon),
+          (icon: IIcon) => renderer.renderFaceYPos(block, 0, 0, 0, icon),
+          (icon: IIcon) => renderer.renderFaceZNeg(block, 0, 0, 0, icon),
+          (icon: IIcon) => renderer.renderFaceZPos(block, 0, 0, 0, icon),
+          (icon: IIcon) => renderer.renderFaceXNeg(block, 0, 0, 0, icon),
+          (icon: IIcon) => renderer.renderFaceXPos(block, 0, 0, 0, icon)
         )
         block match {
           case delegator: Delegator[_] =>
@@ -57,7 +57,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   }
 
   override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         if (keyboard.facing == ForgeDirection.UP || keyboard.facing == ForgeDirection.DOWN) {
           keyboard.yaw match {

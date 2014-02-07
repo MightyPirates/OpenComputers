@@ -1,10 +1,9 @@
 package li.cil.oc.client
 
 import li.cil.oc.Settings
-import net.minecraft.client.resources.{ResourceManager, ResourceManagerReloadListener}
 import net.minecraft.util.ResourceLocation
 
-object TexturePreloader extends ResourceManagerReloadListener {
+object Textures {
   val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
   val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
@@ -29,31 +28,4 @@ object TexturePreloader extends ResourceManagerReloadListener {
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
-
-  def onResourceManagerReload(manager: ResourceManager) {
-    manager.getResource(fontAntiAliased)
-    manager.getResource(fontAliased)
-
-    manager.getResource(guiBackground)
-    manager.getResource(guiBorders)
-    manager.getResource(guiButtonPower)
-    manager.getResource(guiButtonRange)
-    manager.getResource(guiButtonSide)
-    manager.getResource(guiComputer)
-    manager.getResource(guiRange)
-    manager.getResource(guiRobot)
-    manager.getResource(guiRobotSelection)
-    manager.getResource(guiServer)
-    manager.getResource(guiSlot)
-
-    manager.getResource(blockCable)
-    manager.getResource(blockCaseFrontOn)
-    manager.getResource(blockPowerDistributorOn)
-    manager.getResource(blockRackFrontOn)
-    manager.getResource(blockRobot)
-    manager.getResource(blockScreenUpIndicator)
-
-    manager.getResource(upgradeCrafting)
-    manager.getResource(upgradeGenerator)
-  }
 }

@@ -7,14 +7,14 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable with PassiveNode {
   def this() = this(false)
 
   val keyboard = if (isRemote) null else new component.Keyboard {
     override def isUseableByPlayer(p: EntityPlayer) =
-      world.getBlockTileEntity(x, y, z) == Keyboard.this &&
+      world.getTileEntity(x, y, z) == Keyboard.this &&
         p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
   }
 
@@ -42,7 +42,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override def validate() {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.keyboard.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateWithPriority(x, y, z, Blocks.keyboard.parent, 0, 0)
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {

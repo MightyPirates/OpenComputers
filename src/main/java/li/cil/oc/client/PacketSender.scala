@@ -4,7 +4,7 @@ import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.component
 import li.cil.oc.common.tileentity._
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 object PacketSender {
   def sendComputerPower(t: Computer, power: Boolean) {

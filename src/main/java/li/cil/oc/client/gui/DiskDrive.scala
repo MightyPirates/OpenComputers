@@ -8,8 +8,8 @@ import net.minecraft.util.StatCollector
 class DiskDrive(playerInventory: InventoryPlayer, val drive: tileentity.DiskDrive) extends DynamicGuiContainer(new container.DiskDrive(playerInventory, drive)) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
-    fontRenderer.drawString(
-      StatCollector.translateToLocal(drive.getInvName),
+    fontRendererObj.drawString(
+      StatCollector.translateToLocal(drive.getInventoryName),
       8, 6, 0x404040)
   }
 }

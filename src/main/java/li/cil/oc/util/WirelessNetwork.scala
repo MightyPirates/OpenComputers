@@ -1,24 +1,23 @@
 package li.cil.oc.util
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.server.component.WirelessNetworkCard
-import net.minecraft.block.Block
 import net.minecraft.util.Vec3
-import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
 object WirelessNetwork {
   val dimensions = mutable.Map.empty[Int, RTree[WirelessNetworkCard]]
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     if (!e.world.isRemote) {
       dimensions.remove(e.world.provider.dimensionId)
     }
   }
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onWorldLoad(e: WorldEvent.Load) {
     if (!e.world.isRemote) {
       dimensions.remove(e.world.provider.dimensionId)
@@ -70,7 +69,7 @@ object WirelessNetwork {
     }
   }
 
-  private def dimension(card: WirelessNetworkCard) = card.owner.worldObj.provider.dimensionId
+  private def dimension(card: WirelessNetworkCard) = card.owner.getWorldObj.provider.dimensionId
 
   private def offset(card: WirelessNetworkCard, value: Double) =
     (card.owner.xCoord + 0.5 + value, card.owner.yCoord + 0.5 + value, card.owner.zCoord + 0.5 + value)
@@ -92,7 +91,7 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
-      val world = card.owner.worldObj
+      val world = card.owner.getWorldObj
       val pool = world.getWorldVec3Pool
 
       val origin = pool.getVecFromPool(reference.owner.xCoord, reference.owner.yCoord, reference.owner.zCoord)
@@ -126,8 +125,8 @@ object WirelessNetwork {
         val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
         val y = (origin.yCoord + v.yCoord * rGap + side.yCoord * rSide + top.yCoord * rTop).toInt
         val z = (origin.zCoord + v.zCoord * rGap + side.zCoord * rSide + top.zCoord * rTop).toInt
-        Option(Block.blocksList(world.getBlockId(x, y, z))) match {
-          case Some(block) => hardness += block.blockHardness
+        Option(world.getBlock(x, y, z)) match {
+          case Some(block) => hardness += block.getBlockHardness(world, x, y, z)
           case _ =>
         }
       }

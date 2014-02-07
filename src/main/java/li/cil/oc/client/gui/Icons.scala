@@ -2,20 +2,20 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraftforge.client.event.TextureStitchEvent
-import net.minecraftforge.event.ForgeSubscribe
 import scala.collection.mutable
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 
 object Icons {
-  private val bySlotType = mutable.Map.empty[Slot, Icon]
+  private val bySlotType = mutable.Map.empty[Slot, IIcon]
 
-  private val byTier = mutable.Map.empty[Int, Icon]
+  private val byTier = mutable.Map.empty[Int, IIcon]
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onItemIconRegister(e: TextureStitchEvent.Pre) {
     val iconRegister = e.map
-    if (iconRegister.textureType == 1) {
+    if (iconRegister.getTextureType == 1) {
       bySlotType += Slot.Card -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_card")
       bySlotType += Slot.Disk -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_disk")
       bySlotType += Slot.HardDiskDrive -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_hdd")

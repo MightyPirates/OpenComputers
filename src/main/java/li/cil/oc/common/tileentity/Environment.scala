@@ -5,7 +5,7 @@ import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.{Network, network}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import scala.math.ScalaNumber
 
 abstract class Environment extends TileEntity with network.Environment {

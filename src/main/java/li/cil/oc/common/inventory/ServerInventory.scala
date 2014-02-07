@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 trait ServerInventory extends ItemStackInventory {
   override def getSizeInventory = 14
 
-  override def getInvName = Settings.namespace + "container.Server"
+  override def getInventoryName = Settings.namespace + "container.Server"
 
   override def getInventoryStackLimit = 1
 

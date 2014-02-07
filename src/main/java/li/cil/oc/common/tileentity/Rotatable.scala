@@ -4,10 +4,9 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 /** TileEntity base class for rotatable blocks. */
 trait Rotatable extends RotationAware with api.Rotatable {
@@ -129,7 +128,7 @@ trait Rotatable extends RotationAware with api.Rotatable {
   }
 
   def rotate(axis: ForgeDirection) = {
-    val block = Block.blocksList(world.getBlockId(x, y, z))
+    val block = world.getBlock(x, y, z)
     if (block != null) {
       val valid = block.getValidRotations(world, x, y, z)
       if (valid != null && valid.contains(axis)) {
@@ -159,7 +158,7 @@ trait Rotatable extends RotationAware with api.Rotatable {
     else {
       world.markBlockForUpdate(x, y, z)
     }
-    world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
+    world.notifyBlocksOfNeighborChange(x, y, z, block)
   }
 
   // ----------------------------------------------------------------------- //

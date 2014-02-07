@@ -6,12 +6,12 @@ import li.cil.oc.{Settings, Items}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 import scala.collection.convert.WrapAsScala._
-import net.minecraft.util.StatCollector
+import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.client.Minecraft
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new gui.Case(player.inventory, computer)
       case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
@@ -57,9 +57,9 @@ object GuiHandler extends CommonGuiHandler {
                       }
                       true
                     })
-                    else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.InvalidKey"))
+                    else player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "gui.Terminal.InvalidKey"))
                   }
-                  else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
+                  else player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "gui.Terminal.OutOfRange"))
                 case _ => null
               }
             }

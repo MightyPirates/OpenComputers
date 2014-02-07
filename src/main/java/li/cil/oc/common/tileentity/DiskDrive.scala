@@ -22,12 +22,12 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   override def validate() = {
     super.validate()
-    world.scheduleBlockUpdateFromLoad(x, y, z, Blocks.diskDrive.parent.blockID, 0, 0)
+    world.scheduleBlockUpdateWithPriority(x, y, z, Blocks.diskDrive.parent, 0, 0)
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def getInvName = Settings.namespace + "container.DiskDrive"
+  override def getInventoryName = Settings.namespace + "container.DiskDrive"
 
   override def getSizeInventory = 1
 

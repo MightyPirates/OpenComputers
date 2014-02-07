@@ -1,6 +1,5 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import net.minecraft.entity.player.EntityPlayer
@@ -11,6 +10,7 @@ import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import scala.collection.mutable
+import cpw.mods.fml.common.FMLCommonHandler
 
 class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
@@ -36,15 +36,15 @@ class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
       val targetStackSize = if (result.isStackable) math.min(wantedCount, result.getMaxStackSize) else result.stackSize
       val timesCrafted = math.min(targetStackSize / result.stackSize, amountPossible)
       if (timesCrafted <= 0) return true
-      GameRegistry.onItemCrafted(context.player, result, this)
+      FMLCommonHandler.instance.firePlayerCraftingEvent(context.player, result, this)
       val surplus = mutable.ArrayBuffer.empty[ItemStack]
       for (slot <- 0 until getSizeInventory) {
         val stack = getStackInSlot(slot)
         if (stack != null) {
           decrStackSize(slot, timesCrafted)
           val item = stack.getItem
-          if (item.hasContainerItem) {
-            val container = item.getContainerItemStack(stack)
+          if (item.hasContainerItem(stack)) {
+            val container = item.getContainerItem(stack)
             if (container.isItemStackDamageable && container.getItemDamage > container.getMaxDamage) {
               MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(context.player, container))
             }

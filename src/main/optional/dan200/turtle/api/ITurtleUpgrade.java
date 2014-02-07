@@ -5,7 +5,7 @@
  */
 
 package dan200.turtle.api;
-import net.minecraft.util.Icon;
+import net.minecraft.util.IIcon;
 import dan200.computer.api.*;
 
 /**
@@ -88,5 +88,5 @@ public interface ITurtleUpgrade
 	 * @param side Which side of the turtle (left or right) the peripheral resides on.
 	 * @return The Icon that you wish to be used to render your turtle peripheral.
 	 */
-	public Icon getIcon( ITurtleAccess turtle, TurtleSide side );
+	public IIcon getIcon( ITurtleAccess turtle, TurtleSide side );
 }

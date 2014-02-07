@@ -1,12 +1,12 @@
 package li.cil.oc.server.component
 
-import cpw.mods.fml.common.IPlayerTracker
+import cpw.mods.fml.common.eventhandler.{Event, SubscribeEvent}
+import cpw.mods.fml.common.gameevent.PlayerEvent.{PlayerLoggedOutEvent, PlayerChangedDimensionEvent, PlayerRespawnEvent}
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Node, Visibility, Message}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.{Event, ForgeSubscribe}
 import scala.collection.mutable
 
 // TODO key up when screen is disconnected from which the key down came
@@ -21,7 +21,7 @@ abstract class Keyboard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onReleasePressedKeys(e: Keyboard.ReleasePressedKeys) {
     pressedKeys.get(e.player) match {
       case Some(keys) => for ((code, char) <- keys) {
@@ -98,21 +98,22 @@ abstract class Keyboard extends ManagedComponent {
     node.sendToReachable("computer.checked_signal", args: _*)
 }
 
-object Keyboard extends IPlayerTracker {
+object Keyboard {
 
-  override def onPlayerRespawn(player: EntityPlayer) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  @SubscribeEvent
+  def onPlayerRespawn(e: PlayerRespawnEvent) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
   }
 
-  override def onPlayerChangedDimension(player: EntityPlayer) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  @SubscribeEvent
+  def onPlayerChangedDimension(e: PlayerChangedDimensionEvent) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
   }
 
-  override def onPlayerLogout(player: EntityPlayer) {
-    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
+  @SubscribeEvent
+  def onPlayerLogout(e: PlayerLoggedOutEvent) {
+    MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(e.player))
   }
-
-  override def onPlayerLogin(player: EntityPlayer) {}
 
   class ReleasePressedKeys(val player: EntityPlayer) extends Event
 

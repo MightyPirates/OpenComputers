@@ -18,7 +18,7 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
       case rotatable: Rotatable => rotatable.facing
       case _ => throw new Exception("illegal state")
     }
-    owner.getWorldObj.getBlockTileEntity(owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ) match {
+    owner.getWorldObj.getTileEntity(owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ) match {
       case sign: TileEntitySign => result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
@@ -32,7 +32,7 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
       case _ => throw new Exception("illegal state")
     }
     val (sx, sy, sz) = (owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ)
-    owner.getWorldObj.getBlockTileEntity(sx, sy, sz) match {
+    owner.getWorldObj.getTileEntity(sx, sy, sz) match {
       case sign: TileEntitySign =>
         text.copyToArray(sign.signText)
         owner.getWorldObj.markBlockForUpdate(sx, sy, sz)

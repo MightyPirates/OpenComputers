@@ -53,7 +53,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
     // Dummy tag compound, we just want to flush the components to the actual
     // tag compound, which is the one of the stack representing us.
     inventory.save(new NBTTagCompound())
-    inventory.onInventoryChanged()
+    inventory.markDirty()
   }
 
   // Required due to abstract overrides in component inventory.

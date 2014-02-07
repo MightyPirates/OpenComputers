@@ -86,7 +86,7 @@ public class ShieldPermissions {
 			if(hasBit(PERM_PLAYER)){
 				allow = true;
 			}
-			if(playerExceptions.contains(entity.getEntityName())){
+			if(playerExceptions.contains(entity.getCommandSenderName())){
 				allow = !allow;
 			}
 		}else if(entity instanceof EntityVillager){

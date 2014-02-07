@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -24,7 +24,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       GL11.glScalef(1.002f, -1.002f, 1.002f)
       GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-      bindTexture(TexturePreloader.blockPowerDistributorOn)
+      bindTexture(Textures.blockPowerDistributorOn)
 
       val t = Tessellator.instance
       t.startDrawingQuads()

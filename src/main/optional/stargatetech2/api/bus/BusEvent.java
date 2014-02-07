@@ -1,7 +1,7 @@
 package stargatetech2.api.bus;
 
 import net.minecraft.world.World;
-import net.minecraftforge.event.Event;
+import cpw.mods.fml.common.eventhandler.Event;
 
 public class BusEvent extends Event{
 	public final World world;

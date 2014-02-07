@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListener}
-import cpw.mods.fml.common.{TickType, ITickHandler}
-import java.util
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.gameevent.TickEvent.WorldTickEvent
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
@@ -15,10 +15,10 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
+object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] {
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
@@ -73,7 +73,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
 
     if (screen.hasPower) {
-      MonospaceFontRenderer.init(tileEntityRenderer.renderEngine)
+      MonospaceFontRenderer.init(this.field_147501_a.field_147553_e)
       val list = cache.get(screen, this)
       compileOrDraw(list)
     }
@@ -114,7 +114,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
         })) {
         GL11.glPushMatrix()
         transform()
-        bindTexture(TexturePreloader.blockScreenUpIndicator)
+        bindTexture(Textures.blockScreenUpIndicator)
         GL11.glDepthMask(false)
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
         val t = Tessellator.instance
@@ -244,17 +244,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   def onRemoval(e: RemovalNotification[TileEntity, Int]) {
     GLAllocation.deleteDisplayLists(e.getValue)
-  }
+  }                                                          q
 
-  // ----------------------------------------------------------------------- //
-  // ITickHandler
-  // ----------------------------------------------------------------------- //
-
-  def getLabel = "OpenComputers.Screen"
-
-  def ticks() = util.EnumSet.of(TickType.CLIENT)
-
-  def tickStart(tickType: util.EnumSet[TickType], tickData: AnyRef*) = cache.cleanUp()
-
-  def tickEnd(tickType: util.EnumSet[TickType], tickData: AnyRef*) {}
+  // TODO this doesn't seem to work
+  @SubscribeEvent
+  def onTick(e: WorldTickEvent) = cache.cleanUp()
 }

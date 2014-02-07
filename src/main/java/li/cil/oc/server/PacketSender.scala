@@ -7,7 +7,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {

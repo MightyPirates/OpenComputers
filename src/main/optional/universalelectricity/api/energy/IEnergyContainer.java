@@ -1,6 +1,6 @@
 package universalelectricity.api.energy;
 
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * This interface is to be applied to all TileEntities which can store energy.

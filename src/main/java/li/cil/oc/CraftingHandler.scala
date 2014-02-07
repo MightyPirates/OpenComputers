@@ -1,18 +1,21 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.ICraftingHandler
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.gameevent.PlayerEvent.ItemCraftedEvent
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.IInventory
-import net.minecraft.item.{ItemMap, Item, ItemStack}
+import net.minecraft.item.{ItemMap, ItemStack}
 
-object CraftingHandler extends ICraftingHandler {
-  override def onCrafting(player: EntityPlayer, craftedStack: ItemStack, inventory: IInventory) = {
+object CraftingHandler {
+  @SubscribeEvent
+  def onCrafting(e: ItemCraftedEvent) = {
+    val player = e.player
+    val craftedStack = e.crafting
+    val inventory = e.craftMatrix
     if (craftedStack.isItemEqual(Items.acid.createItemStack())) {
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
-        if (stack != null && stack.getItem == Item.bucketWater) {
+        if (stack != null && stack.getItem == net.minecraft.init.Items.water_bucket) {
           stack.stackSize = 0
           inventory.setInventorySlotContents(i, null)
         }
@@ -23,9 +26,9 @@ object CraftingHandler extends ICraftingHandler {
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
         if (stack != null && stack.isItemEqual(Items.acid.createItemStack())) {
-          val container = new ItemStack(Item.bucketEmpty, 1)
+          val container = new ItemStack(net.minecraft.init.Items.bucket, 1)
           if (!player.inventory.addItemStackToInventory(container)) {
-            player.dropPlayerItem(container)
+            player.entityDropItem(container, 0)
           }
         }
       }
@@ -43,7 +46,7 @@ object CraftingHandler extends ICraftingHandler {
                 val nbt = driver.dataTag(stack)
                 oldMap = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map")))
               }
-              else if (stack.getItem == Item.map) {
+              else if (stack.getItem == net.minecraft.init.Items.map) {
                 // Store information of the map used for crafting in the result.
                 val nbt = driver.dataTag(craftedStack)
                 val map = stack.getItem.asInstanceOf[ItemMap]
@@ -65,6 +68,4 @@ object CraftingHandler extends ICraftingHandler {
       }
     }
   }
-
-  override def onSmelting(player: EntityPlayer, item: ItemStack) {}
 }

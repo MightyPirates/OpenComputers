@@ -1,6 +1,6 @@
 package li.cil.oc.api;
 
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * This interface is implemented by the computer case and robot tile entities

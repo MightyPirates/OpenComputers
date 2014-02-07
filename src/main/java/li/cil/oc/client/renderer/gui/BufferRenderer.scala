@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.gui
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.util.{RenderState, PackedColor}
 import net.minecraft.client.renderer.texture.TextureManager
@@ -29,7 +29,7 @@ object BufferRenderer {
 
       GL11.glNewList(displayLists, GL11.GL_COMPILE)
 
-      textureManager.get.bindTexture(TexturePreloader.guiBorders)
+      textureManager.get.bindTexture(Textures.guiBorders)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(

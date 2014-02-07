@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
@@ -12,7 +12,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation with RobotContext {
   def this() = this(new Robot(false))
@@ -78,7 +78,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
     super.validate()
     val firstProxy = robot.proxy == null
     robot.proxy = this
-    robot.worldObj = worldObj
+    robot.setWorldObj(worldObj)
     robot.xCoord = xCoord
     robot.yCoord = yCoord
     robot.zCoord = zCoord
@@ -126,7 +126,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def shouldRenderInPass(pass: Int) = robot.shouldRenderInPass(pass)
 
-  override def onInventoryChanged() = robot.onInventoryChanged()
+  override def markDirty() = robot.markDirty()
 
   override lazy val isClient = robot.isClient
 
@@ -208,11 +208,11 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def getStackInSlotOnClosing(slot: Int) = robot.getStackInSlotOnClosing(slot)
 
-  override def openChest() = robot.openChest()
+  override def openInventory() = robot.openInventory()
 
-  override def closeChest() = robot.closeChest()
+  override def closeInventory() = robot.closeInventory()
 
-  override def isInvNameLocalized = robot.isInvNameLocalized
+  override def hasCustomInventoryName = robot.hasCustomInventoryName
 
   override def isUseableByPlayer(player: EntityPlayer) = robot.isUseableByPlayer(player)
 
@@ -224,7 +224,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def installedMemory = robot.installedMemory
 
-  override def getInvName = robot.getInvName
+  override def getInventoryName = robot.getInventoryName
 
   override def getSizeInventory = robot.getSizeInventory
 

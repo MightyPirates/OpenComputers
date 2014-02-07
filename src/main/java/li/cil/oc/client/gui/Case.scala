@@ -2,7 +2,7 @@ package li.cil.oc.client.gui
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
@@ -28,21 +28,21 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
     GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
-    fontRenderer.drawString(
-      StatCollector.translateToLocal(computer.getInvName),
+    fontRendererObj.drawString(
+      StatCollector.translateToLocal(computer.getInventoryName),
       8, 6, 0x404040)
-    if (powerButton.func_82252_a) {
+    if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
       val which = if (computer.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
   }
@@ -50,7 +50,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(TexturePreloader.guiComputer)
+    mc.renderEngine.bindTexture(Textures.guiComputer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

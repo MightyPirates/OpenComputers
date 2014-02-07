@@ -4,18 +4,15 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
-import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Slot
 import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
@@ -60,23 +57,24 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
-  override def drawSlotInventory(slot: Slot) {
-    RenderState.makeItBlend()
-    super.drawSlotInventory(slot)
-    GL11.glDisable(GL11.GL_BLEND)
-    if (!slot.getHasStack) slot match {
-      case component: ComponentSlot if component.tierIcon != null =>
-        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-        GL11.glDisable(GL11.GL_DEPTH_TEST)
-        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
-      case _ =>
-    }
-  }
+  // TODO private now?
+  //  override def drawSlotInventory(slot: Slot) {
+  //    RenderState.makeItBlend()
+  //    super.drawSlotInventory(slot)
+  //    GL11.glDisable(GL11.GL_BLEND)
+  //    if (!slot.getHasStack) slot match {
+  //      case component: ComponentSlot if component.tierIcon != null =>
+  //        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+  //        GL11.glDisable(GL11.GL_DEPTH_TEST)
+  //        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+  //        GL11.glEnable(GL11.GL_DEPTH_TEST)
+  //      case _ =>
+  //    }
+  //  }
 
   override def drawBuffer() {
     GL11.glTranslatef(8, 8, 0)
@@ -106,20 +104,20 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
         ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
         robot.globalBuffer.toInt,
         robot.globalBufferSize.toInt))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
-    if (powerButton.func_82252_a) {
+    if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
       val which = if (robot.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(TexturePreloader.guiRobot)
+    mc.renderEngine.bindTexture(Textures.guiRobot)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
     drawSelection()
@@ -141,7 +139,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   private def drawSelection() {
     RenderState.makeItBlend()
-    Minecraft.getMinecraft.renderEngine.bindTexture(TexturePreloader.guiRobotSelection)
+    Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
     val now = System.currentTimeMillis() / 1000.0
     val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
     val slot = robot.selectedSlot - robot.actualSlot(0)
@@ -176,4 +174,6 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     t.addVertexWithUV(x + w, y, zLevel, u1, v0)
     t.draw()
   }
+
+  private def isPointInRegion(rx: Int, ry: Int, w: Int, h: Int, x: Int, y: Int) = x >= rx && x <= rx + w && y >= ry && y <= ry + h
 }

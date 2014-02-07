@@ -1,17 +1,17 @@
 package li.cil.oc.client.renderer
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.util.{WirelessNetwork, RenderState}
 import net.minecraft.client.Minecraft
 import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.event.ForgeSubscribe
 import org.lwjgl.opengl.GL11
 
 object WirelessNetworkDebugRenderer {
   val colors = Array(0xFF0000, 0x00FFFF, 0x00FF00, 0x0000FF, 0xFF00FF, 0xFFFF00, 0xFFFFFF, 0x000000)
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
-    WirelessNetwork.dimensions.get(e.context.theWorld.provider.dimensionId) match {
+    WirelessNetwork.dimensions.get(Minecraft.getMinecraft.theWorld.provider.dimensionId) match {
       case Some(tree) =>
         val mc = Minecraft.getMinecraft
         val player = mc.thePlayer

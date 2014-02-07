@@ -1,12 +1,12 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object RackRenderer extends TileEntitySpecialRenderer {
@@ -32,7 +32,7 @@ object RackRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
       GL11.glScalef(1, -1, 1)
 
-      bindTexture(TexturePreloader.blockRackFrontOn)
+      bindTexture(Textures.blockRackFrontOn)
 
       val v1 = 2 / 16f
       val fs = 3 / 16f

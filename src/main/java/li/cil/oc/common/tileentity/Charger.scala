@@ -6,8 +6,8 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.util.ForgeDirection
 
 class Charger extends Environment with RedstoneAware with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
@@ -20,8 +20,8 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   var invertSignal = false
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+    player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.ChargerSpeed",
       (chargeSpeed * 100).toInt + "%"))
     null
@@ -38,7 +38,7 @@ class Charger extends Environment with RedstoneAware with Analyzable {
       }
     }
     else if (chargeSpeed > 0 && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
-      ForgeDirection.VALID_DIRECTIONS.map(side => world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
+      ForgeDirection.VALID_DIRECTIONS.map(side => world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
           val phi = world.rand.nextDouble * Math.PI * 2
@@ -97,7 +97,7 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   def onNeighborChanged() {
     checkRedstoneInputChanged()
-    ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ))).collect {
+    ForgeDirection.VALID_DIRECTIONS.map(side => (side.ordinal(), world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ))).collect {
       case (side, proxy: RobotProxy) => robots(side) = Some(proxy)
       case (side, _) => robots(side) = None
     }

@@ -1,14 +1,14 @@
 package li.cil.oc.server.network
 
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.common.tileentity.PassiveNode
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
 import scala.collection.JavaConverters._
 import scala.collection.convert.WrapAsScala._
@@ -357,7 +357,7 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
-  @ForgeSubscribe
+  @SubscribeEvent
   def onWorldLoad(e: WorldEvent.Load) {
     val world = e.world
     if (!world.isRemote) {
@@ -368,7 +368,7 @@ object Network extends api.detail.NetworkAPI {
     }
   }
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onChunkLoad(e: ChunkEvent.Load) {
     val world = e.world
     if (!world.isRemote) {
@@ -388,7 +388,7 @@ object Network extends api.detail.NetworkAPI {
               tileEntity.xCoord + side.offsetX,
               tileEntity.yCoord + side.offsetY,
               tileEntity.zCoord + side.offsetZ)
-            getNetworkNode(tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz), side.getOpposite) match {
+            getNetworkNode(tileEntity.getWorldObj.getTileEntity(nx, ny, nz), side.getOpposite) match {
               case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null => neighbor.connect(node)
               case _ => // Ignore.
             }

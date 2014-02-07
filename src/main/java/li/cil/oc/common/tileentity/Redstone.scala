@@ -6,7 +6,7 @@ import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.BundledRedstone
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class Redstone extends Environment with BundledRedstoneAware {
   val instance = if (BundledRedstone.isAvailable) new component.BundledRedstone(this) else new component.Redstone(this)

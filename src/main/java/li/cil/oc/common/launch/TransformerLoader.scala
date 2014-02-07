@@ -5,7 +5,7 @@ import java.util
 import li.cil.oc.common.asm.ClassTransformer
 
 class TransformerLoader extends IFMLLoadingPlugin {
-  override def getLibraryRequestClass = null
+  override def getAccessTransformerClass = null
 
   override def getASMTransformerClass = Array(classOf[ClassTransformer].getName)
 

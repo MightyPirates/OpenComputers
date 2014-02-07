@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.GLAllocation
@@ -70,9 +70,9 @@ object MonospaceFontRenderer {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
       if (Settings.get.textAntiAlias)
-        textureManager.bindTexture(TexturePreloader.fontAntiAliased)
+        textureManager.bindTexture(Textures.fontAntiAliased)
       else
-        textureManager.bindTexture(TexturePreloader.fontAliased)
+        textureManager.bindTexture(Textures.fontAliased)
       GL11.glPushMatrix()
       GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
       GL11.glTranslatef(x, y, 0)

@@ -1,40 +1,33 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.network.{Player, IConnectionHandler}
+import cpw.mods.fml.common.{FMLCommonHandler, Loader}
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent
 import li.cil.oc.Settings
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.network.packet.{Packet1Login, NetHandler}
-import net.minecraft.network.{NetLoginHandler, INetworkManager}
-import net.minecraft.server.MinecraftServer
-import net.minecraft.util.ChatMessageComponent
+import net.minecraft.util.{ChatComponentText, ChatComponentTranslation}
 
-object ConnectionHandler extends IConnectionHandler {
-  def playerLoggedIn(player: Player, netHandler: NetHandler, manager: INetworkManager) {
-    if (netHandler.isServerHandler) player match {
-      case p: EntityPlayerMP =>
+object ConnectionHandler {
+  // TODO this doesn't seem to work
+  @SubscribeEvent
+  def playerLoggedIn(e: PlayerLoggedInEvent) {
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {
+      case player: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningLuaFallback"))
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningLuaFallback")))
         }
         if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningProjectRed"))
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningProjectRed")))
         }
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
+          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
         }
       case _ =>
     }
   }
-
-  def connectionReceived(netHandler: NetLoginHandler, manager: INetworkManager) = null
-
-  def connectionOpened(netClientHandler: NetHandler, server: String, port: Int, manager: INetworkManager) {}
-
-  def connectionOpened(netClientHandler: NetHandler, server: MinecraftServer, manager: INetworkManager) {}
-
-  def connectionClosed(manager: INetworkManager) {}
-
-  def clientLoggedIn(clientHandler: NetHandler, manager: INetworkManager, login: Packet1Login) {}
 }

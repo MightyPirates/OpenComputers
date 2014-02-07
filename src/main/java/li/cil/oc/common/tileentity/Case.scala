@@ -54,12 +54,12 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
 
   // ----------------------------------------------------------------------- //
 
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
+  override def markDirty() {
+    super.markDirty()
     recomputeMaxComponents()
   }
 
-  override def getInvName = Settings.namespace + "container.Case"
+  override def getInventoryName = Settings.namespace + "container.Case"
 
   override def getSizeInventory = tier match {
     case 0 => 5
@@ -69,7 +69,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case t: TileEntity if t == this && computer.canInteract(player.getCommandSenderName) =>
         player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false

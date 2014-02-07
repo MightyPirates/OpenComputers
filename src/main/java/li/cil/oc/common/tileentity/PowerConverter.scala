@@ -7,7 +7,7 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import universalelectricity.api.UniversalClass
 import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 

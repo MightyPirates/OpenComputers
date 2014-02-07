@@ -54,9 +54,9 @@ trait AbstractBusAware extends TileEntity with network.Environment { self: IBusD
         if (isAbstractBusAvailable) StargateTech2API.addDevice(world, x, y, z)
         else StargateTech2API.removeDevice(world, x, y, z)
       }
-      world.notifyBlocksOfNeighborChange(x, y, z, block.blockID)
+      world.notifyBlocksOfNeighborChange(x, y, z, block)
       if (isServer) ServerPacketSender.sendAbstractBusState(this)
-      else world.markBlockForRenderUpdate(x, y, z)
+      else world.markBlockForUpdate(x, y, z)
     }
     this
   }
