@@ -2,10 +2,10 @@ package li.cil.oc.common.item
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.World
 
 trait Delegate {
@@ -17,7 +17,7 @@ trait Delegate {
 
   val itemId = parent.add(this)
 
-  private var _icon: Option[Icon] = None
+  private var _icon: Option[IIcon] = None
 
   def maxStackSize = 64
 
@@ -56,16 +56,16 @@ trait Delegate {
   }
 
   @SideOnly(Side.CLIENT)
-  def icon: Option[Icon] = _icon
+  def icon: Option[IIcon] = _icon
 
   @SideOnly(Side.CLIENT)
-  protected def icon_=(value: Icon) = _icon = Option(value)
+  protected def icon_=(value: IIcon) = _icon = Option(value)
 
   @SideOnly(Side.CLIENT)
-  def icon(stack: ItemStack, pass: Int): Option[Icon] = icon
+  def icon(stack: ItemStack, pass: Int): Option[IIcon] = icon
 
   @SideOnly(Side.CLIENT)
-  def registerIcons(iconRegister: IconRegister) {}
+  def registerIcons(iconRegister: IIconRegister) {}
 
   // ----------------------------------------------------------------------- //
 

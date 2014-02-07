@@ -5,7 +5,7 @@ import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Settings, OpenComputers}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -38,7 +38,7 @@ class Server(val parent: Delegator) extends Delegate {
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
-  override def registerIcons(iconRegister: IconRegister) {
+  override def registerIcons(iconRegister: IIconRegister) {
     super.registerIcons(iconRegister)
 
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":server")

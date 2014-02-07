@@ -5,18 +5,19 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{AxisAlignedBB, Icon}
+import net.minecraft.util.{AxisAlignedBB, IIcon}
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
+import net.minecraft.block.Block
 
 class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Keyboard"
 
-  var icon: Icon = null
+  var icon: IIcon = null
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -24,7 +25,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def icon(side: ForgeDirection) = Some(icon)
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":keyboard")
   }
 
@@ -35,24 +36,24 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
 
   override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard => api.Network.joinOrCreateNetwork(keyboard)
       case _ =>
     }
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.isBlockSolidOnSide(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
-      (world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
+    world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
+      (world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
         case screen: tileentity.Screen => screen.facing != side.getOpposite
         case _ => true
       })
 
-  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
 
-  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
   override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard => parent.setBlockBounds(computeBounds(keyboard.pitch, keyboard.yaw))
       case _ => super.updateBounds(world, x, y, z)
     }
@@ -84,8 +85,8 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
       math.max(x0, x1) + 0.5f, math.max(y0, y1) + 0.5f, math.max(z0, z1) + 0.5f)
   }
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) =
+    world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite) => // Can stay.
       case _ =>
         parent.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
@@ -100,7 +101,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   def adjacentScreen(world: World, x: Int, y: Int, z: Int) =
     adjacencyInfo(world, x, y, z) match {
-      case Some((_, _, sx, sy, sz, _)) => world.getBlockTileEntity(sx, sy, sz) match {
+      case Some((_, _, sx, sy, sz, _)) => world.getTileEntity(sx, sy, sz) match {
         case screen: tileentity.Screen => Some(screen)
         case _ => None
       }
@@ -108,7 +109,7 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
     }
 
   def adjacencyInfo(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         val (sx, sy, sz) = (
           x + keyboard.facing.getOpposite.offsetX,

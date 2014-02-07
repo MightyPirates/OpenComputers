@@ -7,11 +7,11 @@ import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.World
 
 class Terminal(val parent: Delegator) extends Delegate {
@@ -19,8 +19,8 @@ class Terminal(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
-  private var iconOn: Option[Icon] = None
-  private var iconOff: Option[Icon] = None
+  private var iconOn: Option[IIcon] = None
+  private var iconOff: Option[IIcon] = None
 
   def hasServer(stack: ItemStack) = stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "server")
 
@@ -39,7 +39,7 @@ class Terminal(val parent: Delegator) extends Delegate {
   @SideOnly(Side.CLIENT)
   override def icon(stack: ItemStack, pass: Int) = if (hasServer(stack)) iconOn else iconOff
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     super.registerIcons(iconRegister)
 
     icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":terminal"))
@@ -49,7 +49,7 @@ class Terminal(val parent: Delegator) extends Delegate {
   }
 
   override def onItemUse(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case rack: tileentity.Rack if side == rack.facing.ordinal() =>
         val l = 2 / 16.0
         val h = 14 / 16.0
@@ -59,14 +59,14 @@ class Terminal(val parent: Delegator) extends Delegate {
             rack.servers(slot) match {
               case Some(server) =>
                 if (!stack.hasTagCompound) {
-                  stack.setTagCompound(new NBTTagCompound("tag"))
+                  stack.setTagCompound(new NBTTagCompound())
                 }
                 val key = UUID.randomUUID().toString
                 rack.terminals(slot).key = Some(key)
                 ServerPacketSender.sendServerState(rack, slot)
                 stack.getTagCompound.setString(Settings.namespace + "key", key)
                 stack.getTagCompound.setString(Settings.namespace + "server", server.machine.address)
-                player.inventory.onInventoryChanged()
+                player.inventory.markDirty()
               case _ => // Huh?
             }
           }

@@ -10,7 +10,7 @@ import li.cil.oc.util.ItemCosts
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
@@ -18,12 +18,12 @@ import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
 
-class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
+class Delegator[Child <: Delegate] extends Block(Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
 
@@ -42,13 +42,13 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   def subBlock(stack: ItemStack): Option[Child] =
     stack.getItem match {
-      case block: ItemBlock if Block.blocksList(block.getBlockID) == this =>
+      case block: ItemBlock if block.field_150939_a == this =>
         subBlock(block.getMetadata(stack.getItemDamage))
       case _ => None
     }
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
-    if (world.getBlockId(x, y, z) == blockID) subBlock(world.getBlockMetadata(x, y, z))
+    if (world.getBlock(x, y, z) == this) subBlock(world.getBlockMetadata(x, y, z))
     else None
 
   def subBlock(metadata: Int): Option[Child] =
@@ -57,7 +57,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => None
     }
 
-  override def getSubBlocks(itemId: Int, creativeTab: CreativeTabs, list: util.List[_]) = {
+  override def getSubBlocks(item: net.minecraft.item.Item, creativeTab: CreativeTabs, list: util.List[_]) = {
     // Workaround for MC's untyped lists...
     def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
     subBlockItemStacks().sortBy(_.getUnlocalizedName).foreach(add(list, _))
@@ -72,27 +72,27 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // ----------------------------------------------------------------------- //
 
   def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case tileEntity: tileentity.Rotatable => tileEntity.facing
       case _ => ForgeDirection.UNKNOWN
     }
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case rotatable: tileentity.Rotatable =>
         rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case rotatable: tileentity.Rotatable =>
         rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case rotatable: tileentity.Rotatable => rotatable.toLocal(value)
       case _ => value
     }
@@ -101,9 +101,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   // Block
   // ----------------------------------------------------------------------- //
 
-  override def canBeReplacedByLeaves(world: World, x: Int, y: Int, z: Int) = false
+  override def canBeReplacedByLeaves(world: IBlockAccess, x: Int, y: Int, z: Int) = false
 
-  override def canCreatureSpawn(creature: EnumCreatureType, world: World, x: Int, y: Int, z: Int) = false
+  override def canCreatureSpawn(creature: EnumCreatureType, world: IBlockAccess, x: Int, y: Int, z: Int) = false
 
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
@@ -123,17 +123,17 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.getPickBlock(target, world, x, y, z)
     }
 
-  override def getBlockDropped(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) =
+  override def getDrops(world: World, x: Int, y: Int, z: Int, metadata: Int, fortune: Int) =
     subBlock(metadata) match {
-      case Some(subBlock) => subBlock.drops(world, x, y, z, fortune).getOrElse(super.getBlockDropped(world, x, y, z, metadata, fortune))
-      case _ => super.getBlockDropped(world, x, y, z, metadata, fortune)
+      case Some(subBlock) => subBlock.drops(world, x, y, z, fortune).getOrElse(super.getDrops(world, x, y, z, metadata, fortune))
+      case _ => super.getDrops(world, x, y, z, metadata, fortune)
     }
 
-  def dropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {
-    dropBlockAsItem_do(world, x, y, z, stack)
+  def internalDropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {
+    dropBlockAsItem(world, x, y, z, stack)
   }
 
-  override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
+  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case Some(subBlock) => subBlock.isNormalCube(world, x, y, z)
       case _ => false
@@ -145,11 +145,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => super.getValidRotations(world, x, y, z)
     }
 
-  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int, stack: ItemStack) =
-    subBlock(stack) match {
-      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
-      case _ => super.canPlaceBlockOnSide(world, x, y, z, side, stack)
-    }
+  // TODO need a side check that takes a stack, or have to make keyboard an extra item
+  //  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int, stack: ItemStack) =
+  //    subBlock(stack) match {
+  //      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)
+  //      case _ => super.canPlaceBlockOnSide(world, x, y, z, side, stack)
+  //    }
 
   override def getCollisionBoundingBoxFromPool(world: World, x: Int, y: Int, z: Int) = {
     setBlockBoundsBasedOnState(world, x, y, z)
@@ -186,9 +187,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     super.collisionRayTrace(world, x, y, z, origin, direction)
 
   override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case rotatable: tileentity.Rotatable if rotatable.rotate(axis) =>
-        world.markBlockForRenderUpdate(x, y, z)
+        world.markBlockForUpdate(x, y, z)
         true
       case _ => false
     }
@@ -259,23 +260,23 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
       case _ => // Invalid but avoid match error.
     }
 
-  override def breakBlock(world: World, x: Int, y: Int, z: Int, blockId: Int, metadata: Int) = {
+  override def breakBlock(world: World, x: Int, y: Int, z: Int, block: Block, metadata: Int) = {
     subBlock(metadata) match {
-      case Some(subBlock) => subBlock.removedFromWorld(world, x, y, z, blockId)
+      case Some(subBlock) => subBlock.removedFromWorld(world, x, y, z, block)
       case _ => // Invalid but avoid match error.
     }
-    super.breakBlock(world, x, y, z, blockId, metadata)
+    super.breakBlock(world, x, y, z, block, metadata)
   }
 
-  override def removeBlockByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int) =
+  override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int) =
     (subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.removedByEntity(world, x, y, z, player)
       case _ => true
-    }) && super.removeBlockByPlayer(world, player, x, y, z)
+    }) && super.removedByPlayer(world, player, x, y, z)
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) =
+  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.neighborBlockChanged(world, x, y, z, blockId)
+      case Some(subBlock) => subBlock.neighborBlockChanged(world, x, y, z, block)
       case _ => // Invalid but avoid match error.
     }
 
@@ -319,7 +320,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
 
   override def getRenderType = BlockRenderer.getRenderId
 
-  override def getLightOpacity(world: World, x: Int, y: Int, z: Int) =
+  override def getLightOpacity(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.opacity(world, x, y, z)
       case _ => 255
@@ -365,15 +366,15 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   @SideOnly(Side.CLIENT)
-  override def getBlockTexture(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
+  override def getIcon(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) =
     subBlock(world, x, y, z) match {
       case Some(subBlock) =>
         val orientation = ForgeDirection.getOrientation(side)
         subBlock.icon(world, x, y, z, orientation, toLocal(world, x, y, z, orientation)) match {
           case Some(icon) => icon
-          case _ => super.getBlockTexture(world, x, y, z, side)
+          case _ => super.getIcon(world, x, y, z, side)
         }
-      case _ => super.getBlockTexture(world, x, y, z, side)
+      case _ => super.getIcon(world, x, y, z, side)
     }
 
   override def setBlockBoundsForItemRender() {
@@ -394,8 +395,8 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) = {
-    super.registerIcons(iconRegister)
+  override def registerBlockIcons(iconRegister: IIconRegister) = {
+    super.registerBlockIcons(iconRegister)
     subBlocks.foreach(_.registerIcons(iconRegister))
   }
 }
@@ -408,23 +409,21 @@ object Delegator {
     }
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Delegate] = {
-    val blockId = world.getBlockId(x, y, z)
-    if (blockId > 0) subBlock(Block.blocksList(blockId), world.getBlockMetadata(x, y, z))
-    else None
+    subBlock(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z))
   }
 
   def subBlock(stack: ItemStack): Option[Delegate] =
     if (stack != null) stack.getItem match {
       case block: ItemBlock =>
-        subBlock(Block.blocksList(block.getBlockID), block.getMetadata(stack.getItemDamage))
+        subBlock(block.field_150939_a, block.getMetadata(stack.getItemDamage))
       case _ => None
     }
     else None
 }
 
-class SimpleDelegator(id: Int) extends Delegator[SimpleDelegate](id)
+class SimpleDelegator extends Delegator[SimpleDelegate]
 
-class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
+class SpecialDelegator extends Delegator[SpecialDelegate] {
   override def isOpaqueCube = false
 
   override def renderAsNormalBlock = false
@@ -450,13 +449,13 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
   override def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
 
   override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => t.bundledOutput(side, color)
       case _ => 0
     }
 
   override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => t.bundledOutput(side)
       case _ => Array.fill(16)(0)
     }
@@ -464,18 +463,18 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
   override def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
 
   override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => for (color <- 0 until 16) {
         t.rednetInput(side, color, inputValues(color))
       }
       case _ =>
     }
 
-  abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
+  abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
     if (Loader.isModLoaded("MineFactoryReloaded")) {
-      world.getBlockTileEntity(x, y, z) match {
+      world.getTileEntity(x, y, z) match {
         case t: tileentity.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          Block.blocksList(world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)) match {
+          world.getBlock(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
             case block: IRedNetNetworkContainer =>
             case _ => for (color <- 0 until 16) {
               t.rednetInput(side, color, 0)
@@ -485,14 +484,14 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
         case _ =>
       }
     }
-    super.onNeighborBlockChange(world, x, y, z, blockId)
+    super.onNeighborBlockChange(world, x, y, z, block)
   }
 }
 
-class SimpleRedstoneDelegator(id: Int) extends SimpleDelegator(id) with RedstoneDelegator[SimpleDelegate] {
+class SimpleRedstoneDelegator extends SimpleDelegator with RedstoneDelegator[SimpleDelegate] {
   override def canProvidePower = true
 }
 
-class SpecialRedstoneDelegator(id: Int) extends SpecialDelegator(id) with RedstoneDelegator[SpecialDelegate] {
+class SpecialRedstoneDelegator extends SpecialDelegator with RedstoneDelegator[SpecialDelegate] {
   override def canProvidePower = true
 }

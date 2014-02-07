@@ -5,13 +5,13 @@ import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Case" + tier
@@ -30,12 +30,12 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   }
 
   private object Icons {
-    val on = Array.fill[Icon](6)(null)
-    val off = Array.fill[Icon](6)(null)
+    val on = Array.fill[IIcon](6)(null)
+    val off = Array.fill[IIcon](6)(null)
   }
 
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) = {
-    getIcon(localSide, world.getBlockTileEntity(x, y, z) match {
+    getIcon(localSide, world.getTileEntity(x, y, z) match {
       case computer: tileentity.Case => computer.isRunning
       case _ => false
     })
@@ -46,7 +46,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   private def getIcon(side: ForgeDirection, isOn: Boolean) =
     Some(if (isOn) Icons.on(side.ordinal) else Icons.off(side.ordinal))
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     Icons.off(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":case_top")
     Icons.on(ForgeDirection.DOWN.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
     Icons.off(ForgeDirection.UP.ordinal) = Icons.off(ForgeDirection.DOWN.ordinal)
@@ -82,7 +82,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   }
 
   override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case c: tileentity.Case => c.canInteract(player.getCommandSenderName)
       case _ => super.removedByEntity(world, x, y, z, player)
     }

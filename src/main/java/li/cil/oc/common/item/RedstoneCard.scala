@@ -4,7 +4,7 @@ import cpw.mods.fml.common.Loader
 import java.util
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 
@@ -22,7 +22,7 @@ class RedstoneCard(val parent: Delegator) extends Delegate {
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
-  override def registerIcons(iconRegister: IconRegister) {
+  override def registerIcons(iconRegister: IIconRegister) {
     super.registerIcons(iconRegister)
 
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":card_redstone")

@@ -5,17 +5,17 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Items, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Redstone"
 
-  private val icons = Array.fill[Icon](6)(null)
+  private val icons = Array.fill[IIcon](6)(null)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -29,7 +29,7 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":redstone_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 

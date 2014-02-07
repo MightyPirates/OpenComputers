@@ -6,17 +6,18 @@ import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Settings, api}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{Icon, AxisAlignedBB}
+import net.minecraft.util.{IIcon, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.block.Block
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Cable"
 
-  private var icon: Icon = _
+  private var icon: IIcon = _
 
   // ----------------------------------------------------------------------- //
 
@@ -28,7 +29,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   override def icon(side: ForgeDirection) = Some(icon)
 
   @SideOnly(Side.CLIENT)
-  override def registerIcons(iconRegister: IconRegister) {
+  override def registerIcons(iconRegister: IIconRegister) {
     super.registerIcons(iconRegister)
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
   }
@@ -40,26 +41,26 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   override def createTileEntity(world: World) = Some(new tileentity.Cable)
 
   override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case cable: tileentity.Cable => api.Network.joinOrCreateNetwork(cable)
       case _ =>
     }
 
   // ----------------------------------------------------------------------- //
 
-  override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
+  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
 
   override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
-  override def opacity(world: World, x: Int, y: Int, z: Int) = 0
+  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
 
   override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = false
 
   // ----------------------------------------------------------------------- //
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {
-    world.markBlockForRenderUpdate(x, y, z)
-    super.neighborBlockChanged(world, x, y, z, blockId)
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) {
+    world.markBlockForUpdate(x, y, z)
+    super.neighborBlockChanged(world, x, y, z, block)
   }
 
   override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) {
@@ -92,7 +93,7 @@ object Cable {
     var result = 0
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (!world.isAirBlock(tx, ty, tz)) world.getBlockTileEntity(tx, ty, tz) match {
+      if (!world.isAirBlock(tx, ty, tz)) world.getTileEntity(tx, ty, tz) match {
         case robot: tileentity.RobotProxy =>
         case host: SidedEnvironment =>
           val connects = if (host.getWorldObj.isRemote) host.canConnect(side.getOpposite) else host.sidedNode(side.getOpposite) != null

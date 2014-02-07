@@ -4,17 +4,18 @@ import java.util
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{api, Settings}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.{World, IBlockAccess}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
+import net.minecraft.block.Block
 
 class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Capacitor"
 
-  private val icons = Array.fill[Icon](6)(null)
+  private val icons = Array.fill[IIcon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -24,7 +25,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":capacitor_top")
 
@@ -45,15 +46,15 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   // ----------------------------------------------------------------------- //
 
   override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case capacitor: tileentity.Capacitor =>
         api.Network.joinOrCreateNetwork(capacitor)
         capacitor.recomputeCapacity(updateSecondGradeNeighbors = true)
       case _ =>
     }
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) =
+    world.getTileEntity(x, y, z) match {
       case capacitor: tileentity.Capacitor => capacitor.recomputeCapacity()
       case _ =>
     }

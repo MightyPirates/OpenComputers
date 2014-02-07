@@ -4,17 +4,17 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerDistributor"
 
-  private val icons = Array.fill[Icon](6)(null)
+  private val icons = Array.fill[IIcon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -24,7 +24,7 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 

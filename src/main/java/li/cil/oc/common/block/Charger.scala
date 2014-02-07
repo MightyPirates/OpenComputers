@@ -7,18 +7,19 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.BuildCraft
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.block.Block
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 
 class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Charger"
 
-  private val icons = Array.fill[Icon](6)(null)
-  private val iconsCharging = Array.fill[Icon](6)(null)
+  private val icons = Array.fill[IIcon](6)(null)
+  private val iconsCharging = Array.fill[IIcon](6)(null)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -28,12 +29,12 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
 
   @SideOnly(Side.CLIENT)
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case charger: tileentity.Charger if charger.chargeSpeed > 0 => Some(iconsCharging(localSide.ordinal()))
       case _ => Some(icons(localSide.ordinal()))
     }
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
     icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
 
@@ -56,7 +57,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
   override def canConnectToRedstone(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case charger: tileentity.Charger if BuildCraft.holdsApplicableWrench(player, x, y, z) =>
         if (!world.isRemote) {
           charger.invertSignal = !charger.invertSignal
@@ -68,11 +69,11 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
       case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
     }
 
-  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, blockId: Int) {
-    world.getBlockTileEntity(x, y, z) match {
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) {
+    world.getTileEntity(x, y, z) match {
       case charger: tileentity.Charger => charger.onNeighborChanged()
       case _ =>
     }
-    super.neighborBlockChanged(world, x, y, z, blockId)
+    super.neighborBlockChanged(world, x, y, z, block)
   }
 }

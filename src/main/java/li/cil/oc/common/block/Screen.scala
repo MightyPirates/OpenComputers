@@ -6,15 +6,15 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.Icon
+import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.ForgeDirection
 import scala.Array
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
@@ -31,7 +31,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   }
 
   object Icons {
-    var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: Icon
+    var b, b2, bbl, bbl2, bbm, bbm2, bbr, bbr2, bhb, bhb2, bhm, bhm2, bht, bht2, bml, bmm, bmr, btl, btm, btr, bvb, bvb2, bvm, bvt, f, f2, fbl, fbl2, fbm, fbm2, fbr, fbr2, fhb, fhb2, fhm, fhm2, fht, fht2, fml, fmm, fmr, ftl, ftm, ftr, fvb, fvb2, fvm, fvt = null: IIcon
 
     lazy val fh = Array(fht, fhm, fhb)
     lazy val fv = Array(fvt, fvm, fvb)
@@ -78,7 +78,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   // compute ambient occlusion in a custom block renderer to keep the lighting
   // pretty... which would be even more grotesque.
   override def icon(world: IBlockAccess, x: Int, y: Int, z: Int, worldSide: ForgeDirection, localSide: ForgeDirection) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.width > 1 || screen.height > 1 =>
         val right = screen.width - 1
         val bottom = screen.height - 1
@@ -222,7 +222,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
       case _ => Icons.b2
     })
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     Icons.b = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b")
     Icons.b2 = iconRegister.registerIcon(Settings.resourceDomain + ":screen/b2")
     Icons.bbl = iconRegister.registerIcon(Settings.resourceDomain + ":screen/bbl")
@@ -293,7 +293,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
-      world.getBlockTileEntity(x, y, z) match {
+      world.getTileEntity(x, y, z) match {
         case screen: tileentity.Screen if screen.hasKeyboard =>
           // Yep, this GUI is actually purely client side. We could skip this
           // if, but it is clearer this way (to trigger it from the server we
@@ -310,13 +310,13 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
     else false
 
   override def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) =
-    if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
+    if (!world.isRemote) world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.tier > 0 && screen.facing == ForgeDirection.UP => screen.walk(entity)
       case _ =>
     }
 
   override def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) =
-    if (!world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
+    if (!world.isRemote) (entity, world.getTileEntity(x, y, z)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - x))
         val hitY = math.max(0, math.min(1, arrow.posY - y))
@@ -345,7 +345,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   // ----------------------------------------------------------------------- //
 
   override def validRotations(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen =>
         if (screen.facing == ForgeDirection.UP || screen.facing == ForgeDirection.DOWN) ForgeDirection.VALID_DIRECTIONS
         else ForgeDirection.VALID_DIRECTIONS.filter {
