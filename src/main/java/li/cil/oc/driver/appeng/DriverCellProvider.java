@@ -76,8 +76,7 @@ public class DriverCellProvider extends DriverTileEntity {
             if (cell != null) {
                 ArrayList<Map> list = new ArrayList<Map>();
                 for (IAEItemStack stack : cell.getAvailableItems()) {
-                    Map m = HandlerAppEng.toMap(stack);
-                    list.add(m);
+                    list.add(HandlerAppEng.toMap(stack));
                 }
                 return list.toArray();
             }

@@ -4,9 +4,9 @@ package li.cil.oc.driver.appeng;
 import appeng.api.IAEItemStack;
 import li.cil.oc.api.Driver;
 import li.cil.oc.driver.IModHandler;
+import li.cil.oc.driver.Registry;
 import net.minecraft.item.ItemStack;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public final class HandlerAppEng implements IModHandler {
@@ -22,25 +22,15 @@ public final class HandlerAppEng implements IModHandler {
         Driver.add(new DriverTileController());
     }
 
-    public static Map<String, Object> toMap(IAEItemStack stack) {
-        if (stack == null) {
-            return null;
-        }
-        final Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", stack.getItemID());
-        map.put("damage", stack.getItemDamage());
-        map.put("size", stack.getStackSize());
-        map.put("hasTag", stack.hasTagCompound());
-        map.put("name", stack.getItemStack().getUnlocalizedName());
-        map.put("requestable", stack.getCountRequestable());
-
-        if (stack.getItemStack().getDisplayName() != null) {
-            map.put("label", stack.getItemStack().getDisplayName());
-        }
-        return map;
-    }
-
     @Override
     public void populate(Map<String, Object> map, ItemStack stack) {
+    }
+
+    static Map<String, Object> toMap(IAEItemStack stack) {
+        // TODO Do we want to add more (isCraftable?) here? If not, inline.
+        // (Do we even need the 'requestable'?)
+        Map<String, Object> map = Registry.toMap(stack.getItemStack());
+        map.put("requestable", stack.getCountRequestable());
+        return map;
     }
 }
