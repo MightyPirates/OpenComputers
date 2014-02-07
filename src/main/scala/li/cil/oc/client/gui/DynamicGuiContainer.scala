@@ -19,7 +19,6 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 
-
   // TODO private now?
 //  override def drawSlotInventory(slot: Slot) {
 //    if (slot.slotNumber < container.inventorySlots.size() - 36) {

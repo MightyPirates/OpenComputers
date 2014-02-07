@@ -1,17 +1,16 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc._
 import li.cil.oc.server
-import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
 import li.cil.oc.server.network
 import li.cil.oc.server.network.Network
 import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
-import cpw.mods.fml.common.FMLCommonHandler
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -43,7 +42,6 @@ class Proxy {
 
     Recipes.init()
 
-    FMLCommonHandler.instance().bus().register(CraftingHandler)
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
   }
@@ -52,8 +50,7 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
-    FMLCommonHandler.instance().bus().register(Keyboard)
-    FMLCommonHandler.instance().bus().register(ConnectionHandler)
+    FMLCommonHandler.instance().bus().register(EventHandler)
     MinecraftForge.EVENT_BUS.register(Network)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }
