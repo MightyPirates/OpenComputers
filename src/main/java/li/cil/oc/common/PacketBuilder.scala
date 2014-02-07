@@ -1,14 +1,14 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
-import cpw.mods.fml.common.{ObfuscationReflectionHelper, FMLCommonHandler}
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import li.cil.oc.common.tileentity.TileEntity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTBase}
+import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
@@ -34,7 +34,7 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
     }
   }
 
-  def writeNBT(nbt: NBTBase) = NBTBase.writeNamedTag(nbt, this)
+  def writeNBT(nbt: NBTTagCompound) = CompressedStreamTools.writeCompressed(nbt, this)
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 
@@ -48,12 +48,12 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
       val playerRenderDistance = Int.MaxValue // ObfuscationReflectionHelper.getPrivateValue(classOf[EntityPlayerMP], player, "renderDistance").asInstanceOf[Integer]
       val playerSpecificRange = math.min(range, (manager.getViewDistance min playerRenderDistance) * 16)
       if (player.getDistanceSq(x, y, z) < playerSpecificRange * playerSpecificRange) {
-        sendToPlayer(player.asInstanceOf[Player])
+        sendToPlayer(player)
       }
     }
   }
 
-  def sendToPlayer(player: Player) = PacketDispatcher.sendPacketToPlayer(packet, player)
+  def sendToPlayer(player: EntityPlayerMP) = PacketDispatcher.sendPacketToPlayer(packet, player.asInstanceOf[Player])
 
   def sendToServer() = PacketDispatcher.sendPacketToServer(packet)
 

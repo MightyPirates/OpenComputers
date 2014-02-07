@@ -78,7 +78,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  def drawBuffer() {
+  override def drawBuffer() {
     GL11.glTranslatef(8, 8, 0)
     RenderState.disableLighting()
     RenderState.makeItBlend()
@@ -131,7 +131,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  protected def changeSize(w: Double, h: Double) = {
+  override protected def changeSize(w: Double, h: Double) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
     val scaleX = math.min(bufferWidth / (bw + bufferMargin * 2.0), 1)

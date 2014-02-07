@@ -7,7 +7,7 @@ import java.io.DataInputStream
 import java.util.logging.Level
 import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTBase}
+import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
@@ -76,12 +76,12 @@ abstract class PacketHandler extends IPacketHandler {
     def readItemStack() = {
       val haveStack = readBoolean()
       if (haveStack) {
-        ItemStack.loadItemStackFromNBT(readNBT().asInstanceOf[NBTTagCompound])
+        ItemStack.loadItemStackFromNBT(readNBT())
       }
       else null
     }
 
-    def readNBT() = NBTBase.readNamedTag(this)
+    def readNBT() = CompressedStreamTools.readCompressed(this)
   }
 
 }

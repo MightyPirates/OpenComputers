@@ -22,9 +22,9 @@ import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
 abstract class PowerConverterBase extends TileEntity with network.Environment with IEnergyInterface with IEnergyContainer {
-  def node: Connector
+  override def node: Connector
 
-  def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) = {
+  override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) = {
     if (!Settings.get.ignorePower && node != null) {
       val energy = fromUE(receive)
       if (doReceive) {
@@ -39,13 +39,13 @@ abstract class PowerConverterBase extends TileEntity with network.Environment wi
     else 0
   }
 
-  def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
+  override def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
 
-  def setEnergy(from: ForgeDirection, energy: Long) {}
+  override def setEnergy(from: ForgeDirection, energy: Long) {}
 
-  def getEnergy(from: ForgeDirection) = if (node != null) toUE(node.globalBuffer) else 0
+  override def getEnergy(from: ForgeDirection) = if (node != null) toUE(node.globalBuffer) else 0
 
-  def getEnergyCapacity(from: ForgeDirection) = if (node != null) toUE(node.globalBufferSize) else Long.MaxValue
+  override def getEnergyCapacity(from: ForgeDirection) = if (node != null) toUE(node.globalBufferSize) else Long.MaxValue
 
   protected def toUE(energy: Double) = (energy * Settings.ratioBC).toLong
 
@@ -61,9 +61,9 @@ class PowerConverter extends PowerConverterBase with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
-  def canConnect(direction: ForgeDirection) = direction != null && direction != ForgeDirection.UNKNOWN
+  override def canConnect(direction: ForgeDirection) = direction != null && direction != ForgeDirection.UNKNOWN
 
   // ----------------------------------------------------------------------- //
 
@@ -103,9 +103,9 @@ class PowerConverter extends PowerConverterBase with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onMessage(message: network.Message) {}
+  override def onMessage(message: network.Message) {}
 
-  def onConnect(node: network.Node) {}
+  override def onConnect(node: network.Node) {}
 
-  def onDisconnect(node: network.Node) {}
+  override def onDisconnect(node: network.Node) {}
 }

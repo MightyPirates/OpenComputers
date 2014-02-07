@@ -12,12 +12,12 @@ trait Hub extends Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  def node = null
+  override def node = null
 
   @SideOnly(Side.CLIENT)
-  def canConnect(side: ForgeDirection) = true
+  override def canConnect(side: ForgeDirection) = true
 
-  def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
+  override def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
 
   // ----------------------------------------------------------------------- //
 
@@ -42,15 +42,15 @@ trait Hub extends Environment with SidedEnvironment {
   protected class Plug(val side: ForgeDirection) extends api.network.Environment {
     val node = createNode(this)
 
-    def onMessage(message: Message) {
+    override def onMessage(message: Message) {
       if (isPrimary) {
         onPlugMessage(this, message)
       }
     }
 
-    def onConnect(node: Node) = onPlugConnect(this, node)
+    override def onConnect(node: Node) = onPlugConnect(this, node)
 
-    def onDisconnect(node: Node) = onPlugDisconnect(this, node)
+    override def onDisconnect(node: Node) = onPlugDisconnect(this, node)
 
     def isPrimary = plugs(plugs.indexWhere(_.node.network == node.network)) == this
 

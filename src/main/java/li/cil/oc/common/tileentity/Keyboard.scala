@@ -13,22 +13,22 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
   def this() = this(false)
 
   val keyboard = if (isRemote) null else new component.Keyboard {
-    def isUseableByPlayer(p: EntityPlayer) =
+    override def isUseableByPlayer(p: EntityPlayer) =
       world.getBlockTileEntity(x, y, z) == Keyboard.this &&
         p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
   }
 
-  def node = if (isClient) null else keyboard.node
+  override def node = if (isClient) null else keyboard.node
 
   override lazy val isClient = keyboard == null
 
   // Override automatic analyzer implementation for sided environments.
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
   @SideOnly(Side.CLIENT)
-  def canConnect(side: ForgeDirection) = side == facing.getOpposite
+  override def canConnect(side: ForgeDirection) = side == facing.getOpposite
 
-  def sidedNode(side: ForgeDirection) =
+  override def sidedNode(side: ForgeDirection) =
     if (hasNodeOnSide(side)) node else null
 
   def hasNodeOnSide(side: ForgeDirection) =

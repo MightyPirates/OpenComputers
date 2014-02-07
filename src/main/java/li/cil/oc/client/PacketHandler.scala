@@ -9,7 +9,6 @@ import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
-import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {

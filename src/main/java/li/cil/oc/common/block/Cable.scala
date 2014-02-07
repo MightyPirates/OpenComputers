@@ -92,7 +92,7 @@ object Cable {
     var result = 0
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (world.getBlockId(tx, ty, tz) != 0) world.getBlockTileEntity(tx, ty, tz) match {
+      if (!world.isAirBlock(tx, ty, tz)) world.getBlockTileEntity(tx, ty, tz) match {
         case robot: tileentity.RobotProxy =>
         case host: SidedEnvironment =>
           val connects = if (host.getWorldObj.isRemote) host.canConnect(side.getOpposite) else host.sidedNode(side.getOpposite) != null

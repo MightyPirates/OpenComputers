@@ -10,7 +10,6 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object RackRenderer extends TileEntitySpecialRenderer {
-
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
     val rack = tileEntity.asInstanceOf[Rack]
     if (rack.anyRunning) {

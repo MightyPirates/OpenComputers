@@ -1,11 +1,11 @@
 package li.cil.oc.server
 
-import cpw.mods.fml.common.network.Player
 import li.cil.oc.common
 import li.cil.oc.common.PacketBuilder
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.util.PackedColor
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
 
@@ -19,7 +19,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendAnalyze(address: String, player: Player) {
+  def sendAnalyze(address: String, player: EntityPlayerMP) {
     val pb = new PacketBuilder(PacketType.Analyze)
 
     pb.writeUTF(address)
@@ -310,7 +310,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: Rack, number: Int, player: Option[Player] = None) {
+  def sendServerState(t: Rack, number: Int, player: Option[EntityPlayerMP] = None) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)

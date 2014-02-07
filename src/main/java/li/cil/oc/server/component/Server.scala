@@ -18,7 +18,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
   // ----------------------------------------------------------------------- //
 
-  def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
+  override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.itemDriverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
@@ -34,9 +34,9 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
     case _ => 0
   }))
 
-  def world = rack.world
+  override def world = rack.world
 
-  def markAsChanged() = rack.markAsChanged()
+  override def markAsChanged() = rack.markAsChanged()
 
   // ----------------------------------------------------------------------- //
 
@@ -58,13 +58,13 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
   // Required due to abstract overrides in component inventory.
   class NetworkedInventory extends ServerInventory with ComponentInventory {
-    def onConnect(node: Node) {
+    override def onConnect(node: Node) {
       if (node == this.node) {
         connectComponents()
       }
     }
 
-    def onDisconnect(node: Node) {
+    override def onDisconnect(node: Node) {
       if (node == this.node) {
         disconnectComponents()
       }
@@ -72,13 +72,13 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
     var containerOverride: ItemStack = _
 
-    def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
+    override def container = if (containerOverride != null) containerOverride else rack.getStackInSlot(number)
 
-    def node() = machine.node
+    override def node() = machine.node
 
-    def onMessage(message: Message) {}
+    override def onMessage(message: Message) {}
 
-    def componentContainer = rack
+    override def componentContainer = rack
 
     // Resolves conflict between ComponentInventory and ServerInventory.
     override def getInventoryStackLimit = 1

@@ -19,7 +19,7 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
   /** Render size of slots (width and height). */
   protected val slotSize = 18
 
-  def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
+  override def canInteractWith(player: EntityPlayer) = otherInventory.isUseableByPlayer(player)
 
   override def slotClick(slot: Int, mouseClick: Int, holdingShift: Int, player: EntityPlayer) = {
     val result = super.slotClick(slot, mouseClick, holdingShift, player)

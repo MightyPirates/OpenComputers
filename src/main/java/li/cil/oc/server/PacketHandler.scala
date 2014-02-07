@@ -6,16 +6,15 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.server.component.machine.Machine
-import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
-import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
-  protected def world(player: Player, dimension: Int) =
+  override protected def world(player: Player, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))
 
-  def dispatch(p: PacketParser) =
+  override def dispatch(p: PacketParser) =
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.KeyDown => onKeyDown(p)
@@ -32,12 +31,12 @@ class PacketHandler extends CommonPacketHandler {
   def onComputerPower(p: PacketParser) =
     p.readTileEntity[TileEntity]() match {
       case Some(t: Computer) => p.player match {
-        case player: EntityPlayer => trySetComputerPower(t.computer, p.readBoolean(), player)
+        case player: EntityPlayerMP => trySetComputerPower(t.computer, p.readBoolean(), player)
         case _ =>
       }
       case Some(r: Rack) => r.servers(p.readInt()) match {
         case Some(server) => p.player match {
-          case player: EntityPlayer => trySetComputerPower(server.machine, p.readBoolean(), player)
+          case player: EntityPlayerMP => trySetComputerPower(server.machine, p.readBoolean(), player)
           case _ =>
         }
         case _ => // Invalid packet.
@@ -45,7 +44,7 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  private def trySetComputerPower(computer: Machine, value: Boolean, player: EntityPlayer) {
+  private def trySetComputerPower(computer: Machine, value: Boolean, player: EntityPlayerMP) {
     if (computer.canInteract(player.getCommandSenderName)) {
       if (value) {
         if (!computer.isPaused) {
@@ -94,7 +93,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onMouseClick(p: PacketParser) {
     p.player match {
-      case player: EntityPlayer =>
+      case player: EntityPlayerMP =>
         val node = p.readTileEntity[TileEntity]() match {
           case Some(t: Screen) => t.origin.node
           case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
@@ -116,7 +115,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onMouseScroll(p: PacketParser) {
     p.player match {
-      case player: EntityPlayer =>
+      case player: EntityPlayerMP =>
         val node = p.readTileEntity[TileEntity]() match {
           case Some(t: Screen) => t.origin.node
           case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
@@ -144,7 +143,7 @@ class PacketHandler extends CommonPacketHandler {
   def onServerRange(p: PacketParser) =
     p.readTileEntity[Rack]() match {
       case Some(rack) => p.player match {
-        case player: EntityPlayer if rack.isUseableByPlayer(player) =>
+        case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           rack.range = math.min(math.max(0, p.readInt()), Settings.get.maxWirelessRange).toInt
           PacketSender.sendServerState(rack)
         case _ =>
@@ -155,7 +154,7 @@ class PacketHandler extends CommonPacketHandler {
   def onServerSide(p: PacketParser) =
     p.readTileEntity[Rack]() match {
       case Some(rack) => p.player match {
-        case player: EntityPlayer if rack.isUseableByPlayer(player) =>
+        case player: EntityPlayerMP if rack.isUseableByPlayer(player) =>
           val number = p.readInt()
           val side = p.readDirection()
           if (rack.sides(number) != side && side != ForgeDirection.SOUTH && (!rack.sides.contains(side) || side == ForgeDirection.UNKNOWN)) {

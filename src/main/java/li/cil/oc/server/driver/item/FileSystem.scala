@@ -72,20 +72,20 @@ object FileSystem extends Item {
   private class ComputerCraftLabel(val stack: ItemStack) extends Label {
     val media = stack.getItem.asInstanceOf[IMedia]
 
-    def getLabel = media.getLabel(stack)
+    override def getLabel = media.getLabel(stack)
 
-    def setLabel(value: String) {
+    override def setLabel(value: String) {
       media.setLabel(stack, value)
     }
   }
 
   private class ItemLabel(val stack: ItemStack) extends Label {
-    def getLabel =
+    override def getLabel =
       if (dataTag(stack).hasKey(Settings.namespace + "fs.label"))
         dataTag(stack).getString(Settings.namespace + "fs.label")
       else null
 
-    def setLabel(value: String) {
+    override def setLabel(value: String) {
       dataTag(stack).setString(Settings.namespace + "fs.label",
         if (value.length > 16) value.substring(0, 16) else value)
     }

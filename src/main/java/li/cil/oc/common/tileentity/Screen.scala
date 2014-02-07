@@ -83,10 +83,10 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
   private val arrows = mutable.Set.empty[EntityArrow]
 
   @SideOnly(Side.CLIENT)
-  def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
+  override def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
 
   // Allow connections from front for keyboards, just don't render cables as connected...
-  def sidedNode(side: ForgeDirection) = node
+  override def sidedNode(side: ForgeDirection) = node
 
   // ----------------------------------------------------------------------- //
 
@@ -370,7 +370,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(origin.node)
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
@@ -416,7 +416,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   // ----------------------------------------------------------------------- //
 
-  def compare(that: Screen) =
+  override def compare(that: Screen) =
     if (x != that.x) x - that.x
     else if (y != that.y) y - that.y
     else z - that.z

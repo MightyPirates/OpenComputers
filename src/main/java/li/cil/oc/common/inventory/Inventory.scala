@@ -11,9 +11,9 @@ trait Inventory extends IInventory {
 
   // ----------------------------------------------------------------------- //
 
-  def getStackInSlot(slot: Int) = items(slot).orNull
+  override def getStackInSlot(slot: Int) = items(slot).orNull
 
-  def decrStackSize(slot: Int, amount: Int) = items(slot) match {
+  override def decrStackSize(slot: Int, amount: Int) = items(slot) match {
     case Some(stack) if stack.stackSize - amount < getInventoryStackRequired =>
       setInventorySlotContents(slot, null)
       stack
@@ -24,7 +24,7 @@ trait Inventory extends IInventory {
     case _ => null
   }
 
-  def setInventorySlotContents(slot: Int, stack: ItemStack) = {
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
     if (items(slot).isDefined) {
       onItemRemoved(slot, items(slot).get)
     }
@@ -48,13 +48,13 @@ trait Inventory extends IInventory {
 
   def getInventoryStackRequired = 1
 
-  def getStackInSlotOnClosing(slot: Int) = null
+  override def getStackInSlotOnClosing(slot: Int) = null
 
-  def openChest() {}
+  override def openChest() {}
 
-  def closeChest() {}
+  override def closeChest() {}
 
-  def isInvNameLocalized = false
+  override def isInvNameLocalized = false
 
   // ----------------------------------------------------------------------- //
 

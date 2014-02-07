@@ -15,9 +15,9 @@ import li.cil.oc.Blocks
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
 
-  def shouldRender3DInInventory() = true
+  override def shouldRender3DInInventory() = true
 
-  def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
+  override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
     GL11.glPushMatrix()
     Delegator.subBlock(block, metadata) match {
       case Some(cable: Cable) =>
@@ -56,7 +56,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     GL11.glPopMatrix()
   }
 
-  def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) =
+  override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) =
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         if (keyboard.facing == ForgeDirection.UP || keyboard.facing == ForgeDirection.DOWN) {

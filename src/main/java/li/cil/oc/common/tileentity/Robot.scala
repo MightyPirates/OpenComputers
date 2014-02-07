@@ -17,7 +17,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
-import scala.Some
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -37,9 +36,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   var selectedSlot = actualSlot(0)
 
-  def player() = player(facing, facing)
+  override def player() = player(facing, facing)
 
-  def saveUpgrade() = this.synchronized {
+  override def saveUpgrade() = this.synchronized {
     components(3) match {
       case Some(environment) =>
         val stack = getStackInSlot(3)
@@ -120,7 +119,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  def maxComponents = 8
+  override def maxComponents = 8
 
   // ----------------------------------------------------------------------- //
 
@@ -492,7 +491,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def installedMemory = 64 * 1024
 
-  def tier = 0
+  override def tier = 0
 
   override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
 
@@ -504,9 +503,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = Settings.namespace + "container.Robot"
+  override def getInvName = Settings.namespace + "container.Robot"
 
-  def getSizeInventory = 20
+  override def getSizeInventory = 20
 
   override def getInventoryStackLimit = 64
 
@@ -529,7 +528,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case _ => false
     }
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
@@ -540,14 +539,14 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  def canExtractItem(slot: Int, stack: ItemStack, side: Int) =
+  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) =
     getAccessibleSlotsFromSide(side).contains(slot)
 
-  def canInsertItem(slot: Int, stack: ItemStack, side: Int) =
+  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) =
     getAccessibleSlotsFromSide(side).contains(slot) &&
       isItemValidForSlot(slot, stack)
 
-  def getAccessibleSlotsFromSide(side: Int) =
+  override def getAccessibleSlotsFromSide(side: Int) =
     toLocal(ForgeDirection.getOrientation(side)) match {
       case ForgeDirection.WEST => Array(0)
       case ForgeDirection.EAST => Array(1)

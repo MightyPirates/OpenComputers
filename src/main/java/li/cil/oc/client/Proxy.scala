@@ -32,7 +32,6 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
-    TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
 
     MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, UpgradeRenderer)
 
@@ -48,6 +47,7 @@ private[oc] class Proxy extends CommonProxy {
   override def postInit(e: FMLPostInitializationEvent) {
     super.postInit(e)
 
+    TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
     if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     }

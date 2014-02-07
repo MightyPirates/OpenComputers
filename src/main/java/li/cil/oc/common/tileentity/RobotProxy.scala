@@ -27,7 +27,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def computer = robot.computer
 
-  def maxComponents = robot.maxComponents
+  override def maxComponents = robot.maxComponents
 
   // ----------------------------------------------------------------------- //
 
@@ -38,11 +38,11 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
-  def selectedSlot() = robot.selectedSlot
+  override def selectedSlot() = robot.selectedSlot
 
-  def player() = robot.player()
+  override def player() = robot.player()
 
-  def saveUpgrade() = robot.saveUpgrade()
+  override def saveUpgrade() = robot.saveUpgrade()
 
   // ----------------------------------------------------------------------- //
 
@@ -224,19 +224,19 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def installedMemory = robot.installedMemory
 
-  def getInvName = robot.getInvName
+  override def getInvName = robot.getInvName
 
-  def getSizeInventory = robot.getSizeInventory
+  override def getSizeInventory = robot.getSizeInventory
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = robot.isItemValidForSlot(slot, stack)
 
   // ----------------------------------------------------------------------- //
 
-  def canExtractItem(slot: Int, stack: ItemStack, side: Int) = robot.canExtractItem(slot, stack, side)
+  override def canExtractItem(slot: Int, stack: ItemStack, side: Int) = robot.canExtractItem(slot, stack, side)
 
-  def canInsertItem(slot: Int, stack: ItemStack, side: Int) = robot.canInsertItem(slot, stack, side)
+  override def canInsertItem(slot: Int, stack: ItemStack, side: Int) = robot.canInsertItem(slot, stack, side)
 
-  def getAccessibleSlotsFromSide(side: Int) = robot.getAccessibleSlotsFromSide(side)
+  override def getAccessibleSlotsFromSide(side: Int) = robot.getAccessibleSlotsFromSide(side)
 
   // ----------------------------------------------------------------------- //
 
@@ -256,7 +256,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   override def currentGui_=(value: Option[gui.Buffer]) = robot.currentGui = value
 
-  def tier = robot.tier
+  override def tier = robot.tier
 
   // ----------------------------------------------------------------------- //
 

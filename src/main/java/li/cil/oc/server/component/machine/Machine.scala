@@ -16,7 +16,6 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.world.World
 import scala.Array.canBuildFrom
-import scala.Some
 import scala.collection.mutable
 
 class Machine(val owner: Machine.Owner) extends ManagedComponent with Context with Runnable {
@@ -85,18 +84,18 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // ----------------------------------------------------------------------- //
 
-  def address = node.address
+  override def address = node.address
 
-  def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
+  override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     MinecraftServer.getServer.isSinglePlayer ||
     MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
 
-  def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
+  override def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
 
-  def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
+  override def isPaused = state.synchronized(state.top == Machine.State.Paused && remainingPause > 0)
 
-  def start() = state.synchronized(state.top match {
+  override def start() = state.synchronized(state.top match {
     case Machine.State.Stopped =>
       processAddedComponents()
       verifyComponents()
@@ -140,7 +139,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       false
   })
 
-  def pause(seconds: Double): Boolean = {
+  override def pause(seconds: Double): Boolean = {
     val ticksToPause = math.max((seconds * 20).toInt, 0)
     def shouldPause(state: Machine.State.Value) = state match {
       case Machine.State.Stopping | Machine.State.Stopped => false
@@ -162,7 +161,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     false
   }
 
-  def stop() = state.synchronized(state.top match {
+  override def stop() = state.synchronized(state.top match {
     case Machine.State.Stopped | Machine.State.Stopping =>
       false
     case _ =>
@@ -175,7 +174,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     stop()
   }
 
-  def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
+  override def signal(name: String, args: AnyRef*) = state.synchronized(state.top match {
     case Machine.State.Stopped | Machine.State.Stopping => false
     case _ => signals.synchronized {
       if (signals.size >= 256) false

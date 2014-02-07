@@ -58,7 +58,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   def markAsChanged() = hasChanged = true
 
-  def installedComponents = servers.flatMap {
+  override def installedComponents = servers.flatMap {
     case Some(server) => server.inventory.components collect {
       case Some(component) => component
     }
@@ -92,17 +92,17 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   // ----------------------------------------------------------------------- //
 
-  def getSizeInventory = 4
+  override def getSizeInventory = 4
 
-  def getInvName = Settings.namespace + "container.Rack"
+  override def getInvName = Settings.namespace + "container.Rack"
 
-  def getInventoryStackLimit = 1
+  override def getInventoryStackLimit = 1
 
-  def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
+  override def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     if (side == facing.ordinal) {
       val l = 2 / 16.0
       val h = 14 / 16.0

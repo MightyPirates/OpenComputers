@@ -12,7 +12,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) =
     components(0) match {
       case Some(environment) => Array(environment.node)
       case _ => null
@@ -27,11 +27,11 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   // ----------------------------------------------------------------------- //
 
-  def getInvName = Settings.namespace + "container.DiskDrive"
+  override def getInvName = Settings.namespace + "container.DiskDrive"
 
-  def getSizeInventory = 1
+  override def getSizeInventory = 1
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
     case _ => false
   }

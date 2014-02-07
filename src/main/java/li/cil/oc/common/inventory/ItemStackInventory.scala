@@ -35,7 +35,7 @@ trait ItemStackInventory extends Inventory {
   }
 
   // Write items back to tag.
-  def onInventoryChanged() {
+  override def onInventoryChanged() {
     val list = new NBTTagList()
     for (i <- 0 until items.length) {
       val tag = new NBTTagCompound()

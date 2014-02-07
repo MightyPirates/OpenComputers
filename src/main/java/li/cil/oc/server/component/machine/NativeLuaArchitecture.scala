@@ -28,9 +28,9 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def isInitialized = kernelMemory > 0
+  override def isInitialized = kernelMemory > 0
 
-  def recomputeMemory() = Option(lua) match {
+  override def recomputeMemory() = Option(lua) match {
     case Some(l) =>
       l.setTotalMemory(Int.MaxValue)
       l.gc(LuaState.GcAction.COLLECT, 0)
@@ -42,7 +42,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def runSynchronized() {
+  override def runSynchronized() {
     // These three asserts are all guaranteed by run().
     assert(lua.getTop == 2)
     assert(lua.isThread(1))
@@ -64,7 +64,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
     }
   }
 
-  def runThreaded(enterState: Machine.State.Value): ExecutionResult = {
+  override def runThreaded(enterState: Machine.State.Value): ExecutionResult = {
     try {
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
@@ -180,7 +180,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def init(): Boolean = {
+  override def init(): Boolean = {
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
@@ -541,7 +541,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
     true
   }
 
-  def close() {
+  override def close() {
     if (lua != null) {
       lua.setTotalMemory(Integer.MAX_VALUE)
       lua.close()
@@ -552,7 +552,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) {
+  override def load(nbt: NBTTagCompound) {
     // Unlimit memory use while unpersisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -587,7 +587,7 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
     recomputeMemory()
   }
 
-  def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) {
     // Unlimit memory while persisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 

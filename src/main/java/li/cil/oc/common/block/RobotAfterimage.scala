@@ -62,7 +62,6 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   }
 
   override def removedByEntity(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
-    super.removedFromWorld(world, x, y, z, blockId)
     findMovingRobot(world, x, y, z) match {
       case Some(robot) if robot.isAnimatingMove &&
         robot.moveFromX == x &&
@@ -102,7 +101,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
   def findMovingRobot(world: IBlockAccess, x: Int, y: Int, z: Int): Option[tileentity.Robot] = {
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
       val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-      if (world.getBlockId(tx, ty, tz) != 0) world.getBlockTileEntity(tx, ty, tz) match {
+      if (!world.isAirBlock(tx, ty, tz)) world.getBlockTileEntity(tx, ty, tz) match {
         case proxy: tileentity.RobotProxy if proxy.robot.moveFromX == x && proxy.robot.moveFromY == y && proxy.robot.moveFromZ == z => return Some(proxy.robot)
         case _ =>
       }

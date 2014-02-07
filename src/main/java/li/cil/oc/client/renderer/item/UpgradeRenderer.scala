@@ -12,19 +12,19 @@ import net.minecraftforge.client.IItemRenderer.{ItemRendererHelper, ItemRenderTy
 import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer extends IItemRenderer {
-  def handleRenderType(item: ItemStack, renderType: ItemRenderType) = {
+  override def handleRenderType(item: ItemStack, renderType: ItemRenderType) = {
     Items.multi.subItem(item) match {
       case Some(subItem) if subItem == Items.upgradeGenerator || subItem == Items.upgradeCrafting => renderType == ItemRenderType.EQUIPPED
       case _ => false
     }
   }
 
-  def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
+  override def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
   // Note: it's easier to revert changes introduced by this "helper" than by
   // the code that applies if no helper is used...
     helper == ItemRendererHelper.EQUIPPED_BLOCK
 
-  def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
+  override def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
     val tm = Minecraft.getMinecraft.getTextureManager
     val t = Tessellator.instance
 

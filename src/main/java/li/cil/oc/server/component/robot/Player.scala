@@ -36,7 +36,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   var customItemInUseBecauseMinecraftIsBloodyStupidAndMakesRandomMethodsClientSided: ItemStack = _
 
-  def world = robot.worldObj
+  def world = robot.world
 
   override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
 
@@ -402,7 +402,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
 
-  def canCommandSenderUseCommand(i: Int, s: String) = false
+  override def canCommandSenderUseCommand(i: Int, s: String) = false
 
-  def sendChatToPlayer(message: ChatMessageComponent) {}
+  override def sendChatToPlayer(message: ChatMessageComponent) {}
 }

@@ -7,13 +7,13 @@ import net.minecraft.item.ItemStack
 import net.minecraft.entity.player.EntityPlayer
 
 trait ServerInventory extends ItemStackInventory {
-  def getSizeInventory = 14
+  override def getSizeInventory = 14
 
-  def getInvName = Settings.namespace + "container.Server"
+  override def getInvName = Settings.namespace + "container.Server"
 
   override def getInventoryStackLimit = 1
 
-  def isUseableByPlayer(player: EntityPlayer) = false
+  override def isUseableByPlayer(player: EntityPlayer) = false
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     (slot, Registry.itemDriverFor(stack)) match {

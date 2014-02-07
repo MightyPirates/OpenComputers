@@ -41,7 +41,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     buffer.node.connect(keyboard.node)
   }
 
-  def tier = 1
+  override def tier = 1
 
   // ----------------------------------------------------------------------- //
 
@@ -80,7 +80,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
 
   // ----------------------------------------------------------------------- //
 
-  def onScreenColorChange(foreground: Int, background: Int) {
+  override def onScreenColorChange(foreground: Int, background: Int) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenColorChange(buffer, foreground, background)
@@ -88,7 +88,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     else currentGui.foreach(_.recompileDisplayLists())
   }
 
-  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenCopy(buffer, col, row, w, h, tx, ty)
@@ -96,7 +96,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     else currentGui.foreach(_.recompileDisplayLists())
   }
 
-  def onScreenDepthChange(depth: Depth.Value) {
+  override def onScreenDepthChange(depth: Depth.Value) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenDepthChange(buffer, depth)
@@ -104,7 +104,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     else currentGui.foreach(_.recompileDisplayLists())
   }
 
-  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenFill(buffer, col, row, w, h, c)
@@ -112,7 +112,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     else currentGui.foreach(_.recompileDisplayLists())
   }
 
-  def onScreenResolutionChange(w: Int, h: Int) {
+  override def onScreenResolutionChange(w: Int, h: Int) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenResolutionChange(buffer, w, h)
@@ -120,7 +120,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     else currentGui.foreach(_.recompileDisplayLists())
   }
 
-  def onScreenSet(col: Int, row: Int, s: String) {
+  override def onScreenSet(col: Int, row: Int, s: String) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenSet(buffer, col, row, s)

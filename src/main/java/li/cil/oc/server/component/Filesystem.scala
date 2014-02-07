@@ -7,7 +7,6 @@ import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
-import scala.Some
 import scala.collection.mutable
 
 class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedComponent {

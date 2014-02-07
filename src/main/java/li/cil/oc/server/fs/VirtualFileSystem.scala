@@ -11,28 +11,28 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  def exists(path: String) =
+  override def exists(path: String) =
     root.get(segments(path)).isDefined
 
-  def isDirectory(path: String) =
+  override def isDirectory(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.isDirectory
       case _ => false
     }
 
-  def size(path: String) =
+  override def size(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.size
       case _ => 0L
     }
 
-  def lastModified(path: String) =
+  override def lastModified(path: String) =
     root.get(segments(path)) match {
       case Some(obj) => obj.lastModified
       case _ => 0L
     }
 
-  def list(path: String) =
+  override def list(path: String) =
     root.get(segments(path)) match {
       case Some(obj: VirtualDirectory) => obj.list()
       case _ => null
@@ -161,9 +161,9 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     var stream: Option[VirtualFileOutputStream] = None
 
-    def isDirectory = false
+    override def isDirectory = false
 
-    def size = data.length
+    override def size = data.length
 
     def openInputStream() = Some(new VirtualFileInputStream(this))
 
@@ -197,9 +197,9 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
   protected class VirtualDirectory extends VirtualObject {
     val children = mutable.Map.empty[String, VirtualObject]
 
-    def isDirectory = true
+    override def isDirectory = true
 
-    def size = 0
+    override def size = 0
 
     def list() = children.map {
       case (childName, child) => if (child.isDirectory) childName + "/" else childName
@@ -283,7 +283,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def close() = isClosed = true
 
-    def read() =
+    override def read() =
       if (!isClosed) {
         if (available == 0) -1
         else {

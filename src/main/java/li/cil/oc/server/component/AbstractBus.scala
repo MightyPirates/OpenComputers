@@ -4,7 +4,6 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
 import net.minecraft.nbt.NBTTagCompound
-import scala.Some
 import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
@@ -25,16 +24,16 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
 
   // ----------------------------------------------------------------------- //
 
-  def canHandlePacket(sender: Short, protocolID: Int, hasLIP: Boolean) = hasLIP
+  override def canHandlePacket(sender: Short, protocolID: Int, hasLIP: Boolean) = hasLIP
 
-  def handlePacket(packet: BusPacket) {
+  override def handlePacket(packet: BusPacket) {
     val lip = packet.getPlainText
     val data = Map(lip.getEntryList.map(key => (key, lip.get(key))): _*)
     val metadata = Map("mod" -> lip.getMetadata.modID, "device" -> lip.getMetadata.deviceName, "player" -> lip.getMetadata.playerName)
     owner.signal("bus_message", Int.box(packet.getProtocolID), Int.box(packet.getSender), Int.box(packet.getTarget), data, metadata)
   }
 
-  def getNextPacketToSend = if (sendQueue.isDefined) {
+  override def getNextPacketToSend = if (sendQueue.isDefined) {
     val info = sendQueue.get
     sendQueue = None
     val packet = new BusPacketLIP(info.sender, info.target)
@@ -47,9 +46,9 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
   }
   else null
 
-  def isInterfaceEnabled = isEnabled
+  override def isInterfaceEnabled = isEnabled
 
-  def getInterfaceAddress = address.toShort
+  override def getInterfaceAddress = address.toShort
 
   // ----------------------------------------------------------------------- //
 

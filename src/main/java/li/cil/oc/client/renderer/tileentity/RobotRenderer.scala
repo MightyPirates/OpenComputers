@@ -167,7 +167,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+  override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f

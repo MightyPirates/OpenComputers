@@ -7,9 +7,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object NetworkCard extends Item {
-  def worksWith(stack: ItemStack) = isOneOf(stack, Items.lan)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.lan)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = new component.NetworkCard()
 
-  def slot(stack: ItemStack) = Slot.Card
+  override def slot(stack: ItemStack) = Slot.Card
 }

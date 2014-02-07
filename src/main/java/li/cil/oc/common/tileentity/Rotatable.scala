@@ -123,7 +123,7 @@ trait Rotatable extends RotationAware with api.Rotatable {
       case _ => ForgeDirection.NORTH
     }, _yaw.getOpposite)
 
-  def facing = _pitch match {
+  override def facing = _pitch match {
     case ForgeDirection.DOWN | ForgeDirection.UP => _pitch
     case _ => _yaw
   }

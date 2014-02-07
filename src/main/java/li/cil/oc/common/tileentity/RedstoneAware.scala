@@ -142,14 +142,14 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "RedLogic")
-  def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
+  override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = isOutputEnabled
 
   @Optional.Method(modid = "RedLogic")
-  def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
+  override def connectsAroundCorner(wire: IWire, blockFace: Int, fromDirection: Int) = false
 
   @Optional.Method(modid = "RedLogic")
-  def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
+  override def getEmittedSignalStrength(blockFace: Int, toDirection: Int): Short = _output(toLocal(ForgeDirection.getOrientation(toDirection)).ordinal()).toShort
 
   @Optional.Method(modid = "RedLogic")
-  def onRedstoneInputChanged() = checkRedstoneInputChanged()
+  override def onRedstoneInputChanged() = checkRedstoneInputChanged()
 }

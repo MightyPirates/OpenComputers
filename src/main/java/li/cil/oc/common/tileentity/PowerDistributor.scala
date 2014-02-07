@@ -17,9 +17,9 @@ class PowerDistributor extends Environment with PowerBalancer with Analyzable {
     create())
 
   @SideOnly(Side.CLIENT)
-  def canConnect(side: ForgeDirection) = true
+  override def canConnect(side: ForgeDirection) = true
 
-  def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
+  override def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
 
   // ----------------------------------------------------------------------- //
 

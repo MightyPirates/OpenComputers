@@ -105,11 +105,11 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def onConnect(node: Node) {}
+  override def onConnect(node: Node) {}
 
-  def onDisconnect(node: Node) {}
+  override def onDisconnect(node: Node) {}
 
-  def onMessage(message: Message) {}
+  override def onMessage(message: Message) {}
 
   // ----------------------------------------------------------------------- //
 

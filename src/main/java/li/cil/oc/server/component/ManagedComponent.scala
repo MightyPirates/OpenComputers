@@ -8,19 +8,19 @@ import scala.math.ScalaNumber
 abstract class ManagedComponent extends ManagedEnvironment {
   val canUpdate = false
 
-  def update() {}
+  override def update() {}
 
-  def onConnect(node: Node) {}
+  override def onConnect(node: Node) {}
 
-  def onDisconnect(node: Node) {}
+  override def onDisconnect(node: Node) {}
 
-  def onMessage(message: Message) {}
+  override def onMessage(message: Message) {}
 
-  def load(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) = {
     if (node != null) node.load(nbt.getCompoundTag("node"))
   }
 
-  def save(nbt: NBTTagCompound) = {
+  override def save(nbt: NBTTagCompound) = {
     if (node != null) nbt.setNewCompoundTag("node", node.save)
   }
 

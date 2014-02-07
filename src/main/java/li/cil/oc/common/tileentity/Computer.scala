@@ -22,7 +22,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   def computer = _computer
 
-  def node = if (isClient) null else computer.node
+  override def node = if (isClient) null else computer.node
 
   override lazy val isClient = computer == null
 
@@ -37,14 +37,14 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   // Note: we implement IContext in the TE to allow external components to cast
   // their owner to it (to allow interacting with their owning computer).
 
-  def address = computer.address
+  override def address = computer.address
 
-  def canInteract(player: String) =
+  override def canInteract(player: String) =
     if (isServer) computer.canInteract(player)
     else !Settings.get.canComputersBeOwned ||
       _users.isEmpty || _users.contains(player)
 
-  def isRunning = _isRunning
+  override def isRunning = _isRunning
 
   @SideOnly(Side.CLIENT)
   def setRunning(value: Boolean) = {
@@ -53,21 +53,21 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     this
   }
 
-  def isPaused = computer.isPaused
+  override def isPaused = computer.isPaused
 
-  def start() = computer.start()
+  override def start() = computer.start()
 
-  def pause(seconds: Double) = computer.pause(seconds)
+  override def pause(seconds: Double) = computer.pause(seconds)
 
-  def stop() = computer.stop()
+  override def stop() = computer.stop()
 
-  def signal(name: String, args: AnyRef*) = computer.signal(name, args: _*)
+  override def signal(name: String, args: AnyRef*) = computer.signal(name, args: _*)
 
   // ----------------------------------------------------------------------- //
 
-  def markAsChanged() = hasChanged = true
+  override def markAsChanged() = hasChanged = true
 
-  def installedComponents = components collect {
+  override def installedComponents = components collect {
     case Some(component) => component
   }
 
@@ -174,7 +174,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     computer.lastError match {
       case Some(value) =>
         player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(

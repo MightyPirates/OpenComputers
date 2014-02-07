@@ -28,12 +28,12 @@ private[oc] object Registry extends api.detail.DriverAPI {
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
 
-  def add(driver: api.driver.Block) {
+  override def add(driver: api.driver.Block) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) blocks += driver
   }
 
-  def add(driver: api.driver.Item) {
+  override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) items += driver
   }

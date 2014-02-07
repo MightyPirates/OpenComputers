@@ -7,9 +7,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 trait Item extends driver.Item {
-  def tier(stack: ItemStack) = 0
+  override def tier(stack: ItemStack) = 0
 
-  def dataTag(stack: ItemStack) = Item.dataTag(stack)
+  override def dataTag(stack: ItemStack) = Item.dataTag(stack)
 
   protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =
     Items.multi.subItem(stack) match {

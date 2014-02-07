@@ -16,7 +16,6 @@ import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
 import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
-import scala.Some
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContext {

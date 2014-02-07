@@ -24,7 +24,7 @@ class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
   }
 
   private object CraftingInventory extends InventoryCrafting(new Container {
-    def canInteractWith(player: EntityPlayer) = true
+    override def canInteractWith(player: EntityPlayer) = true
   }, 3, 3) {
     var amountPossible = 0
 

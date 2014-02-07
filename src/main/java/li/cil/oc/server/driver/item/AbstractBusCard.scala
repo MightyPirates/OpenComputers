@@ -9,12 +9,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object AbstractBusCard extends Item {
-  def worksWith(stack: ItemStack) = isOneOf(stack, Items.abstractBus)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.abstractBus)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = container match {
     case computer: tileentity.Computer if StargateTech2.isAvailable => new component.AbstractBus(computer)
     case _ => null
   }
 
-  def slot(stack: ItemStack) = Slot.Card
+  override def slot(stack: ItemStack) = Slot.Card
 }

@@ -78,7 +78,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def getInventoryStackLimit = 1
+  override def getInventoryStackLimit = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
     Registry.itemDriverFor(stack) match {

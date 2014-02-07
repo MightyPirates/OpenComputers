@@ -100,19 +100,19 @@ abstract class Keyboard extends ManagedComponent {
 
 object Keyboard extends IPlayerTracker {
 
-  def onPlayerRespawn(player: EntityPlayer) {
+  override def onPlayerRespawn(player: EntityPlayer) {
     MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
   }
 
-  def onPlayerChangedDimension(player: EntityPlayer) {
+  override def onPlayerChangedDimension(player: EntityPlayer) {
     MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
   }
 
-  def onPlayerLogout(player: EntityPlayer) {
+  override def onPlayerLogout(player: EntityPlayer) {
     MinecraftForge.EVENT_BUS.post(new ReleasePressedKeys(player))
   }
 
-  def onPlayerLogin(player: EntityPlayer) {}
+  override def onPlayerLogin(player: EntityPlayer) {}
 
   class ReleasePressedKeys(val player: EntityPlayer) extends Event
 

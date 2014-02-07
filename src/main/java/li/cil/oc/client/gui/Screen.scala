@@ -74,7 +74,7 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     drawBufferLayer()
   }
 
-  def drawBuffer() {
+  override def drawBuffer() {
     GL11.glTranslatef(x, y, 0)
     BufferRenderer.drawBackground()
     if (hasPower()) {
@@ -84,7 +84,7 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     }
   }
 
-  protected def changeSize(w: Double, h: Double) = {
+  override protected def changeSize(w: Double, h: Double) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
     val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)

@@ -23,7 +23,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     }))
   }
 
-  def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
+  override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.itemDriverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
@@ -59,9 +59,9 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     recomputeMaxComponents()
   }
 
-  def getInvName = Settings.namespace + "container.Case"
+  override def getInvName = Settings.namespace + "container.Case"
 
-  def getSizeInventory = tier match {
+  override def getSizeInventory = tier match {
     case 0 => 5
     case 1 => 7
     case 2 => 9
@@ -75,7 +75,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
       case _ => false
     }
 
-  def isItemValidForSlot(slot: Int, stack: ItemStack) = tier match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = tier match {
     case 0 => (slot, Registry.itemDriverFor(stack)) match {
       case (_, None) => false // Invalid item.
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)

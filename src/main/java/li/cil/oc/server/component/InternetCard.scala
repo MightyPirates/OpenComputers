@@ -70,7 +70,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     val url = checkAddress(address)
     request = Some((address, post))
     InternetCard.threadPool.submit(new Runnable {
-      def run() = try {
+      override def run() = try {
         val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
         url.openConnection(proxy) match {
           case http: HttpURLConnection => try {

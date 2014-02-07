@@ -18,9 +18,9 @@ trait Buffer extends Environment with component.Buffer.Owner {
 
   def bufferIsDirty_=(value: Boolean) = _bufferIsDirty = value
 
-  def node: Node = buffer.node
+  override def node: Node = buffer.node
 
-  def tier: Int
+  override def tier: Int
 
   def hasKeyboard = true
 
@@ -49,14 +49,14 @@ trait Buffer extends Environment with component.Buffer.Owner {
 
   // ----------------------------------------------------------------------- //
 
-  def onScreenColorChange(foreground: Int, background: Int) {
+  override def onScreenColorChange(foreground: Int, background: Int) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenColorChange(buffer, foreground, background)
     }
   }
 
-  def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenCopy(buffer, col, row, w, h, tx, ty)
@@ -64,7 +64,7 @@ trait Buffer extends Environment with component.Buffer.Owner {
     else markForRenderUpdate()
   }
 
-  def onScreenDepthChange(depth: PackedColor.Depth.Value) {
+  override def onScreenDepthChange(depth: PackedColor.Depth.Value) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenDepthChange(buffer, depth)
@@ -72,7 +72,7 @@ trait Buffer extends Environment with component.Buffer.Owner {
     else markForRenderUpdate()
   }
 
-  def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenFill(buffer, col, row, w, h, c)
@@ -80,7 +80,7 @@ trait Buffer extends Environment with component.Buffer.Owner {
     else markForRenderUpdate()
   }
 
-  def onScreenResolutionChange(w: Int, h: Int) {
+  override def onScreenResolutionChange(w: Int, h: Int) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenResolutionChange(buffer, w, h)
@@ -88,7 +88,7 @@ trait Buffer extends Environment with component.Buffer.Owner {
     else markForRenderUpdate()
   }
 
-  def onScreenSet(col: Int, row: Int, s: String) {
+  override def onScreenSet(col: Int, row: Int, s: String) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenSet(buffer, col, row, s)

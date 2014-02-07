@@ -61,11 +61,11 @@ abstract class Environment extends TileEntity with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def onMessage(message: network.Message) {}
+  override def onMessage(message: network.Message) {}
 
-  def onConnect(node: network.Node) {}
+  override def onConnect(node: network.Node) {}
 
-  def onDisconnect(node: network.Node) {}
+  override def onDisconnect(node: network.Node) {}
 
   // ----------------------------------------------------------------------- //
 

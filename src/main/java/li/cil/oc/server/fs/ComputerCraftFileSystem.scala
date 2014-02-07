@@ -3,9 +3,9 @@ package li.cil.oc.server.fs
 import dan200.computer.api.IMount
 
 class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
-  def spaceTotal = 0
+  override def spaceTotal = 0
 
-  def spaceUsed = 0
+  override def spaceUsed = 0
 
   // ----------------------------------------------------------------------- //
 
@@ -13,7 +13,7 @@ class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
 
   override def isDirectory(path: String) = mount.isDirectory(path)
 
-  def lastModified(path: String) = 0L
+  override def lastModified(path: String) = 0L
 
   override def list(path: String) = {
     val result = new java.util.ArrayList[String]

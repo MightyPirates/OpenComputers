@@ -80,17 +80,17 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     val position = 0L
     val length = 0L
 
-    def close() = if (!isClosed) {
+    override def close() = if (!isClosed) {
       isClosed = true
       owner.handles -= handle
       stream.close()
     }
 
-    def read(into: Array[Byte]) = throw new IOException("bad file descriptor")
+    override def read(into: Array[Byte]) = throw new IOException("bad file descriptor")
 
-    def seek(to: Long) = throw new IOException("bad file descriptor")
+    override def seek(to: Long) = throw new IOException("bad file descriptor")
 
-    def write(value: Array[Byte]) {
+    override def write(value: Array[Byte]) {
       stream.write(value)
     }
   }

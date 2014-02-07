@@ -36,14 +36,14 @@ object Recipes {
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
         var fallback: ConfigIncluder = _
 
-        def withFallback(fallback: ConfigIncluder) = {
+        override def withFallback(fallback: ConfigIncluder) = {
           this.fallback = fallback
           this
         }
 
-        def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
+        override def include(context: ConfigIncludeContext, what: String) = fallback.include(context, what)
 
-        def includeFile(context: ConfigIncludeContext, what: File) = {
+        override def includeFile(context: ConfigIncludeContext, what: File) = {
           val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
           val result = ConfigFactory.parseReader(in)
           in.close()

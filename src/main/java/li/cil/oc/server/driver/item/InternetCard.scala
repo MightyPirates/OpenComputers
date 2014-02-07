@@ -8,14 +8,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.{TileEntity => MCTileEntity}
 
 object InternetCard extends Item {
-  def worksWith(stack: ItemStack) = isOneOf(stack, Items.internet)
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.internet)
 
   override def createEnvironment(stack: ItemStack, container: MCTileEntity) = container match {
     case context: Context => new component.InternetCard(context)
     case _ => null
   }
 
-  def slot(stack: ItemStack) = Slot.Card
+  override def slot(stack: ItemStack) = Slot.Card
 
   override def tier(stack: ItemStack) = 1
 }

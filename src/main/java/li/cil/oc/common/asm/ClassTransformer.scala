@@ -7,7 +7,7 @@ import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.{ClassWriter, ClassReader}
 
 class ClassTransformer extends IClassTransformer {
-  def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
+  override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     if (name == "li.cil.oc.common.tileentity.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
       if (!Loader.isModLoaded("StargateTech2")) {
         // Handled by @Optional.

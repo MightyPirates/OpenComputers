@@ -33,18 +33,18 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def isInitialized = doneWithInitRun
+  override def isInitialized = doneWithInitRun
 
-  def recomputeMemory() = memory = machine.owner.installedMemory
+  override def recomputeMemory() = memory = machine.owner.installedMemory
 
   // ----------------------------------------------------------------------- //
 
-  def runSynchronized() {
+  override def runSynchronized() {
     synchronizedResult = synchronizedCall.call()
     synchronizedCall = null
   }
 
-  def runThreaded(enterState: State.Value) = {
+  override def runThreaded(enterState: State.Value) = {
     try {
       // Resume the Lua state and remember the number of results we get.
       val results = enterState match {
@@ -131,7 +131,7 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def init() = {
+  override def init() = {
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)
     lua.set("io", LuaValue.NIL)
@@ -374,7 +374,7 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
     true
   }
 
-  def close() = {
+  override def close() = {
     lua = null
     thread = null
     synchronizedCall = null
@@ -384,12 +384,12 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
 
   // ----------------------------------------------------------------------- //
 
-  def load(nbt: NBTTagCompound) {
+  override def load(nbt: NBTTagCompound) {
     if (machine.isRunning) {
       machine.stop()
       machine.start()
     }
   }
 
-  def save(nbt: NBTTagCompound) {}
+  override def save(nbt: NBTTagCompound) {}
 }

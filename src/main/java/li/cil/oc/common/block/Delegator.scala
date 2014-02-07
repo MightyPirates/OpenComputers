@@ -447,23 +447,23 @@ class SpecialDelegator(id: Int) extends Delegator[SpecialDelegate](id) {
 
 @Optional.Interface(iface = "powercrystals.minefactoryreloaded.api.rednet.IConnectableRedNet", modid = "MineFactoryReloaded")
 trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnectableRedNet {
-  def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
+  override def getConnectionType(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = RedNetConnectionType.CableAll
 
-  def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
+  override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
     world.getBlockTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => t.bundledOutput(side, color)
       case _ => 0
     }
 
-  def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+  override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => t.bundledOutput(side)
       case _ => Array.fill(16)(0)
     }
 
-  def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
+  override def onInputChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValue: Int) {}
 
-  def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
+  override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
     world.getBlockTileEntity(x, y, z) match {
       case t: tileentity.BundledRedstoneAware => for (color <- 0 until 16) {
         t.rednetInput(side, color, inputValues(color))
