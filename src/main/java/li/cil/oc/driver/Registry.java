@@ -17,7 +17,7 @@ public final class Registry {
     public static void add(final IModHandler mod) {
         final boolean alwaysEnabled = mod.getModId() == null || mod.getModId().isEmpty();
         if ((alwaysEnabled || Loader.isModLoaded(mod.getModId())) && handlers.add(mod)) {
-            System.out.println("Loading up: "+mod.getModId());
+            // TODO Log message? Use logger instead of println if so.
             mod.initialize();
         }
     }

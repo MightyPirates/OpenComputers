@@ -1,9 +1,6 @@
 package li.cil.oc.driver.appeng;
 
 import appeng.api.IAEItemStack;
-import appeng.api.Util;
-import appeng.api.exceptions.AppEngTileMissingException;
-import appeng.api.me.tiles.ICellProvider;
 import appeng.api.me.tiles.IGridTileEntity;
 import appeng.api.me.util.IGridInterface;
 import appeng.api.me.util.IMEInventoryHandler;
@@ -11,35 +8,31 @@ import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
 import li.cil.oc.driver.Registry;
-import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-/**
- * Created by lordjoda on 06.02.14.
- */
-public class DriverGridTileEntity extends TileEntityDriver {
-            @Override
-            public Class<?> getFilterClass() {
-                return IGridTileEntity.class;
-            }
+public class DriverGridTileEntity extends DriverTileEntity {
+    @Override
+    public Class<?> getTileEntityClass() {
+        return IGridTileEntity.class;
+    }
 
-            @Override
-            public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
-                return new Environment((IGridTileEntity) world.getBlockTileEntity(x, y, z));
-            }
+    @Override
+    public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
+        return new Environment((IGridTileEntity) world.getBlockTileEntity(x, y, z));
+    }
 
-            public static final class Environment extends ManagedTileEntityEnvironment<IGridTileEntity> {
-                public Environment(IGridTileEntity tileEntity) {
-                    super(tileEntity, "gridtileEntity");
-                }
+    public static final class Environment extends ManagedTileEntityEnvironment<IGridTileEntity> {
+        public Environment(IGridTileEntity tileEntity) {
+            super(tileEntity, "gridtileEntity");
+        }
 
         @Callback
         public Object[] requestCrafting(final Context context, final Arguments args) {

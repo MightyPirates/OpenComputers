@@ -1,14 +1,12 @@
 package li.cil.oc.driver.appeng;
 
-import appeng.api.me.tiles.IGridTileEntity;
-import cpw.mods.fml.relauncher.ReflectionHelper;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
 import li.cil.oc.driver.Registry;
-import li.cil.oc.driver.TileEntityDriver;
 import li.cil.oc.util.Reflection;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -18,17 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by lordjoda on 07.02.14.
- */
-public class DriverTileController extends TileEntityDriver {
-
-
+public class DriverTileController extends DriverTileEntity {
     private static final Class<?> TILECONTROLLER = Reflection.getClass("appeng.me.tile.TileController");
 
-
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return TILECONTROLLER;
     }
 
@@ -37,7 +29,7 @@ public class DriverTileController extends TileEntityDriver {
         return new Environment(world.getBlockTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment {
+    public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {
         public Environment(TileEntity tileEntity) {
             super(tileEntity, "gridtileEntity");
         }
@@ -50,8 +42,7 @@ public class DriverTileController extends TileEntityDriver {
                     maps.add(Registry.toMap(stack));
                 }
                 return maps.toArray();
-            } catch (Throwable ex) {
-
+            } catch (Throwable ignored) {
             }
             return new Object[]{null, "Unknown Error"};
         }

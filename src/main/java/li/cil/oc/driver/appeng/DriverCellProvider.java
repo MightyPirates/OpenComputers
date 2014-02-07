@@ -3,26 +3,24 @@ package li.cil.oc.driver.appeng;
 import appeng.api.IAEItemStack;
 import appeng.api.me.tiles.ICellProvider;
 import appeng.api.me.util.IMEInventoryHandler;
-import buildcraft.core.IMachine;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.driver.ManagedTileEntityEnvironment;
 import li.cil.oc.driver.Registry;
-import li.cil.oc.driver.TileEntityDriver;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 
-public class DriverCellProvider extends TileEntityDriver {
+public class DriverCellProvider extends DriverTileEntity {
     @Override
-    public Class<?> getFilterClass() {
+    public Class<?> getTileEntityClass() {
         return ICellProvider.class;
     }
 
@@ -85,7 +83,6 @@ public class DriverCellProvider extends TileEntityDriver {
             }
             return new Object[]{null, "Cell Null"};
         }
-
 
 
         @Callback

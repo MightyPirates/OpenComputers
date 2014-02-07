@@ -34,13 +34,13 @@ public final class HandlerAppEng implements IModHandler {
         map.put("name", stack.getItemStack().getUnlocalizedName());
         map.put("requestable", stack.getCountRequestable());
 
-        if(stack.getItemStack().getDisplayName()!= null){
-            map.put("label",stack.getItemStack().getDisplayName());
+        if (stack.getItemStack().getDisplayName() != null) {
+            map.put("label", stack.getItemStack().getDisplayName());
         }
         return map;
     }
+
     @Override
     public void populate(Map<String, Object> map, ItemStack stack) {
-
     }
 }
