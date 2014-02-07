@@ -5,7 +5,8 @@ import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 import scala.{Array, Some}
 
 class Adapter extends Environment with Analyzable {
@@ -17,7 +18,7 @@ class Adapter extends Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = blocks collect {
     case Some(((environment, _))) => environment.node
   }
 
@@ -83,10 +84,9 @@ class Adapter extends Environment with Analyzable {
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks")
+    val blocksNbt = nbt.getTagList(Settings.namespace + "adapter.blocks", NBT.TAG_COMPOUND)
     (0 until (blocksNbt.tagCount min blocksData.length)).
-      map(blocksNbt.tagAt).
-      map(_.asInstanceOf[NBTTagCompound]).
+      map(blocksNbt.getCompoundTagAt).
       zipWithIndex.
       foreach {
       case (blockNbt, i) =>
@@ -109,7 +109,7 @@ class Adapter extends Environment with Analyzable {
             case _ =>
           }
           blockNbt.setString("name", data.name)
-          blockNbt.setCompoundTag("data", data.data)
+          blockNbt.setTag("data", data.data)
         case _ =>
       }
       blocksNbt.appendTag(blockNbt)

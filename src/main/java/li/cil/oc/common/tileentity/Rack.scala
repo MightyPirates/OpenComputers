@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import com.google.common.base.Strings
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
@@ -11,8 +12,9 @@ import li.cil.oc.{api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
@@ -48,7 +50,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   @SideOnly(Side.CLIENT)
   def setRunning(number: Int, value: Boolean) = {
     _isRunning(number) = value
-    world.markBlockForRenderUpdate(x, y, z)
+    world.markBlockForUpdate(x, y, z)
     this
   }
 
@@ -94,7 +96,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override def getSizeInventory = 4
 
-  override def getInvName = Settings.namespace + "container.Rack"
+  override def getInventoryName = Settings.namespace + "container.Rack"
 
   override def getInventoryStackLimit = 1
 
@@ -111,15 +113,15 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
         val computer = servers(slot).get.machine
         computer.lastError match {
           case Some(value) =>
-            player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-              Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
+            player.addChatMessage(new ChatComponentTranslation(
+              Settings.namespace + "gui.Analyzer.LastError", new ChatComponentTranslation(value)))
           case _ =>
         }
-        player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+        player.addChatMessage(new ChatComponentTranslation(
           Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + servers(slot).get.maxComponents))
         val list = computer.users
         if (list.size > 0) {
-          player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+          player.addChatMessage(new ChatComponentTranslation(
             Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
         }
         Array(computer.node)
@@ -194,18 +196,15 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
         servers(slot) = Some(server)
       }
     }
-    for ((serverNbt, slot) <- nbt.getTagList(Settings.namespace + "servers").iterator[NBTTagCompound].zipWithIndex if slot < servers.length) {
-      servers(slot) match {
-        case Some(server) => server.load(serverNbt)
+    nbt.getTagList(Settings.namespace + "servers", NBT.TAG_COMPOUND).foreach((list, index) =>
+      if (index < servers.length) servers(index) match {
+        case Some(server) => server.load(list.getCompoundTagAt(index))
         case _ =>
-      }
-    }
-    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").byteArray.map(ForgeDirection.getOrientation(_))
+      })
+    val sidesNbt = nbt.getByteArray(Settings.namespace + "sides").map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
-    val terminalsNbt = nbt.getTagList(Settings.namespace + "terminals").iterator[NBTTagCompound].toArray
-    for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
-      terminals(i).load(terminalsNbt(i))
-    }
+    nbt.getTagList(Settings.namespace + "terminals", NBT.TAG_COMPOUND).
+      foreach((list, index) => if (index < terminals.length) terminals(index).load(list.getCompoundTagAt(index)))
     range = nbt.getInteger(Settings.namespace + "range")
   }
 
@@ -232,23 +231,24 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    val isRunningNbt = nbt.getByteArray("isServerRunning").byteArray.map(_ == 1)
+    val isRunningNbt = nbt.getByteArray("isServerRunning").map(_ == 1)
     Array.copy(isRunningNbt, 0, _isRunning, 0, math.min(isRunningNbt.length, _isRunning.length))
-    val isPresentNbt = nbt.getTagList("isPresent").iterator[NBTTagString].map(value => if (value.data == "") None else Some(value.data)).toArray
+    val isPresentNbt = nbt.getTagList("isPresent", NBT.TAG_STRING).map((list, index) => {
+      val value = list.getStringTagAt(index)
+      if (Strings.isNullOrEmpty(value)) None else Some(value)
+    }).toArray
     Array.copy(isPresentNbt, 0, isPresent, 0, math.min(isPresentNbt.length, isPresent.length))
-    val sidesNbt = nbt.getByteArray("sides").byteArray.map(ForgeDirection.getOrientation(_))
+    val sidesNbt = nbt.getByteArray("sides").map(ForgeDirection.getOrientation(_))
     Array.copy(sidesNbt, 0, sides, 0, math.min(sidesNbt.length, sides.length))
-    val terminalsNbt = nbt.getTagList("terminals").iterator[NBTTagCompound].toArray
-    for (i <- 0 until math.min(terminals.length, terminalsNbt.length)) {
-      terminals(i).readFromNBTForClient(terminalsNbt(i))
-    }
+    nbt.getTagList("terminals", NBT.TAG_COMPOUND).
+      foreach((list, index) => if (index < terminals.length) terminals(index).readFromNBTForClient(list.getCompoundTagAt(index)))
     range = nbt.getInteger("range")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
-    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(null, value.fold("")(_.machine.address))))
+    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.address))))
     nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList("terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
@@ -297,22 +297,22 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
           server.machine.node.remove()
           server.inventory.containerOverride = stack
           server.inventory.save(new NBTTagCompound()) // Only flush components.
-          server.inventory.onInventoryChanged()
+          server.inventory.markDirty()
         case _ =>
       }
       servers(slot) = None
     }
   }
 
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
+  override def markDirty() {
+    super.markDirty()
     if (isServer) {
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
       ServerPacketSender.sendServerPresence(this)
     }
     else {
-      world.markBlockForRenderUpdate(x, y, z)
+      world.markBlockForUpdate(x, y, z)
     }
   }
 

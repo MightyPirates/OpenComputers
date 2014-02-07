@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.Settings
 import net.minecraft.nbt._
+import net.minecraftforge.common.util.Constants.NBT
 
 /**
  * This stores chars in a 2D-Array and provides some manipulation functions.
@@ -170,27 +171,24 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     val h = nbt.getInteger("height") max 1 min Settings.screenResolutionsByTier(2)._2
     size = (w, h)
 
-    val b = nbt.getTagList("buffer")
+    val b = nbt.getTagList("buffer", NBT.TAG_STRING)
     for (i <- 0 until math.min(h, b.tagCount)) {
-      b.tagAt(i) match {
-        case tag: NBTTagString => set(0, i, tag.data)
-        case _ =>
-      }
+      set(0, i, b.getStringTagAt(i))
     }
 
     _depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
     foreground = nbt.getInteger("foreground")
     background = nbt.getInteger("background")
 
-    val c = nbt.getTagList("color")
-    for (i <- 0 until h) {
-      val rowColor = color(i)
-      for (j <- 0 until w) {
-        val index = j + i * w
-        if (index < c.tagCount) {
-          c.tagAt(index) match {
-            case tag: NBTTagShort => rowColor(j) = tag.data
-            case _ =>
+    // For upgrading from 1.6 - was tag list of short before.
+    if (nbt.hasKey("color", NBT.TAG_INT_ARRAY)) {
+      val c = nbt.getIntArray("color")
+      for (i <- 0 until h) {
+        val rowColor = color(i)
+        for (j <- 0 until w) {
+          val index = j + i * w
+          if (index < c.length) {
+            rowColor(j) = c(index).toShort
           }
         }
       }
@@ -203,7 +201,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
 
     val b = new NBTTagList()
     for (i <- 0 until height) {
-      b.appendTag(new NBTTagString(null, String.valueOf(buffer(i))))
+      b.appendTag(new NBTTagString(String.valueOf(buffer(i))))
     }
     nbt.setTag("buffer", b)
 
@@ -211,14 +209,7 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     nbt.setInteger("foreground", _foreground)
     nbt.setInteger("background", _background)
 
-    val c = new NBTTagList()
-    for (i <- 0 until height) {
-      val rowColor = color(i)
-      for (j <- 0 until width) {
-        c.appendTag(new NBTTagShort(null, rowColor(j)))
-      }
-    }
-    nbt.setTag("color", c)
+    nbt.setTag("color", new NBTTagIntArray(color.flatten.map(_.toInt).toArray))
   }
 
   override def toString = {

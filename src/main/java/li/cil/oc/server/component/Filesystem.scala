@@ -6,7 +6,8 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagIntArray, NBTTagList, NBTTagCompound}
+import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
 class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedComponent {
@@ -228,15 +229,11 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    val ownersNbt = nbt.getTagList("owners")
-    (0 until ownersNbt.tagCount).map(ownersNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(ownerNbt => {
+    nbt.getTagList("owners", NBT.TAG_COMPOUND).foreach((list, index) => {
+      val ownerNbt = list.getCompoundTagAt(index)
       val address = ownerNbt.getString("address")
       if (address != "") {
-        val handlesNbt = ownerNbt.getTagList("handles")
-        owners += address -> (0 until handlesNbt.tagCount).
-          map(handlesNbt.tagAt).
-          map(_.asInstanceOf[NBTTagInt].data).
-          to[mutable.Set]
+        owners += address -> ownerNbt.getIntArray("handles").to[mutable.Set]
       }
     })
 
@@ -250,11 +247,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     for ((address, handles) <- owners) {
       val ownerNbt = new NBTTagCompound()
       ownerNbt.setString("address", address)
-      val handlesNbt = new NBTTagList()
-      for (handle <- handles) {
-        handlesNbt.appendTag(new NBTTagInt(null, handle))
-      }
-      ownerNbt.setTag("handles", handlesNbt)
+      ownerNbt.setTag("handles", new NBTTagIntArray(handles.toArray))
       ownersNbt.appendTag(ownerNbt)
     }
     nbt.setTag("owners", ownersNbt)

@@ -98,6 +98,7 @@ abstract class Keyboard extends ManagedComponent {
     node.sendToReachable("computer.checked_signal", args: _*)
 }
 
+// TODO verify these work (they don't seem to)
 object Keyboard {
 
   @SubscribeEvent

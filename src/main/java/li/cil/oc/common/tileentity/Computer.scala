@@ -9,8 +9,9 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 import scala.Some
 import scala.collection.mutable
 import stargatetech2.api.bus.IBusDevice
@@ -49,7 +50,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   @SideOnly(Side.CLIENT)
   def setRunning(value: Boolean) = {
     _isRunning = value
-    world.markBlockForRenderUpdate(x, y, z)
+    world.markBlockForUpdate(x, y, z)
     this
   }
 
@@ -142,19 +143,19 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     super.readFromNBTForClient(nbt)
     setRunning(nbt.getBoolean("isRunning"))
     _users.clear()
-    _users ++= nbt.getTagList("users").iterator[NBTTagString].map(_.data)
+    _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((list, index) => list.getStringTagAt(index))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setBoolean("isRunning", isRunning)
-    nbt.setNewTagList("users", computer.users.map(user => new NBTTagString(null, user)))
+    nbt.setNewTagList("users", computer.users.map(user => new NBTTagString(user)))
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def onInventoryChanged() {
-    super.onInventoryChanged()
+  override def markDirty() {
+    super.markDirty()
     if (isServer) {
       computer.recomputeMemory()
       isOutputEnabled = hasRedstoneCard
@@ -177,15 +178,15 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     computer.lastError match {
       case Some(value) =>
-        player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-          Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
+        player.addChatMessage(new ChatComponentTranslation(
+          Settings.namespace + "gui.Analyzer.LastError", new ChatComponentTranslation(value)))
       case _ =>
     }
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+    player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + maxComponents))
     val list = users
     if (list.size > 0) {
-      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      player.addChatMessage(new ChatComponentTranslation(
         Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
     }
     Array(computer.node)

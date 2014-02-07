@@ -2,27 +2,26 @@ package li.cil.oc.util
 
 import net.minecraft.nbt._
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
 
 object ExtendedNBT {
 
-  implicit def toNbt(value: Byte) = new NBTTagByte(null, value)
+  implicit def toNbt(value: Byte) = new NBTTagByte(value)
 
-  implicit def toNbt(value: Short) = new NBTTagShort(null, value)
+  implicit def toNbt(value: Short) = new NBTTagShort(value)
 
-  implicit def toNbt(value: Int) = new NBTTagInt(null, value)
+  implicit def toNbt(value: Int) = new NBTTagInt(value)
 
-  implicit def toNbt(value: Array[Int]) = new NBTTagIntArray(null, value)
+  implicit def toNbt(value: Array[Int]) = new NBTTagIntArray(value)
 
-  implicit def toNbt(value: Long) = new NBTTagLong(null, value)
+  implicit def toNbt(value: Long) = new NBTTagLong(value)
 
-  implicit def toNbt(value: Float) = new NBTTagFloat(null, value)
+  implicit def toNbt(value: Float) = new NBTTagFloat(value)
 
-  implicit def toNbt(value: Double) = new NBTTagDouble(null, value)
+  implicit def toNbt(value: Double) = new NBTTagDouble(value)
 
-  implicit def toNbt(value: Array[Byte]) = new NBTTagByteArray(null, value)
+  implicit def toNbt(value: Array[Byte]) = new NBTTagByteArray(value)
 
-  implicit def toNbt(value: String) = new NBTTagString(null, value)
+  implicit def toNbt(value: String) = new NBTTagString(value)
 
   implicit def byteIterableToNbt(value: Iterable[Byte]) = value.map(toNbt)
 
@@ -50,7 +49,7 @@ object ExtendedNBT {
     def setNewCompoundTag(name: String, f: (NBTTagCompound) => Any) = {
       val t = new NBTTagCompound()
       f(t)
-      nbt.setCompoundTag(name, t)
+      nbt.setTag(name, t)
       nbt
     }
 
@@ -79,13 +78,9 @@ object ExtendedNBT {
 
     def append(values: NBTBase*): Unit = append(values)
 
-    def iterator[Tag <: NBTBase : ClassTag] = (0 until nbt.tagCount).map(nbt.tagAt).collect {
-      case tag: Tag => tag
-    }
+    def foreach(f: (NBTTagList, Int) => Unit): Unit = (0 until nbt.tagCount).map(f(nbt, _))
 
-    def foreach[Tag <: NBTBase : ClassTag](f: (Tag) => Unit) = iterator[Tag].foreach(f)
-
-    def map[Tag <: NBTBase : ClassTag, Value](f: (Tag) => Value) = iterator[Tag].map(f)
+    def map[Value](f: (NBTTagList, Int) => Value) = (0 until nbt.tagCount).map(f(nbt, _))
   }
 
 }

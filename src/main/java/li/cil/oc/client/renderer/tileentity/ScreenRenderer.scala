@@ -244,7 +244,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
   def onRemoval(e: RemovalNotification[TileEntity, Int]) {
     GLAllocation.deleteDisplayLists(e.getValue)
-  }                                                          q
+  }
 
   // TODO this doesn't seem to work
   @SubscribeEvent

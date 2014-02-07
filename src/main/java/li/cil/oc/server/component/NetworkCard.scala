@@ -3,8 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.{NBTTagInt, NBTTagCompound}
+import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -90,13 +89,13 @@ class NetworkCard extends ManagedComponent {
     super.load(nbt)
 
     assert(openPorts.isEmpty)
-    openPorts ++= nbt.getTagList("openPorts").iterator[NBTTagInt].map(_.data)
+    openPorts ++= nbt.getIntArray("openPorts")
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
-    nbt.setNewTagList("openPorts", openPorts)
+    nbt.setIntArray("openPorts", openPorts.toArray)
   }
 
   // ----------------------------------------------------------------------- //

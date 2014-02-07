@@ -10,11 +10,13 @@ import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{LuaStateFactory, ThreadPoolFactory}
 import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.world.World
+import net.minecraftforge.common.util.Constants.NBT
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
@@ -504,14 +506,20 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
     super.load(nbt)
 
-    state.pushAll(nbt.getTagList("state").iterator[NBTTagInt].reverse.map(s => Machine.State(s.data)))
-    nbt.getTagList("users").foreach[NBTTagString](u => _users += u.data)
+    // For upgrading from 1.6 - was tag list of int before.
+    if (nbt.hasKey("state", NBT.TAG_INT_ARRAY)) {
+      state.pushAll(nbt.getIntArray("state").reverse.map(Machine.State(_)))
+    }
+    else state.push(Machine.State.Stopped)
+    nbt.getTagList("users", NBT.TAG_STRING).foreach((list, index) => _users += list.getStringTagAt(index))
     if (nbt.hasKey("message")) {
       message = Some(nbt.getString("message"))
     }
 
-    components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
-      c.getString("address") -> c.getString("name"))
+    components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((list, index) => {
+      val c = list.getCompoundTagAt(index)
+      c.getString("address") -> c.getString("name")
+    })
 
     rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
     tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
@@ -519,23 +527,21 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
       architecture.load(nbt)
 
-      signals ++= nbt.getTagList("signals").iterator[NBTTagCompound].map(signalNbt => {
+      signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((list, index) => {
+        val signalNbt = list.getCompoundTagAt(index)
         val argsNbt = signalNbt.getCompoundTag("args")
         val argsLength = argsNbt.getInteger("length")
         new Machine.Signal(signalNbt.getString("name"),
           (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
-            case tag: NBTTagByte if tag.data == -1 => Unit
-            case tag: NBTTagByte => tag.data == 1
-            case tag: NBTTagDouble => tag.data
-            case tag: NBTTagString => tag.data
-            case tag: NBTTagByteArray => tag.byteArray
+            case tag: NBTTagByte if tag.func_150290_f == -1 => Unit
+            case tag: NBTTagByte => tag.func_150290_f == 1
+            case tag: NBTTagDouble => tag.func_150286_g
+            case tag: NBTTagString => tag.func_150285_a_
+            case tag: NBTTagByteArray => tag.func_150292_c
             case tag: NBTTagList =>
               val data = mutable.Map.empty[String, String]
               for (i <- 0 until tag.tagCount by 2) {
-                (tag.tagAt(i), tag.tagAt(i + 1)) match {
-                  case (key: NBTTagString, value: NBTTagString) => data += key.data -> value.data
-                  case _ =>
-                }
+                data += tag.getStringTagAt(i) -> tag.getStringTagAt(i + 1)
               }
               data
             case _ => Unit
@@ -565,7 +571,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     // Make sure the component list is up-to-date.
     processAddedComponents()
 
-    nbt.setNewTagList("state", state.map(_.id))
+    nbt.setIntArray("state", state.map(_.id).toArray)
     nbt.setNewTagList("users", _users)
     message.foreach(nbt.setString("message", _))
 
@@ -675,7 +681,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
   }
 
   private def isGamePaused = !MinecraftServer.getServer.isDedicatedServer && (MinecraftServer.getServer match {
-    case integrated: IntegratedServer => integrated.getServerListeningThread.isGamePaused
+    case integrated: IntegratedServer => Minecraft.getMinecraft.isGamePaused
     case _ => false
   })
 

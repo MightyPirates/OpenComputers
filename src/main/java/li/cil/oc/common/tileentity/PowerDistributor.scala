@@ -7,7 +7,8 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 
 class PowerDistributor extends Environment with PowerBalancer with Analyzable {
   val node = null
@@ -29,8 +30,8 @@ class PowerDistributor extends Environment with PowerBalancer with Analyzable {
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
-    nbt.getTagList(Settings.namespace + "connector").iterator[NBTTagCompound].zip(nodes).foreach {
-      case (connectorNbt, connector) => connector.load(connectorNbt)
+    nbt.getTagList(Settings.namespace + "connector", NBT.TAG_COMPOUND).foreach {
+      case (list, index) => nodes(index).load(list.getCompoundTagAt(index))
     }
   }
 

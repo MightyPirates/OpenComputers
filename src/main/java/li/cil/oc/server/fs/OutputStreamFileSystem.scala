@@ -4,6 +4,7 @@ import java.io.{FileNotFoundException, IOException, OutputStream}
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
 trait OutputStreamFileSystem extends InputStreamFileSystem {
@@ -42,8 +43,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
-    val handlesNbt = nbt.getTagList("output")
-    (0 until handlesNbt.tagCount).map(handlesNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(handleNbt => {
+    val handlesNbt = nbt.getTagList("output", NBT.TAG_COMPOUND)
+    (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
       val path = handleNbt.getString("path")
       openOutputStream(path, Mode.Append) match {

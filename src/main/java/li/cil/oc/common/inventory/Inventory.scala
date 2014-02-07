@@ -5,6 +5,7 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.Constants.NBT
 
 trait Inventory extends IInventory {
   def items: Array[Option[ItemStack]]
@@ -19,7 +20,7 @@ trait Inventory extends IInventory {
       stack
     case Some(stack) =>
       val result = stack.splitStack(amount)
-      onInventoryChanged()
+      markDirty()
       result
     case _ => null
   }
@@ -43,23 +44,24 @@ trait Inventory extends IInventory {
       onItemAdded(slot, items(slot).get)
     }
 
-    onInventoryChanged()
+    markDirty()
   }
 
   def getInventoryStackRequired = 1
 
   override def getStackInSlotOnClosing(slot: Int) = null
 
-  override def openChest() {}
+  override def openInventory() {}
 
-  override def closeChest() {}
+  override def closeInventory() {}
 
-  override def isInvNameLocalized = false
+  override def hasCustomInventoryName = false
 
   // ----------------------------------------------------------------------- //
 
   def load(nbt: NBTTagCompound) {
-    nbt.getTagList(Settings.namespace + "items").foreach[NBTTagCompound](slotNbt => {
+    nbt.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND).foreach((list, index) => {
+      val slotNbt = list.getCompoundTagAt(index)
       val slot = slotNbt.getByte("slot")
       if (slot >= 0 && slot < items.length) {
         items(slot) = Option(ItemStack.loadItemStackFromNBT(slotNbt.getCompoundTag("item")))

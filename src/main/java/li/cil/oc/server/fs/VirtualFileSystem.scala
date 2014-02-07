@@ -4,6 +4,7 @@ import java.io
 import java.io.FileNotFoundException
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
 trait VirtualFileSystem extends OutputStreamFileSystem {
@@ -236,8 +237,8 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     override def load(nbt: NBTTagCompound) {
       super.load(nbt)
-      val childrenNbt = nbt.getTagList("children")
-      (0 until childrenNbt.tagCount).map(childrenNbt.tagAt).map(_.asInstanceOf[NBTTagCompound]).foreach(childNbt => {
+      val childrenNbt = nbt.getTagList("children", NBT.TAG_COMPOUND)
+      (0 until childrenNbt.tagCount).map(childrenNbt.getCompoundTagAt).foreach(childNbt => {
         val child =
           if (childNbt.getBoolean("isDirectory")) new VirtualDirectory
           else new VirtualFile

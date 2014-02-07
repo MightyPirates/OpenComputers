@@ -21,11 +21,11 @@ trait Item extends driver.Item {
 object Item {
   def dataTag(stack: ItemStack) = {
     if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
+      stack.setTagCompound(new NBTTagCompound())
     }
     val nbt = stack.getTagCompound
     if (!nbt.hasKey(Settings.namespace + "data")) {
-      nbt.setCompoundTag(Settings.namespace + "data", new NBTTagCompound())
+      nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
     }
     nbt.getCompoundTag(Settings.namespace + "data")
   }

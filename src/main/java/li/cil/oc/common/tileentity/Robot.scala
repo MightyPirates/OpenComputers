@@ -10,13 +10,14 @@ import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Settings, api, common}
+import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.util.ForgeDirection
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -63,7 +64,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
     val keyboard = new component.Keyboard {
       override def isUseableByPlayer(p: EntityPlayer) =
-        world.getBlockTileEntity(x, y, z) == proxy &&
+        world.getTileEntity(x, y, z) == proxy &&
           p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
     }
     (gpu, keyboard)
@@ -124,11 +125,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+    player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.RobotOwner", owner))
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+    player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+    player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f"), level: Integer))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
@@ -146,7 +147,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (!world.blockExists(nx, ny, nz)) {
       return false // Don't fall off the earth.
     }
-    val blockId = world.getBlockId(nx, ny, nz)
+    val wasAir = world.isAirBlock(nx, ny, nz)
+    val block = world.getBlock(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
     try {
       // Setting this will make the tile entity created via the following call
@@ -161,10 +163,10 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       // In some cases (though I couldn't quite figure out which one) setBlock
       // will return true, even though the block was not created / adjusted.
       val created = Blocks.robotProxy.setBlock(world, nx, ny, nz, 1) &&
-        world.getBlockTileEntity(nx, ny, nz) == proxy
+        world.getTileEntity(nx, ny, nz) == proxy
       if (created) {
         assert(x == nx && y == ny && z == nz)
-        world.setBlock(ox, oy, oz, 0, 0, 1)
+        world.setBlock(ox, oy, oz, net.minecraft.init.Blocks.air, 0, 1)
         Blocks.robotAfterimage.setBlock(world, ox, oy, oz, 1)
         assert(Delegator.subBlock(world, ox, oy, oz).exists(_ == Blocks.robotAfterimage))
         // Here instead of Lua callback so that it gets called on client, too.
@@ -176,11 +178,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         }
         else {
           // If we broke some replaceable block (like grass) play its break sound.
-          if (blockId > 0) {
-            world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+          if (!wasAir) {
+            world.playAuxSFX(2001, nx, ny, nz, Block.getIdFromBlock(block) + (metadata << 12))
           }
-          world.markBlockForRenderUpdate(ox, oy, oz)
-          world.markBlockForRenderUpdate(nx, ny, nz)
+          world.markBlockForUpdate(ox, oy, oz)
+          world.markBlockForUpdate(nx, ny, nz)
         }
         assert(!isInvalid)
       }
@@ -194,7 +196,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   def createItemStack() = {
     val stack = Blocks.robotProxy.createItemStack()
     if (globalBuffer > 1 || xp > 0) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
+      stack.setTagCompound(new NBTTagCompound())
     }
     if (xp > 0) {
       stack.getTagCompound.setDouble(Settings.namespace + "xp", xp)
@@ -503,7 +505,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def getInvName = Settings.namespace + "container.Robot"
+  override def getInventoryName = Settings.namespace + "container.Robot"
 
   override def getSizeInventory = 20
 
@@ -522,7 +524,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =
-    world.getBlockTileEntity(x, y, z) match {
+    world.getTileEntity(x, y, z) match {
       case t: RobotProxy if t == proxy && computer.canInteract(player.getCommandSenderName) =>
         player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false

@@ -6,9 +6,9 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.ProjectRed
 import mods.immibis.redlogic.api.wiring.{IInsulatedRedstoneWire, IBundledUpdatable, IBundledEmitter}
 import mrtjp.projectred.api.{ProjectRedAPI, IBundledTile}
-import net.minecraft.block.Block
-import net.minecraft.nbt.{NBTTagIntArray, NBTTagCompound}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
 import scala.Array
 
@@ -87,21 +87,24 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
 
-    nbt.getTagList(Settings.namespace + "rs.bundledInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) if side < _bundledInput.length =>
-        val safeLength = input.intArray.length min _bundledInput(side).length
-        input.intArray.copyToArray(_bundledInput(side), 0, safeLength)
+    nbt.getTagList(Settings.namespace + "rs.bundledInput", NBT.TAG_INT_ARRAY).foreach {
+      case (list, index) if index < _bundledInput.length =>
+        val input = list.func_150306_c(index)
+        val safeLength = input.length min _bundledInput(index).length
+        input.copyToArray(_bundledInput(index), 0, safeLength)
     }
-    nbt.getTagList(Settings.namespace + "rs.bundledOutput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) if side < _bundledOutput.length =>
-        val safeLength = input.intArray.length min _bundledOutput(side).length
-        input.intArray.copyToArray(_bundledOutput(side), 0, safeLength)
+    nbt.getTagList(Settings.namespace + "rs.bundledOutput", NBT.TAG_INT_ARRAY).foreach {
+      case (list, index) if index < _bundledOutput.length =>
+        val input = list.func_150306_c(index)
+        val safeLength = input.length min _bundledOutput(index).length
+        input.copyToArray(_bundledOutput(index), 0, safeLength)
     }
 
-    nbt.getTagList(Settings.namespace + "rs.rednetInput").iterator[NBTTagIntArray].zipWithIndex.foreach {
-      case (input, side) if side < _rednetInput.length =>
-        val safeLength = input.intArray.length min _rednetInput(side).length
-        input.intArray.copyToArray(_rednetInput(side), 0, safeLength)
+    nbt.getTagList(Settings.namespace + "rs.rednetInput", NBT.TAG_INT_ARRAY).foreach {
+      case (list, index) if index < _rednetInput.length =>
+        val input = list.func_150306_c(index)
+        val safeLength = input.length min _rednetInput(index).length
+        input.copyToArray(_rednetInput(index), 0, safeLength)
     }
   }
 
@@ -118,7 +121,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
     val redLogic = if (Loader.isModLoaded("RedLogic")) {
-      world.getBlockTileEntity(
+      world.getTileEntity(
         x + side.offsetX,
         y + side.offsetY,
         z + side.offsetZ) match {
@@ -156,7 +159,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
           val nx = x + side.offsetX
           val ny = y + side.offsetY
           val nz = z + side.offsetZ
-          Block.blocksList(world.getBlockId(nx, ny, nz)) match {
+          world.getBlock(nx, ny, nz) match {
             case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
             case _ =>
           }
@@ -168,7 +171,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       val ny = y + side.offsetY
       val nz = z + side.offsetZ
       if (Loader.isModLoaded("MineFactoryReloaded")) {
-        Block.blocksList(world.getBlockId(nx, ny, nz)) match {
+        world.getBlock(nx, ny, nz) match {
           case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
           case _ =>
         }
