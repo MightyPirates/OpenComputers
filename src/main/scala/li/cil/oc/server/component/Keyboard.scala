@@ -48,7 +48,7 @@ abstract class Keyboard extends ManagedComponent {
 
   override def onDisconnect(node: Node) {
     if (node == this.node) {
-      MinecraftForge.EVENT_BUS.unregister(this)
+      FMLCommonHandler.instance().bus().unregister(this)
     }
   }
 
