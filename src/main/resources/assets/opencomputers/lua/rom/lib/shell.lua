@@ -448,6 +448,7 @@ function shell.running(level)
   local process = findProcess()
   while level > 1 and process do
     process = process.parent
+    level = level - 1
   end
   if process then
     return process.path, process.env, process.command
