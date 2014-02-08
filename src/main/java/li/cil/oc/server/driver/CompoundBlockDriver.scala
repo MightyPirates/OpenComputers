@@ -25,9 +25,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
 
   override def equals(obj: Any) = obj match {
-    case multi: CompoundBlockDriver if multi.blocks.length == blocks.length =>
-      (multi.blocks, blocks).zipped.forall((a, b) => a.getClass.getName == b.getClass.getName)
-      true
+    case multi: CompoundBlockDriver if multi.blocks.length == blocks.length => blocks.intersect(multi.blocks).length == blocks.length
     case _ => false
   }
 
