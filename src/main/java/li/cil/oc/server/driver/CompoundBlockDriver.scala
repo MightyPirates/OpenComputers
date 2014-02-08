@@ -3,6 +3,7 @@ package li.cil.oc.server.driver
 import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.NamedBlock
 import net.minecraft.block.Block
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
@@ -31,6 +32,10 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   }
 
   private def tryGetName(world: World, x: Int, y: Int, z: Int): String = {
+    for (block <- blocks) block match {
+      case named: NamedBlock => return named.preferredName
+      case _ =>
+    }
     try world.getBlockTileEntity(x, y, z) match {
       case inventory: IInventory => return inventory.getInvName.stripPrefix("container.")
     } catch {
