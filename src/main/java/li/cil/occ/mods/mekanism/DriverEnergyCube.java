@@ -1,0 +1,13 @@
+package li.cil.occ.mods.mekanism;
+
+import li.cil.occ.mods.computercraft.DriverPeripheral;
+import li.cil.occ.util.Reflection;
+
+public final class DriverEnergyCube extends DriverPeripheral {
+    private static final Class<?> TileentityEnergyCube = Reflection.getClass("mekanism.common.tileentity.TileEntityEnergyCube");
+
+    @Override
+    public Class<?> getTileEntityClass() {
+        return TileentityEnergyCube;
+    }
+}
