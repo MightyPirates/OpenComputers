@@ -2,6 +2,7 @@ local component = require("component")
 local computer = require("computer")
 local event = require("event")
 
+local adding = {}
 local removing = {}
 local primaries = {}
 
@@ -57,12 +58,27 @@ function component.setPrimary(componentType, address)
   if wasAvailable and address == primaries[componentType].address then
     return
   end
-  primaries[componentType] = address and component.proxy(address) or nil
+  primaries[componentType] = nil
+  local wasAdding = adding[componentType]
+  if wasAdding then
+    event.cancel(wasAdding)
+    adding[componentType] = nil
+  end
+  local primary = address and component.proxy(address) or nil
   if wasAvailable then
     computer.pushSignal("component_unavailable", componentType)
   end
-  if component.isAvailable(componentType) then
-    computer.pushSignal("component_available", componentType)
+  if primary then
+    if wasAvailable or wasAdding then
+      adding[componentType] = event.timer(0.1, function()
+        primaries[componentType] = primary
+        adding[componentType] = nil
+        computer.pushSignal("component_available", componentType)
+      end)
+    else
+      primaries[componentType] = primary
+      computer.pushSignal("component_available", componentType)
+    end
   end
 end
 
