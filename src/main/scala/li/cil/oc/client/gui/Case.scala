@@ -47,9 +47,8 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
     GL11.glPopAttrib()
   }
 
-  override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
+  override def drawSecondaryBackgroundLayer() {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
     mc.renderEngine.bindTexture(Textures.guiComputer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }

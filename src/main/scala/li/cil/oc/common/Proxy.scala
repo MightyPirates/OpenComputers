@@ -13,7 +13,7 @@ import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
-  def preInit(e: FMLPreInitializationEvent): Unit = {
+  def preInit(e: FMLPreInitializationEvent) {
     Settings.load(e.getSuggestedConfigurationFile)
 
     Blocks.init()
@@ -24,7 +24,7 @@ class Proxy {
     api.Network.instance = network.Network
   }
 
-  def init(e: FMLInitializationEvent): Unit = {
+  def init(e: FMLInitializationEvent) {
     api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
@@ -46,7 +46,7 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
   }
 
-  def postInit(e: FMLPostInitializationEvent): Unit = {
+  def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 

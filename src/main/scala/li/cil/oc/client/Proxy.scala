@@ -16,7 +16,13 @@ import net.minecraftforge.common.MinecraftForge
 import cpw.mods.fml.common.FMLCommonHandler
 
 private[oc] class Proxy extends CommonProxy {
-  override def init(e: FMLInitializationEvent) = {
+  override def preInit(e: FMLPreInitializationEvent) {
+    super.preInit(e)
+
+    MinecraftForge.EVENT_BUS.register(gui.Icons)
+  }
+
+  override def init(e: FMLInitializationEvent) {
     super.init(e)
 
     NetworkRegistry.INSTANCE.registerGuiHandler(OpenComputers, GuiHandler)
@@ -44,11 +50,5 @@ private[oc] class Proxy extends CommonProxy {
     if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     }
-  }
-
-  override def preInit(e: FMLPreInitializationEvent): Unit = {
-    MinecraftForge.EVENT_BUS.register(gui.Icons)
-    super.preInit(e)
-
   }
 }
