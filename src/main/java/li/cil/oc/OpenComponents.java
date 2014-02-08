@@ -48,12 +48,16 @@ public class OpenComponents {
     public void init(final FMLInitializationEvent e) {
         Registry.add(new HandlerAppEng());
         Registry.add(new HandlerBuildCraft());
-        Registry.add(new HandlerComputerCraft());
         Registry.add(new HandlerEnderStorage());
         Registry.add(new HandlerIndustrialCraft2());
         Registry.add(new HandlerMekanism());
         Registry.add(new HandlerRedstoneInMotion());
         Registry.add(new HandlerThermalExpansion());
         Registry.add(new HandlerVanilla());
+
+        // Register the general IPeripheral driver last, if at all, to avoid it
+        // being used rather than other more concrete implementations, such as
+        // is the case in the Redstone in Motion driver (replaces 'move').
+        Registry.add(new HandlerComputerCraft());
     }
 }
