@@ -12,7 +12,7 @@ import net.minecraft.util.ResourceLocation;
  * Used to render a cart with a custom texture using Railcraft's cart renderer.
  * You could always write your own renderer of course.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IAlternateCartTexture {
 

@@ -7,7 +7,7 @@ import net.minecraft.entity.item.EntityMinecart;
  * all cart movement should implement this interface.
  * (Used in collision handling)
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackLockdown extends ITrackInstance
 {

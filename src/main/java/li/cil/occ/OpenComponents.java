@@ -11,8 +11,10 @@ import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.mekanism.ModMekanism;
+import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
 import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
+import li.cil.occ.mods.tmechworks.ModTMechworks;
 import li.cil.occ.mods.vanilla.ModVanilla;
 import net.minecraftforge.common.Configuration;
 
@@ -53,8 +55,10 @@ public class OpenComponents {
         Registry.add(new ModEnderStorage());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModMekanism());
+        Registry.add(new ModRailcraft());
         Registry.add(new ModRedstoneInMotion());
         Registry.add(new ModThermalExpansion());
+        Registry.add(new ModTMechworks());
         Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it

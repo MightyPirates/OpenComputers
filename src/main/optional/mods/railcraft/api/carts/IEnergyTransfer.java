@@ -6,7 +6,7 @@ package mods.railcraft.api.carts;
  * It is roughly equivalent to the IItemTransfer interface
  * and based on ElectricItem and IElectricItem.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  * @see IItemTransfer
  */
 public interface IEnergyTransfer

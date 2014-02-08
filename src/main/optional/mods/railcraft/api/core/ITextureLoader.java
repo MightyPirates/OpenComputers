@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.texture.IconRegister;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITextureLoader {
 

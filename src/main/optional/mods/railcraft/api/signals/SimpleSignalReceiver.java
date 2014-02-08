@@ -14,7 +14,7 @@ import net.minecraft.tileentity.TileEntity;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public class SimpleSignalReceiver extends SignalReceiver {
 

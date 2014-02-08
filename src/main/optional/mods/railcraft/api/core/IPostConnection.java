@@ -9,7 +9,7 @@ import net.minecraftforge.common.ForgeDirection;
  *
  * The result takes priority over any other rules.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IPostConnection {
 

@@ -7,7 +7,7 @@ import net.minecraft.world.World;
  *
  * Used by tracks such as the Suspended Track.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackCustomPlaced extends ITrackInstance
 {

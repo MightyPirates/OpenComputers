@@ -11,7 +11,7 @@ package mods.railcraft.api.carts;
 /**
  * This is used for the "NeedsRefuel" routing conditional.
  *
- * @author CovertJaguar <http://www.railcraft.info/>
+ * @author CovertJaguar <http://www.ModTMechworks.info/>
  */
 public interface IRefuelableCart {
 

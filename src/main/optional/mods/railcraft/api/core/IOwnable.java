@@ -10,7 +10,7 @@ package mods.railcraft.api.core;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info/>
+ * @author CovertJaguar <http://www.ModTMechworks.info/>
  */
 public interface IOwnable {
 

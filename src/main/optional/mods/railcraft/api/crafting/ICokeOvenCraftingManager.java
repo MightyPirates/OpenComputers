@@ -6,7 +6,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ICokeOvenCraftingManager {
 

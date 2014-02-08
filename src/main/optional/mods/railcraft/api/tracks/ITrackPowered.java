@@ -7,7 +7,7 @@ package mods.railcraft.api.tracks;
  * And so long as you inherit from TrackInstanceBase, all the code for updating
  * the power state is already in place (including propagation).
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackPowered extends ITrackInstance
 {

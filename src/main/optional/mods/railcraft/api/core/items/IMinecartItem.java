@@ -8,7 +8,7 @@ import net.minecraft.world.World;
  * This interface should be implemented by any cart item,
  * but it is generally optional.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IMinecartItem
 {

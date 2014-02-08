@@ -27,7 +27,7 @@ import net.minecraftforge.common.ForgeDirection;
  * @see IPowerReceptor
  * @see IPowerEmitter
  *
- * @author CovertJaguar <http://www.railcraft.info/>
+ * @author CovertJaguar <http://www.ModTMechworks.info/>
  */
 public final class PowerHandler {
 
