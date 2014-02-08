@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import li.cil.oc.driver.Registry;
 import li.cil.oc.driver.appeng.HandlerAppEng;
+import li.cil.oc.driver.atomicscience.HandlerAtomicScience;
 import li.cil.oc.driver.buildcraft.HandlerBuildCraft;
 import li.cil.oc.driver.computercraft.HandlerComputerCraft;
 import li.cil.oc.driver.enderstorage.HandlerEnderStorage;
@@ -47,6 +48,7 @@ public class OpenComponents {
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
         Registry.add(new HandlerAppEng());
+        Registry.add(new HandlerAtomicScience());
         Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerEnderStorage());
         Registry.add(new HandlerIndustrialCraft2());
