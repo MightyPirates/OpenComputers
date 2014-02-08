@@ -11,6 +11,7 @@ import li.cil.oc.util.PackedColor.Depth
 import li.cil.oc.{Items, Settings, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
 class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner {
@@ -52,7 +53,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     if (nbt.hasKey(Settings.namespace + "key")) {
       keys += nbt.getString(Settings.namespace + "key")
     }
-    nbt.getTagList(Settings.namespace + "keys").foreach[NBTTagString](keys += _.data)
+    nbt.getTagList(Settings.namespace + "keys", NBT.TAG_STRING).foreach((list, index) => keys += list.getStringTagAt(index))
   }
 
   def save(nbt: NBTTagCompound) {
@@ -64,7 +65,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {
     buffer.buffer.load(nbt)
-    nbt.getTagList("keys").foreach[NBTTagString](keys += _.data)
+    nbt.getTagList("keys", NBT.TAG_STRING).foreach((list, index) => keys += list.getStringTagAt(index))
   }
 
   def writeToNBTForClient(nbt: NBTTagCompound) {
