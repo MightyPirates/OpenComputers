@@ -49,7 +49,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   @Callback
   def request(context: Context, args: Arguments): Array[AnyRef] = {
-    if (context.address != owner.address) {
+    if (context.node.address != owner.node.address) {
       throw new IllegalArgumentException("can only be used by the owning computer")
     }
     val address = args.checkString(0)
@@ -235,7 +235,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
   override def onMessage(message: Message) {
     super.onMessage(message)
     message.data match {
-      case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && message.source.address == owner.address =>
+      case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && message.source.address == owner.node.address =>
         connections.values.foreach(_.close())
         connections.clear()
         InternetCard.this.synchronized {

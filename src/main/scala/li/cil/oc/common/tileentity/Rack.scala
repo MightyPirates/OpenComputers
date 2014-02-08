@@ -248,7 +248,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setByteArray("isServerRunning", _isRunning.map(value => (if (value) 1 else 0).toByte))
-    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.address))))
+    nbt.setNewTagList("isPresent", servers.map(value => new NBTTagString(value.fold("")(_.machine.node.address))))
     nbt.setByteArray("sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList("terminals", terminals.map(t => {
       val terminalNbt = new NBTTagCompound()
@@ -324,7 +324,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)
     servers collect {
-      case Some(server) => server.machine.signal("redstone_changed", server.machine.address, Int.box(toLocal(side).ordinal()))
+      case Some(server) => server.machine.signal("redstone_changed", server.machine.node.address, Int.box(toLocal(side).ordinal()))
     }
   }
 

@@ -7,7 +7,7 @@
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "https://github.com/MightyPirates/OpenComputers/wiki",
-    "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
+    "authors": ["Florian 'Sangar' Nï¿½cke", "Johannes 'Lord Joda' Lohrer", "Everyone who contributed to the mod on Github - thank you!"],
     "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
     "logoFile" : "assets/opencomputers/textures/gui/logo.png",
     "requiredMods": [ "Forge@[10.12.0.1024,)" ],
@@ -22,6 +22,7 @@
       "ThermalExpansion",
       "UniversalElectricity"
     ],
+    "dependants": [],
     "useDependencyInformation": "true"
   }]
 }

@@ -485,8 +485,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- components) {
       if (node.network.node(address) == null) {
-        OpenComputers.log.warning("A component of type '" + name +
-          "' disappeared! This usually means that it didn't save its node.")
+        OpenComputers.log.fine("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
+        if (name == "filesystem") {
+          OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.");
+        }
         signal("component_removed", address, name)
         invalid += address
       }

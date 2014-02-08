@@ -67,7 +67,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
       // Use the same address we use internally on the outside.
       if (isServer) {
         val nbt = new NBTTagCompound()
-        nbt.setString("address", robot.address)
+        nbt.setString("address", robot.node.address)
         node.load(nbt)
       }
       Network.joinOrCreateNetwork(this)
