@@ -1,7 +1,7 @@
 {
   "modinfoversion": 2,
   "modlist": [{
-    "modid": "OpenComputers|Components",
+    "modid": "OpenComponents",
     "name": "OpenComponents",
     "description": "This mod is an addon for OpenComputers that adds a bunch of drivers.",
     "version": "1.0.0",
