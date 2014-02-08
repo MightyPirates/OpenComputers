@@ -8,6 +8,10 @@ import net.minecraft.nbt.NBTTagCompound
 trait Capacity extends OutputStreamFileSystem {
   private var used = computeSize("/")
 
+  // Used when loading data from disk to virtual file systems, to allow
+  // exceeding the actual capacity of a file system.
+  private var ignoreCapacity = false
+
   protected def capacity: Long
 
   // ----------------------------------------------------------------------- //
@@ -28,7 +32,7 @@ trait Capacity extends OutputStreamFileSystem {
   }
 
   override def makeDirectory(path: String) = {
-    if (capacity - used < Settings.get.fileCost) {
+    if (capacity - used < Settings.get.fileCost && !ignoreCapacity) {
       throw new io.IOException("not enough space")
     }
     if (super.makeDirectory(path)) {
@@ -40,7 +44,16 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def save(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) {
+    try {
+      ignoreCapacity = true
+      super.load(nbt)
+    } finally {
+      ignoreCapacity = false
+    }
+  }
+
+  override def save(nbt: NBTTagCompound) {
     super.save(nbt)
 
     // For the tooltip.
@@ -77,14 +90,14 @@ trait Capacity extends OutputStreamFileSystem {
 
   private class CountingOutputStream(val owner: Capacity, val inner: io.OutputStream) extends io.OutputStream {
     override def write(b: Int) = {
-      if (owner.capacity - owner.used < 1)
+      if (owner.capacity - owner.used < 1 && !ignoreCapacity)
         throw new io.IOException("not enough space")
       inner.write(b)
       owner.used = owner.used + 1
     }
 
     override def write(b: Array[Byte], off: Int, len: Int) = {
-      if (owner.capacity - owner.used < len)
+      if (owner.capacity - owner.used < len && !ignoreCapacity)
         throw new io.IOException("not enough space")
       inner.write(b, off, len)
       owner.used = owner.used + len

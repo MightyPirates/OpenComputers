@@ -1,5 +1,7 @@
 package li.cil.oc.common.inventory
 
+import java.util.logging.Level
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.driver.{Item => ItemDriver}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node, ManagedEnvironment}
@@ -38,7 +40,11 @@ trait ComponentInventory extends Inventory with network.Environment {
         case Some(driver) =>
           Option(driver.createEnvironment(stack, componentContainer)) match {
             case Some(component) =>
-              component.load(dataTag(driver, stack))
+              try {
+                component.load(dataTag(driver, stack))
+              } catch {
+                case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+              }
               if (component.canUpdate) {
                 assert(!updatingComponents.contains(component))
                 updatingComponents += component
@@ -67,9 +73,14 @@ trait ComponentInventory extends Inventory with network.Environment {
       case (Some(stack), slot) => (stack, slot)
     } foreach {
       case (stack, slot) => components(slot) match {
-        case Some(environment) =>
+        case Some(component) =>
           // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
+          val driver = Registry.itemDriverFor(stack).get
+          try {
+            component.save(dataTag(driver, stack))
+          } catch {
+            case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
+          }
         case _ => // Nothing special to save.
       }
     }
@@ -85,7 +96,11 @@ trait ComponentInventory extends Inventory with network.Environment {
       case Some(driver) => Option(driver.createEnvironment(stack, componentContainer)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
-          component.load(dataTag(driver, stack))
+          try {
+            component.load(dataTag(driver, stack))
+          } catch {
+            case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+          }
           connectItemNode(component.node)
           if (component.canUpdate) {
             assert(!updatingComponents.contains(component))
@@ -110,8 +125,11 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         updatingComponents -= component
         component.node.remove()
-        Registry.itemDriverFor(stack).foreach(driver =>
-          component.save(dataTag(driver, stack)))
+        Registry.itemDriverFor(stack).foreach(driver => try {
+          component.save(dataTag(driver, stack))
+        } catch {
+          case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
+        })
       }
       case _ => // Nothing to do.
     }
