@@ -1,9 +1,10 @@
 package li.cil.oc.server.driver
 
-import li.cil.oc.api
+import java.util.logging.Level
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{OpenComputers, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {
@@ -52,7 +53,11 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
     for ((driver, environment) <- environments) {
       val name = driver.getClass.getName
       if (nbt.hasKey(name)) {
-        environment.load(nbt.getCompoundTag(name))
+        try {
+          environment.load(nbt.getCompoundTag(name))
+        } catch {
+          case e: Throwable => OpenComputers.log.log(Level.WARNING, "A block component of type '%s' (provided by driver '%s') threw an error while loading.".format(environment.getClass.getName, name), e)
+        }
       }
     }
   }
@@ -61,7 +66,11 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
     node.save(nbt)
     for ((driver, environment) <- environments) {
       val name = driver.getClass.getName
-      nbt.setNewCompoundTag(name, environment.save)
+      try {
+        nbt.setNewCompoundTag(name, environment.save)
+      } catch {
+        case e: Throwable => OpenComputers.log.log(Level.WARNING, "A block component of type '%s' (provided by driver '%s') threw an error while saving.".format(environment.getClass.getName, name), e)
+      }
     }
   }
 }

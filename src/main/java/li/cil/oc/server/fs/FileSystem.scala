@@ -99,7 +99,7 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   private class BufferedFileSystem(protected val fileRoot: io.File, protected val capacity: Long)
     extends VirtualFileSystem
-    with Capacity
     with Buffered
+    with Capacity
 
 }
