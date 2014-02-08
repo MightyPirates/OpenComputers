@@ -1,7 +1,6 @@
 package li.cil.occ.mods.computercraft;
 
 import li.cil.oc.api.Driver;
-import li.cil.occ.OpenComponents;
 import li.cil.occ.mods.IMod;
 import net.minecraft.item.ItemStack;
 
@@ -15,9 +14,7 @@ public final class ModComputerCraft implements IMod {
 
     @Override
     public void initialize() {
-        if (OpenComponents.computerCraftWrapEverything) {
-            Driver.add(new DriverPeripheral());
-        }
+        Driver.add(new DriverPeripheral());
     }
 
     @Override
