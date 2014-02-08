@@ -8,22 +8,24 @@ import java.util.regex.Matcher
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
-import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.Array
-import scala.collection.mutable
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
-class InternetCard(val owner: Context) extends ManagedComponent {
+class InternetCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()
 
   val romInternet = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/internet"), "internet"))
+
+  protected var owner: Option[Context] = None
 
   protected val connections = mutable.Map.empty[Int, SocketChannel]
 
@@ -49,7 +51,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   @Callback
   def request(context: Context, args: Arguments): Array[AnyRef] = {
-    if (context.node.address != owner.node.address) {
+    if (owner.isEmpty || context.node.address != owner.get.node.address) {
       throw new IllegalArgumentException("can only be used by the owning computer")
     }
     val address = args.checkString(0)
@@ -105,16 +107,16 @@ class InternetCard(val owner: Context) extends ManagedComponent {
           finally {
             http.disconnect()
           }
-          case other => owner.signal("http_response", address, Unit, "connection failed")
+          case other => owner.foreach(_.signal("http_response", address, Unit, "connection failed"))
         }
       }
       catch {
         case e: FileNotFoundException =>
-          owner.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString))
+          owner.foreach(_.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString)))
         case _: SocketTimeoutException =>
-          owner.signal("http_response", address, Unit, "timeout")
+          owner.foreach(_.signal("http_response", address, Unit, "timeout"))
         case e: Throwable =>
-          owner.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString))
+          owner.foreach(_.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString)))
       }
       finally {
         InternetCard.this.synchronized {
@@ -200,7 +202,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
     this.synchronized {
       if (request.isEmpty && queue.isDefined) {
         val (address, packets) = queue.get
-        if (owner.signal("http_response", address, packets.front)) {
+        if (owner.fold(true)(_.signal("http_response", address, packets.front))) {
           packets.dequeue()
         }
         if (packets.isEmpty) {
@@ -214,6 +216,9 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   override def onConnect(node: Node) {
     super.onConnect(node)
+    if (owner.isEmpty && node.host.isInstanceOf[Context]) {
+      owner = Some(node.host.asInstanceOf[Context])
+    }
     if (node == this.node) {
       romInternet.foreach(rom => node.neighbors.head.connect(rom.node))
     }
@@ -221,6 +226,9 @@ class InternetCard(val owner: Context) extends ManagedComponent {
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
+    if (owner.isDefined && node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get)) {
+      owner = None
+    }
     if (node == this.node) {
       for ((_, socket) <- connections) {
         socket.close()
@@ -235,7 +243,7 @@ class InternetCard(val owner: Context) extends ManagedComponent {
   override def onMessage(message: Message) {
     super.onMessage(message)
     message.data match {
-      case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && message.source.address == owner.node.address =>
+      case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>
         connections.values.foreach(_.close())
         connections.clear()
         InternetCard.this.synchronized {

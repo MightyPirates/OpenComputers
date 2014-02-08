@@ -1,6 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Connector, Visibility, Node, Analyzable}
@@ -38,6 +39,12 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   // ----------------------------------------------------------------------- //
 
   override def canConnect(side: ForgeDirection) = side != facing
+
+  @Method(modid = "StargateTech2")
+  override def getInterfaces(side: Int) = if (side != facing.ordinal) {
+    super.getInterfaces(side)
+  }
+  else null
 
   // ----------------------------------------------------------------------- //
 

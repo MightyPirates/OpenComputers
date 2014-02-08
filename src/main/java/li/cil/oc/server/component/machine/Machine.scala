@@ -483,10 +483,11 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     val invalid = mutable.Set.empty[String]
     for ((address, name) <- components) {
       if (node.network.node(address) == null) {
-        OpenComputers.log.fine("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
         if (name == "filesystem") {
-          OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.");
+          OpenComputers.log.fine("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
+          OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
         }
+        else OpenComputers.log.warning("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
         signal("component_removed", address, name)
         invalid += address
       }
@@ -794,7 +795,7 @@ object Machine {
 
   private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
 
-  trait Owner {
+  trait Owner extends Context {
     def installedMemory: Int
 
     def maxComponents: Int

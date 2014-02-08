@@ -18,6 +18,26 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
   // ----------------------------------------------------------------------- //
 
+  override def address() = machine.node.address
+
+  override def node() = machine.node
+
+  override def start() = machine.start()
+
+  override def stop() = machine.stop()
+
+  override def pause(seconds: Double) = machine.pause(seconds)
+
+  override def isPaused = machine.isPaused
+
+  override def isRunning = machine.isRunning
+
+  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
+
+  override def canInteract(player: String) = machine.canInteract(player)
+
+  // ----------------------------------------------------------------------- //
+
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
     case Some(item) => Registry.itemDriverFor(item) match {
       case Some(driver: driver.Memory) => driver.amount(item)

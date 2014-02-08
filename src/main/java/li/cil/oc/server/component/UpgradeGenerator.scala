@@ -7,10 +7,9 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.{TileEntity => MCTileEntity, TileEntityFurnace}
-import scala.Some
+import net.minecraft.tileentity.{TileEntity, TileEntityFurnace}
 
-class UpgradeGenerator(val owner: MCTileEntity) extends ManagedComponent {
+class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
