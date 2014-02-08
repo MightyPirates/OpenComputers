@@ -65,7 +65,7 @@ class Terminal(val parent: Delegator) extends Delegate {
                 rack.terminals(slot).key = Some(key)
                 ServerPacketSender.sendServerState(rack, slot)
                 stack.getTagCompound.setString(Settings.namespace + "key", key)
-                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.address)
+                stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)
                 player.inventory.onInventoryChanged()
               case _ => // Huh?
             }

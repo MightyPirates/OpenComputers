@@ -20,7 +20,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   // ----------------------------------------------------------------------- //
 
   @Callback(direct = true)
-  def getLabel(context: Context, args: Arguments): Array[AnyRef] = result(label.getLabel)
+  def getLabel(context: Context, args: Arguments): Array[AnyRef] = label match {
+    case value: Label => result(label.getLabel)
+    case _ => null
+  }
 
   @Callback
   def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
@@ -101,7 +104,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
-        owners.get(context.address) match {
+        owners.get(context.node.address) match {
           case Some(set) if set.remove(handle) => file.close()
           case _ => throw new IOException("bad file descriptor")
         }
@@ -112,14 +115,14 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
 
   @Callback
   def open(context: Context, args: Arguments): Array[AnyRef] = {
-    if (owners.get(context.address).fold(false)(_.size >= Settings.get.maxHandles)) {
+    if (owners.get(context.node.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
     }
     val path = args.checkString(0)
     val mode = if (args.count > 1) args.checkString(1) else "r"
     val handle = fileSystem.open(clean(path), parseMode(mode))
     if (handle > 0) {
-      owners.getOrElseUpdate(context.address, mutable.Set.empty[Int]) += handle
+      owners.getOrElseUpdate(context.node.address, mutable.Set.empty[Int]) += handle
     }
     result(handle)
   }
@@ -128,7 +131,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
-    checkOwner(context.address, handle)
+    checkOwner(context.node.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         // Limit size of read buffer to avoid crazy allocations.
@@ -160,7 +163,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
     val offset = args.checkInteger(2)
-    checkOwner(context.address, handle)
+    checkOwner(context.node.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
         whence match {
@@ -181,7 +184,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     if (!node.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
       throw new IOException("not enough energy")
     }
-    checkOwner(context.address, handle)
+    checkOwner(context.node.address, handle)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) => file.write(value); result(true)
       case _ => throw new IOException("bad file descriptor")

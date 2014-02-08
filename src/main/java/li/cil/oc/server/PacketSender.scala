@@ -292,7 +292,7 @@ object PacketSender {
     t.servers.foreach {
       case Some(server) =>
         pb.writeBoolean(true)
-        pb.writeUTF(server.machine.address)
+        pb.writeUTF(server.machine.node.address)
       case _ =>
         pb.writeBoolean(false)
     }

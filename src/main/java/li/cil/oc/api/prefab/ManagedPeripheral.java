@@ -2,9 +2,12 @@ package li.cil.oc.api.prefab;
 
 import com.google.common.collect.Iterables;
 import dan200.computer.api.*;
+import li.cil.oc.api.FileSystem;
+import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.Visibility;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +28,7 @@ public class ManagedPeripheral extends ManagedEnvironment implements li.cil.oc.a
     public ManagedPeripheral(final IPeripheral peripheral) {
         this.peripheral = peripheral;
         _methods = Arrays.asList(peripheral.getMethodNames());
+        node = Network.newNode(this, Visibility.Network).create();
     }
 
     @Override
@@ -45,8 +49,8 @@ public class ManagedPeripheral extends ManagedEnvironment implements li.cil.oc.a
             }
         }
         final FakeComputerAccess access;
-        if (accesses.containsKey(context.address())) {
-            access = accesses.get(context.address());
+        if (accesses.containsKey(context.node().address())) {
+            access = accesses.get(context.node().address());
         } else {
             // The calling contexts is not visible to us, meaning we never got
             // an onConnect for it. Create a temporary access.
@@ -76,6 +80,7 @@ public class ManagedPeripheral extends ManagedEnvironment implements li.cil.oc.a
         } else if (node == this.node) {
             for (FakeComputerAccess access : accesses.values()) {
                 peripheral.detach(access);
+                access.close();
             }
             accesses.clear();
         }
@@ -87,30 +92,53 @@ public class ManagedPeripheral extends ManagedEnvironment implements li.cil.oc.a
     private static class FakeComputerAccess implements IComputerAccess {
         protected final ManagedPeripheral owner;
         protected final Context context;
+        protected final Map<String, li.cil.oc.api.network.ManagedEnvironment> fileSystems = new HashMap<String, li.cil.oc.api.network.ManagedEnvironment>();
 
         public FakeComputerAccess(final ManagedPeripheral owner, final Context context) {
             this.owner = owner;
             this.context = context;
         }
 
+        public void close() {
+            for (li.cil.oc.api.network.ManagedEnvironment fileSystem : fileSystems.values()) {
+                fileSystem.node().remove();
+            }
+            fileSystems.clear();
+        }
+
         @Override
         public String mount(final String desiredLocation, final IMount mount) {
-            throw new UnsupportedOperationException();
+            if (fileSystems.containsKey(desiredLocation)) {
+                return null;
+            }
+            return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount)));
         }
 
         @Override
         public String mountWritable(final String desiredLocation, final IWritableMount mount) {
-            throw new UnsupportedOperationException();
+            if (fileSystems.containsKey(desiredLocation)) {
+                return null;
+            }
+            return mount(desiredLocation, FileSystem.asManagedEnvironment(FileSystem.fromComputerCraft(mount)));
+        }
+
+        private String mount(final String path, final li.cil.oc.api.network.ManagedEnvironment fileSystem) {
+            fileSystems.put(path, fileSystem);
+            context.node().connect(fileSystem.node());
+            return path;
         }
 
         @Override
         public void unmount(final String location) {
-            throw new UnsupportedOperationException();
+            final li.cil.oc.api.network.ManagedEnvironment fileSystem = fileSystems.remove(location);
+            if (fileSystem != null) {
+                fileSystem.node().remove();
+            }
         }
 
         @Override
         public int getID() {
-            return context.address().hashCode();
+            return context.node().address().hashCode();
         }
 
         @Override

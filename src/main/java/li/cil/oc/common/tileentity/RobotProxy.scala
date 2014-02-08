@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
@@ -67,7 +67,7 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
       // Use the same address we use internally on the outside.
       if (isServer) {
         val nbt = new NBTTagCompound()
-        nbt.setString("address", robot.address)
+        nbt.setString("address", robot.node.address)
         node.load(nbt)
       }
       Network.joinOrCreateNetwork(this)
