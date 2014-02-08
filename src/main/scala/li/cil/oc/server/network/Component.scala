@@ -8,6 +8,7 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.CompoundBlockEnvironment
+import li.cil.oc.server.network.Component.{PeripheralCallback, ComponentCallback}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsJava._
@@ -24,18 +25,26 @@ trait Component extends network.Component with Node {
   private lazy val hosts = host match {
     case multi: CompoundBlockEnvironment =>
       callbacks.map {
-        case (method, callback) =>
-          multi.environments.find {
-            case (_, environment) => environment.getClass == callback.method.getDeclaringClass
-          } match {
-            case Some((_, environment)) => method -> Some(environment)
-            case _ => method -> None
-          }
+        case (method, callback) => callback match {
+          case component: ComponentCallback =>
+            multi.environments.find {
+              case (_, environment) => environment.getClass == component.method.getDeclaringClass
+            } match {
+              case Some((_, environment)) => method -> Some(environment)
+              case _ => method -> None
+            }
+          case peripheral: PeripheralCallback =>
+            multi.environments.find {
+              case (_, environment: ManagedPeripheral) => environment.methods.contains(peripheral.name)
+            } match {
+              case Some((_, environment)) => method -> Some(environment)
+              case _ => method -> None
+            }
+        }
       }
-    case _ =>
-      callbacks.map {
-        case (method, callback) => method -> Some(host)
-      }
+    case _ => callbacks.map {
+      case (method, callback) => method -> Some(host)
+    }
   }
 
   private var _visibility = Visibility.None
@@ -130,6 +139,7 @@ object Component {
 
   def callbacks(host: Environment) = host match {
     case multi: CompoundBlockEnvironment => analyze(host)
+    case peripheral: ManagedPeripheral => analyze(host)
     case _ => cache.getOrElseUpdate(host.getClass, analyze(host))
   }
 
@@ -137,8 +147,20 @@ object Component {
     val callbacks = mutable.Map.empty[String, Callback]
     val seeds = host match {
       case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) => environment.getClass: Class[_]
+        case (_, environment) =>
+          environment match {
+            case peripheral: ManagedPeripheral => for (name <- peripheral.methods() if !callbacks.contains(name)) {
+              callbacks += name -> new PeripheralCallback(name)
+            }
+            case _ =>
+          }
+          environment.getClass: Class[_]
       }
+      case peripheral: ManagedPeripheral =>
+        for (name <- peripheral.methods() if !callbacks.contains(name)) {
+          callbacks += name -> new PeripheralCallback(name)
+        }
+        Seq(host.getClass: Class[_])
       case _ => Seq(host.getClass: Class[_])
     }
     for (seed <- seeds) {
@@ -162,7 +184,7 @@ object Component {
             val a = m.getAnnotation[network.Callback](classOf[network.Callback])
             val name = if (a.value != null && a.value.trim != "") a.value else m.getName
             if (!callbacks.contains(name)) {
-              callbacks += name -> new Callback(m, a.direct, a.limit)
+              callbacks += name -> new ComponentCallback(m, a.direct, a.limit)
             }
           }
         )
@@ -175,12 +197,24 @@ object Component {
 
   // ----------------------------------------------------------------------- //
 
-  class Callback(val method: Method, val direct: Boolean, val limit: Int) {
-    def apply(instance: AnyRef, context: Context, args: Arguments): Array[AnyRef] = try {
+  abstract class Callback(val direct: Boolean, val limit: Int) {
+    def apply(instance: Environment, context: Context, args: Arguments): Array[AnyRef]
+  }
+
+  class ComponentCallback(val method: Method, direct: Boolean, limit: Int) extends Callback(direct, limit) {
+    override def apply(instance: Environment, context: Context, args: Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
     } catch {
       case e: InvocationTargetException => throw e.getCause
     }
+  }
+
+  class PeripheralCallback(val name: String) extends Callback(true, 100) {
+    override def apply(instance: Environment, context: Context, args: Arguments) =
+      instance match {
+        case peripheral: ManagedPeripheral => peripheral.invoke(name, context, args)
+        case _ => throw new NoSuchMethodException()
+      }
   }
 
   class VarArgs(val args: Seq[AnyRef]) extends Arguments {

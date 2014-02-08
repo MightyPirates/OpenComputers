@@ -81,6 +81,5 @@ public interface Component extends Node {
      * @return the list of results, or <tt>null</tt> if there is no result.
      * @throws NoSuchMethodException if there is no method with that name.
      */
-    Object[] invoke(String method, Context context, Object... arguments)
-            throws NoSuchMethodException;
+    Object[] invoke(String method, Context context, Object... arguments) throws Exception;
 }
