@@ -1,10 +1,9 @@
-package li.cil.oc.driver.mekanism;
+package li.cil.occ.handler.mekanism;
 
+import li.cil.occ.handler.computercraft.DriverPeripheral;
+import li.cil.occ.util.Reflection;
 
-import li.cil.oc.driver.computercraft.DriverPeripheral;
-import li.cil.oc.util.Reflection;
-
-public class DriverTeleporter extends DriverPeripheral {
+public final class DriverTeleporter extends DriverPeripheral {
     private static final Class<?> TileEntityTeleporter = Reflection.getClass("mekanism.common.tileentity.TileEntityTeleporter");
 
     @Override

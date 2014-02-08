@@ -1,10 +1,9 @@
-package li.cil.oc.driver.mekanism;
+package li.cil.occ.handler.mekanism;
 
+import li.cil.occ.handler.computercraft.DriverPeripheral;
+import li.cil.occ.util.Reflection;
 
-import li.cil.oc.driver.computercraft.DriverPeripheral;
-import li.cil.oc.util.Reflection;
-
-public class DriverMetallurgicInfuser extends DriverPeripheral {
+public final class DriverMetallurgicInfuser extends DriverPeripheral {
     private static final Class<?> TileEntityMetallurgicInfuser = Reflection.getClass("mekanism.common.tileentity.TileEntityMetallurgicInfuser");
 
     @Override

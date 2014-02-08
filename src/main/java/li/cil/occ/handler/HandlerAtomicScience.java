@@ -1,13 +1,13 @@
-package li.cil.oc.driver.atomicscience;
-
+package li.cil.occ.handler;
 
 import li.cil.oc.api.Driver;
-import li.cil.oc.driver.IModHandler;
+import li.cil.occ.handler.atomicscience.DriverReactor;
+import li.cil.occ.handler.atomicscience.DriverTemperature;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public class HandlerAtomicScience implements IModHandler {
+public final class HandlerAtomicScience implements IHandler {
     @Override
     public String getModId() {
         return "AtomicScience";

@@ -1,24 +1,22 @@
-package li.cil.oc.driver.atomicscience;
+package li.cil.occ.handler.atomicscience;
 
 import atomicscience.api.IReactor;
-import buildcraft.core.IMachine;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
-import li.cil.oc.driver.ManagedTileEntityEnvironment;
+import li.cil.occ.handler.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
 
-
-public class DriverReactor extends DriverTileEntity {
+public final class DriverReactor extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IReactor.class;
     }
 
     @Override
-    public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
         return new Environment((IReactor) world.getBlockTileEntity(x, y, z));
     }
 

@@ -9,7 +9,7 @@ import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.handler.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
 
-public class DriverGridTileEntity extends DriverTileEntity {
+public final class DriverGridTileEntity extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return IGridTileEntity.class;

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DriverTileController extends DriverTileEntity {
+public final class DriverTileController extends DriverTileEntity {
     private static final Class<?> TileController = Reflection.getClass("appeng.me.tile.TileController");
 
     @Override

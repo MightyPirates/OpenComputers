@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public class HandlerIndustrialCraft2 implements IHandler {
+public final class HandlerIndustrialCraft2 implements IHandler {
     @Override
     public String getModId() {
         return "IC2";

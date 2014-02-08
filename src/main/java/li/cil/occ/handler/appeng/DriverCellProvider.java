@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class DriverCellProvider extends DriverTileEntity {
+public final class DriverCellProvider extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return ICellProvider.class;
