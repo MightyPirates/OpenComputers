@@ -10,7 +10,6 @@ import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
-import li.cil.occ.mods.mekanism.ModMekanism;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
 import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
@@ -27,22 +26,19 @@ public class OpenComponents {
 
     public static final Logger Log = Logger.getLogger("OpenComponents");
 
-    public static boolean computerCraftWrapEverything;
+    public static String[] peripheralBlacklist = new String[]{
+            "JAKJ.RedstoneInMotion.CarriageControllerEntity"
+    };
 
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
         final Configuration config = new Configuration(e.getSuggestedConfigurationFile());
 
-        computerCraftWrapEverything = config.
-                get("computercraft", "wrapEverything", computerCraftWrapEverything, "" +
-                        "Enable this to automatically make any methods other mods'\n" +
-                        "blocks make available to ComputerCraft available via the\n" +
-                        "Adapter. BEWARE: this is disabled by default for a good\n" +
-                        "reason - this will not fully work for all mods, since we\n" +
-                        "cannot fully emulate what ComputerCraft offers to the mods'\n" +
-                        "callbacks. Meaning when used on untested blocks this can\n" +
-                        "very much crash or deadlock your game.").
-                getBoolean(computerCraftWrapEverything);
+        peripheralBlacklist = config.get("computercraft", "blacklist", peripheralBlacklist, "" +
+                "A list of tile entities by class name that should NOT be\n" +
+                "accessible via the Adapter block. Add blocks here that can\n" +
+                "lead to crashes or deadlocks (and report them, please!)").
+                getStringList();
 
         config.save();
     }
@@ -54,7 +50,6 @@ public class OpenComponents {
         Registry.add(new ModBuildCraft());
         Registry.add(new ModEnderStorage());
         Registry.add(new ModIndustrialCraft2());
-        Registry.add(new ModMekanism());
         Registry.add(new ModRailcraft());
         Registry.add(new ModRedstoneInMotion());
         Registry.add(new ModThermalExpansion());
