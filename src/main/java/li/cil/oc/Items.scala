@@ -16,7 +16,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Servers
-  var server: item.Server = _
+  var server1, server2, server3: item.Server = _
 
   // ----------------------------------------------------------------------- //
   // Memory
@@ -125,11 +125,13 @@ object Items {
     ram5 = new item.Memory(multi, 4)
 
     // v1.2.0
-    server = new item.Server(multi)
+    server3 = new item.Server(multi, 2)
     terminal = new item.Terminal(multi)
     cpu1 = new item.CPU(multi, 1)
     cpu2 = new item.CPU(multi, 2)
     internet = new item.InternetCard(multi)
+    server1 = new item.Server(multi, 0)
+    server2 = new item.Server(multi, 1)
 
     // ----------------------------------------------------------------------- //
 

@@ -25,7 +25,9 @@ object GuiHandler extends CommonGuiHandler {
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {
-            def container = player.getCurrentEquippedItem
+            override def tier = server.tier
+
+            override def container = player.getCurrentEquippedItem
 
             override def isUseableByPlayer(player: EntityPlayer) = player == player
           })

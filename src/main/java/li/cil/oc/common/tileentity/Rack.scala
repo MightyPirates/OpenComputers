@@ -105,7 +105,11 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override def getInventoryStackLimit = 1
 
-  override def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
+  override def isItemValidForSlot(i: Int, stack: ItemStack) =
+    Items.multi.subItem(stack) match {
+      case Some(subItem) => subItem == Items.server1 || subItem == Items.server2 || subItem == Items.server3
+      case _ => false
+    }
 
   // ----------------------------------------------------------------------- //
 

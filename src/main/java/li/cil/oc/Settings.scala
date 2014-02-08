@@ -165,7 +165,15 @@ class Settings(config: Config) {
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
-  val rTreeMaxEntries = 10 // TODO config?
+  val rTreeMaxEntries = 10
+  val terminalsPerTier = Array(config.getIntList("misc.terminalsPerTier"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Int, tier2: Int, tier3: Int)
+    case _ =>
+      OpenComputers.log.warning("Bad number of Remote Terminal counts, ignoring.")
+      Array(2, 4, 8)
+  }
+
 }
 
 object Settings {

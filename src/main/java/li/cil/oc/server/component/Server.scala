@@ -1,9 +1,11 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Items
 import li.cil.oc.api.driver
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.Registry
@@ -88,6 +90,11 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
       if (node == this.node) {
         disconnectComponents()
       }
+    }
+
+    override def tier = Items.multi.subItem(container) match {
+      case Some(server: item.Server) => server.tier
+      case _ => 0
     }
 
     var containerOverride: ItemStack = _
