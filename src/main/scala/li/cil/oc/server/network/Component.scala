@@ -36,6 +36,7 @@ trait Component extends network.Component with Node {
           case peripheral: PeripheralCallback =>
             multi.environments.find {
               case (_, environment: ManagedPeripheral) => environment.methods.contains(peripheral.name)
+              case _ => false
             } match {
               case Some((_, environment)) => method -> Some(environment)
               case _ => method -> None
