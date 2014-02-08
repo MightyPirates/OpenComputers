@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public class HandlerMekanism  implements IModHandler {
+public class HandlerMekanism implements IModHandler {
     @Override
     public String getModId() {
         return "Mekanism";
@@ -19,7 +19,6 @@ public class HandlerMekanism  implements IModHandler {
     }
 
     @Override
-    public void populate(Map<String, Object> map, ItemStack stack) {
-
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 }

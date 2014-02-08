@@ -46,14 +46,14 @@ public class OpenComponents {
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
-//        Registry.add(new HandlerAppEng());
-//        Registry.add(new HandlerBuildCraft());
+        Registry.add(new HandlerAppEng());
+        Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerComputerCraft());
-//        Registry.add(new HandlerEnderStorage());
-//        Registry.add(new HandlerIndustrialCraft2());
-//        Registry.add(new HandlerRedstoneInMotion());
-//        Registry.add(new HandlerThermalExpansion());
-     //   Registry.add(new HandlerVanilla());
+        Registry.add(new HandlerEnderStorage());
+        Registry.add(new HandlerIndustrialCraft2());
         Registry.add(new HandlerMekanism());
+        Registry.add(new HandlerRedstoneInMotion());
+        Registry.add(new HandlerThermalExpansion());
+        Registry.add(new HandlerVanilla());
     }
 }
