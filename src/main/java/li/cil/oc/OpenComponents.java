@@ -9,6 +9,7 @@ import li.cil.oc.driver.buildcraft.HandlerBuildCraft;
 import li.cil.oc.driver.computercraft.HandlerComputerCraft;
 import li.cil.oc.driver.enderstorage.HandlerEnderStorage;
 import li.cil.oc.driver.ic2.HandlerIndustrialCraft2;
+import li.cil.oc.driver.mekanism.HandlerMekanism;
 import li.cil.oc.driver.redstoneinmotion.HandlerRedstoneInMotion;
 import li.cil.oc.driver.thermalexpansion.HandlerThermalExpansion;
 import li.cil.oc.driver.vanilla.HandlerVanilla;
@@ -45,13 +46,14 @@ public class OpenComponents {
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
-        Registry.add(new HandlerAppEng());
-        Registry.add(new HandlerBuildCraft());
+//        Registry.add(new HandlerAppEng());
+//        Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerComputerCraft());
-        Registry.add(new HandlerEnderStorage());
-        Registry.add(new HandlerIndustrialCraft2());
-        Registry.add(new HandlerRedstoneInMotion());
-        Registry.add(new HandlerThermalExpansion());
-        Registry.add(new HandlerVanilla());
+//        Registry.add(new HandlerEnderStorage());
+//        Registry.add(new HandlerIndustrialCraft2());
+//        Registry.add(new HandlerRedstoneInMotion());
+//        Registry.add(new HandlerThermalExpansion());
+     //   Registry.add(new HandlerVanilla());
+        Registry.add(new HandlerMekanism());
     }
 }
