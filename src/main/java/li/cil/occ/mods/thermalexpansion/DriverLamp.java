@@ -11,7 +11,7 @@ import li.cil.occ.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public class DriverLamp extends DriverTileEntity {
+public final class DriverLamp extends DriverTileEntity {
     private static final Class<?> TileLamp = Reflection.getClass("thermalexpansion.block.lamp.TileLamp");
 
     @Override
@@ -26,17 +26,12 @@ public class DriverLamp extends DriverTileEntity {
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {
         public Environment(final TileEntity tileEntity) {
-            super(tileEntity, "Lamp");
+            super(tileEntity, "lamp");
         }
 
         @Callback
         public Object[] setColor(final Context context, final Arguments args) {
-            try {
-                return new Object[]{Reflection.invoke(tileEntity, "setColor", args.checkInteger(0))};
-            } catch (Throwable t) {
-                return new Object[]{null, "Error"};
-            }
+            return new Object[]{Reflection.tryInvoke(tileEntity, "setColor", args.checkInteger(0))};
         }
-
     }
 }

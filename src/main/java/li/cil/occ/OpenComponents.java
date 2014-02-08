@@ -10,7 +10,6 @@ import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
-import li.cil.occ.mods.mekanism.ModMekanism;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
 import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
 import li.cil.occ.mods.vanilla.ModVanilla;
@@ -49,7 +48,6 @@ public class OpenComponents {
         Registry.add(new ModBuildCraft());
         Registry.add(new ModEnderStorage());
         Registry.add(new ModIndustrialCraft2());
-        Registry.add(new ModMekanism());
         Registry.add(new ModRedstoneInMotion());
         Registry.add(new ModThermalExpansion());
         Registry.add(new ModVanilla());

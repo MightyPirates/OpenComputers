@@ -18,8 +18,8 @@ public final class ModThermalExpansion implements IMod {
     public void initialize() {
         Driver.add(new DriverEnderAttuned());
         Driver.add(new DriverEnergyHandler());
-        Driver.add(new DriverLamp());
         Driver.add(new DriverEnergyInfo());
+        Driver.add(new DriverLamp());
         Driver.add(new DriverRedstoneControl());
         Driver.add(new DriverSecureTile());
     }

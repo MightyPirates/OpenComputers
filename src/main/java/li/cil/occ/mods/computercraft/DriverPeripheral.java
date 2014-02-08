@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DriverPeripheral extends DriverTileEntity {
+public final class DriverPeripheral extends DriverTileEntity {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
 
     static {
