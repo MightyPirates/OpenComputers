@@ -1,14 +1,14 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.Textures
+import li.cil.oc.common.container.ComponentSlot
+import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Slot, Container}
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
-import li.cil.oc.util.RenderState
-import li.cil.oc.common.container.ComponentSlot
-import net.minecraft.client.renderer.texture.TextureMap
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
@@ -34,7 +34,6 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
     RenderState.makeItBlend()
   }
 
-  // TODO private now?
   def drawSlotInventory(slot: Slot, mouseX: Int, mouseY: Int) {
     if (slot.slotNumber < container.inventorySlots.size() - 36) {
       GL11.glDisable(GL11.GL_LIGHTING)
@@ -47,7 +46,7 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
         GL11.glDisable(GL11.GL_DEPTH_TEST)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
-      case something =>
+      case _ =>
     }
   }
 

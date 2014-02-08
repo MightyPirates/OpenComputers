@@ -1,18 +1,21 @@
 package li.cil.oc.client.gui
 
 import java.util
-import li.cil.oc.Settings
-import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
+import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
 import li.cil.oc.util.RenderState
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
+import net.minecraft.inventory.Slot
 import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
@@ -61,21 +64,6 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     add(buttonList, powerButton)
   }
 
-  // TODO private now?
-  //  override def drawSlotInventory(slot: Slot) {
-  //    RenderState.makeItBlend()
-  //    super.drawSlotInventory(slot)
-  //    GL11.glDisable(GL11.GL_BLEND)
-  //    if (!slot.getHasStack) slot match {
-  //      case component: ComponentSlot if component.tierIcon != null =>
-  //        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-  //        GL11.glDisable(GL11.GL_DEPTH_TEST)
-  //        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
-  //        GL11.glEnable(GL11.GL_DEPTH_TEST)
-  //      case _ =>
-  //    }
-  //  }
-
   override def drawBuffer() {
     GL11.glTranslatef(8, 8, 0)
     RenderState.disableLighting()
@@ -121,6 +109,31 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
     drawSelection()
+
+    GL11.glPushMatrix()
+    GL11.glTranslatef(guiLeft, guiTop, 0)
+    for (i1 <- 0 until inventorySlots.inventorySlots.size()) {
+      drawSlotInventory(inventorySlots.inventorySlots.get(i1).asInstanceOf[Slot])
+    }
+    GL11.glPopMatrix()
+
+    RenderState.makeItBlend()
+  }
+
+  def drawSlotInventory(slot: Slot) {
+    if (!slot.getHasStack) slot match {
+      case component: ComponentSlot if component.tierIcon != null =>
+        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
+        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+      case _ =>
+    }
+  }
+
+  protected override def drawGradientRect(par1: Int, par2: Int, par3: Int, par4: Int, par5: Int, par6: Int) {
+    super.drawGradientRect(par1, par2, par3, par4, par5, par6)
+    RenderState.makeItBlend()
   }
 
   protected override def keyTyped(char: Char, code: Int) {
@@ -175,5 +188,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     t.draw()
   }
 
-  private def isPointInRegion(rx: Int, ry: Int, w: Int, h: Int, x: Int, y: Int) = x >= rx && x <= rx + w && y >= ry && y <= ry + h
+  private def isPointInRegion(rx: Int, ry: Int, w: Int, h: Int, x: Int, y: Int) = {
+    val px = x - guiLeft
+    val py = y - guiTop
+    px >= rx - 1 && px < rx + w + 1 && py >= ry - 1 && py < ry + h + 1
+  }
 }
