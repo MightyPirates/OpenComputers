@@ -1,14 +1,15 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.thermalexpansion;
 
 import cofh.api.energy.IEnergyContainerItem;
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.thermalexpansion.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerThermalExpansion implements IHandler {
+public final class ModThermalExpansion implements IMod {
     @Override
     public String getModId() {
         return "ThermalExpansion";

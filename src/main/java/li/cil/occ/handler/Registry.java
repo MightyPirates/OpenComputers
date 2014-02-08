@@ -11,12 +11,12 @@ import java.util.Set;
 import java.util.logging.Level;
 
 public final class Registry {
-    private static final Set<IHandler> handlers = new HashSet<IHandler>();
+    private static final Set<IMod> handlers = new HashSet<IMod>();
 
     private Registry() {
     }
 
-    public static void add(final IHandler mod) {
+    public static void add(final IMod mod) {
         final boolean alwaysEnabled = mod.getModId() == null || mod.getModId().isEmpty();
         if ((alwaysEnabled || Loader.isModLoaded(mod.getModId())) && handlers.add(mod)) {
             OpenComponents.Log.info(String.format("Initializing handler for '%s'.", mod.getModId()));
@@ -33,7 +33,7 @@ public final class Registry {
             return null;
         }
         final Map<String, Object> map = new HashMap<String, Object>();
-        for (IHandler handler : handlers) {
+        for (IMod handler : handlers) {
             handler.populate(map, value);
         }
         return map;

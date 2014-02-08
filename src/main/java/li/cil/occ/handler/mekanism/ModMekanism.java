@@ -1,12 +1,13 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.mekanism;
 
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.mekanism.*;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerMekanism implements IHandler {
+public final class ModMekanism implements IMod {
     @Override
     public String getModId() {
         return "Mekanism";

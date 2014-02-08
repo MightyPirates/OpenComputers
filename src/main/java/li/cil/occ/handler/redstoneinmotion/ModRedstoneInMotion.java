@@ -1,12 +1,13 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.redstoneinmotion;
 
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.redstoneinmotion.DriverCarriageController;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerRedstoneInMotion implements IHandler {
+public final class ModRedstoneInMotion implements IMod {
     @Override
     public String getModId() {
         return "JAKJ_RedstoneInMotion";

@@ -1,15 +1,16 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.ic2;
 
 import ic2.api.item.ElectricItem;
 import ic2.api.item.IElectricItem;
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.ic2.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerIndustrialCraft2 implements IHandler {
+public final class ModIndustrialCraft2 implements IMod {
     @Override
     public String getModId() {
         return "IC2";

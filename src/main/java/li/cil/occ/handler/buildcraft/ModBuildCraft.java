@@ -1,6 +1,7 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.buildcraft;
 
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.buildcraft.DriverMachine;
 import li.cil.occ.handler.buildcraft.DriverPipe;
 import li.cil.occ.handler.buildcraft.DriverPipeTE;
@@ -9,7 +10,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerBuildCraft implements IHandler {
+public final class ModBuildCraft implements IMod {
     @Override
     public String getModId() {
         return "BuildCraft|Core";

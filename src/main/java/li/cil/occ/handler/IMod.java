@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public interface IHandler {
+public interface IMod {
     String getModId();
 
     void initialize();

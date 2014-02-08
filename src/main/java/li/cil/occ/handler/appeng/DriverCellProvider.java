@@ -9,7 +9,6 @@ import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
-import li.cil.occ.handler.HandlerAppEng;
 import li.cil.occ.handler.ManagedTileEntityEnvironment;
 import li.cil.occ.handler.Registry;
 import net.minecraft.item.ItemStack;
@@ -105,7 +104,7 @@ public final class DriverCellProvider extends DriverTileEntity {
             }
             final ArrayList<Map> list = new ArrayList<Map>();
             for (IAEItemStack stack : cell.getAvailableItems()) {
-                list.add(HandlerAppEng.toMap(stack));
+                list.add(ModAppEng.toMap(stack));
             }
             return list.toArray();
         }

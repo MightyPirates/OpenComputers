@@ -1,12 +1,13 @@
-package li.cil.occ.handler;
+package li.cil.occ.handler.enderstorage;
 
 import li.cil.oc.api.Driver;
+import li.cil.occ.handler.IMod;
 import li.cil.occ.handler.enderstorage.DriverFrequencyOwner;
 import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public final class HandlerEnderStorage implements IHandler {
+public final class ModEnderStorage implements IMod {
     @Override
     public String getModId() {
         return "EnderStorage";

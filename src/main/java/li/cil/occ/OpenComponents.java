@@ -3,7 +3,17 @@ package li.cil.occ;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import li.cil.occ.handler.*;
+import li.cil.occ.handler.Registry;
+import li.cil.occ.handler.appeng.ModAppEng;
+import li.cil.occ.handler.atomicscience.ModAtomicScience;
+import li.cil.occ.handler.buildcraft.ModBuildCraft;
+import li.cil.occ.handler.computercraft.ModComputerCraft;
+import li.cil.occ.handler.enderstorage.ModEnderStorage;
+import li.cil.occ.handler.ic2.ModIndustrialCraft2;
+import li.cil.occ.handler.mekanism.ModMekanism;
+import li.cil.occ.handler.redstoneinmotion.ModRedstoneInMotion;
+import li.cil.occ.handler.thermalexpansion.ModThermalExpansion;
+import li.cil.occ.handler.vanilla.ModVanilla;
 import net.minecraftforge.common.Configuration;
 
 import java.util.logging.Logger;
@@ -37,19 +47,19 @@ public class OpenComponents {
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
-        Registry.add(new HandlerAppEng());
-        Registry.add(new HandlerAtomicScience());
-        Registry.add(new HandlerBuildCraft());
-        Registry.add(new HandlerEnderStorage());
-        Registry.add(new HandlerIndustrialCraft2());
-        Registry.add(new HandlerMekanism());
-        Registry.add(new HandlerRedstoneInMotion());
-        Registry.add(new HandlerThermalExpansion());
-        Registry.add(new HandlerVanilla());
+        Registry.add(new ModAppEng());
+        Registry.add(new ModAtomicScience());
+        Registry.add(new ModBuildCraft());
+        Registry.add(new ModEnderStorage());
+        Registry.add(new ModIndustrialCraft2());
+        Registry.add(new ModMekanism());
+        Registry.add(new ModRedstoneInMotion());
+        Registry.add(new ModThermalExpansion());
+        Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it
         // being used rather than other more concrete implementations, such as
         // is the case in the Redstone in Motion driver (replaces 'move').
-        Registry.add(new HandlerComputerCraft());
+        Registry.add(new ModComputerCraft());
     }
 }
