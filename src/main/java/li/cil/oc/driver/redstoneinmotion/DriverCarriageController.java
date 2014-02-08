@@ -1,5 +1,6 @@
 package li.cil.oc.driver.redstoneinmotion;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -14,7 +15,7 @@ import net.minecraft.world.World;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class DriverCarriageController extends DriverTileEntity {
+public final class DriverCarriageController extends DriverTileEntity implements NamedBlock {
     private static final Class<?> CarriageControllerEntity = Reflection.getClass("JAKJ.RedstoneInMotion.CarriageControllerEntity");
     private static final Class<?> CarriageObstructionException = Reflection.getClass("JAKJ.RedstoneInMotion.CarriageObstructionException");
     private static final Class<?> Directions = Reflection.getClass("JAKJ.RedstoneInMotion.Directions");
@@ -22,6 +23,11 @@ public final class DriverCarriageController extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
         return CarriageControllerEntity;
+    }
+
+    @Override
+    public String preferredName() {
+        return "carriage";
     }
 
     @Override
