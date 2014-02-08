@@ -9,15 +9,15 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
     addSlotToContainer(76, 7 + i * slotSize, api.driver.Slot.Card, 2 - i)
   }
 
-  for (i <- 0 to 3) {
-    addSlotToContainer(100, 7 + i * slotSize, api.driver.Slot.Processor)
+  for (i <- 0 to 1 + serverInventory.tier) {
+    addSlotToContainer(100, 7 + i * slotSize, api.driver.Slot.Processor, 2)
   }
 
-  for (i <- 0 to 3) {
+  for (i <- 0 to 1 + serverInventory.tier) {
     addSlotToContainer(124, 7 + i * slotSize, api.driver.Slot.Memory, 2)
   }
 
-  for (i <- 0 to 3) {
+  for (i <- 0 to 1 + serverInventory.tier) {
     addSlotToContainer(148, 7 + i * slotSize, api.driver.Slot.HardDiskDrive, 2)
   }
 

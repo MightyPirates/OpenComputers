@@ -84,9 +84,11 @@ object PacketHandler extends CommonPacketHandler {
         else {
           t.setRunning(number, p.readBoolean())
           t.sides(number) = p.readDirection()
-          val key = p.readUTF()
-          if (key != "") {
-            t.terminals(number).key = Option(key)
+          val keyCount = p.readInt()
+          val keys = t.terminals(number).keys
+          keys.clear()
+          for (i <- 0 until keyCount) {
+            keys += p.readUTF()
           }
         }
       case _ => // Invalid packet.

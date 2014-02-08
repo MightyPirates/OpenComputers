@@ -317,7 +317,11 @@ object PacketSender {
     pb.writeInt(number)
     pb.writeBoolean(t.isRunning(number))
     pb.writeDirection(t.sides(number))
-    pb.writeUTF(t.terminals(number).key.getOrElse(""))
+    val keys = t.terminals(number).keys
+    pb.writeInt(keys.length)
+    for (key <- keys) {
+      pb.writeUTF(key)
+    }
 
     player match {
       case Some(p) => pb.sendToPlayer(p)

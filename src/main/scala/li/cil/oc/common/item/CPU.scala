@@ -25,4 +25,3 @@ class CPU(val parent: Delegator, val tier: Int) extends Delegate {
     icon = iconRegister.registerIcon(Settings.resourceDomain + ":cpu" + tier)
   }
 }
-

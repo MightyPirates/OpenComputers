@@ -58,11 +58,16 @@ class Terminal(val parent: Delegator) extends Delegate {
           if (!world.isRemote) {
             rack.servers(slot) match {
               case Some(server) =>
+                val key = UUID.randomUUID().toString
+                val keys = rack.terminals(slot).keys
                 if (!stack.hasTagCompound) {
                   stack.setTagCompound(new NBTTagCompound())
                 }
-                val key = UUID.randomUUID().toString
-                rack.terminals(slot).key = Some(key)
+                else {
+                  keys -= stack.getTagCompound.getString(Settings.namespace + "key")
+                }
+                keys.remove(0, math.max(0, 1 + keys.length - Settings.get.terminalsPerTier(server.tier)))
+                keys += key
                 ServerPacketSender.sendServerState(rack, slot)
                 stack.getTagCompound.setString(Settings.namespace + "key", key)
                 stack.getTagCompound.setString(Settings.namespace + "server", server.machine.node.address)

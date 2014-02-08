@@ -2,6 +2,7 @@ package li.cil.oc.common.tileentity
 
 import com.google.common.base.Strings
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Connector, Visibility, Node, Analyzable}
@@ -40,6 +41,12 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   // ----------------------------------------------------------------------- //
 
   override def canConnect(side: ForgeDirection) = side != facing
+
+  @Method(modid = "StargateTech2")
+  override def getInterfaces(side: Int) = if (side != facing.ordinal) {
+    super.getInterfaces(side)
+  }
+  else null
 
   // ----------------------------------------------------------------------- //
 
@@ -100,7 +107,11 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override def getInventoryStackLimit = 1
 
-  override def isItemValidForSlot(i: Int, stack: ItemStack) = Items.server.createItemStack().isItemEqual(stack)
+  override def isItemValidForSlot(i: Int, stack: ItemStack) =
+    Items.multi.subItem(stack) match {
+      case Some(subItem) => subItem == Items.server1 || subItem == Items.server2 || subItem == Items.server3
+      case _ => false
+    }
 
   // ----------------------------------------------------------------------- //
 

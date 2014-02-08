@@ -1,9 +1,11 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Items
 import li.cil.oc.api.driver
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.Registry
@@ -15,6 +17,31 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
   val machine = new Machine(this)
 
   val inventory = new NetworkedInventory()
+
+  def tier = Items.multi.subItem(rack.getStackInSlot(number)) match {
+    case Some(server: item.Server) => server.tier
+    case _ => 0
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def address() = machine.node.address
+
+  override def node() = machine.node
+
+  override def start() = machine.start()
+
+  override def stop() = machine.stop()
+
+  override def pause(seconds: Double) = machine.pause(seconds)
+
+  override def isPaused = machine.isPaused
+
+  override def isRunning = machine.isRunning
+
+  override def signal(name: String, args: AnyRef*) = machine.signal(name, args: _*)
+
+  override def canInteract(player: String) = machine.canInteract(player)
 
   // ----------------------------------------------------------------------- //
 
@@ -69,6 +96,8 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
         disconnectComponents()
       }
     }
+
+    override def tier = Server.this.tier
 
     var containerOverride: ItemStack = _
 

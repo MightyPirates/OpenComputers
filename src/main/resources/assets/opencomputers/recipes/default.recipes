@@ -12,9 +12,19 @@ terminal {
           [nuggetIron, "oc:craftingKeyboard", nuggetIron]]
 }
 
-server {
+server1 {
   input: [[obsidian, "oc:craftingRAMTier3", obsidian]
+          ["oc:circuitTier1", "oc:circuitTier2", "oc:circuitTier1"]
+          [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
+}
+server2 {
+  input: [[obsidian, "oc:craftingRAMTier4", obsidian]
           ["oc:circuitTier2", "oc:circuitTier3", "oc:circuitTier2"]
+          [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
+}
+server3 {
+  input: [[obsidian, "oc:craftingRAMTier5", obsidian]
+          ["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
           [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
 }
 

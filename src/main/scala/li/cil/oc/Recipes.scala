@@ -68,7 +68,9 @@ object Recipes {
       addRecipe(Items.hdd2.createItemStack(), recipes, "hdd2")
       addRecipe(Items.hdd3.createItemStack(), recipes, "hdd3")
 
-      addRecipe(Items.server.createItemStack(), recipes, "server")
+      addRecipe(Items.server1.createItemStack(), recipes, "server1")
+      addRecipe(Items.server2.createItemStack(), recipes, "server2")
+      addRecipe(Items.server3.createItemStack(), recipes, "server3")
 
       if (StargateTech2.isAvailable) {
         addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")

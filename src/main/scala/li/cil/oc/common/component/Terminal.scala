@@ -10,7 +10,8 @@ import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.PackedColor.Depth
 import li.cil.oc.{Items, Settings, common}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import scala.collection.mutable
 
 class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner {
   val buffer = new common.component.Buffer(this)
@@ -22,8 +23,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
       override def isUseableByPlayer(p: EntityPlayer) = {
         val stack = p.getCurrentEquippedItem
         Items.multi.subItem(stack) match {
-          case Some(t: item.Terminal) if key.isDefined && stack.hasTagCompound =>
-            key.get == stack.getTagCompound.getString(Settings.namespace + "key")
+          case Some(t: item.Terminal) if stack.hasTagCompound => keys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
           case _ => false
         }
       }
@@ -31,7 +31,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   }
   else null
 
-  var key: Option[String] = None
+  val keys = mutable.ListBuffer.empty[String]
 
   def isServer = rack.isServer
 
@@ -48,34 +48,28 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   def load(nbt: NBTTagCompound) {
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
     keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
+    // Compatibility for previous dev versions where there was only one term.
     if (nbt.hasKey(Settings.namespace + "key")) {
-      key = Option(nbt.getString(Settings.namespace + "key"))
+      keys += nbt.getString(Settings.namespace + "key")
     }
+    nbt.getTagList(Settings.namespace + "keys").foreach[NBTTagString](keys += _.data)
   }
 
   def save(nbt: NBTTagCompound) {
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
-    key match {
-      case Some(value) => nbt.setString(Settings.namespace + "key", value)
-      case _ =>
-    }
+    nbt.setNewTagList("keys", keys)
   }
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {
     buffer.buffer.load(nbt)
-    if (nbt.hasKey("key")) {
-      key = Option(nbt.getString("key"))
-    }
+    nbt.getTagList("keys").foreach[NBTTagString](keys += _.data)
   }
 
   def writeToNBTForClient(nbt: NBTTagCompound) {
     buffer.buffer.save(nbt)
-    key match {
-      case Some(value) => nbt.setString("key", value)
-      case _ =>
-    }
+    nbt.setNewTagList("keys", keys)
   }
 
   // ----------------------------------------------------------------------- //

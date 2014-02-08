@@ -18,7 +18,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Context with Machine.Owner {
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Machine.Owner {
   protected val _computer = if (isRemote) null else new Machine(this)
 
   def computer = _computer

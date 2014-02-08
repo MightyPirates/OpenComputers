@@ -2,25 +2,27 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
+import li.cil.oc.api.network._
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
 
-class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent with IBusDriver {
+class AbstractBus(val device: IBusDevice) extends ManagedComponent with IBusDriver {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
     withConnector().
     create()
 
-  val busInterface: IBusInterface = StargateTechAPI.api.getFactory.getIBusInterface(owner, this)
+  val busInterface: IBusInterface = StargateTechAPI.api.getFactory.getIBusInterface(device, this)
 
   protected var isEnabled = true
 
   protected var address = 0
 
   protected var sendQueue: Option[QueuedPacket] = None
+
+  protected var owner: Option[Context] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -30,7 +32,7 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
     val lip = packet.getPlainText
     val data = Map(lip.getEntryList.map(key => (key, lip.get(key))): _*)
     val metadata = Map("mod" -> lip.getMetadata.modID, "device" -> lip.getMetadata.deviceName, "player" -> lip.getMetadata.playerName)
-    owner.signal("bus_message", Int.box(packet.getProtocolID), Int.box(packet.getSender), Int.box(packet.getTarget), data, metadata)
+    owner.foreach(_.signal("bus_message", Int.box(packet.getProtocolID), Int.box(packet.getSender), Int.box(packet.getTarget), data, metadata))
   }
 
   override def getNextPacketToSend = if (sendQueue.isDefined) {
@@ -86,6 +88,20 @@ class AbstractBus(val owner: Context with IBusDevice) extends ManagedComponent w
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (owner.isEmpty && node.host.isInstanceOf[Context]) {
+      owner = Some(node.host.asInstanceOf[Context])
+    }
+  }
+
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (owner.isDefined && node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get)) {
+      owner = None
+    }
+  }
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)

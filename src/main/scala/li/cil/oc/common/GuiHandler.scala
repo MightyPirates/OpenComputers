@@ -20,6 +20,8 @@ abstract class GuiHandler extends IGuiHandler {
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new container.Server(player.inventory, new ServerInventory {
+            override def tier = server.tier
+
             override def container = player.getCurrentEquippedItem
 
             override def isUseableByPlayer(player: EntityPlayer) = player == player

@@ -5,12 +5,12 @@ import li.cil.oc.server.component
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.{Settings, Items}
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import net.minecraft.tileentity.TileEntity
 
 object UpgradeNavigation extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeNavigation)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = {
+  override def createEnvironment(stack: ItemStack, container: TileEntity) = {
     val nbt = Registry.itemDriverFor(stack) match {
       case Some(driver) => driver.dataTag(stack)
       case _ => null
