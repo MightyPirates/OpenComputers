@@ -22,6 +22,7 @@ public final class ModIndustrialCraft2 implements IMod {
         Driver.add(new DriverEnergyConductor());
         Driver.add(new DriverEnergySink());
         Driver.add(new DriverEnergySource());
+        Driver.add(new DriverMassFab());
         Driver.add(new DriverEnergyStorage());
     }
 
