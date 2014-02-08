@@ -38,6 +38,7 @@ public class OpenComponents {
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
         Registry.add(new HandlerAppEng());
+        Registry.add(new HandlerAtomicScience());
         Registry.add(new HandlerBuildCraft());
         Registry.add(new HandlerEnderStorage());
         Registry.add(new HandlerIndustrialCraft2());
