@@ -148,20 +148,8 @@ object Component {
     val callbacks = mutable.Map.empty[String, Callback]
     val seeds = host match {
       case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) =>
-          environment match {
-            case peripheral: ManagedPeripheral => for (name <- peripheral.methods() if !callbacks.contains(name)) {
-              callbacks += name -> new PeripheralCallback(name)
-            }
-            case _ =>
-          }
-          environment.getClass: Class[_]
+        case (_, environment) => environment.getClass: Class[_]
       }
-      case peripheral: ManagedPeripheral =>
-        for (name <- peripheral.methods() if !callbacks.contains(name)) {
-          callbacks += name -> new PeripheralCallback(name)
-        }
-        Seq(host.getClass: Class[_])
       case _ => Seq(host.getClass: Class[_])
     }
     for (seed <- seeds) {
@@ -192,6 +180,21 @@ object Component {
 
         c = c.getSuperclass
       }
+    }
+    host match {
+      case multi: CompoundBlockEnvironment => multi.environments.map {
+        case (_, environment) => environment match {
+          case peripheral: ManagedPeripheral => for (name <- peripheral.methods() if !callbacks.contains(name)) {
+            callbacks += name -> new PeripheralCallback(name)
+          }
+          case _ =>
+        }
+      }
+      case peripheral: ManagedPeripheral =>
+        for (name <- peripheral.methods() if !callbacks.contains(name)) {
+          callbacks += name -> new PeripheralCallback(name)
+        }
+      case _ =>
     }
     callbacks.toMap
   }
