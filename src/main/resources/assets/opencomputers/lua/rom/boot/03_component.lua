@@ -54,27 +54,35 @@ function component.setPrimary(componentType, address)
     address = component.get(address, componentType)
     assert(address, "no such component")
   end
-  local wasAvailable = component.isAvailable(componentType)
-  if wasAvailable and address == primaries[componentType].address then
+
+  local wasAvailable = primaries[componentType]
+  if wasAvailable and address == wasAvailable.address then
     return
   end
-  primaries[componentType] = nil
   local wasAdding = adding[componentType]
-  if wasAdding then
-    event.cancel(wasAdding)
-    adding[componentType] = nil
+  if wasAdding and address == wasAdding.address then
+    return
   end
+  if wasAdding then
+    event.cancel(wasAdding.timer)
+  end
+  primaries[componentType] = nil
+  adding[componentType] = nil
+
   local primary = address and component.proxy(address) or nil
   if wasAvailable then
     computer.pushSignal("component_unavailable", componentType)
   end
   if primary then
     if wasAvailable or wasAdding then
-      adding[componentType] = event.timer(0.1, function()
-        primaries[componentType] = primary
-        adding[componentType] = nil
-        computer.pushSignal("component_available", componentType)
-      end)
+      adding[componentType] = {
+        address=address,
+        timer=event.timer(0.1, function()
+          adding[componentType] = nil
+          primaries[componentType] = primary
+          computer.pushSignal("component_available", componentType)
+        end)
+      }
     else
       primaries[componentType] = primary
       computer.pushSignal("component_available", componentType)
@@ -85,14 +93,14 @@ end
 -------------------------------------------------------------------------------
 
 local function onComponentAdded(_, address, componentType)
-  if not component.isAvailable(componentType) then
+  if not (primaries[componentType] or adding[componentType]) then
     component.setPrimary(componentType, address)
   end
 end
 
 local function onComponentRemoved(_, address, componentType)
-  if component.isAvailable(componentType) and
-    component.getPrimary(componentType).address == address
+  if primaries[componentType] and primaries[componentType].address == address or
+     adding[componentType] and adding[componentType].address == address
   then
     component.setPrimary(componentType, component.list(componentType)())
   end
