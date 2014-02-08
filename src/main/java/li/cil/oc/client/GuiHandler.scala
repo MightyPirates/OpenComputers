@@ -48,7 +48,7 @@ object GuiHandler extends CommonGuiHandler {
                 case Some(term) =>
                   def inRange = player.isEntityAlive && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                   if (inRange) {
-                    if (term.key.isDefined && term.key.get == key) return new gui.Screen(term.buffer, true, () => {
+                    if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => {
                       // Check if someone else bound a term to our server.
                       if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
                         Minecraft.getMinecraft.displayGuiScreen(null)

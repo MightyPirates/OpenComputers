@@ -18,6 +18,11 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
   val inventory = new NetworkedInventory()
 
+  def tier = Items.multi.subItem(rack.getStackInSlot(number)) match {
+    case Some(server: item.Server) => server.tier
+    case _ => 0
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def address() = machine.node.address
@@ -92,10 +97,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
       }
     }
 
-    override def tier = Items.multi.subItem(container) match {
-      case Some(server: item.Server) => server.tier
-      case _ => 0
-    }
+    override def tier = Server.this.tier
 
     var containerOverride: ItemStack = _
 
