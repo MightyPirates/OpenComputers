@@ -66,7 +66,10 @@ class Terminal(val parent: Delegator) extends Delegate {
                 else {
                   keys -= stack.getTagCompound.getString(Settings.namespace + "key")
                 }
-                keys.remove(0, math.max(0, 1 + keys.length - Settings.get.terminalsPerTier(server.tier)))
+                val maxSize = Settings.get.terminalsPerTier(server.tier)
+                while (keys.length >= maxSize) {
+                  keys.remove(0)
+                }
                 keys += key
                 ServerPacketSender.sendServerState(rack, slot)
                 stack.getTagCompound.setString(Settings.namespace + "key", key)

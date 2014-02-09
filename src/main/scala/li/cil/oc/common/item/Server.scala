@@ -51,9 +51,10 @@ class Server(val parent: Delegator, val tier: Int) extends Delegate {
 
   override def onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer) = {
     if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.Server.id, world, 0, 0, 0)
-      }
+      // Open the GUI immediately on the client, too, to avoid the player
+      // changing the current slot before it actually opens, which can lead to
+      // desynchronization of the player inventory.
+      player.openGui(OpenComputers, GuiType.Server.id, world, 0, 0, 0)
       player.swingItem()
     }
     stack

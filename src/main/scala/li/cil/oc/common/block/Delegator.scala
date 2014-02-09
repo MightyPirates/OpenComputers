@@ -41,11 +41,12 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
   }
 
   def subBlock(stack: ItemStack): Option[Child] =
-    stack.getItem match {
+    if (stack != null) stack.getItem match {
       case block: ItemBlock if block.field_150939_a == this =>
         subBlock(block.getMetadata(stack.getItemDamage))
       case _ => None
     }
+  else None
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     if (world.getBlock(x, y, z) == this) subBlock(world.getBlockMetadata(x, y, z))

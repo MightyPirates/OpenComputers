@@ -36,10 +36,11 @@ class Delegator extends Item {
   }
 
   def subItem(stack: ItemStack): Option[Delegate] =
-    subItem(stack.getItemDamage) match {
+    if (stack != null) subItem(stack.getItemDamage) match {
       case Some(subItem) if stack.getItem == this => Some(subItem)
       case _ => None
     }
+    else None
 
   def subItem(damage: Int) =
     damage match {

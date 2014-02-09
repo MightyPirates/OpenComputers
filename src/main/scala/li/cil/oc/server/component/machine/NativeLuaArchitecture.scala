@@ -172,9 +172,6 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
         new ExecutionResult.Error("not enough memory")
       case e: java.lang.Error if e.getMessage == "not enough memory" =>
         new ExecutionResult.Error("not enough memory")
-      case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!\n", e)
-        new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
     }
   }
 
