@@ -74,6 +74,7 @@ oc:item.WirelessNetworkCard.name=Drahtlosnetzwerkkarte
 
 # GUI
 oc:gui.Analyzer.Address=§6Adresse§f: %s
+oc:gui.Analyzer.AddressCopied=Adresse wurde in die Zwischenablage kopiert.
 oc:gui.Analyzer.ChargerSpeed=§6Ladegeschwindigkeit§f: %s
 oc:gui.Analyzer.ComponentName=§6Komponentenname§f: %s
 oc:gui.Analyzer.Components=§6Anzahl verbundener Komponenten§f: %s

@@ -74,6 +74,7 @@ oc:item.WirelessNetworkCard.name=Wireless Network Card
 
 # GUI
 oc:gui.Analyzer.Address=§6Address§f: %s
+oc:gui.Analyzer.AddressCopied=Address copied to clipboard.
 oc:gui.Analyzer.ChargerSpeed=§6Charge speed§f: %s
 oc:gui.Analyzer.ComponentName=§6Component name§f: %s
 oc:gui.Analyzer.Components=§6Number of connected components§f: %s
