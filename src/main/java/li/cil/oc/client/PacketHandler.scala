@@ -1,12 +1,14 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
+import li.cil.oc.Settings
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 
@@ -56,7 +58,8 @@ class PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)
-      player.addChatMessage("Address copied to clipboard.")
+      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(
+        Settings.namespace + "gui.Analyzer.AddressCopied"))
     }
   }
 
