@@ -7,7 +7,7 @@ package li.cil.oc.api.network;
  * those defined via the {@link li.cil.oc.api.network.Callback} annotation, and
  * invoking said methods.
  */
-public interface ManagedPeripheral extends ManagedEnvironment {
+public interface ManagedPeripheral extends Environment {
     /**
      * Get the list of methods provided by this environment, in
      * <em>addition</em> to methods marked as callbacks.
