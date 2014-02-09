@@ -105,10 +105,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         false
       }
       else if (componentCount > owner.maxComponents) {
-        message = owner match {
-          case t: tileentity.Case if !t.hasCPU => Some(Settings.namespace + "gui.Error.NoCPU")
-          case _ => Some(Settings.namespace + "gui.Error.ComponentOverflow")
-        }
+        crash(Settings.namespace + (owner match {
+          case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
+          case _ => "gui.Error.ComponentOverflow"
+        }))
         false
       }
       else if (owner.installedMemory > 0) {
@@ -121,16 +121,17 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           }
         }
         else {
-          message = Some(Settings.namespace + "gui.Error.NoEnergy")
+          crash(Settings.namespace + "gui.Error.NoEnergy")
           false
         }
       }
       else {
-        message = Some(Settings.namespace + "gui.Error.NoRAM")
+        crash(Settings.namespace + "gui.Error.NoRAM")
         false
       }
     case Machine.State.Paused if remainingPause > 0 =>
       remainingPause = 0
+      owner.markAsChanged()
       true
     case Machine.State.Stopping =>
       switchTo(Machine.State.Restarting)
@@ -148,7 +149,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
     if (shouldPause(state.synchronized(state.top))) {
       // Check again when we get the lock, might have changed since.
-      this.synchronized(state.synchronized(if (shouldPause(state.top)) {
+      Machine.this.synchronized(state.synchronized(if (shouldPause(state.top)) {
         if (state.top != Machine.State.Paused) {
           assert(!state.contains(Machine.State.Paused))
           state.push(Machine.State.Paused)
@@ -390,7 +391,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     // might turn into a deadlock depending on where it currently is.
     state.synchronized(state.top) match {
       // Computer is shutting down.
-      case Machine.State.Stopping => this.synchronized(state.synchronized {
+      case Machine.State.Stopping => Machine.this.synchronized(state.synchronized {
         close()
         tmp.foreach(_.node.remove()) // To force deleting contents.
         if (node.network != null) {
@@ -499,7 +500,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = this.synchronized {
+  override def load(nbt: NBTTagCompound) = Machine.this.synchronized {
     assert(state.top == Machine.State.Stopped)
     assert(_users.isEmpty)
     assert(signals.isEmpty)
@@ -557,7 +558,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     else close() // Clean up in case we got a weird state stack.
   }
 
-  override def save(nbt: NBTTagCompound): Unit = this.synchronized {
+  override def save(nbt: NBTTagCompound): Unit = Machine.this.synchronized {
     assert(state.top != Machine.State.Running) // Lock on 'this' should guarantee this.
 
     // Make sure we don't continue running until everything has saved.
@@ -683,11 +684,10 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
   })
 
   // This is a really high level lock that we only use for saving and loading.
-  override def run(): Unit = this.synchronized {
+  override def run(): Unit = Machine.this.synchronized {
     val enterState = state.synchronized {
-      if (state.top == Machine.State.Stopped ||
-        state.top == Machine.State.Stopping ||
-        state.top == Machine.State.Paused) {
+      if (state.top != Machine.State.Yielded &&
+        state.top != Machine.State.SynchronizedReturn) {
         return
       }
       // See if the game appears to be paused, in which case we also pause.
