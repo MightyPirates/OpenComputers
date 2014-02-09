@@ -58,7 +58,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   def save(nbt: NBTTagCompound) {
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
-    nbt.setNewTagList("keys", keys)
+    nbt.setNewTagList(Settings.namespace + "keys", keys)
   }
 
   @SideOnly(Side.CLIENT)
