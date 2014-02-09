@@ -168,7 +168,7 @@ class Settings(config: Config) {
   val rTreeMaxEntries = 10
   val terminalsPerTier = Array(config.getIntList("misc.terminalsPerTier"): _*) match {
     case Array(tier1, tier2, tier3) =>
-      Array(tier1: Int, tier2: Int, tier3: Int)
+      Array(math.max(tier1, 1), math.max(tier2, 1), math.max(tier3, 1))
     case _ =>
       OpenComputers.log.warning("Bad number of Remote Terminal counts, ignoring.")
       Array(2, 4, 8)
