@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
  * This interface is used with several of the functions in IItemTransfer
  * to provide a convenient means of dealing with entire classes of items without
  * having to specify each item individually.
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface IStackFilter
 {

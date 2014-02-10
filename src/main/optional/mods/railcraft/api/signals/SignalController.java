@@ -11,7 +11,7 @@ import mods.railcraft.api.core.WorldCoordinate;
 
 /**
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public abstract class SignalController extends AbstractPair {
 

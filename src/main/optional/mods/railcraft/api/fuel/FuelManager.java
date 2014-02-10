@@ -7,7 +7,7 @@ import net.minecraftforge.fluids.Fluid;
 
 /**
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public class FuelManager {
 

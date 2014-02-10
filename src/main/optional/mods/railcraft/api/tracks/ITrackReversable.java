@@ -6,7 +6,7 @@ package mods.railcraft.api.tracks;
  * And so long as you inherit from TrackInstanceBase it will automatically be
  * reversable via the Crowbar.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface ITrackReversable extends ITrackInstance
 {

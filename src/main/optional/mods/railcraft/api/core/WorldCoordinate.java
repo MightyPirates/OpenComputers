@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
  * This immutable class represents a point in the Minecraft world, while taking
  * into account the possibility of coordinates in different dimensions.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public class WorldCoordinate {
 

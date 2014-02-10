@@ -11,7 +11,7 @@ import net.minecraft.entity.item.EntityMinecart;
  * Each cart can up to two links. They are called Link A and Link B.
  * Some carts will have only Link A, for example the Tunnel Bore.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  * @see CartTools, ILinkableCart
  */
 public interface ILinkageManager

@@ -16,7 +16,7 @@ import net.minecraftforge.common.ForgeDirection;
  * This Tile Entity interface allows you to indicate that a block can emit power
  * from a specific side.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info/>
+ * @author CovertJaguar <http://www.railcraft.info/>
  */
 public interface IPowerEmitter {
 

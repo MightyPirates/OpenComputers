@@ -8,7 +8,7 @@ package mods.railcraft.api.signals;
 
 /**
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface IControllerTile {
 

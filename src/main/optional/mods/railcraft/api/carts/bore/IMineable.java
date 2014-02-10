@@ -14,7 +14,7 @@ import net.minecraft.world.World;
  * Generally, the reason blocks are not minable by default is to prevent you
  * from intentionally or accidentally boring through your base.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface IMineable
 {

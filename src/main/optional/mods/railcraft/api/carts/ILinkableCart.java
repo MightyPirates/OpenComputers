@@ -7,7 +7,7 @@ import net.minecraft.entity.item.EntityMinecart;
  * to change the default linkage behavior.
  * It is NOT required to be able to link a cart,
  * it merely gives you more control over the process.
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface ILinkableCart
 {

@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
  *
  * This interface is implemented by CartBase.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  * @see CartBase
  */
 public interface IMinecart {

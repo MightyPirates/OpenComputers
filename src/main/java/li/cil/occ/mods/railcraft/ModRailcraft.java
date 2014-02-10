@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.Map;
 
-public class ModRailcraft implements IMod{
+public final class ModRailcraft implements IMod {
     @Override
     public String getModId() {
         return "Railcraft";
@@ -18,7 +18,6 @@ public class ModRailcraft implements IMod{
     }
 
     @Override
-    public void populate(Map<String, Object> map, ItemStack stack) {
-
+    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 }

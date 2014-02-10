@@ -14,7 +14,7 @@ import net.minecraftforge.common.ForgeDirection;
  * This interface should be implemented by any Tile Entity that wishes to be
  * able to receive power.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info/>
+ * @author CovertJaguar <http://www.railcraft.info/>
  */
 public interface IPowerReceptor {
 

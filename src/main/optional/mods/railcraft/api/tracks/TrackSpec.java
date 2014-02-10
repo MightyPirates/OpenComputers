@@ -22,7 +22,7 @@ import net.minecraft.util.Icon;
  * @see TrackRegistry
  * @see ITrackInstance
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public final class TrackSpec {
 

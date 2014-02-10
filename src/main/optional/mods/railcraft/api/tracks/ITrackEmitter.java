@@ -8,7 +8,7 @@ package mods.railcraft.api.tracks;
  *
  * A track cannot implement both ITrackPowered and ITrackEmitter.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface ITrackEmitter extends ITrackInstance
 {

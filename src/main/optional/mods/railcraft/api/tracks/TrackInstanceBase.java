@@ -24,7 +24,7 @@ import net.minecraft.entity.EntityLivingBase;
  * functions and standard behavior for Tracks that should greatly simplify
  * implementing new Tracks when using this API.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  * @see ITrackInstance
  * @see TrackRegistry
  * @see TrackSpec

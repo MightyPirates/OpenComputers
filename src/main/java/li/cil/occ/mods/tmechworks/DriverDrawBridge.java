@@ -9,10 +9,7 @@ import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
 import tmechworks.lib.blocks.IDrawbridgeLogicBase;
 
-
 public class DriverDrawBridge extends DriverTileEntity {
-
-
     @Override
     public Class<?> getTileEntityClass() {
         return IDrawbridgeLogicBase.class;
@@ -32,7 +29,5 @@ public class DriverDrawBridge extends DriverTileEntity {
         public Object[] hasExtended(final Context context, final Arguments args) {
             return new Object[]{tileEntity.hasExtended()};
         }
-
-
     }
 }

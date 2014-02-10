@@ -6,7 +6,7 @@ import net.minecraftforge.fluids.FluidStack;
  * This interface allows carts to transfer liquid between each other as well as
  * adding a couple other functions related to liquids.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface ILiquidTransfer {
 

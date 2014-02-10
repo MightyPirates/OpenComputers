@@ -11,7 +11,7 @@ import net.minecraft.util.Icon;
 /**
  * Used by the renderer to renders blocks in carts.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public interface ICartContentsTextureProvider{
 

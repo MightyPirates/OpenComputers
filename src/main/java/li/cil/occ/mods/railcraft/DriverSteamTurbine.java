@@ -8,14 +8,11 @@ import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import li.cil.occ.util.Reflection;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-
-public class DriverSteamTurbine extends DriverTileEntity {
-    // See https://bitbucket.org/ChickenBones/enderstorage/
+public final class DriverSteamTurbine extends DriverTileEntity {
     private static final Class<?> TileSteamTurbine = Reflection.getClass("mods.railcraft.common.blocks.machine.alpha.TileSteamTurbine");
 
     @Override
@@ -40,21 +37,14 @@ public class DriverSteamTurbine extends DriverTileEntity {
 
         @Callback
         public Object[] getTurbineRotorStatus(final Context context, final Arguments args) {
-
-
-            IInventory inventory = (IInventory) Reflection.tryInvoke(tileEntity, "getInventory");
-
-            if (inventory != null && inventory.getSizeInventory() >= 1) {
-                ItemStack itemStack = inventory.getStackInSlot(0);
+            IInventory inventory = Reflection.tryInvoke(tileEntity, "getInventory");
+            if (inventory != null && inventory.getSizeInventory() > 0) {
+                final ItemStack itemStack = inventory.getStackInSlot(0);
                 if (itemStack != null) {
-                    Item item = itemStack.getItem();
-                    if (item != null) {
-                        return new Object[]{100 - (int) (itemStack.getItemDamage() * 100.0 / item.getMaxDamage())};
-                    }
+                    return new Object[]{100 - (int) (itemStack.getItemDamage() * 100.0 / itemStack.getMaxDamage())};
                 }
             }
             return new Object[]{null, "no Inventory"};
-
         }
     }
 }

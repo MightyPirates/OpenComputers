@@ -13,7 +13,7 @@ import net.minecraft.block.BlockRailBase;
 /**
  * A number of utility functions related to rails.
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public abstract class RailTools {
 

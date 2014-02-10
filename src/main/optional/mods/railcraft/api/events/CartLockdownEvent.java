@@ -13,7 +13,7 @@ import net.minecraftforge.event.Event;
 
 /**
  *
- * @author CovertJaguar <http://www.ModTMechworks.info>
+ * @author CovertJaguar <http://www.railcraft.info>
  */
 public abstract class CartLockdownEvent extends Event {
 
