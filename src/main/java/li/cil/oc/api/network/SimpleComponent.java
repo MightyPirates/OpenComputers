@@ -41,6 +41,7 @@ package li.cil.oc.api.network;
  *            implements SimpleComponent
  *     {
  *         {@literal @}Callback
+ *         {@literal @}Optional.Method(modid = "OpenComputers")
  *         public Object[] greet(Context context, Arguments args) {
  *             return new Object[]{String.format("Hello, %s!", args.checkString(0))};
  *         }
@@ -59,6 +60,7 @@ package li.cil.oc.api.network;
  *             return new String[] {"greet"};
  *         }
  *
+ *         {@literal @}Optional.Method(modid = "OpenComputers")
  *         public Object[] invoke(String method, Context context, Arguments args) {
  *             if ("greet".equals(method)) {
  *                 return new Object[]{String.format("Hello, %s!", args.checkString(0))};

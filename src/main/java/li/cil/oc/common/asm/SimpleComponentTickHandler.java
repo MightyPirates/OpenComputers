@@ -13,6 +13,9 @@ public final class SimpleComponentTickHandler implements ITickHandler {
 
     public static final SimpleComponentTickHandler Instance = new SimpleComponentTickHandler();
 
+    private SimpleComponentTickHandler() {
+    }
+
     @Override
     public String getLabel() {
         return "OpenComputers SimpleComponent Ticker";
