@@ -7,10 +7,8 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server.component.Keyboard
-import li.cil.oc.server.driver
-import li.cil.oc.server.fs
-import li.cil.oc.server.network
 import li.cil.oc.server.network.Network
+import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
 
@@ -50,6 +48,7 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
+    TickRegistry.registerTickHandler(TickHandler, Side.SERVER)
     TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
     GameRegistry.registerPlayerTracker(Keyboard)
     NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
