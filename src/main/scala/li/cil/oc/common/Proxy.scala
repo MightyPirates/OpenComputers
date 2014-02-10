@@ -4,6 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc._
+import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
@@ -51,6 +52,7 @@ class Proxy {
     driver.Registry.locked = true
 
     FMLCommonHandler.instance().bus().register(EventHandler)
+    FMLCommonHandler.instance().bus().register(SimpleComponentTickHandler.Instance)
     MinecraftForge.EVENT_BUS.register(Network)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }

@@ -14,7 +14,6 @@ import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
-import scala.Some
 import scala.collection.mutable
 import scala.language.postfixOps
 

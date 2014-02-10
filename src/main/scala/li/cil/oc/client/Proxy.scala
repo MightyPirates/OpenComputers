@@ -39,7 +39,6 @@ private[oc] class Proxy extends CommonProxy {
 
     MinecraftForgeClient.registerItemRenderer(Items.multi, UpgradeRenderer)
 
-
     OpenComputers.channel.register(client.PacketHandler)
   }
 

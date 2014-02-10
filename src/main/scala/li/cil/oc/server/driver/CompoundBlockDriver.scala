@@ -40,7 +40,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     }
     try world.getTileEntity(x, y, z) match {
       case tileEntity: TileEntity =>
-        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_70323_b")
+        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_145853_j")
         return map.get(tileEntity.getClass)
     } catch {
       case _: Throwable =>

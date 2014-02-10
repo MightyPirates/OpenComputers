@@ -62,7 +62,7 @@ object GuiHandler extends CommonGuiHandler {
                     else player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "gui.Terminal.InvalidKey"))
                   }
                   else player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "gui.Terminal.OutOfRange"))
-                case _ => null
+                case _ => player.addChatMessage(new ChatComponentTranslation(Settings.namespace + "gui.Terminal.OutOfRange"))
               }
             }
           }

@@ -69,4 +69,17 @@ public @interface Callback {
      * which is synchronized, so you can consume/produce power in direct calls.
      */
     int limit() default Integer.MAX_VALUE;
+
+    /**
+     * A documentation string that is made available to the computers the
+     * component this callback belongs to is connected to. This allows for
+     * ingame documentation of callbacks.
+     * <p/>
+     * You may want to give a short description of what a method does here, but
+     * more importantly you should document the expected parameters and return
+     * type here.
+     * <p/>
+     * TODO Actually implement for this to be available to computers...
+     */
+    String doc() default "";
 }
