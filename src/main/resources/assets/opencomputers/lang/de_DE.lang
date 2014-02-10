@@ -3,25 +3,25 @@
 #Suggestions for improvements are welcome
 
 # Blocks
-oc:block.Adapter.name=Adapter
-oc:block.Cable.name=Kabel
-oc:block.Capacitor.name=Kondensator
-oc:block.Case0.name=Computergehäuse (Stufe 1)
-oc:block.Case1.name=Computergehäuse (Stufe 2)
-oc:block.Case2.name=Computergehäuse (Stufe 3)
-oc:block.Charger.name=Ladestation
-oc:block.DiskDrive.name=Diskettenlaufwerk
-oc:block.Keyboard.name=Tastatur
-oc:block.PowerConverter.name=Leistungswandler
-oc:block.PowerDistributor.name=Stromverteiler
-oc:block.Redstone.name=Redstone-I/O
-oc:block.Robot.name=Roboter
-oc:block.RobotAfterimage.name=Roboter
-oc:block.Router.name=Router
-oc:block.Screen0.name=Bildschirm (Stufe 1)
-oc:block.Screen1.name=Bildschirm (Stufe 2)
-oc:block.Screen2.name=Bildschirm (Stufe 3)
-oc:block.ServerRack.name=Serverschrank
+oc:tile.Adapter.name=Adapter
+oc:tile.Cable.name=Kabel
+oc:tile.Capacitor.name=Kondensator
+oc:tile.Case0.name=Computergehäuse (Stufe 1)
+oc:tile.Case1.name=Computergehäuse (Stufe 2)
+oc:tile.Case2.name=Computergehäuse (Stufe 3)
+oc:tile.Charger.name=Ladestation
+oc:tile.DiskDrive.name=Diskettenlaufwerk
+oc:tile.Keyboard.name=Tastatur
+oc:tile.PowerConverter.name=Leistungswandler
+oc:tile.PowerDistributor.name=Stromverteiler
+oc:tile.Redstone.name=Redstone-I/O
+oc:tile.Robot.name=Roboter
+oc:tile.RobotAfterimage.name=Roboter
+oc:tile.Router.name=Router
+oc:tile.Screen0.name=Bildschirm (Stufe 1)
+oc:tile.Screen1.name=Bildschirm (Stufe 2)
+oc:tile.Screen2.name=Bildschirm (Stufe 3)
+oc:tile.ServerRack.name=Serverschrank
 
 # Items
 oc:item.AbstractBusCard.name=Abstrakter-Bus-Karte

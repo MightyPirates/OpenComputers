@@ -11,24 +11,24 @@
 
 
 # Blocks
-oc:block.Adapter.name=Adaptador
-oc:block.Cable.name=Cabo
-oc:block.Capacitor.name=Condensador
-oc:block.Case0.name=Caixa Básica
-oc:block.Case1.name=Caixa Avançada
-oc:block.Case2.name=Caixa Superior
-oc:block.Charger.name=Carregador
-oc:block.DiskDrive.name=Drive de Disquetes
-oc:block.Keyboard.name=Teclado
-oc:block.PowerConverter.name=Conversor de Energia
-oc:block.PowerDistributor.name=Distribuidor de Energia
-oc:block.Redstone.name=E/S de Redstone
-oc:block.Robot.name=Robô
-oc:block.RobotAfterimage.name=Robô
-oc:block.Router.name=Roteador
-oc:block.Screen0.name=Ecrã Básico
-oc:block.Screen1.name=Ecrã Avançado
-oc:block.Screen2.name=Ecrã Superior
+oc:tile.Adapter.name=Adaptador
+oc:tile.Cable.name=Cabo
+oc:tile.Capacitor.name=Condensador
+oc:tile.Case0.name=Caixa Básica
+oc:tile.Case1.name=Caixa Avançada
+oc:tile.Case2.name=Caixa Superior
+oc:tile.Charger.name=Carregador
+oc:tile.DiskDrive.name=Drive de Disquetes
+oc:tile.Keyboard.name=Teclado
+oc:tile.PowerConverter.name=Conversor de Energia
+oc:tile.PowerDistributor.name=Distribuidor de Energia
+oc:tile.Redstone.name=E/S de Redstone
+oc:tile.Robot.name=Robô
+oc:tile.RobotAfterimage.name=Robô
+oc:tile.Router.name=Roteador
+oc:tile.Screen0.name=Ecrã Básico
+oc:tile.Screen1.name=Ecrã Avançado
+oc:tile.Screen2.name=Ecrã Superior
 
 # Items
 oc:item.Acid.name=Grogue
