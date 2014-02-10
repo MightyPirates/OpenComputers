@@ -1,13 +1,13 @@
 package li.cil.oc.api.network;
 
 /**
- * This specialization of the managed environment is intended to be used for
- * environments wrapping a ComputerCraft peripheral, although it could be used
- * for other purposes as well. It allows providing method names in addition to
- * those defined via the {@link li.cil.oc.api.network.Callback} annotation, and
- * invoking said methods.
+ * This interface can be used with an {@link li.cil.oc.api.network.Environment}
+ * and is intended to be used for environments wrapping a ComputerCraft
+ * peripheral. Tt could be used for other purposes as well, though. It allows
+ * providing method names in addition to those defined via the
+ * {@link li.cil.oc.api.network.Callback} annotation, and invoking said methods.
  */
-public interface ManagedPeripheral extends Environment {
+public interface ManagedPeripheral {
     /**
      * Get the list of methods provided by this environment, in
      * <em>addition</em> to methods marked as callbacks.
