@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.Settings
 import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
-import li.cil.oc.server.{TickHandler, component}
+import li.cil.oc.common.EventHandler
+import li.cil.oc.server.component
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -43,7 +44,7 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override def validate() {
     super.validate()
-    TickHandler.schedule(this)
+    EventHandler.schedule(this)
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {

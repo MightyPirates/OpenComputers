@@ -2,7 +2,7 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
-import li.cil.oc.server.TickHandler
+import li.cil.oc.common.EventHandler
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
@@ -23,7 +23,7 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
 
   override def validate() = {
     super.validate()
-    TickHandler.schedule(this)
+    EventHandler.schedule(this)
   }
 
   // ----------------------------------------------------------------------- //

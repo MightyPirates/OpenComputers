@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.Visibility
-import li.cil.oc.server.TickHandler
+import li.cil.oc.common.EventHandler
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
@@ -17,7 +17,7 @@ class Capacitor extends Environment with PassiveNode {
 
   override def validate() {
     super.validate()
-    TickHandler.schedule(this)
+    EventHandler.schedule(this)
   }
 
   override def invalidate() {

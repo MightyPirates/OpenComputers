@@ -1,18 +1,36 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.eventhandler.{Event, SubscribeEvent}
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
+import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Loader, FMLCommonHandler}
+import li.cil.oc.api
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.{Items, Settings}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
-import net.minecraft.entity.player.{EntityPlayerMP, EntityPlayer}
+import li.cil.oc.{Items, Settings}
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.{ItemMap, ItemStack}
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
+import scala.collection.mutable
 
 object EventHandler {
+  val pendingAdds = mutable.Buffer.empty[() => Unit]
+
+  def schedule(tileEntity: TileEntity) = pendingAdds.synchronized {
+    pendingAdds += (() => if (!tileEntity.isInvalid) api.Network.joinOrCreateNetwork(tileEntity))
+  }
+
+  @SubscribeEvent
+  def onTick(e: ServerTickEvent) = pendingAdds.synchronized {
+    for (callback <- pendingAdds) {
+      callback()
+    }
+    pendingAdds.clear()
+  }
+
   @SubscribeEvent
   def playerLoggedIn(e: PlayerLoggedInEvent) {
     if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {

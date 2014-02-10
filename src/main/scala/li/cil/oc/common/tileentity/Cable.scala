@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{Analyzable, Visibility}
-import li.cil.oc.server.TickHandler
+import li.cil.oc.common.EventHandler
 import li.cil.oc.{api, common}
 import net.minecraft.entity.player.EntityPlayer
 
@@ -16,7 +16,7 @@ class Cable extends Environment with Analyzable with PassiveNode {
 
   override def validate() {
     super.validate()
-    TickHandler.schedule(this)
+    EventHandler.schedule(this)
   }
 
   override def getRenderBoundingBox = common.block.Cable.bounds(world, x, y, z).offset(x, y, z)
