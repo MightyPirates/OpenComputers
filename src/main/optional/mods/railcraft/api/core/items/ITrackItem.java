@@ -10,7 +10,7 @@ import net.minecraft.world.World;
  *
  * If you defined your rails with a TrackSpec, you don't need to worry about this.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackItem
 {

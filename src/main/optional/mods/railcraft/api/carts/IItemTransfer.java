@@ -7,7 +7,7 @@ import mods.railcraft.api.core.items.IStackFilter;
  * This interface allows items to be passed around with out needing
  * to know anything about the underlying implementation of the inventories.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IItemTransfer
 {

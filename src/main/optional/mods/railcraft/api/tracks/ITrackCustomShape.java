@@ -11,7 +11,7 @@ import net.minecraft.util.Vec3;
  *
  * Not very useful since there is no system in place to insert custom render code.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackCustomShape extends ITrackInstance
 {

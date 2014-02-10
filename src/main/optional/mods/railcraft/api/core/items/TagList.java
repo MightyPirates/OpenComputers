@@ -17,7 +17,7 @@ import java.util.TreeSet;
  * This is a collection of ItemStack tags than can be used with
  * GameRegistry.findItemStack().
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  * @see GameRegistry#findItemStack(java.lang.String, java.lang.String, int)
  */
 public class TagList {

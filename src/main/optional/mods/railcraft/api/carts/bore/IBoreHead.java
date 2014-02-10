@@ -5,7 +5,7 @@ import net.minecraft.util.ResourceLocation;
 /**
  * This interface it used to define an item that can
  * be used as a bore head for the Tunnel Bore.
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IBoreHead
 {

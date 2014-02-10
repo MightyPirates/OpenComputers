@@ -8,7 +8,7 @@ import net.minecraft.world.World;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IRollingMachineCraftingManager
 {

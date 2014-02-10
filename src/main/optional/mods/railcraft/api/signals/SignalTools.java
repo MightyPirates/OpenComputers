@@ -2,7 +2,7 @@ package mods.railcraft.api.signals;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public abstract class SignalTools {
 

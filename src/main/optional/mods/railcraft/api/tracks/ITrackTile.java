@@ -4,7 +4,7 @@ package mods.railcraft.api.tracks;
  * Don't use this, its an interface that allows other API code
  * access to internal functions of the code.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface ITrackTile
 {

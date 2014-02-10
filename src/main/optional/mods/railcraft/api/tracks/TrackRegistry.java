@@ -20,7 +20,7 @@ import mods.railcraft.api.core.ITextureLoader;
  * The TrackSpec contains basic constant information about the Track, while the
  * TrackInstace controls how an individual Track block interact with the world.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  * @see TrackSpec
  * @see ITrackInstance
  * @see TrackInstanceBase

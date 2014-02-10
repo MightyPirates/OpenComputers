@@ -5,7 +5,7 @@ import java.util.Locale;
 /**
  * Represents a Signal state.
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public enum SignalAspect {
 

@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 
 /**
  *
- * @author CovertJaguar <http://www.railcraft.info>
+ * @author CovertJaguar <http://www.ModTMechworks.info>
  */
 public interface IRockCrusherRecipe {
 

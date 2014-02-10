@@ -13,7 +13,7 @@ package mods.railcraft.api.tracks;
  * change the ticket on the fly. Be warned, security is the responsibility of
  * the addon.
  *
- * @author CovertJaguar <http://www.railcraft.info/>
+ * @author CovertJaguar <http://www.ModTMechworks.info/>
  */
 public interface IRoutingTrack {
 
