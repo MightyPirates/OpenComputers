@@ -1,5 +1,6 @@
 package li.cil.oc.api;
 
+import cpw.mods.fml.common.Optional;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
@@ -112,6 +113,7 @@ public final class FileSystem {
      * @param mount the mount to wrap with a file system.
      * @return a file system wrapping the specified mount.
      */
+    @Optional.Method(modid = "ComputerCraft")
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IMount mount) {
         if (instance != null) return instance.fromComputerCraft(mount);
         return null;
@@ -123,6 +125,7 @@ public final class FileSystem {
      * @param mount the mount to wrap with a file system.
      * @return a file system wrapping the specified mount.
      */
+    @Optional.Method(modid = "ComputerCraft")
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IWritableMount mount) {
         if (instance != null) return instance.fromComputerCraft(mount);
         return null;
