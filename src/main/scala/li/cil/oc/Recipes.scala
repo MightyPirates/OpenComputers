@@ -125,7 +125,7 @@ object Recipes {
       addRecipe(Blocks.case2.createItemStack(), recipes, "case2")
       addRecipe(Blocks.case3.createItemStack(), recipes, "case3")
       addRecipe(Blocks.diskDrive.createItemStack(), recipes, "diskDrive")
-      addRecipe(Blocks.keyboard.createItemStack(), recipes, "keyboard")
+      addRecipe(new ItemStack(Blocks.keyboard), recipes, "keyboard")
       addRecipe(Blocks.powerConverter.createItemStack(), recipes, "powerConverter")
       addRecipe(Blocks.powerDistributor.createItemStack(), recipes, "powerDistributor")
       addRecipe(Blocks.redstone.createItemStack(), recipes, "redstone")

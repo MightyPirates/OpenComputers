@@ -1,68 +1,77 @@
 package li.cil.oc.common.block
 
-import java.util.Random
+import java.util
+import li.cil.oc.{Blocks, api, Settings}
 import li.cil.oc.common.tileentity
-import li.cil.oc.{CreativeTab, api, Settings}
+import li.cil.oc.util.Tooltip
 import net.minecraft.block.Block
-import net.minecraft.block.material.Material
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.item.ItemStack
+import net.minecraft.util.{MovingObjectPosition, AxisAlignedBB, IIcon}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
-import net.minecraft.item.ItemStack
-import java.util
-import li.cil.oc.util.Tooltip
 
-class Keyboard extends SimpleBlock(Material.rock) {
-  setBlockName("Keyboard")
-  setBlockTextureName(Settings.resourceDomain + ":keyboard")
-  setLightOpacity(0)
-  setCreativeTab(CreativeTab)
+class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
+  val unlocalizedName = "Keyboard"
 
-  override def tooltipLines(metadata: Int, stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get("Keyboard"))
+  var icon: IIcon = null
+
+  showInItemList = false
+
+  // Phase over to new, proper keyboard.
+  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) = new ItemStack(Blocks.keyboard)
+
+  override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  override def renderAsNormalBlock = false
+  override def icon(side: ForgeDirection) = Some(icon)
 
-  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: Int) = true
+  override def registerIcons(iconRegister: IIconRegister) = {
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":keyboard")
+  }
 
-  override def isOpaqueCube = false
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  override def isNormalCube = false
+  override def hasTileEntity = true
 
-  override def hasTileEntity(metadata: Int) = true
+  override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
 
-  override def createTileEntity(world: World, metadata: Int) = new tileentity.Keyboard(world.isRemote)
-
-  override def updateTick(world: World, x: Int, y: Int, z: Int, rng: Random) =
+  override def update(world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard => api.Network.joinOrCreateNetwork(keyboard)
       case _ =>
     }
 
-  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = {
-    world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side) &&
+  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+    world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
       (world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
         case screen: tileentity.Screen => screen.facing != side.getOpposite
         case _ => true
       })
-  }
 
-  override def doSetBlockBoundsBasedOnState(world: IBlockAccess, x: Int, y: Int, z: Int) =
+  override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = false
+
+  override def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 0
+
+  override def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard => setBlockBounds(keyboard.pitch, keyboard.yaw)
-      case _ =>
+      case keyboard: tileentity.Keyboard => parent.setBlockBounds(computeBounds(keyboard.pitch, keyboard.yaw))
+      case _ => super.updateBounds(world, x, y, z)
     }
 
-  override def setBlockBoundsForItemRender(metadata: Int) = setBlockBounds(ForgeDirection.NORTH, ForgeDirection.WEST)
+  override def itemBounds() {
+    parent.setBlockBounds(computeBounds(ForgeDirection.NORTH, ForgeDirection.WEST))
+  }
 
-  override def preItemRender(metadata: Int) {
+  override def preItemRender() {
     GL11.glTranslatef(-0.75f, 0, 0)
     GL11.glScalef(1.5f, 1.5f, 1.5f)
   }
 
-  private def setBlockBounds(pitch: ForgeDirection, yaw: ForgeDirection) {
+  private def computeBounds(pitch: ForgeDirection, yaw: ForgeDirection) = {
     val (forward, up) = pitch match {
       case side@(ForgeDirection.DOWN | ForgeDirection.UP) => (side, yaw)
       case _ => (yaw, ForgeDirection.UP)
@@ -75,23 +84,32 @@ class Keyboard extends SimpleBlock(Material.rock) {
     val y1 = up.offsetY * sizes(1) + side.offsetY * sizes(2) - forward.offsetY * 0.5f
     val z0 = -up.offsetZ * sizes(1) - side.offsetZ * sizes(2) - forward.offsetZ * sizes(0)
     val z1 = up.offsetZ * sizes(1) + side.offsetZ * sizes(2) - forward.offsetZ * 0.5f
-    setBlockBounds(
+    AxisAlignedBB.getBoundingBox(
       math.min(x0, x1) + 0.5f, math.min(y0, y1) + 0.5f, math.min(z0, z1) + 0.5f,
       math.max(x0, x1) + 0.5f, math.max(y0, y1) + 0.5f, math.max(z0, z1) + 0.5f)
   }
 
-  override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
+  override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite.ordinal) => // Can stay.
+      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite) => // Can stay.
       case _ =>
-        dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
+        parent.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
         world.setBlockToAir(x, y, z)
     }
 
-  override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
     adjacencyInfo(world, x, y, z) match {
       case Some((keyboard, screen, sx, sy, sz, facing)) => screen.rightClick(world, sx, sy, sz, player, facing, 0, 0, 0)
-      case _ => false
+      case _ => super.rightClick(world, x, y, z, player, side, hitX, hitY, hitZ)
+    }
+
+  def adjacentScreen(world: World, x: Int, y: Int, z: Int) =
+    adjacencyInfo(world, x, y, z) match {
+      case Some((_, _, sx, sy, sz, _)) => world.getTileEntity(sx, sy, sz) match {
+        case screen: tileentity.Screen => Some(screen)
+        case _ => None
+      }
+      case _ => None
     }
 
   def adjacencyInfo(world: World, x: Int, y: Int, z: Int) =
@@ -131,5 +149,5 @@ class Keyboard extends SimpleBlock(Material.rock) {
       case _ => None
     }
 
-  override def getValidRotations(world: World, x: Int, y: Int, z: Int) = null
+  override protected val validRotations_ = null
 }

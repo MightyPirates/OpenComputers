@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
-import li.cil.oc.common.block.{RobotAfterimage, RobotProxy, Cable, Delegator}
+import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
@@ -11,6 +11,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 import li.cil.oc.Blocks
+import scala.Some
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -41,6 +42,9 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
           case delegator: Delegator[_] =>
             delegator.setBlockBoundsForItemRender(metadata)
             delegator.preItemRender(metadata)
+          case simple: SimpleBlock =>
+            simple.setBlockBoundsForItemRender(metadata)
+            simple.preItemRender(metadata)
           case _ => block.setBlockBoundsForItemRender()
         }
         renderer.setRenderBoundsFromBlock(block)

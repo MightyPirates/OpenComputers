@@ -18,13 +18,19 @@ class Item(value: Block) extends ItemBlock(value) {
     super.addInformation(stack, player, tooltip, advanced)
     block match {
       case delegator: Delegator[_] => delegator.addInformation(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
-      case _ =>
+      case _ => block match {
+        case simple: SimpleBlock => simple.tooltipLines(getMetadata(stack.getItemDamage), stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
+        case _ =>
+      }
     }
   }
 
   override def getRarity(stack: ItemStack) = Delegator.subBlock(stack) match {
     case Some(subBlock) => subBlock.rarity
-    case _ => EnumRarity.common
+    case _ => block match {
+      case simple: SimpleBlock => simple.rarity
+      case _ => EnumRarity.common
+    }
   }
 
   override def getMetadata(itemDamage: Int) = itemDamage

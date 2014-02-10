@@ -3,11 +3,11 @@ package li.cil.oc.client
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiType}
 import li.cil.oc.{Settings, Items}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.world.World
 import scala.collection.convert.WrapAsScala._
-import net.minecraft.util.ChatComponentTranslation
-import net.minecraft.client.Minecraft
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =

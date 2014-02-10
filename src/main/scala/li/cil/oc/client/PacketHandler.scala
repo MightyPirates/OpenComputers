@@ -2,10 +2,10 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
-import li.cil.oc.Settings
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.Minecraft

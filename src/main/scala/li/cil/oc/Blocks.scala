@@ -4,8 +4,8 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import net.minecraft.item.ItemStack
-import net.minecraftforge.oredict.OreDictionary
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -20,6 +20,7 @@ object Blocks {
   var case1, case2, case3: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
+  var keyboardDeprecated: KeyboardDeprecated = _
   var powerConverter: PowerConverter = _
   var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
@@ -43,6 +44,42 @@ object Blocks {
       })
     }
 
+    // IMPORTANT: the multi block must come first, since the sub blocks will
+    // try to register with it. Also, the order the sub blocks are created in
+    // must not be changed since that order determines their actual IDs.
+    adapter = new Adapter(blockSimple)
+    cable = new Cable(blockSpecial)
+    capacitor = new Capacitor(blockSimple)
+    case1 = new Case.Tier1(blockSimpleWithRedstone)
+    case2 = new Case.Tier2(blockSimpleWithRedstone)
+    case3 = new Case.Tier3(blockSimpleWithRedstone)
+    charger = new Charger(blockSimpleWithRedstone)
+    diskDrive = new DiskDrive(blockSimple)
+    keyboardDeprecated = new KeyboardDeprecated(blockSpecial)
+    powerDistributor = new PowerDistributor(blockSimple)
+    powerConverter = new PowerConverter(blockSimple)
+    redstone = new Redstone(blockSimpleWithRedstone)
+    robotAfterimage = new RobotAfterimage(blockSpecial)
+    robotProxy = new RobotProxy(blockSpecialWithRedstone)
+    router = new Router(blockSimple)
+    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
+    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
+    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
+
+    // For automatic conversion from old format (when screens did not take
+    // redstone inputs) to keep save format compatible.
+    blockSimple.subBlocks += screen1
+    blockSimple.subBlocks += screen2
+    blockSimple.subBlocks += screen3
+
+    // v1.2.0
+    serverRack = new Rack(blockSpecialWithRedstone)
+
+    // v2.0.0
+    keyboard = new Keyboard()
+
+    GameRegistry.registerBlock(keyboard, classOf[Item], Settings.namespace + "keyboard")
+
     GameRegistry.registerBlock(blockSimple, classOf[Item], Settings.namespace + "simple")
     GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Settings.namespace + "simple_redstone")
     GameRegistry.registerBlock(blockSpecial, classOf[Item], Settings.namespace + "special")
@@ -63,44 +100,13 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
 
-    // IMPORTANT: the multi block must come first, since the sub blocks will
-    // try to register with it. Also, the order the sub blocks are created in
-    // must not be changed since that order determines their actual IDs.
-    adapter = new Adapter(blockSimple)
-    cable = new Cable(blockSpecial)
-    capacitor = new Capacitor(blockSimple)
-    case1 = new Case.Tier1(blockSimpleWithRedstone)
-    case2 = new Case.Tier2(blockSimpleWithRedstone)
-    case3 = new Case.Tier3(blockSimpleWithRedstone)
-    charger = new Charger(blockSimpleWithRedstone)
-    diskDrive = new DiskDrive(blockSimple)
-    keyboard = new Keyboard(blockSpecial)
-    powerDistributor = new PowerDistributor(blockSimple)
-    powerConverter = new PowerConverter(blockSimple)
-    redstone = new Redstone(blockSimpleWithRedstone)
-    robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = new RobotProxy(blockSpecialWithRedstone)
-    router = new Router(blockSimple)
-    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
-    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
-    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
-
-    // For automatic conversion from old format (when screens did not take
-    // redstone inputs) to keep save format compatible.
-    blockSimple.subBlocks += screen1
-    blockSimple.subBlocks += screen2
-    blockSimple.subBlocks += screen3
-
-    // v1.2.0
-    serverRack = new Rack(blockSpecialWithRedstone)
-
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())
     register("oc:craftingCaseTier1", case1.createItemStack())
     register("oc:craftingCaseTier2", case2.createItemStack())
     register("oc:craftingCaseTier3", case3.createItemStack())
     register("oc:craftingDiskDrive", diskDrive.createItemStack())
-    register("oc:craftingKeyboard", keyboard.createItemStack())
+    register("oc:craftingKeyboard", keyboardDeprecated.createItemStack())
     register("oc:craftingPowerDistributor", powerDistributor.createItemStack())
     register("oc:craftingRouter", router.createItemStack())
     register("oc:craftingScreenTier1", screen1.createItemStack())

@@ -1,15 +1,15 @@
 package li.cil.oc.common.asm
 
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import java.util.logging.{Level, Logger}
 import li.cil.oc.util.mods.StargateTech2
 import net.minecraft.launchwrapper.{LaunchClassLoader, IClassTransformer}
+import net.minecraft.tileentity.TileEntity
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassWriter, ClassReader}
 import scala.collection.convert.WrapAsScala._
-import net.minecraft.tileentity.TileEntity
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 class ClassTransformer extends IClassTransformer {
@@ -22,10 +22,10 @@ class ClassTransformer extends IClassTransformer {
       return ensureStargateTechCompatibility(basicClass)
     }
     else if (basicClass != null
-      && !name.startsWith( """net.minecraft.""")
-      && !name.startsWith( """net.minecraftforge.""")
-      && !name.startsWith( """li.cil.oc.common.asm.""")
-      && !name.startsWith( """li.cil.oc.api.""")) {
+      && !name.startsWith("""net.minecraft.""")
+      && !name.startsWith("""net.minecraftforge.""")
+      && !name.startsWith("""li.cil.oc.common.asm.""")
+      && !name.startsWith("""li.cil.oc.api.""")) {
       val classNode = newClassNode(basicClass)
       if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent")) {
         try {
