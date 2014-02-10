@@ -29,11 +29,11 @@ class Item(value: Block) extends ItemBlock(value) {
 
   override def getMetadata(itemDamage: Int) = itemDamage
 
-  override def getUnlocalizedName = Settings.namespace + "block"
+  override def getUnlocalizedName = Settings.namespace + "tile"
 
   override def getUnlocalizedName(stack: ItemStack) =
     block match {
-      case delegator: Delegator[_] => Settings.namespace + "block." + delegator.getUnlocalizedName(stack.getItemDamage)
+      case delegator: Delegator[_] => Settings.namespace + "tile." + delegator.getUnlocalizedName(stack.getItemDamage)
       case _ => block.getUnlocalizedName
     }
 

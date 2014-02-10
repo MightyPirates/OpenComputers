@@ -1,22 +1,22 @@
 # Blocks
-oc:block.Adapter.name=Adaptateur
-oc:block.Cable.name=Cable
-oc:block.Capacitor.name=Capaciteur
-oc:block.Case0.name=Boitier (Niveau 1)
-oc:block.Case1.name=Boitier (Niveau 2)
-oc:block.Case2.name=Boitier (Niveau 3)
-oc:block.Charger.name=Chargeur
-oc:block.DiskDrive.name=Lecteur de disquettes
-oc:block.Keyboard.name=Clavier
-oc:block.PowerConverter.name=Convertisseur
-oc:block.PowerDistributor.name=Distributeur
-oc:block.Redstone.name=Redstone E/S
-oc:block.Robot.name=Robot
-oc:block.RobotAfterimage.name=Robot
-oc:block.Router.name=Routeur
-oc:block.Screen0.name=Ecran (Niveau 1)
-oc:block.Screen1.name=Ecran (Niveau 2)
-oc:block.Screen2.name=Ecran (Niveau 3)
+oc:tile.Adapter.name=Adaptateur
+oc:tile.Cable.name=Cable
+oc:tile.Capacitor.name=Capaciteur
+oc:tile.Case0.name=Boitier (Niveau 1)
+oc:tile.Case1.name=Boitier (Niveau 2)
+oc:tile.Case2.name=Boitier (Niveau 3)
+oc:tile.Charger.name=Chargeur
+oc:tile.DiskDrive.name=Lecteur de disquettes
+oc:tile.Keyboard.name=Clavier
+oc:tile.PowerConverter.name=Convertisseur
+oc:tile.PowerDistributor.name=Distributeur
+oc:tile.Redstone.name=Redstone E/S
+oc:tile.Robot.name=Robot
+oc:tile.RobotAfterimage.name=Robot
+oc:tile.Router.name=Routeur
+oc:tile.Screen0.name=Ecran (Niveau 1)
+oc:tile.Screen1.name=Ecran (Niveau 2)
+oc:tile.Screen2.name=Ecran (Niveau 3)
 
 # Items
 oc:item.Acid.name=Grog

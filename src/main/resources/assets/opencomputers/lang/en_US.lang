@@ -3,25 +3,25 @@
 # Use [nl] to for a line break.
 
 # Blocks
-oc:block.Adapter.name=Adapter
-oc:block.Cable.name=Cable
-oc:block.Capacitor.name=Capacitor
-oc:block.Case0.name=Computer Case (Tier 1)
-oc:block.Case1.name=Computer Case (Tier 2)
-oc:block.Case2.name=Computer Case (Tier 3)
-oc:block.Charger.name=Charger
-oc:block.DiskDrive.name=Disk Drive
-oc:block.Keyboard.name=Keyboard
-oc:block.PowerConverter.name=Power Converter
-oc:block.PowerDistributor.name=Power Distributor
-oc:block.Redstone.name=Redstone I/O
-oc:block.Robot.name=Robot
-oc:block.RobotAfterimage.name=Robot
-oc:block.Router.name=Router
-oc:block.Screen0.name=Screen (Tier 1)
-oc:block.Screen1.name=Screen (Tier 2)
-oc:block.Screen2.name=Screen (Tier 3)
-oc:block.ServerRack.name=Server Rack
+oc:tile.Adapter.name=Adapter
+oc:tile.Cable.name=Cable
+oc:tile.Capacitor.name=Capacitor
+oc:tile.Case0.name=Computer Case (Tier 1)
+oc:tile.Case1.name=Computer Case (Tier 2)
+oc:tile.Case2.name=Computer Case (Tier 3)
+oc:tile.Charger.name=Charger
+oc:tile.DiskDrive.name=Disk Drive
+oc:tile.Keyboard.name=Keyboard
+oc:tile.PowerConverter.name=Power Converter
+oc:tile.PowerDistributor.name=Power Distributor
+oc:tile.Redstone.name=Redstone I/O
+oc:tile.Robot.name=Robot
+oc:tile.RobotAfterimage.name=Robot
+oc:tile.Router.name=Router
+oc:tile.Screen0.name=Screen (Tier 1)
+oc:tile.Screen1.name=Screen (Tier 2)
+oc:tile.Screen2.name=Screen (Tier 3)
+oc:tile.ServerRack.name=Server Rack
 
 # Items
 oc:item.AbstractBusCard.name=Abstract Bus Card

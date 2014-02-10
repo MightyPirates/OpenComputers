@@ -3,24 +3,24 @@
 # Use [nl] to for a line break.
 
 # Blocks
-oc:block.Adapter.name=适配器
-oc:block.Cable.name=线缆
-oc:block.Capacitor.name=电容
-oc:block.Case0.name=基础机箱
-oc:block.Case1.name=高级机箱
-oc:block.Case2.name=超级机箱
-oc:block.Charger.name=充电器
-oc:block.DiskDrive.name=磁盘驱动器
-oc:block.Keyboard.name=键盘
-oc:block.PowerConverter.name=能量转换器
-oc:block.PowerDistributor.name=能量分配器
-oc:block.Redstone.name=红石I/O
-oc:block.Robot.name=机器人
-oc:block.RobotAfterimage.name=机器人
-oc:block.Router.name=路由器
-oc:block.Screen0.name=基础屏幕
-oc:block.Screen1.name=高级屏幕
-oc:block.Screen2.name=超级屏幕
+oc:tile.Adapter.name=适配器
+oc:tile.Cable.name=线缆
+oc:tile.Capacitor.name=电容
+oc:tile.Case0.name=基础机箱
+oc:tile.Case1.name=高级机箱
+oc:tile.Case2.name=超级机箱
+oc:tile.Charger.name=充电器
+oc:tile.DiskDrive.name=磁盘驱动器
+oc:tile.Keyboard.name=键盘
+oc:tile.PowerConverter.name=能量转换器
+oc:tile.PowerDistributor.name=能量分配器
+oc:tile.Redstone.name=红石I/O
+oc:tile.Robot.name=机器人
+oc:tile.RobotAfterimage.name=机器人
+oc:tile.Router.name=路由器
+oc:tile.Screen0.name=基础屏幕
+oc:tile.Screen1.name=高级屏幕
+oc:tile.Screen2.name=超级屏幕
 
 # Items
 oc:item.Acid.name=蚀刻药水

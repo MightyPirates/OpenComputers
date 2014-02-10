@@ -109,7 +109,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
   def getUnlocalizedName(metadata: Int) =
     subBlock(metadata) match {
       case Some(subBlock) => subBlock.unlocalizedName
-      case _ => Settings.namespace + "block"
+      case _ => Settings.namespace + "tile"
     }
 
   override def damageDropped(metadata: Int) =

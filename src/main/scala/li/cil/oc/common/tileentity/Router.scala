@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.Blocks
 import li.cil.oc.api.network.Message
+import li.cil.oc.server.TickHandler
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
@@ -13,7 +13,7 @@ class Router extends Hub with IPeripheral with PassiveNode {
 
   override def validate() {
     super.validate()
-    worldObj.scheduleBlockUpdateWithPriority(xCoord, yCoord, zCoord, Blocks.router.parent, 0, 0)
+    TickHandler.schedule(this)
   }
 
   // ----------------------------------------------------------------------- //

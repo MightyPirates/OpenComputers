@@ -6,10 +6,8 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server
-import li.cil.oc.server.driver
-import li.cil.oc.server.fs
-import li.cil.oc.server.network
 import li.cil.oc.server.network.Network
+import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
 
@@ -51,6 +49,8 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
+    TickRegistry.registerTickHandler(TickHandler, Side.SERVER)
+    NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
     FMLCommonHandler.instance().bus().register(EventHandler)
     FMLCommonHandler.instance().bus().register(SimpleComponentTickHandler.Instance)
     MinecraftForge.EVENT_BUS.register(Network)
