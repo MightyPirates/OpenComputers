@@ -17,9 +17,9 @@ public final class Registry {
     }
 
     public static void add(final IMod mod) {
-        final boolean alwaysEnabled = mod.getModId() == null || mod.getModId().isEmpty();
+        final boolean alwaysEnabled = mod.getModId() == null || mod.getModId().isEmpty() || "Minecraft".equals(mod.getModId());
         if ((alwaysEnabled || Loader.isModLoaded(mod.getModId())) && handlers.add(mod)) {
-            OpenComponents.Log.info(String.format("Initializing handler for '%s'.", mod.getModId()));
+            OpenComponents.Log.info(String.format("Initializing drivers for '%s'.", mod.getModId()));
             try {
                 mod.initialize();
             } catch (Throwable e) {

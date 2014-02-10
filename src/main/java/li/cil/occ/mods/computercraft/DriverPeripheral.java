@@ -1,6 +1,7 @@
 package li.cil.occ.mods.computercraft;
 
 import dan200.computer.api.IPeripheral;
+import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.oc.api.prefab.ManagedPeripheral;
@@ -32,7 +33,15 @@ public final class DriverPeripheral extends DriverTileEntity {
     @Override
     public boolean worksWith(final World world, final int x, final int y, final int z) {
         final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
-        return tileEntity != null && !blacklist.contains(tileEntity.getClass()) && super.worksWith(world, x, y, z);
+        return tileEntity != null
+                // This ensures we don't get duplicate components, in case the
+                // tile entity is natively compatible with OpenComputers.
+                && !Environment.class.isAssignableFrom(tileEntity.getClass())
+                // The black list is used to avoid peripherals that are known
+                // to be incompatible with OpenComputers when used directly.
+                && !blacklist.contains(tileEntity.getClass())
+                // Actual check if it's a peripheral.
+                && super.worksWith(world, x, y, z);
     }
 
     @Override

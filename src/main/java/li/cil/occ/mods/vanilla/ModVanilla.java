@@ -9,7 +9,7 @@ import java.util.Map;
 public final class ModVanilla implements IMod {
     @Override
     public String getModId() {
-        return null;
+        return "Minecraft";
     }
 
     @Override
