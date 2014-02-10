@@ -2,8 +2,10 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.GameRegistry
+import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
+import cpw.mods.fml.relauncher.Side
 import li.cil.oc._
+import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.driver
 import li.cil.oc.server.fs
@@ -48,6 +50,7 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
+    TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
     GameRegistry.registerPlayerTracker(Keyboard)
     NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
     MinecraftForge.EVENT_BUS.register(Network)
