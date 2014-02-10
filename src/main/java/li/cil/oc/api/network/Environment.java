@@ -66,6 +66,16 @@ public interface Environment {
      * At this point the node's network is never <tt>null</tt> and you can use
      * it to query it for other nodes. Use this to perform initialization logic,
      * such as building lists of nodes of a certain type in the network.
+     * <p/>
+     * For example, if node C is added to a network with nodes A and B, these
+     * calls are made:
+     * <ul>
+     *     <li>A.onConnect(A)</li>
+     *     <li>A.onConnect(B)</li>
+     *     <li>A.onConnect(C)</li>
+     *     <li>B.onConnect(A)</li>
+     *     <li>C.onConnect(A)</li>
+     * </ul>
      */
     void onConnect(Node node);
 
@@ -73,11 +83,20 @@ public interface Environment {
      * This is called when a node is removed from the network.
      * <p/>
      * This is also called for the node itself, when it has been removed from
-     * its network.
+     * its network. Note that this is called on the node that is being removed
+     * <em>only once</em> with the node itself as the parameter.
      * <p/>
      * At this point the node's network is no longer available (<tt>null</tt>).
      * Use this to perform clean-up logic such as removing references to the
      * removed node.
+     * <p/>
+     * For example, if node C is removed from a network with nodes A, B and C,
+     * these calls are made:
+     * <ul>
+     *     <li>A.onDisconnect(A)</li>
+     *     <li>B.onDisconnect(A)</li>
+     *     <li>C.onDisconnect(A)</li>
+     * </ul>
      */
     void onDisconnect(Node node);
 

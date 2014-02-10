@@ -13,8 +13,6 @@ import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
-import scala.Array
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 class InternetCard extends ManagedComponent {
@@ -216,20 +214,16 @@ class InternetCard extends ManagedComponent {
 
   override def onConnect(node: Node) {
     super.onConnect(node)
-    if (owner.isEmpty && node.host.isInstanceOf[Context]) {
+    if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
       owner = Some(node.host.asInstanceOf[Context])
-    }
-    if (node == this.node) {
-      romInternet.foreach(rom => node.neighbors.head.connect(rom.node))
+      romInternet.foreach(rom => node.connect(rom.node))
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
-    if (owner.isDefined && node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get)) {
+    if (owner.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get))) {
       owner = None
-    }
-    if (node == this.node) {
       for ((_, socket) <- connections) {
         socket.close()
       }

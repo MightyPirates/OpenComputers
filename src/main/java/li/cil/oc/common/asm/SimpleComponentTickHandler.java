@@ -12,6 +12,9 @@ public final class SimpleComponentTickHandler {
 
     public static final SimpleComponentTickHandler Instance = new SimpleComponentTickHandler();
 
+    private SimpleComponentTickHandler() {
+    }
+
     @SubscribeEvent
     public void onTick(TickEvent.ServerTickEvent e) {
         synchronized (pendingOperations) {

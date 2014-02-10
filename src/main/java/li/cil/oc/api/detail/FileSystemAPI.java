@@ -1,5 +1,6 @@
 package li.cil.oc.api.detail;
 
+import cpw.mods.fml.common.Optional;
 import dan200.computer.api.IMount;
 import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.fs.FileSystem;
@@ -13,8 +14,10 @@ public interface FileSystemAPI {
 
     FileSystem fromMemory(long capacity);
 
+    @Optional.Method(modid = "ComputerCraft")
     FileSystem fromComputerCraft(IMount mount);
 
+    @Optional.Method(modid = "ComputerCraft")
     FileSystem fromComputerCraft(IWritableMount mount);
 
     ManagedEnvironment asManagedEnvironment(FileSystem fs, Label label);

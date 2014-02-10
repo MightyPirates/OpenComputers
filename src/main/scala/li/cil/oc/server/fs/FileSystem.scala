@@ -1,5 +1,6 @@
 package li.cil.oc.server.fs
 
+import cpw.mods.fml.common.Optional
 import dan200.computer.api.{IWritableMount, IMount}
 import java.io
 import java.net.URL
@@ -64,8 +65,10 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
+  @Optional.Method(modid = "ComputerCraft")
   def fromComputerCraft(mount: IMount) = new ComputerCraftFileSystem(mount)
 
+  @Optional.Method(modid = "ComputerCraft")
   def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =

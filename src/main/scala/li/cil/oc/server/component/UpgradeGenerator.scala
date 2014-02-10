@@ -119,8 +119,8 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
           inventory = None
         case _ =>
       }
+      remainingTicks = 0
     }
-    remainingTicks = 0
   }
 
   override def load(nbt: NBTTagCompound) {

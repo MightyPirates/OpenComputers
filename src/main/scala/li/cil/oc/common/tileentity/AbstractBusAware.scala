@@ -74,6 +74,8 @@ trait AbstractBusAware extends TileEntity with network.Environment { self: IBusD
 
   abstract override def onDisconnect(node: network.Node) {
     super.onDisconnect(node)
-    isAbstractBusAvailable = false
+    if (node == this.node) {
+      isAbstractBusAvailable = false
+    }
   }
 }
