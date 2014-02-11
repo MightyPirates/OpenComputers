@@ -46,15 +46,15 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function():boolean -- Starts the robot. Returns true if the state changed.""")
   def start(context: Context, args: Arguments): Array[AnyRef] =
     result(!computer.isPaused && computer.start())
 
-  @Callback
+  @Callback(doc = """function():boolean -- Stops the robot. Returns true if the state changed.""")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
     result(computer.stop())
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the robot is running.""")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(computer.isRunning)
 

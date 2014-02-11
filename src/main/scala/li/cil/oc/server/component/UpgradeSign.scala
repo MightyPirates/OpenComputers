@@ -12,7 +12,7 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function():string -- Get the text on the sign in front of the robot.""")
   def getValue(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = owner match {
       case rotatable: Rotatable => rotatable.facing
@@ -24,7 +24,7 @@ class UpgradeSign(val owner: TileEntity) extends ManagedComponent {
     }
   }
 
-  @Callback
+  @Callback(doc = """function(value:string):string -- Set the text on the sign in front of the robot.""")
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line)
     val facing = owner match {

@@ -259,7 +259,17 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff made available via package.preload.
 
-local libcomponent = {
+local libcomponent
+libcomponent = {
+  doc = function(address, method)
+    checkArg(1, address, "string")
+    checkArg(2, method, "string")
+    local result, reason = component.doc(address, method)
+    if not result and reason then
+      error(reason, 2)
+    end
+    return result
+  end,
   invoke = function(address, method, ...)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
@@ -288,9 +298,14 @@ local libcomponent = {
       return nil, reason
     end
     for method, direct in pairs(methods) do
-      proxy[method] = function(...)
-        return invoke(direct, address, method, ...)
-      end
+      proxy[method] = setmetatable({}, {
+        __call = function(_, ...)
+          return invoke(direct, address, method, ...)
+        end,
+        __tostring = function()
+          return libcomponent.doc(address, method) or "function"
+        end
+        })
     end
     return proxy
   end,

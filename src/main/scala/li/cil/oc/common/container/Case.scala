@@ -23,6 +23,10 @@ class Case(playerInventory: InventoryPlayer, computer: tileentity.Case) extends 
 
   addSlotToContainer(120, 16, api.driver.Slot.Processor, computer.tier)
 
+  if (computer.tier == 0) {
+    addSlotToContainer(120, 16 + 2 * slotSize, api.driver.Slot.Memory, computer.maxComponentTierForSlot(getInventory.size))
+  }
+
   // Show the player's inventory.
   addPlayerInventorySlots(8, 84)
 

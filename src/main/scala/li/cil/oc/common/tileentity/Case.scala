@@ -62,7 +62,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   override def getInventoryName = Settings.namespace + "container.Case"
 
   override def getSizeInventory = tier match {
-    case 0 => 5
+    case 0 => 6
     case 1 => 7
     case 2 => 9
     case _ => 0
@@ -79,7 +79,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
     case 0 => (slot, Registry.itemDriverFor(stack)) match {
       case (_, None) => false // Invalid item.
       case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (2, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
+      case (2 | 5, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (3, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case (4, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case _ => false // Invalid slot.
@@ -105,7 +105,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   }
 
   def maxComponentTierForSlot(slot: Int) = tier match {
-    case 0 => 0
+    case 0 if slot >= 0 && slot < getSizeInventory => 0
     case 1 => slot match {
       case 0 => 1
       case 1 => 0

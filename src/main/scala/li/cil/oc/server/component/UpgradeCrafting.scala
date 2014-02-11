@@ -17,7 +17,7 @@ class UpgradeCrafting(val owner: MCTileEntity) extends ManagedComponent {
     withComponent("crafting").
     create()
 
-  @Callback
+  @Callback(doc = """function([count:number]):number -- Tries to craft the specified number of items in the top left area of the inventory.""")
   def craft(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     result(CraftingInventory.craft(context, count))
