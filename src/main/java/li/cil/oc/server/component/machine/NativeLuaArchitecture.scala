@@ -1,5 +1,6 @@
 package li.cil.oc.server.component.machine
 
+import com.google.common.base.Strings
 import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
@@ -527,6 +528,29 @@ class NativeLuaArchitecture(val machine: Machine) extends Architecture {
       }
     })
     lua.setField(-2, "invoke")
+
+    lua.pushScalaFunction(lua => {
+      val address = lua.checkString(1)
+      val method = lua.checkString(2)
+      try {
+        val doc = machine.doc(address, method)
+        if (Strings.isNullOrEmpty(doc))
+          lua.pushNil()
+        else
+          lua.pushString(doc)
+        1
+      } catch {
+        case e: NoSuchMethodException =>
+          lua.pushNil()
+          lua.pushString("no such method")
+          2
+        case t: Throwable =>
+          lua.pushNil()
+          lua.pushString(if (t.getMessage != null) t.getMessage else t.toString)
+          2
+      }
+    })
+    lua.setField(-2, "doc")
 
     lua.setGlobal("component")
 

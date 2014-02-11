@@ -17,17 +17,18 @@ class NetworkCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function(port:number):boolean -- Opens the specified port. Returns true if the port was opened.""")
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.add(port))
   }
 
-  @Callback
+  @Callback(doc = """function([port:number]):boolean -- Closes the specified port (default: all ports). Returns true if ports were closed.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     if (args.count == 0) {
+      val closed = openPorts.size > 0
       openPorts.clear()
-      result(true)
+      result(closed)
     }
     else {
       val port = checkPort(args.checkInteger(0))
@@ -35,16 +36,16 @@ class NetworkCard extends ManagedComponent {
     }
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(port:number):boolean -- Whether the specified port is open.""")
   def isOpen(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     result(openPorts.contains(port))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Whether this is a wireless network card.""")
   def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(false)
 
-  @Callback
+  @Callback(doc = """function(address:string, port:number, data...) -- Sends the specified data to the specified target.""")
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
@@ -53,7 +54,7 @@ class NetworkCard extends ManagedComponent {
     result(true)
   }
 
-  @Callback
+  @Callback(doc = """function(port:number, data...) -- Broadcasts the specified data on the specified port.""")
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     checkPacketSize(args.drop(1))
@@ -61,7 +62,7 @@ class NetworkCard extends ManagedComponent {
     result(true)
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- Gets the maximum packet size (config setting).""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //

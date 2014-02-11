@@ -54,25 +54,25 @@ class AbstractBus(val device: IBusDevice) extends ManagedComponent with IBusDriv
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function():boolean -- Whether the local bus interface is enabled.""")
   def getEnabled(context: Context, args: Arguments): Array[AnyRef] = result(isEnabled)
 
-  @Callback
+  @Callback(doc = """function(enabled:boolean):boolean -- Sets whether the local bus interface should be enabled.""")
   def setEnabled(context: Context, args: Arguments): Array[AnyRef] = {
     isEnabled = args.checkBoolean(0)
     result(isEnabled)
   }
 
-  @Callback
+  @Callback(doc = """function():number -- Get the local interface address.""")
   def getAddress(context: Context, args: Arguments): Array[AnyRef] = result(address)
 
-  @Callback
+  @Callback(doc = """function(address:number):number -- Sets the local interface address.""")
   def setAddress(context: Context, args: Arguments): Array[AnyRef] = {
     address = args.checkInteger(0) & 0xFFFF
     result(address)
   }
 
-  @Callback
+  @Callback(doc = """function(address:number, data:table):boolean -- Sends data across the abstract bus.""")
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)
@@ -84,7 +84,7 @@ class AbstractBus(val device: IBusDevice) extends ManagedComponent with IBusDriv
     else result(false, "not enough energy")
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- The maximum packet size that can be sent over the bus.""")
   def maxPacketSize(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.maxNetworkPacketSize)
 
   // ----------------------------------------------------------------------- //

@@ -12,19 +12,19 @@ class Redstone(val owner: RedstoneAware) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(side:number):number -- Get the redstone input on the specified side.""")
   def getInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     result(owner.input(side))
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function(side:number):number -- Get the redstone output on the specified side.""")
   def getOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     result(owner.output(side))
   }
 
-  @Callback()
+  @Callback(doc = """function(side:number, value:number):number -- Set the redstone output on the specified side.""")
   def setOutput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)
     val value = args.checkInteger(1)

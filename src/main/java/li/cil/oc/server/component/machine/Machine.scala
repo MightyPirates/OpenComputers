@@ -218,8 +218,13 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           counts(method) += 1
         }
         component.invoke(method, this, args: _*)
-      case _ => throw new Exception("no such component")
+      case _ => throw new IllegalArgumentException("no such component")
     }
+
+  private[component] def doc(address: String, method: String) = Option(node.network.node(address)) match {
+    case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node => component.doc(method)
+    case _ => throw new IllegalArgumentException("no such component")
+  }
 
   private[component] def addUser(name: String) {
     if (_users.size >= Settings.get.maxUsers)
@@ -248,15 +253,15 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function():boolean -- Starts the computer. Returns true if the state changed.""")
   def start(context: Context, args: Arguments): Array[AnyRef] =
     result(!isPaused && start())
 
-  @Callback
+  @Callback(doc = """function():boolean -- Stops the computer. Returns true if the state changed.""")
   def stop(context: Context, args: Arguments): Array[AnyRef] =
     result(stop())
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Returns whether the computer is running.""")
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 

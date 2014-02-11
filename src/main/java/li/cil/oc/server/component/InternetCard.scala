@@ -44,10 +44,10 @@ class InternetCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback
+  @Callback(doc = """function():boolean -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = {
     if (owner.isEmpty || context.node.address != owner.get.node.address) {
       throw new IllegalArgumentException("can only be used by the owning computer")
@@ -130,10 +130,10 @@ class InternetCard extends ManagedComponent {
     })
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
   def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback
+  @Callback(doc = """function(address:string[, port:number]):number -- Opens a new TCP connection. Returns the handle of the connection.""")
   def connect(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = if (args.count > 1) args.checkInteger(1) else -1
@@ -151,7 +151,7 @@ class InternetCard extends ManagedComponent {
     result(handle)
   }
 
-  @Callback
+  @Callback(doc = """function(handle:number) -- Closes an open socket stream.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
@@ -161,7 +161,7 @@ class InternetCard extends ManagedComponent {
     null
   }
 
-  @Callback
+  @Callback(doc = """function(handle:number, data:string):number -- Tries to write data to the socket stream. Returns the number of bytes written.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
@@ -173,7 +173,7 @@ class InternetCard extends ManagedComponent {
     }
   }
 
-  @Callback
+  @Callback(doc = """function(handle:number, n:number):string -- Tries to read data from the socket stream. Returns the read byte array.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))

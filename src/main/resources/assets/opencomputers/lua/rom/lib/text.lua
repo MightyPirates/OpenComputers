@@ -95,7 +95,7 @@ function text.serialize(value, pretty)
                ["until"]=true, ["while"]=true}
   local id = "^[%a_][%w_]*$"
   local ts = {}
-  local function s(v)
+  local function s(v, l)
     local t = type(v)
     if t == "nil" then
       return "nil"
@@ -113,6 +113,8 @@ function text.serialize(value, pretty)
       end
     elseif t == "string" then
       return string.format("%q", v)
+    elseif t == "table" and pretty and getmetatable(v) and getmetatable(v).__tostring then
+      return tostring(v)
     elseif t == "table" then
       if ts[v] then
         if pretty then
@@ -122,24 +124,36 @@ function text.serialize(value, pretty)
         end
       end
       ts[v] = true
-      local i, r = 1, nil
-      for k, v in pairs(v) do
+      local f, i, r = 1, nil
+      if pretty then
+        local ks = {}
+        for k in pairs(v) do table.insert(ks, k) end
+        table.sort(ks)
+        local k = 0
+        f = function()
+          k = k + 1
+          return ks[k], ks[k] and v[ks[k]] or nil
+        end
+      else
+        f = pairs(v)
+      end
+      for k, v in f do
         if r then
-          r = r .. ","
+          r = r .. "," .. (pretty and ("\n" .. string.rep(" ", l)) or "")
         else
           r = "{"
         end
         local tk = type(k)
         if tk == "number" and k == i then
           i = i + 1
-          r = r .. s(v)
+          r = r .. s(v, l + 1)
         else
           if tk == "string" and not kw[k] and string.match(k, id) then
             r = r .. k
           else
-            r = r .. "[" .. s(k) .. "]"
+            r = r .. "[" .. s(k, l + 1) .. "]"
           end
-          r = r .. "=" .. s(v)
+          r = r .. "=" .. s(v, l + 1)
         end
       end
       ts[v] = nil -- allow writing same table more than once
@@ -152,7 +166,7 @@ function text.serialize(value, pretty)
       end
     end
   end
-  local result = s(value)
+  local result = s(value, 1)
   local limit = type(pretty) == "number" and pretty or 1000
   if pretty and unicode.len(result) > limit then
     return result:sub(1, limit) .. "..."

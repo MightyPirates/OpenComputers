@@ -20,10 +20,10 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- Get the signal strength (range) used when sending messages.""")
   def getStrength(context: Context, args: Arguments): Array[AnyRef] = result(strength)
 
-  @Callback
+  @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when sending messages.""")
   def setStrength(context: Context, args: Arguments): Array[AnyRef] = {
     strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
     result(strength)

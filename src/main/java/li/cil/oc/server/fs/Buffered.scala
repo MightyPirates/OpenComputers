@@ -55,7 +55,10 @@ trait Buffered extends OutputStreamFileSystem {
       }
       setLastModified(path, directory.lastModified())
     }
-    recurse("", fileRoot)
+    if (fileRoot.list() == null || fileRoot.list().length == 0) {
+      fileRoot.delete()
+    }
+    else recurse("", fileRoot)
 
     super.load(nbt)
   }
@@ -94,6 +97,9 @@ trait Buffered extends OutputStreamFileSystem {
       }
       directory.setLastModified(lastModified(path))
     }
-    recurse("")
+    if (list("") == null || list("").length == 0) {
+      fileRoot.delete()
+    }
+    else recurse("")
   }
 }

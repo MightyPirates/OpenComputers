@@ -21,7 +21,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  @Callback
+  @Callback(doc = """function([count:number]):boolean -- Tries to insert fuel from the selected slot into the generator's queue.""")
   def insert(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else 64
     val player = context.player
@@ -48,7 +48,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     result(true)
   }
 
-  @Callback
+  @Callback(doc = """function():number -- Get the size of the item stack in the generator's queue.""")
   def count(context: Context, args: Arguments): Array[AnyRef] = {
     inventory match {
       case Some(stack) => result(stack.stackSize)
@@ -56,7 +56,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     }
   }
 
-  @Callback
+  @Callback(doc = """function([count:number]):boolean -- Tries to remove items from the generator's queue.""")
   def remove(context: RobotContext, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     inventory match {

@@ -99,6 +99,11 @@ trait Component extends network.Component with Node {
 
   def methods = callbacks.keySet
 
+  def doc(name: String) = callbacks.get(name) match {
+    case Some(callback) => callback.doc
+    case _ => throw new NoSuchMethodException()
+  }
+
   def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
       case Some(callback) => hosts(method) match {
@@ -173,7 +178,7 @@ object Component {
             val a = m.getAnnotation[network.Callback](classOf[network.Callback])
             val name = if (a.value != null && a.value.trim != "") a.value else m.getName
             if (!callbacks.contains(name)) {
-              callbacks += name -> new ComponentCallback(m, a.direct, a.limit)
+              callbacks += name -> new ComponentCallback(m, a.direct, a.limit, a.doc)
             }
           }
         )
@@ -201,11 +206,11 @@ object Component {
 
   // ----------------------------------------------------------------------- //
 
-  abstract class Callback(val direct: Boolean, val limit: Int) {
+  abstract class Callback(val direct: Boolean, val limit: Int, val doc: String = "") {
     def apply(instance: Environment, context: Context, args: Arguments): Array[AnyRef]
   }
 
-  class ComponentCallback(val method: Method, direct: Boolean, limit: Int) extends Callback(direct, limit) {
+  class ComponentCallback(val method: Method, direct: Boolean, limit: Int, doc: String) extends Callback(direct, limit, doc) {
     override def apply(instance: Environment, context: Context, args: Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
     } catch {
