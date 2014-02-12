@@ -27,16 +27,18 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     val player = context.player
     val stack = player.inventory.getStackInSlot(context.selectedSlot)
     if (stack == null) throw new IllegalArgumentException("selected slot is empty")
-    if (!TileEntityFurnace.isItemFuel(stack)) return result(false, "selected slot does not contain fuel")
+    if (!TileEntityFurnace.isItemFuel(stack)) {
+      return result(Unit, "selected slot does not contain fuel")
+    }
     inventory match {
       case Some(existingStack) =>
         if (!existingStack.isItemEqual(stack) ||
           !ItemStack.areItemStackTagsEqual(existingStack, stack)) {
-          return result(false, "different fuel type already queued")
+          return result(Unit, "different fuel type already queued")
         }
         val space = existingStack.getMaxStackSize - existingStack.stackSize
         if (space <= 0) {
-          return result(false, "queue is full")
+          return result(Unit, "queue is full")
         }
         val moveCount = math.min(stack.stackSize, math.min(space, count))
         existingStack.stackSize += moveCount

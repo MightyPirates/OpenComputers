@@ -227,7 +227,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = player.robotInventory.selectedItemStack
     if (stack == null || stack.stackSize == 0) {
-      return result(false, "nothing selected")
+      return result(Unit, "nothing selected")
     }
 
     for (side <- sides) {
@@ -494,16 +494,16 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     if (robot.isAnimatingMove) {
       // This shouldn't really happen due to delays being enforced, but just to
       // be on the safe side...
-      result(false, "already moving")
+      result(Unit, "already moving")
     }
     else {
       val (something, what) = blockContent(robot.player(direction), direction)
       if (something) {
-        result(false, what)
+        result(Unit, what)
       }
       else {
         if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
-          result(false, "not enough energy")
+          result(Unit, "not enough energy")
         }
         else if (robot.move(direction)) {
           context.pause(Settings.get.moveDelay)
@@ -512,7 +512,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         }
         else {
           robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
-          result(false, "impossible move")
+          result(Unit, "impossible move")
         }
       }
     }
@@ -529,7 +529,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       result(true)
     }
     else {
-      result(false, "not enough energy")
+      result(Unit, "not enough energy")
     }
   }
 

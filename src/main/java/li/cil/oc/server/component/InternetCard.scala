@@ -54,12 +54,12 @@ class InternetCard extends ManagedComponent {
     }
     val address = args.checkString(0)
     if (!Settings.get.httpEnabled) {
-      return result(false, "http requests are unavailable")
+      return result(Unit, "http requests are unavailable")
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
     this.synchronized {
       if (request.isDefined || queue.isDefined) {
-        return result(false, "already busy with another request")
+        return result(Unit, "already busy with another request")
       }
       scheduleRequest(address, post)
     }
@@ -137,7 +137,9 @@ class InternetCard extends ManagedComponent {
   def connect(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = if (args.count > 1) args.checkInteger(1) else -1
-    if (!Settings.get.tcpEnabled) return result(false, "tcp connections are unavailable")
+    if (!Settings.get.tcpEnabled) {
+      return result(Unit, "tcp connections are unavailable")
+    }
     if (connections.size >= Settings.get.maxConnections) {
       throw new IOException("too many open connections")
     }
