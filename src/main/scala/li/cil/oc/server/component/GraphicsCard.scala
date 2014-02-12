@@ -53,7 +53,7 @@ abstract class GraphicsCard extends ManagedComponent {
   def bind(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     node.network.node(address) match {
-      case null => result(false, "invalid address")
+      case null => result(Unit, "invalid address")
       case node: Node if node.host.isInstanceOf[Buffer] =>
         screenAddress = Option(address)
         screenInstance = Some(node.host.asInstanceOf[Buffer])
@@ -66,7 +66,7 @@ abstract class GraphicsCard extends ManagedComponent {
           s.background = 0x000000
           result(true)
         })
-      case _ => result(false, "not a screen")
+      case _ => result(Unit, "not a screen")
     }
   }
 
@@ -166,7 +166,7 @@ abstract class GraphicsCard extends ManagedComponent {
         s.set(x, y, value)
         result(true)
       }
-      else result(false)
+      else result(Unit, "not enough energy")
     })
   }
 
@@ -182,7 +182,7 @@ abstract class GraphicsCard extends ManagedComponent {
         s.copy(x, y, w, h, tx, ty)
         result(true)
       }
-      else result(false)
+      else result(Unit, "not enough energy")
     })
   }
 
@@ -200,7 +200,7 @@ abstract class GraphicsCard extends ManagedComponent {
         result(true)
       }
       else {
-        result(false)
+        result(Unit, "not enough energy")
       }
     })
     else throw new Exception("invalid fill value")

@@ -81,7 +81,7 @@ class AbstractBus(val device: IBusDevice) extends ManagedComponent with IBusDriv
       busInterface.sendAllPackets()
       result(true)
     }
-    else result(false, "not enough energy")
+    else result(Unit, "not enough energy")
   }
 
   @Callback(direct = true, doc = """function():number -- The maximum packet size that can be sent over the bus.""")

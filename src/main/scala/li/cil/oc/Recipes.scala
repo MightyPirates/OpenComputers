@@ -5,18 +5,33 @@ import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import java.io.{FileReader, File}
 import java.util.logging.Level
-import li.cil.oc.common.block.Delegator
-import li.cil.oc.util.mods.{StargateTech2, GregTech}
+import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
 import org.apache.commons.io.FileUtils
-import scala.Some
-import scala.collection.convert.wrapAsScala._
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object Recipes {
+  val list = mutable.ArrayBuffer.empty[() => (ItemStack, String)]
+
+  def addBlock[T <: Block](block: T, name: String) = {
+    list += (() => new ItemStack(block) -> name)
+    block
+  }
+
+  def addBlockDelegate[T <: common.block.Delegate](block: T, name: String) = {
+    list += (() => block.createItemStack() -> name)
+    block
+  }
+
+  def addItemDelegate[T <: common.item.Delegate](item: T, name: String) = {
+    list += (() => item.createItemStack() -> name)
+    item
+  }
+
   def init() {
     try {
       val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
@@ -52,89 +67,10 @@ object Recipes {
       })
       val recipes = ConfigFactory.parseFile(userRecipes, config)
 
-      // Try to keep this in the same order as the fields in the Items class
-      // to make it easier to match them and check if anything is missing.
-      addRecipe(Items.analyzer.createItemStack(), recipes, "analyzer")
-      addRecipe(Items.terminal.createItemStack(), recipes, "terminal")
-
-      addRecipe(Items.ram1.createItemStack(), recipes, "ram1")
-      addRecipe(Items.ram2.createItemStack(), recipes, "ram2")
-      addRecipe(Items.ram3.createItemStack(), recipes, "ram3")
-      addRecipe(Items.ram4.createItemStack(), recipes, "ram4")
-      addRecipe(Items.ram5.createItemStack(), recipes, "ram5")
-
-      addRecipe(Items.floppyDisk.createItemStack(), recipes, "floppy")
-      addRecipe(Items.hdd1.createItemStack(), recipes, "hdd1")
-      addRecipe(Items.hdd2.createItemStack(), recipes, "hdd2")
-      addRecipe(Items.hdd3.createItemStack(), recipes, "hdd3")
-
-      addRecipe(Items.server1.createItemStack(), recipes, "server1")
-      addRecipe(Items.server2.createItemStack(), recipes, "server2")
-      addRecipe(Items.server3.createItemStack(), recipes, "server3")
-
-      if (StargateTech2.isAvailable) {
-        addRecipe(Items.abstractBus.createItemStack(), recipes, "abstractBusCard")
+      // Register all known recipes.
+      for ((stack, name) <- list.map(_())) {
+        addRecipe(stack, recipes, name)
       }
-      addRecipe(Items.gpu1.createItemStack(), recipes, "graphicsCard1")
-      addRecipe(Items.gpu2.createItemStack(), recipes, "graphicsCard2")
-      addRecipe(Items.gpu3.createItemStack(), recipes, "graphicsCard3")
-      addRecipe(Items.internet.createItemStack(), recipes, "internetCard")
-      addRecipe(Items.lan.createItemStack(), recipes, "lanCard")
-      addRecipe(Items.rs.createItemStack(), recipes, "redstoneCard")
-      addRecipe(Items.wlan.createItemStack(), recipes, "wlanCard")
-
-      addRecipe(Items.upgradeCrafting.createItemStack(), recipes, "craftingUpgrade")
-      addRecipe(Items.upgradeGenerator.createItemStack(), recipes, "generatorUpgrade")
-      addRecipe(Items.upgradeNavigation.createItemStack(), recipes, "navigationUpgrade")
-      addRecipe(Items.upgradeSign.createItemStack(), recipes, "signUpgrade")
-      addRecipe(Items.upgradeSolarGenerator.createItemStack(), recipes, "solarGeneratorUpgrade")
-
-      if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
-        addRecipe(Items.ironNugget.createItemStack(), recipes, "nuggetIron")
-      }
-      addRecipe(Items.cuttingWire.createItemStack(), recipes, "cuttingWire")
-      addRecipe(Items.acid.createItemStack(), recipes, "acid")
-      addRecipe(Items.disk.createItemStack(), recipes, "disk")
-
-      addRecipe(Items.buttonGroup.createItemStack(), recipes, "buttonGroup")
-      addRecipe(Items.arrowKeys.createItemStack(), recipes, "arrowKeys")
-      addRecipe(Items.numPad.createItemStack(), recipes, "numPad")
-
-      addRecipe(Items.transistor.createItemStack(), recipes, "transistor")
-      addRecipe(Items.chip1.createItemStack(), recipes, "chip1")
-      addRecipe(Items.chip2.createItemStack(), recipes, "chip2")
-      addRecipe(Items.chip3.createItemStack(), recipes, "chip3")
-      addRecipe(Items.alu.createItemStack(), recipes, "alu")
-      addRecipe(Items.cpu0.createItemStack(), recipes, "cpu0")
-      addRecipe(Items.cpu1.createItemStack(), recipes, "cpu1")
-      addRecipe(Items.cpu2.createItemStack(), recipes, "cpu2")
-      addRecipe(Items.cu.createItemStack(), recipes, "cu")
-
-      addRecipe(Items.rawCircuitBoard.createItemStack(), recipes, "rawCircuitBoard")
-      addRecipe(Items.circuitBoard.createItemStack(), recipes, "circuitBoard")
-      addRecipe(Items.pcb.createItemStack(), recipes, "printedCircuitBoard")
-      addRecipe(Items.card.createItemStack(), recipes, "card")
-
-      // Try to keep this in the same order as the fields in the Blocks class
-      // to make it easier to match them and check if anything is missing.Point")
-      addRecipe(Blocks.adapter.createItemStack(), recipes, "adapter")
-      addRecipe(Blocks.cable.createItemStack(), recipes, "cable")
-      addRecipe(Blocks.capacitor.createItemStack(), recipes, "capacitor")
-      addRecipe(Blocks.charger.createItemStack(), recipes, "charger")
-      addRecipe(Blocks.case1.createItemStack(), recipes, "case1")
-      addRecipe(Blocks.case2.createItemStack(), recipes, "case2")
-      addRecipe(Blocks.case3.createItemStack(), recipes, "case3")
-      addRecipe(Blocks.diskDrive.createItemStack(), recipes, "diskDrive")
-      addRecipe(new ItemStack(Blocks.keyboard), recipes, "keyboard")
-      addRecipe(Blocks.powerConverter.createItemStack(), recipes, "powerConverter")
-      addRecipe(Blocks.powerDistributor.createItemStack(), recipes, "powerDistributor")
-      addRecipe(Blocks.redstone.createItemStack(), recipes, "redstone")
-      addRecipe(Blocks.robotProxy.createItemStack(), recipes, "robot")
-      addRecipe(Blocks.router.createItemStack(), recipes, "router")
-      addRecipe(Blocks.screen1.createItemStack(), recipes, "screen1")
-      addRecipe(Blocks.screen2.createItemStack(), recipes, "screen2")
-      addRecipe(Blocks.screen3.createItemStack(), recipes, "screen3")
-      addRecipe(Blocks.serverRack.createItemStack(), recipes, "rack")
 
       // Navigation upgrade recrafting.
       GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(net.minecraft.init.Items.map, 1, OreDictionary.WILDCARD_VALUE)))
@@ -184,8 +120,8 @@ object Recipes {
     output.stackSize = tryGetCount(recipe)
 
     var number = -1
-    var shape = ArrayBuffer.empty[String]
-    val input = ArrayBuffer.empty[AnyRef]
+    var shape = mutable.ArrayBuffer.empty[String]
+    val input = mutable.ArrayBuffer.empty[AnyRef]
     for (row <- rows) {
       val (pattern, ingredients) = row.foldLeft((new StringBuilder, Seq.empty[AnyRef]))((acc, ingredient) => {
         val (pattern, ingredients) = acc
@@ -359,7 +295,7 @@ object Recipes {
   private def hide(value: ItemStack) {
     Items.multi.subItem(value) match {
       case Some(stack) => stack.showInItemList = false
-      case _ => Delegator.subBlock(value) match {
+      case _ => common.block.Delegator.subBlock(value) match {
         case Some(block) => block.showInItemList = false
         case _ =>
       }

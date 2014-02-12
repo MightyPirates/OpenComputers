@@ -10,6 +10,7 @@ import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 trait ComponentInventory extends Inventory with network.Environment {
@@ -75,12 +76,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       case (stack, slot) => components(slot) match {
         case Some(component) =>
           // We're guaranteed to have a driver for entries.
-          val driver = Registry.itemDriverFor(stack).get
-          try {
-            component.save(dataTag(driver, stack))
-          } catch {
-            case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
-          }
+          save(component, Registry.itemDriverFor(stack).get, stack)
         case _ => // Nothing special to save.
       }
     }
@@ -106,7 +102,7 @@ trait ComponentInventory extends Inventory with network.Environment {
             assert(!updatingComponents.contains(component))
             updatingComponents += component
           }
-          component.save(dataTag(driver, stack))
+          save(component, driver, stack)
         }
         case _ => // No environment (e.g. RAM).
       }
@@ -125,11 +121,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         updatingComponents -= component
         component.node.remove()
-        Registry.itemDriverFor(stack).foreach(driver => try {
-          component.save(dataTag(driver, stack))
-        } catch {
-          case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
-        })
+        Registry.itemDriverFor(stack).foreach(driver => save(component, driver, stack))
       }
       case _ => // Nothing to do.
     }
@@ -143,4 +135,18 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   protected def dataTag(driver: ItemDriver, stack: ItemStack) =
     Option(driver.dataTag(stack)).getOrElse(Item.dataTag(stack))
+
+  protected def save(component: ManagedEnvironment, driver: ItemDriver, stack: ItemStack) {
+    try {
+      val tag = dataTag(driver, stack)
+      // Clear the tag compound before saving to get the same behavior as
+      // in tile entities (otherwise entries have to be cleared manually).
+      for (key <- tag.func_150296_c.map(_.asInstanceOf[String])) {
+        tag.removeTag(key)
+      }
+      component.save(tag)
+    } catch {
+      case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
+    }
+  }
 }

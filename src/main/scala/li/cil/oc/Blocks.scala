@@ -47,24 +47,24 @@ object Blocks {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
-    adapter = new Adapter(blockSimple)
-    cable = new Cable(blockSpecial)
-    capacitor = new Capacitor(blockSimple)
-    case1 = new Case.Tier1(blockSimpleWithRedstone)
-    case2 = new Case.Tier2(blockSimpleWithRedstone)
-    case3 = new Case.Tier3(blockSimpleWithRedstone)
-    charger = new Charger(blockSimpleWithRedstone)
-    diskDrive = new DiskDrive(blockSimple)
+    adapter = Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter")
+    cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable")
+    capacitor = Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor")
+    case1 = Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1")
+    case2 = Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2")
+    case3 = Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3")
+    charger = Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger")
+    diskDrive = Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive")
     keyboardDeprecated = new KeyboardDeprecated(blockSpecial)
-    powerDistributor = new PowerDistributor(blockSimple)
-    powerConverter = new PowerConverter(blockSimple)
-    redstone = new Redstone(blockSimpleWithRedstone)
+    powerDistributor = Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor")
+    powerConverter = Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter")
+    redstone = Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone")
     robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = new RobotProxy(blockSpecialWithRedstone)
-    router = new Router(blockSimple)
-    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
-    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
-    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
+    robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot")
+    router = Recipes.addBlockDelegate(new Router(blockSimple), "router")
+    screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1")
+    screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2")
+    screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3")
 
     // For automatic conversion from old format (when screens did not take
     // redstone inputs) to keep save format compatible.
@@ -73,10 +73,10 @@ object Blocks {
     blockSimple.subBlocks += screen3
 
     // v1.2.0
-    serverRack = new Rack(blockSpecialWithRedstone)
+    serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack")
 
     // v2.0.0
-    keyboard = new Keyboard()
+    keyboard = Recipes.addBlock(new Keyboard(), "keyboard")
 
     GameRegistry.registerBlock(keyboard, classOf[Item], Settings.namespace + "keyboard")
 
