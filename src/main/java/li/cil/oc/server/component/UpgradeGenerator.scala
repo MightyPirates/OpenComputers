@@ -134,16 +134,11 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     inventory match {
-      case Some(stack) =>
-        nbt.setNewCompoundTag("inventory", stack.writeToNBT)
+      case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
       case _ =>
-        nbt.removeTag("inventory")
     }
     if (remainingTicks > 0) {
       nbt.setInteger("remainingTicks", remainingTicks)
-    }
-    else {
-      nbt.removeTag("remainingTicks")
     }
   }
 }

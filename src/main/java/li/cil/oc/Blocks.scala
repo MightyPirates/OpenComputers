@@ -2,11 +2,11 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
-import li.cil.oc.common.{block, tileentity}
+import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
-import net.minecraftforge.oredict.OreDictionary
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -67,24 +67,24 @@ object Blocks {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
-    adapter = new Adapter(blockSimple)
-    cable = new Cable(blockSpecial)
-    capacitor = new Capacitor(blockSimple)
-    case1 = new Case.Tier1(blockSimpleWithRedstone)
-    case2 = new Case.Tier2(blockSimpleWithRedstone)
-    case3 = new Case.Tier3(blockSimpleWithRedstone)
-    charger = new Charger(blockSimpleWithRedstone)
-    diskDrive = new DiskDrive(blockSimple)
-    keyboard = new Keyboard(blockSpecial)
-    powerDistributor = new PowerDistributor(blockSimple)
-    powerConverter = new PowerConverter(blockSimple)
-    redstone = new Redstone(blockSimpleWithRedstone)
+    adapter = Recipes.addBlock(new Adapter(blockSimple), "adapter")
+    cable = Recipes.addBlock(new Cable(blockSpecial), "cable")
+    capacitor = Recipes.addBlock(new Capacitor(blockSimple), "capacitor")
+    case1 = Recipes.addBlock(new Case.Tier1(blockSimpleWithRedstone), "case1")
+    case2 = Recipes.addBlock(new Case.Tier2(blockSimpleWithRedstone), "case2")
+    case3 = Recipes.addBlock(new Case.Tier3(blockSimpleWithRedstone), "case3")
+    charger = Recipes.addBlock(new Charger(blockSimpleWithRedstone), "charger")
+    diskDrive = Recipes.addBlock(new DiskDrive(blockSimple), "diskDrive")
+    keyboard = Recipes.addBlock(new Keyboard(blockSpecial), "keyboard")
+    powerDistributor = Recipes.addBlock(new PowerDistributor(blockSimple), "powerDistributor")
+    powerConverter = Recipes.addBlock(new PowerConverter(blockSimple), "powerConverter")
+    redstone = Recipes.addBlock(new Redstone(blockSimpleWithRedstone), "redstone")
     robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = new RobotProxy(blockSpecialWithRedstone)
-    router = new Router(blockSimple)
-    screen1 = new Screen.Tier1(blockSimpleWithRedstone)
-    screen2 = new Screen.Tier2(blockSimpleWithRedstone)
-    screen3 = new Screen.Tier3(blockSimpleWithRedstone)
+    robotProxy = Recipes.addBlock(new RobotProxy(blockSpecialWithRedstone), "robot")
+    router = Recipes.addBlock(new Router(blockSimple), "router")
+    screen1 = Recipes.addBlock(new Screen.Tier1(blockSimpleWithRedstone), "screen1")
+    screen2 = Recipes.addBlock(new Screen.Tier2(blockSimpleWithRedstone), "screen2")
+    screen3 = Recipes.addBlock(new Screen.Tier3(blockSimpleWithRedstone), "screen3")
 
     // For automatic conversion from old format (when screens did not take
     // redstone inputs) to keep save format compatible.
@@ -93,7 +93,7 @@ object Blocks {
     blockSimple.subBlocks += screen3
 
     // v1.2.0
-    serverRack = new Rack(blockSpecialWithRedstone)
+    serverRack = Recipes.addBlock(new Rack(blockSpecialWithRedstone), "rack")
 
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())
