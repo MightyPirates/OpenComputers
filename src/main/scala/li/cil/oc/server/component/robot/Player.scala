@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
-import li.cil.oc.util.mods.PortalGun
+import li.cil.oc.util.mods.{TinkersConstruct, PortalGun}
 import net.minecraft.block.{BlockPistonBase, Block}
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
@@ -259,8 +259,16 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     }
 
     val stack = getCurrentEquippedItem
+    if (TinkersConstruct.isInfiTool(stack)) {
+      posY -= 1.62
+      prevPosY = posY
+    }
     if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
       return 0
+    }
+    if (TinkersConstruct.isInfiTool(stack)) {
+      posY += 1.62
+      prevPosY = posY
     }
 
     world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))

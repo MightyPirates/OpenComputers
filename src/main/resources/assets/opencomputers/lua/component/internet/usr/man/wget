@@ -5,9 +5,9 @@ SYNOPSIS
   wget URL [FILE]
 
 DESCRIPTION
-  The pastebin program allows downloading programs from pastebin, identified by their paste ID. I can also be used to upload programs to pastebin.
+  The wget program allows downloading programs from the interwebs, given the URL to download from.
 
-  The pastebin program requires an internet card and internet access to be enabled in the mod's configuration.
+  The wget program requires an internet card and internet access to be enabled in the mod's configuration.
 
 OPTIONS
   -f
@@ -16,8 +16,8 @@ OPTIONS
     only print errors, no status messages
 
 EXAMPLES
-  pastebin get AbCdEfGh test
-    Downloads the paste with ID `AbCdEfGh` and writes it to file `test`.
+  wget http://example.com/data.zip
+    Downloads the file `data.zip` and saves it as `data.zip`.
 
-  pastebin put prog.lua
-    Uploads the program `prog.lua` to pastebin.
+  wget http://example.com/data.zip blah.zip
+    Downloads the file `data.zip` and saves it as `blah.zip`.

@@ -201,6 +201,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
           result(tryDropIntoInventory(inventory,
             slot => inventory.isItemValidForSlot(slot, dropped)))
         case _ =>
+          val player = robot.player(facing)
           for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
             if (tryDropIntoInventory(entity, slot => entity.isItemValidForSlot(slot, dropped))) {
               return result(true)
@@ -292,6 +293,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       case inventory: IInventory if inventory.isUseableByPlayer(player) =>
         result(trySuckFromInventory(inventory, slot => true))
       case _ =>
+        val player = robot.player(facing)
         for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
           if (trySuckFromInventory(entity, slot => true)) {
             return result(true)
@@ -315,7 +317,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
   @Callback
   def detect(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSideForAction(args, 0)
-    val (something, what) = blockContent(side)
+    val (something, what) = blockContent(robot.player(side), side)
     result(something, what)
   }
 
@@ -338,7 +340,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       context.pause(delay)
       robot.animateSwing(Settings.get.swingDelay)
     }
-    def attack(entity: Entity) = {
+    def attack(player: Player, entity: Entity) = {
       beginConsumeDrops(entity)
       player.attackTargetEntityWithCurrentItem(entity)
       // Mine carts have to be hit quickly in succession to break, so we click
@@ -349,11 +351,11 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         }
         case _ =>
       }
-      endConsumeDrops(entity)
+      endConsumeDrops(player, entity)
       triggerDelay()
       (true, "entity")
     }
-    def click(x: Int, y: Int, z: Int, side: Int) = {
+    def click(player: Player, x: Int, y: Int, z: Int, side: Int) = {
       val breakTime = player.clickBlock(x, y, z, side)
       val broke = breakTime > 0
       if (broke) {
@@ -376,14 +378,14 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
           case _ => MovingObjectType.MISS
         }) match {
           case MovingObjectType.ENTITY =>
-            attack(hit.entityHit)
+            attack(player, hit.entityHit)
           case MovingObjectType.BLOCK =>
-            click(hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
+            click(player, hit.blockX, hit.blockY, hit.blockZ, hit.sideHit)
           case _ =>
             // Retry with full block bounds, disregarding swing range.
             player.closestEntity[EntityLivingBase]() match {
               case Some(entity) =>
-                attack(entity)
+                attack(player, entity)
               case _ =>
                 if (world.extinguishFire(player, x, y, z, facing.ordinal)) {
                   triggerDelay()
@@ -435,19 +437,19 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
           (true, "item_used")
         case _ => (false, "")
       }
+    def interact(player: Player, entity: Entity) = {
+      beginConsumeDrops(entity)
+      val result = player.interactWith(entity)
+      endConsumeDrops(player, entity)
+      result
+    }
 
     for (side <- sides) {
       val player = robot.player(facing, side)
       player.setSneaking(sneaky)
 
-      def interact(entity: Entity) = {
-        beginConsumeDrops(entity)
-        val result = player.interactWith(entity)
-        endConsumeDrops(entity)
-        result
-      }
       val (success, what) = Option(pick(player, Settings.get.useAndPlaceRange)) match {
-        case Some(hit) if hit.typeOfHit == MovingObjectType.ENTITY && interact(hit.entityHit) =>
+        case Some(hit) if hit.typeOfHit == MovingObjectType.ENTITY && interact(player, hit.entityHit) =>
           triggerDelay()
           (true, "item_interacted")
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
@@ -500,7 +502,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       result(false, "already moving")
     }
     else {
-      val (something, what) = blockContent(direction)
+      val (something, what) = blockContent(robot.player(direction), direction)
       if (something) {
         result(false, what)
       }
@@ -563,7 +565,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
     entity.captureDrops = true
   }
 
-  private def endConsumeDrops(entity: Entity) {
+  private def endConsumeDrops(player: Player, entity: Entity) {
     entity.captureDrops = false
     for (drop <- entity.capturedDrops) {
       val stack = drop.getEntityItem
@@ -577,7 +579,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
 
   // ----------------------------------------------------------------------- //
 
-  private def blockContent(side: ForgeDirection) = {
+  private def blockContent(player: Player, side: ForgeDirection) = {
     player.closestEntity[Entity](side) match {
       case Some(_@(_: EntityLivingBase | _: EntityMinecart)) =>
         (true, "entity")

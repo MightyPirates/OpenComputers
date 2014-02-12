@@ -491,7 +491,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = 64 * 1024
+  override def installedMemory = 96 * 1024
 
   override def tier = 0
 
