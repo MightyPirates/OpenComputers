@@ -103,7 +103,7 @@ oc:gui.ServerRack.Bottom=Снизу
 oc:gui.ServerRack.Left=Слева
 oc:gui.ServerRack.Right=Справа
 oc:gui.ServerRack.Top=Сверху
-oc:gui.ServerRack.WirelessRange=Радиус беспроводной сети
+oc:gui.ServerRack.WirelessRange=Радиус
 oc:gui.Terminal.InvalidKey=Неверный ключ, возможно к серверу уже подключен другой терминал.
 oc:gui.Terminal.OutOfRange=Нет сигнала от сервера.
 
@@ -131,7 +131,7 @@ oc:tooltip.CuttingWire=Используется для нарезки глиня
 oc:tooltip.Disk=Примитивный носитель, который может быть использован для создания постоянных запоминающих устройств.
 oc:tooltip.DiskDrive.CC=§aПоддерживаются§7 дискеты из ComputerCraft.
 oc:tooltip.DiskDrive=Позволяет читать и записывать дискеты.
-oc:tooltip.GraphicsCard=Передаёт изображение на дисплей.[nl] Максимальное разрешение: §f%sx%s§7.[nl] Максимальная г лубина цвета:§f%s§7.[nl] Операций/тик: §f%s§7.
+oc:tooltip.GraphicsCard=Передаёт изображение на дисплей.[nl] Максимальное разрешение: §f%sx%s§7.[nl] Максимальная глубина цвета:§f%s§7.[nl] Операций/тик: §f%s§7.
 oc:tooltip.InternetCard=Эта карта позволяет создавать HTTP-запросы и использует реальные TCP сокеты.
 oc:tooltip.IronNugget=Самородок, созданный из железа. Может именно поэтому он и назван железным самородком, нет?
 oc:tooltip.Keyboard=Может быть прикреплена к дисплеям, позволяя вводить информацию.
