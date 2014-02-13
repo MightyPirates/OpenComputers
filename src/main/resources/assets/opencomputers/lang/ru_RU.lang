@@ -2,25 +2,25 @@
 # Use UTF-8 for this file.
 
 # Blocks
-oc:block.Adapter.name=Адаптер
-oc:block.Cable.name=Кабель
-oc:block.Capacitor.name=Аккумулятор
-oc:block.Case0.name=Системный блок 1-го уровня
-oc:block.Case1.name=Системный блок 2-го уровня
-oc:block.Case2.name=Системный блок 3-го уровня
-oc:block.Charger.name=Зарядное устройство
-oc:block.DiskDrive.name=Дисковод
-oc:block.Keyboard.name=Клавиатура
-oc:block.PowerConverter.name=Преобразователь энергии
-oc:block.PowerDistributor.name=Передатчик энергии
-oc:block.Redstone.name=Обработчик сигналов красной пыли
-oc:block.Robot.name=Робот
-oc:block.RobotAfterimage.name=Робот
-oc:block.Router.name=Маршрутизатор
-oc:block.Screen0.name=Дисплей (Ур. 1)
-oc:block.Screen1.name=Дисплей (Ур. 2)
-oc:block.Screen2.name=Дисплей (Ур. 3)
-oc:block.ServerRack.name=Серверная стойка
+oc:tile.Adapter.name=Адаптер
+oc:tile.Cable.name=Кабель
+oc:tile.Capacitor.name=Конденсатор
+oc:tile.Case0.name=Системный блок 1-го уровня
+oc:tile.Case1.name=Системный блок 2-го уровня
+oc:tile.Case2.name=Системный блок 3-го уровня
+oc:tile.Charger.name=Зарядное устройство
+oc:tile.DiskDrive.name=Дисковод
+oc:tile.Keyboard.name=Клавиатура
+oc:tile.PowerConverter.name=Преобразователь энергии
+oc:tile.PowerDistributor.name=Передатчик энергии
+oc:tile.Redstone.name=Обработчик сигналов красной пыли
+oc:tile.Robot.name=Робот
+oc:tile.RobotAfterimage.name=Робот
+oc:tile.Router.name=Маршрутизатор
+oc:tile.Screen0.name=Дисплей (Ур. 1)
+oc:tile.Screen1.name=Дисплей (Ур. 2)
+oc:tile.Screen2.name=Дисплей (Ур. 3)
+oc:tile.ServerRack.name=Серверная стойка
 
 # Items
 oc:item.AbstractBusCard.name=Плата абстрактной шины
