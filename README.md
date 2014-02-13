@@ -1,5 +1,10 @@
 This is an addon for OpenComputers, providing drivers for additional blocks to be accessible via the Adapter block. It is *not* a full re-implementation of OpenPeripherals for OpenComputers, it's a little more simplistic in its architecture only provides drivers for a subset of the blocks OP supports - for now, anyway.
 
+[Download](http://ci.cil.li/job/OpenComponents/)
+--------
+
+OpenComponents is generally in continuous development, in that support for more blocks is added. Any 'deeper' changes will not be made in the master branch, meaning it should generally be considered stable. Meaning you can simply get the [latest build from the Jenkins build server](http://ci.cil.li/job/OpenComponents/).
+
 Contributing
 ------------
 
