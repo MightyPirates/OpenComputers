@@ -40,7 +40,9 @@ trait Delegate {
 
   def validRotations(world: World, x: Int, y: Int, z: Int) = validRotations_
 
-  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
+  // DEPRECATED Seems this isn't available anymore with stack info, use real
+  // items in 1.7 when needed since IDs are no problem anymore.
+  //  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   def bounds(world: World, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)

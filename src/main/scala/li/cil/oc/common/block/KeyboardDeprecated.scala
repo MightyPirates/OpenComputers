@@ -45,7 +45,9 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
       case _ =>
     }
 
-  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
+  // DEPRECATED Seems this isn't available anymore with stack info, use real
+  // items in 1.7 when needed since IDs are no problem anymore.
+  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
       (world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
         case screen: tileentity.Screen => screen.facing != side.getOpposite

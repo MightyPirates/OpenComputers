@@ -46,7 +46,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
         subBlock(block.getMetadata(stack.getItemDamage))
       case _ => None
     }
-  else None
+    else None
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     if (world.getBlock(x, y, z) == this) subBlock(world.getBlockMetadata(x, y, z))
@@ -146,7 +146,8 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case _ => super.getValidRotations(world, x, y, z)
     }
 
-  // TODO need a side check that takes a stack, or have to make keyboard an extra item
+  // DEPRECATED Seems this isn't available anymore with stack info, use real
+  // items in 1.7 when needed since IDs are no problem anymore.
   //  override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: Int, stack: ItemStack) =
   //    subBlock(stack) match {
   //      case Some(subBlock) => subBlock.canPlaceBlockOnSide(world, x, y, z, ForgeDirection.getOrientation(side).getOpposite)

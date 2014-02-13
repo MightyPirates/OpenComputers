@@ -85,7 +85,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
     GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
-    if (isPointInRegion(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
+    if (func_146978_c(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = StatCollector.translateToLocal(Settings.namespace + "gui.Robot.Power") + ": %d%% (%d/%d)"
       tooltip.add(format.format(
@@ -186,11 +186,5 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     t.addVertexWithUV(x + w, y + powerHeight, zLevel, u1, v1)
     t.addVertexWithUV(x + w, y, zLevel, u1, v0)
     t.draw()
-  }
-
-  private def isPointInRegion(rx: Int, ry: Int, w: Int, h: Int, x: Int, y: Int) = {
-    val px = x - guiLeft
-    val py = y - guiTop
-    px >= rx - 1 && px < rx + w + 1 && py >= ry - 1 && py < ry + h + 1
   }
 }

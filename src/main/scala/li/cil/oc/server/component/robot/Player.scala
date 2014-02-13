@@ -274,7 +274,6 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     world.playAuxSFXAtEntity(this, 2001, x, y, z, Block.getIdFromBlock(block) + (metadata << 12))
 
     val hardness = block.getBlockHardness(world, x, y, z)
-    // TODO test if this is the right replacement for getCurrentPlayerStrengthVsBlock
     val strength = getBreakSpeed(block, false, metadata)
     val breakTime =
       if (cobwebOverride) Settings.get.swingDelay
