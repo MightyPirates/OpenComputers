@@ -22,8 +22,11 @@ version = "2.0.0"
 group= "li.cil.oc" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "OpenComputers"
 
+if (System.getenv("BUILD_NUMBER") != null)
+    version += "-dev${System.getenv("BUILD_NUMBER")}"
+
 minecraft {
-    version = "1.7.2-10.12.0.1024"
+    version = "1.7.2-10.12.0.1028"
     assetDir = "eclipse/assets"
 }
 processResources
