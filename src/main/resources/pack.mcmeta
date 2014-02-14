@@ -4,25 +4,29 @@
     "description": "OpenComputers"
   },
   "language":{
-     "de_DE":{
-        "name": "Deutsch",
-        "region": "Deutschland"
-     },
-     "en_US":{
-        "name": "English",
-        "region": "United States"
-     },
-     "fr_FR":{
-        "name": "French",
-        "region": "France"
-     },
-     "pt_PT":{
-        "name": "Português",
-        "region": "Portugal"
-     },
-     "zh_CN":{
-        "name": "简体中文",
-        "region": "中国"
-     }
+    "de_DE":{
+      "name": "Deutsch",
+      "region": "Deutschland"
+    },
+    "en_US":{
+      "name": "English",
+      "region": "United States"
+    },
+    "fr_FR":{
+      "name": "French",
+      "region": "France"
+    },
+    "pt_PT":{
+      "name": "Português",
+      "region": "Portugal"
+    },
+    "ru_RU": {
+      "region": "Россия",
+      "name": "Русский"
+    },
+    "zh_CN":{
+      "name": "简体中文",
+      "region": "中国"
+    }
   }
 }
