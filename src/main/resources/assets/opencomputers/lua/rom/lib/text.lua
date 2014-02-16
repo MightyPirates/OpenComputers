@@ -124,20 +124,26 @@ function text.serialize(value, pretty)
         end
       end
       ts[v] = true
-      local f, i, r = 1, nil
+      local i, r = 1, nil
+      local f
       if pretty then
         local ks = {}
         for k in pairs(v) do table.insert(ks, k) end
         table.sort(ks)
-        local k = 0
-        f = function()
-          k = k + 1
-          return ks[k], ks[k] and v[ks[k]] or nil
-        end
+        local n = 0
+        f = table.pack(function()
+          n = n + 1
+          local k = ks[n]
+          if k ~= nil then
+            return k, v[k]
+          else
+            return nil
+          end
+        end)
       else
-        f = pairs(v)
+        f = table.pack(pairs(v))
       end
-      for k, v in f do
+      for k, v in table.unpack(f) do
         if r then
           r = r .. "," .. (pretty and ("\n" .. string.rep(" ", l)) or "")
         else
