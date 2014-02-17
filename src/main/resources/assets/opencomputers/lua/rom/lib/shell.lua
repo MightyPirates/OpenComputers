@@ -5,7 +5,6 @@ local text = require("text")
 
 local shell = {}
 local cwd = "/"
-local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
@@ -33,13 +32,16 @@ local function findFile(name, ext)
         files[file] = true
       end
       if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
+        -- Name already contains extension, prioritize.
         if files[name] then
           return true, fs.concat(dir, name)
         end
       elseif files[name] then
+        -- Check exact name.
         return true, fs.concat(dir, name)
       elseif ext then
-        name = name .. "." .. ext
+        -- Check name with automatially added extension.
+        local name = name .. "." .. ext
         if files[name] then
           return true, fs.concat(dir, name)
         end
@@ -53,8 +55,8 @@ local function findFile(name, ext)
   else
     local found, where = findIn(shell.getWorkingDirectory())
     if found then return where end
-    for _, p in ipairs(path) do
-      local found, where = findIn(p)
+    for path in string.gmatch(shell.getPath(), "[^:]+") do
+      local found, where = findIn(path)
       if found then return where end
     end
   end
@@ -332,19 +334,11 @@ function shell.setWorkingDirectory(dir)
 end
 
 function shell.getPath()
-  return table.concat(path, ":")
+  return os.getenv("PATH")
 end
 
 function shell.setPath(value)
-  checkArg(1, value, "string")
-  path = {}
-  for p in string.gmatch(value, "[^:]+") do
-    p = fs.canonical(text.trim(p))
-    if unicode.sub(p, 1, 1) ~= "/" then
-      p = "/" .. p
-    end
-    table.insert(path, p)
-  end
+  os.setenv("PATH", value)
 end
 
 function shell.resolve(path, ext)

@@ -4,7 +4,7 @@ local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
 
-local env = {}
+local env = {PATH="/bin:/usr/bin:/home/bin"}
 
 os.execute = function(command)
   if not command then
