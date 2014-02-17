@@ -511,7 +511,7 @@ function shell.load(path, env, init, name)
   return thread
 end
 
-function shell.register(thread)
+function shell.register(thread) -- called from coroutine.create
   checkArg(1, thread, "thread")
   if findProcess(thread) then
     return false -- already attached somewhere

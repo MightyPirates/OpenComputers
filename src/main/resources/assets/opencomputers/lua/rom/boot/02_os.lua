@@ -29,7 +29,6 @@ end
 
 function os.setenv(varname, value)
   checkArg(1, varname, "string")
-  checkArg(2, value, "string", "nil")
   env[varname] = value
   return env[varname]
 end
