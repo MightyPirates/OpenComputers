@@ -37,7 +37,7 @@ public final class DriverTileController extends DriverTileEntity {
             super(tileEntity, "me_controller");
         }
 
-        @Callback
+        @Callback(doc="function(itemID:number[itemDamage:number=0,amount:number=1):boolean -- Requests to craft the specified item, and returns if the request was successful." )
         public Object[] craftingRequest(final Context context, final Arguments args) {
             final int itemId = args.checkInteger(0);
             final int itemDamage = args.count() > 1 ? args.checkInteger(1) : 0;
@@ -54,7 +54,7 @@ public final class DriverTileController extends DriverTileEntity {
             }
         }
 
-        @Callback
+        @Callback(doc="function():number --  Reports previous 20 ticks avg of energy usage.")
         public Object[] getPowerUsageAvg(final Context context, final Arguments args) {
             final IGridInterface grid = tileEntity.getGrid();
             return grid != null
@@ -62,15 +62,16 @@ public final class DriverTileController extends DriverTileEntity {
                     : new Object[]{null, "no grid"};
         }
 
-        @Callback
-        public Object[] getName(final Context context, final Arguments args) {
-            final IGridInterface grid = tileEntity.getGrid();
-            return grid != null
-                    ? new Object[]{grid.getName()}
-                    : new Object[]{null, "no grid"};
-        }
+        //Doesn't seem to do something says the api
+//        @Callback(doc="function():number --  Returns the name of the.")
+//        public Object[] getName(final Context context, final Arguments args) {
+//            final IGridInterface grid = tileEntity.getGrid();
+//            return grid != null
+//                    ? new Object[]{grid.getName()}
+//                    : new Object[]{null, "no grid"};
+//        }
 
-        @Callback
+        @Callback(doc="function():number --  Returns the total amount of power available.")
         public Object[] getAvailablePower(final Context context, final Arguments args) {
             final IGridInterface grid = tileEntity.getGrid();
             return grid != null
@@ -78,7 +79,7 @@ public final class DriverTileController extends DriverTileEntity {
                     : new Object[]{null, "no grid"};
         }
 
-        @Callback
+        @Callback(doc="function():list --  Returns the list of jobs.")
         public Object[] getJobList(final Context context, final Arguments args) {
             final ArrayList<Map> results = new ArrayList<Map>();
             final List<ItemStack> jobs = Reflection.tryInvoke(tileEntity, "getJobList");
