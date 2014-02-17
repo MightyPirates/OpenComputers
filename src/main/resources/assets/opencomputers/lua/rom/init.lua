@@ -10,7 +10,7 @@ require("term").clear()
 
 computer.pushSignal("init") -- so libs know components are initialized.
 while true do
-  local result, reason = os.execute("/bin/sh -v")
+  local result, reason = os.execute(os.getenv("SHELL"))
   if not result then
     print(reason)
   end

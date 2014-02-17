@@ -43,7 +43,10 @@ while term.isAvailable() do
   if code then
     local result = table.pack(pcall(code))
     if not result[1] then
-      io.write(result[2], "\n")
+      if type(result[2]) == "table" and result[2].reason == "terminated" then
+        os.exit(result[2].code)
+      end
+      io.write(tostring(result[2]), "\n")
     else
       for i = 2, result.n do
         io.write(text.serialize(result[i], true), "\t")

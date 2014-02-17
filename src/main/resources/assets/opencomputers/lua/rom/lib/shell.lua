@@ -4,7 +4,6 @@ local unicode = require("unicode")
 local text = require("text")
 
 local shell = {}
-local cwd = "/"
 local aliases = {}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
@@ -318,7 +317,7 @@ function shell.aliases()
 end
 
 function shell.getWorkingDirectory()
-  return cwd
+  return os.getenv("PWD")
 end
 
 function shell.setWorkingDirectory(dir)
@@ -326,7 +325,7 @@ function shell.setWorkingDirectory(dir)
   dir = fs.canonical(dir) .. "/"
   if dir == "//" then dir = "/" end
   if fs.isDirectory(dir) then
-    cwd = dir
+    os.setenv("PWD", dir)
     return true
   else
     return nil, "not a directory"
@@ -463,6 +462,13 @@ function shell.execute(command, env, ...)
   end
   if not args[1] then
     return false, args[2]
+  end
+  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
+    if result[2].code then
+      return true
+    else
+      return false, "terminated"
+    end
   end
   return table.unpack(result, 1, result.n)
 end

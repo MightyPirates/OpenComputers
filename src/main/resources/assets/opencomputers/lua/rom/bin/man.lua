@@ -9,9 +9,11 @@ if #args == 0 then
 end
 
 local topic = args[1]
-local path = "/usr/man/" .. topic
-if fs.exists(path) and not fs.isDirectory(path) then
-  os.execute("more " .. path)
-else
-  io.write("No manual entry for " .. topic)
+for path in string.gmatch(os.getenv("MANPATH"), "[^:]+") do
+  path = fs.concat(path, topic)
+  if fs.exists(path) and not fs.isDirectory(path) then
+    os.execute("more " .. path)
+    os.exit()
+  end
 end
+io.write("No manual entry for " .. topic)

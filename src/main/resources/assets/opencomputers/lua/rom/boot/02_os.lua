@@ -4,7 +4,13 @@ local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
 
-local env = {PATH="/bin:/usr/bin:/home/bin"}
+local env = {
+  HOME="/home",
+  MANPATH="/usr/man",
+  PATH="/bin:/usr/bin:/home/bin",
+  PWD="/",
+  SHELL="/bin/sh"
+}
 
 os.execute = function(command)
   if not command then
@@ -13,8 +19,8 @@ os.execute = function(command)
   return shell.execute(command)
 end
 
-function os.exit()
-  error("terminated", 0)
+function os.exit(code)
+  error({reason="terminated", code=code~=false}, 0)
 end
 
 function os.getenv(varname)
