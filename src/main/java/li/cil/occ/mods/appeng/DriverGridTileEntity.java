@@ -25,7 +25,7 @@ public final class DriverGridTileEntity extends DriverTileEntity {
             super(tileEntity, "me_grid_tile");
         }
 
-        @Callback(doc="function():boolean -- Returns if the component is powered")
+        @Callback(doc = "function():boolean -- Returns whether the component is powered.")
         public Object[] isPowered(final Context context, final Arguments args) {
             return new Object[]{tileEntity.isPowered()};
         }
