@@ -4,6 +4,8 @@ local fs = require("filesystem")
 local shell = require("shell")
 local unicode = require("unicode")
 
+local env = {}
+
 os.execute = function(command)
   if not command then
     return type(shell) == "table"
@@ -13,6 +15,17 @@ end
 
 function os.exit()
   error("terminated", 0)
+end
+
+function os.getenv(varname)
+  return env[varname]
+end
+
+function os.setenv(varname, value)
+  checkArg(1, varname, "string")
+  checkArg(2, value, "string", "nil")
+  env[varname] = value
+  return env[varname]
 end
 
 function os.remove(...)
