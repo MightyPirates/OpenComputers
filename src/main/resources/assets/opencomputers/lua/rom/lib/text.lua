@@ -168,9 +168,16 @@ function text.serialize(value, pretty)
     end
   end
   local result = s(value, 1)
-  local limit = type(pretty) == "number" and pretty or 1000
-  if pretty and unicode.len(result) > limit then
-    return result:sub(1, limit) .. "..."
+  local limit = type(pretty) == "number" and pretty or 10
+  if pretty then
+    local truncate = 0
+    while limit > 0 and truncate do
+      truncate = string.find(result, "\n", truncate + 1, true)
+      limit = limit - 1
+    end
+    if truncate then
+      return result:sub(1, truncate) .. "..."
+    end
   end
   return result
 end
