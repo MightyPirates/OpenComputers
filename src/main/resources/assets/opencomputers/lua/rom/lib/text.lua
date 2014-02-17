@@ -43,26 +43,22 @@ end
 function text.tokenize(value)
   checkArg(1, value, "string")
   local tokens, token = {}, ""
-  local quoted, start, escaped = false, -1, false
+  local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
     local char = unicode.sub(value, i, i)
     if escaped then -- escaped character
-      local f = load("return '\\" .. char .. "'")
-      if f then
-        local ok, f = pcall(f)
-        if ok then
-          char = f
-        end
-      end
       escaped = false
+      token = token .. char
+    elseif char == "\\" and quoted ~= "'" then -- escape character?
+      escaped = true
       token = token .. char
     elseif char == quoted then -- end of quoted string
       quoted = false
-    elseif char == "\\" then -- escape character?
-      escaped = true
+      token = token .. char
     elseif (char == "'" or char == '"') and not quoted then
       quoted = char
       start = i
+      token = token .. char
     elseif string.find(char, "%s") and not quoted then -- delimiter
       if token ~= "" then
         table.insert(tokens, token)
@@ -70,7 +66,6 @@ function text.tokenize(value)
       end
     else -- normal char
       token = token .. char
-      escaped = false
     end
   end
   if quoted then
