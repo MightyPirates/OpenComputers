@@ -22,6 +22,9 @@ end
 local function findFile(name, ext)
   checkArg(1, name, "string")
   local function findIn(dir)
+    if dir:sub(1, 1) ~= "/" then
+      dir = shell.resolve(dir)
+    end
     dir = fs.concat(fs.concat(dir, name), "..")
     name = fs.name(name)
     local list = fs.list(dir)

@@ -35,6 +35,7 @@ local function get(pasteId, filename)
     f:close()
     io.write("Saved data to ", filename, "\n")
   else
+    io.write("failed.\n")
     f:close()
     fs.remove(filename)
     io.stderr:write("HTTP request failed: ", response, "\n")
