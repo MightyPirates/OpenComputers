@@ -51,9 +51,10 @@ local function findFile(name, ext)
   if unicode.sub(name, 1, 1) == "/" then
     local found, where = findIn("/")
     if found then return where end
-  else
+  elseif unicode.sub(name, 1, 2) == "./" then
     local found, where = findIn(shell.getWorkingDirectory())
     if found then return where end
+  else
     for path in string.gmatch(shell.getPath(), "[^:]+") do
       local found, where = findIn(path)
       if found then return where end
