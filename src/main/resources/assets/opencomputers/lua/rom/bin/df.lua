@@ -12,7 +12,7 @@ else
   for i = 1, #args do
     local proxy, path = fs.get(args[i])
     if not proxy then
-      io.write(args[i], ": no such file or directory\n")
+      io.stderr:write(args[i], ": no such file or directory\n")
     else
       mounts[path] = proxy
     end

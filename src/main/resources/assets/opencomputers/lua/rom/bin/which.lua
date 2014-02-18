@@ -16,6 +16,6 @@ for i = 1, #args do
   if result then
     io.write(result, "\n")
   else
-    io.write(args[i], ": ", reason, "\n")
+    io.stderr:write(args[i], ": ", reason, "\n")
   end
 end

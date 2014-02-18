@@ -15,15 +15,15 @@ else
   proxy, reaons = fs.get(args[1])
 end
 if not proxy then
-  io.write(reason)
+  io.stderr:write(reason)
   return
 end
 
 if #args < 2 then
-  io.write(proxy.getLabel() or "no label")
+  io.stderr:write(proxy.getLabel() or "no label")
 else
   local result, reason = proxy.setLabel(args[2])
   if not result then
-    io.write(reason or "could not set label")
+    io.stderr:write(reason or "could not set label")
   end
 end

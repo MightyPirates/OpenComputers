@@ -14,9 +14,10 @@ if fs.isDirectory(to) then
   to = to .. "/" .. fs.name(from)
 end
 if fs.exists(to) and not options.f then
-  error("target file exists")
+  io.stderr:write("target file exists")
+  return
 end
 local result, reason = fs.copy(from, to)
 if not result then
-  io.write(reason)
+  io.stderr:write(reason)
 end

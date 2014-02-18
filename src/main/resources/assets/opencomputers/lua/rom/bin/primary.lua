@@ -13,7 +13,7 @@ local componentType = args[1]
 if #args > 1 then
   local address = args[2]
   if not component.get(address) then
-    io.write("no component with this address")
+    io.stderr:write("no component with this address")
     return
   else
     component.setPrimary(componentType, address)
@@ -23,5 +23,5 @@ end
 if component.isAvailable(componentType) then
   io.write(component.getPrimary(componentType).address)
 else
-  io.write("no primary component for this type")
+  io.stderr:write("no primary component for this type")
 end

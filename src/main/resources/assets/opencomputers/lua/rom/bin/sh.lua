@@ -9,7 +9,7 @@ local args, options = shell.parse(...)
 local history = {}
 
 if options.v or not shell.running(2) then
-  print(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
+  io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
 end
 
 while true do
@@ -19,7 +19,7 @@ while true do
     end
     term.clear()
     if options.v then
-      print(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
+      io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
     end
   end
   while term.isAvailable() do
@@ -28,7 +28,7 @@ while true do
     component.gpu.setForeground(foreground)
     local command = term.read(history)
     if not command then
-      print("exit")
+      io.write("exit\n")
       return -- eof
     end
     while #history > 10 do
@@ -40,9 +40,9 @@ while true do
     elseif command ~= "" then
       local result, reason = os.execute(command)
       if not result then
-        print(reason)
+        io.stderr:write(reason .. "\n")
       elseif term.getCursor() > 1 then
-        print()
+        io.write("\n")
       end
     end
   end
