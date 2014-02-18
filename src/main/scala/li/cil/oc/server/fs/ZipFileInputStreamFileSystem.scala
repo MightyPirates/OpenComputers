@@ -17,7 +17,7 @@ class ZipFileInputStreamFileSystem(private val archive: ArchiveDirectory) extend
 
   def spaceUsed = spaceUsed_
 
-  private lazy val spaceUsed_ = {
+  private lazy val spaceUsed_ = ZipFileInputStreamFileSystem.synchronized {
     def recurse(d: ArchiveDirectory): Long = d.children.foldLeft(0L)((acc, c) => acc + (c match {
       case directory: ArchiveDirectory => recurse(directory)
       case file: ArchiveFile => file.size
@@ -27,28 +27,40 @@ class ZipFileInputStreamFileSystem(private val archive: ArchiveDirectory) extend
 
   // ----------------------------------------------------------------------- //
 
-  override def exists(path: String) = entry(path).isDefined
-
-  override def size(path: String) = entry(path) match {
-    case Some(file) if !file.isDirectory => file.size
-    case _ => 0L
+  override def exists(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path).isDefined
   }
 
-  override def isDirectory(path: String) = entry(path).exists(_.isDirectory)
-
-  def lastModified(path: String) = entry(path) match {
-    case Some(file) => file.lastModified
-    case _ => 0L
+  override def size(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path) match {
+      case Some(file) if !file.isDirectory => file.size
+      case _ => 0L
+    }
   }
 
-  override def list(path: String) = entry(path) match {
-    case Some(entry) if entry.isDirectory => entry.list()
-    case _ => null
+  override def isDirectory(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path).exists(_.isDirectory)
+  }
+
+  def lastModified(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path) match {
+      case Some(file) => file.lastModified
+      case _ => 0L
+    }
+  }
+
+  override def list(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path) match {
+      case Some(entry) if entry.isDirectory => entry.list()
+      case _ => null
+    }
   }
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openInputStream(path: String) = entry(path).map(_.openStream())
+  override protected def openInputStream(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path).map(_.openStream())
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -65,51 +77,53 @@ object ZipFileInputStreamFileSystem {
     asInstanceOf[CacheBuilder[String, ArchiveDirectory]].
     build[String, ArchiveDirectory]()
 
-  def fromFile(file: io.File, innerPath: String) = this.synchronized {
-    Option(cache.get(file.getPath + ":" + innerPath, new Callable[ArchiveDirectory] {
-      def call = try {
-        val zip = new ZipFile(file.getPath)
-        val cleanedPath = innerPath.stripPrefix("/").stripSuffix("/") + "/"
-        val rootEntry = zip.getEntry(cleanedPath)
-        val result = if (rootEntry != null && rootEntry.isDirectory) {
-          val directories = mutable.Set.empty[ArchiveDirectory]
-          val files = mutable.Set.empty[ArchiveFile]
-          val iterator = zip.entries()
-          while (iterator.hasMoreElements) {
-            val entry = iterator.nextElement()
-            if (entry.getName.startsWith(cleanedPath)) {
-              if (entry.isDirectory) directories += new ArchiveDirectory(entry, cleanedPath)
-              else files += new ArchiveFile(zip, entry, cleanedPath)
-            }
-          }
-          var root: ArchiveDirectory = null
-          for (entry <- directories ++ files) {
-            if (entry.path.length > 0) {
-              val parent = entry.path.substring(0, math.max(entry.path.lastIndexOf('/'), 0))
-              directories.find(d => d.path == parent) match {
-                case Some(directory) => directory.children += entry
-                case _ =>
+  def fromFile(file: io.File, innerPath: String) = ZipFileInputStreamFileSystem.synchronized {
+    try {
+      Option(cache.get(file.getPath + ":" + innerPath, new Callable[ArchiveDirectory] {
+        def call = {
+          val zip = new ZipFile(file.getPath)
+          val cleanedPath = innerPath.stripPrefix("/").stripSuffix("/") + "/"
+          val rootEntry = zip.getEntry(cleanedPath)
+          val result = if (rootEntry != null && rootEntry.isDirectory) {
+            val directories = mutable.Set.empty[ArchiveDirectory]
+            val files = mutable.Set.empty[ArchiveFile]
+            val iterator = zip.entries()
+            while (iterator.hasMoreElements) {
+              val entry = iterator.nextElement()
+              if (entry.getName.startsWith(cleanedPath)) {
+                if (entry.isDirectory) directories += new ArchiveDirectory(entry, cleanedPath)
+                else files += new ArchiveFile(zip, entry, cleanedPath)
               }
             }
-            else {
-              assert(entry.isInstanceOf[ArchiveDirectory])
-              root = entry.asInstanceOf[ArchiveDirectory]
+            var root: ArchiveDirectory = null
+            for (entry <- directories ++ files) {
+              if (entry.path.length > 0) {
+                val parent = entry.path.substring(0, math.max(entry.path.lastIndexOf('/'), 0))
+                directories.find(d => d.path == parent) match {
+                  case Some(directory) => directory.children += entry
+                  case _ =>
+                }
+              }
+              else {
+                assert(entry.isInstanceOf[ArchiveDirectory])
+                root = entry.asInstanceOf[ArchiveDirectory]
+              }
             }
+            root
           }
-          root
+          else null
+          zip.close()
+          result
         }
-        else null
-        zip.close()
-        result
+      })) match {
+        case Some(archive) => new ZipFileInputStreamFileSystem(archive)
+        case _ => null
       }
-      catch {
-        case e: Throwable =>
-          OpenComputers.log.log(Level.WARNING, "Failed creating ZIP file system.", e)
-          null
-      }
-    })) match {
-      case Some(archive) => new ZipFileInputStreamFileSystem(archive)
-      case _ => null
+    }
+    catch {
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Failed creating ZIP file system.", e)
+        null
     }
   }
 

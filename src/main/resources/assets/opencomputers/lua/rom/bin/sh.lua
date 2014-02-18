@@ -8,7 +8,7 @@ local text = require("text")
 local args, options = shell.parse(...)
 local history = {}
 
-if options.v then
+if options.v or not shell.running(2) then
   print(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)")
 end
 

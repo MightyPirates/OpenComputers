@@ -4,8 +4,6 @@ local unicode = require("unicode")
 local text = require("text")
 
 local shell = {}
-local cwd = "/"
-local path = {"/bin/", "/usr/bin/", "/home/bin/"}
 local aliases = {}
 local running = setmetatable({}, {__mode="k"})
 local isLoading = false
@@ -33,13 +31,16 @@ local function findFile(name, ext)
         files[file] = true
       end
       if ext and unicode.sub(name, -(1 + unicode.len(ext))) == "." .. ext then
+        -- Name already contains extension, prioritize.
         if files[name] then
           return true, fs.concat(dir, name)
         end
       elseif files[name] then
+        -- Check exact name.
         return true, fs.concat(dir, name)
       elseif ext then
-        name = name .. "." .. ext
+        -- Check name with automatially added extension.
+        local name = name .. "." .. ext
         if files[name] then
           return true, fs.concat(dir, name)
         end
@@ -50,76 +51,170 @@ local function findFile(name, ext)
   if unicode.sub(name, 1, 1) == "/" then
     local found, where = findIn("/")
     if found then return where end
-  else
+  elseif unicode.sub(name, 1, 2) == "./" then
     local found, where = findIn(shell.getWorkingDirectory())
     if found then return where end
-    for _, p in ipairs(path) do
-      local found, where = findIn(p)
+  else
+    for path in string.gmatch(shell.getPath(), "[^:]+") do
+      local found, where = findIn(path)
       if found then return where end
     end
   end
   return false
 end
 
-local function resolveAlias(program, args)
-  local lastProgram = nil
+function expandVars(token)
+  local name = nil
+  local special = false
+  local ignore = false
+  local ignoreChar =''
+  local escaped = false
+  local lastEnd = 1
+  local doubleQuote = false
+  local singleQuote = false
+  local endToken = {}
+  for i = 1, unicode.len(token) do
+    local char = unicode.sub(token, i, i)
+    if escaped then
+      if name then
+        table.insert(name, char)
+      end
+      escaped = false
+    elseif char == '\\' then
+      escaped = not escaped
+      table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      lastEnd = i+1
+    elseif char == '"' and not singleQuote then
+      doubleQuote = not doubleQuote
+      table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      lastEnd = i+1
+    elseif char == "'" and not doubleQuote then
+      singleQuote = not singleQuote
+      table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      lastEnd = i+1
+    elseif char == "$" and not doubleQuote and not singleQuote then
+      if name then
+        ignore = true
+      else
+        name = {}
+        table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      end
+    elseif char == '{' and #name == 0 then
+      if ignore and ignoreChar == '' then
+        ignoreChar = '}'
+      else
+        special = true
+      end
+    elseif char == '(' and ignoreChar == '' then
+      ignoreChar = ')'
+    elseif char == '`' and special then
+      ignore = true
+      ignoreChar = '`'
+    elseif char == '}' and not ignore and not doubleQuote and not singleQuote then
+      table.insert(endToken, os.getenv(table.concat(name)))
+      name = nil
+      lastEnd = i+1
+    elseif char == '"' and not singleQuote then
+      doubleQuote = not doubleQuote
+    elseif char == "'" and not doubleQuote then
+      singleQuote = not singleQuote
+    elseif name and (char:match("[%a%d_]") or special) then
+      if char:match("%d") and #name == 0 then
+        error "Identifiers can't start with a digit!"
+      end
+      table.insert(name, char)
+    elseif char == ignoreChar and ignore then
+      ignore = false
+      ignoreChar = ''
+    elseif name then -- We are done with gathering the name
+      table.insert(endToken, os.getenv(table.concat(name)))
+      name = nil
+      lastEnd = i
+    end
+  end
+  if name then
+    table.insert(endToken, os.getenv(table.concat(name)))
+    name = nil
+  else
+    table.insert(endToken, unicode.sub(token, lastEnd, -1))
+  end
+  return table.concat(endToken)
+end
+
+local function resolveAlias(tokens)
+  local program, lastProgram = tokens[1], nil
+  table.remove(tokens, 1)
   while true do
     local alias = text.tokenize(shell.getAlias(program) or program)
-    if alias[1] == lastProgram then
+    program = alias[1]
+    if program == lastProgram then
       break
     end
     lastProgram = program
-    program = alias[1]
-    if args then
-      for i = 2, #alias do
-        table.insert(args, alias[i])
-      end
+    table.remove(alias, 1)
+    for i = 1, #tokens do
+      table.insert(alias, tokens[i])
     end
+    tokens = alias
   end
-  return program
+  return program, tokens
 end
 
 local function parseCommand(tokens)
-  local program, args, input, output = tokens[1], {}, nil, nil
-  if not program then
+  if #tokens == 0 then
     return
   end
 
-  program = resolveAlias(program, args)
+  -- Variable expansion for all command parts.
+  for i = 1, #tokens do
+    tokens[i] = expandVars(tokens[i])
+  end
 
+  -- Resolve alias for command.
+  local program, args = resolveAlias(tokens)
+
+  -- Find redirects.
+  local input, output, mode = nil, nil, "write"
+  tokens = args
+  args = {}
+  local function smt(call) -- state metatable factory
+    local function index(_, token)
+      if token == "<" or token == ">" or token == ">>" then
+        return "parse error near " .. token
+      end
+      call(token)
+      return "args" -- default, return to normal arg parsing
+    end
+    return {__index=index}
+  end
+  local sm = { -- state machine for redirect parsing
+    args   = setmetatable({["<"]="input", [">"]="output", [">>"]="append"},
+                              smt(function(token)
+                                    table.insert(args, token)
+                                  end)),
+    input  = setmetatable({}, smt(function(token)
+                                    input = token
+                                  end)),
+    output = setmetatable({}, smt(function(token)
+                                    output = token
+                                    mode = "write"
+                                  end)),
+    append = setmetatable({}, smt(function(token)
+                                    output = token
+                                    mode = "append"
+                                  end))
+  }
+  -- Run state machine over tokens.
   local state = "args"
-  for i = 2, #tokens do
-    if state == "args" then
-      if tokens[i] == "<" then
-        state = "input"
-      elseif tokens[i] == ">" then
-        state = "output"
-      elseif tokens[i] == ">>" then
-        state = "append"
-      else
-        table.insert(args, tokens[i])
-      end
-    elseif state == "input" then
-      if tokens[i] == ">" then
-        if not input then
-          return nil, "parse error near '>'"
-        end
-        state = "output"
-      elseif tokens[i] == ">>" then
-        if not input then
-          return nil, "parse error near '>>'"
-        end
-        state = "append"
-      elseif not input then
-        input = tokens[i]
-      end
-    elseif state == "output" or state == "append" then
-      if not output then
-        output = tokens[i]
-      end
+  for i = 1, #tokens do
+    local token = tokens[i]
+    state = sm[state][token]
+    if not sm[state] then
+      return nil, state
     end
   end
-  return program, args, input, output, state
+
+  return program, args, input, output, mode
 end
 
 local function parseCommands(command)
@@ -146,6 +241,9 @@ local function parseCommands(command)
 
   for i = 1, #commands do
     commands[i] = table.pack(parseCommand(commands[i]))
+    if commands[i][1] == nil then
+      return nil, commands[i][2]
+    end
   end
 
   return commands
@@ -220,7 +318,7 @@ function shell.aliases()
 end
 
 function shell.getWorkingDirectory()
-  return cwd
+  return os.getenv("PWD")
 end
 
 function shell.setWorkingDirectory(dir)
@@ -228,7 +326,7 @@ function shell.setWorkingDirectory(dir)
   dir = fs.canonical(dir) .. "/"
   if dir == "//" then dir = "/" end
   if fs.isDirectory(dir) then
-    cwd = dir
+    os.setenv("PWD", dir)
     return true
   else
     return nil, "not a directory"
@@ -236,19 +334,11 @@ function shell.setWorkingDirectory(dir)
 end
 
 function shell.getPath()
-  return table.concat(path, ":")
+  return os.getenv("PATH")
 end
 
 function shell.setPath(value)
-  checkArg(1, value, "string")
-  path = {}
-  for p in string.gmatch(value, "[^:]+") do
-    p = fs.canonical(text.trim(p))
-    if unicode.sub(p, 1, 1) ~= "/" then
-      p = "/" .. p
-    end
-    table.insert(path, p)
-  end
+  os.setenv("PATH", value)
 end
 
 function shell.resolve(path, ext)
@@ -374,6 +464,13 @@ function shell.execute(command, env, ...)
   if not args[1] then
     return false, args[2]
   end
+  if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
+    if result[2].code then
+      return true
+    else
+      return false, "terminated"
+    end
+  end
   return table.unpack(result, 1, result.n)
 end
 
@@ -415,7 +512,7 @@ function shell.load(path, env, init, name)
   return thread
 end
 
-function shell.register(thread)
+function shell.register(thread) -- called from coroutine.create
   checkArg(1, thread, "thread")
   if findProcess(thread) then
     return false -- already attached somewhere

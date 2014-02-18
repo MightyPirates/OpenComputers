@@ -13,7 +13,7 @@ for i = 1, #dirs do
     if i > 1 then
       io.write("\n")
     end
-    io.write("/", path, ":\n")
+    io.write(path, ":\n")
   end
   local list, reason = fs.list(path)
   if not list then
