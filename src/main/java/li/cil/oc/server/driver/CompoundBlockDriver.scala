@@ -39,13 +39,6 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     } catch {
       case _: Throwable =>
     }
-    try world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: TileEntity =>
-        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_70323_b")
-        return map.get(tileEntity.getClass)
-    } catch {
-      case _: Throwable =>
-    }
     try {
       val blockId = world.getBlockId(x, y, z)
       val block = Block.blocksList(blockId)
@@ -57,8 +50,15 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
           else None
       }
       if (stack.isDefined) {
-        return cleanName(stack.get.getUnlocalizedName.stripPrefix("tile."))
+        return stack.get.getUnlocalizedName.stripPrefix("tile.")
       }
+    } catch {
+      case _: Throwable =>
+    }
+    try world.getBlockTileEntity(x, y, z) match {
+      case tileEntity: TileEntity =>
+        val map = ReflectionHelper.getPrivateValue[java.util.Map[Class[_], String], TileEntity](classOf[TileEntity], tileEntity, "classToNameMap", "field_70323_b")
+        return map.get(tileEntity.getClass)
     } catch {
       case _: Throwable =>
     }

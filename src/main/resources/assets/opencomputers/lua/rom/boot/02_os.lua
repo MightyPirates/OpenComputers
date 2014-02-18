@@ -7,7 +7,7 @@ local unicode = require("unicode")
 local env = {
   HOME="/home",
   MANPATH="/usr/man",
-  PATH="/bin:/usr/bin:/home/bin",
+  PATH="/bin:/usr/bin:/home/bin:.",
   PWD="/",
   SHELL="/bin/sh"
 }
@@ -24,7 +24,11 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  return env[varname]
+  if varname ~= nil then
+    return env[varname]
+  else
+    return env
+  end
 end
 
 function os.setenv(varname, value)
