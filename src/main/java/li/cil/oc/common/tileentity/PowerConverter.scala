@@ -24,6 +24,8 @@ import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 abstract class PowerConverterBase extends TileEntity with network.Environment with IEnergyInterface with IEnergyContainer {
   override def node: Connector
 
+  override def canConnect(direction: ForgeDirection, source: AnyRef) = direction != null && direction != ForgeDirection.UNKNOWN
+
   override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) = {
     if (!Settings.get.ignorePower && node != null) {
       val energy = fromUE(receive)
@@ -62,8 +64,6 @@ class PowerConverter extends PowerConverterBase with Analyzable {
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
-
-  override def canConnect(direction: ForgeDirection) = direction != null && direction != ForgeDirection.UNKNOWN
 
   // ----------------------------------------------------------------------- //
 

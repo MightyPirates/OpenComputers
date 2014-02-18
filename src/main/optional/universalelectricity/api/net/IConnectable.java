@@ -9,10 +9,11 @@ import net.minecraftforge.common.ForgeDirection;
 public interface IConnectable
 {
 	/**
-	 * Can this TileEntity connect with another?
+	 * Can this object connect with another?
 	 * 
+	 * @param from - The direction the connection is coming from.
+	 * @param source - The source calling canConnect onto this object.
 	 * @return Return true, if the connection is possible.
 	 */
-	@Deprecated
-	public boolean canConnect(ForgeDirection direction);
+	public boolean canConnect(ForgeDirection from, Object source);
 }
