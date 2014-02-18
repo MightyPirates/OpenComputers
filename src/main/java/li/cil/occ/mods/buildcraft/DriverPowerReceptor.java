@@ -27,35 +27,35 @@ public final class DriverPowerReceptor extends DriverTileEntity {
             super(tileEntity, "power_receptor");
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the activation energy required on the given side of the block.")
         public Object[] getActivationEnergy(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             final PowerHandler.PowerReceiver powerReceiver = tileEntity.getPowerReceiver(side);
             return new Object[]{powerReceiver.getActivationEnergy()};
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the energy stored for the given side of the block.")
         public Object[] getEnergyStored(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             final PowerHandler.PowerReceiver powerReceiver = tileEntity.getPowerReceiver(side);
             return new Object[]{powerReceiver.getEnergyStored()};
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the maximum received energy for the given side of the block.")
         public Object[] getMaxEnergyReceived(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             final PowerHandler.PowerReceiver powerReceiver = tileEntity.getPowerReceiver(side);
             return new Object[]{powerReceiver.getMaxEnergyReceived()};
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the maximum stored energy for the given side of the block.")
         public Object[] getMaxEnergyStored(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             final PowerHandler.PowerReceiver powerReceiver = tileEntity.getPowerReceiver(side);
             return new Object[]{powerReceiver.getMaxEnergyStored()};
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the minimum received energy for the given side of the block.")
         public Object[] getMinEnergyReceived(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             final PowerHandler.PowerReceiver powerReceiver = tileEntity.getPowerReceiver(side);

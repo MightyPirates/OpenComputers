@@ -25,7 +25,7 @@ public final class DriverReactor extends DriverTileEntity {
             super(tileEntity, "reactor");
         }
 
-        @Callback(doc="function():boolean --  Returns whether the reactor is overtoxic.")
+        @Callback(doc = "function():boolean --  Returns whether the reactor is overtoxic.")
         public Object[] isOverToxic(final Context context, final Arguments args) {
             return new Object[]{tileEntity.isOverToxic()};
         }

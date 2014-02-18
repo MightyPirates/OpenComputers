@@ -25,7 +25,7 @@ public final class DriverTemperature extends DriverTileEntity {
             super(tileEntity, "temperature");
         }
 
-        @Callback  (doc="function():number --  Gets the temperature of this block in kelvin.")
+        @Callback(doc = "function():number --  Gets the temperature of this block in kelvin.")
         public Object[] getTemperature(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getTemperature()};
         }

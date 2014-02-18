@@ -25,12 +25,12 @@ public final class DriverPipe extends DriverTileEntity {
             super(tileEntity, "pipe");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the pipe has a gate.")
         public Object[] hasGate(final Context context, final Arguments args) {
             return new Object[]{tileEntity.hasGate()};
         }
 
-        @Callback
+        @Callback(doc = "function(color:string):boolean --  Returns whether the pipe is wired with the given color")
         public Object[] isWired(final Context context, final Arguments args) {
             try {
                 return new Object[]{tileEntity.isWired(IPipe.WireColor.valueOf(args.checkString(0)))};

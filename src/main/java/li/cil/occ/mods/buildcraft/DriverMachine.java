@@ -26,17 +26,17 @@ public final class DriverMachine extends DriverTileEntity {
             super(tileEntity, "machine");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the machine is active.")
         public Object[] isActive(final Context context, final Arguments args) {
             return new Object[]{tileEntity.isActive()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the machine can manage fluids.")
         public Object[] manageFluids(final Context context, final Arguments args) {
             return new Object[]{tileEntity.manageFluids()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the machine can manage solids.")
         public Object[] manageSolids(final Context context, final Arguments args) {
             return new Object[]{tileEntity.manageSolids()};
         }
