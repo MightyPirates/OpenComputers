@@ -2,7 +2,7 @@ local args = {...}
 
 if #args < 1 then
   for k,v in pairs(os.getenv()) do
-    print(k..'='..v)
+    io.write(k..'='..v..'\n')
   end
 else
   local count = 1
