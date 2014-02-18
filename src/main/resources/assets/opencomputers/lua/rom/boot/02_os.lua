@@ -9,7 +9,8 @@ local env = {
   MANPATH="/usr/man",
   PATH="/bin:/usr/bin:/home/bin:.",
   PWD="/",
-  SHELL="/bin/sh"
+  SHELL="/bin/sh",
+  TMP="/tmp"
 }
 
 os.execute = function(command)
