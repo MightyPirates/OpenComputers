@@ -30,12 +30,12 @@ public final class DriverSteamTurbine extends DriverTileEntity {
             super(tileEntity, "steam_turbine");
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the output of the steam turbine")
         public Object[] getTurbineOutput(final Context context, final Arguments args) {
             return new Object[]{Reflection.tryInvoke(tileEntity, "getOutput")};
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the durability of the rotor in percent.")
         public Object[] getTurbineRotorStatus(final Context context, final Arguments args) {
             IInventory inventory = Reflection.tryInvoke(tileEntity, "getInventory");
             if (inventory != null && inventory.getSizeInventory() > 0) {

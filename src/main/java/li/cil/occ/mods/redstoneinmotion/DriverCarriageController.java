@@ -55,18 +55,18 @@ public final class DriverCarriageController extends DriverTileEntity implements 
             super(tileEntity, "carriage");
         }
 
-        @Callback(direct = true)
+        @Callback(doc = "function([direction:number=6]):number --  Returns if the controller is anchored.", direct = true)
         public Object[] getAnchored(final Context context, final Arguments args) {
             return new Object[]{isAnchored};
         }
 
-        @Callback
+        @Callback(doc = "function(anchored:boolean):boolean --  Sets the anchored status of the controller to the given value.")
         public Object[] setAnchored(final Context context, final Arguments args) {
             isAnchored = args.checkBoolean(0);
             return new Object[]{isAnchored};
         }
 
-        @Callback
+        @Callback(doc = "function(direction:string/number[,isSimulating:boolean=false]):boolean --  Let's the controller move in the given direction. It can be specified if the move shall only be simulated.")
         public Object[] move(final Context context, final Arguments args) {
             // We execute moves in the update() call to the environment instead
             // of in here, because the move may cause the calling computer to
@@ -79,7 +79,7 @@ public final class DriverCarriageController extends DriverTileEntity implements 
             return new Object[]{true};
         }
 
-        @Callback
+        @Callback(doc = "function(direction:string/number):boolean  --  Simulates the move in the given direction.")
         public Object[] simulate(final Context context, final Arguments args) {
             // IMPORTANT: we have to do the simulation asynchronously, too,
             // because that may also try to persist the computer that called us,

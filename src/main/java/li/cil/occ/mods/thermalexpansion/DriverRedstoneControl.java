@@ -25,27 +25,27 @@ public final class DriverRedstoneControl extends DriverTileEntity {
             super(tileEntity, "redstone_control");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the control is disabled.")
         public Object[] getControlDisable(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getControlDisable()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the control setting is enabled.")
         public Object[] getControlSetting(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getControlSetting()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the component is powered.")
         public Object[] isPowered(final Context context, final Arguments args) {
             return new Object[]{tileEntity.isPowered()};
         }
 
-        @Callback
+        @Callback(doc = "function(disable:boolean):boolean --  Sets whether the control is disabled.")
         public Object[] setControlDisable(final Context context, final Arguments args) {
             return new Object[]{tileEntity.setControlDisable(args.checkBoolean(0))};
         }
 
-        @Callback
+        @Callback(doc = "function(state:boolean):boolean --  Sets the control status to the given value.")
         public Object[] setControlSetting(final Context context, final Arguments args) {
             return new Object[]{tileEntity.setControlSetting(args.checkBoolean(0))};
         }

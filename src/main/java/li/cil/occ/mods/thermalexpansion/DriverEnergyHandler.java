@@ -26,13 +26,13 @@ public final class DriverEnergyHandler extends DriverTileEntity {
             super(tileEntity, "energy_handler");
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the amount of stored energy for the given side.")
         public Object[] getEnergyStored(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             return new Object[]{tileEntity.getEnergyStored(side)};
         }
 
-        @Callback
+        @Callback(doc = "function([direction:number=6]):number --  Returns the maximum amount of stored energy for the given side.")
         public Object[] getMaxEnergyStored(final Context context, final Arguments args) {
             final ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
             return new Object[]{tileEntity.getMaxEnergyStored(side)};

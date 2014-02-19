@@ -29,7 +29,7 @@ public final class DriverLamp extends DriverTileEntity {
             super(tileEntity, "lamp");
         }
 
-        @Callback
+        @Callback(doc = "function(color:number):boolean --  Sets the color of the lamp to the given color.")
         public Object[] setColor(final Context context, final Arguments args) {
             return new Object[]{Reflection.tryInvoke(tileEntity, "setColor", args.checkInteger(0))};
         }

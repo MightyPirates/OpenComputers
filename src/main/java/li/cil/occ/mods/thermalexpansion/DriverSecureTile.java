@@ -26,17 +26,17 @@ public final class DriverSecureTile extends DriverTileEntity {
             super(tileEntity, "secure_tile");
         }
 
-        @Callback
+        @Callback(doc = "function(name:string):boolean --  Returns whether the player with the given name can access the component")
         public Object[] canPlayerAccess(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canPlayerAccess(args.checkString(0))};
         }
 
-        @Callback
+        @Callback(doc = "function():string --  Returns the type of the access.")
         public Object[] getAccess(final Context context, final Arguments args) {
             return new Object[]{WordUtils.capitalize(tileEntity.getAccess().name())};
         }
 
-        @Callback
+        @Callback(doc = "function():string --  Returns the name of the owner.")
         public Object[] getOwnerName(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getOwnerName()};
         }

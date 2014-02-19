@@ -25,22 +25,22 @@ public final class DriverEnergyInfo extends DriverTileEntity {
             super(tileEntity, "energy_info");
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the amount of stored energy.")
         public Object[] getEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getEnergy()};
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the energy per tick.")
         public Object[] getEnergyPerTick(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getEnergyPerTick()};
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the maximum energy.")
         public Object[] getMaxEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getMaxEnergy()};
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the maximum energy per tick.")
         public Object[] getMaxEnergyPerTick(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getMaxEnergyPerTick()};
         }

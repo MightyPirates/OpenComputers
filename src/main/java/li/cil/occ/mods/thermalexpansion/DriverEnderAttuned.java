@@ -25,47 +25,47 @@ public final class DriverEnderAttuned extends DriverTileEntity {
             super(tileEntity, "ender_attuned");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive energy.")
         public Object[] canReceiveEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveEnergy()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive fluids.")
         public Object[] canReceiveFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveFluid()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can receive items.")
         public Object[] canReceiveItems(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canReceiveItems()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can send energy.")
         public Object[] canSendEnergy(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendEnergy()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can send fluids.")
         public Object[] canSendFluid(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendFluid()};
         }
 
-        @Callback
+        @Callback(doc = "function():boolean --  Returns whether the tileentity can send items.")
         public Object[] canSendItems(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canSendItems()};
         }
 
-        @Callback
+        @Callback(doc = "function():number --  Returns the frequency.")
         public Object[] getFrequency(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getFrequency()};
         }
 
-        @Callback
+        @Callback(doc = "function():string --  Returns the name of the owner.")
         public Object[] getOwnerString(final Context context, final Arguments args) {
             return new Object[]{tileEntity.getOwnerString()};
         }
 
-        @Callback
+        @Callback(doc = "function(frequency:number):boolean --  Sets the frequency to the given value. Returns whether the frequency change was successful")
         public Object[] setFrequency(final Context context, final Arguments args) {
             return new Object[]{tileEntity.setFrequency(args.checkInteger(0))};
         }
