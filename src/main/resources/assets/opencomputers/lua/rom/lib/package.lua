@@ -8,7 +8,6 @@ local loaded = {
   ["_G"] = _G,
   ["bit32"] = bit32,
   ["coroutine"] = coroutine,
-  ["io"] = io,
   ["math"] = math,
   ["os"] = os,
   ["package"] = package,

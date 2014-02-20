@@ -3,7 +3,7 @@ local unicode = require("unicode")
 
 local filesystem, fileStream = {}, {}
 local isAutorunEnabled = true
-local mtab = {children={}, links={}}
+local mtab = {name="", children={}, links={}}
 
 local function segments(path)
   path = path:gsub("\\", "/")
@@ -472,18 +472,9 @@ function filesystem.open(path, mode)
 
   local stream = {fs = node.fs, handle = handle}
 
-  -- stream:close does a syscall, which yields, and that's not possible in
-  -- the __gc metamethod. So we start a timer to do the yield/cleanup.
   local function cleanup(self)
     if not self.handle then return end
-    -- save non-gc'ed values as upvalues
-    local fs = self.fs
-    local handle = self.handle
-    local function close()
-      fs.close(handle)
-    end
-    -- Required locally because this is a bootstrapped file.
-    require("event").timer(0, close)
+    self.fs.close(self.handle)
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,
