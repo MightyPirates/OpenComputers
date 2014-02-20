@@ -28,13 +28,14 @@ function package.searchpath(name, path, sep, rep)
   rep = rep or '/'
   sep, rep = '%' .. sep, rep
   name = string.gsub(name, sep, rep)
+  local fs = require("filesystem")
   local errorFiles = {}
   for subPath in string.gmatch(path, "([^;]+)") do
     subPath = string.gsub(subPath, "?", name)
-    if loaded.shell then
-      subPath = require("shell").resolve(subPath)
+    if subPath:sub(1, 1) ~= "/" and os.getenv then
+      subPath = fs.concat(os.getenv("PWD") or "/", subPath)
     end
-    if require("filesystem").exists(subPath) then
+    if fs.exists(subPath) then
       local file = io.open(subPath, "r")
       if file then
         file:close()
@@ -79,8 +80,11 @@ function require(module)
     loading[module] = true
     local loader, value, errorMsg = nil, nil, {"module '" .. module .. "' not found:"}
     for i = 1, #package.searchers do
-      local f, extra = package.searchers[i](module)
-      if f and type(f) ~= "string" then
+      -- the pcall is mostly for out of memory errors
+      local ok, f, extra = pcall(package.searchers[i], module)
+      if not ok then
+        table.insert(errorMsg, "\t" .. f)
+      elseif f and type(f) ~= "string" then
         loader = f
         value = extra
         break

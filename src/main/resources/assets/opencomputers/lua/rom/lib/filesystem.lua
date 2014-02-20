@@ -258,7 +258,7 @@ function filesystem.exists(path)
   if not vrest or vnode.links[vrest] then -- virtual directory or symbolic link
     return true
   end
-  if node.fs then
+  if node and node.fs then
     return node.fs.exists(rest)
   end
   return false
