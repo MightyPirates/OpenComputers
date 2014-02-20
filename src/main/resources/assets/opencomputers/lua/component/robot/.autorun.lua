@@ -1,12 +1,12 @@
 local event = require("event")
 local fs = require("filesystem")
-local shell = require("shell")
+local process = require("process")
 
 local proxy = ...
 
 -- Install symlinks if they don't already exist.
 local links = {}
-local fsroot = fs.path(shell.running())
+local fsroot = fs.path(process.running())
 local function inject(path)
   for file in fs.list(fs.concat(fsroot, path)) do
     local source = fs.concat(fsroot, path, file)

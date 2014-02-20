@@ -1,6 +1,7 @@
 local component = require("component")
 local computer = require("computer")
 local event = require("event")
+local process = require("process")
 local shell = require("shell")
 local term = require("term")
 local text = require("text")
@@ -8,7 +9,7 @@ local text = require("text")
 local args, options = shell.parse(...)
 local history = {}
 
-if options.v or not shell.running(2) then
+if options.v or not process.running(2) then
   io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
 end
 

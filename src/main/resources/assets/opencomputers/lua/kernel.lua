@@ -50,12 +50,27 @@ end
 
 -------------------------------------------------------------------------------
 
+local running = setmetatable({}, {__mode="k"})
+
+local function findProcess(co)
+  co = co or coroutine.running()
+  for _, process in pairs(running) do
+    for _, instance in pairs(process.instances) do
+      if instance == co then
+        return process
+      end
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
+
 --[[ This is the global environment we make available to userland programs. ]]
 -- You'll notice that we do a lot of wrapping of native functions and adding
 -- parameter checks in those wrappers. This is to avoid errors from the host
 -- side that would push error objects - which are userdata and cannot be
 -- persisted.
-local sandbox
+local sandbox, libprocess
 sandbox = {
   assert = assert,
   dofile = nil, -- in boot/*_base.lua
@@ -70,10 +85,7 @@ sandbox = {
     if not allowBytecode() then
       mode = "t"
     end
-    pcall(function()
-      local _, penv = sandbox.require("shell").running()
-      env = env or penv
-    end)
+    env = env or select(2, libprocess.running())
     return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in boot/*_base.lua
@@ -96,9 +108,7 @@ sandbox = {
   coroutine = {
     create = function(f)
       local co = coroutine.create(f)
-      pcall(function()
-        sandbox.require("shell").register(co)
-      end)
+      table.insert(findProcess().instances, co)
       return co
     end,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
@@ -257,7 +267,7 @@ sandbox = {
 sandbox._G = sandbox
 
 -------------------------------------------------------------------------------
--- Start of non-standard stuff made available via package.preload.
+-- Start of non-standard stuff.
 
 local libcomponent
 libcomponent = {
@@ -359,6 +369,51 @@ local libcomputer = {
   end
 }
 
+libprocess = {
+  load = function(path, env, init, name)
+    checkArg(1, path, "string")
+    checkArg(2, env, "table", "nil")
+    checkArg(3, init, "function", "nil")
+    checkArg(4, name, "string", "nil")
+
+    local process = findProcess()
+    if process then
+      env = env or process.env
+    end
+    env = setmetatable({}, {__index=env or sandbox})
+    local code, reason = sandbox.loadfile(path, "t", env)
+    if not code then
+      return nil, reason
+    end
+
+    local thread = coroutine.create(function(...)
+      if init then
+        init()
+      end
+      return code(...)
+    end)
+    running[thread] = {
+      path = path,
+      command = name,
+      env = env,
+      parent = process,
+      instances = setmetatable({thread}, {__mode="v"})
+    }
+    return thread
+  end,
+  running = function(level)
+    level = level or 1
+    local process = findProcess()
+    while level > 1 and process do
+      process = process.parent
+      level = level - 1
+    end
+    if process then
+      return process.path, process.env, process.command
+    end
+  end
+}
+
 local libunicode = {
   char = function(...)
     local args = table.pack(...)
@@ -443,8 +498,7 @@ local function main()
       end
     end
 
-    -- Make all calls in the bootstrapper direct to speed up booting. This is
-    -- safe because all invokes are rom fs related - or should be, anyway.
+  -- Make all calls in the bootstrapper direct to speed up booting.
     local realInvoke = invoke
     invoke = function(_, ...) return realInvoke(true, ...) end
 
@@ -462,6 +516,7 @@ local function main()
     package.preload["computer"] = function() return libcomputer end
     package.preload["filesystem"] = fs
     package.preload["io"] = io
+    package.preload["process"] = function() return libprocess end
     package.preload["unicode"] = function() return libunicode end
 
     -- Inject the package and io modules into the global namespace, as in Lua.

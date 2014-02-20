@@ -5,19 +5,6 @@ local text = require("text")
 
 local shell = {}
 local aliases = {}
-local running = setmetatable({}, {__mode="k"})
-local isLoading = false
-
-local function findProcess(co)
-  co = co or coroutine.running()
-  for _, process in pairs(running) do
-    for _, instance in pairs(process.instances) do
-      if instance == co then
-        return process
-      end
-    end
-  end
-end
 
 local function findFile(name, ext)
   checkArg(1, name, "string")
@@ -478,52 +465,11 @@ function shell.execute(command, env, ...)
 end
 
 function shell.load(path, env, init, name)
-  checkArg(1, path, "string")
-  checkArg(2, env, "table", "nil")
-  checkArg(3, init, "function", "nil")
-  checkArg(4, name, "string", "nil")
-  local filename, reason = shell.resolve(path, "lua")
-  if not filename then
+  local path, reason = shell.resolve(path, "lua")
+  if not path then
     return nil, reason
   end
-
-  local process = findProcess()
-  if process then
-    env = env or process.env
-  end
-  env = setmetatable({}, {__index=env or _ENV})
-  local code, reason = loadfile(filename, "t", env)
-  if not code then
-    return nil, reason
-  end
-
-  isLoading = true
-  local thread = coroutine.create(function(...)
-    if init then
-      init()
-    end
-    return code(...)
-  end)
-  isLoading = false
-  running[thread] = {
-    path = filename,
-    command = name,
-    env = env,
-    parent = process,
-    instances = setmetatable({thread}, {__mode="v"})
-  }
-  return thread
-end
-
-function shell.register(thread) -- called from coroutine.create
-  checkArg(1, thread, "thread")
-  if findProcess(thread) then
-    return false -- already attached somewhere
-  end
-  if not isLoading then
-    table.insert(findProcess().instances, thread)
-  end
-  return true
+  return require("process").load(path, env, init, name)
 end
 
 function shell.parse(...)
@@ -543,16 +489,8 @@ function shell.parse(...)
   return args, options
 end
 
-function shell.running(level)
-  level = level or 1
-  local process = findProcess()
-  while level > 1 and process do
-    process = process.parent
-    level = level - 1
-  end
-  if process then
-    return process.path, process.env, process.command
-  end
+function shell.running(level) -- deprecated
+  return require("process").running(level)
 end
 
 -------------------------------------------------------------------------------

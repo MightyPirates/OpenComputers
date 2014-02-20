@@ -208,7 +208,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     Option(node.network.node(address)) match {
       case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
         val direct = component.isDirect(method)
-        if (direct) callCounts.synchronized {
+        if (direct && architecture.isInitialized) callCounts.synchronized {
           val limit = component.limit(method)
           val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
           val count = counts.getOrElseUpdate(method, 0)
