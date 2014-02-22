@@ -245,6 +245,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
       }
     })
 
+    label.load(nbt.getCompoundTag("label"))
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
@@ -264,6 +265,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
     nbt.setTag("owners", ownersNbt)
 
+    nbt.setNewCompoundTag("label", label.save)
     nbt.setNewCompoundTag("fs", fileSystem.save)
   }
 

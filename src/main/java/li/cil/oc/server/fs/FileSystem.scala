@@ -8,6 +8,7 @@ import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.DimensionManager
+import net.minecraft.nbt.NBTTagCompound
 
 object FileSystem extends api.detail.FileSystemAPI {
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
@@ -84,6 +85,10 @@ object FileSystem extends api.detail.FileSystemAPI {
     def setLabel(value: String) = throw new IllegalArgumentException("label is read only")
 
     def getLabel = label
+
+    override def load(nbt: NBTTagCompound) {}
+
+    override def save(nbt: NBTTagCompound) {}
   }
 
   private class ReadOnlyFileSystem(protected val root: io.File)

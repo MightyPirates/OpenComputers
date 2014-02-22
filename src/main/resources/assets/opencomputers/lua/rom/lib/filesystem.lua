@@ -474,7 +474,7 @@ function filesystem.open(path, mode)
 
   local function cleanup(self)
     if not self.handle then return end
-    self.fs.close(self.handle)
+    pcall(self.fs.close, self.handle)
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,
