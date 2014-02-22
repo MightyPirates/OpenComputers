@@ -270,6 +270,17 @@ sandbox._G = sandbox
 -- Start of non-standard stuff.
 
 local libcomponent
+
+local callback = {
+  __call = function(method, ...)
+    return libcomponent.invoke(method.address, method.name, ...)
+  end,
+  __tostring = function(method)
+    return libcomponent.doc(method.address, method.name) or "function"
+  end,
+  __metatable = "callback"
+}
+
 libcomponent = {
   doc = function(address, method)
     checkArg(1, address, "string")
@@ -283,7 +294,16 @@ libcomponent = {
   invoke = function(address, method, ...)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
-    return invoke(false, address, method, ...)
+    local methods, reason = component.methods(address)
+    if not methods then
+      return nil, reason
+    end
+    for name, direct in pairs(methods) do
+      if name == method then
+        return invoke(direct, address, method, ...)
+      end
+    end
+    error("no such method", 1)
   end,
   list = function(filter)
     checkArg(1, filter, "string", "nil")
@@ -307,15 +327,8 @@ libcomponent = {
     if not methods then
       return nil, reason
     end
-    for method, direct in pairs(methods) do
-      proxy[method] = setmetatable({}, {
-        __call = function(_, ...)
-          return invoke(direct, address, method, ...)
-        end,
-        __tostring = function()
-          return libcomponent.doc(address, method) or "function"
-        end
-        })
+    for method in pairs(methods) do
+      proxy[method] = setmetatable({address=address,name=method}, callback)
     end
     return proxy
   end,

@@ -41,7 +41,7 @@ while term.isAvailable() do
     code, reason = load(command, "=stdin", "t", env)
   end
   if code then
-    local result = table.pack(pcall(code))
+    local result = table.pack(xpcall(code, debug.traceback))
     if not result[1] then
       if type(result[2]) == "table" and result[2].reason == "terminated" then
         os.exit(result[2].code)

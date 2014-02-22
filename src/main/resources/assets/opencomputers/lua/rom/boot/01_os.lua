@@ -8,6 +8,7 @@ local env = {
   HOME="/home",
   MANPATH="/usr/man",
   PATH="/bin:/usr/bin:/home/bin:.",
+  PS1="# ",
   PWD="/",
   SHELL="/bin/sh",
   TMP="/tmp"
