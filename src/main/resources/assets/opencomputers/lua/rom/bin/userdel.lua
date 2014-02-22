@@ -8,5 +8,5 @@ if #args < 1 then
 end
 
 if not computer.removeUser(args[1]) then
-  io.write("no such user")
+  io.stderr:write("no such user")
 end

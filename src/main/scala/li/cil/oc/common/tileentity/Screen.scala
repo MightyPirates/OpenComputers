@@ -28,7 +28,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
     @Callback(doc = """function():boolean -- Returns whether the screen is currently on.""")
     def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(origin.isOn)
 
-    @Callback(doc = """function():boolean -- Turns off the screen. Returns true if it was on.""")
+    @Callback(doc = """function():boolean -- Turns the screen on. Returns true if it was off.""")
     def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
       if (!origin.isOn) {
         origin.turnOn()
@@ -37,7 +37,7 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
       else result(false, origin.isOn)
     }
 
-    @Callback(doc = """function():boolean -- Turns the screen on. Returns true if it was off.""")
+    @Callback(doc = """function():boolean -- Turns off the screen. Returns true if it was on.""")
     def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
       if (origin.isOn) {
         origin.turnOff()

@@ -15,11 +15,11 @@ if fs.isDirectory(to) then
 end
 if fs.exists(to) then
   if not options.f then
-    io.write("target file exists")
+    io.stderr:write("target file exists")
   end
   fs.remove(to)
 end
 local result, reason = os.rename(from, to)
 if not result then
-  io.write(reason or "unknown error")
+  io.stderr:write(reason or "unknown error")
 end

@@ -18,5 +18,5 @@ end
 
 local result, reason = fs.link(target, linkpath)
 if not result then
-  io.write(reason)
+  io.stderr:write(reason)
 end

@@ -21,16 +21,16 @@ else
   if proxy then
     proxy = reason -- = path
     if proxy ~= path then
-      io.write("not a mount point")
+      io.stderr:write("not a mount point")
       return
     end
   end
 end
 if not proxy then
-  io.write(reason)
+  io.stderr:write(reason)
   return
 end
 
 if not fs.umount(proxy) then
-  io.write("nothing to unmount here")
+  io.stderr:write("nothing to unmount here")
 end

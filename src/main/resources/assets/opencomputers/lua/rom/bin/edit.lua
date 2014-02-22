@@ -22,7 +22,7 @@ local filename = shell.resolve(args[1])
 local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
 if fs.isDirectory(filename) or readonly and not fs.exists(filename) then
-  io.write("file not found")
+  io.stderr:write("file not found")
   return
 end
 

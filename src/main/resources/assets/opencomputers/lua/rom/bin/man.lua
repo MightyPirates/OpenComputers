@@ -16,4 +16,4 @@ for path in string.gmatch(os.getenv("MANPATH"), "[^:]+") do
     os.exit()
   end
 end
-io.write("No manual entry for " .. topic)
+io.stderr:write("No manual entry for " .. topic)

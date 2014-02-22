@@ -8,7 +8,7 @@ end
 
 local result = shell.getAlias(args[1])
 if not result then
-  io.write("no such alias")
+  io.stderr:write("no such alias")
 else
   shell.setAlias(args[1], nil)
   io.write("alias removed: ", args[1], " -> ", result)

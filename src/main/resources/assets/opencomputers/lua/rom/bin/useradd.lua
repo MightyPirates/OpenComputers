@@ -9,5 +9,5 @@ end
 
 local result, reason = computer.addUser(args[1])
 if not result then
-  io.write(reason)
+  io.stderr:write(reason)
 end

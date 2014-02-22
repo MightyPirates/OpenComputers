@@ -135,24 +135,22 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     val block = world.getBlock(x, y, z)
     val canActivate = block != null && Settings.get.allowActivateBlocks
     val shouldActivate = canActivate && (!isSneaking || (item == null || item.doesSneakBypassUse(world, x, y, z, this)))
-    if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ)) {
-      return ActivationType.BlockActivated
-    }
+    val result =
+      if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
+        ActivationType.BlockActivated
+      else if (tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
+        ActivationType.ItemPlaced
+      else if (tryUseItem(stack, duration))
+        ActivationType.ItemUsed
+      else
+        ActivationType.None
 
     if (stack != null) {
-      val didPlace = tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
       if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
       if (stack.stackSize <= 0) inventory.setInventorySlotContents(0, null)
-      if (didPlace) {
-        return ActivationType.ItemPlaced
-      }
-
-      if (tryUseItem(stack, duration)) {
-        return ActivationType.ItemUsed
-      }
     }
 
-    ActivationType.None
+    result
   }
 
   def useEquippedItem(duration: Double) = {
@@ -336,14 +334,16 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   }
 
   private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
-    setPosition(posX, posY - fakeEyeHeight, posZ)
-    val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
-    setPosition(posX, posY + fakeEyeHeight, posZ)
-    if (didPlace) {
-      robot.addXp(Settings.get.robotActionXp)
+    stack != null && stack.stackSize > 0 && {
+      val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
+      setPosition(posX, posY - fakeEyeHeight, posZ)
+      val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+      setPosition(posX, posY + fakeEyeHeight, posZ)
+      if (didPlace) {
+        robot.addXp(Settings.get.robotActionXp)
+      }
+      didPlace
     }
-    didPlace
   }
 
   private def isSomeKindOfPiston(stack: ItemStack) =

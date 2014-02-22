@@ -21,13 +21,15 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   // ----------------------------------------------------------------------- //
 
   @Callback(direct = true)
-  def getLabel(context: Context, args: Arguments): Array[AnyRef] = label match {
-    case value: Label => result(label.getLabel)
-    case _ => null
+  def getLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
+    label match {
+      case value: Label => result(label.getLabel)
+      case _ => null
+    }
   }
 
   @Callback
-  def setLabel(context: Context, args: Arguments): Array[AnyRef] = {
+  def setLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (label == null) throw new Exception("filesystem does not support labeling")
     if (args.checkAny(0) == null) label.setLabel(null)
     else label.setLabel(args.checkString(0))
@@ -35,12 +37,12 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   }
 
   @Callback(direct = true)
-  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = {
+  def isReadOnly(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.isReadOnly)
   }
 
   @Callback(direct = true)
-  def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = {
+  def spaceTotal(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val space = fileSystem.spaceTotal
     if (space < 0)
       Array("unlimited")
@@ -49,32 +51,32 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   }
 
   @Callback(direct = true)
-  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = {
+  def spaceUsed(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.spaceUsed)
   }
 
   @Callback(direct = true)
-  def exists(context: Context, args: Arguments): Array[AnyRef] = {
+  def exists(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.exists(clean(args.checkString(0))))
   }
 
   @Callback(direct = true)
-  def size(context: Context, args: Arguments): Array[AnyRef] = {
+  def size(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.size(clean(args.checkString(0))))
   }
 
   @Callback(direct = true)
-  def isDirectory(context: Context, args: Arguments): Array[AnyRef] = {
+  def isDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.isDirectory(clean(args.checkString(0))))
   }
 
   @Callback(direct = true)
-  def lastModified(context: Context, args: Arguments): Array[AnyRef] = {
+  def lastModified(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.lastModified(clean(args.checkString(0))))
   }
 
   @Callback
-  def list(context: Context, args: Arguments): Array[AnyRef] = {
+  def list(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
       case Some(list) => Array(list)
       case _ => null
@@ -82,26 +84,26 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   }
 
   @Callback
-  def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = {
+  def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
     result(recurse(clean(args.checkString(0))))
   }
 
   @Callback
-  def remove(context: Context, args: Arguments): Array[AnyRef] = {
+  def remove(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
     result(recurse(clean(args.checkString(0))))
   }
 
   @Callback
-  def rename(context: Context, args: Arguments): Array[AnyRef] = {
+  def rename(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
   }
 
-  @Callback
-  def close(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true)
+  def close(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     Option(fileSystem.getHandle(handle)) match {
       case Some(file) =>
@@ -114,8 +116,8 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     null
   }
 
-  @Callback
-  def open(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true, limit = 4)
+  def open(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (owners.get(context.node.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
     }
@@ -128,8 +130,8 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     result(handle)
   }
 
-  @Callback
-  def read(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true, limit = 4)
+  def read(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     checkOwner(context.node.address, handle)
@@ -159,8 +161,8 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
   }
 
-  @Callback
-  def seek(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true, limit = 4)
+  def seek(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val whence = args.checkString(1)
     val offset = args.checkInteger(2)
@@ -179,7 +181,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   }
 
   @Callback
-  def write(context: Context, args: Arguments): Array[AnyRef] = {
+  def write(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     if (!node.tryChangeBuffer(-Settings.get.hddWriteCost * value.length)) {
@@ -243,6 +245,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
       }
     })
 
+    label.load(nbt.getCompoundTag("label"))
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
@@ -258,6 +261,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
     nbt.setTag("owners", ownersNbt)
 
+    nbt.setNewCompoundTag("label", label.save)
     nbt.setNewCompoundTag("fs", fileSystem.save)
   }
 

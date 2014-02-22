@@ -72,17 +72,32 @@ object FileSystem extends Item {
     override def setLabel(value: String) {
       media.setLabel(stack, value)
     }
+
+    override def load(nbt: NBTTagCompound) {}
+
+    override def save(nbt: NBTTagCompound) {}
   }
 
   private class ItemLabel(val stack: ItemStack) extends Label {
-    override def getLabel =
-      if (dataTag(stack).hasKey(Settings.namespace + "fs.label"))
-        dataTag(stack).getString(Settings.namespace + "fs.label")
-      else null
+    var label: Option[String] = None
+
+    override def getLabel = label.orNull
 
     override def setLabel(value: String) {
-      dataTag(stack).setString(Settings.namespace + "fs.label",
-        if (value.length > 16) value.substring(0, 16) else value)
+      label = Option(if (value != null && value.length > 16) value.substring(0, 16) else value)
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (dataTag(stack).hasKey(Settings.namespace + "fs.label")) {
+        label = Option(dataTag(stack).getString(Settings.namespace + "fs.label"))
+      }
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      label match {
+        case Some(value) => dataTag(stack).setString(Settings.namespace + "fs.label", value)
+        case _ =>
+      }
     }
   }
 

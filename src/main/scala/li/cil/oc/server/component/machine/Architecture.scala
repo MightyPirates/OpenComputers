@@ -66,6 +66,15 @@ trait Architecture {
   def init(): Boolean
 
   /**
+   * Called when the owning machine was connected to the component network.
+   *
+   * This can be useful for connecting custom file systems (read only memory)
+   * in case init() was called from the machine's load() method (where it was
+   * not yet connected to the network).
+   */
+  def onConnect()
+
+  /**
    * Called when a computer stopped. Used to clean up any handles, memory and
    * so on. For example, for Lua this destroys the Lua state.
    */

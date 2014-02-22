@@ -12,7 +12,7 @@ else
   for i = 1, #args do
     local file, reason = io.open(shell.resolve(args[i]))
     if not file then
-      io.write(reason)
+      io.stderr:write(reason)
       return
     end
     repeat

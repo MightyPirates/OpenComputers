@@ -26,9 +26,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
     create()
 
-  val rom = Option(FileSystem.asManagedEnvironment(FileSystem.
-    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"), "rom"))
-
   val tmp = if (Settings.get.tmpSize > 0) {
     Option(FileSystem.asManagedEnvironment(FileSystem.
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
@@ -210,7 +207,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     Option(node.network.node(address)) match {
       case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
         val direct = component.isDirect(method)
-        if (direct) callCounts.synchronized {
+        if (direct && architecture.isInitialized) callCounts.synchronized {
           val limit = component.limit(method)
           val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
           val count = counts.getOrElseUpdate(method, 0)
@@ -426,8 +423,8 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
   override def onConnect(node: Node) {
     if (node == this.node) {
       components += this.node.address -> this.node.name
-      rom.foreach(rom => node.connect(rom.node))
       tmp.foreach(tmp => node.connect(tmp.node))
+      architecture.onConnect()
     }
     else {
       node match {
@@ -441,8 +438,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   override def onDisconnect(node: Node) {
     if (node == this.node) {
-      stop()
-      rom.foreach(_.node.remove())
+      close()
       tmp.foreach(_.node.remove())
     }
     else {
@@ -530,7 +526,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       c.getString("address") -> c.getString("name")
     })
 
-    rom.foreach(rom => rom.load(nbt.getCompoundTag("rom")))
     tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
 
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
@@ -593,7 +588,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
     nbt.setTag("components", componentsNbt)
 
-    rom.foreach(rom => nbt.setNewCompoundTag("rom", rom.save))
     tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
 
     if (state.top != Machine.State.Stopped) {
@@ -643,7 +637,6 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     // Connect the ROM and `/tmp` node to our owner. We're not in a network in
     // case we're loading, which is why we have to check it here.
     if (node.network != null) {
-      rom.foreach(rom => node.connect(rom.node))
       tmp.foreach(tmp => node.connect(tmp.node))
     }
 

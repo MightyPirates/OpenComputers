@@ -11,7 +11,7 @@ elseif #args == 1 then
   if value then
     io.write(value)
   else
-    io.write("no such alias")
+    io.stderr:write("no such alias")
   end
 else
   shell.setAlias(args[1], args[2])
