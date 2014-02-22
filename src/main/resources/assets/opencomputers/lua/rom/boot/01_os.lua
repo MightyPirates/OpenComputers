@@ -26,7 +26,9 @@ function os.exit(code)
 end
 
 function os.getenv(varname)
-  if varname ~= nil then
+  if varname == '#' then
+    return #env
+  elseif varname ~= nil then
     return env[varname]
   else
     return env
@@ -34,9 +36,15 @@ function os.getenv(varname)
 end
 
 function os.setenv(varname, value)
-  checkArg(1, varname, "string")
-  env[varname] = value
-  return env[varname]
+  checkArg(1, varname, "string", "number")
+  if value == nil then env[varname] = nil
+  local success, val = pcall(tostring, value)
+  if success then
+    env[varname] = val
+    return env[varname]
+  else
+    return nil, val
+  end
 end
 
 function os.remove(...)
