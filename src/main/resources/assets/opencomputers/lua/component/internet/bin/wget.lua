@@ -5,7 +5,7 @@ local shell = require("shell")
 local text = require("text")
 
 if not component.isAvailable("internet") then
-  io.write("This program requires an internet card to run.")
+  io.stderr:write("This program requires an internet card to run.")
   return
 end
 
@@ -33,21 +33,21 @@ if not filename then
 end
 filename = text.trim(filename)
 if filename == "" then
-  io.write("could not infer filename, please specify one")
+  io.stderr:write("could not infer filename, please specify one")
   return
 end
 filename = shell.resolve(filename)
 
 if fs.exists(filename) then
   if not options.f or not os.remove(filename) then
-    io.write("file already exists")
+    io.stderr:write("file already exists")
     return
   end
 end
 
 local f, reason = io.open(filename, "wb")
 if not f then
-  io.write("Failed opening file for writing: ", reason)
+  io.stderr:write("failed opening file for writing: ", reason)
   return
 end
 
@@ -68,7 +68,10 @@ if result then
     io.write("Saved data to ", filename, "\n")
   end
 else
+  if not options.q then
+    io.write("failed.\n")
+  end
   f:close()
   fs.remove(filename)
-  io.write("HTTP request failed: ", response, "\n")
+  io.stderr:write("HTTP request failed: ", response, "\n")
 end

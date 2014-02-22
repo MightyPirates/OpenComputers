@@ -5,7 +5,8 @@ local shell = require("shell")
 local sides = require("sides")
 
 if not computer.isRobot() then
-  error("can only run on robots", 0)
+  io.stderr:write("can only run on robots")
+  return
 end
 
 local args, options = shell.parse(...)
@@ -17,7 +18,8 @@ end
 
 local size = tonumber(args[1])
 if not size then
-  error("invalid size", 0)
+  io.stderr:write("invalid size")
+  return
 end
 
 local r = component.computer

@@ -3,6 +3,10 @@ local component = require("component")
 local shell = require("shell")
 local sides = require("sides")
 
+if not component.isAvailable("redstone") then
+  io.stderr:write("This program requires a redstone card or redstone I/O block.")
+  return
+end
 local rs = component.redstone
 
 local args, options = shell.parse(...)
@@ -17,7 +21,8 @@ end
 
 local side = sides[args[1]]
 if not side then
-  error("Invalid side.")
+  io.stderr:write("invalid side")
+  return
 end
 if type(side) == "string" then
   side = sides[side]
@@ -25,11 +30,13 @@ end
 
 if options.b then
   if not rs.setBundledOutput then
-    error("Bundled redstone not available.")
+    io.stderr:write("bundled redstone not available")
+    return
   end
   local color = colors[args[2]]
   if not color then
-    error("Invalid color.")
+    io.stderr:write("invalid color")
+    return
   end
   if type(color) == "string" then
     color = colors[color]

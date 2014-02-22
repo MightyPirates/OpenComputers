@@ -6,7 +6,7 @@ local internet = require("internet")
 local shell = require("shell")
 
 if not component.isAvailable("internet") then
-  io.write("This program requires an internet card to run.")
+  io.stderr:write("This program requires an internet card to run.")
   return
 end
 
@@ -16,7 +16,7 @@ local args, options = shell.parse(...)
 local function get(pasteId, filename)
   local f, reason = io.open(filename, "w")
   if not f then
-    io.write("Failed opening file for writing: ", reason)
+    io.stderr:write("Failed opening file for writing: ", reason)
     return
   end
 
@@ -35,9 +35,10 @@ local function get(pasteId, filename)
     f:close()
     io.write("Saved data to ", filename, "\n")
   else
+    io.write("failed.\n")
     f:close()
     fs.remove(filename)
-    io.write("HTTP request failed: ", response, "\n")
+    io.stderr:write("HTTP request failed: ", response, "\n")
   end
 end
 
@@ -61,7 +62,7 @@ function run(pasteId, ...)
 
   local success, reason = shell.execute(tmpFile, nil, ...)
   if not success then
-    io.write(reason)
+    io.stderr:write(reason)
   end
   fs.remove(tmpFile)
 end
@@ -73,14 +74,14 @@ function put(path)
   if configFile then
     local result, reason = pcall(configFile)
     if not result then
-      io.write("Failed loading config: ", reason)
+      io.stderr:write("Failed loading config: ", reason)
     end
   end
   config.key = config.key or "fd92bd40a84c127eeb6804b146793c97"
   local file, reason = io.open(path, "r")
 
   if not file then
-    io.write("Failed opening file for reading: ", reason)
+    io.stderr:write("Failed opening file for reading: ", reason)
     return
   end
 
@@ -112,7 +113,8 @@ function put(path)
       io.write('Run "pastebin get ', pasteId, '" to download anywhere.')
     end
   else
-    io.write("failed: ", response)
+    io.write("failed.\n")
+    io.stderr:write(response)
   end
 end
 
@@ -127,7 +129,7 @@ elseif command == "get" then
     local path = shell.resolve(args[3])
     if fs.exists(path) then
       if not options.f or not os.remove(path) then
-        io.write("file already exists")
+        io.stderr:write("file already exists")
         return
       end
     end

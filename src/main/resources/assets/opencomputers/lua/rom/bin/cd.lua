@@ -6,6 +6,6 @@ if #args == 0 then
 else
   local result, reason = shell.setWorkingDirectory(shell.resolve(args[1]))
   if not result then
-    io.write(reason)
+    io.stderr:write(reason)
   end
 end

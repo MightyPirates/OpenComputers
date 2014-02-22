@@ -17,12 +17,13 @@ end
 local w = tonumber(args[1])
 local h = tonumber(args[2])
 if not w or not h then
-  io.write("invalid width or height")
+  io.stderr:write("invalid width or height")
   return
 end
 
 local result, reason = component.gpu.setResolution(w, h)
 if not result then
-  io.write(reason)
+  io.stderr:write(reason)
+  return
 end
 term.clear()

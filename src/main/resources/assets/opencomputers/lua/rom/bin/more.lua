@@ -12,7 +12,7 @@ end
 
 local file, reason = io.open(shell.resolve(args[1]))
 if not file then
-  io.write(reason)
+  io.stderr:write(reason)
   return
 end
 

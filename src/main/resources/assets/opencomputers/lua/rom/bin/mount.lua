@@ -18,11 +18,11 @@ end
 
 local proxy, reason = fs.proxy(args[1])
 if not proxy then
-  io.write(reason)
+  io.stderr:write(reason)
   return
 end
 
 local result, reason = fs.mount(proxy, shell.resolve(args[2]))
 if not result then
-  io.write(reason)
+  io.stderr:write(reason)
 end

@@ -12,7 +12,7 @@ import org.luaj.vm3.lib.jse.JsePlatform
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
-class LuaJLuaArchitecture(machine: Machine) extends Architecture {
+class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
   private var lua: Globals = _
 
   private var thread: LuaThread = _
@@ -132,6 +132,8 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
   // ----------------------------------------------------------------------- //
 
   override def init() = {
+    super.init()
+
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)
     lua.set("io", LuaValue.NIL)
@@ -251,13 +253,13 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
     computer.set("pushSignal", (args: Varargs) => LuaValue.valueOf(machine.signal(args.checkjstring(1), toSimpleJavaObjects(args, 2): _*)))
 
     // And its ROM address.
-    computer.set("romAddress", (_: Varargs) => machine.rom.fold(LuaValue.NIL)(rom => Option(rom.node.address) match {
+    computer.set("romAddress", (_: Varargs) => rom.fold(LuaValue.NIL)(fs => Option(fs.node.address) match {
       case Some(address) => LuaValue.valueOf(address)
       case _ => LuaValue.NIL
     }))
 
     // And it's /tmp address...
-    computer.set("tmpAddress", (_: Varargs) => machine.tmp.fold(LuaValue.NIL)(tmp => Option(tmp.node.address) match {
+    computer.set("tmpAddress", (_: Varargs) => machine.tmp.fold(LuaValue.NIL)(fs => Option(fs.node.address) match {
       case Some(address) => LuaValue.valueOf(address)
       case _ => LuaValue.NIL
     }))
@@ -375,6 +377,8 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
   }
 
   override def close() = {
+    super.close()
+
     lua = null
     thread = null
     synchronizedCall = null
@@ -385,11 +389,11 @@ class LuaJLuaArchitecture(machine: Machine) extends Architecture {
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+
     if (machine.isRunning) {
       machine.stop()
       machine.start()
     }
   }
-
-  override def save(nbt: NBTTagCompound) {}
 }
