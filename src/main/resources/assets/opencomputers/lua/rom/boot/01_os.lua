@@ -36,6 +36,7 @@ end
 
 function os.setenv(varname, value)
   checkArg(1, varname, "string", "number")
+  if value == nil then env[varname] = nil
   local success, val = pcall(tostring, value)
   if success then
     env[varname] = val
