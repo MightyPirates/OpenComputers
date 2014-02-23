@@ -5,7 +5,7 @@ local text = {}
 function text.detab(value, tabWidth)
   checkArg(1, value, "string")
   checkArg(2, tabWidth, "number", "nil")
-  tabWidth = tabWidth or 4
+  tabWidth = tabWidth or 8
   local function rep(match)
     local spaces = tabWidth - match:len() % tabWidth
     return match .. string.rep(" ", spaces)
@@ -39,6 +39,26 @@ function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
   return from > #value and "" or string.match(value, ".*%S", from)
 end
+
+function text.wrap(value, width, maxWidth)
+  checkArg(1, value, "string")
+  checkArg(2, width, "number")
+  local line, nl = value:match("([^\r\n]*)([\r\n]?)") -- read until newline
+  if unicode.len(line) > width then -- do we even need to wrap?
+    local partial = unicode.sub(line, 1, width)
+    local wrapped = partial:match("(.*[^a-zA-Z0-9._])")
+    if wrapped or unicode.len(line) > maxWidth then
+      partial = wrapped or partial
+      return partial, unicode.sub(value, unicode.len(partial) + 1), true
+    else
+      return "", value, true -- write in new line.
+    end
+  end
+  local start = unicode.len(line) + unicode.len(nl) + 1
+  return line, start <= unicode.len(value) and unicode.sub(value, start) or nil, unicode.len(nl) > 0
+end
+
+-------------------------------------------------------------------------------
 
 function text.tokenize(value)
   checkArg(1, value, "string")
@@ -77,122 +97,12 @@ function text.tokenize(value)
   return tokens
 end
 
--------------------------------------------------------------------------------
-
--- Important: pretty formatting will allow presenting non-serializable values
--- but may generate output that cannot be unserialized back.
-function text.serialize(value, pretty)
-  local kw =  {["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true,
-               ["elseif"]=true, ["end"]=true, ["false"]=true, ["for"]=true,
-               ["function"]=true, ["goto"]=true, ["if"]=true, ["in"]=true,
-               ["local"]=true, ["nil"]=true, ["not"]=true, ["or"]=true,
-               ["repeat"]=true, ["return"]=true, ["then"]=true, ["true"]=true,
-               ["until"]=true, ["while"]=true}
-  local id = "^[%a_][%w_]*$"
-  local ts = {}
-  local function s(v, l)
-    local t = type(v)
-    if t == "nil" then
-      return "nil"
-    elseif t == "boolean" then
-      return v and "true" or "false"
-    elseif t == "number" then
-      if v ~= v then
-        return "0/0"
-      elseif v == math.huge then
-        return "math.huge"
-      elseif v == -math.huge then
-        return "-math.huge"
-      else
-        return tostring(v)
-      end
-    elseif t == "string" then
-      return string.format("%q", v)
-    elseif t == "table" and pretty and getmetatable(v) and getmetatable(v).__tostring then
-      return tostring(v)
-    elseif t == "table" then
-      if ts[v] then
-        if pretty then
-          return "recursion"
-        else
-          error("tables with cycles are not supported")
-        end
-      end
-      ts[v] = true
-      local i, r = 1, nil
-      local f
-      if pretty then
-        local ks = {}
-        for k in pairs(v) do table.insert(ks, k) end
-        table.sort(ks)
-        local n = 0
-        f = table.pack(function()
-          n = n + 1
-          local k = ks[n]
-          if k ~= nil then
-            return k, v[k]
-          else
-            return nil
-          end
-        end)
-      else
-        f = table.pack(pairs(v))
-      end
-      for k, v in table.unpack(f) do
-        if r then
-          r = r .. "," .. (pretty and ("\n" .. string.rep(" ", l)) or "")
-        else
-          r = "{"
-        end
-        local tk = type(k)
-        if tk == "number" and k == i then
-          i = i + 1
-          r = r .. s(v, l + 1)
-        else
-          if tk == "string" and not kw[k] and string.match(k, id) then
-            r = r .. k
-          else
-            r = r .. "[" .. s(k, l + 1) .. "]"
-          end
-          r = r .. "=" .. s(v, l + 1)
-        end
-      end
-      ts[v] = nil -- allow writing same table more than once
-      return (r or "{") .. "}"
-    else
-      if pretty then
-        return tostring(t)
-      else
-        error("unsupported type: " .. t)
-      end
-    end
-  end
-  local result = s(value, 1)
-  local limit = type(pretty) == "number" and pretty or 10
-  if pretty then
-    local truncate = 0
-    while limit > 0 and truncate do
-      truncate = string.find(result, "\n", truncate + 1, true)
-      limit = limit - 1
-    end
-    if truncate then
-      return result:sub(1, truncate) .. "..."
-    end
-  end
-  return result
+function text.serialize(value, pretty) -- deprecated, use serialization module
+  return require("serialization").serialize(value, pretty)
 end
 
-function text.unserialize(data)
-  checkArg(1, data, "string")
-  local result, reason = load("return " .. data, "=data", _, {math={huge=math.huge}})
-  if not result then
-    return nil, reason
-  end
-  local ok, output = pcall(result)
-  if not ok then
-    return nil, output
-  end
-  return output
+function text.unserialize(data) -- deprecated, use serialization module
+  return require("serialization").unserialize(data)
 end
 
 -------------------------------------------------------------------------------

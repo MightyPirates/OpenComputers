@@ -2,11 +2,12 @@ local component = require("component")
 local keyboard = require("keyboard")
 local shell = require("shell")
 local term = require("term")
+local text = require("text")
 local unicode = require("unicode")
 
 local args = shell.parse(...)
 if #args == 0 then
-  io.write("Usage: less <filename1>")
+  io.write("Usage: more <filename1>")
   return
 end
 
@@ -29,13 +30,9 @@ while true do
         return 
       end
     end
-    if unicode.len(line) > w then
-      io.write(unicode.sub(line, 1, w), "\n")
-      line = unicode.sub(line, w + 1)
-    else
-      io.write(line, "\n")
-      line = nil
-    end
+    local wrapped
+    wrapped, line = text.wrap(text.detab(line), w, w)
+    io.write(wrapped .. "\n")
     i = i + 1
   end
   term.setCursor(1, h)

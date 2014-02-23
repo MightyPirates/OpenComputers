@@ -25,7 +25,7 @@ while true do
   end
   while term.isAvailable() do
     local foreground = component.gpu.setForeground(0xFF0000)
-    term.write("# ")
+    term.write(os.getenv("PS1") or "# ")
     component.gpu.setForeground(foreground)
     local command = term.read(history)
     if not command then
