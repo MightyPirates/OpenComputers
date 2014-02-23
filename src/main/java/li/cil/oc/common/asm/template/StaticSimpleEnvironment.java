@@ -85,7 +85,7 @@ public final class StaticSimpleEnvironment {
         if (node != null) {
             final NBTTagCompound nodeNbt = new NBTTagCompound();
             node.save(nodeNbt);
-            nbt.setCompoundTag("oc:node", nodeNbt);
+            nbt.setTag("oc:node", nodeNbt);
         }
     }
 }

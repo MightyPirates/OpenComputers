@@ -48,7 +48,7 @@ public abstract class ManagedEnvironment implements li.cil.oc.api.network.Manage
         if (node != null) {
             final NBTTagCompound nodeTag = new NBTTagCompound();
             node.save(nodeTag);
-            nbt.setCompoundTag("node", nodeTag);
+            nbt.setTag("node", nodeTag);
         }
     }
 }

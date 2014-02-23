@@ -150,7 +150,7 @@ public abstract class TileEntityEnvironment extends TileEntity implements Enviro
         if (node != null && node.host() == this) {
             final NBTTagCompound nodeNbt = new NBTTagCompound();
             node.save(nodeNbt);
-            nbt.setCompoundTag("oc:node", nodeNbt);
+            nbt.setTag("oc:node", nodeNbt);
         }
     }
 }

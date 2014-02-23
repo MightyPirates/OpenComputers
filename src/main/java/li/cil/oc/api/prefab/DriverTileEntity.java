@@ -14,7 +14,7 @@ public abstract class DriverTileEntity implements li.cil.oc.api.driver.Block {
             // the class in question is not present.
             return false;
         }
-        final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+        final TileEntity tileEntity = world.getTileEntity(x, y, z);
         return tileEntity != null && filter.isAssignableFrom(tileEntity.getClass());
     }
 }

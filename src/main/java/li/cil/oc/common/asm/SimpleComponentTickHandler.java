@@ -1,14 +1,13 @@
 package li.cil.oc.common.asm;
 
-import cpw.mods.fml.common.ITickHandler;
-import cpw.mods.fml.common.TickType;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 
 // This class is used for adding simple components to the component network.
 // It is triggered from a validate call, and executed in the next update tick.
-public final class SimpleComponentTickHandler implements ITickHandler {
+public final class SimpleComponentTickHandler {
     public static final ArrayList<Runnable> pendingOperations = new java.util.ArrayList<Runnable>();
 
     public static final SimpleComponentTickHandler Instance = new SimpleComponentTickHandler();
@@ -16,22 +15,8 @@ public final class SimpleComponentTickHandler implements ITickHandler {
     private SimpleComponentTickHandler() {
     }
 
-    @Override
-    public String getLabel() {
-        return "OpenComputers SimpleComponent Ticker";
-    }
-
-    @Override
-    public EnumSet<TickType> ticks() {
-        return EnumSet.of(TickType.SERVER);
-    }
-
-    @Override
-    public void tickStart(EnumSet<TickType> type, Object... tickData) {
-    }
-
-    @Override
-    public void tickEnd(EnumSet<TickType> type, Object... tickData) {
+    @SubscribeEvent
+    public void onTick(TickEvent.ServerTickEvent e) {
         synchronized (pendingOperations) {
             for (Runnable runnable : pendingOperations) {
                 runnable.run();

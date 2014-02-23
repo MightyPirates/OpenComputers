@@ -5,7 +5,7 @@ import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import scala.Array;
 
 /**
@@ -145,7 +145,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
             if (node != null && node.host() == this) {
                 final NBTTagCompound nodeNbt = new NBTTagCompound();
                 node.save(nodeNbt);
-                nbt.setCompoundTag("oc:node" + index, nodeNbt);
+                nbt.setTag("oc:node" + index, nodeNbt);
             }
             ++index;
         }
