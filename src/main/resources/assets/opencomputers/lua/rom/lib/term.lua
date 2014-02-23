@@ -102,21 +102,22 @@ function term.read(history)
 
     scrollY = nby - 1
 
+    nbx = math.max(1, math.min(unicode.len(history[nby]) + 1, nbx))
     local ncx = nbx + offset - scrollX
     if ncx > w then
       local sx = nbx - (w - offset)
       local dx = math.abs(scrollX - sx)
       scrollX = sx
       component.gpu.copy(1 + offset + dx, cy, w - offset - dx, 1, -dx, 0)
-      local str = unicode.sub(line(), nbx - (dx - 1), nbx)
+      local str = unicode.sub(history[nby], nbx - (dx - 1), nbx)
       str = text.padRight(str, dx)
-      component.gpu.set(1 + (w - dx), cy, str)
+      component.gpu.set(1 + math.max(offset, w - dx), cy, unicode.sub(str, 1 + math.max(0, dx - (w - offset))))
     elseif ncx < 1 + offset then
       local sx = nbx - 1
       local dx = math.abs(scrollX - sx)
       scrollX = sx
       component.gpu.copy(1 + offset, cy, w - offset - dx, 1, dx, 0)
-      local str = unicode.sub(line(), nbx, nbx + dx)
+      local str = unicode.sub(history[nby], nbx, nbx + dx)
       --str = text.padRight(str, dx)
       component.gpu.set(1 + offset, cy, str)
     end
@@ -172,7 +173,7 @@ function term.read(history)
   local function up()
     local cbx, cby = getCursor()
     if cby > 1 then
-      setCursor(cbx, cby - 1)
+      setCursor(1, cby - 1)
       redraw()
       ende()
     end
@@ -181,7 +182,7 @@ function term.read(history)
   local function down()
     local cbx, cby = getCursor()
     if cby < #history then
-      setCursor(cbx, cby + 1)
+      setCursor(1, cby + 1)
       redraw()
       ende()
     end
@@ -337,8 +338,14 @@ function term.write(value, wrap)
   end
   local blink = term.getCursorBlink()
   term.setCursorBlink(false)
-  local function checkCursor()
-    if cursorX > w then
+  local line, nl = value
+  repeat
+    if wrap then
+      line, value, nl = text.wrap(value, w - (cursorX - 1), w)
+    end
+    component.gpu.set(cursorX, cursorY, line)
+    cursorX = cursorX + unicode.len(line)
+    if nl or cursorX > w then
       cursorX = 1
       cursorY = cursorY + 1
     end
@@ -347,28 +354,7 @@ function term.write(value, wrap)
       component.gpu.fill(1, h, w, 1, " ")
       cursorY = h
     end
-  end
-  for line, nl in value:gmatch("([^\r\n]*)([\r\n]?)") do
-    while wrap and unicode.len(line) > w - (cursorX - 1) do
-      local partial = unicode.sub(line, 1, w - (cursorX - 1))
-      local wordWrapped = partial:match("(.*[^a-zA-Z0-9._])")
-      if wordWrapped or unicode.len(line) > w then
-        partial = wordWrapped or partial
-        line = unicode.sub(line, unicode.len(partial) + 1)
-        component.gpu.set(cursorX, cursorY, partial)
-      end
-      cursorX = math.huge
-      checkCursor()
-    end
-    if unicode.len(line) > 0 then
-      component.gpu.set(cursorX, cursorY, line)
-      cursorX = cursorX + unicode.len(line)
-    end
-    if unicode.len(nl) == 1 then
-      cursorX = math.huge
-      checkCursor()
-    end
-  end
+  until not wrap or not value
   term.setCursorBlink(blink)
 end
 

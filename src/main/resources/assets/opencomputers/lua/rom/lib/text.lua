@@ -5,7 +5,7 @@ local text = {}
 function text.detab(value, tabWidth)
   checkArg(1, value, "string")
   checkArg(2, tabWidth, "number", "nil")
-  tabWidth = tabWidth or 4
+  tabWidth = tabWidth or 8
   local function rep(match)
     local spaces = tabWidth - match:len() % tabWidth
     return match .. string.rep(" ", spaces)
@@ -38,6 +38,24 @@ end
 function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
   return from > #value and "" or string.match(value, ".*%S", from)
+end
+
+function text.wrap(value, width, maxWidth)
+  checkArg(1, value, "string")
+  checkArg(2, width, "number")
+  local line, nl = value:match("([^\r\n]*)([\r\n]?)") -- read until newline
+  if unicode.len(line) > width then -- do we even need to wrap?
+    local partial = unicode.sub(line, 1, width)
+    local wrapped = partial:match("(.*[^a-zA-Z0-9._])")
+    if wrapped or unicode.len(line) > maxWidth then
+      partial = wrapped or partial
+      return partial, unicode.sub(value, unicode.len(partial) + 1), true
+    else
+      return "", value, true -- write in new line.
+    end
+  end
+  local start = unicode.len(line) + unicode.len(nl) + 1
+  return line, start <= unicode.len(value) and unicode.sub(value, start) or nil, unicode.len(nl) > 0
 end
 
 -------------------------------------------------------------------------------
