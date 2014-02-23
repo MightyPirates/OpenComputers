@@ -236,16 +236,13 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
       val success = Option(pick(player, Settings.get.useAndPlaceRange)) match {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
-          player.placeBlock(stack, bx, by, bz, hit.sideHit, hx, hy, hz)
+          player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
         case None if Settings.get.canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
-          player.placeBlock(stack, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+          player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
-      if (stack.stackSize <= 0) {
-        robot.setInventorySlotContents(player.robotInventory.selectedSlot, null)
-      }
       if (success) {
         context.pause(Settings.get.placeDelay)
         robot.animateSwing(Settings.get.placeDelay)

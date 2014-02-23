@@ -1,8 +1,9 @@
 package li.cil.oc.server.component.robot
 
+import cpw.mods.fml.common.Loader
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{UniversalElectricity, TinkersConstruct, PortalGun}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
@@ -73,78 +74,77 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
   }
 
+  private def adjacentItems = {
+    val bounds = AxisAlignedBB.getAABBPool.getAABB(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
+    world.getEntitiesWithinAABB(classOf[EntityItem], bounds).map(_.asInstanceOf[EntityItem])
+  }
+
+  private def collectDroppedItems(itemsBefore: Iterable[EntityItem]) {
+    val itemsAfter = adjacentItems
+    val itemsDropped = itemsAfter -- itemsBefore
+    for (drop <- itemsDropped) {
+      drop.delayBeforeCanPickup = 0
+      drop.onCollideWithPlayer(this)
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def attackTargetEntityWithCurrentItem(entity: Entity) {
-    entity match {
+    callUsingItemInSlot(0, stack => entity match {
       case player: EntityPlayer if !canAttackPlayer(player) => // Avoid player damage.
       case _ =>
-        val stack = getCurrentEquippedItem
-        val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
         super.attackTargetEntityWithCurrentItem(entity)
         if (stack != null && entity.isDead) {
           robot.addXp(Settings.get.robotActionXp)
         }
-        if (stack != null && stack.stackSize > 0) {
-          tryRepair(stack, oldDamage)
-        }
-    }
+    })
   }
 
   override def interactWith(entity: Entity) = {
-    val stack = getCurrentEquippedItem
-    val oldDamage = if (stack != null) getCurrentEquippedItem.getItemDamage else 0
-    val result = super.interactWith(entity)
-    if (stack != null && stack.stackSize > 0) {
-      tryRepair(stack, oldDamage)
-    }
-    result
+    callUsingItemInSlot(0, stack => super.interactWith(entity))
   }
 
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
-    val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
-    if (event.isCanceled || event.useBlock == Event.Result.DENY) {
-      return ActivationType.None
-    }
-
-    val stack = inventory.getCurrentItem
-    val item = if (stack != null) stack.getItem else null
-    if (!PortalGun.isPortalGun(stack)) {
-      if (item != null && item.onItemUseFirst(stack, this, world, x, y, z, side, hitX, hitY, hitZ)) {
-        if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
-        if (stack.stackSize <= 0) inventory.setInventorySlotContents(0, null)
-        return ActivationType.ItemUsed
+    callUsingItemInSlot(0, stack => {
+      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
+      if (event.isCanceled || event.useBlock == Event.Result.DENY) {
+        return ActivationType.None
       }
-    }
 
-    val blockId = world.getBlockId(x, y, z)
-    val block = Block.blocksList(blockId)
-    val canActivate = block != null && Settings.get.allowActivateBlocks
-    val shouldActivate = canActivate && (!isSneaking || (item == null || item.shouldPassSneakingClickToBlock(world, x, y, z)))
-    val result =
-      if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
-        ActivationType.BlockActivated
-      else if (tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
-        ActivationType.ItemPlaced
-      else if (tryUseItem(stack, duration))
-        ActivationType.ItemUsed
-      else
-        ActivationType.None
+      val item = if (stack != null) stack.getItem else null
+      if (!PortalGun.isPortalGun(stack)) {
+        if (item != null && item.onItemUseFirst(stack, this, world, x, y, z, side, hitX, hitY, hitZ)) {
+          return ActivationType.ItemUsed
+        }
+      }
 
-    if (stack != null) {
-      if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
-      if (stack.stackSize <= 0) inventory.setInventorySlotContents(0, null)
-    }
+      val blockId = world.getBlockId(x, y, z)
+      val block = Block.blocksList(blockId)
+      val canActivate = block != null && Settings.get.allowActivateBlocks
+      val shouldActivate = canActivate && (!isSneaking || (item == null || item.shouldPassSneakingClickToBlock(world, x, y, z)))
+      val result =
+        if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
+          ActivationType.BlockActivated
+        else if (tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
+          ActivationType.ItemPlaced
+        else if (tryUseItem(stack, duration))
+          ActivationType.ItemUsed
+        else
+          ActivationType.None
 
-    result
+      result
+    })
   }
 
   def useEquippedItem(duration: Double) = {
-    val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1)
-    if (!event.isCanceled && event.useItem != Event.Result.DENY) {
-      tryUseItem(getCurrentEquippedItem, duration)
-    }
-    else false
+    callUsingItemInSlot(0, stack => {
+      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1)
+      if (!event.isCanceled && event.useItem != Event.Result.DENY) {
+        tryUseItem(getCurrentEquippedItem, duration)
+      }
+      else false
+    })
   }
 
   private def tryUseItem(stack: ItemStack, duration: Double) = {
@@ -176,148 +176,160 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
-      if (newStack == stack && stack.stackSize > 0) {
-        tryRepair(stack, oldDamage)
-      }
-      stackChanged && {
-        if (newStack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, newStack)
-        if (newStack.stackSize > 0) inventory.setInventorySlotContents(0, newStack)
-        else inventory.setInventorySlotContents(0, null)
-        true
-      }
+      newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
     }
   }
 
-  def placeBlock(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
-    val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
-    if (event.isCanceled) {
-      return false
-    }
+  def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
+    callUsingItemInSlot(slot, stack => {
+      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
+      if (event.isCanceled || event.useBlock == Event.Result.DENY) {
+        return false
+      }
 
-    event.useBlock == Event.Result.DENY || {
-      val result = tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
-      if (stack.stackSize <= 0) ForgeEventFactory.onPlayerDestroyItem(this, stack)
-      result
-    }
+      tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ)
+    }, repair = false)
   }
 
   def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
-    val event = ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side)
-    if (event.isCanceled) {
-      return 0
-    }
-
-    // TODO Is this already handled via the event?
-    if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
-      return 0
-    }
-
-    val blockId = world.getBlockId(x, y, z)
-    val block = Block.blocksList(blockId)
-    val metadata = world.getBlockMetadata(x, y, z)
-    val mayClickBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
-    val canClickBlock = mayClickBlock &&
-      !block.isAirBlock(world, x, y, z) &&
-      FluidRegistry.lookupFluidForBlock(block) == null &&
-      !block.isInstanceOf[BlockFluid]
-    if (!canClickBlock) {
-      return 0
-    }
-
-    block.onBlockClicked(world, x, y, z, this)
-    world.extinguishFire(this, x, y, z, side)
-
-    val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
-    val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
-    if (!canDestroyBlock) {
-      return 0
-    }
-
-    if (world.getWorldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
-      return 0
-    }
-
-    val cobwebOverride = block == Block.web && Settings.get.screwCobwebs
-
-    if (!ForgeHooks.canHarvestBlock(block, this, metadata) && !cobwebOverride) {
-      return 0
-    }
-
-    val stack = getCurrentEquippedItem
-    if (TinkersConstruct.isInfiTool(stack)) {
-      posY -= 1.62
-      prevPosY = posY
-    }
-    if (stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)) {
-      return 0
-    }
-    if (TinkersConstruct.isInfiTool(stack)) {
-      posY += 1.62
-      prevPosY = posY
-    }
-
-    world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
-
-    val hardness = block.getBlockHardness(world, x, y, z)
-    val strength = getCurrentPlayerStrVsBlock(block, false, metadata)
-    val breakTime =
-      if (cobwebOverride) Settings.get.swingDelay
-      else hardness * 1.5 / strength
-
-    if (stack != null) {
-      val oldDamage = stack.getItemDamage
-      stack.onBlockDestroyed(world, blockId, x, y, z, this)
-      if (stack.stackSize == 0) {
-        destroyCurrentEquippedItem()
+    callUsingItemInSlot(0, stack => {
+      val event = ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side)
+      if (event.isCanceled) {
+        return 0
       }
-      else {
-        tryRepair(stack, oldDamage)
-      }
-    }
 
-    val itemsBefore = entitiesInBlock[EntityItem](x, y, z)
-    block.onBlockHarvested(world, x, y, z, metadata, this)
-    if (block.removeBlockByPlayer(world, this, x, y, z)) {
-      block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
-      // Note: the block has been destroyed by `removeBlockByPlayer`. This
-      // check only serves to test whether the block can drop anything at all.
-      if (block.canHarvestBlock(this, metadata)) {
-        block.harvestBlock(world, this, x, y, z, metadata)
-        val itemsAfter = entitiesInBlock[EntityItem](x, y, z)
-        val itemsDropped = itemsAfter -- itemsBefore
-        for (drop <- itemsDropped) {
-          drop.delayBeforeCanPickup = 0
-          drop.onCollideWithPlayer(this)
-        }
-        if (!EnchantmentHelper.getSilkTouchModifier(this)) {
-          val fortune = EnchantmentHelper.getFortuneModifier(this)
-          val xp = block.getExpDrop(world, metadata, fortune)
-          robot.addXp(xp * Settings.get.robotOreXpRate)
-        }
+      // TODO Is this already handled via the event?
+      if (MinecraftServer.getServer.isBlockProtected(world, x, y, z, this)) {
+        return 0
       }
+
+      val blockId = world.getBlockId(x, y, z)
+      val block = Block.blocksList(blockId)
+      val metadata = world.getBlockMetadata(x, y, z)
+      val mayClickBlock = event.useBlock != Event.Result.DENY && blockId > 0 && block != null
+      val canClickBlock = mayClickBlock &&
+        !block.isAirBlock(world, x, y, z) &&
+        FluidRegistry.lookupFluidForBlock(block) == null &&
+        !block.isInstanceOf[BlockFluid]
+      if (!canClickBlock) {
+        return 0
+      }
+
+      block.onBlockClicked(world, x, y, z, this)
+      world.extinguishFire(this, x, y, z, side)
+
+      val isBlockUnbreakable = block.getBlockHardness(world, x, y, z) < 0
+      val canDestroyBlock = !isBlockUnbreakable && block.canEntityDestroy(world, x, y, z, this)
+      if (!canDestroyBlock) {
+        return 0
+      }
+
+      if (world.getWorldInfo.getGameType.isAdventure && !isCurrentToolAdventureModeExempt(x, y, z)) {
+        return 0
+      }
+
+      val cobwebOverride = block == Block.web && Settings.get.screwCobwebs
+
+      if (!ForgeHooks.canHarvestBlock(block, this, metadata) && !cobwebOverride) {
+        return 0
+      }
+
+      val hardness = block.getBlockHardness(world, x, y, z)
+      val strength = getCurrentPlayerStrVsBlock(block, false, metadata)
+      val breakTime =
+        if (cobwebOverride) Settings.get.swingDelay
+        else hardness * 1.5 / strength
+      val adjustedBreakTime = math.max(0.05, breakTime * Settings.get.harvestRatio * math.max(1 - robot.level * Settings.get.harvestSpeedBoostPerLevel, 0))
+
+      // Special handling for Tinkers Construct - tools like the hammers do
+      // their break logic in onBlockStartBreak but return true to cancel
+      // further processing. We also need to adjust our offset for their ray-
+      // tracing implementation.
+      if (TinkersConstruct.isInfiTool(stack)) {
+        posY -= 1.62
+        prevPosY = posY
+      }
+      val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
+      if (TinkersConstruct.isInfiTool(stack)) {
+        posY += 1.62
+        prevPosY = posY
+        return adjustedBreakTime
+      }
+      if (cancel) {
+        return 0
+      }
+
+      world.playAuxSFXAtEntity(this, 2001, x, y, z, blockId + (metadata << 12))
+
       if (stack != null) {
-        robot.addXp(Settings.get.robotActionXp)
+        stack.onBlockDestroyed(world, blockId, x, y, z, this)
       }
-      return math.max(breakTime * Settings.get.harvestRatio * math.max(1 - robot.level * Settings.get.harvestSpeedBoostPerLevel, 0), 0.05)
-    }
-    0
+
+      block.onBlockHarvested(world, x, y, z, metadata, this)
+      if (block.removeBlockByPlayer(world, this, x, y, z)) {
+        block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
+        // Note: the block has been destroyed by `removeBlockByPlayer`. This
+        // check only serves to test whether the block can drop anything at all.
+        if (block.canHarvestBlock(this, metadata)) {
+          block.harvestBlock(world, this, x, y, z, metadata)
+          if (!EnchantmentHelper.getSilkTouchModifier(this)) {
+            val fortune = EnchantmentHelper.getFortuneModifier(this)
+            val xp = block.getExpDrop(world, metadata, fortune)
+            robot.addXp(xp * Settings.get.robotOreXpRate)
+          }
+        }
+        if (stack != null) {
+          robot.addXp(Settings.get.robotActionXp)
+        }
+        return adjustedBreakTime
+      }
+      0
+    })
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
     robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else robot.facing)
 
-  private def tryRepair(stack: ItemStack, oldDamage: Int) {
-    val needsRepairing = stack.isItemStackDamageable && stack.getItemDamage > oldDamage
-    val damageRate = Settings.get.itemDamageRate * math.max(1 - robot.level * Settings.get.toolEfficiencyPerLevel, 0)
-    val shouldRepair = needsRepairing && getRNG.nextDouble() >= damageRate
-    if (shouldRepair) {
-      // If an item takes a lot of damage at once we don't necessarily want to
-      // make *all* of that damage go away. Instead we scale it according to
-      // our damage probability. This makes sure we don't discard massive
-      // damage spikes (e.g. on axes when using the TreeCapitator mod or such).
-      val addedDamage = ((stack.getItemDamage - oldDamage) * damageRate).toInt
-      stack.setItemDamage(oldDamage + addedDamage)
+  private def callUsingItemInSlot[T](slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
+    val itemsBefore = adjacentItems
+    val stack = inventory.getStackInSlot(slot)
+    val oldStack = if (stack != null) stack.copy() else null
+    try {
+      f(stack)
+    }
+    finally {
+      if (stack != null) {
+        if (stack.stackSize <= 0) {
+          inventory.setInventorySlotContents(slot, null)
+        }
+        if (repair) {
+          if (stack.stackSize > 0) tryRepair(stack, oldStack)
+          else ForgeEventFactory.onPlayerDestroyItem(this, stack)
+        }
+      }
+      collectDroppedItems(itemsBefore)
+    }
+  }
+
+  private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
+    def repair(high: Long, low: Long) = {
+      val needsRepairing = low < high
+      val damageRate = Settings.get.itemDamageRate * math.max(1 - robot.level * Settings.get.toolEfficiencyPerLevel, 0)
+      val shouldRepair = needsRepairing && getRNG.nextDouble() >= damageRate
+      if (shouldRepair) {
+        // If an item takes a lot of damage at once we don't necessarily want to
+        // make *all* of that damage go away. Instead we scale it according to
+        // our damage probability. This makes sure we don't discard massive
+        // damage spikes (e.g. on axes when using the TreeCapitator mod or such).
+        math.ceil((high - low) * (1 - damageRate)).toInt
+      }
+      else 0
+    }
+    if (Loader.isModLoaded("UniversalElectricity") && UniversalElectricity.isEnergyItem(stack)) {
+      UniversalElectricity.chargeItem(stack, repair(UniversalElectricity.getEnergyInItem(oldStack), UniversalElectricity.getEnergyInItem(stack)))
+    }
+    else if (stack.isItemStackDamageable) {
+      stack.setItemDamage(stack.getItemDamage - repair(stack.getItemDamage, oldStack.getItemDamage))
     }
   }
 
