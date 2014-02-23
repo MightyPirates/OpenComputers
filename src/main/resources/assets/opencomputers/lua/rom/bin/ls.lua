@@ -7,6 +7,7 @@ if #dirs == 0 then
   table.insert(dirs, ".")
 end
 
+io.output():setvbuf("line")
 for i = 1, #dirs do
   local path = shell.resolve(dirs[i])
   if #dirs > 1 then
@@ -21,6 +22,7 @@ for i = 1, #dirs do
   else
     local function setColor(c)
       if component.gpu.getForeground() ~= c then
+        io.stdout:flush()
         component.gpu.setForeground(c)
       end
     end
@@ -68,3 +70,4 @@ for i = 1, #dirs do
     end
   end
 end
+io.output():setvbuf("no")
