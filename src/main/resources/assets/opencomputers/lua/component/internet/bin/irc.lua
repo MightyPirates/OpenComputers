@@ -41,12 +41,8 @@ end
 
 -- utility method for reply tracking tables.
 function autocreate(table, key)
-  local value = rawget(table, key)
-  if not value then
-    value = {}
-    rawset(table, key, value)
-  end
-  return value
+  table[key] = {}
+  return table[key]
 end
 
 -- extract nickname from identity.
@@ -172,22 +168,22 @@ local function handleCommand(prefix, command, args, message)
     print(message)
   elseif command == commands.RPL_WHOISUSER then
     local nick = args[2]:lower()
-    whois[nick].nick = nick
+    whois[nick].nick = args[2]
     whois[nick].user = args[3]
     whois[nick].host = args[4]
     whois[nick].realName = message
   elseif command == commands.RPL_WHOISSERVER then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].server = args[3]
     whois[nick].serverInfo = message
   elseif command == commands.RPL_WHOISOPERATOR then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].isOperator = true
   elseif command == commands.RPL_WHOISIDLE then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].idle = tonumber(args[3])
   elseif command == commands.RPL_ENDOFWHOIS then
-    local nick = args[2]
+    local nick = args[2]:lower()
     local info = whois[nick]
     print("Nick: " .. info.nick)
     print("User name: " .. info.user)
@@ -198,7 +194,7 @@ local function handleCommand(prefix, command, args, message)
     print("Idle for: " .. info.idle)
     whois[nick] = nil
   elseif command == commands.RPL_WHOISCHANNELS then
-    local nick = args[1]
+    local nick = args[2]:lower()
     whois[nick].channels = message
   elseif command == commands.RPL_CHANNELMODEIS then
     print("Channel mode for " .. args[1] .. ": " .. args[2] .. "(" .. args[3] .. ")")
@@ -368,7 +364,9 @@ if sock then
   sock:write("QUIT\r\n")
   sock:close()
 end
-event.cancel(timer)
+if timer then
+  event.cancel(timer)
+end
 
 if not result then
   error(reason, 0)
