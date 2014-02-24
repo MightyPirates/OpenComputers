@@ -9,6 +9,6 @@ end
 for i = 1, #args do
   local path = shell.resolve(args[i])
   if not os.remove(path) then
-    io.stderr:write(path, ": no such file, or permission denied\n")
+    io.stderr:write(path .. ": no such file, or permission denied\n")
   end
 end

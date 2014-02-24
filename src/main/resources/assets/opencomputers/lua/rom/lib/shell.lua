@@ -1,7 +1,8 @@
 local event = require("event")
 local fs = require("filesystem")
-local unicode = require("unicode")
+local process = require("process")
 local text = require("text")
+local unicode = require("unicode")
 
 local shell = {}
 local aliases = {}
@@ -130,39 +131,11 @@ function shell.resolve(path, ext)
 end
 
 function shell.execute(command, env, ...)
-  checkArg(1, command, "string")
-  local parts, reason = text.tokenize(command)
-  if not parts then
+  local sh, reason = loadfile(shell.resolve(os.getenv("SHELL"), "lua"), "t", env)
+  if not sh then
     return false, reason
   end
-  if #parts == 0 then
-    return true
-  end
-  local program, args = shell.resolveAlias(parts[1], table.pack(select(2, table.unpack(parts))))
-  table.insert(args, 1, true)
-  for _, arg in ipairs(table.pack(...)) do
-    table.insert(args, arg)
-  end
-  args.n = #args
-  local thread, reason = shell.load(program, env, nil, command)
-  if not thread then
-    return false, reason
-  end
-  local result = nil
-  -- Emulate CC behavior by making yields a filtered event.pull()
-  while args[1] and coroutine.status(thread) ~= "dead" do
-    result = table.pack(coroutine.resume(thread, table.unpack(args, 2, args.n)))
-    if coroutine.status(thread) ~= "dead" then
-      if type(result[2]) == "string" then
-        args = table.pack(pcall(event.pull, table.unpack(result, 2, result.n)))
-      else
-        args = {true, n=1}
-      end
-    end
-  end
-  if not args[1] then
-    return false, args[2]
-  end
+  local result = table.pack(pcall(sh, command, ...))
   if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
     if result[2].code then
       return true
@@ -173,21 +146,15 @@ function shell.execute(command, env, ...)
   return table.unpack(result, 1, result.n)
 end
 
-function shell.load(path, env, init, name)
-  local path, reason = shell.resolve(path, "lua")
-  if not path then
-    return nil, reason
-  end
-  return require("process").load(path, env, init, name)
-end
-
 function shell.parse(...)
   local params = table.pack(...)
   local args = {}
   local options = {}
   for i = 1, params.n do
     local param = params[i]
-    if unicode.sub(param, 1, 1) == "-" then
+    if type(param) == "string" and unicode.sub(param, 1, 2) == "--" then
+      options[unicode.sub(param, 3)] = true
+    elseif type(param) == "string" and unicode.sub(param, 1, 1) == "-" then
       for j = 2, unicode.len(param) do
         options[unicode.sub(param, j, j)] = true
       end

@@ -253,7 +253,7 @@ local function execute(command, env, ...)
   for i = 1, #commands do
     local program, args, input, output, mode = table.unpack(commands[i])
     local reason
-    threads[i], reason = shell.load(program, env, function()
+    threads[i], reason = process.load(shell.resolve(program, "lua"), env, function()
       if input then
         local file, reason = io.open(shell.resolve(input))
         if not file then

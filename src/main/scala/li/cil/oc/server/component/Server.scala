@@ -2,6 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Items
 import li.cil.oc.api.driver
+import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Message, Node}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
@@ -60,6 +61,14 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
     }
     case _ => 0
   }))
+
+  def hasCPU = inventory.items.exists {
+    case Some(stack) => Registry.itemDriverFor(stack) match {
+      case Some(driver) => driver.slot(stack) == Slot.Processor
+      case _ => false
+    }
+    case _ => false
+  }
 
   override def world = rack.world
 

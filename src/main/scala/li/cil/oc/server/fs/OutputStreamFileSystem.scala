@@ -1,6 +1,6 @@
 package li.cil.oc.server.fs
 
-import java.io.{FileNotFoundException, IOException, OutputStream}
+import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
@@ -8,7 +8,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
 trait OutputStreamFileSystem extends InputStreamFileSystem {
-  private val handles = mutable.Map.empty[Int, Handle]
+  private val handles = mutable.Map.empty[Int, OutputHandle]
 
   // ----------------------------------------------------------------------- //
 
@@ -20,9 +20,9 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     case Mode.Read => super.open(path, mode)
     case _ => if (!isDirectory(path)) {
       val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
-      openOutputStream(path, mode) match {
-        case Some(stream) =>
-          handles += handle -> new Handle(this, handle, path, stream)
+      openOutputHandle(handle, path, mode) match {
+        case Some(fileHandle) =>
+          handles += handle -> fileHandle
           handle
         case _ => throw new FileNotFoundException()
       }
@@ -47,10 +47,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     (0 until handlesNbt.tagCount).map(handlesNbt.getCompoundTagAt).foreach(handleNbt => {
       val handle = handleNbt.getInteger("handle")
       val path = handleNbt.getString("path")
-      openOutputStream(path, Mode.Append) match {
-        case Some(stream) =>
-          val fileHandle = new Handle(this, handle, path, stream)
-          handles += handle -> fileHandle
+      openOutputHandle(handle, path, Mode.Append) match {
+        case Some(fileHandle) => handles += handle -> fileHandle
         case _ => // The source file seems to have changed since last time.
       }
     })
@@ -72,28 +70,23 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def openOutputStream(path: String, mode: Mode): Option[OutputStream]
+  protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle]
 
   // ----------------------------------------------------------------------- //
 
-  private class Handle(val owner: OutputStreamFileSystem, val handle: Int, val path: String, val stream: OutputStream) extends api.fs.Handle {
-    var isClosed = false
-    val position = 0L
-    val length = 0L
+  protected abstract class OutputHandle(val owner: OutputStreamFileSystem, val handle: Int, val path: String) extends api.fs.Handle {
+    protected var _isClosed = false
+
+    def isClosed = _isClosed
 
     override def close() = if (!isClosed) {
-      isClosed = true
+      _isClosed = true
       owner.handles -= handle
-      stream.close()
     }
 
-    override def read(into: Array[Byte]) = throw new IOException("bad file descriptor")
+    override def read(into: Array[Byte]): Int = throw new IOException("bad file descriptor")
 
-    override def seek(to: Long) = throw new IOException("bad file descriptor")
-
-    override def write(value: Array[Byte]) {
-      stream.write(value)
-    }
+    override def seek(to: Long): Long = throw new IOException("bad file descriptor")
   }
 
 }

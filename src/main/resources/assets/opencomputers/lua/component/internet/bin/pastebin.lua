@@ -16,7 +16,7 @@ local args, options = shell.parse(...)
 local function get(pasteId, filename)
   local f, reason = io.open(filename, "w")
   if not f then
-    io.stderr:write("Failed opening file for writing: ", reason)
+    io.stderr:write("Failed opening file for writing: " .. reason)
     return
   end
 
@@ -33,12 +33,12 @@ local function get(pasteId, filename)
     end
 
     f:close()
-    io.write("Saved data to ", filename, "\n")
+    io.write("Saved data to " .. filename .. "\n")
   else
     io.write("failed.\n")
     f:close()
     fs.remove(filename)
-    io.stderr:write("HTTP request failed: ", response, "\n")
+    io.stderr:write("HTTP request failed: " .. response .. "\n")
   end
 end
 
@@ -48,7 +48,7 @@ function encode(code)
     code = string.gsub(code, "([^%w ])", function (c)
       return string.format("%%%02X", string.byte(c))
     end)
-    code = string.gsub (code, " ", "+")
+    code = string.gsub(code, " ", "+")
   end
   return code 
 end
@@ -74,14 +74,14 @@ function put(path)
   if configFile then
     local result, reason = pcall(configFile)
     if not result then
-      io.stderr:write("Failed loading config: ", reason)
+      io.stderr:write("Failed loading config: " .. reason)
     end
   end
   config.key = config.key or "fd92bd40a84c127eeb6804b146793c97"
   local file, reason = io.open(path, "r")
 
   if not file then
-    io.stderr:write("Failed opening file for reading: ", reason)
+    io.stderr:write("Failed opening file for reading: " .. reason)
     return
   end
 
@@ -109,8 +109,8 @@ function put(path)
     else
       io.write("success.\n")
       local pasteId = string.match(info, "[^/]+$")
-      io.write("Uploaded as ", info, "\n")
-      io.write('Run "pastebin get ', pasteId, '" to download anywhere.')
+      io.write("Uploaded as " .. info .. "\n")
+      io.write('Run "pastebin get ' .. pasteId .. '" to download anywhere.')
     end
   else
     io.write("failed.\n")

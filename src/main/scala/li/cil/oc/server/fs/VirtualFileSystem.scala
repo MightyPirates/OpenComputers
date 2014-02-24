@@ -104,12 +104,15 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       case _ => None
     }
 
-  protected def openOutputStream(path: String, mode: Mode) = {
+  protected def openOutputHandle(id: Int, path: String, mode: Mode) = {
     val parts = segments(path)
     if (parts.isEmpty) None
     else {
       root.get(parts.dropRight(1)) match {
-        case Some(parent: VirtualDirectory) => parent.openOutputStream(parts.last, mode)
+        case Some(directory: VirtualDirectory) => directory.touch(parts.last) match {
+          case Some(file: VirtualFile) => file.openOutputHandle(this, id, path, mode)
+          case _ => None
+        }
         case _ => None
       }
     }
@@ -160,7 +163,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
   protected class VirtualFile extends VirtualObject {
     val data = mutable.ArrayBuffer.empty[Byte]
 
-    var stream: Option[VirtualFileOutputStream] = None
+    var handle: Option[VirtualOutputHandle] = None
 
     override def isDirectory = false
 
@@ -168,15 +171,15 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
     def openInputStream() = Some(new VirtualFileInputStream(this))
 
-    def openOutputStream(mode: Mode) =
-      if (stream.isDefined) None
+    def openOutputHandle(owner: OutputStreamFileSystem, id: Int, path: String, mode: Mode) =
+      if (handle.isDefined) None
       else {
         if (mode == Mode.Write) {
           data.clear()
           lastModified = System.currentTimeMillis()
         }
-        stream = Some(new VirtualFileOutputStream(this))
-        stream
+        handle = Some(new VirtualOutputHandle(this, owner, id, path))
+        handle
       }
 
     override def load(nbt: NBTTagCompound) {
@@ -190,7 +193,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       nbt.setByteArray("data", data.toArray)
     }
 
-    override def canDelete = stream.isEmpty
+    override def canDelete = handle.isEmpty
   }
 
   // ----------------------------------------------------------------------- //
@@ -224,15 +227,15 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
       }
     }
 
-    def openOutputStream(name: String, mode: Mode) =
+    def touch(name: String) =
       children.get(name) match {
-        case Some(obj: VirtualFile) => obj.openOutputStream(mode)
+        case Some(obj: VirtualFile) => Some(obj)
         case None =>
           val child = new VirtualFile
           children += name -> child
           lastModified = System.currentTimeMillis()
-          child.openOutputStream(mode)
-        case _ => None
+          Some(child)
+        case _ => None // Directory.
       }
 
     override def load(nbt: NBTTagCompound) {
@@ -323,24 +326,31 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected class VirtualFileOutputStream(val file: VirtualFile) extends io.OutputStream {
-    private var isClosed = false
+  protected class VirtualOutputHandle(val file: VirtualFile, owner: OutputStreamFileSystem, handle: Int, path: String) extends OutputHandle(owner, handle, path) {
+    override def length = file.size
+
+    var position: Long = file.data.length
 
     override def close() = if (!isClosed) {
-      isClosed = true
-      file.stream = None
+      super.close()
+      assert(file.handle.get == this)
+      file.handle = None
     }
 
-    override def write(b: Array[Byte], off: Int, len: Int) =
-      if (!isClosed) {
-        file.data ++= b.view(off, off + len)
-        file.lastModified = System.currentTimeMillis()
-      }
-      else throw new io.IOException("file is closed")
+    override def seek(to: Long) = {
+      if (to < 0) throw new io.IOException("invalid offset")
+      position = to
+      position
+    }
 
-    override def write(b: Int) =
+    override def write(b: Array[Byte]) =
       if (!isClosed) {
-        file.data += b.toByte
+        val pos = position.toInt
+        file.data.insertAll(file.data.length, Seq.fill[Byte]((pos + b.length) - file.data.length)(0))
+        for (i <- 0 until b.length) {
+          file.data(pos + i) = b(i)
+        }
+        position += b.length
         file.lastModified = System.currentTimeMillis()
       }
       else throw new io.IOException("file is closed")

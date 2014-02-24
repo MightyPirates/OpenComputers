@@ -106,6 +106,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       else if (componentCount > owner.maxComponents) {
         crash(Settings.namespace + (owner match {
           case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
+          case s: server.component.Server if !s.hasCPU => "gui.Error.NoCPU"
           case _ => "gui.Error.ComponentOverflow"
         }))
         false

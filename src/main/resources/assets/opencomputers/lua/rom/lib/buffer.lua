@@ -10,7 +10,8 @@ function buffer.new(mode, stream)
     bufferRead = "",
     bufferWrite = "",
     bufferSize = math.max(512, math.min(8 * 1024, computer.freeMemory() / 8)),
-    bufferMode = "full"
+    bufferMode = "full",
+    readTimeout = math.huge
   }
   mode = mode or "r"
   for i = 1, unicode.len(mode) do
@@ -58,7 +59,12 @@ function buffer:lines(...)
 end
 
 function buffer:read(...)
+  local timeout = computer.uptime() + self.readTimeout
+
   local function readChunk()
+    if computer.uptime() > timeout then
+      error("timeout")
+    end
     local result, reason = self.stream:read(self.bufferSize)
     if result then
       self.bufferRead = self.bufferRead .. result
@@ -184,7 +190,9 @@ function buffer:seek(whence, offset)
   checkArg(2, offset, "number")
   assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
-  if whence == "cur" then
+  if self.mode.w or self.mode.a then
+    self:flush()
+  elseif whence == "cur" then
     offset = offset - #self.bufferRead
   end
   local result, reason = self.stream:seek(whence, offset)
@@ -209,6 +217,14 @@ function buffer:setvbuf(mode, size)
   self.bufferSize = size
 
   return self.bufferMode, self.bufferSize
+end
+
+function buffer:getTimeout()
+  return self.readTimeout
+end
+
+function buffer:setTimeout(value)
+  self.readTimeout = tonumber(value)
 end
 
 function buffer:write(...)

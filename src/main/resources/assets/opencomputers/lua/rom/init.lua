@@ -1,17 +1,20 @@
 local component = require("component")
 local computer = require("computer")
+local event = require("event")
 
 for c, t in component.list() do
   computer.pushSignal("component_added", c, t)
 end
 os.sleep(0.5) -- Allow signal processing by libraries.
-
-require("term").clear()
-
 computer.pushSignal("init") -- so libs know components are initialized.
+
 while true do
-  local result, reason = os.execute(os.getenv("SHELL"))
+  require("term").clear()
+  io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
+  local result, reason = os.execute(os.getenv("SHELL") .. " -")
   if not result then
-    print(reason)
+    io.stderr:write((reason or "unknown error") .. "\n")
+    print("Press any key to continue.")
+    event.pull("key")
   end
 end

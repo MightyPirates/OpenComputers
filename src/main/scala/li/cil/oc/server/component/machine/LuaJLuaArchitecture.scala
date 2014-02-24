@@ -55,9 +55,11 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
           result
         case Machine.State.Yielded =>
           if (!doneWithInitRun) {
-            doneWithInitRun = true
             // We're doing the initialization run.
             val result = thread.resume(LuaValue.NONE)
+            // Mark as done *after* we ran, to avoid switching to synchronized
+            // calls when we actually need direct ones in the init phase.
+            doneWithInitRun = true
             // We expect to get nothing here, if we do we had an error.
             if (result.narg == 1) {
               // Fake zero sleep to avoid stopping if there are no signals.

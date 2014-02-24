@@ -18,7 +18,7 @@ for i = 1, #dirs do
   end
   local list, reason = fs.list(path)
   if not list then
-    io.write(reason, "\n")
+    io.write(reason .. "\n")
   else
     local function setColor(c)
       if component.gpu.getForeground() ~= c then
@@ -40,7 +40,7 @@ for i = 1, #dirs do
     setColor(0x99CCFF)
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
-        io.write(d, "\t")
+        io.write(d .. "\t")
         if options.l or io.output() ~= io.stdout then
           io.write("\n")
         end
@@ -55,7 +55,7 @@ for i = 1, #dirs do
         setColor(0xFFFFFF)
       end
       if options.a or f:sub(1, 1) ~= "." then
-        io.write(f, "\t")
+        io.write(f .. "\t")
         if options.l then
           setColor(0xFFFFFF)
           io.write(fs.size(fs.concat(path, f)), "\n")

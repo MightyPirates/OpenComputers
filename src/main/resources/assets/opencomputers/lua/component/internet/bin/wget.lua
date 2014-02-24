@@ -47,7 +47,7 @@ end
 
 local f, reason = io.open(filename, "wb")
 if not f then
-  io.stderr:write("failed opening file for writing: ", reason)
+  io.stderr:write("failed opening file for writing: " .. reason)
   return
 end
 
@@ -65,7 +65,7 @@ if result then
 
   f:close()
   if not options.q then
-    io.write("Saved data to ", filename, "\n")
+    io.write("Saved data to " .. filename .. "\n")
   end
 else
   if not options.q then
@@ -73,5 +73,5 @@ else
   end
   f:close()
   fs.remove(filename)
-  io.stderr:write("HTTP request failed: ", response, "\n")
+  io.stderr:write("HTTP request failed: " .. response .. "\n")
 end

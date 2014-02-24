@@ -62,7 +62,7 @@ trait Capacity extends OutputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override abstract protected def openOutputStream(path: String, mode: Mode): Option[io.OutputStream] = {
+  override abstract protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle] = {
     val delta =
       if (exists(path))
         if (mode == Mode.Write)
@@ -71,11 +71,14 @@ trait Capacity extends OutputStreamFileSystem {
           0 // Append, no immediate changes.
       else
         Settings.get.fileCost // File creation.
-    super.openOutputStream(path, mode) match {
+    if (capacity - used < delta && !ignoreCapacity) {
+      throw new io.IOException("not enough space")
+    }
+    super.openOutputHandle(id, path, mode) match {
       case None => None
       case Some(stream) =>
         used += delta
-        Some(new CountingOutputStream(this, stream))
+        Some(new CountingOutputHandle(this, stream))
     }
   }
 
@@ -88,24 +91,23 @@ trait Capacity extends OutputStreamFileSystem {
         list(path).foldLeft(0L)((acc, child) => acc + computeSize(path + child))
       else 0)
 
-  private class CountingOutputStream(val owner: Capacity, val inner: io.OutputStream) extends io.OutputStream {
-    override def write(b: Int) = {
-      if (owner.capacity - owner.used < 1 && !ignoreCapacity)
-        throw new io.IOException("not enough space")
-      inner.write(b)
-      owner.used = owner.used + 1
-    }
+  protected class CountingOutputHandle(override val owner: Capacity, val inner: OutputHandle) extends OutputHandle(inner.owner, inner.handle, inner.path) {
+    override def isClosed = inner.isClosed
 
-    override def write(b: Array[Byte], off: Int, len: Int) = {
-      if (owner.capacity - owner.used < len && !ignoreCapacity)
-        throw new io.IOException("not enough space")
-      inner.write(b, off, len)
-      owner.used = owner.used + len
-    }
+    override def length = inner.length
 
-    override def flush() = inner.flush()
+    override def position = inner.position
 
     override def close() = inner.close()
+
+    override def seek(to: Long) = inner.seek(to)
+
+    override def write(b: Array[Byte]) {
+      if (owner.capacity - owner.used < b.length && !ignoreCapacity)
+        throw new io.IOException("not enough space")
+      inner.write(b)
+      owner.used = owner.used + b.length
+    }
   }
 
 }

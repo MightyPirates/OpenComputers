@@ -11,5 +11,5 @@ if not result then
   io.stderr:write("no such alias")
 else
   shell.setAlias(args[1], nil)
-  io.write("alias removed: ", args[1], " -> ", result)
+  io.write("alias removed: " .. args[1] .. " -> " .. result)
 end
