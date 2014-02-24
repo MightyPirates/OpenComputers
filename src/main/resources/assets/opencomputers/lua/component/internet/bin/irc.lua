@@ -338,7 +338,7 @@ local result, reason = pcall(function()
             print("Error: " .. tostring(reason))
           elseif type(reason) == "function" then
             callback = reason
-          else
+          elseif reason then
             line = tostring(reason)
           end
         end
