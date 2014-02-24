@@ -184,7 +184,9 @@ function buffer:seek(whence, offset)
   checkArg(2, offset, "number")
   assert(math.floor(offset) == offset, "bad argument #2 (not an integer)")
 
-  if whence == "cur" then
+  if self.mode.w or self.mode.a then
+    self:flush()
+  elseif whence == "cur" then
     offset = offset - #self.bufferRead
   end
   local result, reason = self.stream:seek(whence, offset)

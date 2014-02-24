@@ -41,13 +41,20 @@ trait Buffered extends OutputStreamFileSystem {
           recurse(childPath + "/", childFile)
         }
         else if (!exists(childPath) || !isDirectory(childPath)) {
-          openOutputStream(childPath, Mode.Write) match {
+          openOutputHandle(0, childPath, Mode.Write) match {
             case Some(stream) =>
-              val in = new io.FileInputStream(childFile).getChannel
-              val out = java.nio.channels.Channels.newChannel(stream)
-              in.transferTo(0, Long.MaxValue, out)
+              val in = new io.FileInputStream(childFile)
+              val buffer = new Array[Byte](8 * 1024)
+              var read = 0
+              do {
+                read = in.read(buffer)
+                if (read > 0) {
+                  if (read == buffer.length) stream.write(buffer)
+                  else stream.write(buffer.view(0, read).toArray)
+                }
+              } while (read >= 0)
               in.close()
-              out.close()
+              stream.close()
               setLastModified(childPath, childFile.lastModified())
             case _ => // File is open for writing.
           }
