@@ -109,13 +109,7 @@ function internet.socket(address, port)
   -- the __gc metamethod. So we start a timer to do the yield/cleanup.
   local function cleanup(self)
     if not self.handle then return end
-    -- save non-gc'ed values as upvalues
-    local inet = self.inet
-    local handle = self.handle
-    local function close()
-      inet.close(handle)
-    end
-    event.timer(0, close)
+    pcall(self.inet.close, self.handle)
   end
   local metatable = {__index = socketStream,
                      __gc = cleanup,

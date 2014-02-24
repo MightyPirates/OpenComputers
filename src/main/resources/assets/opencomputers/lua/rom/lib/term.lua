@@ -340,12 +340,14 @@ function term.write(value, wrap)
   term.setCursorBlink(false)
   local line, nl = value
   repeat
+    local wrapAfter, margin = math.huge, math.huge
     if wrap then
-      line, value, nl = text.wrap(value, w - (cursorX - 1), w)
+      wrapAfter, margin = w - (cursorX - 1), w
     end
+    line, value, nl = text.wrap(value, wrapAfter, margin)
     component.gpu.set(cursorX, cursorY, line)
     cursorX = cursorX + unicode.len(line)
-    if nl or cursorX > w then
+    if nl or (cursorX > w and wrap) then
       cursorX = 1
       cursorY = cursorY + 1
     end

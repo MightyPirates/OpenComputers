@@ -16,11 +16,11 @@ local env = setmetatable({}, {__index = function(t, k)
 end})
 
 component.gpu.setForeground(0xFFFFFF)
-io.write("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio\n")
+term.write("Lua 5.2.3 Copyright (C) 1994-2013 Lua.org, PUC-Rio\n")
 component.gpu.setForeground(0xFFFF00)
-io.write("Enter a statement and hit enter to evaluate it.\n")
-io.write("Prefix an expression with '=' to show its value.\n")
-io.write("Press Ctrl+C to exit the interpreter.\n")
+term.write("Enter a statement and hit enter to evaluate it.\n")
+term.write("Prefix an expression with '=' to show its value.\n")
+term.write("Press Ctrl+C to exit the interpreter.\n")
 component.gpu.setForeground(0xFFFFFF)
 
 while term.isAvailable() do
@@ -46,16 +46,16 @@ while term.isAvailable() do
       if type(result[2]) == "table" and result[2].reason == "terminated" then
         os.exit(result[2].code)
       end
-      io.stderr:write(tostring(result[2]), "\n")
+      io.stderr:write(tostring(result[2]) .. "\n")
     else
       for i = 2, result.n do
-        io.write(text.serialize(result[i], true), "\t")
+        term.write(text.serialize(result[i], true) .. "\t")
       end
-      if result.n > 1 then
-        io.write("\n")
+      if term.getCursor() > 1 then
+        term.write("\n")
       end
     end
   else
-    io.stderr:write(reason, "\n")
+    io.stderr:write(tostring(reason) .. "\n")
   end
 end

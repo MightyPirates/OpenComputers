@@ -2,7 +2,7 @@ local args = {...}
 
 if #args < 1 then
   for k,v in pairs(os.getenv()) do
-    io.write(k, "='", string.gsub(v, "'", [['"'"']]), "'\n")
+    io.write(k .. "='" .. string.gsub(v, "'", [['"'"']]) .. "'\n")
   end
 else
   local count = 0 

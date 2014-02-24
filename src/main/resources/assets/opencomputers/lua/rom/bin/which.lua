@@ -14,8 +14,8 @@ for i = 1, #args do
     result, reason = shell.resolve(args[i], "lua")
   end
   if result then
-    io.write(result, "\n")
+    io.write(result .. "\n")
   else
-    io.stderr:write(args[i], ": ", reason, "\n")
+    io.stderr:write(args[i] .. ": " .. reason .. "\n")
   end
 end

@@ -4,7 +4,7 @@ local args = shell.parse(...)
 
 if #args == 0 then
   for name, value in shell.aliases() do
-    io.write(name, " ", value, "\n")
+    io.write(name .. " " .. value .. "\n")
   end
 elseif #args == 1 then
   local value = shell.getAlias(args[1])
@@ -15,5 +15,5 @@ elseif #args == 1 then
   end
 else
   shell.setAlias(args[1], args[2])
-  io.write("alias created: ", args[1], " -> ", args[2])
+  io.write("alias created: " .. args[1] .. " -> " .. args[2])
 end

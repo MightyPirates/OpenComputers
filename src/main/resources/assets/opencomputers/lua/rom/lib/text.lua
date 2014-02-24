@@ -10,7 +10,8 @@ function text.detab(value, tabWidth)
     local spaces = tabWidth - match:len() % tabWidth
     return match .. string.rep(" ", spaces)
   end
-  return value:gsub("([^\n]-)\t", rep)
+  local result = value:gsub("([^\n]-)\t", rep) -- truncate results
+  return result
 end
 
 function text.padRight(value, length)
@@ -43,6 +44,7 @@ end
 function text.wrap(value, width, maxWidth)
   checkArg(1, value, "string")
   checkArg(2, width, "number")
+  checkArg(3, maxWidth, "number")
   local line, nl = value:match("([^\r\n]*)([\r\n]?)") -- read until newline
   if unicode.len(line) > width then -- do we even need to wrap?
     local partial = unicode.sub(line, 1, width)

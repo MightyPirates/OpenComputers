@@ -134,7 +134,7 @@ class InternetCard extends ManagedComponent {
   def isTcpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
   @Callback(doc = """function(address:string[, port:number]):number -- Opens a new TCP connection. Returns the handle of the connection.""")
-  def connect(context: Context, args: Arguments): Array[AnyRef] = {
+  def connect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val address = args.checkString(0)
     val port = if (args.count > 1) args.checkInteger(1) else -1
     if (!Settings.get.tcpEnabled) {
@@ -153,8 +153,8 @@ class InternetCard extends ManagedComponent {
     result(handle)
   }
 
-  @Callback(doc = """function(handle:number) -- Closes an open socket stream.""")
-  def close(context: Context, args: Arguments): Array[AnyRef] = {
+  @Callback(direct = true, doc = """function(handle:number) -- Closes an open socket stream.""")
+  def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
       case Some(socket) => socket.close()
@@ -164,7 +164,7 @@ class InternetCard extends ManagedComponent {
   }
 
   @Callback(doc = """function(handle:number, data:string):number -- Tries to write data to the socket stream. Returns the number of bytes written.""")
-  def write(context: Context, args: Arguments): Array[AnyRef] = {
+  def write(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     connections.get(handle) match {
@@ -176,7 +176,7 @@ class InternetCard extends ManagedComponent {
   }
 
   @Callback(doc = """function(handle:number, n:number):string -- Tries to read data from the socket stream. Returns the read byte array.""")
-  def read(context: Context, args: Arguments): Array[AnyRef] = {
+  def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     connections.get(handle) match {
@@ -222,7 +222,7 @@ class InternetCard extends ManagedComponent {
     }
   }
 
-  override def onDisconnect(node: Node) {
+  override def onDisconnect(node: Node) = this.synchronized {
     super.onDisconnect(node)
     if (owner.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get))) {
       owner = None
@@ -236,7 +236,7 @@ class InternetCard extends ManagedComponent {
     }
   }
 
-  override def onMessage(message: Message) {
+  override def onMessage(message: Message) = this.synchronized {
     super.onMessage(message)
     message.data match {
       case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>

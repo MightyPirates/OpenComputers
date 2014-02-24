@@ -50,8 +50,8 @@ if options.b then
     end
     rs.setBundledOutput(side, color, value)
   end
-  io.write("in: ", rs.getBundledInput(side, color), "\n")
-  io.write("out: ", rs.getBundledOutput(side, color))
+  io.write("in: " .. rs.getBundledInput(side, color) .. "\n")
+  io.write("out: " .. rs.getBundledOutput(side, color))
 else
   if #args > 1 then
     local value = args[2]
@@ -62,6 +62,6 @@ else
     end
     rs.setOutput(side, value)
   end
-  io.write("in: ", rs.getInput(side), "\n")
-  io.write("out: ", rs.getOutput(side))
+  io.write("in: " .. rs.getInput(side) .. "\n")
+  io.write("out: " .. rs.getOutput(side))
 end

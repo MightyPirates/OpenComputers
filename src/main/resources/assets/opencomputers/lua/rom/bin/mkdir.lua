@@ -18,6 +18,6 @@ for i = 1, #args do
         reason = "unknown reason"
       end
     end
-    io.stderr:write(path, ": ", reason, "\n")
+    io.stderr:write(path .. ": " .. reason .. "\n")
   end
 end
