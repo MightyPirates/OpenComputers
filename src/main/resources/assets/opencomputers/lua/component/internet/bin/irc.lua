@@ -185,13 +185,13 @@ local function handleCommand(prefix, command, args, message)
   elseif command == commands.RPL_ENDOFWHOIS then
     local nick = args[2]:lower()
     local info = whois[nick]
-    print("Nick: " .. info.nick)
-    print("User name: " .. info.user)
-    print("Real name: " .. info.realName)
-    print("Host: " .. info.host)
-    print("Server: " .. info.server .. " (" .. info.serverInfo .. ")")
-    print("Channels: " .. info.channels)
-    print("Idle for: " .. info.idle)
+    if info.nick then print("Nick: " .. info.nick) end
+    if info.user then print("User name: " .. info.user) end
+    if info.realName then print("Real name: " .. info.realName) end
+    if info.host then print("Host: " .. info.host) end
+    if info.server then print("Server: " .. info.server .. (info.serverInfo and (" (" .. info.serverInfo .. ")") or "")) end
+    if info.channels then print("Channels: " .. info.channels) end
+    if info.idle then print("Idle for: " .. info.idle) end
     whois[nick] = nil
   elseif command == commands.RPL_WHOISCHANNELS then
     local nick = args[2]:lower()
