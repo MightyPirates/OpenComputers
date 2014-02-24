@@ -189,7 +189,7 @@ local function handleCommand(prefix, command, args, message)
     print("User name: " .. info.user)
     print("Real name: " .. info.realName)
     print("Host: " .. info.host)
-    print("Server: " .. info.server .. "(" .. info.serverInfo .. ")")
+    print("Server: " .. info.server .. " (" .. info.serverInfo .. ")")
     print("Channels: " .. info.channels)
     print("Idle for: " .. info.idle)
     whois[nick] = nil
@@ -197,7 +197,7 @@ local function handleCommand(prefix, command, args, message)
     local nick = args[2]:lower()
     whois[nick].channels = message
   elseif command == commands.RPL_CHANNELMODEIS then
-    print("Channel mode for " .. args[1] .. ": " .. args[2] .. "(" .. args[3] .. ")")
+    print("Channel mode for " .. args[1] .. ": " .. args[2] .. " (" .. args[3] .. ")")
   elseif command == commands.RPL_NOTOPIC then
     print("No topic is set for " .. args[1] .. ".")
   elseif command == commands.RPL_TOPIC then
