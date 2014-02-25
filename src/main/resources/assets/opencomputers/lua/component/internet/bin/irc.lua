@@ -306,7 +306,9 @@ local result, reason = pcall(function()
       print("[" .. (target or "?") .. "] me: " .. line, true)
       if line:lower():sub(1, 5) == "/msg " then
         local user, message = line:sub(6):match("^(%S+) (.+)$")
-        message = text.trim(message)
+        if message then
+          message = text.trim(message)
+        end
         if not user or not message or message == "" then
           print("Invalid use of /msg. Usage: /msg nick|channel message.")
           line = ""
