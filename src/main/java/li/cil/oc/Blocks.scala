@@ -21,6 +21,7 @@ object Blocks {
   var case1, case2, case3: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
+  var hologram: Hologram = _
   var powerConverter: PowerConverter = _
   var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
@@ -56,6 +57,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
+    GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
@@ -94,6 +96,9 @@ object Blocks {
 
     // v1.2.0
     serverRack = Recipes.addBlock(new Rack(blockSpecialWithRedstone), "rack")
+
+    // v1.2.2
+    hologram = Recipes.addBlock(new Hologram(blockSpecial), "hologram")
 
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())

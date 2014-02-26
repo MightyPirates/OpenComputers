@@ -55,6 +55,16 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendHologramSet(t: Hologram) {
+    val pb = new PacketBuilder(PacketType.HologramSet)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.volume.length)
+    t.volume.foreach(pb.writeInt)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendPowerState(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 

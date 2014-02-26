@@ -8,6 +8,7 @@ object PacketType extends Enumeration {
   ChargerState,
   ComputerState,
   ComputerUserList,
+  HologramSet,
   PowerState,
   RedstoneState,
   RobotAnimateSwing,

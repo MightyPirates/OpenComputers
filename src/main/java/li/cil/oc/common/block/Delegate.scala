@@ -41,11 +41,11 @@ trait Delegate {
 
   def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
-  def bounds(world: World, x: Int, y: Int, z: Int) =
+  def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
 
   def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    parent.setBlockBounds(0, 0, 0, 1, 1, 1)
+    parent.setBlockBounds(bounds(world, x, y, z))
 
   def intersect(world: World, x: Int, y: Int, z: Int, origin: Vec3, direction: Vec3) =
     parent.superCollisionRayTrace(world, x, y, z, origin, direction)
