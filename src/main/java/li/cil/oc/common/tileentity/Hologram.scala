@@ -34,19 +34,38 @@ class Hologram extends Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  @Callback(doc = """function() -- Clears the hologram.""")
+  def clear(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    for (i <- 0 until volume.length) volume(i) = 0
+    dirty = true
+    null
+  }
+
   @Callback(direct = true, doc = """function(x:number, z:number):number -- Returns the bit mask representing the specified column.""")
-  def get(computer: Context, args: Arguments): Array[AnyRef] = {
+  def get(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val x = args.checkInteger(0) - 1
     val z = args.checkInteger(1) - 1
     result(volume(x + z * width))
   }
 
   @Callback(direct = true, limit = 256, doc = """function(x:number, z:number, value:number) -- Set the bit mask for the specified column.""")
-  def set(computer: Context, args: Arguments): Array[AnyRef] = {
+  def set(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val x = args.checkInteger(0) - 1
     val z = args.checkInteger(1) - 1
     val value = args.checkInteger(2)
     volume(x + z * width) = value
+    dirty = true
+    null
+  }
+
+  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number) -- Fills a column to the specified height.""")
+  def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    val x = args.checkInteger(0) - 1
+    val z = args.checkInteger(1) - 1
+    val height = math.min(32, math.max(0, args.checkInteger(2)))
+    // Bit shifts in the JVM only use the lowest five bits... so we have to
+    // manually check the height, to avoid the shift being a no-op.
+    volume(x + z * width) = if (height > 0) 0xFFFFFFFF >>> (32 - height) else 0
     dirty = true
     null
   }
@@ -67,14 +86,18 @@ class Hologram extends Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
-  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord - 1, yCoord, zCoord - 1, xCoord + 2, yCoord + 3, zCoord + 2)
+  override def shouldRenderInPass(pass: Int) = pass == 1
+
+  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord - 1, yCoord, zCoord - 1, xCoord + 2, yCoord + 2.25, zCoord + 2)
+
+  // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
     super.writeToNBT(nbt)
     nbt.setIntArray(Settings.namespace + "volume", volume)
   }

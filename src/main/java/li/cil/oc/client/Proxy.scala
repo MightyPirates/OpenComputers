@@ -48,6 +48,7 @@ private[oc] class Proxy extends CommonProxy {
   override def postInit(e: FMLPostInitializationEvent) {
     super.postInit(e)
 
+    TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
     TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
     if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
