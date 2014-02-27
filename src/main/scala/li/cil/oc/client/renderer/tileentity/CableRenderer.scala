@@ -40,6 +40,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
 
     for (mask <- 0 to 0xFF >> 2) {
       GL11.glNewList(displayLists + mask, GL11.GL_COMPILE)
+      t.startDrawingQuads()
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val connects = (side.flag & mask) != 0
         val z = if (connects) 0 else lb
@@ -48,7 +49,6 @@ object CableRenderer extends TileEntitySpecialRenderer {
           exists(s => (s.flag & mask) != 0)) uo
         else 0
 
-        t.startDrawingQuads()
         t.setNormal(side.offsetX, side.offsetY, -side.offsetZ)
         val (tx, ty, tz, u, v) = side match {
           case ForgeDirection.WEST => (Array.fill(4)(z), t2, t1, uv1.reverse, uv2)
@@ -63,7 +63,6 @@ object CableRenderer extends TileEntitySpecialRenderer {
         t.addVertexWithUV(tx(1), ty(1), tz(1), u(1) + uc, v(1))
         t.addVertexWithUV(tx(2), ty(2), tz(2), u(2) + uc, v(2))
         t.addVertexWithUV(tx(3), ty(3), tz(3), u(3) + uc, v(3))
-        t.draw()
 
         if (connects) {
           val (axis, sign, uv1, uv2, uv3, uv4) = side match {
@@ -79,39 +78,32 @@ object CableRenderer extends TileEntitySpecialRenderer {
           val o1 = offsets((axis + sign + 3) % 3)
           val o2 = offsets((axis - sign + 3) % 3)
 
-          t.startDrawingQuads()
           normal(side, 0)
           t.addVertexWithUV(tx(0) - sign * tl(0), ty(0) - sign * tl(1), tz(0) - sign * tl(2), u(uv(0 + uv1)) + uo, v(uv(0 + uv1)) * vs)
           t.addVertexWithUV(tx(1) - sign * tl(0), ty(1) - sign * tl(1), tz(1) - sign * tl(2), u(uv(1 + uv1)) + uo, v(uv(1 + uv1)) * vs)
           t.addVertexWithUV(tx(2) + o1(0), ty(2) + o1(1), tz(2) + o1(2), u(uv(2 + uv1)) + uo, v(uv(2 + uv1)) * vs)
           t.addVertexWithUV(tx(3) + o1(0), ty(3) + o1(1), tz(3) + o1(2), u(uv(3 + uv1)) + uo, v(uv(3 + uv1)) * vs)
-          t.draw()
 
-          t.startDrawingQuads()
           normal(side, 1)
           t.addVertexWithUV(tx(0) - o1(0), ty(0) - o1(1), tz(0) - o1(2), u(uv(0 + uv2)) + uo, v(uv(0 + uv2)) * vs)
           t.addVertexWithUV(tx(1) - o1(0), ty(1) - o1(1), tz(1) - o1(2), u(uv(1 + uv2)) + uo, v(uv(1 + uv2)) * vs)
           t.addVertexWithUV(tx(2) - sign * tl(0), ty(2) - sign * tl(1), tz(2) - sign * tl(2), u(uv(2 + uv2)) + uo, v(uv(2 + uv2)) * vs)
           t.addVertexWithUV(tx(3) - sign * tl(0), ty(3) - sign * tl(1), tz(3) - sign * tl(2), u(uv(3 + uv2)) + uo, v(uv(3 + uv2)) * vs)
-          t.draw()
 
-          t.startDrawingQuads()
           normal(side, 2)
           t.addVertexWithUV(tx(0) - sign * tl(0), ty(0) - sign * tl(1), tz(0) - sign * tl(2), u(uv(0 + uv3)) + uo, v(uv(0 + uv3)) * vs)
           t.addVertexWithUV(tx(1) - o2(0), ty(1) - o2(1), tz(1) - o2(2), u(uv(1 + uv3)) + uo, v(uv(1 + uv3)) * vs)
           t.addVertexWithUV(tx(2) - o2(0), ty(2) - o2(1), tz(2) - o2(2), u(uv(2 + uv3)) + uo, v(uv(2 + uv3)) * vs)
           t.addVertexWithUV(tx(3) - sign * tl(0), ty(3) - sign * tl(1), tz(3) - sign * tl(2), u(uv(3 + uv3)) + uo, v(uv(3 + uv3)) * vs)
-          t.draw()
 
-          t.startDrawingQuads()
           normal(side, 3)
           t.addVertexWithUV(tx(0) + o2(0), ty(0) + o2(1), tz(0) + o2(2), u(uv(0 + uv4)) + uo, v(uv(0 + uv4)) * vs)
           t.addVertexWithUV(tx(1) - sign * tl(0), ty(1) - sign * tl(1), tz(1) - sign * tl(2), u(uv(1 + uv4)) + uo, v(uv(1 + uv4)) * vs)
           t.addVertexWithUV(tx(2) - sign * tl(0), ty(2) - sign * tl(1), tz(2) - sign * tl(2), u(uv(2 + uv4)) + uo, v(uv(2 + uv4)) * vs)
           t.addVertexWithUV(tx(3) + o2(0), ty(3) + o2(1), tz(3) + o2(2), u(uv(3 + uv4)) + uo, v(uv(3 + uv4)) * vs)
-          t.draw()
         }
       }
+      t.draw()
 
       GL11.glEndList()
     }

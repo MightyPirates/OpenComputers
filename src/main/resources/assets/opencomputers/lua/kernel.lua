@@ -1,5 +1,5 @@
 local hookInterval = 100
-local deadline = 0
+local deadline = math.huge
 local function checkDeadline()
   if computer.realTime() > deadline then
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
@@ -91,7 +91,11 @@ sandbox = {
   loadfile = nil, -- in boot/*_base.lua
   next = next,
   pairs = pairs,
-  pcall = pcall,
+  pcall = function(...)
+    local result = table.pack(pcall(...))
+    checkDeadline()
+    return table.unpack(result, 1, result.n)
+  end,
   print = nil, -- in boot/*_base.lua
   rawequal = rawequal,
   rawget = rawget,
@@ -103,7 +107,11 @@ sandbox = {
   tostring = tostring,
   type = type,
   _VERSION = "Lua 5.2",
-  xpcall = xpcall,
+  xpcall = function(...)
+    local result = table.pack(xpcall(...))
+    checkDeadline()
+    return table.unpack(result, 1, result.n)
+  end,
 
   coroutine = {
     create = function(f)

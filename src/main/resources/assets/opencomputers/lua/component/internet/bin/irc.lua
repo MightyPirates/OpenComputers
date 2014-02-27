@@ -41,12 +41,8 @@ end
 
 -- utility method for reply tracking tables.
 function autocreate(table, key)
-  local value = rawget(table, key)
-  if not value then
-    value = {}
-    rawset(table, key, value)
-  end
-  return value
+  table[key] = {}
+  return table[key]
 end
 
 -- extract nickname from identity.
@@ -172,36 +168,36 @@ local function handleCommand(prefix, command, args, message)
     print(message)
   elseif command == commands.RPL_WHOISUSER then
     local nick = args[2]:lower()
-    whois[nick].nick = nick
+    whois[nick].nick = args[2]
     whois[nick].user = args[3]
     whois[nick].host = args[4]
     whois[nick].realName = message
   elseif command == commands.RPL_WHOISSERVER then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].server = args[3]
     whois[nick].serverInfo = message
   elseif command == commands.RPL_WHOISOPERATOR then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].isOperator = true
   elseif command == commands.RPL_WHOISIDLE then
-    local nick = args[2]
+    local nick = args[2]:lower()
     whois[nick].idle = tonumber(args[3])
   elseif command == commands.RPL_ENDOFWHOIS then
-    local nick = args[2]
+    local nick = args[2]:lower()
     local info = whois[nick]
-    print("Nick: " .. info.nick)
-    print("User name: " .. info.user)
-    print("Real name: " .. info.realName)
-    print("Host: " .. info.host)
-    print("Server: " .. info.server .. "(" .. info.serverInfo .. ")")
-    print("Channels: " .. info.channels)
-    print("Idle for: " .. info.idle)
+    if info.nick then print("Nick: " .. info.nick) end
+    if info.user then print("User name: " .. info.user) end
+    if info.realName then print("Real name: " .. info.realName) end
+    if info.host then print("Host: " .. info.host) end
+    if info.server then print("Server: " .. info.server .. (info.serverInfo and (" (" .. info.serverInfo .. ")") or "")) end
+    if info.channels then print("Channels: " .. info.channels) end
+    if info.idle then print("Idle for: " .. info.idle) end
     whois[nick] = nil
   elseif command == commands.RPL_WHOISCHANNELS then
-    local nick = args[1]
+    local nick = args[2]:lower()
     whois[nick].channels = message
   elseif command == commands.RPL_CHANNELMODEIS then
-    print("Channel mode for " .. args[1] .. ": " .. args[2] .. "(" .. args[3] .. ")")
+    print("Channel mode for " .. args[1] .. ": " .. args[2] .. " (" .. args[3] .. ")")
   elseif command == commands.RPL_NOTOPIC then
     print("No topic is set for " .. args[1] .. ".")
   elseif command == commands.RPL_TOPIC then
@@ -310,7 +306,9 @@ local result, reason = pcall(function()
       print("[" .. (target or "?") .. "] me: " .. line, true)
       if line:lower():sub(1, 5) == "/msg " then
         local user, message = line:sub(6):match("^(%S+) (.+)$")
-        message = text.trim(message)
+        if message then
+          message = text.trim(message)
+        end
         if not user or not message or message == "" then
           print("Invalid use of /msg. Usage: /msg nick|channel message.")
           line = ""
@@ -342,7 +340,7 @@ local result, reason = pcall(function()
             print("Error: " .. tostring(reason))
           elseif type(reason) == "function" then
             callback = reason
-          else
+          elseif reason then
             line = tostring(reason)
           end
         end
@@ -368,7 +366,9 @@ if sock then
   sock:write("QUIT\r\n")
   sock:close()
 end
-event.cancel(timer)
+if timer then
+  event.cancel(timer)
+end
 
 if not result then
   error(reason, 0)

@@ -74,8 +74,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
 
     if (screen.hasPower) {
       MonospaceFontRenderer.init(this.field_147501_a.field_147553_e)
-      val list = cache.get(screen, this)
-      compileOrDraw(list)
+      compileOrDraw(cache.get(screen, this))
     }
 
     GL11.glPopMatrix()

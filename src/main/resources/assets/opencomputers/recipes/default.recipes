@@ -271,7 +271,7 @@ powerDistributor {
 rack {
   input: [["oc:circuitTier2", "oc:componentCardWLan", "oc:circuitTier2"]
           [fenceIron, chest, fenceIron]
-          ["oc:craftingRouter", "oc:craftingCircuitBoardPrinted","oc:craftingPowerDistributor"]]
+          ["oc:craftingRouter", "oc:craftingCircuitBoardPrinted", "oc:craftingPowerDistributor"]]
 }
 redstone {
   input: [[ingotIron, blockRedstone, ingotIron]
@@ -302,4 +302,9 @@ screen3 {
   input: [[obsidian, yellowDust, obsidian]
           [yellowDust, "oc:circuitTier3", glass]
           [obsidian, yellowDust, obsidian]]
+}
+hologram {
+  input: [[obsidian, glass, obsidian]
+          ["oc:craftingCircuitBoardPrinted", diamond, "oc:craftingCircuitBoardPrinted"]
+          ["oc:circuitTier3", blazeRod, "oc:circuitTier3"]]
 }

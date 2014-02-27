@@ -94,9 +94,6 @@ object Items {
     upgradeGenerator = Recipes.addItemDelegate(new item.UpgradeGenerator(multi), "generatorUpgrade")
 
     ironNugget = new item.IronNugget(multi)
-    if (OreDictionary.getOres("nuggetIron").exists(ironNugget.createItemStack().isItemEqual)) {
-      Recipes.addItemDelegate(ironNugget, "nuggetIron")
-    }
 
     cuttingWire = Recipes.addItemDelegate(new item.CuttingWire(multi), "cuttingWire")
     acid = Recipes.addItemDelegate(new item.Acid(multi), "acid")
@@ -181,6 +178,10 @@ object Items {
     register("oc:craftingAcid", acid.createItemStack())
     register("oc:craftingGenerator", upgradeGenerator.createItemStack())
     register("oc:craftingSolarGenerator", upgradeSolarGenerator.createItemStack())
+
+    if (OreDictionary.getOres("nuggetIron").exists(ironNugget.createItemStack().isItemEqual)) {
+      Recipes.addItemDelegate(ironNugget, "nuggetIron")
+    }
   }
 
   def register(name: String, item: ItemStack) {

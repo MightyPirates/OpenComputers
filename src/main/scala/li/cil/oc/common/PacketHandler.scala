@@ -1,8 +1,10 @@
 package li.cil.oc.common
 
 import io.netty.buffer.{ByteBufInputStream, ByteBuf}
-import java.io.DataInputStream
-import li.cil.oc.Blocks
+import java.io.{InputStream, DataInputStream}
+import java.util.logging.Level
+import java.util.zip.GZIPInputStream
+import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -12,6 +14,21 @@ import scala.reflect.ClassTag
 import scala.reflect.classTag
 
 abstract class PacketHandler {
+  /** Top level dispatcher based on packet type. */
+  protected def onPacketData(data: ByteBuf, player: EntityPlayer) {
+    // Don't crash on badly formatted packets (may have been altered by a
+    // malicious client, in which case we don't want to allow it to kill the
+    // server like this). Just spam the log a bit... ;)
+    try {
+      val stream = new ByteBufInputStream(data)
+      if (stream.read() == 0) dispatch(new PacketParser(stream, player))
+      else dispatch(new PacketParser(new GZIPInputStream(stream), player))
+    } catch {
+      case e: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Received a badly formatted packet.", e)
+    }
+  }
+
   /**
    * Gets the world for the specified dimension.
    *
@@ -21,7 +38,9 @@ abstract class PacketHandler {
    */
   protected def world(player: EntityPlayer, dimension: Int): Option[World]
 
-  protected class PacketParser(data: ByteBuf, val player: EntityPlayer) extends DataInputStream(new ByteBufInputStream(data)) {
+  protected def dispatch(p: PacketParser)
+
+  protected class PacketParser(stream: InputStream, val player: EntityPlayer) extends DataInputStream(stream) {
     val packetType = PacketType(readByte())
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {

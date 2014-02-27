@@ -3,8 +3,8 @@ package li.cil.oc.common
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
+import java.io.{OutputStream, ByteArrayOutputStream, DataOutputStream}
+import java.util.zip.GZIPOutputStream
 import li.cil.oc.common.tileentity.TileEntity
 import li.cil.oc.OpenComputers
 import net.minecraft.entity.player.EntityPlayerMP
@@ -14,9 +14,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayOutputStream = new ByteArrayOutputStream) extends DataOutputStream(stream) {
-  writeByte(packetType.id)
-
+// Necessary to keep track of the GZIP stream.
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {
   def writeTileEntity(t: TileEntity) = {
     writeInt(t.world.provider.dimensionId)
     writeInt(t.x)
@@ -57,5 +56,30 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def sendToServer() = OpenComputers.channel.sendToServer(packet)
 
-  private def packet = new FMLProxyPacket(Unpooled.wrappedBuffer(stream.toByteArray), "OpenComputers")
+  protected def packet: FMLProxyPacket
+}
+
+class PacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
+    new FMLProxyPacket(Unpooled.wrappedBuffer(stream.toByteArray), "OpenComputers")
+  }
+}
+
+class CompressedPacketBuilder(packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
+    stream.finish()
+    new FMLProxyPacket(Unpooled.wrappedBuffer(data.toByteArray), "OpenComputers")
+  }
+}
+
+object PacketBuilder {
+  def newData(compressed: Boolean) = {
+    val data = new ByteArrayOutputStream
+    data.write(if (compressed) 1 else 0)
+    data
+  }
 }

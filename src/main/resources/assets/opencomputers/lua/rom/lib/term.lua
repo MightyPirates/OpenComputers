@@ -338,7 +338,7 @@ function term.write(value, wrap)
   end
   local blink = term.getCursorBlink()
   term.setCursorBlink(false)
-  local line, nl = value
+  local line, nl
   repeat
     local wrapAfter, margin = math.huge, math.huge
     if wrap then
@@ -356,7 +356,7 @@ function term.write(value, wrap)
       component.gpu.fill(1, h, w, 1, " ")
       cursorY = h
     end
-  until not wrap or not value
+  until not value
   term.setCursorBlink(blink)
 end
 

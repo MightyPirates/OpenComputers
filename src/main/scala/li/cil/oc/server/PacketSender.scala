@@ -1,9 +1,8 @@
 package li.cil.oc.server
 
 import li.cil.oc.common
-import li.cil.oc.common.PacketBuilder
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -51,6 +50,40 @@ object PacketSender {
     pb.writeTileEntity(t)
     pb.writeInt(list.length)
     list.foreach(pb.writeUTF)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendHologramClear(t: Hologram) {
+    val pb = new PacketBuilder(PacketType.HologramClear)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendHologramScale(t: Hologram) {
+    val pb = new PacketBuilder(PacketType.HologramScale)
+
+    pb.writeTileEntity(t)
+    pb.writeDouble(t.scale)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendHologramSet(t: Hologram) {
+    val pb = new CompressedPacketBuilder(PacketType.HologramSet)
+
+    pb.writeTileEntity(t)
+    pb.writeByte(t.dirtyFromX)
+    pb.writeByte(t.dirtyUntilX)
+    pb.writeByte(t.dirtyFromZ)
+    pb.writeByte(t.dirtyUntilZ)
+    for (x <- t.dirtyFromX until t.dirtyUntilX) {
+      for (z <- t.dirtyFromZ until t.dirtyUntilZ) {
+        pb.writeInt(t.volume(x + z * t.width))
+      }
+    }
 
     pb.sendToNearbyPlayers(t)
   }

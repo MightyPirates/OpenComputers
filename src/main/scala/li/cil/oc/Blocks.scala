@@ -21,6 +21,7 @@ object Blocks {
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
   var keyboardDeprecated: KeyboardDeprecated = _
+  var hologram: Hologram = _
   var powerConverter: PowerConverter = _
   var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
@@ -92,6 +93,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
+    GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
@@ -99,6 +101,9 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
+
+    // v1.2.2
+    hologram = Recipes.addBlockDelegate(new Hologram(blockSpecial), "hologram")
 
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())

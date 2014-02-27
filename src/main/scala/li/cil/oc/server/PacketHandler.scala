@@ -14,12 +14,14 @@ import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.common.util.ForgeDirection
 
 object PacketHandler extends CommonPacketHandler {
+  @SubscribeEvent
+  def onPacket(e: ServerCustomPacketEvent) =
+    onPacketData(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
+
   override protected def world(player: EntityPlayer, dimension: Int) =
     Option(DimensionManager.getWorld(dimension))
 
-  @SubscribeEvent
-  def onPacket(e: ServerCustomPacketEvent) {
-    val p = new PacketParser(e.packet.payload, e.handler.asInstanceOf[NetHandlerPlayServer].playerEntity)
+  override def dispatch(p: PacketParser) {
     p.packetType match {
       case PacketType.ComputerPower => onComputerPower(p)
       case PacketType.KeyDown => onKeyDown(p)
