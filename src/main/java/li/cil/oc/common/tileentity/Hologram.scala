@@ -29,10 +29,34 @@ class Hologram extends Environment with SidedEnvironment {
   // Whether we need to send an update packet/recompile our display list.
   var dirty = false
 
+  // Interval of dirty columns.
+  var dirtyFromX = Int.MaxValue
+  var dirtyUntilX = -1
+  var dirtyFromZ = Int.MaxValue
+  var dirtyUntilZ = -1
+
   // Time to wait before sending another update packet.
-  var cooldown = 0
+  var cooldown = 5
 
   var hasPower = true
+
+  def setDirty(x: Int, z: Int) {
+    dirty = true
+    dirtyFromX = math.min(dirtyFromX, x)
+    dirtyUntilX = math.max(dirtyUntilX, x + 1)
+    dirtyFromZ = math.min(dirtyFromZ, z)
+    dirtyUntilZ = math.max(dirtyUntilZ, z + 1)
+    litRatio = -1
+  }
+
+  def resetDirtyFlag() {
+    dirty = false
+    dirtyFromX = Int.MaxValue
+    dirtyUntilX = -1
+    dirtyFromZ = Int.MaxValue
+    dirtyUntilZ = -1
+    cooldown = 5
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -45,7 +69,8 @@ class Hologram extends Environment with SidedEnvironment {
   @Callback(doc = """function() -- Clears the hologram.""")
   def clear(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     for (i <- 0 until volume.length) volume(i) = 0
-    dirty = true
+    ServerPacketSender.sendHologramClear(this)
+    resetDirtyFlag()
     litRatio = 0
     null
   }
@@ -63,8 +88,7 @@ class Hologram extends Environment with SidedEnvironment {
     val z = args.checkInteger(1) - 1
     val value = args.checkInteger(2)
     volume(x + z * width) = value
-    dirty = true
-    litRatio = -1
+    setDirty(x, z)
     null
   }
 
@@ -76,8 +100,7 @@ class Hologram extends Environment with SidedEnvironment {
     // Bit shifts in the JVM only use the lowest five bits... so we have to
     // manually check the height, to avoid the shift being a no-op.
     volume(x + z * width) = if (height > 0) 0xFFFFFFFF >>> (32 - height) else 0
-    dirty = true
-    litRatio = -1
+    setDirty(x, z)
     null
   }
 
@@ -101,9 +124,8 @@ class Hologram extends Environment with SidedEnvironment {
       if (dirty) {
         cooldown -= 1
         if (cooldown <= 0) {
-          dirty = false
-          cooldown = 10
           ServerPacketSender.sendHologramSet(this)
+          resetDirtyFlag()
         }
       }
       if (litRatio < 0) {

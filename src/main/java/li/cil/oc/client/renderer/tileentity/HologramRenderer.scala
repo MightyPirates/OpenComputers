@@ -43,6 +43,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL11.glTranslated(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }
 
+    // We do two passes here to avoid weird transparency effects: in the first
+    // pass we find the front-most fragment, in the second we actually draw it.
+    // TODO proper transparency shader? depth peeling e.g.
     GL11.glColorMask(false, false, false, false)
     val list = cache.get(hologram, this)
     compileOrDraw(list)
@@ -71,6 +74,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     t.startDrawingQuads()
     t.setColorRGBA_F(1, 1, 1, 0.5f)
 
+    // TODO merge quads for better rendering performance
     val s = 1f / 16f * hologram.scale
     for (hx <- 0 until hologram.width) {
       val wx = hx * s
