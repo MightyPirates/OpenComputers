@@ -1,8 +1,8 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.{ModContainer, Loader}
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
-import li.cil.oc.Settings
+import li.cil.oc.{UpdateCheck, Settings}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
 import net.minecraft.entity.player.EntityPlayerMP
@@ -10,6 +10,7 @@ import net.minecraft.network.packet.{Packet1Login, NetHandler}
 import net.minecraft.network.{NetLoginHandler, INetworkManager}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ChatMessageComponent
+import scala.collection.convert.WrapAsScala._
 
 object ConnectionHandler extends IConnectionHandler {
   def playerLoggedIn(player: Player, netHandler: NetHandler, manager: INetworkManager) {
@@ -24,17 +25,23 @@ object ConnectionHandler extends IConnectionHandler {
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
         }
+        val mod = Loader.instance.getIndexedModList.get("OpenComputers")
+        new UpdateCheck(mod.getVersion, p)
       case _ =>
     }
   }
 
   def connectionReceived(netHandler: NetLoginHandler, manager: INetworkManager) = null
 
-  def connectionOpened(netClientHandler: NetHandler, server: String, port: Int, manager: INetworkManager) {}
+  def connectionOpened(netClientHandler: NetHandler, server: String, port: Int, manager: INetworkManager) {
+  }
 
-  def connectionOpened(netClientHandler: NetHandler, server: MinecraftServer, manager: INetworkManager) {}
+  def connectionOpened(netClientHandler: NetHandler, server: MinecraftServer, manager: INetworkManager) {
+  }
 
-  def connectionClosed(manager: INetworkManager) {}
+  def connectionClosed(manager: INetworkManager) {
+  }
 
-  def clientLoggedIn(clientHandler: NetHandler, manager: INetworkManager, login: Packet1Login) {}
+  def clientLoggedIn(clientHandler: NetHandler, manager: INetworkManager, login: Packet1Login) {
+  }
 }
