@@ -9,6 +9,7 @@ object PacketType extends Enumeration {
   ComputerState,
   ComputerUserList,
   HologramClear,
+  HologramPowerChange,
   HologramScale,
   HologramSet,
   PowerState,

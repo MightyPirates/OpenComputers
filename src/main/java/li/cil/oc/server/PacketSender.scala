@@ -62,6 +62,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendHologramPowerChange(t: Hologram) {
+    val pb = new PacketBuilder(PacketType.HologramPowerChange)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(t.hasPower)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramScale(t: Hologram) {
     val pb = new PacketBuilder(PacketType.HologramScale)
 
