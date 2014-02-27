@@ -31,6 +31,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     if (!hologram.hasPower) return
 
     GL11.glPushAttrib(0xFFFFFFFF)
+    RenderState.makeItBlend()
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
@@ -47,6 +48,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     // pass we find the front-most fragment, in the second we actually draw it.
     // TODO proper transparency shader? depth peeling e.g.
     GL11.glColorMask(false, false, false, false)
+    GL11.glDepthMask(true)
     val list = cache.get(hologram, this)
     compileOrDraw(list)
     GL11.glColorMask(true, true, true, true)
