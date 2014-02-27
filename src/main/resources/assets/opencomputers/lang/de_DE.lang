@@ -86,6 +86,7 @@ oc:gui.Analyzer.RobotXp=§6Erfahrung§f: %s (Stufe %s)
 oc:gui.Analyzer.StoredEnergy=§6Gespeicherte Energie§f: %s
 oc:gui.Analyzer.TotalEnergy=§6Insgesamt gespeicherte Energie§f: %s
 oc:gui.Analyzer.Users=§6Benutzer§f: %s
+oc:gui.Chat.NewVersion=Eine neue Version ist verfügbar: %s
 oc:gui.Chat.WarningLuaFallback=Die native Lua-Implementierung ist nicht verfügbar. Computer können ihren Ausführungszustand nicht speichern. Sie werden automatisch neu starten, sobald ein Chunk neu geladen wird.
 oc:gui.Chat.WarningPower=Universal Electricity 3 ist nicht verfügbar. Computer, Bildschirme und alle anderen Komponenten werden §lkeine§f Energie benötigen. UE3 wird auch benötigt, um zusätzlich BuildCraft, IndustrialCraft2 und Thermal Expansion zu unterstützen.
 oc:gui.Chat.WarningProjectRed=Die verwendete Version von Project: Red ist nicht mit OpenComputers kompatibel. Aktualisiere bitte deine Version von Project: Red.

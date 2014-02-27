@@ -1,16 +1,15 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.{ModContainer, Loader}
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
-import li.cil.oc.{UpdateCheck, Settings}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
+import li.cil.oc.{UpdateCheck, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.packet.{Packet1Login, NetHandler}
 import net.minecraft.network.{NetLoginHandler, INetworkManager}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ChatMessageComponent
-import scala.collection.convert.WrapAsScala._
 
 object ConnectionHandler extends IConnectionHandler {
   def playerLoggedIn(player: Player, netHandler: NetHandler, manager: INetworkManager) {
@@ -25,8 +24,10 @@ object ConnectionHandler extends IConnectionHandler {
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
         }
-        val mod = Loader.instance.getIndexedModList.get("OpenComputers")
-        new UpdateCheck(mod.getVersion, p)
+        // Do update check in local games and for OPs.
+        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
+          UpdateCheck.checkForPlayer(p)
+        }
       case _ =>
     }
   }

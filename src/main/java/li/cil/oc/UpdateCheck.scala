@@ -1,66 +1,68 @@
 package li.cil.oc
 
-import argo.jdom.{JsonNode, JsonRootNode, JdomParser}
+import argo.jdom.JdomParser
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.versioning.ComparableVersion
+import java.io.InputStreamReader
 import java.net.{HttpURLConnection, URL}
-import java.io.{InputStreamReader, BufferedReader}
-import argo.saj.InvalidSyntaxException
-import cpw.mods.fml.common.network.Player
+import java.util.logging.Level
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
 import scala.collection.convert.WrapAsScala._
-import cpw.mods.fml.common.versioning.{VersionParser, DefaultArtifactVersion}
 
-class UpdateCheck(var version: String, player: EntityPlayerMP) extends Thread {
-  start()
+object UpdateCheck {
+  val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
 
-  override def run() {
+  val version = Loader.instance.getIndexedModList.get("OpenComputers").getVersion
+  val majorVersion = version.split('.')(0).toInt
+
+  // Lazy to make initialize() execute once from the first thread that tries to
+  // read it. If other threads are spawned while it's running they will wait,
+  // because lazy initializers are synchronized.
+  lazy val result = initialize()
+
+  def checkForPlayer(player: EntityPlayerMP) = if (Settings.get.updateCheck) {
+    new Thread() {
+      override def run() = result(player)
+    }.start()
+  }
+
+  def initialize(): EntityPlayerMP => Unit = {
     try {
-    val jsonString: String = getHTML("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
-    val parser: JdomParser = new JdomParser
-      val n = parser.parse(jsonString)
-      val currentNumbers = version.split("\\.")
-      val mcVersion = currentNumbers(0)
-      val ocVersionCurrent = currentNumbers(1).toInt
-      val minorVersionCurrent = currentNumbers(2).toInt
-
-      n.getArrayNode().find(node => node.getStringValue("tag_name").split("v")(1).split("\\.")(0).equals(mcVersion) && !node.getBooleanValue("prerelease")) match {
-        case Some(node) =>
-          val version = node.getStringValue("tag_name")
-          val versions = version.split("v")(1).split("\\.")
-          val ocVersion = versions(1).toInt
-          val minorVersion = versions(2).toInt
-          if (ocVersionCurrent < ocVersion || (ocVersion == ocVersionCurrent && minorVersion > minorVersionCurrent)) {
-            player.sendChatToPlayer(ChatMessageComponent.createFromText("[OpenComputers] A new Version " + version + " is available!"))
+      OpenComputers.log.info("Starting version check.")
+      releasesUrl.openConnection match {
+        case conn: HttpURLConnection =>
+          conn.setRequestMethod("GET")
+          conn.setDoOutput(false)
+          val json = new JdomParser().parse(new InputStreamReader(conn.getInputStream))
+          val candidates = json.getElements.filter(node => matchesVersion(node.getStringValue("tag_name")) && !node.getBooleanValue("prerelease"))
+          if (candidates.nonEmpty) {
+            val newest = candidates.maxBy(node => new ComparableVersion(node.getStringValue("tag_name").stripPrefix("v")))
+            val tag = newest.getStringValue("tag_name")
+            val tagVersion = new ComparableVersion(tag.stripPrefix("v"))
+            val modVersion = new ComparableVersion(version)
+            if (tagVersion.compareTo(modVersion) > 0) {
+              OpenComputers.log.info(s"A newer version is available: ($tag})")
+              return (player: EntityPlayerMP) =>
+                player.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.NewVersion", tag))
+            }
           }
-        case _ =>
+          OpenComputers.log.info("Running the latest version.")
+        case _ => OpenComputers.log.warning("Failed to connect to Github.")
       }
     }
     catch {
-      //Ignore not connected exceptions and stuff
-      case e: Exception =>
+      case t: Throwable => OpenComputers.log.log(Level.WARNING, "Update check failed.", t)
     }
+    // Nothing to do, return dummy callback.
+    p =>
   }
 
-
-  def getHTML(urlToRead: String): String = {
-    var url: URL = null
-    var conn: HttpURLConnection = null
-    var rd: BufferedReader = null
-    var line: String = null
-    val builder: StringBuilder = new StringBuilder
-
-    url = new URL(urlToRead)
-    conn = url.openConnection.asInstanceOf[HttpURLConnection]
-    conn.setRequestMethod("GET")
-    rd = new BufferedReader(new InputStreamReader(conn.getInputStream))
-    while ( {
-      line = rd.readLine
-      line
-    } != null) {
-      builder.append(line.trim).append("\n")
-    }
-    rd.close()
-    builder.toString()
+  def matchesVersion(tag: String) = try {
+    tag.stripPrefix("v").split('.')(0).toInt == majorVersion
+  }
+  catch {
+    case _: Throwable => false
   }
 
 }
