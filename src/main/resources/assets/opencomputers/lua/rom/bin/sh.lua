@@ -121,7 +121,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       elseif command ~= "" then
         local result, reason = execute(command)
         if not result then
-          io.stderr:write(reason .. "\n")
+          io.stderr:write((tostring(reason) or "unknown error").. "\n")
         elseif term.getCursor() > 1 then
           term.write("\n")
         end
