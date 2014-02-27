@@ -120,6 +120,7 @@ class Settings(config: Config) {
   val robotCost = config.getDouble("power.cost.robot") max 0
   val sleepCostFactor = config.getDouble("power.cost.sleepFactor") max 0
   val screenCost = config.getDouble("power.cost.screen") max 0
+  val hologramCost = config.getDouble("power.cost.hologram") max 0
   val hddReadCost = (config.getDouble("power.cost.hddRead") max 0) / 1024
   val hddWriteCost = (config.getDouble("power.cost.hddWrite") max 0) / 1024
   val gpuSetCost = (config.getDouble("power.cost.gpuSet") max 0) / Settings.basicScreenPixels

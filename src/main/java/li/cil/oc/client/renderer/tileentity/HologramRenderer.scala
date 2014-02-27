@@ -28,15 +28,16 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
   override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     hologram = te.asInstanceOf[Hologram]
+    if (!hologram.hasPower) return
 
     GL11.glPushAttrib(0xFFFFFFFF)
-    RenderState.makeItBlend()
 
     GL11.glPushMatrix()
+    GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+    GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
+    GL11.glTranslated(-1.5 * hologram.scale, 0, -1.5 * hologram.scale)
 
-    GL11.glScaled(1.01, 1.01, 1.01) // Avoid z-fighting with other blocks.
-    GL11.glTranslated(x - 1, y + 0.5, z - 1)
-
+    // Do a bit of flickering, because that's what holograms do!
     if (random.nextDouble() < 0.025) {
       GL11.glScaled(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
       GL11.glTranslated(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
@@ -68,9 +69,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     bindTexture(TexturePreloader.blockHologram)
     val t = Tessellator.instance
     t.startDrawingQuads()
-    t.setColorRGBA_F(1, 1, 1, 0.7f)
+    t.setColorRGBA_F(1, 1, 1, 0.5f)
 
-    val s = 1f / 16f
+    val s = 1f / 16f * hologram.scale
     for (hx <- 0 until hologram.width) {
       val wx = hx * s
       for (hz <- 0 until hologram.width) {

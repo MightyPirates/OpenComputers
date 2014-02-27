@@ -55,6 +55,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendHologramScale(t: Hologram) {
+    val pb = new PacketBuilder(PacketType.HologramScale)
+
+    pb.writeTileEntity(t)
+    pb.writeDouble(t.scale)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramSet(t: Hologram) {
     val pb = new PacketBuilder(PacketType.HologramSet)
 
