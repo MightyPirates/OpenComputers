@@ -33,6 +33,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.HologramClear => onHologramClear(p)
+      case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
       case PacketType.PowerState => onPowerState(p)
@@ -114,6 +115,12 @@ object PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         for (i <- 0 until t.volume.length) t.volume(i) = 0
         t.dirty = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramPowerChange(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) => t.hasPower = p.readBoolean()
       case _ => // Invalid packet.
     }
 

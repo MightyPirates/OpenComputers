@@ -128,15 +128,22 @@ class Hologram extends Environment with SidedEnvironment {
           resetDirtyFlag()
         }
       }
-      if (litRatio < 0) {
-        litRatio = 0
-        for (i <- 0 until volume.length) {
-          if (volume(i) != 0) litRatio += 1
+      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+        if (litRatio < 0) {
+          litRatio = 0
+          for (i <- 0 until volume.length) {
+            if (volume(i) != 0) litRatio += 1
+          }
+          litRatio /= volume.length
         }
-        litRatio /= volume.length
-      }
 
-      hasPower = node.changeBuffer(-Settings.get.hologramCost * litRatio * scale) == 0
+        val hadPower = hasPower
+        val neededPower = Settings.get.hologramCost * litRatio * scale * Settings.get.tickFrequency
+        hasPower = node.tryChangeBuffer(-neededPower)
+        if (hasPower != hadPower) {
+          ServerPacketSender.sendHologramPowerChange(this)
+        }
+      }
     }
   }
 
@@ -165,6 +172,7 @@ class Hologram extends Environment with SidedEnvironment {
     super.readFromNBTForClient(nbt)
     nbt.getIntArray("volume").copyToArray(volume)
     scale = nbt.getDouble("scale")
+    hasPower = nbt.getBoolean("hasPower")
     dirty = true
   }
 
@@ -172,5 +180,6 @@ class Hologram extends Environment with SidedEnvironment {
     super.writeToNBTForClient(nbt)
     nbt.setIntArray("volume", volume)
     nbt.setDouble("scale", scale)
+    nbt.setBoolean("hasPower", hasPower)
   }
 }
