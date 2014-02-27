@@ -22,6 +22,7 @@ object TexturePreloader extends ResourceManagerReloadListener {
 
   val blockCable = new ResourceLocation(Settings.resourceDomain, "textures/blocks/cable.png")
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/case_front_on.png")
+  val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/hologram_effect.png")
   val blockPowerDistributorOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/power_distributor_on.png")
   val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/rack_front_on.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")

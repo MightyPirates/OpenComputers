@@ -3,8 +3,8 @@ package li.cil.oc.common
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
+import java.io.{OutputStream, ByteArrayOutputStream, DataOutputStream}
+import java.util.zip.GZIPOutputStream
 import li.cil.oc.common.tileentity.TileEntity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
@@ -14,9 +14,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayOutputStream = new ByteArrayOutputStream) extends DataOutputStream(stream) {
-  writeByte(packetType.id)
-
+// Necessary to keep track of the GZIP stream.
+abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {
   def writeTileEntity(t: TileEntity) = {
     writeInt(t.world.provider.dimensionId)
     writeInt(t.x)
@@ -57,11 +56,38 @@ class PacketBuilder(packetType: PacketType.Value, private val stream: ByteArrayO
 
   def sendToServer() = PacketDispatcher.sendPacketToServer(packet)
 
-  private def packet = {
+  protected def packet: Packet250CustomPayload
+}
+
+class PacketBuilder(packetType: PacketType.Value) extends PacketBuilderBase(PacketBuilder.newData(compressed = false)) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
     val p = new Packet250CustomPayload
     p.channel = "OpenComp"
     p.data = stream.toByteArray
     p.length = stream.size
     p
+  }
+}
+
+class CompressedPacketBuilder(packetType: PacketType.Value, private val data: ByteArrayOutputStream = PacketBuilder.newData(compressed = true)) extends PacketBuilderBase(new GZIPOutputStream(data)) {
+  writeByte(packetType.id)
+
+  override protected def packet = {
+    stream.finish()
+    val p = new Packet250CustomPayload
+    p.channel = "OpenComp"
+    p.data = data.toByteArray
+    p.length = data.size
+    p
+  }
+}
+
+object PacketBuilder {
+  def newData(compressed: Boolean) = {
+    val data = new ByteArrayOutputStream
+    data.write(if (compressed) 1 else 0)
+    data
   }
 }

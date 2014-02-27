@@ -6,7 +6,7 @@ import net.minecraft.entity.player.EntityPlayer
 
 object BuildCraft {
   def holdsApplicableWrench(player: EntityPlayer, x: Int, y: Int, z: Int) =
-    ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|core") &&
+    ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|tools") &&
       player.getCurrentEquippedItem != null &&
       (player.getCurrentEquippedItem.getItem match {
         case wrench: IToolWrench => wrench.canWrench(player, x, y, z)
@@ -14,7 +14,7 @@ object BuildCraft {
       })
 
   def wrenchUsed(player: EntityPlayer, x: Int, y: Int, z: Int) =
-    ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|core") &&
+    ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|tools") &&
       player.getCurrentEquippedItem != null &&
       (player.getCurrentEquippedItem.getItem match {
         case wrench: IToolWrench if wrench.canWrench(player, x, y, z) =>

@@ -2,9 +2,9 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.network.IPacketHandler
 import cpw.mods.fml.common.network.Player
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
+import java.io.{InputStream, ByteArrayInputStream, DataInputStream}
 import java.util.logging.Level
+import java.util.zip.GZIPInputStream
 import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -22,7 +22,9 @@ abstract class PacketHandler extends IPacketHandler {
     // malicious client, in which case we don't want to allow it to kill the
     // server like this). Just spam the log a bit... ;)
     try {
-      dispatch(new PacketParser(packet, player))
+      val stream = new ByteArrayInputStream(packet.data)
+      if (stream.read() == 0) dispatch(new PacketParser(stream, player))
+      else dispatch(new PacketParser(new GZIPInputStream(stream), player))
     } catch {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Received a badly formatted packet.", e)
@@ -40,7 +42,7 @@ abstract class PacketHandler extends IPacketHandler {
 
   protected def dispatch(p: PacketParser)
 
-  protected class PacketParser(packet: Packet250CustomPayload, val player: Player) extends DataInputStream(new ByteArrayInputStream(packet.data)) {
+  protected class PacketParser(stream: InputStream, val player: Player) extends DataInputStream(stream) {
     val packetType = PacketType(readByte())
 
     def getTileEntity[T: ClassTag](dimension: Int, x: Int, y: Int, z: Int): Option[T] = {
