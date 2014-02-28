@@ -17,13 +17,18 @@ import scala.collection.mutable
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
 
-  def addBlock[T <: common.block.Delegate](block: T, name: String) = {
+  def addBlockDelegate[T <: common.block.Delegate](block: T, name: String) = {
     list += block.createItemStack() -> name
     block
   }
 
-  def addItem[T <: common.item.Delegate](item: T, name: String) = {
+  def addItemDelegate[T <: common.item.Delegate](item: T, name: String) = {
     list += item.createItemStack() -> name
+    item
+  }
+
+  def addItem(item: Item, name: String) = {
+    list += new ItemStack(item) -> name
     item
   }
 
