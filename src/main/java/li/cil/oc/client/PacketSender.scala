@@ -1,12 +1,14 @@
 package li.cil.oc.client
 
-import li.cil.oc.common.PacketBuilder
-import li.cil.oc.common.PacketType
-import li.cil.oc.common.component
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
 import li.cil.oc.common.tileentity._
 import net.minecraftforge.common.ForgeDirection
 
 object PacketSender {
+  // Timestamp after which the next clipboard message may be sent. Used to
+  // avoid spamming large packets on key repeat.
+  protected var clipboardCooldown = 0L
+
   def sendComputerPower(t: Computer, power: Boolean) {
     val pb = new PacketBuilder(PacketType.ComputerPower)
 
@@ -51,8 +53,9 @@ object PacketSender {
   }
 
   def sendClipboard(b: component.Buffer, value: String) {
-    if (value != null && !value.isEmpty) {
-      val pb = new PacketBuilder(PacketType.Clipboard)
+    if (value != null && !value.isEmpty && System.currentTimeMillis() > clipboardCooldown) {
+      clipboardCooldown = System.currentTimeMillis() + value.length
+      val pb = new CompressedPacketBuilder(PacketType.Clipboard)
 
       b.owner match {
         case t: Buffer if t.hasKeyboard =>
@@ -62,7 +65,7 @@ object PacketSender {
           pb.writeInt(t.number)
         case _ => return
       }
-      pb.writeUTF(value.substring(0, math.min(value.length, 1024)))
+      pb.writeUTF(value.substring(0, math.min(value.length, 64 * 1024)))
 
       pb.sendToServer()
     }
