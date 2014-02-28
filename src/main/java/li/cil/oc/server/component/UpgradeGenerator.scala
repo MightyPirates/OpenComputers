@@ -29,7 +29,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     val count = if (args.count > 0) args.checkInteger(0) else 64
     val player = context.player
     val stack = player.inventory.getStackInSlot(context.selectedSlot)
-    if (stack == null) throw new IllegalArgumentException("selected slot is empty")
+    if (stack == null) return result(Unit, "selected slot is empty")
     if (!TileEntityFurnace.isItemFuel(stack)) {
       return result(Unit, "selected slot does not contain fuel")
     }
