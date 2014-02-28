@@ -1,6 +1,5 @@
 local component = require("component")
 local event = require("event")
-local os = require("os")
 
 local function onComponentAvailable(_, componentType)
   if (componentType == "screen" and component.isAvailable("gpu")) or
