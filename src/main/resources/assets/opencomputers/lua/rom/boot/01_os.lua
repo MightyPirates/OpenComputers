@@ -5,6 +5,7 @@ local shell = require("shell")
 local unicode = require("unicode")
 
 local env = {
+  EDITOR="/bin/edit",
   HOME="/home",
   MANPATH="/usr/man",
   PAGER="/bin/more",
@@ -12,7 +13,8 @@ local env = {
   PS1="# ",
   PWD="/",
   SHELL="/bin/sh",
-  TMP="/tmp"
+  TMP="/tmp", -- Depricated
+  TMPDIR="/tmp"
 }
 
 os.execute = function(command)
