@@ -250,7 +250,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
         prevPosY = posY
       }
       val cancel = stack != null && stack.getItem.onBlockStartBreak(stack, x, y, z, this)
-      if (TinkersConstruct.isInfiTool(stack)) {
+      if (cancel && TinkersConstruct.isInfiTool(stack)) {
         posY += 1.62
         prevPosY = posY
         return adjustedBreakTime
