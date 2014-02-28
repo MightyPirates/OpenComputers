@@ -48,8 +48,8 @@ object EventHandler {
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
         }
         // Do update check in local games and for OPs.
-        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
-          UpdateCheck.checkForPlayer(p)
+        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player.getCommandSenderName)) {
+          UpdateCheck.checkForPlayer(player)
         }
       case _ =>
     }

@@ -27,6 +27,11 @@ object Recipes {
     block
   }
 
+  def addItem[T <: Item](item: T, name: String) = {
+    list += (() => new ItemStack(item) -> name)
+    item
+  }
+
   def addItemDelegate[T <: common.item.Delegate](item: T, name: String) = {
     list += (() => item.createItemStack() -> name)
     item

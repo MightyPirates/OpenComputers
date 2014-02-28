@@ -5,7 +5,7 @@ import cpw.mods.fml.common.versioning.ComparableVersion
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Level
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.util.ChatMessageComponent
+import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
 import scala.io.Source
 import scala.util.parsing.json.{JSONObject, JSONArray, JSON}
 
@@ -13,7 +13,9 @@ object UpdateCheck {
   val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
 
   val version = Loader.instance.getIndexedModList.get("OpenComputers").getVersion
-  val majorVersion = version.split('.')(0).toInt
+  val majorVersion = try version.split('.')(0).toInt catch {
+    case _: Throwable => "0" // Probably dev env.
+  }
 
   // Lazy to make initialize() execute once from the first thread that tries to
   // read it. If other threads are spawned while it's running they will wait,
@@ -51,7 +53,8 @@ object UpdateCheck {
                 if (tagVersion.compareTo(modVersion) > 0) {
                   OpenComputers.log.info(s"A newer version is available: ($tag})")
                   return (player: EntityPlayerMP) =>
-                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.NewVersion", tag))
+                    player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+                      new ChatComponentTranslation(Settings.namespace + "gui.Chat.NewVersion", tag)))
                 }
               }
               OpenComputers.log.info("Running the latest version.")
