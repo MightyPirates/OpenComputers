@@ -6,17 +6,17 @@ local shell = require("shell")
 local args = shell.parse(...)
 
 local function printUsage()
-print("Usages:")
-print("'refuel' to get the current fuel count")
-print("'refuel <slot>' to refuel from that specific slot")
-print("'refuel all' to refuel from all slots")
+  print("Usages:")
+  print("'refuel' to get the current fuel count")
+  print("'refuel <slot>' to refuel from that specific slot")
+  print("'refuel all' to refuel from all slots")
 end
 
 if component.isAvailable("generator") then
   local g = component.generator
-  if args[1] = nil then
+  if #args == 0 then
     print("Current Number of items in generator: "..g.count())
-  elseif string.match(args[1],"%d") ~= nil then
+  elseif tonumber(args[1]) ~= nil then
     print("Refuelling from slot"..args[1].."...")
     local success, msg = g.insert(tonumber(args[1]))
     if success then
@@ -24,14 +24,14 @@ if component.isAvailable("generator") then
     else
       print("Error: "..msg)
     end
-  elseif string.lower(args[1]) = "all" then
+  elseif string.lower(args[1]) == "all" then
     io.write("Refuelling from all slots...")
     for i = 1, 16 do
       g.insert(i)
     end
     print("Done.")
   else
-  printUsage()
+    printUsage()
   end
 else
   print("This program requires the generator upgrade to be installed.")
