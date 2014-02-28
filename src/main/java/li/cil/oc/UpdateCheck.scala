@@ -1,14 +1,13 @@
 package li.cil.oc
 
-import argo.jdom.JdomParser
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.ComparableVersion
-import java.io.InputStreamReader
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Level
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
-import scala.collection.convert.WrapAsScala._
+import scala.io.Source
+import scala.util.parsing.json.{JSONObject, JSONArray, JSON}
 
 object UpdateCheck {
   val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
@@ -34,20 +33,30 @@ object UpdateCheck {
         case conn: HttpURLConnection =>
           conn.setRequestMethod("GET")
           conn.setDoOutput(false)
-          val json = new JdomParser().parse(new InputStreamReader(conn.getInputStream))
-          val candidates = json.getElements.filter(node => matchesVersion(node.getStringValue("tag_name")) && !node.getBooleanValue("prerelease"))
-          if (candidates.nonEmpty) {
-            val newest = candidates.maxBy(node => new ComparableVersion(node.getStringValue("tag_name").stripPrefix("v")))
-            val tag = newest.getStringValue("tag_name")
-            val tagVersion = new ComparableVersion(tag.stripPrefix("v"))
-            val modVersion = new ComparableVersion(version)
-            if (tagVersion.compareTo(modVersion) > 0) {
-              OpenComputers.log.info(s"A newer version is available: ($tag})")
-              return (player: EntityPlayerMP) =>
-                player.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.NewVersion", tag))
-            }
+          JSON.parseRaw(Source.fromInputStream(conn.getInputStream).mkString) match {
+            case Some(array: JSONArray) =>
+              val candidates = array.list.filter(_.isInstanceOf[JSONObject]).map(node => {
+                val obj = node.asInstanceOf[JSONObject].obj
+                (obj("tag_name").asInstanceOf[String], !obj("prerelease").asInstanceOf[Boolean])
+              }).filter {
+                case (tag, isRelease) => matchesVersion(tag) && isRelease
+              }
+              if (candidates.nonEmpty) {
+                val newest = candidates.maxBy {
+                  case (tagName, _) => new ComparableVersion(tagName.stripPrefix("v"))
+                }
+                val tag = newest._1
+                val tagVersion = new ComparableVersion(tag.stripPrefix("v"))
+                val modVersion = new ComparableVersion(version)
+                if (tagVersion.compareTo(modVersion) > 0) {
+                  OpenComputers.log.info(s"A newer version is available: ($tag})")
+                  return (player: EntityPlayerMP) =>
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.NewVersion", tag))
+                }
+              }
+              OpenComputers.log.info("Running the latest version.")
+            case _ => OpenComputers.log.warning("Unexpected response from Github.")
           }
-          OpenComputers.log.info("Running the latest version.")
         case _ => OpenComputers.log.warning("Failed to connect to Github.")
       }
     }
