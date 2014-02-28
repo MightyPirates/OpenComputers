@@ -166,6 +166,7 @@ class Settings(config: Config) {
       OpenComputers.log.warning("Bad number of Remote Terminal counts, ignoring.")
       Array(2, 4, 8)
   }
+  val updateCheck = config.getBoolean("misc.updateCheck")
 
 }
 

@@ -4,14 +4,14 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Loader, FMLCommonHandler}
-import li.cil.oc.api
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
-import li.cil.oc.{Items, Settings}
+import li.cil.oc.{UpdateCheck, api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.{ItemMap, ItemStack}
+import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
 import scala.collection.mutable
@@ -46,6 +46,10 @@ object EventHandler {
         if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
+        }
+        // Do update check in local games and for OPs.
+        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {
+          UpdateCheck.checkForPlayer(p)
         }
       case _ =>
     }

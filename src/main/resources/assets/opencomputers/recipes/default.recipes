@@ -128,10 +128,17 @@ solarGeneratorUpgrade {
           ["oc:circuitTier3", "oc:craftingGenerator", "oc:circuitTier3"]]
 }
 
+# Note: iron ingot and nugget recipes are *only* registered if no other mod
+# already provides the same functionality.
 nuggetIron {
   type: shapeless
   input: ingotIron
   output: 9
+}
+ingotIron {
+  input: [[nuggetIron, nuggetIron, nuggetIron],
+          [nuggetIron, nuggetIron, nuggetIron],
+          [nuggetIron, nuggetIron, nuggetIron]]
 }
 disk {
   input: [["", nuggetIron, ""]

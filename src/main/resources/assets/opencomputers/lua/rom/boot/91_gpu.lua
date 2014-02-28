@@ -6,6 +6,8 @@ local function onComponentAvailable(_, componentType)
      (componentType == "gpu" and component.isAvailable("screen"))
   then
     component.gpu.bind(component.screen.address)
+    local depth = 2^(component.gpu.getDepth())
+    os.setenv("TERM", "term-"..depth.."color")
   end
 end
 

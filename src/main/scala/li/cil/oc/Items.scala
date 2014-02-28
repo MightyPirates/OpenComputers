@@ -181,6 +181,7 @@ object Items {
 
     if (OreDictionary.getOres("nuggetIron").exists(ironNugget.createItemStack().isItemEqual)) {
       Recipes.addItemDelegate(ironNugget, "nuggetIron")
+      Recipes.addItem(Item.ingotIron, "ingotIron")
     }
   }
 
