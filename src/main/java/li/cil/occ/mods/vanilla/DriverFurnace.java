@@ -17,7 +17,7 @@ public final class DriverFurnace extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityFurnace) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntityFurnace) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityFurnace> {

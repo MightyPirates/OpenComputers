@@ -18,7 +18,7 @@ public final class DriverNoteBlock extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityNote) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntityNote) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityNote> {
@@ -47,7 +47,7 @@ public final class DriverNoteBlock extends DriverTileEntity {
             final int x = tileEntity.xCoord;
             final int y = tileEntity.yCoord;
             final int z = tileEntity.zCoord;
-            final Material material = world.getBlockMaterial(x, y + 1, z);
+            final Material material = world.getBlock(x, y + 1, z).getMaterial();
             final boolean canTrigger = material == Material.air;
 
             tileEntity.triggerNote(world, x, y, z);
@@ -59,7 +59,7 @@ public final class DriverNoteBlock extends DriverTileEntity {
                 throw new IllegalArgumentException("invalid pitch");
             }
             tileEntity.note = (byte) (value - 1);
-            tileEntity.onInventoryChanged();
+            tileEntity.markDirty();
         }
     }
 }

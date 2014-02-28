@@ -30,7 +30,6 @@ public final class ModVanilla implements IMod {
 
     @Override
     public void populate(final Map<String, Object> map, final ItemStack stack) {
-        map.put("id", stack.itemID);
         map.put("damage", stack.getItemDamage());
         map.put("maxDamage", stack.getMaxDamage());
         map.put("size", stack.stackSize);

@@ -20,7 +20,7 @@ public final class DriverMassFab extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(world.getBlockTileEntity(x, y, z));
+        return new Environment(world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntity> {

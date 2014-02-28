@@ -9,7 +9,7 @@ import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public final class DriverPowerReceptor extends DriverTileEntity {
     @Override
@@ -19,7 +19,7 @@ public final class DriverPowerReceptor extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IPowerReceptor) world.getBlockTileEntity(x, y, z));
+        return new Environment((IPowerReceptor) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IPowerReceptor> {

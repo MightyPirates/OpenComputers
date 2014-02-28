@@ -18,7 +18,7 @@ public final class DriverBeacon extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityBeacon) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntityBeacon) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityBeacon> {

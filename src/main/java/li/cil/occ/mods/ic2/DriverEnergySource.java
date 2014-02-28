@@ -17,7 +17,7 @@ public final class DriverEnergySource extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IEnergySource) world.getBlockTileEntity(x, y, z));
+        return new Environment((IEnergySource) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IEnergySource> {

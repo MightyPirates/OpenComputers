@@ -17,7 +17,7 @@ public final class DriverMobSpawner extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityMobSpawner) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntityMobSpawner) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityMobSpawner> {
@@ -27,7 +27,7 @@ public final class DriverMobSpawner extends DriverTileEntity {
 
         @Callback
         public Object[] getSpawningMobName(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getSpawnerLogic().getEntityNameToSpawn()};
+            return new Object[]{tileEntity.func_145881_a().getEntityNameToSpawn()};
         }
     }
 }

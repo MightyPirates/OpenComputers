@@ -6,34 +6,34 @@ import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
+import net.minecraft.block.BlockJukebox;
 import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityRecordPlayer;
 import net.minecraft.world.World;
 
 public final class DriverRecordPlayer extends DriverTileEntity {
     @Override
     public Class<?> getTileEntityClass() {
-        return TileEntityRecordPlayer.class;
+        return BlockJukebox.TileEntityJukebox.class;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityRecordPlayer) world.getBlockTileEntity(x, y, z));
+        return new Environment((BlockJukebox.TileEntityJukebox) world.getTileEntity(x, y, z));
     }
 
-    public static final class Environment extends ManagedTileEntityEnvironment<TileEntityRecordPlayer> {
-        public Environment(final TileEntityRecordPlayer tileEntity) {
+    public static final class Environment extends ManagedTileEntityEnvironment<BlockJukebox.TileEntityJukebox> {
+        public Environment(final BlockJukebox.TileEntityJukebox tileEntity) {
             super(tileEntity, "jukebox");
         }
 
         @Callback
         public Object[] getRecord(final Context context, final Arguments args) {
-            final ItemStack record = tileEntity.func_96097_a();
+            final ItemStack record = tileEntity.func_145856_a();
             if (record == null || !(record.getItem() instanceof ItemRecord)) {
                 return null;
             }
-            return new Object[]{((ItemRecord) record.getItem()).getRecordTitle()};
+            return new Object[]{((ItemRecord) record.getItem()).getRecordNameLocal()};
         }
     }
 }

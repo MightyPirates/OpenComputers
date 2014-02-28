@@ -17,7 +17,7 @@ public final class DriverSign extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntitySign) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntitySign) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntitySign> {

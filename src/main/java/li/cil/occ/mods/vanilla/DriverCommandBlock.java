@@ -17,7 +17,7 @@ public final class DriverCommandBlock extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((TileEntityCommandBlock) world.getBlockTileEntity(x, y, z));
+        return new Environment((TileEntityCommandBlock) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<TileEntityCommandBlock> {
@@ -27,12 +27,12 @@ public final class DriverCommandBlock extends DriverTileEntity {
 
         @Callback(direct = true)
         public Object[] getCommand(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getCommand()};
+            return new Object[]{tileEntity.func_145993_a().func_145753_i()};
         }
 
         @Callback
         public Object[] setCommand(final Context context, final Arguments args) {
-            tileEntity.setCommand(args.checkString(0));
+            tileEntity.func_145993_a().func_145752_a(args.checkString(0));
             tileEntity.getWorldObj().markBlockForUpdate(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
             return new Object[]{true};
         }
@@ -40,7 +40,8 @@ public final class DriverCommandBlock extends DriverTileEntity {
         @Callback
         public Object[] executeCommand(final Context context, final Arguments args) {
             context.pause(0.1); // Make sure the command block has time to do its thing.
-            return new Object[]{tileEntity.executeCommandOnPowered(tileEntity.getWorldObj())};
+            tileEntity.func_145993_a().func_145755_a(tileEntity.getWorldObj());
+            return new Object[]{true};
         }
     }
 }

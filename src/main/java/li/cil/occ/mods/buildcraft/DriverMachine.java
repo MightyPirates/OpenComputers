@@ -18,7 +18,7 @@ public final class DriverMachine extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
-        return new Environment((IMachine) world.getBlockTileEntity(x, y, z));
+        return new Environment((IMachine) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IMachine> {

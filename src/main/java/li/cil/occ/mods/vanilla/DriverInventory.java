@@ -18,7 +18,7 @@ public final class DriverInventory extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IInventory) world.getBlockTileEntity(x, y, z));
+        return new Environment((IInventory) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IInventory> {
@@ -28,7 +28,7 @@ public final class DriverInventory extends DriverTileEntity {
 
         @Callback
         public Object[] getInventoryName(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getInvName()};
+            return new Object[]{tileEntity.getInventoryName()};
         }
 
         @Callback
@@ -104,7 +104,7 @@ public final class DriverInventory extends DriverTileEntity {
                     if (stackA.stackSize == 0) {
                         tileEntity.setInventorySlotContents(slotA, null);
                     }
-                    tileEntity.onInventoryChanged();
+                    tileEntity.markDirty();
                     return new Object[]{true};
                 }
             } else if (count >= stackA.stackSize) {
@@ -126,7 +126,7 @@ public final class DriverInventory extends DriverTileEntity {
         }
 
         private boolean itemEquals(final ItemStack stackA, final ItemStack stackB) {
-            return stackA.itemID == stackB.itemID && !stackA.getHasSubtypes() || stackA.getItemDamage() == stackB.getItemDamage();
+            return stackA.getItem().equals(stackB.getItem()) && !stackA.getHasSubtypes() || stackA.getItemDamage() == stackB.getItemDamage();
         }
     }
 }

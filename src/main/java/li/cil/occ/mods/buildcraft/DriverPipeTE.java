@@ -1,7 +1,7 @@
 package li.cil.occ.mods.buildcraft;
 
-import buildcraft.api.transport.IPipe;
 import buildcraft.api.transport.IPipeTile;
+import buildcraft.api.transport.PipeWire;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -18,23 +18,19 @@ public final class DriverPipeTE extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IPipeTile) world.getBlockTileEntity(x, y, z));
+        return new Environment((IPipeTile) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IPipeTile> {
         public Environment(final IPipeTile tileEntity) {
-            super(tileEntity, "pipete");
+            super(tileEntity, "pipe");
         }
 
-        @Callback(doc = "function():boolean --  Returns whether the pipe has a gate.")
-        public Object[] hasGate(final Context context, final Arguments args) {
-            return new Object[]{tileEntity.getPipe().hasGate()};
-        }
 
         @Callback(doc = "function(color:string):boolean --  Returns whether the pipe is wired with the given color")
         public Object[] isWired(final Context context, final Arguments args) {
             try {
-                return new Object[]{tileEntity.getPipe().isWired(IPipe.WireColor.valueOf(args.checkString(0)))};
+                return new Object[]{tileEntity.isWireActive(PipeWire.valueOf(args.checkString(0)))};
             } catch (Throwable ignored) {
             }
             return new Object[]{false};

@@ -17,7 +17,7 @@ public class DriverDrawBridge extends DriverTileEntity {
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IDrawbridgeLogicBase) world.getBlockTileEntity(x, y, z));
+        return new Environment((IDrawbridgeLogicBase) world.getTileEntity(x, y, z));
     }
 
     public static final class Environment extends ManagedTileEntityEnvironment<IDrawbridgeLogicBase> {
