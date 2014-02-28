@@ -1,9 +1,9 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{OpenComputers, api, Settings}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -14,6 +14,9 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     withComponent("generator", Visibility.Neighbors).
     withConnector().
     create()
+
+  val romGenerator = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
+    fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/generator"), "generator"))
 
   var inventory: Option[ItemStack] = None
 
@@ -105,6 +108,13 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node.isNeighborOf(this.node)) {
+      romGenerator.foreach(fs => node.connect(fs.node))
+    }
+  }
+
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
@@ -122,11 +132,13 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
         case _ =>
       }
       remainingTicks = 0
+      romGenerator.foreach(_.node.remove())
     }
   }
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
+    romGenerator.foreach(_.load(nbt.getCompoundTag("romGenerator")))
     if (nbt.hasKey("inventory")) {
       inventory = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("inventory")))
     }
@@ -135,6 +147,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
+    romGenerator.foreach(fs => nbt.setNewCompoundTag("romGenerator", fs.save))
     inventory match {
       case Some(stack) => nbt.setNewCompoundTag("inventory", stack.writeToNBT)
       case _ =>

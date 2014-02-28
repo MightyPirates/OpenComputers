@@ -218,7 +218,7 @@ class InternetCard extends ManagedComponent {
     super.onConnect(node)
     if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
       owner = Some(node.host.asInstanceOf[Context])
-      romInternet.foreach(rom => node.connect(rom.node))
+      romInternet.foreach(fs => node.connect(fs.node))
     }
   }
 
@@ -275,7 +275,7 @@ class InternetCard extends ManagedComponent {
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romInternet.foreach(rom => nbt.setNewCompoundTag("romInternet", rom.save))
+    romInternet.foreach(fs => nbt.setNewCompoundTag("romInternet", fs.save))
     this.synchronized {
       request match {
         case Some((address, data)) =>
