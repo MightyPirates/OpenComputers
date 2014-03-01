@@ -26,7 +26,7 @@ if (System.getenv("BUILD_NUMBER") != null)
     version += "-dev${System.getenv("BUILD_NUMBER")}"
 
 minecraft {
-    version = "1.7.2-10.12.0.1028"
+    version = "1.7.2-10.12.0.1034"
     assetDir = "eclipse/assets"
 }
 processResources
