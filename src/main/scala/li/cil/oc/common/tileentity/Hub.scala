@@ -18,7 +18,7 @@ trait Hub extends Environment with SidedEnvironment {
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = true
 
-  override def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
+  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
 
   // ----------------------------------------------------------------------- //
 
