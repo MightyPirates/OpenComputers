@@ -86,14 +86,16 @@ object LuaStateFactory {
     isWindows = extension == ".dll"
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
 
-    if (isWindows && SystemUtils.IS_OS_WINDOWS_XP) {
-      OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting Windows XP in April 2014.")
-      break()
-    }
+    if (isWindows && !Settings.get.alwaysTryNative) {
+      if (SystemUtils.IS_OS_WINDOWS_XP) {
+        OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting Windows XP in April 2014.")
+        break()
+      }
 
-    if (isWindows && SystemUtils.IS_OS_WINDOWS_2003) {
-      OpenComputers.log.warning("Sorry, but Windows Server 2003 isn't supported. I'm afraid you'll have to use a newer Windows.")
-      break()
+      if (SystemUtils.IS_OS_WINDOWS_2003) {
+        OpenComputers.log.warning("Sorry, but Windows Server 2003 isn't supported. I'm afraid you'll have to use a newer Windows.")
+        break()
+      }
     }
 
     val tmpPath = {
