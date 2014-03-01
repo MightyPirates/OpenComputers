@@ -6,10 +6,10 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import java.util.logging.{Level, Logger}
 import li.cil.oc.util.mods.StargateTech2
 import net.minecraft.launchwrapper.{LaunchClassLoader, IClassTransformer}
+import net.minecraft.tileentity.TileEntity
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassWriter, ClassReader}
 import scala.collection.convert.WrapAsScala._
-import net.minecraft.tileentity.TileEntity
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 class ClassTransformer extends IClassTransformer {
@@ -17,15 +17,15 @@ class ClassTransformer extends IClassTransformer {
 
   val log = Logger.getLogger("OpenComputers")
 
-  override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
+  override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = try {
     if (name == "li.cil.oc.common.tileentity.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
       return ensureStargateTechCompatibility(basicClass)
     }
     else if (basicClass != null
-      && !name.startsWith( """net.minecraft.""")
-      && !name.startsWith( """net.minecraftforge.""")
-      && !name.startsWith( """li.cil.oc.common.asm.""")
-      && !name.startsWith( """li.cil.oc.api.""")) {
+      && !name.startsWith("""net.minecraft.""")
+      && !name.startsWith("""net.minecraftforge.""")
+      && !name.startsWith("""li.cil.oc.common.asm.""")
+      && !name.startsWith("""li.cil.oc.api.""")) {
       val classNode = newClassNode(basicClass)
       if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent")) {
         try {
@@ -39,6 +39,11 @@ class ClassTransformer extends IClassTransformer {
       }
     }
     basicClass
+  }
+  catch {
+    case t: Throwable =>
+      log.log(Level.WARNING, "Something went wrong!", t)
+      basicClass
   }
 
   def ensureStargateTechCompatibility(basicClass: Array[Byte]): Array[Byte] = {
@@ -104,9 +109,9 @@ class ClassTransformer extends IClassTransformer {
         case _ =>
           log.fine(s"No original implementation of $methodName, will inject override.")
           template.methods.find(_.name == methodName + "0") match {
-          case Some(method) => classNode.methods.add(method)
-          case _ => throw new AssertionError(s"Couldn't find ${methodName}0 in template implementation.")
-        }
+            case Some(method) => classNode.methods.add(method)
+            case _ => throw new AssertionError(s"Couldn't find ${methodName}0 in template implementation.")
+          }
       }
       template.methods.find(filter) match {
         case Some(method) => classNode.methods.add(method)
@@ -125,7 +130,11 @@ class ClassTransformer extends IClassTransformer {
     writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES)
   }
 
-  val tileEntityName = classOf[TileEntity].getName.replace('.', '/')
+  val tileEntityName = {
+    (try classOf[TileEntity] catch {
+      case _: Throwable => loader.findClass("net.minecraft.tileentity.TileEntity") // Dev env?
+    }).getName.replace('.', '/')
+  }
 
   def isTileEntity(classNode: ClassNode): Boolean = {
     classNode.name != "java/lang/Object" && (classNode.name == tileEntityName || isTileEntity(classNodeFor(classNode.superName)))
