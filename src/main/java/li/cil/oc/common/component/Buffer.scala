@@ -118,7 +118,8 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
     buffer.load(nbt.getCompoundTag("buffer"))
   }
 
-  def save(nbt: NBTTagCompound) = {
+  // Null check for Waila (and other mods that may call this client side).
+  def save(nbt: NBTTagCompound) = if (node != null) {
     // Happy thread synchronization hack! Here's the problem: GPUs allow direct
     // calls for modifying screens to give a more responsive experience. This
     // causes the following problem: when saving, if the screen is saved first,
