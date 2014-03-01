@@ -60,6 +60,7 @@ class Hologram extends Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
 
   override def sidedNode(side: ForgeDirection) = node

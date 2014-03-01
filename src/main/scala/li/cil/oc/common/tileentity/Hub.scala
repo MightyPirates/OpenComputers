@@ -31,11 +31,14 @@ trait Hub extends Environment with SidedEnvironment {
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
-      val plugNbt = new NBTTagCompound()
-      plug.node.save(plugNbt)
-      plugNbt
-    }))
+    // Side check for Waila (and other mods that may call this client side).
+    if (isServer) {
+      nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
+        val plugNbt = new NBTTagCompound()
+        plug.node.save(plugNbt)
+        plugNbt
+      }))
+    }
   }
 
   // ----------------------------------------------------------------------- //

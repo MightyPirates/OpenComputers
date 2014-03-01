@@ -37,10 +37,13 @@ class PowerDistributor extends Environment with PowerBalancer with Analyzable {
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setNewTagList(Settings.namespace + "connector", nodes.map(connector => {
-      val connectorNbt = new NBTTagCompound()
-      connector.save(connectorNbt)
-      connectorNbt
-    }))
+    // Side check for Waila (and other mods that may call this client side).
+    if (isServer) {
+      nbt.setNewTagList(Settings.namespace + "connector", nodes.map(connector => {
+        val connectorNbt = new NBTTagCompound()
+        connector.save(connectorNbt)
+        connectorNbt
+      }))
+    }
   }
 }

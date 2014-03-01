@@ -340,7 +340,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
+  // Side check for Waila (and other mods that may call this client side).
+  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) this.synchronized {
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
     // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
