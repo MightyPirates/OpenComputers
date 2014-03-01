@@ -78,6 +78,9 @@ trait Capacity extends OutputStreamFileSystem {
       case None => None
       case Some(stream) =>
         used += delta
+        if (mode == Mode.Append) {
+          stream.seek(stream.length())
+        }
         Some(new CountingOutputHandle(this, stream))
     }
   }
