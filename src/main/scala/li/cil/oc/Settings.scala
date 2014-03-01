@@ -167,7 +167,7 @@ class Settings(config: Config) {
       Array(2, 4, 8)
   }
   val updateCheck = config.getBoolean("misc.updateCheck")
-
+  val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
 }
 
 object Settings {
