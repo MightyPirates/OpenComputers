@@ -3,7 +3,7 @@ package li.cil.oc.server
 import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import li.cil.oc.api
-import li.cil.oc.common.tileentity.TileEntity
+import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
 
 object TickHandler extends ITickHandler {

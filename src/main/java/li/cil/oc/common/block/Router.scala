@@ -2,7 +2,6 @@ package li.cil.oc.common.block
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
@@ -40,10 +39,4 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Router)
-
-  override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case router: tileentity.Router => api.Network.joinOrCreateNetwork(router)
-      case _ =>
-    }
 }

@@ -2,7 +2,6 @@ package li.cil.oc.common.block
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
@@ -33,12 +32,6 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
-
-  override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getBlockTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard => api.Network.joinOrCreateNetwork(keyboard)
-      case _ =>
-    }
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.isBlockSolidOnSide(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&

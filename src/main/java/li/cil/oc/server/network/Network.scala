@@ -1,8 +1,10 @@
 package li.cil.oc.server.network
 
+import codechicken.multipart.TileMultipart
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity.PassiveNode
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
@@ -410,6 +412,7 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
+      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart])
       case _ => None
     }
 

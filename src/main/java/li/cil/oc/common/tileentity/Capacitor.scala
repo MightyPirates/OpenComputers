@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{Node, Visibility}
 import li.cil.oc.server.TickHandler
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
@@ -43,6 +43,13 @@ class Capacitor extends Environment with PassiveNode {
           nx == capacitor.x && ny == capacitor.y && nz == capacitor.z
         }) => capacitor.recomputeCapacity()
       }
+    }
+  }
+
+  override def onConnect(node: Node) {
+    super.onConnect(node)
+    if (node == this.node) {
+      recomputeCapacity(updateSecondGradeNeighbors = true)
     }
   }
 
