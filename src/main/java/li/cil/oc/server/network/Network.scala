@@ -412,7 +412,10 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
-      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart])
+      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
+        case Some(part: CablePart) => Some(part.node)
+        case _ => None
+      }
       case _ => None
     }
 

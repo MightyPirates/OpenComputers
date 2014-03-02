@@ -4,7 +4,7 @@ import codechicken.lib.vec.BlockCoord
 import codechicken.multipart.MultiPartRegistry.{IPartConverter, IPartFactory}
 import codechicken.multipart.{TMultiPart, MultiPartRegistry}
 import li.cil.oc.Blocks
-import li.cil.oc.common.block.Delegator
+import li.cil.oc.common.tileentity.Cable
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
 
@@ -17,7 +17,7 @@ object MultiPart extends IPartFactory with IPartConverter {
 
   override def createPart(name: String, client: Boolean): TMultiPart = {
     if (name.equals("oc:cable"))
-      return new CablePart
+      return new CablePart()
     null
   }
 
@@ -25,13 +25,10 @@ object MultiPart extends IPartFactory with IPartConverter {
     blockID == Blocks.cable.parent.blockID
   }
 
-  override def convert(world: World, pos: BlockCoord): TMultiPart = {
-    Delegator.subBlock(world, pos.x, pos.y, pos.z) match {
-      case Some(subBlock) =>
-        if (subBlock == Blocks.cable)
-          return new CablePart()
-      case _ =>
+  override def convert(world: World, pos: BlockCoord) = {
+    world.getBlockTileEntity(pos.x, pos.y, pos.z) match {
+      case cable: Cable => new CablePart()
+      case _ => null
     }
-    null
   }
 }

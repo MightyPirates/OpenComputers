@@ -28,14 +28,9 @@ class CablePart extends TCuboidPart with TNormalOcclusion with network.Environme
 
   override def getRenderBounds = new Cuboid6(Cable.bounds(world, x, y, z).offset(x, y, z))
 
-  // TODO re-use existing node
-  //  override def invalidateConvertedTile() {
-  //    super.invalidateConvertedTile()
-  //  }
-
   override def onChunkLoad() {
     super.onChunkLoad()
-    TickHandler.schedule(tile)
+    TickHandler.schedule(this)
   }
 
   override def onChunkUnload() {
@@ -45,7 +40,7 @@ class CablePart extends TCuboidPart with TNormalOcclusion with network.Environme
 
   override def onAdded() {
     super.onAdded()
-    TickHandler.schedule(tile)
+    TickHandler.schedule(this)
   }
 
   override def onRemoved() {
