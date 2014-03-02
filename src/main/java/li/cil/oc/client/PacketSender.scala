@@ -108,6 +108,11 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendMultiPlace() {
+    val pb = new PacketBuilder(PacketType.MultiPartPlace)
+    pb.sendToServer()
+  }
+
   def sendRobotStateRequest(dimension: Int, x: Int, y: Int, z: Int) {
     val pb = new PacketBuilder(PacketType.RobotStateRequest)
 
