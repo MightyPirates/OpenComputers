@@ -36,6 +36,7 @@ object Tooltip {
           val c = iterator.next()
           if (c == '§') {
             iterator.next()
+            position += 2
           }
           else {
             if (c == ' ') {

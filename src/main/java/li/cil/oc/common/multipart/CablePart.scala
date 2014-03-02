@@ -58,7 +58,10 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    // Null check for Waila (and other mods that may call this client side).
+    if (node != null) {
+      nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    }
   }
 
   @SideOnly(Side.CLIENT)
