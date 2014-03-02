@@ -46,7 +46,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
         subBlock(block.getMetadata(stack.getItemDamage))
       case _ => None
     }
-  else None
+    else None
 
   def subBlock(world: IBlockAccess, x: Int, y: Int, z: Int): Option[Child] =
     if (world.getBlockId(x, y, z) == blockID) subBlock(world.getBlockMetadata(x, y, z))
@@ -133,6 +133,12 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   def dropBlockAsItem(world: World, x: Int, y: Int, z: Int, stack: ItemStack) {
     dropBlockAsItem_do(world, x, y, z, stack)
   }
+
+  override def getExplosionResistance(entity: Entity, world: World, x: Int, y: Int, z: Int, explosionX: Double, explosionY: Double, explosionZ: Double) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.explosionResistance(entity, world, x, y, z, explosionX, explosionY, explosionZ)
+      case _ => super.getExplosionResistance(entity, world, x, y, z, explosionX, explosionY, explosionZ)
+    }
 
   override def isBlockNormalCube(world: World, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {

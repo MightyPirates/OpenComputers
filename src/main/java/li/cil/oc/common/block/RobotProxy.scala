@@ -8,7 +8,7 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Blocks, Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
@@ -70,6 +70,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def explosionResistance(entity: Entity, world: World, x: Int, y: Int, z: Int, explosionX: Double, explosionY: Double, explosionZ: Double) = 10f
 
   override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
