@@ -382,7 +382,7 @@ object Network extends api.detail.NetworkAPI {
   }
 
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
-    if (!tileEntity.getWorldObj.isRemote) {
+    if (!tileEntity.isInvalid && !tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val (nx, ny, nz) = (
           tileEntity.xCoord + side.offsetX,
