@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
@@ -19,7 +20,9 @@ class Proxy {
 
     Blocks.init()
     Items.init()
-    MultiPart.init()
+    if (Loader.isModLoaded("ForgeMultipart")) {
+      MultiPart.init()
+    }
 
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem

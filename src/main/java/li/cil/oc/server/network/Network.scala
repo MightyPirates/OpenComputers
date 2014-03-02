@@ -1,7 +1,7 @@
 package li.cil.oc.server.network
 
 import codechicken.multipart.TileMultipart
-import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.common.multipart.CablePart
@@ -395,7 +395,9 @@ object Network extends api.detail.NetworkAPI {
           case Some(node: MutableNode) =>
             neighborNode match {
               case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
-                if (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite)) neighbor.connect(node)
+                val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
+                  (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
+                if (canConnect) neighbor.connect(node)
                 else node.disconnect(neighbor)
               case _ =>
             }
@@ -417,6 +419,12 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
+      case host if Loader.isModLoaded("ForgeMultipart") => getMultiPartNode(host)
+      case _ => None
+    }
+
+  private def getMultiPartNode(tileEntity: TileEntity) =
+    tileEntity match {
       case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
         case Some(part: CablePart) => Some(part.node)
         case _ => None

@@ -1,19 +1,21 @@
 package li.cil.oc.common.block
 
+import codechicken.multipart.TileMultipart
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+import li.cil.oc.Settings
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
+import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{Settings, api}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{Icon, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import codechicken.multipart.{TileMultipart, TMultiPart}
-import li.cil.oc.common.multipart.CablePart
 
 class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Cable"
@@ -86,29 +88,16 @@ object Cable {
 
   def neighbors(world: IBlockAccess, x: Int, y: Int, z: Int) = {
     var result = 0
-    val tileEntity = world.getBlockTileEntity(x, y, z) match {
-      case multi: TileMultipart => Some(multi)
-      case _ => None
-    }
+    val tileEntity = world.getBlockTileEntity(x, y, z)
     for (side <- ForgeDirection.VALID_DIRECTIONS) {
-      if (tileEntity match {
-        case Some(multi) => !multi.isSolid(side.ordinal)
-        case _ => true
-      }) {
-        val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-        if (!world.isAirBlock(tx, ty, tz)) world.getBlockTileEntity(tx, ty, tz) match {
-          case robot: tileentity.RobotProxy =>
-          case host: SidedEnvironment =>
-            val connects = if (host.getWorldObj.isRemote) host.canConnect(side.getOpposite) else host.sidedNode(side.getOpposite) != null
-            if (connects) {
-              result |= side.flag
-            }
-          case host: Environment => result |= side.flag
-          case multi: TileMultipart =>
-            if (multi.partList.exists(_.isInstanceOf[CablePart]) &&
-              !multi.isSolid(side.getOpposite.ordinal))
-              result |= side.flag
-          case _ =>
+      val (tx, ty, tz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
+      if (!world.isAirBlock(tx, ty, tz)) {
+        val neighborTileEntity = world.getBlockTileEntity(tx, ty, tz)
+        val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
+        val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
+          (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
+        if (neighborHasNode && canConnect) {
+          result |= side.flag
         }
       }
     }
@@ -116,4 +105,27 @@ object Cable {
   }
 
   def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) = Cable.cachedBounds(Cable.neighbors(world, x, y, z)).copy()
+
+  private def hasNetworkNode(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case robot: tileentity.RobotProxy => false
+      case host: SidedEnvironment =>
+        if (host.getWorldObj.isRemote) host.canConnect(side)
+        else host.sidedNode(side) != null
+      case host: Environment => true
+      case host if Loader.isModLoaded("ForgeMultipart") => hasMultiPartNode(tileEntity)
+      case _ => false
+    }
+
+  private def hasMultiPartNode(tileEntity: TileEntity) =
+    tileEntity match {
+      case host: TileMultipart => host.partList.exists(_.isInstanceOf[CablePart])
+      case _ => false
+    }
+
+  private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case host: TileMultipart => !host.isSolid(side.ordinal)
+      case _ => true
+    }
 }
