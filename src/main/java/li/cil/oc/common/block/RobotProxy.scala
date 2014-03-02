@@ -71,7 +71,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   // ----------------------------------------------------------------------- //
 
-  override def explosionResistance(entity: Entity, world: World, x: Int, y: Int, z: Int, explosionX: Double, explosionY: Double, explosionZ: Double) = 10f
+  override def explosionResistance(entity: Entity) = 10f
 
   override def isNormalCube(world: World, x: Int, y: Int, z: Int) = false
 
