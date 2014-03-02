@@ -1,29 +1,28 @@
 package li.cil.oc.common.multipart
 
-import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
-import net.minecraftforge.event.ForgeSubscribe
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.World
+import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
 import codechicken.lib.vec.{Vector3, BlockCoord}
-import net.minecraft.block.Block
-import li.cil.oc.Blocks
 import codechicken.multipart.{TileMultipart, TMultiPart}
-import codechicken.lib.packet.PacketCustom
+import li.cil.oc.Blocks
+import li.cil.oc.client.PacketSender
+import li.cil.oc.common.block.Delegator
+import net.minecraft.block.Block
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.packet.Packet15Place
 import net.minecraftforge.common.MinecraftForge
-import li.cil.oc.common.block.Delegator
-import li.cil.oc.client.PacketSender
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
 
 object EventHandler {
-
   @ForgeSubscribe
   def playerInteract(event: PlayerInteractEvent) {
-    if (event.action == Action.RIGHT_CLICK_BLOCK && event.entityPlayer.worldObj.isRemote) {
-      if (place(event.entityPlayer))
+    val player = event.entityPlayer
+    if (event.action == Action.RIGHT_CLICK_BLOCK && player.getEntityWorld.isRemote) {
+      if (place(player)) {
         event.setCanceled(true)
-
+      }
     }
   }
 
@@ -33,7 +32,6 @@ object EventHandler {
     if (hit == null)
       return false
 
-    val pos = new BlockCoord(hit.blockX, hit.blockY, hit.blockZ)
     val held = player.getHeldItem
     var part: TMultiPart = null
     if (held == null)
@@ -48,11 +46,11 @@ object EventHandler {
     if (part == null)
       return false
 
-    //attempt to use block activated like normal and tell the server the right stuff
+    // attempt to use block activated like normal and tell the server the right stuff
     if (world.isRemote && !player.isSneaking) {
       val f = new Vector3(hit.hitVec).add(-hit.blockX, -hit.blockY, -hit.blockZ)
       val block = Block.blocksList(world.getBlockId(hit.blockX, hit.blockY, hit.blockZ))
-      if (block != null &&  block.onBlockActivated(world, hit.blockX, hit.blockY, hit.blockZ, player, hit.sideHit, f.x.toFloat, f.y.toFloat, f.z.toFloat)) {
+      if (block != null && block.onBlockActivated(world, hit.blockX, hit.blockY, hit.blockZ, player, hit.sideHit, f.x.toFloat, f.y.toFloat, f.z.toFloat)) {
         player.swingItem()
         PacketCustom.sendToServer(new Packet15Place(
           hit.blockX, hit.blockY, hit.blockZ, hit.sideHit,
@@ -62,10 +60,21 @@ object EventHandler {
       }
     }
 
-    val tile = TileMultipart.getOrConvertTile(world, pos)
-    if (tile == null || !tile.canAddPart(part))
-      return false
+    val pos = new BlockCoord(hit.blockX, hit.blockY, hit.blockZ)
+    val posOutside = pos.copy().offset(hit.sideHit)
+    val inside = Option(TileMultipart.getOrConvertTile(world, pos))
+    val outside = Option(TileMultipart.getOrConvertTile(world, posOutside))
+    inside match {
+      case Some(t) if t.canAddPart(part) => placeMultiPart(player, part, pos)
+      case _ => outside match {
+        case Some(t) if t.canAddPart(part) => placeMultiPart(player, part, posOutside)
+        case _ => false
+      }
+    }
+  }
 
+  protected def placeMultiPart(player: EntityPlayer, part: TMultiPart, pos: BlockCoord) = {
+    val world = player.getEntityWorld
     if (!world.isRemote) {
       TileMultipart.addPart(world, pos, part)
       world.playSoundEffect(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5,
@@ -73,6 +82,7 @@ object EventHandler {
         (Blocks.cable.parent.stepSound.getVolume + 1.0F) / 2.0F,
         Blocks.cable.parent.stepSound.getPitch * 0.8F)
       if (!player.capabilities.isCreativeMode) {
+        val held = player.getHeldItem
         held.stackSize -= 1
         if (held.stackSize == 0) {
           player.inventory.mainInventory(player.inventory.currentItem) = null
@@ -82,11 +92,8 @@ object EventHandler {
     }
     else {
       player.swingItem()
-      //TODO
       PacketSender.sendMultiPlace()
     }
     true
   }
-
-
 }

@@ -9,16 +9,25 @@ import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common.block.Cable
 import li.cil.oc.server.TickHandler
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Blocks, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.{MovingObjectPosition, AxisAlignedBB}
+import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsJava
+import scala.collection.convert.WrapAsScala._
+import net.minecraft.entity.Entity
 
-class CablePart extends TCuboidPart with TNormalOcclusion with network.Environment {
+class CablePart(val original: Option[Node] = None) extends TCuboidPart with TNormalOcclusion with TIconHitEffects with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   def getType = "oc:cable"
+
+  override def pickItem(hit: MovingObjectPosition) = Blocks.cable.createItemStack()
+
+  override def getDrops = WrapAsJava.asJavaIterable(Iterable(Blocks.cable.createItemStack()))
+
+  override def explosionResistance(entity: Entity) = Blocks.cable.explosionResistance(entity)
 
   override def doesTick = false
 
@@ -28,23 +37,23 @@ class CablePart extends TCuboidPart with TNormalOcclusion with network.Environme
 
   override def getRenderBounds = new Cuboid6(Cable.bounds(world, x, y, z).offset(x, y, z))
 
-  override def onChunkLoad() {
-    super.onChunkLoad()
+  override def invalidateConvertedTile() {
+    super.invalidateConvertedTile()
+    original.foreach(_.neighbors.foreach(_.connect(this.node)))
+  }
+
+  override def onPartChanged(part: TMultiPart) {
+    super.onPartChanged(part)
+    api.Network.joinOrCreateNetwork(tile)
+  }
+
+  override def onWorldJoin() {
+    super.onWorldJoin()
     TickHandler.schedule(this)
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    Option(node).foreach(_.remove)
-  }
-
-  override def onAdded() {
-    super.onAdded()
-    TickHandler.schedule(this)
-  }
-
-  override def onRemoved() {
-    super.onRemoved()
+  override def onWorldSeparate() {
+    super.onWorldSeparate()
     Option(node).foreach(_.remove)
   }
 
@@ -65,6 +74,9 @@ class CablePart extends TCuboidPart with TNormalOcclusion with network.Environme
     CableRenderer.renderCable(Cable.neighbors(world, x, y, z))
     GL11.glTranslated(-pos.x, -pos.y, -pos.z)
   }
+
+  @SideOnly(Side.CLIENT)
+  override def getBrokenIcon(side: Int) = Blocks.cable.icon(ForgeDirection.getOrientation(side)).orNull
 
   override def onMessage(message: Message) {}
 

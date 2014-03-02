@@ -27,7 +27,7 @@ object MultiPart extends IPartFactory with IPartConverter {
 
   override def convert(world: World, pos: BlockCoord) = {
     world.getBlockTileEntity(pos.x, pos.y, pos.z) match {
-      case cable: Cable => new CablePart()
+      case cable: Cable => new CablePart(Some(cable.node))
       case _ => null
     }
   }

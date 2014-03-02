@@ -384,20 +384,25 @@ object Network extends api.detail.NetworkAPI {
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
     if (!tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        getNetworkNode(tileEntity, side) match {
+        val (nx, ny, nz) = (
+          tileEntity.xCoord + side.offsetX,
+          tileEntity.yCoord + side.offsetY,
+          tileEntity.zCoord + side.offsetZ)
+        val localNode = getNetworkNode(tileEntity, side)
+        val neighborTileEntity = tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz)
+        val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
+        localNode match {
           case Some(node: MutableNode) =>
-            val (nx, ny, nz) = (
-              tileEntity.xCoord + side.offsetX,
-              tileEntity.yCoord + side.offsetY,
-              tileEntity.zCoord + side.offsetZ)
-            getNetworkNode(tileEntity.getWorldObj.getBlockTileEntity(nx, ny, nz), side.getOpposite) match {
-              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null => neighbor.connect(node)
-              case _ => // Ignore.
+            neighborNode match {
+              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
+                if (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite)) neighbor.connect(node)
+                else node.disconnect(neighbor)
+              case _ =>
             }
             if (node.network == null) {
               joinNewNetwork(node)
             }
-          case _ => // No node for this side or bad environment.
+          case _ =>
         }
       }
     }
@@ -417,6 +422,12 @@ object Network extends api.detail.NetworkAPI {
         case _ => None
       }
       case _ => None
+    }
+
+  private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case host: TileMultipart => !host.isSolid(side.ordinal)
+      case _ => true
     }
 
   // ----------------------------------------------------------------------- //
