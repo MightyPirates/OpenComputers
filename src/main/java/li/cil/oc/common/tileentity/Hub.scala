@@ -17,7 +17,7 @@ trait Hub extends Environment with SidedEnvironment {
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = true
 
-  override def sidedNode(side: ForgeDirection) = plugs(side.ordinal()).node
+  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
 
   // ----------------------------------------------------------------------- //
 
@@ -30,11 +30,14 @@ trait Hub extends Environment with SidedEnvironment {
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
-      val plugNbt = new NBTTagCompound()
-      plug.node.save(plugNbt)
-      plugNbt
-    }))
+    // Side check for Waila (and other mods that may call this client side).
+    if (isServer) {
+      nbt.setNewTagList(Settings.namespace + "plugs", plugs.map(plug => {
+        val plugNbt = new NBTTagCompound()
+        plug.node.save(plugNbt)
+        plugNbt
+      }))
+    }
   }
 
   // ----------------------------------------------------------------------- //

@@ -36,6 +36,11 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   // For client side rendering.
   var isPresent = Array.fill[Option[String]](getSizeInventory)(None)
 
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = side != facing
+
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
+
   // ----------------------------------------------------------------------- //
 
   override def canConnect(side: ForgeDirection) = side != facing
@@ -220,7 +225,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     range = nbt.getInteger(Settings.namespace + "range")
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  // Side check for Waila (and other mods that may call this client side).
+  override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
     if (!new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))) {
       nbt.setNewTagList(Settings.namespace + "servers", servers map {
         case Some(server) =>

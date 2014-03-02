@@ -23,8 +23,7 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   override protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle] =
     Some(new FileHandle(new RandomAccessFile(new io.File(root, path), mode match {
-      case Mode.Append => "a"
-      case Mode.Write => "w"
+      case Mode.Append | Mode.Write => "rw"
       case _ => throw new IllegalArgumentException()
     }), this, id, path))
 

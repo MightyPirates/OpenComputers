@@ -26,9 +26,9 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Machine.Owner {
 
   // ----------------------------------------------------------------------- //
 
-  override def address() = machine.node.address
+  override def address = machine.node.address
 
-  override def node() = machine.node
+  override def node = machine.node
 
   override def start() = machine.start()
 
