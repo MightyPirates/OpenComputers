@@ -11,23 +11,17 @@ import li.cil.oc.server.TickHandler
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{MovingObjectPosition, AxisAlignedBB}
-import net.minecraftforge.common.ForgeDirection
+import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
-import net.minecraft.entity.Entity
 
-class CablePart(val original: Option[Node] = None) extends TCuboidPart with TNormalOcclusion with TIconHitEffects with network.Environment {
+class CablePart(val original: Option[Node] = None) extends DelegatePart with TCuboidPart with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
+  override def delegate = Blocks.cable
+
   def getType = "oc:cable"
-
-  override def pickItem(hit: MovingObjectPosition) = Blocks.cable.createItemStack()
-
-  override def getDrops = WrapAsJava.asJavaIterable(Iterable(Blocks.cable.createItemStack()))
-
-  override def explosionResistance(entity: Entity) = Blocks.cable.explosionResistance(entity)
 
   override def doesTick = false
 
@@ -74,9 +68,6 @@ class CablePart(val original: Option[Node] = None) extends TCuboidPart with TNor
     CableRenderer.renderCable(Cable.neighbors(world, x, y, z))
     GL11.glTranslated(-pos.x, -pos.y, -pos.z)
   }
-
-  @SideOnly(Side.CLIENT)
-  override def getBrokenIcon(side: Int) = Blocks.cable.icon(ForgeDirection.getOrientation(side)).orNull
 
   override def onMessage(message: Message) {}
 
