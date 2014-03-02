@@ -12,6 +12,7 @@
   "dependencies": [
     "BuildCraft|Energy",
     "ComputerCraft",
+      "ForgeMultipart",
     "IC2",
     "MineFactoryReloaded",
     "ProjRed|Transmission",

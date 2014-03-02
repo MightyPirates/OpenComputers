@@ -4,7 +4,7 @@ import cpw.mods.fml.common.Loader
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{api, OpenComputers, Settings}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -43,12 +43,6 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.DiskDrive)
-
-  override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
-      case drive: tileentity.DiskDrive => api.Network.joinOrCreateNetwork(drive)
-      case _ =>
-    }
 
   // ----------------------------------------------------------------------- //
 

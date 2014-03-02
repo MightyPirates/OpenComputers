@@ -2,15 +2,15 @@ package li.cil.oc.common.block
 
 import java.util
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{api, Settings}
+import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraft.block.Block
 
 class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Capacitor"
@@ -44,14 +44,6 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def createTileEntity(world: World) = Some(new tileentity.Capacitor)
 
   // ----------------------------------------------------------------------- //
-
-  override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
-      case capacitor: tileentity.Capacitor =>
-        api.Network.joinOrCreateNetwork(capacitor)
-        capacitor.recomputeCapacity(updateSecondGradeNeighbors = true)
-      case _ =>
-    }
 
   override def neighborBlockChanged(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {

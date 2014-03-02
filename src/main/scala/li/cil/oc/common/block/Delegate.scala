@@ -36,6 +36,8 @@ trait Delegate {
 
   def drops(world: World, x: Int, y: Int, z: Int, fortune: Int): Option[java.util.ArrayList[ItemStack]] = None
 
+  def explosionResistance(entity: Entity): Float = parent.getExplosionResistance(entity)
+
   def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) = true
 
   def validRotations(world: World, x: Int, y: Int, z: Int) = validRotations_

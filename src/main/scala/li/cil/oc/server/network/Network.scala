@@ -1,6 +1,6 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
@@ -380,22 +380,29 @@ object Network extends api.detail.NetworkAPI {
   }
 
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
-    if (!tileEntity.getWorldObj.isRemote) {
+    if (!tileEntity.isInvalid && !tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        getNetworkNode(tileEntity, side) match {
+        val (nx, ny, nz) = (
+          tileEntity.xCoord + side.offsetX,
+          tileEntity.yCoord + side.offsetY,
+          tileEntity.zCoord + side.offsetZ)
+        val localNode = getNetworkNode(tileEntity, side)
+        val neighborTileEntity = tileEntity.getWorldObj.getTileEntity(nx, ny, nz)
+        val neighborNode = getNetworkNode(neighborTileEntity, side.getOpposite)
+        localNode match {
           case Some(node: MutableNode) =>
-            val (nx, ny, nz) = (
-              tileEntity.xCoord + side.offsetX,
-              tileEntity.yCoord + side.offsetY,
-              tileEntity.zCoord + side.offsetZ)
-            getNetworkNode(tileEntity.getWorldObj.getTileEntity(nx, ny, nz), side.getOpposite) match {
-              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null => neighbor.connect(node)
-              case _ => // Ignore.
+            neighborNode match {
+              case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
+                val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
+                  (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
+                if (canConnect) neighbor.connect(node)
+                else node.disconnect(neighbor)
+              case _ =>
             }
             if (node.network == null) {
               joinNewNetwork(node)
             }
-          case _ => // No node for this side or bad environment.
+          case _ =>
         }
       }
     }
@@ -410,7 +417,27 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
+      case host if Loader.isModLoaded("ForgeMultipart") => getMultiPartNode(host)
       case _ => None
+    }
+
+  private def getMultiPartNode(tileEntity: TileEntity) =
+    tileEntity match {
+      /* TODO FMP
+      case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
+        case Some(part: CablePart) => Some(part.node)
+        case _ => None
+      }
+      */
+      case _ => None
+    }
+
+  private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      /* TODO FMP
+      case host: TileMultipart => !host.isSolid(side.ordinal)
+      */
+      case _ => true
     }
 
   // ----------------------------------------------------------------------- //

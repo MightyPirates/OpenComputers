@@ -17,6 +17,11 @@ class Proxy {
 
     Blocks.init()
     Items.init()
+    /* TODO FMP
+    if (Loader.isModLoaded("ForgeMultipart")) {
+      MultiPart.init()
+    }
+    */
 
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem

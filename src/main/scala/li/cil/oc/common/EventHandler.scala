@@ -4,11 +4,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Loader, FMLCommonHandler}
+import li.cil.oc.api.Network
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
-import li.cil.oc.{UpdateCheck, api, Items, Settings}
+import li.cil.oc.{UpdateCheck, Items, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.server.MinecraftServer
@@ -20,8 +21,15 @@ object EventHandler {
   val pendingAdds = mutable.Buffer.empty[() => Unit]
 
   def schedule(tileEntity: TileEntity) = pendingAdds.synchronized {
-    pendingAdds += (() => if (!tileEntity.isInvalid) api.Network.joinOrCreateNetwork(tileEntity))
+    pendingAdds += (() => Network.joinOrCreateNetwork(tileEntity))
   }
+
+  /* TODO FMP
+  @Optional.Method(modid = "ForgeMultipart")
+  def schedule(part: TMultiPart) = pendingAdds.synchronized {
+    pendingAdds += (() => Network.joinOrCreateNetwork(part.tile))
+  }
+  */
 
   @SubscribeEvent
   def onTick(e: ServerTickEvent) = pendingAdds.synchronized {

@@ -134,6 +134,12 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
     dropBlockAsItem(world, x, y, z, stack)
   }
 
+  override def getExplosionResistance(entity: Entity, world: World, x: Int, y: Int, z: Int, explosionX: Double, explosionY: Double, explosionZ: Double) =
+    subBlock(world, x, y, z) match {
+      case Some(subBlock) => subBlock.explosionResistance(entity)
+      case _ => super.getExplosionResistance(entity, world, x, y, z, explosionX, explosionY, explosionZ)
+    }
+
   override def isNormalCube(world: IBlockAccess, x: Int, y: Int, z: Int) =
     subBlock(world.getBlockMetadata(x, y, z)) match {
       case Some(subBlock) => subBlock.isNormalCube(world, x, y, z)

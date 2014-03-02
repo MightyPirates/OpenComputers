@@ -29,6 +29,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.MultiPartPlace => onMultiPartPlace(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
@@ -140,6 +141,16 @@ object PacketHandler extends CommonPacketHandler {
         }
       case _ => // Invalid packet.
     }
+  }
+
+  def onMultiPartPlace(p: PacketParser) {
+    p.player match {
+      /* TODO FMP
+      case player: EntityPlayerMP => EventHandler.place(player)
+      */
+      case _ => // Invalid packet.
+    }
+
   }
 
   def onRobotStateRequest(p: PacketParser) =

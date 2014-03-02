@@ -1,9 +1,9 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.{Blocks, api, Settings}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Blocks, Settings}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -38,12 +38,6 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Keyboard(world.isRemote))
-
-  override def update(world: World, x: Int, y: Int, z: Int) =
-    world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard => api.Network.joinOrCreateNetwork(keyboard)
-      case _ =>
-    }
 
   // DEPRECATED Seems this isn't available anymore with stack info, use real
   // items in 1.7 when needed since IDs are no problem anymore.
