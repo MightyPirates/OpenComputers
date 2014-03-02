@@ -12,7 +12,7 @@ object MultiPart extends IPartFactory with IPartConverter {
   def init() {
     MultiPartRegistry.registerConverter(this)
     MultiPartRegistry.registerParts(this, Array("oc:cable"))
-    MinecraftForge.EVENT_BUS.register(new EventHandler())
+    MinecraftForge.EVENT_BUS.register(EventHandler)
   }
 
   override def createPart(name: String, client: Boolean): TMultiPart = {

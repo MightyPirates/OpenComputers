@@ -9,6 +9,7 @@ import li.cil.oc.server.component.machine.Machine
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
+import li.cil.oc.common.multipart.{EventHandler, MultiPart}
 
 class PacketHandler extends CommonPacketHandler {
   override protected def world(player: Player, dimension: Int) =
@@ -22,6 +23,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.MultiPartPlace => onMultiPartPlace(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
@@ -132,6 +134,14 @@ class PacketHandler extends CommonPacketHandler {
         }
       case _ => // Invalid packet.
     }
+  }
+
+  def onMultiPartPlace(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayerMP => EventHandler.place(player)
+      case _ => // Invalid packet.
+    }
+
   }
 
   def onRobotStateRequest(p: PacketParser) =
