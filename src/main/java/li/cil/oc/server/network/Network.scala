@@ -1,9 +1,11 @@
 package li.cil.oc.server.network
 
-import codechicken.multipart.TileMultipart
+import codechicken.lib.vec.Cuboid6
+import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TileMultipart}
 import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity.PassiveNode
 import li.cil.oc.server.network.{Node => MutableNode}
@@ -434,7 +436,15 @@ object Network extends api.detail.NetworkAPI {
 
   private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
-      case host: TileMultipart => !host.isSolid(side.ordinal)
+      case host: TileMultipart =>
+        !host.partList.exists {
+          case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
+            import scala.collection.convert.WrapAsScala._
+            val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
+            val otherBounds = part.getOcclusionBoxes
+            !NormalOcclusionTest(ownBounds, otherBounds)
+          case _ => false
+        }
       case _ => true
     }
 
