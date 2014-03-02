@@ -11,6 +11,7 @@ import li.cil.oc.server.network.Network
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.WirelessNetwork
 import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.common.multipart.{EventHandler, Content}
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -18,7 +19,8 @@ class Proxy {
 
     Blocks.init()
     Items.init()
-
+    new Content().init()
+    MinecraftForge.EVENT_BUS.register(new EventHandler())
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
     api.Network.instance = network.Network
