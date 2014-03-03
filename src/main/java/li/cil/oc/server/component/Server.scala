@@ -1,22 +1,21 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.Items
-import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Message, Node}
+import li.cil.oc.api.{Machine, driver}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
-  val machine = new Machine(this)
+  val machine = Machine.create(this)
 
   val inventory = new NetworkedInventory()
 

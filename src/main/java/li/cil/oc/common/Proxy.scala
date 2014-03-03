@@ -10,9 +10,10 @@ import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.component.machine
+import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.network.Network
 import li.cil.oc.server.{TickHandler, driver, fs, network}
-import li.cil.oc.util.WirelessNetwork
+import li.cil.oc.util.{LuaStateFactory, WirelessNetwork}
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -28,6 +29,9 @@ class Proxy {
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
     api.Machine.instance = machine.Machine
+    api.Machine.LuaArchitecture =
+      if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
+      else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
   }
 

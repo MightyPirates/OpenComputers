@@ -12,8 +12,8 @@ import net.minecraft.nbt.NBTTagCompound;
  */
 public interface Architecture {
     /**
-     * A display friendly name of the architecture,
-     * @return
+     * A display friendly name of the architecture, mainly intended to be used
+     * when iterating all {@link li.cil.oc.api.Machine#architectures()}.
      */
     String name();
 

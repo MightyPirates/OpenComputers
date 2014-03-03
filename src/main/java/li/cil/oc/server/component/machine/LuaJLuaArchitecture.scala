@@ -2,17 +2,18 @@ package li.cil.oc.server.component.machine
 
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import li.cil.oc.api.machine.ExecutionResult
+import li.cil.oc.api.machine.{LimitReachedException, ExecutionResult}
+import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
-import li.cil.oc.{OpenComputers, server, Settings}
+import li.cil.oc.{api, OpenComputers, server, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
-class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
+class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(machine) {
   private var lua: Globals = _
 
   private var thread: LuaThread = _
@@ -27,7 +28,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
   // ----------------------------------------------------------------------- //
 
-  private def node = machine.node
+  private def node = machine.node.asInstanceOf[ComponentConnector]
 
   private def components = machine.components
 
@@ -72,7 +73,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
           }
         }
         else machine.popSignal() match {
-          case Some(signal) =>
+          case signal if signal != null =>
             thread.resume(LuaValue.varargsOf(Array(LuaValue.valueOf(signal.name)) ++ signal.args.map(ScalaClosure.toLuaValue)))
           case _ =>
             thread.resume(LuaValue.NONE)
@@ -181,7 +182,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
     lua.set("unicode", unicode)
 
-    os.set("clock", (_: Varargs) => LuaValue.valueOf((machine.cpuTime + (System.nanoTime() - machine.cpuStart)) * 10e-10))
+    os.set("clock", (_: Varargs) => LuaValue.valueOf(machine.cpuTime()))
 
     // Date formatting function.
     os.set("date", (args: Varargs) => {
@@ -238,7 +239,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     // World time is in ticks, and each second has 20 ticks. Since we
     // want uptime() to return real seconds, though, we'll divide it
     // accordingly.
-    computer.set("uptime", (_: Varargs) => LuaValue.valueOf((machine.worldTime - machine.timeStarted) / 20.0))
+    computer.set("uptime", (_: Varargs) => LuaValue.valueOf(machine.upTime()))
 
     // Allow the computer to figure out its own id in the component network.
     computer.set("address", (_: Varargs) => Option(node.address) match {
@@ -262,10 +263,11 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     }))
 
     // And it's /tmp address...
-    computer.set("tmpAddress", (_: Varargs) => machine.tmp.fold(LuaValue.NIL)(fs => Option(fs.node.address) match {
-      case Some(address) => LuaValue.valueOf(address)
-      case _ => LuaValue.NIL
-    }))
+    computer.set("tmpAddress", (_: Varargs) => {
+      val address = machine.tmpAddress
+      if (address == null) LuaValue.NIL
+      else LuaValue.valueOf(address)
+    })
 
     // User management.
     computer.set("users", (_: Varargs) => LuaValue.varargsOf(machine.users.map(LuaValue.valueOf)))
@@ -306,7 +308,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
     component.set("type", (args: Varargs) => components.synchronized {
       components.get(args.checkjstring(1)) match {
-        case Some(name: String) =>
+        case name: String =>
           LuaValue.valueOf(name)
         case _ =>
           LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
@@ -331,7 +333,7 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       val method = args.checkjstring(2)
       val params = toSimpleJavaObjects(args, 3)
       try {
-        machine.invoke(address, method, params) match {
+        machine.invoke(address, method, params.toArray) match {
           case results: Array[_] =>
             LuaValue.varargsOf(Array(LuaValue.TRUE) ++ results.map(toLuaValue))
           case _ =>
@@ -340,11 +342,11 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       }
       catch {
         case e: Throwable =>
-          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[Machine.LimitReachedException]) {
+          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
             OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
           }
           e match {
-            case _: Machine.LimitReachedException =>
+            case _: LimitReachedException =>
               LuaValue.NONE
             case e: IllegalArgumentException if e.getMessage != null =>
               LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(e.getMessage))

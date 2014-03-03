@@ -1,11 +1,13 @@
 package li.cil.oc.server.component.robot
 
+import li.cil.oc.api
+import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, api, Settings}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
@@ -18,7 +20,8 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContext {
+// TODO rework this so as not to extend machine but be an extra component instead
+class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaArchitecture.getConstructor(classOf[api.machine.Machine])) with RobotContext {
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world
