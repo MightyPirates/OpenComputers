@@ -66,7 +66,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   // ----------------------------------------------------------------------- //
 
-  def lastError = message
+  def lastError = message.orNull
 
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
@@ -643,7 +643,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
 
     try {
-      return architecture.init()
+      return architecture.initialize()
     }
     catch {
       case ex: Throwable =>

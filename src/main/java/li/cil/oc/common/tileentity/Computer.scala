@@ -180,7 +180,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     computer.lastError match {
-      case Some(value) =>
+      case value if value != null =>
         player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
           Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
       case _ =>

@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.api.network.{Analyzable, Node, Visibility}
+import li.cil.oc.api.network.{Connector, Analyzable, Node, Visibility}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
@@ -34,7 +34,7 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
       val charge = Settings.get.chargeRate * chargeSpeed
       robots.collect {
-        case Some(proxy) => node.changeBuffer(proxy.robot.computer.node.changeBuffer(charge + node.changeBuffer(-charge)))
+        case Some(proxy) => node.changeBuffer(proxy.robot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
     }
     else if (chargeSpeed > 0 && world.getWorldInfo.getWorldTotalTime % 10 == 0) {

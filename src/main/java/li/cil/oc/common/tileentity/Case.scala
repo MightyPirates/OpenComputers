@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.network.Connector
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -16,7 +17,7 @@ class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
-  override protected def connector(side: ForgeDirection) = Option(if (side != facing && computer != null) computer.node else null)
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing && computer != null) computer.node.asInstanceOf[Connector] else null)
 
   var maxComponents = 0
 

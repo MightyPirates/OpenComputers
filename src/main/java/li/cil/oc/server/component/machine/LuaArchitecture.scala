@@ -11,7 +11,7 @@ abstract class LuaArchitecture(val machine: api.machine.Machine) extends Archite
   val rom = Option(FileSystem.asManagedEnvironment(FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"), "rom"))
 
-  override def init() = {
+  override def initialize() = {
     if (machine.node.network != null) {
       rom.foreach(fs => machine.node.connect(fs.node))
     }

@@ -54,7 +54,7 @@ public interface Architecture {
      *
      * @return whether the architecture was initialized successfully.
      */
-    boolean init();
+    boolean initialize();
 
     /**
      * Called when a machine stopped. Used to clean up any handles, memory and
@@ -108,7 +108,7 @@ public interface Architecture {
      * Called when the owning machine was connected to the component network.
      * <p/>
      * This can be useful for connecting custom file systems (read only memory)
-     * in case {@link #init()} was called from the machine's load logic (where
+     * in case {@link #initialize()} was called from the machine's load logic (where
      * it was not yet connected to the network).
      */
     void onConnect();

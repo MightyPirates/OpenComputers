@@ -45,6 +45,19 @@ public interface Machine extends ManagedEnvironment, Context {
     Map<String, String> components();
 
     /**
+     * The number of connected components.
+     * <p/>
+     * This number can differ from <tt>components().size()</tt>, since this is
+     * the number of actually <em>connected</em> components, which is used to
+     * determine whether the component limit has been exceeded, for example. It
+     * takes into account components added but not processed, yet (see also
+     * {@link #components()}).
+     *
+     * @return the number of connected components.
+     */
+    int componentCount();
+
+    /**
      * The address of the file system that holds the machine's file system for
      * temporary files (tmpfs). This may return <tt>null</tt> if either the
      * creation of the file system failed, or if the size of the tmpfs has been
@@ -56,6 +69,19 @@ public interface Machine extends ManagedEnvironment, Context {
      * @return the address of the tmpfs components, or <tt>null</tt>.
      */
     String tmpAddress();
+
+    /**
+     * A string with the last error message.
+     * <p/>
+     * The error string is set either when the machine crashes (see the
+     * {@link #crash(String)} method), or when it fails to start (which,
+     * technically, is also a crash).
+     * <p/>
+     * When the machine started, this is reset to <tt>null</tt>.
+     *
+     * @return the last error message, or <tt>null</tt>.
+     */
+    String lastError();
 
     /**
      * The current world time. This is updated each tick and provides a thread

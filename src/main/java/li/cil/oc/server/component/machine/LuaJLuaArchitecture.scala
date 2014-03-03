@@ -135,8 +135,8 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
 
   // ----------------------------------------------------------------------- //
 
-  override def init() = {
-    super.init()
+  override def initialize() = {
+    super.initialize()
 
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)

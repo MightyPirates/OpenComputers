@@ -179,8 +179,8 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
 
   // ----------------------------------------------------------------------- //
 
-  override def init(): Boolean = {
-    super.init()
+  override def initialize(): Boolean = {
+    super.initialize()
 
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
