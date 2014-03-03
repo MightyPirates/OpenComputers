@@ -11,79 +11,200 @@ local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
 
-local function expandVars(token)
-  local name = nil
-  local special = false
-  local ignore = false
-  local ignoreChar =''
+function expandParam(param)
+  local par, word, op = nil, nil, nil
+  for _, oper in ipairs{':%-', '%-', ':=', '=', ':%?','%?', ':%+', '%+'} do
+    par, word = param:match("(.-)"..oper.."(.*)")
+    if word then
+      op = oper
+      break
+    end
+  end
+  if word then
+    local stat = os.getenv(par)
+    if op == ':%-' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      else
+        return word
+      end
+    elseif op == '%-' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      elseif stat == '' then
+        return nil
+      elseif stat == nil then
+        return expand(word)
+      end
+    elseif op == ':=' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      else
+        os.setenv(par, word)
+        return expand(word)
+      end
+    elseif op == '=' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      elseif stat == '' then
+        return nil
+      elseif stat == nil then
+        os.setenv(par, word)
+        return expand(word)
+      end
+    elseif op == ':%?' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      else
+        error(par.." is not set!")
+      end
+    elseif op == '%?' then
+      if stat ~= '' and stat ~= nil then
+        return stat
+      elseif stat == '' then
+        return nil
+      elseif stat == nil then
+        error(par.." is not set")
+      end
+    elseif op == ':%+' then
+      if stat ~= '' and stat ~= nil then
+        return expand(word)
+      else
+        return nil
+      end
+    elseif op == '%+' then
+      if stat ~= nil then
+        return expand(word)
+      else
+        return nil
+      end
+    end
+  elseif string.sub(param, 1,1) == '#' then
+    return #(os.getenv(param:sub(2, -1)))
+  else
+    return os.getenv(param)
+  end
+end
+
+function expandCmd(cmd)
+  return cmd
+end
+
+function expandMath(expr)
+  local success, reason = load("return "..expr, os.getenv("SHELL"), 't', {})
+  if success then
+    return success()
+  else
+    return reason
+  end
+end
+
+function expand(token)
+  local expr = {}
+  local matchStack = {}
   local escaped = false
   local lastEnd = 1
   local doubleQuote = false
   local singleQuote = false
+  local mathBoth
   local endToken = {}
   for i = 1, unicode.len(token) do
     local char = unicode.sub(token, i, i)
     if escaped then
-      if name then
-        table.insert(name, char)
+      if expr then
+        table.insert(expr, char)
       end
       escaped = false
     elseif char == '\\' then
       escaped = not escaped
       table.insert(endToken, unicode.sub(token, lastEnd, i-1))
       lastEnd = i+1
-    elseif char == '"' and not singleQuote then
-      doubleQuote = not doubleQuote
-      table.insert(endToken, unicode.sub(token, lastEnd, i-1))
-      lastEnd = i+1
-    elseif char == "'" and not doubleQuote then
-      singleQuote = not singleQuote
-      table.insert(endToken, unicode.sub(token, lastEnd, i-1))
-      lastEnd = i+1
-    elseif char == "$" and not doubleQuote and not singleQuote then
-      if name then
-        ignore = true
+    elseif char == matchStack[#matchStack] then
+      local match
+      table.remove(matchStack)
+      if char == '}' then
+        local param = table.concat(table.remove(expr))
+        match = expandParam(param)
+      elseif char == ')' then
+        if expr[#expr].cmd then
+          local cmd = table.concat(table.remove(expr))
+          match = expandCmd(cmd)
+        elseif expr[#expr].math then
+          if not mathBoth then
+            mathBoth = i
+          elseif mathBoth == i - 1 then
+            local mth = table.concat(table.remove(expr))
+            match = expandMath(mth)
+            mathBoth = nil
+          else
+            return nil, "Unmatched )"
+          end
+        end
+      elseif char == '`' then
+        local cmd = table.concat(table.remove(expr))
+        match = expandCmd(cmd)
+      elseif char == "'" then
+        singleQuote = false
+      elseif char == '"' then
+        doubleQuote = false
+      end
+      if #expr > 0 then
+        table.insert(expr[#expr], match)
       else
-        name = {}
+        table.insert(endToken, match)
+      end
+      lastEnd = i+1
+    elseif char == '"' and not singleQuote then
+      doubleQuote = true
+      if #expr <= 1 then
         table.insert(endToken, unicode.sub(token, lastEnd, i-1))
       end
-    elseif char == '{' and #name == 0 then
-      if ignore and ignoreChar == '' then
-        ignoreChar = '}'
-      else
-        special = true
-      end
-    elseif char == '(' and ignoreChar == '' then
-      ignoreChar = ')'
-    elseif char == '`' and special then
-      ignore = true
-      ignoreChar = '`'
-    elseif char == '}' and not ignore and not doubleQuote and not singleQuote then
-      table.insert(endToken, os.getenv(table.concat(name)))
-      name = nil
+      table.insert(matchStack, '"')
       lastEnd = i+1
+    elseif char == "'" and not doubleQuote then
+      singleQuote = not singleQuote
+      if #expr <= 0 then
+        table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      end
+      table.insert(matchStack, "'")
+      lastEnd = i+1
+    elseif char == "$" and not singleQuote then
+      table.insert(expr, {})
+      if #expr <= 0 then
+        table.insert(endToken, unicode.sub(token, lastEnd, i-1))
+      end
+    elseif char == '{' and #expr > 0 and #(expr[#expr]) == 0 then
+      table.insert(matchStack, '}')
+      if expr[#expr] == 0 then
+        expr[#expr].special = true
+      end
+    elseif char == '(' and #expr > 0 and #(expr[#expr]) == 0 then
+      table.insert(matchStack, ')')
+      if expr[#expr].cmd then
+        expr[#expr].cmd = false
+        expr[#expr].math = true
+      else
+        expr[#expr].cmd = true
+      end
+    elseif char == '`' then
+      table.insert(expr, {cmd = true})
+      table.insert(matchStack, '`')
     elseif char == '"' and not singleQuote then
       doubleQuote = not doubleQuote
     elseif char == "'" and not doubleQuote then
       singleQuote = not singleQuote
-    elseif name and (char:match("[%a%d_]") or special) then
-      if char:match("%d") and #name == 0 then
-        error "Identifiers can't start with a digit!"
-      end
-      table.insert(name, char)
-    elseif char == ignoreChar and ignore then
-      ignore = false
-      ignoreChar = ''
-    elseif name then -- We are done with gathering the name
-      table.insert(endToken, os.getenv(table.concat(name)))
-      name = nil
+    elseif #expr > 0 and (char:match("[%a%d_]") or #matchStack > 0) then
+      table.insert(expr[#expr], char)
+    elseif #expr > 0 then -- We are done with gathering the name
+      table.insert(endToken, os.getenv(table.concat(table.remove(expr))))
       lastEnd = i
     end
   end
-  if name then
-    table.insert(endToken, os.getenv(table.concat(name)))
-    name = nil
-  else
+  while #expr > 0 do
+    local xpr = table.remove(expr)
+    table.insert(expr[#expr] or endToken, os.getenv(table.concat(xpr)))
+  end
+  if lastEnd >= #token then
     table.insert(endToken, unicode.sub(token, lastEnd, -1))
   end
   return table.concat(endToken)
@@ -96,7 +217,7 @@ local function parseCommand(tokens)
 
   -- Variable expansion for all command parts.
   for i = 1, #tokens do
-    tokens[i] = expandVars(tokens[i])
+    tokens[i] = expand(tokens[i])
   end
 
   -- Resolve alias for command.
