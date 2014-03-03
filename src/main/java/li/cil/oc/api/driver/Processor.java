@@ -15,7 +15,7 @@ public interface Processor extends Item {
      * The additional number of components supported if this processor is
      * installed in the server.
      *
-     * @param stack
+     * @param stack the processor to get the number of supported components for.
      * @return the number of additionally supported components.
      */
     int supportedComponents(ItemStack stack);

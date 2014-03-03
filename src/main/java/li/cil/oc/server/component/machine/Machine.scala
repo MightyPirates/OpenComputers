@@ -1,6 +1,7 @@
 package li.cil.oc.server.component.machine
 
 import java.util.logging.Level
+import li.cil.oc.api.machine.{Architecture, Owner, ExecutionResult}
 import li.cil.oc.api.network._
 import li.cil.oc.api.{FileSystem, Network}
 import li.cil.oc.common.tileentity
@@ -14,11 +15,11 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
-import net.minecraft.world.World
 import scala.Array.canBuildFrom
 import scala.collection.mutable
+import li.cil.oc.api.detail.MachineAPI
 
-class Machine(val owner: Machine.Owner) extends ManagedComponent with Context with Runnable {
+class Machine(val owner: Owner) extends ManagedComponent with Context with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
@@ -432,7 +433,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
     }
     // For computers, to generate the components in their inventory.
-    owner.onConnect(node)
+    owner.onMachineConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -447,7 +448,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
     }
     // For computers, to save the components in their inventory.
-    owner.onDisconnect(node)
+    owner.onMachineDisconnect(node)
   }
 
   // ----------------------------------------------------------------------- //
@@ -684,7 +685,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = Machine.this.synchronized {
-    val enterState = state.synchronized {
+    val isSynchronizedReturn = state.synchronized {
       if (state.top != Machine.State.Yielded &&
         state.top != Machine.State.SynchronizedReturn) {
         return
@@ -694,13 +695,13 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         state.push(Machine.State.Paused)
         return
       }
-      switchTo(Machine.State.Running)
+      switchTo(Machine.State.Running) == Machine.State.SynchronizedReturn
     }
 
     cpuStart = System.nanoTime()
 
     try {
-      val result = architecture.runThreaded(enterState)
+      val result = architecture.runThreaded(isSynchronizedReturn)
 
       // Check if someone called pause() or stop() in the meantime.
       state.synchronized {
@@ -752,7 +753,15 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
   }
 }
 
-object Machine {
+object Machine extends MachineAPI {
+
+  val architectures = mutable.Set.empty[Class[_ <: Architecture]]
+
+  override def add(architecture: Class[_ <: Architecture]) {
+
+  }
+
+  override def create(owner: Owner, architecture: Class[_ <: Architecture]) = ???
 
   private[component] class LimitReachedException extends Exception
 
@@ -793,19 +802,4 @@ object Machine {
   private[component] class Signal(val name: String, val args: Array[Any])
 
   private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
-
-  trait Owner extends Context {
-    def installedMemory: Int
-
-    def maxComponents: Int
-
-    def world: World
-
-    def markAsChanged()
-
-    def onConnect(node: Node)
-
-    def onDisconnect(node: Node)
-  }
-
 }

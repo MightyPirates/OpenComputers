@@ -1,8 +1,8 @@
 package li.cil.oc.server.component.machine
 
-import Machine.State
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
+import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
 import li.cil.oc.{OpenComputers, server, Settings}
@@ -33,6 +33,8 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
   // ----------------------------------------------------------------------- //
 
+  override def name() = "LuaJ"
+
   override def isInitialized = doneWithInitRun
 
   override def recomputeMemory() = memory = machine.owner.installedMemory
@@ -44,38 +46,37 @@ class LuaJLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     synchronizedCall = null
   }
 
-  override def runThreaded(enterState: State.Value) = {
+  override def runThreaded(isSynchronizedReturn: Boolean) = {
     try {
       // Resume the Lua state and remember the number of results we get.
-      val results = enterState match {
-        case Machine.State.SynchronizedReturn =>
-          // If we were doing a synchronized call, continue where we left off.
-          val result = thread.resume(synchronizedResult)
-          synchronizedResult = null
-          result
-        case Machine.State.Yielded =>
-          if (!doneWithInitRun) {
-            // We're doing the initialization run.
-            val result = thread.resume(LuaValue.NONE)
-            // Mark as done *after* we ran, to avoid switching to synchronized
-            // calls when we actually need direct ones in the init phase.
-            doneWithInitRun = true
-            // We expect to get nothing here, if we do we had an error.
-            if (result.narg == 1) {
-              // Fake zero sleep to avoid stopping if there are no signals.
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
-            }
-            else {
-              LuaValue.NONE
-            }
+      val results = if (isSynchronizedReturn) {
+        // If we were doing a synchronized call, continue where we left off.
+        val result = thread.resume(synchronizedResult)
+        synchronizedResult = null
+        result
+      }
+      else {
+        if (!doneWithInitRun) {
+          // We're doing the initialization run.
+          val result = thread.resume(LuaValue.NONE)
+          // Mark as done *after* we ran, to avoid switching to synchronized
+          // calls when we actually need direct ones in the init phase.
+          doneWithInitRun = true
+          // We expect to get nothing here, if we do we had an error.
+          if (result.narg == 1) {
+            // Fake zero sleep to avoid stopping if there are no signals.
+            LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
           }
-          else machine.popSignal() match {
-            case Some(signal) =>
-              thread.resume(LuaValue.varargsOf(Array(LuaValue.valueOf(signal.name)) ++ signal.args.map(ScalaClosure.toLuaValue)))
-            case _ =>
-              thread.resume(LuaValue.NONE)
+          else {
+            LuaValue.NONE
           }
-        case s => throw new AssertionError("Running computer from invalid state " + s.toString)
+        }
+        else machine.popSignal() match {
+          case Some(signal) =>
+            thread.resume(LuaValue.varargsOf(Array(LuaValue.valueOf(signal.name)) ++ signal.args.map(ScalaClosure.toLuaValue)))
+          case _ =>
+            thread.resume(LuaValue.NONE)
+        }
       }
 
       // Check if the kernel is still alive.

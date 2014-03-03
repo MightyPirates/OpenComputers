@@ -9,6 +9,7 @@ import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.component.machine
 import li.cil.oc.server.network.Network
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.WirelessNetwork
@@ -26,6 +27,7 @@ class Proxy {
 
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
+    api.Machine.instance = machine.Machine
     api.Network.instance = network.Network
   }
 

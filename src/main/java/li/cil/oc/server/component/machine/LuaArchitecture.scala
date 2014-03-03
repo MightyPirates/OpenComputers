@@ -1,6 +1,7 @@
 package li.cil.oc.server.component.machine
 
 import li.cil.oc.api.FileSystem
+import li.cil.oc.api.machine.Architecture
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.nbt.NBTTagCompound

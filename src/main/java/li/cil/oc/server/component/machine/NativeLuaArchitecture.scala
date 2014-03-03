@@ -4,6 +4,7 @@ import com.google.common.base.Strings
 import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
+import li.cil.oc.api.machine.ExecutionResult
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{OpenComputers, server, Settings}
@@ -28,6 +29,8 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
   private def components = machine.components
 
   // ----------------------------------------------------------------------- //
+
+  override def name() = "Lua"
 
   override def isInitialized = kernelMemory > 0
 
@@ -65,7 +68,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     }
   }
 
-  override def runThreaded(enterState: Machine.State.Value): ExecutionResult = {
+  override def runThreaded(isSynchronizedReturn: Boolean): ExecutionResult = {
     try {
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
@@ -77,44 +80,43 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       }
 
       // Resume the Lua state and remember the number of results we get.
-      val results = enterState match {
-        case Machine.State.SynchronizedReturn =>
-          // If we were doing a synchronized call, continue where we left off.
-          assert(lua.getTop == 2)
-          assert(lua.isTable(2))
-          lua.resume(1, 1)
-        case Machine.State.Yielded =>
-          if (kernelMemory == 0) {
-            // We're doing the initialization run.
-            if (lua.resume(1, 0) > 0) {
-              // We expect to get nothing here, if we do we had an error.
-              0
-            }
-            else {
-              // Run the garbage collector to get rid of stuff left behind after
-              // the initialization phase to get a good estimate of the base
-              // memory usage the kernel has (including libraries). We remember
-              // that size to grant user-space programs a fixed base amount of
-              // memory, regardless of the memory need of the underlying system
-              // (which may change across releases).
-              lua.gc(LuaState.GcAction.COLLECT, 0)
-              kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
-              recomputeMemory()
+      val results = if (isSynchronizedReturn) {
+        // If we were doing a synchronized call, continue where we left off.
+        assert(lua.getTop == 2)
+        assert(lua.isTable(2))
+        lua.resume(1, 1)
+      }
+      else {
+        if (kernelMemory == 0) {
+          // We're doing the initialization run.
+          if (lua.resume(1, 0) > 0) {
+            // We expect to get nothing here, if we do we had an error.
+            0
+          }
+          else {
+            // Run the garbage collector to get rid of stuff left behind after
+            // the initialization phase to get a good estimate of the base
+            // memory usage the kernel has (including libraries). We remember
+            // that size to grant user-space programs a fixed base amount of
+            // memory, regardless of the memory need of the underlying system
+            // (which may change across releases).
+            lua.gc(LuaState.GcAction.COLLECT, 0)
+            kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
+            recomputeMemory()
 
-              // Fake zero sleep to avoid stopping if there are no signals.
-              lua.pushInteger(0)
-              1
-            }
+            // Fake zero sleep to avoid stopping if there are no signals.
+            lua.pushInteger(0)
+            1
           }
-          else machine.popSignal() match {
-            case Some(signal) =>
-              lua.pushString(signal.name)
-              signal.args.foreach(arg => lua.pushValue(arg))
-              lua.resume(1, 1 + signal.args.length)
-            case _ =>
-              lua.resume(1, 0)
-          }
-        case s => throw new AssertionError("Running computer from invalid state " + s.toString)
+        }
+        else machine.popSignal() match {
+          case Some(signal) =>
+            lua.pushString(signal.name)
+            signal.args.foreach(arg => lua.pushValue(arg))
+            lua.resume(1, 1 + signal.args.length)
+          case _ =>
+            lua.resume(1, 0)
+        }
       }
 
       // Check if the kernel is still alive.

@@ -415,7 +415,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
+  override def onMachineConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
       computer.node.connect(buffer.node)
@@ -434,7 +434,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override def onDisconnect(node: Node) {
+  override def onMachineDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
       buffer.node.remove()
