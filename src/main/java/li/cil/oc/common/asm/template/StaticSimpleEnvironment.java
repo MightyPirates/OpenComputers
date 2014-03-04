@@ -40,21 +40,12 @@ public final class StaticSimpleEnvironment {
     }
 
     public static void validate(final SimpleComponentImpl self) {
-        self.validate0();
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
-            synchronized (SimpleComponentTickHandler.pendingOperations) {
-                SimpleComponentTickHandler.pendingOperations.add(new Runnable() {
-                    @Override
-                    public void run() {
-                        Network.joinOrCreateNetwork((TileEntity) self);
-                    }
-                });
-            }
-        }
+        self.validate_OpenComputers();
+        SimpleComponentTickHandler.schedule((TileEntity) self);
     }
 
     public static void invalidate(final SimpleComponentImpl self) {
-        self.invalidate0();
+        self.invalidate_OpenComputers();
         final Node node = node(self);
         if (node != null) {
             node.remove();
@@ -63,7 +54,7 @@ public final class StaticSimpleEnvironment {
     }
 
     public static void onChunkUnload(final SimpleComponentImpl self) {
-        self.onChunkUnload0();
+        self.onChunkUnload_OpenComputers();
         final Node node = node(self);
         if (node != null) {
             node.remove();
@@ -72,7 +63,7 @@ public final class StaticSimpleEnvironment {
     }
 
     public static void readFromNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
-        self.readFromNBT0(nbt);
+        self.readFromNBT_OpenComputers(nbt);
         final Node node = node(self);
         if (node != null) {
             node.load(nbt.getCompoundTag("oc:node"));
@@ -80,7 +71,7 @@ public final class StaticSimpleEnvironment {
     }
 
     public static void writeToNBT(final SimpleComponentImpl self, NBTTagCompound nbt) {
-        self.writeToNBT0(nbt);
+        self.writeToNBT_OpenComputers(nbt);
         final Node node = node(self);
         if (node != null) {
             final NBTTagCompound nodeNbt = new NBTTagCompound();

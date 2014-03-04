@@ -2,12 +2,13 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.Settings
-import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.DimensionManager
@@ -59,7 +60,7 @@ object PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case Some(message) => player.addChatMessage(new ChatComponentTranslation(message))
+            case message if message != null => player.addChatMessage(new ChatComponentTranslation(message))
             case _ =>
           }
         }

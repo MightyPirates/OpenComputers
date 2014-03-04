@@ -1,11 +1,12 @@
 package li.cil.oc.server.component.robot
 
+import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, api, Settings}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.init.Blocks
@@ -19,7 +20,8 @@ import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
-class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContext {
+// TODO rework this so as not to extend machine but be an extra component instead
+class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaArchitecture.getConstructor(classOf[api.machine.Machine])) with RobotContext {
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world
@@ -504,7 +506,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
         result(Unit, what)
       }
       else {
-        if (!robot.computer.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+        if (!robot.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
           result(Unit, "not enough energy")
         }
         else if (robot.move(direction)) {
@@ -513,7 +515,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
           result(true)
         }
         else {
-          robot.computer.node.changeBuffer(Settings.get.robotMoveCost)
+          robot.node.changeBuffer(Settings.get.robotMoveCost)
           result(Unit, "impossible move")
         }
       }
@@ -523,7 +525,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot) with RobotContex
   @Callback
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.computer.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (robot.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)

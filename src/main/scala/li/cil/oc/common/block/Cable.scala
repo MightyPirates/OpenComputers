@@ -66,7 +66,7 @@ class Cable(val parent: SpecialDelegator) extends SpecialDelegate {
 }
 
 object Cable {
-  private val cachedBounds = {
+  val cachedBounds = {
     // 6 directions = 6 bits = 11111111b >> 2 = 0xFF >> 2
     (0 to 0xFF >> 2).map(mask => {
       val bounds = AxisAlignedBB.getBoundingBox(-0.125, -0.125, -0.125, 0.125, 0.125, 0.125)
@@ -128,7 +128,15 @@ object Cable {
   private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       /* TODO FMP
-      case host: TileMultipart => !host.isSolid(side.ordinal)
+      case host: TileMultipart =>
+        !host.partList.exists {
+          case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
+            import scala.collection.convert.WrapAsScala._
+            val ownBounds = Iterable(new Cuboid6(cachedBounds(side.flag)))
+            val otherBounds = part.getOcclusionBoxes
+            !NormalOcclusionTest(ownBounds, otherBounds)
+          case _ => false
+        }
       */
       case _ => true
     }

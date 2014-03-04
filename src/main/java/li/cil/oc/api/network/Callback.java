@@ -79,7 +79,6 @@ public @interface Callback {
      * more importantly you should document the expected parameters and return
      * type here.
      * <p/>
-     * TODO Actually implement for this to be available to computers...
      */
     String doc() default "";
 }

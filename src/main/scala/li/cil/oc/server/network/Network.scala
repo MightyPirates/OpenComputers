@@ -435,7 +435,15 @@ object Network extends api.detail.NetworkAPI {
   private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
       /* TODO FMP
-      case host: TileMultipart => !host.isSolid(side.ordinal)
+      case host: TileMultipart =>
+        !host.partList.exists {
+          case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
+            import scala.collection.convert.WrapAsScala._
+            val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
+            val otherBounds = part.getOcclusionBoxes
+            !NormalOcclusionTest(ownBounds, otherBounds)
+          case _ => false
+        }
       */
       case _ => true
     }

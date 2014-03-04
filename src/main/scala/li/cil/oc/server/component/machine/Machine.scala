@@ -1,6 +1,10 @@
 package li.cil.oc.server.component.machine
 
+import java.lang.reflect.Constructor
 import java.util.logging.Level
+import li.cil.oc.api.detail.MachineAPI
+import li.cil.oc.api.machine
+import li.cil.oc.api.machine.{LimitReachedException, Architecture, Owner, ExecutionResult}
 import li.cil.oc.api.network._
 import li.cil.oc.api.{FileSystem, Network}
 import li.cil.oc.common.tileentity
@@ -8,19 +12,18 @@ import li.cil.oc.server
 import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{LuaStateFactory, ThreadPoolFactory}
+import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
-import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
-class Machine(val owner: Machine.Owner) extends ManagedComponent with Context with Runnable {
+class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
@@ -31,13 +34,11 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       fromMemory(Settings.get.tmpSize * 1024), "tmpfs"))
   } else None
 
-  private val architecture =
-    if (LuaStateFactory.isAvailable) new NativeLuaArchitecture(this)
-    else new LuaJLuaArchitecture(this)
+  val architecture = constructor.newInstance(this)
 
   private[component] val state = mutable.Stack(Machine.State.Stopped)
 
-  private[component] val components = mutable.Map.empty[String, String]
+  private val _components = mutable.Map.empty[String, String]
 
   private val addedComponents = mutable.Set.empty[Component]
 
@@ -51,9 +52,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   private[component] var timeStarted = 0L // Game-world time [ms] for os.uptime().
 
-  private[component] var worldTime = 0L // Game-world time for os.time().
+  var worldTime = 0L // Game-world time for os.time().
 
-  private[component] var cpuTime = 0L // Pseudo-real-world time [ns] for os.clock().
+  private[component] var cpuTotal = 0L // Pseudo-real-world time [ns] for os.clock().
 
   private[component] var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
 
@@ -67,17 +68,23 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // ----------------------------------------------------------------------- //
 
-  def recomputeMemory() = architecture.recomputeMemory()
+  def lastError = message.orNull
 
-  def lastError = message
+  override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
 
-  def users = _users.synchronized(_users.toArray)
+  override def users = _users.synchronized(_users.toArray)
+
+  override def tmpAddress = tmp.fold(null: String)(_.node.address)
+
+  override def upTime() = (worldTime - timeStarted) / 20.0
+
+  override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
 
   def isRobot = false
 
   private val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
 
-  def componentCount = components.count {
+  def componentCount = _components.count {
     case (_, name) => name != "filesystem"
   } + addedComponents.count(_.name != "filesystem") - 1 // -1 = this computer
 
@@ -170,7 +177,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       true
   })
 
-  protected def crash(message: String) = {
+  override def crash(message: String) = {
     this.message = Option(message)
     stop()
   }
@@ -181,30 +188,30 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       if (signals.size >= 256) false
       else {
         signals.enqueue(new Machine.Signal(name, args.map {
-          case null | Unit | None => Unit
+          case null | Unit | None => null
           case arg: java.lang.Boolean => arg
-          case arg: java.lang.Byte => arg.toDouble
-          case arg: java.lang.Character => arg.toDouble
-          case arg: java.lang.Short => arg.toDouble
-          case arg: java.lang.Integer => arg.toDouble
-          case arg: java.lang.Long => arg.toDouble
-          case arg: java.lang.Float => arg.toDouble
+          case arg: java.lang.Byte => Double.box(arg.doubleValue)
+          case arg: java.lang.Character => Double.box(arg.toDouble)
+          case arg: java.lang.Short => Double.box(arg.doubleValue)
+          case arg: java.lang.Integer => Double.box(arg.doubleValue)
+          case arg: java.lang.Long => Double.box(arg.doubleValue)
+          case arg: java.lang.Float => Double.box(arg.doubleValue)
           case arg: java.lang.Double => arg
           case arg: java.lang.String => arg
           case arg: Array[Byte] => arg
           case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
           case arg =>
             OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
-            Unit
-        }.toArray))
+            null
+        }.toArray[AnyRef]))
         true
       }
     }
   })
 
-  private[component] def popSignal(): Option[Machine.Signal] = signals.synchronized(if (signals.isEmpty) None else Some(signals.dequeue()))
+  override def popSignal(): Machine.Signal = signals.synchronized(if (signals.isEmpty) null else signals.dequeue())
 
-  private[component] def invoke(address: String, method: String, args: Seq[AnyRef]) =
+  override def invoke(address: String, method: String, args: Array[AnyRef]) =
     Option(node.network.node(address)) match {
       case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
         val direct = component.isDirect(method)
@@ -213,7 +220,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
           val counts = callCounts.getOrElseUpdate(component.address, mutable.Map.empty[String, Int])
           val count = counts.getOrElseUpdate(method, 0)
           if (count >= limit) {
-            throw new Machine.LimitReachedException()
+            throw new LimitReachedException()
           }
           counts(method) += 1
         }
@@ -221,12 +228,12 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       case _ => throw new IllegalArgumentException("no such component")
     }
 
-  private[component] def doc(address: String, method: String) = Option(node.network.node(address)) match {
+  override def documentation(address: String, method: String) = Option(node.network.node(address)) match {
     case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node => component.doc(method)
     case _ => throw new IllegalArgumentException("no such component")
   }
 
-  private[component] def addUser(name: String) {
+  override def addUser(name: String) {
     if (_users.size >= Settings.get.maxUsers)
       throw new Exception("too many users")
 
@@ -243,7 +250,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
   }
 
-  private[component] def removeUser(name: String) = _users.synchronized {
+  override def removeUser(name: String) = _users.synchronized {
     val success = _users.remove(name)
     if (success) {
       usersChanged = true
@@ -423,7 +430,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   override def onConnect(node: Node) {
     if (node == this.node) {
-      components += this.node.address -> this.node.name
+      _components += this.node.address -> this.node.name
       tmp.foreach(tmp => node.connect(tmp.node))
       architecture.onConnect()
     }
@@ -434,7 +441,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
     }
     // For computers, to generate the components in their inventory.
-    owner.onConnect(node)
+    owner.onMachineConnect(node)
   }
 
   override def onDisconnect(node: Node) {
@@ -449,20 +456,20 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
     }
     // For computers, to save the components in their inventory.
-    owner.onDisconnect(node)
+    owner.onMachineDisconnect(node)
   }
 
   // ----------------------------------------------------------------------- //
 
   def addComponent(component: Component) {
-    if (!components.contains(component.address)) {
+    if (!_components.contains(component.address)) {
       addedComponents += component
     }
   }
 
   def removeComponent(component: Component) {
-    if (components.contains(component.address)) {
-      components.synchronized(components -= component.address)
+    if (_components.contains(component.address)) {
+      _components.synchronized(_components -= component.address)
       signal("component_removed", component.address, component.name)
     }
     addedComponents -= component
@@ -472,7 +479,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     if (addedComponents.size > 0) {
       for (component <- addedComponents) {
         if (component.canBeSeenFrom(node)) {
-          components.synchronized(components += component.address -> component.name)
+          _components.synchronized(_components += component.address -> component.name)
           // Skip the signal if we're not initialized yet, since we'd generate a
           // duplicate in the startup script otherwise.
           if (architecture.isInitialized) {
@@ -486,7 +493,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   private def verifyComponents() {
     val invalid = mutable.Set.empty[String]
-    for ((address, name) <- components) {
+    for ((address, name) <- _components) {
       if (node.network.node(address) == null) {
         if (name == "filesystem") {
           OpenComputers.log.fine("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
@@ -498,7 +505,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       }
     }
     for (address <- invalid) {
-      components -= address
+      _components -= address
     }
   }
 
@@ -522,7 +529,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       message = Some(nbt.getString("message"))
     }
 
-    components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((list, index) => {
+    _components ++= nbt.getTagList("components", NBT.TAG_COMPOUND).map((list, index) => {
       val c = list.getCompoundTagAt(index)
       c.getString("address") -> c.getString("name")
     })
@@ -538,9 +545,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         val argsLength = argsNbt.getInteger("length")
         new Machine.Signal(signalNbt.getString("name"),
           (0 until argsLength).map("arg" + _).map(argsNbt.getTag).map {
-            case tag: NBTTagByte if tag.func_150290_f == -1 => Unit
-            case tag: NBTTagByte => tag.func_150290_f == 1
-            case tag: NBTTagDouble => tag.func_150286_g
+            case tag: NBTTagByte if tag.func_150290_f == -1 => null
+            case tag: NBTTagByte => Boolean.box(tag.func_150290_f == 1)
+            case tag: NBTTagDouble => Double.box(tag.func_150286_g)
             case tag: NBTTagString => tag.func_150285_a_
             case tag: NBTTagByteArray => tag.func_150292_c
             case tag: NBTTagList =>
@@ -549,12 +556,12 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
                 data += tag.getStringTagAt(i) -> tag.getStringTagAt(i + 1)
               }
               data
-            case _ => Unit
-          }.toArray)
+            case _ => null
+          }.toArray[AnyRef])
       })
 
       timeStarted = nbt.getLong("timeStarted")
-      cpuTime = nbt.getLong("cpuTime")
+      cpuTotal = nbt.getLong("cpuTime")
       remainingPause = nbt.getInteger("remainingPause")
 
       // Delay execution for a second to allow the world around us to settle.
@@ -581,7 +588,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     message.foreach(nbt.setString("message", _))
 
     val componentsNbt = new NBTTagList()
-    for ((address, name) <- components) {
+    for ((address, name) <- _components) {
       val componentNbt = new NBTTagCompound()
       componentNbt.setString("address", address)
       componentNbt.setString("name", name)
@@ -601,9 +608,9 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         signalNbt.setNewCompoundTag("args", args => {
           args.setInteger("length", s.args.length)
           s.args.zipWithIndex.foreach {
-            case (Unit, i) => args.setByte("arg" + i, -1)
-            case (arg: Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
-            case (arg: Double, i) => args.setDouble("arg" + i, arg)
+            case (null, i) => args.setByte("arg" + i, -1)
+            case (arg: java.lang.Boolean, i) => args.setByte("arg" + i, if (arg) 1 else 0)
+            case (arg: java.lang.Double, i) => args.setDouble("arg" + i, arg)
             case (arg: String, i) => args.setString("arg" + i, arg)
             case (arg: Array[Byte], i) => args.setByteArray("arg" + i, arg)
             case (arg: Map[_, _], i) =>
@@ -621,7 +628,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       nbt.setTag("signals", signalsNbt)
 
       nbt.setLong("timeStarted", timeStarted)
-      nbt.setLong("cpuTime", cpuTime)
+      nbt.setLong("cpuTime", cpuTotal)
       nbt.setInteger("remainingPause", remainingPause)
     }
   }
@@ -642,7 +649,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
 
     try {
-      return architecture.init()
+      return architecture.initialize()
     }
     catch {
       case ex: Throwable =>
@@ -659,7 +666,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
       architecture.close()
       signals.clear()
       timeStarted = 0
-      cpuTime = 0
+      cpuTotal = 0
       cpuStart = 0
       remainIdle = 0
 
@@ -690,7 +697,7 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
 
   // This is a really high level lock that we only use for saving and loading.
   override def run(): Unit = Machine.this.synchronized {
-    val enterState = state.synchronized {
+    val isSynchronizedReturn = state.synchronized {
       if (state.top != Machine.State.Yielded &&
         state.top != Machine.State.SynchronizedReturn) {
         return
@@ -700,13 +707,13 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
         state.push(Machine.State.Paused)
         return
       }
-      switchTo(Machine.State.Running)
+      switchTo(Machine.State.Running) == Machine.State.SynchronizedReturn
     }
 
     cpuStart = System.nanoTime()
 
     try {
-      val result = architecture.runThreaded(enterState)
+      val result = architecture.runThreaded(isSynchronizedReturn)
 
       // Check if someone called pause() or stop() in the meantime.
       state.synchronized {
@@ -754,13 +761,31 @@ class Machine(val owner: Machine.Owner) extends ManagedComponent with Context wi
     }
 
     // Keep track of time spent executing the computer.
-    cpuTime += System.nanoTime() - cpuStart
+    cpuTotal += System.nanoTime() - cpuStart
   }
 }
 
-object Machine {
+object Machine extends MachineAPI {
+  val checked = mutable.Set.empty[Class[_ <: Architecture]]
 
-  private[component] class LimitReachedException extends Exception
+  override def add(architecture: Class[_ <: Architecture]) {
+    if (!checked.contains(architecture)) {
+      try {
+        architecture.getConstructor(classOf[machine.Machine])
+      }
+      catch {
+        case t: Throwable => throw new IllegalArgumentException("Architecture does not have required constructor.")
+      }
+      checked += architecture
+    }
+  }
+
+  override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
+
+  override def create(owner: Owner, architecture: Class[_ <: Architecture]) = {
+    add(architecture)
+    new Machine(owner, architecture.getConstructor(classOf[machine.Machine]))
+  }
 
   /** Possible states of the computer, and in particular its executor. */
   private[component] object State extends Enumeration {
@@ -796,22 +821,7 @@ object Machine {
   }
 
   /** Signals are messages sent to the Lua state from Java asynchronously. */
-  private[component] class Signal(val name: String, val args: Array[Any])
+  private[component] class Signal(val name: String, val args: Array[AnyRef]) extends machine.Signal
 
   private val threadPool = ThreadPoolFactory.create("Computer", Settings.get.threads)
-
-  trait Owner extends Context {
-    def installedMemory: Int
-
-    def maxComponents: Int
-
-    def world: World
-
-    def markAsChanged()
-
-    def onConnect(node: Node)
-
-    def onDisconnect(node: Node)
-  }
-
 }

@@ -34,7 +34,7 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
       val charge = Settings.get.chargeRate * chargeSpeed
       robots.collect {
-        case Some(proxy) => node.changeBuffer(proxy.robot.computer.node.changeBuffer(charge + node.changeBuffer(-charge)))
+        case Some(proxy) => node.changeBuffer(proxy.robot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
     }
     else if (chargeSpeed > 0 && world.getWorldInfo.getWorldTotalTime % 10 == 0) {

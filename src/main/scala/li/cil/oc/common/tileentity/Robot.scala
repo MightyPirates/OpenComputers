@@ -52,7 +52,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def node = if (isClient) null else computer.node
+  override def node: ComponentConnector = if (isClient) null else computer.node.asInstanceOf[ComponentConnector]
 
   override val _buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
@@ -116,7 +116,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     // pow(xp(level) - base, 1/exp) / const = level
     level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
     if (isServer) {
-      computer.node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+      node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
     }
   }
 
@@ -211,7 +211,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (stack.hasTagCompound) {
       xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
       updateXpInfo()
-      computer.node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+      node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
     }
   }
 
@@ -289,8 +289,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     super.updateEntity()
     if (isServer) {
       gpu.update()
-      globalBuffer = computer.node.globalBuffer
-      globalBufferSize = computer.node.globalBufferSize
+      globalBuffer = node.globalBuffer
+      globalBufferSize = node.globalBufferSize
       updatePowerInformation()
       if (xpChanged && world.getWorldInfo.getWorldTotalTime % 200 == 0) {
         xpChanged = false
@@ -417,11 +417,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def onConnect(node: Node) {
+  override def onMachineConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      computer.node.connect(buffer.node)
-      computer.node.connect(gpu.node)
+      node.connect(buffer.node)
+      node.connect(gpu.node)
       buffer.node.connect(keyboard.node)
       // There's a chance the server sends a robot tile entity to its clients
       // before the tile entity's first update was called, in which case the
@@ -436,11 +436,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     }
   }
 
-  override def onDisconnect(node: Node) {
+  override def onMachineDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
       buffer.node.remove()
-      computer.node.remove()
+      node.remove()
       gpu.node.remove()
       keyboard.node.remove()
     }

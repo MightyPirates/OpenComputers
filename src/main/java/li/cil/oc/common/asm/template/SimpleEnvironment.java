@@ -63,23 +63,23 @@ public abstract class SimpleEnvironment extends TileEntity implements SimpleComp
     // This way they are always guaranteed to be present, so we can simply call
     // them through an interface, and need no runtime reflection.
 
-    public void validate0() {
+    public void validate_OpenComputers() {
         super.validate();
     }
 
-    public void invalidate0() {
+    public void invalidate_OpenComputers() {
         super.invalidate();
     }
 
-    public void onChunkUnload0() {
+    public void onChunkUnload_OpenComputers() {
         super.onChunkUnload();
     }
 
-    public void readFromNBT0(NBTTagCompound nbt) {
+    public void readFromNBT_OpenComputers(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
     }
 
-    public void writeToNBT0(NBTTagCompound nbt) {
+    public void writeToNBT_OpenComputers(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
     }
 }

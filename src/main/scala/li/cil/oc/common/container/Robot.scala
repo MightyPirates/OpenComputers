@@ -1,5 +1,6 @@
 package li.cil.oc.common.container
 
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -25,9 +26,11 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
-    if (math.abs(robot.globalBuffer - lastSentBuffer) > 1) {
-      lastSentBuffer = robot.globalBuffer
-      ServerPacketSender.sendPowerState(robot)
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
+      if (math.abs(robot.globalBuffer - lastSentBuffer) > 1) {
+        lastSentBuffer = robot.globalBuffer
+        ServerPacketSender.sendPowerState(robot)
+      }
     }
   }
 

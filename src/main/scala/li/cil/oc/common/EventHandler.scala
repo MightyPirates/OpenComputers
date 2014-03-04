@@ -20,15 +20,17 @@ import scala.collection.mutable
 object EventHandler {
   val pendingAdds = mutable.Buffer.empty[() => Unit]
 
-  def schedule(tileEntity: TileEntity) = pendingAdds.synchronized {
-    pendingAdds += (() => Network.joinOrCreateNetwork(tileEntity))
-  }
+  def schedule(tileEntity: TileEntity) =
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pendingAdds.synchronized {
+      pendingAdds += (() => Network.joinOrCreateNetwork(tileEntity))
+    }
 
   /* TODO FMP
   @Optional.Method(modid = "ForgeMultipart")
-  def schedule(part: TMultiPart) = pendingAdds.synchronized {
-    pendingAdds += (() => Network.joinOrCreateNetwork(part.tile))
-  }
+  def schedule(part: TMultiPart) =
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pendingAdds.synchronized {
+      pendingAdds += (() => Network.joinOrCreateNetwork(part.tile))
+    }
   */
 
   @SubscribeEvent

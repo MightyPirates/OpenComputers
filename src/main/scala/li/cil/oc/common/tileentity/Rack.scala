@@ -128,7 +128,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       if (slot >= 0 && slot <= 3 && servers(slot).isDefined) {
         val computer = servers(slot).get.machine
         computer.lastError match {
-          case Some(value) =>
+          case value if value != null =>
             player.addChatMessage(new ChatComponentTranslation(
               Settings.namespace + "gui.Analyzer.LastError", new ChatComponentTranslation(value)))
           case _ =>

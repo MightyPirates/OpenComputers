@@ -3,8 +3,9 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
+import li.cil.oc.api.Machine
+import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network._
-import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
@@ -12,14 +13,13 @@ import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import scala.Some
 import scala.collection.mutable
 import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Machine.Owner {
-  protected val _computer = if (isRemote) null else new Machine(this)
+abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
+  protected val _computer = if (isRemote) null else Machine.create(this)
 
   def computer = _computer
 
@@ -71,6 +71,10 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   override def installedComponents = components collect {
     case Some(component) => component
   }
+
+  override def onMachineConnect(node: Node) = this.onConnect(node)
+
+  override def onMachineDisconnect(node: Node) = this.onDisconnect(node)
 
   def hasAbstractBusCard = items.exists {
     case Some(item) => computer.isRunning && driver.item.AbstractBusCard.worksWith(item)
@@ -157,7 +161,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   override def markDirty() {
     super.markDirty()
     if (isServer) {
-      computer.recomputeMemory()
+      computer.architecture.recomputeMemory()
       isOutputEnabled = hasRedstoneCard
       isAbstractBusAvailable = hasAbstractBusCard
     }
@@ -177,7 +181,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     computer.lastError match {
-      case Some(value) =>
+      case value if value != null =>
         player.addChatMessage(new ChatComponentTranslation(
           Settings.namespace + "gui.Analyzer.LastError", new ChatComponentTranslation(value)))
       case _ =>

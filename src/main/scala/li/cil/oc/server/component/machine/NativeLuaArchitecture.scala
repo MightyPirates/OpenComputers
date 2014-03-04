@@ -4,15 +4,17 @@ import com.google.common.base.Strings
 import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
+import li.cil.oc.api.machine.{LimitReachedException, ExecutionResult}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
-import li.cil.oc.{OpenComputers, server, Settings}
+import li.cil.oc.{api, OpenComputers, server, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import li.cil.oc.api.network.ComponentConnector
 
-class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
+class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(machine) {
   private var lua: LuaState = null
 
   private var kernelMemory = 0
@@ -21,13 +23,13 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
   // ----------------------------------------------------------------------- //
 
-  private def node = machine.node
-
-  private def state = machine.state
+  private def node = machine.node.asInstanceOf[ComponentConnector]
 
   private def components = machine.components
 
   // ----------------------------------------------------------------------- //
+
+  override def name() = "Lua"
 
   override def isInitialized = kernelMemory > 0
 
@@ -65,7 +67,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     }
   }
 
-  override def runThreaded(enterState: Machine.State.Value): ExecutionResult = {
+  override def runThreaded(isSynchronizedReturn: Boolean): ExecutionResult = {
     try {
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
@@ -77,44 +79,43 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       }
 
       // Resume the Lua state and remember the number of results we get.
-      val results = enterState match {
-        case Machine.State.SynchronizedReturn =>
-          // If we were doing a synchronized call, continue where we left off.
-          assert(lua.getTop == 2)
-          assert(lua.isTable(2))
-          lua.resume(1, 1)
-        case Machine.State.Yielded =>
-          if (kernelMemory == 0) {
-            // We're doing the initialization run.
-            if (lua.resume(1, 0) > 0) {
-              // We expect to get nothing here, if we do we had an error.
-              0
-            }
-            else {
-              // Run the garbage collector to get rid of stuff left behind after
-              // the initialization phase to get a good estimate of the base
-              // memory usage the kernel has (including libraries). We remember
-              // that size to grant user-space programs a fixed base amount of
-              // memory, regardless of the memory need of the underlying system
-              // (which may change across releases).
-              lua.gc(LuaState.GcAction.COLLECT, 0)
-              kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
-              recomputeMemory()
+      val results = if (isSynchronizedReturn) {
+        // If we were doing a synchronized call, continue where we left off.
+        assert(lua.getTop == 2)
+        assert(lua.isTable(2))
+        lua.resume(1, 1)
+      }
+      else {
+        if (kernelMemory == 0) {
+          // We're doing the initialization run.
+          if (lua.resume(1, 0) > 0) {
+            // We expect to get nothing here, if we do we had an error.
+            0
+          }
+          else {
+            // Run the garbage collector to get rid of stuff left behind after
+            // the initialization phase to get a good estimate of the base
+            // memory usage the kernel has (including libraries). We remember
+            // that size to grant user-space programs a fixed base amount of
+            // memory, regardless of the memory need of the underlying system
+            // (which may change across releases).
+            lua.gc(LuaState.GcAction.COLLECT, 0)
+            kernelMemory = math.max(lua.getTotalMemory - lua.getFreeMemory, 1)
+            recomputeMemory()
 
-              // Fake zero sleep to avoid stopping if there are no signals.
-              lua.pushInteger(0)
-              1
-            }
+            // Fake zero sleep to avoid stopping if there are no signals.
+            lua.pushInteger(0)
+            1
           }
-          else machine.popSignal() match {
-            case Some(signal) =>
-              lua.pushString(signal.name)
-              signal.args.foreach(arg => lua.pushValue(arg))
-              lua.resume(1, 1 + signal.args.length)
-            case _ =>
-              lua.resume(1, 0)
-          }
-        case s => throw new AssertionError("Running computer from invalid state " + s.toString)
+        }
+        else machine.popSignal() match {
+          case signal if signal != null =>
+            lua.pushString(signal.name)
+            signal.args.foreach(arg => lua.pushValue(arg))
+            lua.resume(1, 1 + signal.args.length)
+          case _ =>
+            lua.resume(1, 0)
+        }
       }
 
       // Check if the kernel is still alive.
@@ -178,8 +179,8 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
   // ----------------------------------------------------------------------- //
 
-  override def init(): Boolean = {
-    super.init()
+  override def initialize(): Boolean = {
+    super.initialize()
 
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
@@ -187,7 +188,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     LuaStateFactory.createState() match {
       case None =>
         lua = null
-        machine.message = Some("native libraries not available")
+        machine.crash("native libraries not available")
         return false
       case Some(value) => lua = value
     }
@@ -199,7 +200,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     // Custom os.clock() implementation returning the time the computer has
     // been actively running, instead of the native library...
     lua.pushScalaFunction(lua => {
-      lua.pushNumber((machine.cpuTime + (System.nanoTime() - machine.cpuStart)) * 10e-10)
+      lua.pushNumber(machine.cpuTime())
       1
     })
     lua.setField(-2, "clock")
@@ -278,7 +279,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       // World time is in ticks, and each second has 20 ticks. Since we
       // want uptime() to return real seconds, though, we'll divide it
       // accordingly.
-      lua.pushNumber((machine.worldTime - machine.timeStarted) / 20.0)
+      lua.pushNumber(machine.upTime())
       1
     })
     lua.setField(-2, "uptime")
@@ -333,10 +334,9 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
     // And it's /tmp address...
     lua.pushScalaFunction(lua => {
-      machine.tmp.foreach(fs => Option(fs.node.address) match {
-        case None => lua.pushNil()
-        case Some(address) => lua.pushString(address)
-      })
+      val address = machine.tmpAddress
+      if (address == null) lua.pushNil()
+      else lua.pushString(address)
       1
     })
     lua.setField(-2, "tmpAddress")
@@ -428,7 +428,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
     lua.pushScalaFunction(lua => components.synchronized {
       components.get(lua.checkString(1)) match {
-        case Some(name: String) =>
+        case name: String =>
           lua.pushString(name)
           1
         case _ =>
@@ -462,7 +462,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       val method = lua.checkString(2)
       val args = lua.toSimpleJavaObjects(3)
       try {
-        machine.invoke(address, method, args) match {
+        machine.invoke(address, method, args.toArray) match {
           case results: Array[_] =>
             lua.pushBoolean(true)
             results.foreach(result => lua.pushValue(result))
@@ -474,11 +474,11 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       }
       catch {
         case e: Throwable =>
-          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[Machine.LimitReachedException]) {
+          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
             OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
           }
           e match {
-            case _: Machine.LimitReachedException =>
+            case _: LimitReachedException =>
               0
             case e: IllegalArgumentException if e.getMessage != null =>
               lua.pushBoolean(false)
@@ -535,7 +535,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
       val address = lua.checkString(1)
       val method = lua.checkString(2)
       try {
-        val doc = machine.doc(address, method)
+        val doc = machine.documentation(address, method)
         if (Strings.isNullOrEmpty(doc))
           lua.pushNil()
         else
@@ -577,6 +577,12 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
 
   // ----------------------------------------------------------------------- //
 
+  // Transition to storing the 'are we in or returning from a sync call' in here
+  // so we don't need to check the state. Will need a period where saves are
+  // loaded using the old *and* new method and saved using the new.
+  @Deprecated
+  private def state = machine.asInstanceOf[Machine].state
+
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
 
@@ -607,7 +613,7 @@ class NativeLuaArchitecture(machine: Machine) extends LuaArchitecture(machine) {
     } catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
-        state.push(Machine.State.Stopping)
+        machine.stop()
     }
 
     // Limit memory again.
