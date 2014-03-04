@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
+import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.PassiveNode
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
@@ -399,7 +400,8 @@ object Network extends api.detail.NetworkAPI {
               case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
                 val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
                   (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
-                if (canConnect) neighbor.connect(node)
+                val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+                if (canConnect && canConnectIM) neighbor.connect(node)
                 else node.disconnect(neighbor)
               case _ =>
             }
@@ -445,6 +447,12 @@ object Network extends api.detail.NetworkAPI {
             !NormalOcclusionTest(ownBounds, otherBounds)
           case _ => false
         }
+      case _ => true
+    }
+
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case cable: tileentity.Cable => cable.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
     }
 

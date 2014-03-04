@@ -27,6 +27,9 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
 
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableBlockMarker = null
+
   // ----------------------------------------------------------------------- //
   // SubBlock
   // ----------------------------------------------------------------------- //

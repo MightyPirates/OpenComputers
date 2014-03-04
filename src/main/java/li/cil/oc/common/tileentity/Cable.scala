@@ -20,4 +20,13 @@ class Cable extends Environment with Analyzable with PassiveNode {
   }
 
   override def getRenderBoundingBox = common.block.Cable.bounds(world, x, y, z).offset(x, y, z)
+
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableTileEntityMarker = null
+
+  def ImmibisMicroblocks_isSideOpen(side: Int) = true
+
+  def ImmibisMicroblocks_onMicroblocksChanged() {
+    api.Network.joinOrCreateNetwork(this)
+  }
 }
