@@ -4,6 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Modifier, Method, InvocationTargetException}
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
@@ -164,7 +165,7 @@ object Component {
 
         ms.filter(_.isAnnotationPresent(classOf[network.Callback])).foreach(m =>
           if (m.getParameterTypes.size != 2 ||
-            (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[RobotContext]) ||
+            (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[Robot]) ||
             m.getParameterTypes()(1) != classOf[Arguments]) {
             OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
           }

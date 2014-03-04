@@ -58,6 +58,22 @@ public interface Machine extends ManagedEnvironment, Context {
     int componentCount();
 
     /**
+     * Gets the amount of energy this machine consumes per tick when it is
+     * running.
+     *
+     * @return the energy consumed per tick by the machine.
+     */
+    double getCostPerTick();
+
+    /**
+     * Sets the amount of energy this machine consumes per tick when it is
+     * running.
+     *
+     * @param value the energy consumed per tick by the machine.
+     */
+    void setCostPerTick(double value);
+
+    /**
      * The address of the file system that holds the machine's file system for
      * temporary files (tmpfs). This may return <tt>null</tt> if either the
      * creation of the file system failed, or if the size of the tmpfs has been
@@ -203,11 +219,4 @@ public interface Machine extends ManagedEnvironment, Context {
      * @return whether the player was removed from the user list.
      */
     boolean removeUser(String name);
-
-    /**
-     * This is only here because of some sub-optimal design decisions for the
-     * internal robot implementation, it will go away. Do not use.
-     */
-    @Deprecated
-    boolean isRobot();
 }

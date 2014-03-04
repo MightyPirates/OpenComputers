@@ -3,7 +3,7 @@ package li.cil.oc.server.component.robot
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.machine.Machine
+import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, Settings}
@@ -19,8 +19,12 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
-// TODO rework this so as not to extend machine but be an extra component instead
-class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaArchitecture.getConstructor(classOf[api.machine.Machine])) with RobotContext {
+class Robot(val robot: tileentity.Robot) extends ManagedComponent {
+  val node = api.Network.newNode(this, Visibility.Neighbors).
+    withComponent("robot").
+    withConnector(Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel).
+    create()
+
   def actualSlot(n: Int) = robot.actualSlot(n)
 
   def world = robot.world
@@ -35,8 +39,6 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
 
   val romRobot = Option(api.FileSystem.asManagedEnvironment(api.FileSystem.
     fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/component/robot"), "robot"))
-
-  override def isRobot = true
 
   def selectedSlot = robot.selectedSlot
 
@@ -501,7 +503,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
         result(Unit, what)
       }
       else {
-        if (!robot.node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
+        if (!node.tryChangeBuffer(-Settings.get.robotMoveCost)) {
           result(Unit, "not enough energy")
         }
         else if (robot.move(direction)) {
@@ -510,7 +512,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
           result(true)
         }
         else {
-          robot.node.changeBuffer(Settings.get.robotMoveCost)
+          node.changeBuffer(Settings.get.robotMoveCost)
           result(Unit, "impossible move")
         }
       }
@@ -520,7 +522,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
   @Callback
   def turn(context: Context, args: Arguments): Array[AnyRef] = {
     val clockwise = args.checkBoolean(0)
-    if (robot.node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
+    if (node.tryChangeBuffer(-Settings.get.robotTurnCost)) {
       if (clockwise) robot.rotate(ForgeDirection.UP)
       else robot.rotate(ForgeDirection.DOWN)
       robot.animateTurn(clockwise, Settings.get.turnDelay)
@@ -537,7 +539,10 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      romRobot.foreach(rom => node.connect(rom.node))
+      romRobot.foreach(fs => {
+        fs.node.asInstanceOf[Component].setVisibility(Visibility.Network)
+        node.connect(fs.node)
+      })
     }
   }
 
@@ -550,7 +555,7 @@ class Robot(val robot: tileentity.Robot) extends Machine(robot, api.Machine.LuaA
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
-    romRobot.foreach(rom => nbt.setNewCompoundTag("romRobot", rom.save))
+    romRobot.foreach(fs => nbt.setNewCompoundTag("romRobot", fs.save))
   }
 
   // ----------------------------------------------------------------------- //
