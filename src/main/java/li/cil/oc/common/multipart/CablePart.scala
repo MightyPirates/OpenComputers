@@ -21,7 +21,7 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def delegate = Blocks.cable
 
-  def getType = "oc:cable"
+  def getType = Settings.namespace + "cable"
 
   override def doesTick = false
 

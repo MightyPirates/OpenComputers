@@ -52,7 +52,7 @@ class PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case message => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(message))
+            case message if message != null => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(message))
             case _ =>
           }
         }

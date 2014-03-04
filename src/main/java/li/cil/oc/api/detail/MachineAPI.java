@@ -5,6 +5,14 @@ import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.machine.Owner;
 
 public interface MachineAPI {
+    /**
+     * Register an architecture that can be used to create new machines.
+     * <p/>
+     * Note that although registration is optional, it is strongly recommended
+     * to allow {@link #architectures()} to be useful.
+     *
+     * @param architecture the architecture to register.
+     */
     void add(Class<? extends Architecture> architecture);
 
     /**

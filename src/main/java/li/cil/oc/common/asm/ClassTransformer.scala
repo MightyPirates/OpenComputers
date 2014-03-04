@@ -10,6 +10,7 @@ import net.minecraft.tileentity.TileEntity
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassWriter, ClassReader}
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.asm.template.SimpleComponentImpl
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 class ClassTransformer extends IClassTransformer {
@@ -99,18 +100,18 @@ class ClassTransformer extends IClassTransformer {
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
       }
-      if (classNode.methods.exists(method => method.name == methodName + "0" && mapper.mapMethodDesc(method.desc) == desc)) {
-        throw new InjectionFailedException(s"Delegator method name ${methodName}0 is already in use.")
+      if (classNode.methods.exists(method => method.name == methodName + SimpleComponentImpl.PostFix && mapper.mapMethodDesc(method.desc) == desc)) {
+        throw new InjectionFailedException(s"Delegator method name ${methodName + SimpleComponentImpl.PostFix} is already in use.")
       }
       classNode.methods.find(filter) match {
         case Some(method) =>
           log.fine(s"Found original implementation of $methodName, wrapping.")
-          method.name = methodName + "0"
+          method.name = methodName + SimpleComponentImpl.PostFix
         case _ =>
           log.fine(s"No original implementation of $methodName, will inject override.")
-          template.methods.find(_.name == methodName + "0") match {
+          template.methods.find(_.name == methodName + SimpleComponentImpl.PostFix) match {
             case Some(method) => classNode.methods.add(method)
-            case _ => throw new AssertionError(s"Couldn't find ${methodName}0 in template implementation.")
+            case _ => throw new AssertionError(s"Couldn't find ${methodName + SimpleComponentImpl.PostFix} in template implementation.")
           }
       }
       template.methods.find(filter) match {

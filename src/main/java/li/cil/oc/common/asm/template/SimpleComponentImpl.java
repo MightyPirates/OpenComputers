@@ -4,18 +4,25 @@ import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.nbt.NBTTagCompound;
 
-// This interface defines the names to which existing or placeholders for
-// existing methods will be moved. This allows transparent injection of our
-// functionality, i.e. existing validate() etc. methods will be called as
-// if we didn't inject our code.
+/**
+ * This interface defines the names to which existing or placeholders for
+ * existing methods will be moved. This allows transparent injection of our
+ * functionality, i.e. existing validate() etc. methods will be called as
+ * if we didn't inject our code.
+ * <p/>
+ * Yes, the names are not "conventional", but that is by design, to avoid
+ * naming collisions.
+ */
 public interface SimpleComponentImpl extends Environment, SimpleComponent {
-    void validate0();
+    public static final String PostFix = "_OpenComputers";
 
-    void invalidate0();
+    void validate_OpenComputers();
 
-    void onChunkUnload0();
+    void invalidate_OpenComputers();
 
-    void readFromNBT0(NBTTagCompound nbt);
+    void onChunkUnload_OpenComputers();
 
-    void writeToNBT0(NBTTagCompound nbt);
+    void readFromNBT_OpenComputers(NBTTagCompound nbt);
+
+    void writeToNBT_OpenComputers(NBTTagCompound nbt);
 }
