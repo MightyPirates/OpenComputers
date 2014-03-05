@@ -11,7 +11,7 @@ local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
 
-function expandParam(param)
+local function expandParam(param)
   local par, word, op = nil, nil, nil
   for _, oper in ipairs{':%-', '%-', ':=', '=', ':%?','%?', ':%+', '%+'} do
     par, word = param:match("(.-)"..oper.."(.*)")
@@ -86,11 +86,11 @@ function expandParam(param)
   end
 end
 
-function expandCmd(cmd)
+local function expandCmd(cmd)
   return cmd
 end
 
-function expandMath(expr)
+local function expandMath(expr)
   local success, reason = load("return "..expr, os.getenv("SHELL"), 't', {})
   if success then
     return success()
@@ -99,7 +99,7 @@ function expandMath(expr)
   end
 end
 
-function expand(token)
+local function expand(token)
   local expr = {}
   local matchStack = {}
   local escaped = false

@@ -10,17 +10,23 @@ If you'd like to contribute, the easiest way to do so is to provide a translatio
 
 If you'd like to contribute code, please have a look at the [code conventions](https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions). If you plan to make a big contribution, use common sense and ask first and talk things through with me.
 
-You can also implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
-
 If you encounter any bugs, please report them [in the issue tracker](https://github.com/MightyPirates/OpenComputers/issues?state=open), if they have not already been reported. If you report a crash, always provide your log file.
 
 If you wish to discuss or suggest a new feature, the [forums](http://oc.cil.li//index.php?/forum/22-feedback-and-suggestions/) are a good place for that.
+
+Extending
+---------
+You can implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
+
+Note that to get the OC JARs working in your development environment you'll want to run [BON](https://github.com/immibis/bearded-octo-nemesis) over it, first (I'll see when I find the time to make Jenkins produce a deobfed artifact), unless you don't need the class transformer (i.e. you don't use the `SimpleComponent` interface).
+
+If you have any questions about the API or how to add OC support to your mod, please don't hesitate to ask, either on the Forums or on IRC!
 
 Building
 ========
 Java
 ----
-You'll need a Forge development environment set up with support for Scala. There are no dependencies other than the bundled APIs. Compile it like any other mod.
+You'll need a Forge development environment set up with support for Scala. There are no dependencies other than the bundled APIs and libs.
 
 Natives
 -------
