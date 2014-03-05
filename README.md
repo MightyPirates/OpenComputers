@@ -26,7 +26,7 @@ Building
 ========
 Java
 ----
-You'll need a Forge development environment set up with support for Scala. There are no dependencies other than the bundled APIs and libs.
+You'll need a Forge development environment set up with support for Scala. There are no dependencies other than the bundled APIs.
 
 Natives
 -------
