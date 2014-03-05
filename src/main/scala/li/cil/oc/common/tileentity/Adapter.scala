@@ -35,7 +35,7 @@ class Adapter extends Environment with Analyzable {
   def neighborChanged() = if (node != null && node.network != null) {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
-      world.getBlockTileEntity(x, y, z) match {
+      world.getTileEntity(x, y, z) match {
         case env: Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
