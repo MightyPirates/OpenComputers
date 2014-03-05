@@ -10,7 +10,7 @@ import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
+class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with WirelessNetwork.Endpoint {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().
@@ -37,10 +37,9 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     checkPacketSize(args.drop(2))
     if (strength > 0) {
       checkPower()
-      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this)
-           if card.node.address == address && card.openPorts.contains(port)) {
-        card.node.sendToReachable("computer.signal",
-          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(2): _*)
+      val packet = new NetworkCard.Packet(node.address, Some(address), port, args.drop(2))
+      for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
+        endpoint.receivePacket(packet, distance)
       }
     }
     super.send(context, args)
@@ -51,9 +50,9 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard {
     checkPacketSize(args.drop(1))
     if (strength > 0) {
       checkPower()
-      for ((card, distance) <- WirelessNetwork.computeReachableFrom(this) if card.openPorts.contains(port)) {
-        card.node.sendToReachable("computer.signal",
-          Seq("modem_message", node.address, Int.box(port), Double.box(distance)) ++ args.drop(1): _*)
+      val packet = new NetworkCard.Packet(node.address, None, port, args.drop(1))
+      for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
+        endpoint.receivePacket(packet, distance)
       }
     }
     super.broadcast(context, args)

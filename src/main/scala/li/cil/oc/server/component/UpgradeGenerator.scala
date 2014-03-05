@@ -1,6 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
+import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, api, Settings}
@@ -9,7 +10,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.{TileEntity, TileEntityFurnace}
 
-class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
+class UpgradeGenerator(val owner: TileEntity with Robot) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
@@ -25,10 +26,10 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function([count:number]):boolean -- Tries to insert fuel from the selected slot into the generator's queue.""")
-  def insert(context: RobotContext, args: Arguments): Array[AnyRef] = {
+  def insert(context: Context, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else 64
-    val player = context.player
-    val stack = player.inventory.getStackInSlot(context.selectedSlot)
+    val player = owner.player
+    val stack = player.inventory.getStackInSlot(owner.selectedSlot)
     if (stack == null) return result(Unit, "selected slot is empty")
     if (!TileEntityFurnace.isItemFuel(stack)) {
       return result(Unit, "selected slot does not contain fuel")
@@ -49,7 +50,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
       case _ =>
         inventory = Some(stack.splitStack(math.min(stack.stackSize, count)))
     }
-    player.inventory.setInventorySlotContents(context.selectedSlot, stack)
+    player.inventory.setInventorySlotContents(owner.selectedSlot, stack)
     result(true)
   }
 
@@ -62,12 +63,12 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
   }
 
   @Callback(doc = """function([count:number]):boolean -- Tries to remove items from the generator's queue.""")
-  def remove(context: RobotContext, args: Arguments): Array[AnyRef] = {
+  def remove(context: Context, args: Arguments): Array[AnyRef] = {
     val count = if (args.count > 0) args.checkInteger(0) else Int.MaxValue
     inventory match {
       case Some(stack) =>
         val removedStack = stack.splitStack(math.min(count, stack.stackSize))
-        val success = context.player.inventory.addItemStackToInventory(removedStack)
+        val success = owner.player.inventory.addItemStackToInventory(removedStack)
         stack.stackSize += removedStack.stackSize
         if (success && stack.stackSize <= 0) {
           inventory = None
@@ -101,10 +102,7 @@ class UpgradeGenerator(val owner: TileEntity) extends ManagedComponent {
     }
   }
 
-  private def updateClient() = owner match {
-    case robot: RobotContext => robot.saveUpgrade()
-    case _ =>
-  }
+  private def updateClient() = owner.saveUpgrade()
 
   // ----------------------------------------------------------------------- //
 

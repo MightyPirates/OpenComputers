@@ -5,7 +5,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Connector, Visibility, Node, Analyzable}
+import li.cil.oc.api.network.{Connector, Visibility, Node}
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
@@ -20,7 +20,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable {
+class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -102,6 +102,35 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
       if (toGlobal(serverSide) == side) sidedNode(side).connect(serverNode)
       else sidedNode(side).disconnect(serverNode)
     }
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override protected def distribute() = {
+    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.node.asInstanceOf[Connector]) else null
+    val nodes = (0 to 3).map(node)
+    def network(connector: Connector) = if (connector != null) connector.network else this
+    val (sumBuffer, sumSize) = super.distribute()
+    var sumBufferServers, sumSizeServers = 0.0
+    network(nodes(0)).synchronized {
+      network(nodes(1)).synchronized {
+        network(nodes(2)).synchronized {
+          network(nodes(3)).synchronized {
+            for (node <- nodes if node != null) {
+              sumBufferServers += node.globalBuffer
+              sumSizeServers += node.globalBufferSize
+            }
+            if (sumSize + sumSizeServers > 0) {
+              val ratio = (sumBuffer + sumBufferServers) / (sumSize + sumSizeServers)
+              for (node <- nodes if node != null) {
+                node.changeBuffer(node.globalBufferSize * ratio - node.globalBuffer)
+              }
+            }
+          }
+        }
+      }
+    }
+    (sumBuffer + sumBufferServers, sumSize + sumSizeServers)
   }
 
   // ----------------------------------------------------------------------- //

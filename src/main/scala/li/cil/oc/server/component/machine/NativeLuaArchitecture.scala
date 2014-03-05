@@ -295,8 +295,9 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
     lua.setField(-2, "address")
 
     // Are we a robot? (No this is not a CAPTCHA.)
+    // TODO deprecate this
     lua.pushScalaFunction(lua => {
-      lua.pushBoolean(machine.isRobot)
+      lua.pushBoolean(machine.components.contains("robot"))
       1
     })
     lua.setField(-2, "isRobot")

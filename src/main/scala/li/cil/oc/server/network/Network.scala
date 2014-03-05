@@ -4,14 +4,13 @@ import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
-import li.cil.oc.common.tileentity.PassiveNode
+import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
 import scala.collection.JavaConverters._
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -357,28 +356,6 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 }
 
 object Network extends api.detail.NetworkAPI {
-  @SubscribeEvent
-  def onWorldLoad(e: WorldEvent.Load) {
-    val world = e.world
-    if (!world.isRemote) {
-      for (t <- world.loadedTileEntityList) t match {
-        case p: TileEntity with PassiveNode => p.getBlockType.updateTick(world, p.xCoord, p.yCoord, p.zCoord, world.rand)
-        case _ =>
-      }
-    }
-  }
-
-  @SubscribeEvent
-  def onChunkLoad(e: ChunkEvent.Load) {
-    val world = e.world
-    if (!world.isRemote) {
-      for (t <- e.getChunk.chunkTileEntityMap.values) t match {
-        case p: TileEntity with PassiveNode => p.getBlockType.updateTick(world, p.xCoord, p.yCoord, p.zCoord, world.rand)
-        case _ =>
-      }
-    }
-  }
-
   override def joinOrCreateNetwork(tileEntity: TileEntity): Unit =
     if (!tileEntity.isInvalid && !tileEntity.getWorldObj.isRemote) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
@@ -395,7 +372,8 @@ object Network extends api.detail.NetworkAPI {
               case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
                 val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
                   (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
-                if (canConnect) neighbor.connect(node)
+                val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+                if (canConnect && canConnectIM) neighbor.connect(node)
                 else node.disconnect(neighbor)
               case _ =>
             }
@@ -445,6 +423,12 @@ object Network extends api.detail.NetworkAPI {
           case _ => false
         }
       */
+      case _ => true
+    }
+
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case cable: tileentity.Cable => cable.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
     }
 

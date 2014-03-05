@@ -96,7 +96,8 @@ object Cable {
         val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
         val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
           (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
-        if (neighborHasNode && canConnect) {
+        val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
+        if (neighborHasNode && canConnect && canConnectIM) {
           result |= side.flag
         }
       }
@@ -138,6 +139,12 @@ object Cable {
           case _ => false
         }
       */
+      case _ => true
+    }
+
+  private def canConnectFromSideIM(tileEntity: TileEntity, side: ForgeDirection) =
+    tileEntity match {
+      case cable: tileentity.Cable => cable.ImmibisMicroblocks_isSideOpen(side.ordinal)
       case _ => true
     }
 }

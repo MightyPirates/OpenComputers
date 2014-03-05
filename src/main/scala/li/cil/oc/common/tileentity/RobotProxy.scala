@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation with RobotContext {
+class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
   def this() = this(new Robot(false))
 
   // ----------------------------------------------------------------------- //
@@ -22,8 +22,6 @@ class RobotProxy(val robot: Robot) extends Computer(robot.isClient) with ISidedI
   override val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot", Visibility.Neighbors).
     create()
-
-  override protected val _computer = null
 
   override def computer = robot.computer
 

@@ -1,15 +1,20 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Node, Message, Visibility, SidedEnvironment}
+import li.cil.oc.api.network._
+import li.cil.oc.server.component.NetworkCard
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
+import scala.collection.mutable
+import net.minecraft.entity.player.EntityPlayer
 
-trait Hub extends Environment with SidedEnvironment {
+trait Hub extends Environment with SidedEnvironment with Analyzable {
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
+
+  protected val queue = mutable.Queue.empty[(ForgeDirection, NetworkCard.Packet)]
 
   // ----------------------------------------------------------------------- //
 
@@ -22,10 +27,35 @@ trait Hub extends Environment with SidedEnvironment {
 
   // ----------------------------------------------------------------------- //
 
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = null
+
+  // ----------------------------------------------------------------------- //
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (world.getWorldTime % 5 == 0 && queue.nonEmpty) {
+      val (sourceSide, packet) = queue.dequeue()
+      relayPacket(sourceSide, packet)
+    }
+  }
+
+  protected def relayPacket(sourceSide: ForgeDirection, packet: NetworkCard.Packet) {
+    for (side <- ForgeDirection.VALID_DIRECTIONS if side != sourceSide) {
+      sidedNode(side).sendToReachable("network.message", packet)
+    }
+  }
+
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     nbt.getTagList(Settings.namespace + "plugs", NBT.TAG_COMPOUND).foreach {
       case (list, index) => plugs(index).node.load(list.getCompoundTagAt(index))
+    }
+    nbt.getTagList(Settings.namespace + "queue", NBT.TAG_COMPOUND).foreach {
+      case (list, index) =>
+        val tag = list.getCompoundTagAt(index)
+        val side = ForgeDirection.getOrientation(tag.getInteger("side"))
+        val packet = NetworkCard.loadPacket(tag)
+        queue += side -> packet
     }
   }
 
@@ -38,6 +68,13 @@ trait Hub extends Environment with SidedEnvironment {
         plug.node.save(plugNbt)
         plugNbt
       }))
+      nbt.setNewTagList(Settings.namespace + "queue", queue.map {
+        case (sourceSide, packet) =>
+          val tag = new NBTTagCompound()
+          tag.setInteger("side", sourceSide.ordinal())
+          packet.save(tag)
+          tag
+      })
     }
   }
 
@@ -66,8 +103,9 @@ trait Hub extends Environment with SidedEnvironment {
   protected def onPlugDisconnect(plug: Plug, node: Node) {}
 
   protected def onPlugMessage(plug: Plug, message: Message) {
-    if (message.name == "network.message") {
-      plug.plugsInOtherNetworks.foreach(_.node.sendToReachable(message.name, message.data: _*))
+    if (message.name == "network.message") message.data match {
+      case Array(packet: NetworkCard.Packet) if packet.ttl > 0 && queue.size < 20 => queue += plug.side -> packet.hop()
+      case _ =>
     }
   }
 

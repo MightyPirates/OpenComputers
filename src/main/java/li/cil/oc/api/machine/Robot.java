@@ -1,23 +1,15 @@
-package li.cil.oc.api.network;
+package li.cil.oc.api.machine;
 
-import li.cil.oc.api.machine.Robot;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
- * This is no longer used nor provided to callbacks. The context in a callback
- * will always be the one of a machine. To get access to a robot either use
- * its tile entity where possible (which implements {@link Robot}) or use
- * <tt>(Robot)((Machine)context).owner()</tt>.
+ * This interface allows interaction with robots.
+ * <p/>
+ * It is intended to be used by components when installed in a robot. In that
+ * case, the robot in question is the tile entity passed to item driver when
+ * asked to create the component's environment.
  */
-@Deprecated
-public interface RobotContext extends Context {
-    /**
-     * Gets the index of the currently selected slot in the robot's inventory.
-     *
-     * @return the index of the currently selected slot.
-     */
-    int selectedSlot();
-
+public interface Robot {
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.
@@ -37,6 +29,13 @@ public interface RobotContext extends Context {
     EntityPlayer player();
 
     /**
+     * Gets the index of the currently selected slot in the robot's inventory.
+     *
+     * @return the index of the currently selected slot.
+     */
+    int selectedSlot();
+
+    /**
      * Causes the currently installed upgrade to be saved and synchronized.
      * <p/>
      * If no upgrade is installed in the robot this does nothing.
@@ -46,6 +45,11 @@ public interface RobotContext extends Context {
      * saved to its item's NBT tag compound, as it would be when the game is
      * saved, and then re-sent to the client. Keep the number of calls to this
      * function low, since each call causes a network packet to be sent.
+     * <p/>
+     * This is somewhat of a 'meh, it works' approach that I'm not really happy
+     * with and plan to replace with something cleaner. Don't use unless you
+     * absolutely really have to.
      */
+    @Deprecated
     void saveUpgrade();
 }

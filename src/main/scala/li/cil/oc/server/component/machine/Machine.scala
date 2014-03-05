@@ -26,7 +26,7 @@ import scala.collection.mutable
 class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
-    withConnector(if (isRobot) Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel else Settings.get.bufferComputer).
+    withConnector(Settings.get.bufferComputer).
     create()
 
   val tmp = if (Settings.get.tmpSize > 0) {
@@ -44,19 +44,19 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   private val _users = mutable.Set.empty[String]
 
-  private val signals = new mutable.Queue[Machine.Signal]
+  private val signals = mutable.Queue.empty[Machine.Signal]
 
   private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
 
   // ----------------------------------------------------------------------- //
 
-  private[component] var timeStarted = 0L // Game-world time [ms] for os.uptime().
+  private var timeStarted = 0L // Game-world time [ms] for os.uptime().
 
   var worldTime = 0L // Game-world time for os.time().
 
-  private[component] var cpuTotal = 0L // Pseudo-real-world time [ns] for os.clock().
+  private var cpuTotal = 0L // Pseudo-real-world time [ns] for os.clock().
 
-  private[component] var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
+  private var cpuStart = 0L // Pseudo-real-world time [ns] for os.clock().
 
   private var remainIdle = 0 // Ticks left to sleep before resuming.
 
@@ -64,29 +64,31 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   private var usersChanged = false // Send updated users list to clients?
 
-  private[component] var message: Option[String] = None // For error messages.
+  private var message: Option[String] = None // For error messages.
+
+  private var cost = Settings.get.computerCost * Settings.get.tickFrequency
 
   // ----------------------------------------------------------------------- //
 
-  def lastError = message.orNull
-
   override def components = scala.collection.convert.WrapAsJava.mapAsJavaMap(_components)
-
-  override def users = _users.synchronized(_users.toArray)
-
-  override def tmpAddress = tmp.fold(null: String)(_.node.address)
-
-  override def upTime() = (worldTime - timeStarted) / 20.0
-
-  override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
-
-  def isRobot = false
-
-  private val cost = (if (isRobot) Settings.get.robotCost else Settings.get.computerCost) * Settings.get.tickFrequency
 
   def componentCount = _components.count {
     case (_, name) => name != "filesystem"
   } + addedComponents.count(_.name != "filesystem") - 1 // -1 = this computer
+
+  override def tmpAddress = tmp.fold(null: String)(_.node.address)
+
+  def lastError = message.orNull
+
+  override def setCostPerTick(value: Double) = cost = value * Settings.get.tickFrequency
+
+  override def getCostPerTick = cost / Settings.get.tickFrequency
+
+  override def users = _users.synchronized(_users.toArray)
+
+  override def upTime() = (worldTime - timeStarted) / 20.0
+
+  override def cpuTime = (cpuTotal + (System.nanoTime() - cpuStart)) * 10e-10
 
   // ----------------------------------------------------------------------- //
 

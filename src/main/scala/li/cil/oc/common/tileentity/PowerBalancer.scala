@@ -10,11 +10,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
   override def updateEntity() {
     super.updateEntity()
     if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
-      val nodes = ForgeDirection.VALID_DIRECTIONS.view.map(sidedNode(_) match {
-        case connector: Connector => connector
-        case _ => null
-      })
-      def isPrimary(connector: Connector) = connector != null && nodes(nodes.indexWhere(_.network == connector.network)) == connector
+      val nodes = connectors
       def network(connector: Connector) = if (connector != null) connector.network else this
       // Yeeeeah, so that just happened... it's not a beauty, but it works. This
       // is necessary because power in networks can be updated asynchronously,
@@ -28,14 +24,10 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
             network(nodes(3)).synchronized {
               network(nodes(4)).synchronized {
                 network(nodes(5)).synchronized {
-                  var sumBuffer, sumSize = 0.0
-                  for (node <- nodes if isPrimary(node)) {
-                    sumBuffer += node.globalBuffer
-                    sumSize += node.globalBufferSize
-                  }
+                  val (sumBuffer, sumSize) = distribute()
                   if (sumSize > 0) {
                     val ratio = sumBuffer / sumSize
-                    for (node <- nodes if isPrimary(node)) {
+                    for (node <- connectors if isPrimary(node)) {
                       node.changeBuffer(node.globalBufferSize * ratio - node.globalBuffer)
                     }
                   }
@@ -49,5 +41,24 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
       }
       updatePowerInformation()
     }
+  }
+
+  protected def distribute() = {
+    var sumBuffer, sumSize = 0.0
+    for (node <- connectors if isPrimary(node)) {
+      sumBuffer += node.globalBuffer
+      sumSize += node.globalBufferSize
+    }
+    (sumBuffer, sumSize)
+  }
+
+  private def connectors = ForgeDirection.VALID_DIRECTIONS.view.map(sidedNode(_) match {
+    case connector: Connector => connector
+    case _ => null
+  })
+
+  private def isPrimary(connector: Connector) = {
+    val nodes = connectors
+    connector != null && nodes(nodes.indexWhere(_.network == connector.network)) == connector
   }
 }

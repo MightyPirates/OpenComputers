@@ -6,7 +6,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class Capacitor extends Environment with PassiveNode {
+class Capacitor extends Environment {
   // Start with maximum theoretical capacity, gets reduced after validation.
   // This is done so that we don't lose energy while loading.
   val node = api.Network.newNode(this, Visibility.Network).

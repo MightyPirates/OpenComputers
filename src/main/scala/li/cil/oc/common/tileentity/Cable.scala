@@ -5,7 +5,7 @@ import li.cil.oc.common.EventHandler
 import li.cil.oc.{api, common}
 import net.minecraft.entity.player.EntityPlayer
 
-class Cable extends Environment with Analyzable with PassiveNode {
+class Cable extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
@@ -20,4 +20,13 @@ class Cable extends Environment with Analyzable with PassiveNode {
   }
 
   override def getRenderBoundingBox = common.block.Cable.bounds(world, x, y, z).offset(x, y, z)
+
+  // For Immibis Microblock support.
+  val ImmibisMicroblocks_TransformableTileEntityMarker = null
+
+  def ImmibisMicroblocks_isSideOpen(side: Int) = true
+
+  def ImmibisMicroblocks_onMicroblocksChanged() {
+    api.Network.joinOrCreateNetwork(this)
+  }
 }

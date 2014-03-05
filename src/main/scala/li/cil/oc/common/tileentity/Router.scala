@@ -7,15 +7,7 @@ import li.cil.oc.common.EventHandler
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends Hub with IPeripheral with PassiveNode {
-
-  override def canUpdate = false
-
-  override def validate() {
-    super.validate()
-    EventHandler.schedule(this)
-  }
-
+class Router extends Hub with IPeripheral {
   // ----------------------------------------------------------------------- //
   // Peripheral
 
@@ -69,7 +61,7 @@ class Router extends Hub with IPeripheral with PassiveNode {
   @Optional.Method(modid = "ComputerCraft")
   override def canAttachToSide(side: Int) = true
 
-  private def checkPort(args: Array[AnyRef], index: Int) = {
+  protected def checkPort(args: Array[AnyRef], index: Int) = {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
       throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
     val port = args(index).asInstanceOf[Double].toInt
@@ -78,7 +70,7 @@ class Router extends Hub with IPeripheral with PassiveNode {
     port
   }
 
-  private def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
+  protected def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
       if (openPorts(computer).contains(port))
         computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {

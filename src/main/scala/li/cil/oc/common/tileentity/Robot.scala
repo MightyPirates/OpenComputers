@@ -25,8 +25,11 @@ import net.minecraftforge.common.util.ForgeDirection
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation with RobotContext {
+class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
   def this() = this(false)
+  if (isServer) {
+    computer.setCostPerTick(Settings.get.robotCost)
+  }
 
   var proxy: RobotProxy = _
 
@@ -52,13 +55,13 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
-  override def node: ComponentConnector = if (isClient) null else computer.node.asInstanceOf[ComponentConnector]
+  override def node = if (isServer) computer.node else null
 
   override val _buffer = new common.component.Buffer(this) {
     override def maxResolution = (48, 14)
   }
-  override val _computer = if (isRemote) null else new robot.Robot(this)
-  val (gpu, keyboard) = if (isServer) {
+  val (bot, gpu, keyboard) = if (isServer) {
+    val bot = new robot.Robot(this)
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
     }
@@ -67,9 +70,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         world.getTileEntity(x, y, z) == proxy &&
           p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
     }
-    (gpu, keyboard)
+    (bot, gpu, keyboard)
   }
-  else (null, null)
+  else (null, null, null)
 
   var owner = "OpenComputers"
 
@@ -116,7 +119,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     // pow(xp(level) - base, 1/exp) / const = level
     level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
     if (isServer) {
-      node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
+      bot.node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
     }
   }
 
@@ -211,7 +214,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (stack.hasTagCompound) {
       xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
       updateXpInfo()
-      node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+      bot.node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
     }
   }
 
@@ -272,9 +275,11 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (!addedToNetwork) {
+    if (isServer && !addedToNetwork) {
       addedToNetwork = true
       api.Network.joinNewNetwork(node)
+      // For upgrading from when the energy was stored by the machine's node.
+      node.asInstanceOf[Connector].setLocalBufferSize(0)
     }
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
@@ -289,8 +294,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     super.updateEntity()
     if (isServer) {
       gpu.update()
-      globalBuffer = node.globalBuffer
-      globalBufferSize = node.globalBufferSize
+      globalBuffer = bot.node.globalBuffer
+      globalBufferSize = bot.node.globalBufferSize
       updatePowerInformation()
       if (xpChanged && world.getWorldInfo.getWorldTotalTime % 200 == 0) {
         xpChanged = false
@@ -323,6 +328,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
     gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
     keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
+    bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
@@ -347,6 +353,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
     nbt.setNewCompoundTag(Settings.namespace + "gpu", gpu.save)
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
+    nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
     nbt.setString(Settings.namespace + "owner", owner)
     nbt.setDouble(Settings.namespace + "xp", xp)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
@@ -420,6 +427,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   override def onMachineConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
+      node.connect(bot.node)
       node.connect(buffer.node)
       node.connect(gpu.node)
       buffer.node.connect(keyboard.node)
@@ -443,6 +451,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       node.remove()
       gpu.node.remove()
       keyboard.node.remove()
+      bot.node.remove()
     }
   }
 

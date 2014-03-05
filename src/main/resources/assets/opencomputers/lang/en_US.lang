@@ -18,11 +18,12 @@ oc:tile.PowerDistributor.name=Power Distributor
 oc:tile.Redstone.name=Redstone I/O
 oc:tile.Robot.name=Robot
 oc:tile.RobotAfterimage.name=Robot
-oc:tile.Router.name=Router
+oc:tile.Router.name=Switch
 oc:tile.Screen0.name=Screen (Tier 1)
 oc:tile.Screen1.name=Screen (Tier 2)
 oc:tile.Screen2.name=Screen (Tier 3)
 oc:tile.ServerRack.name=Server Rack
+oc:tile.WirelessRouter.name=Access Point
 
 # Items
 oc:item.AbstractBusCard.name=Abstract Bus Card
@@ -172,3 +173,4 @@ oc:tooltip.UpgradeNavigation=Can be used to determine the position and orientati
 oc:tooltip.UpgradeSign=Allows reading text on and writing text to signs.
 oc:tooltip.UpgradeSolarGenerator=Can be used to generate energy from sunlight on the go. Requires a clear line of sight to the sky above the robot. Generates energy at %s%% of the speed of a Stirling Engine.
 oc:tooltip.WirelessNetworkCard=Allows wireless sending of network messages in addition to normal ones. You can adjust the §fsignal strength§7 to control how far messages are sent. Higher signal strength results in higher energy consumption.
+oc:tooltip.WirelessRouter=Acts like a Switch, but additionally receives wireless packets and relays wired packets wirelessly.

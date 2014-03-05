@@ -113,7 +113,7 @@ trait Connector extends network.Connector with Node {
 
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    localBuffer = math.min(nbt.getDouble("buffer"), math.max(0, localBufferSize))
+    localBuffer = nbt.getDouble("buffer")
   }
 
   override def save(nbt: NBTTagCompound) {

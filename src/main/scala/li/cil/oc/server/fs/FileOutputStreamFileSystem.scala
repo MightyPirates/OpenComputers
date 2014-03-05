@@ -30,6 +30,11 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
   protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String) extends OutputHandle(owner, handle, path) {
     override def length() = file.length()
 
+    override def close() {
+      super.close()
+      file.close()
+    }
+
     override def position() = file.getFilePointer
 
     override def seek(to: Long) = {

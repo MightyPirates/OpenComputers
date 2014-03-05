@@ -17,6 +17,9 @@ import java.lang.annotation.Target;
  * <pre>
  *     Object[] f(Context context, Arguments arguments);
  * </pre>
+ * <p/>
+ * The method may return <tt>null</tt> in case it doesn't wish return anything,
+ * which is functionally equivalent to returning an empty array.
  *
  * @see Context
  * @see Arguments
