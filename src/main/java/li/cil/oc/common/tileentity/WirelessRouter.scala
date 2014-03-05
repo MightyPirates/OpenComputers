@@ -22,12 +22,10 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
     super.relayPacket(sourceSide, packet)
     if (sourceSide != ForgeDirection.UNKNOWN && strength > 0) {
       val cost = Settings.get.wirelessCostPerRange
-      if (cost > 0 && !Settings.get.ignorePower) {
-        val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
-        if (connector.tryChangeBuffer(-strength * cost)) {
-          for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
-            endpoint.receivePacket(packet, distance)
-          }
+      val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
+      if (connector.tryChangeBuffer(-strength * cost)) {
+        for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
+          endpoint.receivePacket(packet, distance)
         }
       }
     }
