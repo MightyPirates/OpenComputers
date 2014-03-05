@@ -104,6 +104,35 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   // ----------------------------------------------------------------------- //
 
+  override protected def distribute() = {
+    def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.node.asInstanceOf[Connector]) else null
+    val nodes = (0 to 3).map(node)
+    def network(connector: Connector) = if (connector != null) connector.network else this
+    val (sumBuffer, sumSize) = super.distribute()
+    var sumBufferServers, sumSizeServers = 0.0
+    network(nodes(0)).synchronized {
+      network(nodes(1)).synchronized {
+        network(nodes(2)).synchronized {
+          network(nodes(3)).synchronized {
+            for (node <- nodes if node != null) {
+              sumBufferServers += node.globalBuffer
+              sumSizeServers += node.globalBufferSize
+            }
+            if (sumSize + sumSizeServers > 0) {
+              val ratio = (sumBuffer + sumBufferServers) / (sumSize + sumSizeServers)
+              for (node <- nodes if node != null) {
+                node.changeBuffer(node.globalBufferSize * ratio - node.globalBuffer)
+              }
+            }
+          }
+        }
+      }
+    }
+    (sumBuffer + sumBufferServers, sumSize + sumSizeServers)
+  }
+
+  // ----------------------------------------------------------------------- //
+
   override def getSizeInventory = 4
 
   override def getInvName = Settings.namespace + "container.Rack"
