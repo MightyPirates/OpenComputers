@@ -82,7 +82,7 @@ class Keyboard extends SimpleBlock(Material.rock) {
 
   override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) =
     world.getTileEntity(x, y, z) match {
-      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.getOpposite.ordinal) => // Can stay.
+      case keyboard: tileentity.Keyboard if canPlaceBlockOnSide(world, x, y, z, keyboard.facing.ordinal) => // Can stay.
       case _ =>
         dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0)
         world.setBlockToAir(x, y, z)
