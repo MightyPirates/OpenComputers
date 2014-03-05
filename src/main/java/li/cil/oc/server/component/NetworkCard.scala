@@ -7,7 +7,6 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.Some
 
 class NetworkCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
@@ -51,7 +50,8 @@ class NetworkCard extends ManagedComponent {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
     checkPacketSize(args.drop(2))
-    node.sendToReachable("network.message", new NetworkCard.Packet(node.address, Some(address), port, args.drop(2)))
+    val packet = new NetworkCard.Packet(node.address, Some(address), port, args.drop(2))
+    node.sendToReachable("network.message", packet)
     result(true)
   }
 
@@ -59,7 +59,8 @@ class NetworkCard extends ManagedComponent {
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     checkPacketSize(args.drop(1))
-    node.sendToReachable("network.message", new NetworkCard.Packet(node.address, None, port, args.drop(1)))
+    val packet = new NetworkCard.Packet(node.address, None, port, args.drop(1))
+    node.sendToReachable("network.message", packet)
     result(true)
   }
 
@@ -80,9 +81,14 @@ class NetworkCard extends ManagedComponent {
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()
     if (message.name == "network.message") message.data match {
-      case Array(packet: NetworkCard.Packet) if packet.source != node.address && packet.dest.forall(_ == node.address) && openPorts.contains(packet.port) =>
-        node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Int.box(0)) ++ packet.data: _*)
+      case Array(packet: NetworkCard.Packet) => receivePacket(packet, 0)
       case _ =>
+    }
+  }
+
+  def receivePacket(packet: NetworkCard.Packet, distance: Double) {
+    if (packet.source != node.address && packet.dest.forall(_ == node.address) && openPorts.contains(packet.port)) {
+      node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Double.box(distance)) ++ packet.data: _*)
     }
   }
 
@@ -124,6 +130,7 @@ class NetworkCard extends ManagedComponent {
 }
 
 object NetworkCard {
+
   class Packet(val source: String, val dest: Option[String], val port: Int, val data: Iterable[AnyRef], val ttl: Int = 5) {
     def hop() = new Packet(source, dest, port, data, ttl - 1)
 

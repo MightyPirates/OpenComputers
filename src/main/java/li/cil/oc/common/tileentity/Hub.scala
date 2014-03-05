@@ -34,9 +34,13 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
     super.updateEntity()
     if (world.getWorldTime % 5 == 0 && queue.nonEmpty) {
       val (sourceSide, packet) = queue.dequeue()
-      for (side <- ForgeDirection.VALID_DIRECTIONS if side != sourceSide) {
-        sidedNode(side).sendToReachable("network.message", packet)
-      }
+      relayPacket(sourceSide, packet)
+    }
+  }
+
+  protected def relayPacket(sourceSide: ForgeDirection, packet: NetworkCard.Packet) {
+    for (side <- ForgeDirection.VALID_DIRECTIONS if side != sourceSide) {
+      sidedNode(side).sendToReachable("network.message", packet)
     }
   }
 

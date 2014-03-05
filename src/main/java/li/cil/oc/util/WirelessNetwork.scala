@@ -1,15 +1,16 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
-import li.cil.oc.server.component.WirelessNetworkCard
+import li.cil.oc.server.component.NetworkCard
 import net.minecraft.block.Block
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
 object WirelessNetwork {
-  val dimensions = mutable.Map.empty[Int, RTree[WirelessNetworkCard]]
+  val dimensions = mutable.Map.empty[Int, RTree[Endpoint]]
 
   @ForgeSubscribe
   def onWorldUnload(e: WorldEvent.Unload) {
@@ -25,21 +26,21 @@ object WirelessNetwork {
     }
   }
 
-  def add(card: WirelessNetworkCard) {
-    dimensions.getOrElseUpdate(dimension(card), new RTree[WirelessNetworkCard](Settings.get.rTreeMaxEntries)((card) => (card.owner.xCoord + 0.5, card.owner.yCoord + 0.5, card.owner.zCoord + 0.5))).add(card)
+  def add(endpoint: Endpoint) {
+    dimensions.getOrElseUpdate(dimension(endpoint), new RTree[Endpoint](Settings.get.rTreeMaxEntries)((endpoint) => (endpoint.owner.xCoord + 0.5, endpoint.owner.yCoord + 0.5, endpoint.owner.zCoord + 0.5))).add(endpoint)
   }
 
-  def update(card: WirelessNetworkCard) {
-    dimensions.get(dimension(card)) match {
+  def update(endpoint: Endpoint) {
+    dimensions.get(dimension(endpoint)) match {
       case Some(tree) =>
-        tree(card) match {
+        tree(endpoint) match {
           case Some((x, y, z)) =>
-            val dx = math.abs(card.owner.xCoord + 0.5 - x)
-            val dy = math.abs(card.owner.yCoord + 0.5 - y)
-            val dz = math.abs(card.owner.zCoord + 0.5 - z)
+            val dx = math.abs(endpoint.owner.xCoord + 0.5 - x)
+            val dy = math.abs(endpoint.owner.yCoord + 0.5 - y)
+            val dz = math.abs(endpoint.owner.zCoord + 0.5 - z)
             if (dx > 0.5 || dy > 0.5 || dz > 0.5) {
-              tree.remove(card)
-              tree.add(card)
+              tree.remove(endpoint)
+              tree.add(endpoint)
             }
           case _ =>
         }
@@ -47,42 +48,50 @@ object WirelessNetwork {
     }
   }
 
-  def remove(card: WirelessNetworkCard) = {
-    dimensions.get(dimension(card)) match {
-      case Some(set) => set.remove(card)
+  def remove(endpoint: Endpoint) = {
+    dimensions.get(dimension(endpoint)) match {
+      case Some(set) => set.remove(endpoint)
       case _ => false
     }
   }
 
-  def computeReachableFrom(card: WirelessNetworkCard) = {
-    dimensions.get(dimension(card)) match {
-      case Some(tree) if card.strength > 0 =>
-        val range = card.strength + 1
-        tree.query(offset(card, -range), offset(card, range)).
-          filter(_ != card).
-          map(zipWithDistance(card)).
+  def computeReachableFrom(endpoint: Endpoint) = {
+    dimensions.get(dimension(endpoint)) match {
+      case Some(tree) if endpoint.strength > 0 =>
+        val range = endpoint.strength + 1
+        tree.query(offset(endpoint, -range), offset(endpoint, range)).
+          filter(_ != endpoint).
+          map(zipWithDistance(endpoint)).
           filter(_._2 <= range * range).
           map {
           case (c, distance) => (c, Math.sqrt(distance))
         }.
-          filter(isUnobstructed(card))
-      case _ => Iterable.empty[(WirelessNetworkCard, Double)] // Should not be possible.
+          filter(isUnobstructed(endpoint))
+      case _ => Iterable.empty[(Endpoint, Double)] // Should not be possible.
     }
   }
 
-  private def dimension(card: WirelessNetworkCard) = card.owner.getWorldObj.provider.dimensionId
+  trait Endpoint {
+    def owner: TileEntity
 
-  private def offset(card: WirelessNetworkCard, value: Double) =
-    (card.owner.xCoord + 0.5 + value, card.owner.yCoord + 0.5 + value, card.owner.zCoord + 0.5 + value)
+    def strength: Double
 
-  private def zipWithDistance(reference: WirelessNetworkCard)(card: WirelessNetworkCard) =
-    (card, card.owner.getDistanceFrom(
+    def receivePacket(packet: NetworkCard.Packet, distance: Double)
+  }
+
+  private def dimension(endpoint: Endpoint) = endpoint.owner.getWorldObj.provider.dimensionId
+
+  private def offset(endpoint: Endpoint, value: Double) =
+    (endpoint.owner.xCoord + 0.5 + value, endpoint.owner.yCoord + 0.5 + value, endpoint.owner.zCoord + 0.5 + value)
+
+  private def zipWithDistance(reference: Endpoint)(endpoint: Endpoint) =
+    (endpoint, endpoint.owner.getDistanceFrom(
       reference.owner.xCoord + 0.5,
       reference.owner.yCoord + 0.5,
       reference.owner.zCoord + 0.5))
 
-  private def isUnobstructed(reference: WirelessNetworkCard)(info: (WirelessNetworkCard, Double)): Boolean = {
-    val (card, distance) = info
+  private def isUnobstructed(reference: Endpoint)(info: (Endpoint, Double)): Boolean = {
+    val (endpoint, distance) = info
     val gap = distance - 1
     if (gap > 0) {
       // If there's some space between the two wireless network cards we try to
@@ -92,13 +101,13 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
-      val world = card.owner.getWorldObj
+      val world = endpoint.owner.getWorldObj
       val pool = world.getWorldVec3Pool
 
       val origin = pool.getVecFromPool(reference.owner.xCoord, reference.owner.yCoord, reference.owner.zCoord)
-      val target = pool.getVecFromPool(card.owner.xCoord, card.owner.yCoord, card.owner.zCoord)
+      val target = pool.getVecFromPool(endpoint.owner.xCoord, endpoint.owner.yCoord, endpoint.owner.zCoord)
 
-      // Vector from reference card (sender) to this one (receiver).
+      // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)
       val v = delta.normalize()
 
@@ -120,7 +129,7 @@ object WirelessNetwork {
       for (i <- 0 until samples) {
         val rGap = world.rand.nextDouble() * gap
         // Adding some jitter to avoid only tracking the perfect line between
-        // two modems when they are diagonal to each other for example.
+        // two endpoints when they are diagonal to each other for example.
         val rSide = world.rand.nextInt(3) - 1
         val rTop = world.rand.nextInt(3) - 1
         val x = (origin.xCoord + v.xCoord * rGap + side.xCoord * rSide + top.xCoord * rTop).toInt
