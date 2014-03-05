@@ -63,7 +63,6 @@ class Proxy {
     TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
     GameRegistry.registerPlayerTracker(Keyboard)
     NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
-    MinecraftForge.EVENT_BUS.register(Network)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
   }
 }

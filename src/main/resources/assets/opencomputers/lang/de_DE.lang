@@ -18,7 +18,7 @@ oc:tile.PowerDistributor.name=Stromverteiler
 oc:tile.Redstone.name=Redstone-I/O
 oc:tile.Robot.name=Roboter
 oc:tile.RobotAfterimage.name=Roboter
-oc:tile.Router.name=Router
+oc:tile.Router.name=Switch
 oc:tile.Screen0.name=Bildschirm (Stufe 1)
 oc:tile.Screen1.name=Bildschirm (Stufe 2)
 oc:tile.Screen2.name=Bildschirm (Stufe 3)
@@ -158,7 +158,7 @@ oc:tooltip.Robot=Im Gegensatz zu normalen Computern können sich Roboter in der 
 # The underscore makes sure this isn't hidden with the rest of the tooltip.
 oc:tooltip.Robot_Level=§fStufe§7: §a%s§7.
 oc:tooltip.Robot_StoredEnergy=§fGespeicherte Energie§7: §a%s§7.
-oc:tooltip.Router=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Router sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
+oc:tooltip.Router=Erlaubt es, mehrere Netzwerke miteinander zu verbinden. Leitet ausschließlich Netzwerknachrichten weiter, Komponenten "hinter" dem Switch sind nicht sichtbar. Nützlich, um Netzwerke zu trennen, jedoch nach wie vor Kommunikation zwischen den Netzwerken zu erlauben, z.b. mittels Netzwerkkarten.
 oc:tooltip.Screen=Zeigt Text an, gesteuert von Grafikkarten in Computern.[nl] Höchstauflösung: §f%sx%s§7.[nl] Maximale Farbtiefe: §f%s§7.
 oc:tooltip.Server=Ein Server kann wie ein gewöhnliches Computergehäuse mit Komponenten verbessert werden. Um den Server zu starten, muss er in einem Servergehäuse installiert werden.[nl] Anzahl unterstützter Fernbedienungen: §f%s§7.
 oc:tooltip.Server.Components=Installierte Komponenten:

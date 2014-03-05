@@ -42,7 +42,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   private val _users = mutable.Set.empty[String]
 
-  private val signals = new mutable.Queue[Machine.Signal]
+  private val signals = mutable.Queue.empty[Machine.Signal]
 
   private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
 

@@ -4,9 +4,10 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.{NBTTagInt, NBTTagCompound}
+import net.minecraft.nbt._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import scala.Some
 
 class NetworkCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
@@ -50,7 +51,7 @@ class NetworkCard extends ManagedComponent {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
     checkPacketSize(args.drop(2))
-    node.sendToAddress(address, "network.message", Seq(Int.box(port)) ++ args.drop(2): _*)
+    node.sendToReachable("network.message", new NetworkCard.Packet(node.address, Some(address), port, args.drop(2)))
     result(true)
   }
 
@@ -58,7 +59,7 @@ class NetworkCard extends ManagedComponent {
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
     checkPacketSize(args.drop(1))
-    node.sendToReachable("network.message", Seq(Int.box(port)) ++ args.drop(1): _*)
+    node.sendToReachable("network.message", new NetworkCard.Packet(node.address, None, port, args.drop(1)))
     result(true)
   }
 
@@ -79,8 +80,8 @@ class NetworkCard extends ManagedComponent {
     if ((message.name == "computer.stopped" || message.name == "computer.started") && node.isNeighborOf(message.source))
       openPorts.clear()
     if (message.name == "network.message") message.data match {
-      case Array(port: Integer, args@_*) if openPorts.contains(port) =>
-        node.sendToReachable("computer.signal", Seq("modem_message", message.source.address, Int.box(port), Int.box(0)) ++ args: _*)
+      case Array(packet: NetworkCard.Packet) if packet.source != node.address && packet.dest.forall(_ == node.address) && openPorts.contains(packet.port) =>
+        node.sendToReachable("computer.signal", Seq("modem_message", packet.source, Int.box(packet.port), Int.box(0)) ++ packet.data: _*)
       case _ =>
     }
   }
@@ -119,5 +120,49 @@ class NetworkCard extends ManagedComponent {
     if (size > Settings.get.maxNetworkPacketSize) {
       throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
     }
+  }
+}
+
+object NetworkCard {
+  class Packet(val source: String, val dest: Option[String], val port: Int, val data: Iterable[AnyRef], val ttl: Int = 5) {
+    def hop() = new Packet(source, dest, port, data, ttl - 1)
+
+    def save(nbt: NBTTagCompound) {
+      nbt.setString("source", source)
+      nbt.setBoolean("broadcast", dest.isEmpty)
+      dest.foreach(nbt.setString("dest", _))
+      nbt.setInteger("port", port)
+      nbt.setInteger("ttl", ttl)
+      val dataArray = data.toArray
+      nbt.setInteger("dataLength", dataArray.length)
+      for (i <- 0 until dataArray.length) dataArray(i) match {
+        case null | Unit | None =>
+        case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
+        case value: java.lang.Double => nbt.setDouble("data" + i, value)
+        case value: java.lang.String => nbt.setString("data" + i, value)
+        case value: Array[Byte] => nbt.setByteArray("data" + i, value)
+      }
+    }
+  }
+
+  def loadPacket(nbt: NBTTagCompound) = {
+    val source = nbt.getString("source")
+    val dest =
+      if (nbt.getBoolean("broadcast")) None
+      else Option(nbt.getString("dest"))
+    val port = nbt.getInteger("port")
+    val ttl = nbt.getInteger("ttl")
+    val data = for (i <- 0 until nbt.getInteger("dataLength")) yield {
+      if (nbt.hasKey("data" + i)) {
+        nbt.getTag("data" + i) match {
+          case boolean: NBTTagByte => Boolean.box(boolean.data == 1)
+          case double: NBTTagDouble => Double.box(double.data)
+          case string: NBTTagString => string.data: AnyRef
+          case array: NBTTagByteArray => array.byteArray
+        }
+      }
+      else null
+    }
+    new Packet(source, dest, port, data, ttl)
   }
 }

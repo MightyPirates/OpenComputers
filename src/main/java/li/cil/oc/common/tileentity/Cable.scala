@@ -5,7 +5,7 @@ import li.cil.oc.server.TickHandler
 import li.cil.oc.{api, common}
 import net.minecraft.entity.player.EntityPlayer
 
-class Cable extends Environment with Analyzable with PassiveNode {
+class Cable extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).create()
 
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
