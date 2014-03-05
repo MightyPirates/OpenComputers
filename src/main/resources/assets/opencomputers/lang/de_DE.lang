@@ -23,6 +23,7 @@ oc:tile.Screen0.name=Bildschirm (Stufe 1)
 oc:tile.Screen1.name=Bildschirm (Stufe 2)
 oc:tile.Screen2.name=Bildschirm (Stufe 3)
 oc:tile.ServerRack.name=Serverschrank
+oc:tile.WirelessRouter.name=Access Point
 
 # Items
 oc:item.AbstractBusCard.name=Abstrakter-Bus-Karte
@@ -172,3 +173,4 @@ oc:tooltip.UpgradeNavigation=Erlaubt es Robotern, ihre Position und Ausrichtung 
 oc:tooltip.UpgradeSign=Erlaubt das Lesen und Schreiben von Text auf Schildern.
 oc:tooltip.UpgradeSolarGenerator=Kann verwendet werden, um unterwegs Energie aus Sonnenlicht zu generieren. Benötigt eine ungehinderte Sicht zum Himmel über dem Roboter. Generiert Energie mit %s%% der Geschwindigkeit eines Stirlingmotors.
 oc:tooltip.WirelessNetworkCard=Erlaubt das drahtlose Senden von Netzwerknachrichten, zusätzlich zu normalen. Drahtlose Nachrichten werden nur gesendet, wenn eine §fSignalstärke§7 festgelegt wurde!
+oc:tooltip.WirelessRouter=Verhält sich wie ein Switch, aber empfängt zusätzlich Drahtlosnachrichten, und leitet Pakete aus dem Festnetz drahtlos weiter.

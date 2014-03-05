@@ -315,3 +315,8 @@ hologram {
           ["oc:craftingCircuitBoardPrinted", diamond, "oc:craftingCircuitBoardPrinted"]
           ["oc:circuitTier3", blazeRod, "oc:circuitTier3"]]
 }
+wirelessRouter {
+  input: [[ingotIron, "oc:componentCardWLan", ingotIron]
+          ["oc:craftingCable", "oc:componentCardLan", "oc:craftingCable"]
+          [ingotIron, "oc:craftingCircuitBoardPrinted", ingotIron]]
+}

@@ -30,6 +30,7 @@ object Blocks {
   var router: Router = _
   var screen1, screen2, screen3: Screen = _
   var serverRack: Rack = _
+  var wirelessRouter: WirelessRouter = _
 
   def init() {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
@@ -65,6 +66,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
+    GameRegistry.registerTileEntity(classOf[tileentity.WirelessRouter], Settings.namespace + "wireless_router")
 
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
@@ -99,6 +101,7 @@ object Blocks {
 
     // v1.2.2
     hologram = Recipes.addBlockDelegate(new Hologram(blockSpecial), "hologram")
+    wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "wirelessRouter")
 
     register("oc:craftingCable", cable.createItemStack())
     register("oc:craftingCapacitor", capacitor.createItemStack())

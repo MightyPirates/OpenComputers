@@ -33,6 +33,20 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
     }
   }
 
+  override protected def onPlugConnect(plug: Plug, node: Node) {
+    super.onPlugConnect(plug, node)
+    if (node == plug.node) {
+      WirelessNetwork.add(this)
+    }
+  }
+
+  override protected def onPlugDisconnect(plug: Plug, node: Node) {
+    super.onPlugDisconnect(plug, node)
+    if (node == plug.node) {
+      WirelessNetwork.remove(this)
+    }
+  }
+
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
     if (nbt.hasKey("strength")) {
