@@ -49,7 +49,7 @@ while term.isAvailable() do
       io.stderr:write(tostring(result[2]) .. "\n")
     else
       for i = 2, result.n do
-        term.write(text.serialize(result[i], true) .. "\t")
+        term.write(text.serialize(result[i], true) .. "\t", true)
       end
       if term.getCursor() > 1 then
         term.write("\n")

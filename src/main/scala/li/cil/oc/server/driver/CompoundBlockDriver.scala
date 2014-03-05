@@ -34,7 +34,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       case _ =>
     }
     try world.getTileEntity(x, y, z) match {
-      case inventory: IInventory => return inventory.getInventoryName.stripPrefix("container.")
+      case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInventoryName) => return inventory.getInventoryName.stripPrefix("container.")
     } catch {
       case _: Throwable =>
     }

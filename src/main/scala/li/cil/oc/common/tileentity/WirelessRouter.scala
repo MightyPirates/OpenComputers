@@ -2,13 +2,31 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
 import li.cil.oc.server.component.NetworkCard.Packet
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.WirelessNetwork
 import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
+import scala.collection.convert.WrapAsScala._
+import net.minecraftforge.common.util.Constants.NBT
 
 class WirelessRouter extends Router with WirelessNetwork.Endpoint {
   var strength = Settings.get.maxWirelessRange
+
+  val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
+
+  // ----------------------------------------------------------------------- //
+
+  @Callback(direct = true, doc = """function():number -- Get the signal strength (range) used when relaying messages.""")
+  def getStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized(result(strength))
+
+  @Callback(doc = """function(strength:number):number -- Set the signal strength (range) used when relaying messages.""")
+  def setStrength(context: Context, args: Arguments): Array[AnyRef] = synchronized {
+    strength = math.max(args.checkDouble(0), math.min(0, Settings.get.maxWirelessRange))
+    result(strength)
+  }
+
+  // ----------------------------------------------------------------------- //
 
   override def owner = this
 
@@ -31,10 +49,17 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
     }
   }
 
+  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).withConnector().create()
+
+  // ----------------------------------------------------------------------- //
+
   override protected def onPlugConnect(plug: Plug, node: Node) {
     super.onPlugConnect(plug, node)
     if (node == plug.node) {
       WirelessNetwork.add(this)
+    }
+    if (!node.network.nodes.exists(componentNodes.contains)) {
+      node.connect(componentNodes(plug.side.ordinal))
     }
   }
 
@@ -42,20 +67,29 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
     super.onPlugDisconnect(plug, node)
     if (node == plug.node) {
       WirelessNetwork.remove(this)
+      componentNodes(plug.side.ordinal).remove()
     }
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    if (nbt.hasKey("strength")) {
-      strength = nbt.getDouble("strength") max 0 min Settings.get.maxWirelessRange
+    if (nbt.hasKey(Settings.namespace + "strength")) {
+      strength = nbt.getDouble(Settings.namespace + "strength") max 0 min Settings.get.maxWirelessRange
+    }
+    nbt.getTagList(Settings.namespace + "componentNodes", NBT.TAG_COMPOUND).foreach {
+      case (list, index) => componentNodes(index).load(list.getCompoundTagAt(index))
     }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
-    nbt.setDouble("strength", strength)
+    nbt.setDouble(Settings.namespace + "strength", strength)
+    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map(node => {
+      val tag = new NBTTagCompound()
+      node.save(tag)
+      tag
+    }))
   }
-
-  override protected def createNode(plug: Plug) = api.Network.newNode(plug, Visibility.Network).withConnector().create()
 }

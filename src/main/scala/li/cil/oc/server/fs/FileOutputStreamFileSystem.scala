@@ -1,7 +1,7 @@
 package li.cil.oc.server.fs
 
 import java.io
-import java.io.{FileNotFoundException, RandomAccessFile, FileOutputStream}
+import java.io.RandomAccessFile
 import li.cil.oc.api.fs.Mode
 
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {
@@ -28,14 +28,14 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
     }), this, id, path))
 
   protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String) extends OutputHandle(owner, handle, path) {
+    override def position() = file.getFilePointer
+
     override def length() = file.length()
 
     override def close() {
       super.close()
       file.close()
     }
-
-    override def position() = file.getFilePointer
 
     override def seek(to: Long) = {
       file.seek(to)
@@ -44,4 +44,5 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
     override def write(value: Array[Byte]) = file.write(value)
   }
+
 }
