@@ -8,7 +8,6 @@ import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
-import li.cil.oc.server.network.Network
 import li.cil.oc.server.{driver, fs, network}
 import li.cil.oc.util.{LuaStateFactory, WirelessNetwork}
 import net.minecraftforge.common.MinecraftForge
@@ -25,6 +24,7 @@ class Proxy {
     }
     */
 
+    api.CreativeTab.Instance = CreativeTab
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
     api.Machine.instance = machine.Machine

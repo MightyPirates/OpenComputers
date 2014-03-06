@@ -11,6 +11,10 @@ import java.util.Map;
  * Note that integer values fetched this way are actually double values that
  * have been truncated. So if a Lua program passes <tt>1.9</tt> and you do a
  * <tt>checkInteger</tt> you'll get a <tt>1</tt>.
+ * <p/>
+ * The indexes passed to the various functions start at zero, i.e. to get the
+ * first argument you would use <tt>checkAny(0)</tt>. This is worth mentioning
+ * because Lua starts its indexes at one.
  */
 public interface Arguments extends Iterable<Object> {
     /**
