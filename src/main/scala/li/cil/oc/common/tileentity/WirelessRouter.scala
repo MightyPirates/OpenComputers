@@ -34,6 +34,10 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
     if (queue.size < 20) {
       queue += ForgeDirection.UNKNOWN -> packet.hop()
     }
+    packet.data.headOption match {
+      case Some(answerPort: java.lang.Double) => queueMessage(packet.port, answerPort.toInt, packet.data.drop(1).toSeq)
+      case _ => queueMessage(packet.port, -1, packet.data.toSeq)
+    }
   }
 
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
