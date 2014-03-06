@@ -12,4 +12,7 @@ public final class CreativeTab {
      * Changed to the actual tab if OC is present.
      */
     public static CreativeTabs Instance = CreativeTabs.tabRedstone;
+
+    private CreativeTab() {
+    }
 }
