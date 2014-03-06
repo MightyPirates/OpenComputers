@@ -280,7 +280,11 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
 
     computer.set("removeUser", (args: Varargs) => LuaValue.valueOf(machine.removeUser(args.checkjstring(1))))
 
-    computer.set("energy", (_: Varargs) => LuaValue.valueOf(node.globalBuffer))
+    computer.set("energy", (_: Varargs) =>
+      if (Settings.get.ignorePower)
+        LuaValue.valueOf(Double.PositiveInfinity)
+      else
+        LuaValue.valueOf(node.globalBuffer))
 
     computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.globalBufferSize))
 

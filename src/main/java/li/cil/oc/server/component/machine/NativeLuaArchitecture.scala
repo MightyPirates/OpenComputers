@@ -5,6 +5,7 @@ import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
 import li.cil.oc.api.machine.{LimitReachedException, ExecutionResult}
+import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{api, OpenComputers, server, Settings}
@@ -12,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import li.cil.oc.api.network.ComponentConnector
 
 class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(machine) {
   private var lua: LuaState = null
@@ -369,7 +369,10 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
     lua.setField(-2, "removeUser")
 
     lua.pushScalaFunction(lua => {
-      lua.pushNumber(node.globalBuffer)
+      if (Settings.get.ignorePower)
+        lua.pushNumber(Double.PositiveInfinity)
+      else
+        lua.pushNumber(node.globalBuffer)
       1
     })
     lua.setField(-2, "energy")
