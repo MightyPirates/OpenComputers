@@ -29,8 +29,8 @@ minecraft {
     version = "1.7.2-10.12.0.1034"
     assetDir = "eclipse/assets"
 }
-processResources
-{
+
+processResources {
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
@@ -43,4 +43,22 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+}
+
+// because the normal default jar task has been modified to be obfuscated
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'dev'
+}
+
+task apiJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'api'
+//    exclude '**'
+    include 'li/cil/oc/api/**'
+}
+
+artifacts {
+    archives deobfJar
+    archives apiJar
 }
