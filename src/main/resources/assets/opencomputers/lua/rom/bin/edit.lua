@@ -21,9 +21,14 @@ local filename = shell.resolve(args[1])
 
 local readonly = options.r or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
-if fs.isDirectory(filename) or readonly and not fs.exists(filename) then
-  io.stderr:write("file not found")
-  return
+if not fs.exists(filename) then
+  if fs.isDirectory(filename) then
+    io.stderr:write("file is a directory")
+    return
+  elseif readonly then
+    io.stderr:write("file system is read only")
+    return
+  end
 end
 
 term.clear()
