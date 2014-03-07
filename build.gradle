@@ -1,3 +1,4 @@
+
 buildscript {
     repositories {
         mavenCentral()
@@ -14,6 +15,19 @@ buildscript {
 apply plugin: 'forge'
 apply plugin: 'scala'
 
+compileScala {
+    repositories {
+        ivy {
+            name "forge-cb"
+            artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
+        }
+    }
+    dependencies {
+        compile name: 'CodeChickenLib', version: "1.6.4-1.0.0.62", ext: 'jar'
+        compile name: 'ForgeMultipart', version: "1.6.4-1.0.0.250", ext: 'jar'
+    }
+}
+
 version = "1.2.2"
 group= "li.cil.oc" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "OpenComputers"
@@ -25,8 +39,7 @@ minecraft {
 	version = "1.6.4-9.11.1.964"
 }
 
-processResources
-{
+processResources {
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod/info'
@@ -50,7 +63,6 @@ task deobfJar(type: Jar) {
 task apiJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'api'
-//    exclude '**'
     include 'li/cil/oc/api/**'
 }
 
