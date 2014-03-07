@@ -130,13 +130,14 @@ object Cable {
     tileEntity match {
       /* TODO FMP
       case host: TileMultipart =>
-        !host.partList.exists {
+        host.partList.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
             import scala.collection.convert.WrapAsScala._
             val ownBounds = Iterable(new Cuboid6(cachedBounds(side.flag)))
             val otherBounds = part.getOcclusionBoxes
-            !NormalOcclusionTest(ownBounds, otherBounds)
-          case _ => false
+            NormalOcclusionTest(ownBounds, otherBounds)
+          case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
+          case _ => true
         }
       */
       case _ => true

@@ -9,7 +9,7 @@ import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+import net.minecraftforge.event.world.WorldEvent
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -414,13 +414,14 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       /* TODO FMP
       case host: TileMultipart =>
-        !host.partList.exists {
+        host.partList.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
             import scala.collection.convert.WrapAsScala._
             val ownBounds = Iterable(new Cuboid6(Cable.cachedBounds(side.flag)))
             val otherBounds = part.getOcclusionBoxes
-            !NormalOcclusionTest(ownBounds, otherBounds)
-          case _ => false
+            NormalOcclusionTest(ownBounds, otherBounds)
+          case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
+          case _ => true
         }
       */
       case _ => true
