@@ -18,7 +18,7 @@ Extending
 ---------
 You can implement your own item and block components using [the public API](https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api), which unlike the rest of the mod is in plain Java, so you don't have to know or learn Scala.
 
-Note that to get the OC JARs working in your development environment you'll want to run [BON](https://github.com/immibis/bearded-octo-nemesis) over it, first (I'll see when I find the time to make Jenkins produce a deobfed artifact), unless you don't need the class transformer (i.e. you don't use the `SimpleComponent` interface).
+Use the deobfuscated artifact from one of the [Jenkins builds](http://ci.cil.li/) in your development environment and OpenComputers *should* work without problems. If it doesn't please let me know.
 
 If you have any questions about the API or how to add OC support to your mod, please don't hesitate to ask, either on the Forums or on IRC!
 
@@ -26,7 +26,7 @@ Building
 ========
 Java
 ----
-You'll need a Forge development environment set up with support for Scala. There are no dependencies other than the bundled APIs.
+Just run `gradlew build`!
 
 Natives
 -------

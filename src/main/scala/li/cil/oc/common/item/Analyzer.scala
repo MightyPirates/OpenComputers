@@ -44,7 +44,7 @@ class Analyzer(val parent: Delegator) extends Delegate {
     }
   }
 
-  private def analyzeNodes(nodes: Array[Node], player: EntityPlayerMP) = if (nodes != null) for (node <- nodes) {
+  private def analyzeNodes(nodes: Array[Node], player: EntityPlayerMP) = if (nodes != null) for (node <- nodes if node != null) {
     node match {
       case connector: Connector =>
         if (connector.localBufferSize > 0) {
