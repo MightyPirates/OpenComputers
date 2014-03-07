@@ -20,7 +20,7 @@ apply plugin: 'scala'
 
 version = "1.2.2"
 group= "li.cil.oc" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "OpenComputers"
+archivesBaseName = "OpenComputers-MC1.7"
 
 if (System.getenv("BUILD_NUMBER") != null)
     version += "-dev${System.getenv("BUILD_NUMBER")}"
