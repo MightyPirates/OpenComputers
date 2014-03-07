@@ -23,7 +23,7 @@ group= "li.cil.oc" // http://maven.apache.org/guides/mini/guide-naming-conventio
 archivesBaseName = "OpenComputers-MC1.7"
 
 if (System.getenv("BUILD_NUMBER") != null)
-    version += "-dev${System.getenv("BUILD_NUMBER")}"
+    version += ".${System.getenv("BUILD_NUMBER")}"
 
 minecraft {
     version = "1.7.2-10.12.0.1034"
