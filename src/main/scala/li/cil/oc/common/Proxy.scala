@@ -40,7 +40,6 @@ class Proxy {
         def call = FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom")
       },
       Settings.resourceDomain + "/lua/rom")
-
   }
 
   def init(e: FMLInitializationEvent) {
