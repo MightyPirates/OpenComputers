@@ -6,9 +6,16 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.mutable
 import java.io.FileNotFoundException
+import java.util.concurrent.Callable
 
-class CompositeReadOnlyFileSystem extends api.fs.FileSystem {
+class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Callable[api.fs.FileSystem]]) extends api.fs.FileSystem {
   var parts = mutable.LinkedHashMap.empty[String, api.fs.FileSystem]
+  for ((name, factory) <- factories) {
+    val fs = factory.call()
+    if (fs != null) {
+      parts += name -> fs
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

@@ -5,6 +5,8 @@ import li.cil.oc.api.machine.Architecture;
 import li.cil.oc.api.machine.Machine;
 import li.cil.oc.api.machine.Owner;
 
+import java.util.concurrent.Callable;
+
 public interface MachineAPI {
     /**
      * Register an architecture that can be used to create new machines.
@@ -36,7 +38,7 @@ public interface MachineAPI {
      * @throws java.lang.IllegalArgumentException if the name is not unique or
      *                                            the architecture is invalid.
      */
-    void addRomResource(Class<? extends Architecture> architecture, FileSystem resource, String name);
+    void addRomResource(Class<? extends Architecture> architecture, Callable<FileSystem> resource, String name);
 
     /**
      * A list of all <em>registered</em> architectures.

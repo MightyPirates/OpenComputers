@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
 import scala.Array.canBuildFrom
 import scala.collection.mutable
+import java.util.concurrent.Callable
 
 class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
@@ -771,7 +772,7 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
 object Machine extends MachineAPI {
   val checked = mutable.Set.empty[Class[_ <: Architecture]]
 
-  var roms = mutable.Map.empty[Class[_ <: Architecture], CompositeReadOnlyFileSystem]
+  var roms = mutable.Map.empty[Class[_ <: Architecture], mutable.LinkedHashMap[String, Callable[fs.FileSystem]]]
 
   override def add(architecture: Class[_ <: Architecture]) {
     if (!checked.contains(architecture)) {
@@ -782,17 +783,17 @@ object Machine extends MachineAPI {
         case t: Throwable => throw new IllegalArgumentException("Architecture does not have required constructor.")
       }
       checked += architecture
-      roms += architecture -> new CompositeReadOnlyFileSystem()
+      roms += architecture -> mutable.LinkedHashMap.empty[String, Callable[fs.FileSystem]]
     }
   }
 
-  override def addRomResource(architecture: Class[_ <: Architecture], resource: fs.FileSystem, name: String) {
+  override def addRomResource(architecture: Class[_ <: Architecture], resource: Callable[fs.FileSystem], name: String) {
     add(architecture)
     val rom = roms(architecture)
-    if (rom.parts.contains(name)) {
+    if (rom.contains(name)) {
       throw new IllegalArgumentException(s"A file system with the name '$name' is already registered.")
     }
-    rom.parts += name -> resource
+    rom += name -> resource
   }
 
   override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
@@ -800,7 +801,7 @@ object Machine extends MachineAPI {
   override def create(owner: Owner, architecture: Class[_ <: Architecture]) = {
     add(architecture)
     new Machine(owner,
-      Option(FileSystem.asManagedEnvironment(roms(architecture), "rom")),
+      Option(FileSystem.asManagedEnvironment(new CompositeReadOnlyFileSystem(roms(architecture)), "rom")),
       architecture.getConstructor(classOf[machine.Machine]))
   }
 

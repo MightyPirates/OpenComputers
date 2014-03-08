@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
+import java.util.concurrent.Callable
 import li.cil.oc._
 import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
@@ -36,8 +37,11 @@ class Proxy {
     api.Network.instance = network.Network
 
     api.Machine.addRomResource(api.Machine.LuaArchitecture,
-      FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"),
+      new Callable[api.fs.FileSystem] {
+        def call = FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom")
+      },
       Settings.resourceDomain + "/lua/rom")
+
   }
 
   def init(e: FMLInitializationEvent): Unit = {
