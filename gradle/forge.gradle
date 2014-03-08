@@ -1,0 +1,26 @@
+compileScala {
+    repositories {
+        ivy {
+            name "forge-ext"
+            artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
+        }
+    }
+    dependencies {
+        compile name: 'CodeChickenLib', version: "${config.minecraft.version}-${config.ccl.version}", ext: 'jar'
+        compile name: 'ForgeMultipart', version: "${config.minecraft.version}-${config.fmp.version}", ext: 'jar'
+    }
+}
+
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod/info'
+        expand 'version':project.version, 'mcversion':config.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
