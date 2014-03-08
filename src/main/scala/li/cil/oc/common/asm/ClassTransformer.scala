@@ -131,11 +131,7 @@ class ClassTransformer extends IClassTransformer {
     writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES)
   }
 
-  val tileEntityName = {
-    (try classOf[TileEntity] catch {
-      case _: Throwable => loader.findClass("net.minecraft.tileentity.TileEntity") // Dev env?
-    }).getName.replace('.', '/')
-  }
+  val tileEntityName = FMLDeobfuscatingRemapper.INSTANCE.map("net.minecraft.tileentity.TileEntity").replace('.', '/')
 
   def isTileEntity(classNode: ClassNode): Boolean = {
     classNode.name != "java/lang/Object" && (classNode.name == tileEntityName || isTileEntity(classNodeFor(classNode.superName)))
