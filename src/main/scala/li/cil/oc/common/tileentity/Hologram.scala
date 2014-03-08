@@ -127,13 +127,13 @@ class Hologram extends Environment with SidedEnvironment with Analyzable {
     if (isServer) {
       if (dirty) {
         cooldown -= 1
-        if (cooldown <= 0) {
+        if (cooldown <= 0) this.synchronized {
           ServerPacketSender.sendHologramSet(this)
           resetDirtyFlag()
         }
       }
       if (world.getWorldTime % Settings.get.tickFrequency == 0) {
-        if (litRatio < 0) {
+        if (litRatio < 0) this.synchronized {
           litRatio = 0
           for (i <- 0 until volume.length) {
             if (volume(i) != 0) litRatio += 1
