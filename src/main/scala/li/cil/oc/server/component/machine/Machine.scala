@@ -3,13 +3,13 @@ package li.cil.oc.server.component.machine
 import java.lang.reflect.Constructor
 import java.util.logging.Level
 import li.cil.oc.api.detail.MachineAPI
-import li.cil.oc.api.machine
+import li.cil.oc.api.{fs, machine, FileSystem, Network}
 import li.cil.oc.api.machine.{LimitReachedException, Architecture, Owner, ExecutionResult}
 import li.cil.oc.api.network._
-import li.cil.oc.api.{FileSystem, Network}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.fs.CompositeReadOnlyFileSystem
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
@@ -21,7 +21,7 @@ import net.minecraft.server.integrated.IntegratedServer
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
-class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
+class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("computer", Visibility.Neighbors).
     withConnector(Settings.get.bufferComputer).
@@ -73,6 +73,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   def componentCount = _components.count {
     case (_, name) => name != "filesystem"
   } + addedComponents.count(_.name != "filesystem") - 1 // -1 = this computer
+
+  override def romAddress = rom.fold(null: String)(_.node.address)
 
   override def tmpAddress = tmp.fold(null: String)(_.node.address)
 
@@ -431,7 +433,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   override def onConnect(node: Node) {
     if (node == this.node) {
       _components += this.node.address -> this.node.name
-      tmp.foreach(tmp => node.connect(tmp.node))
+      rom.foreach(fs => node.connect(fs.node))
+      tmp.foreach(fs => node.connect(fs.node))
       architecture.onConnect()
     }
     else {
@@ -447,6 +450,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   override def onDisconnect(node: Node) {
     if (node == this.node) {
       close()
+      rom.foreach(_.node.remove())
       tmp.foreach(_.node.remove())
     }
     else {
@@ -528,7 +532,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     _components ++= nbt.getTagList("components").iterator[NBTTagCompound].map(c =>
       c.getString("address") -> c.getString("name"))
 
-    tmp.foreach(tmp => tmp.load(nbt.getCompoundTag("tmp")))
+    rom.foreach(fs => fs.load(nbt.getCompoundTag("rom")))
+    tmp.foreach(fs => fs.load(nbt.getCompoundTag("tmp")))
 
     if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
       architecture.load(nbt)
@@ -592,7 +597,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     nbt.setTag("components", componentsNbt)
 
-    tmp.foreach(tmp => nbt.setNewCompoundTag("tmp", tmp.save))
+    rom.foreach(fs => nbt.setNewCompoundTag("rom", fs.save))
+    tmp.foreach(fs => nbt.setNewCompoundTag("tmp", fs.save))
 
     if (state.top != Machine.State.Stopped) {
       architecture.save(nbt)
@@ -641,7 +647,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     // Connect the ROM and `/tmp` node to our owner. We're not in a network in
     // case we're loading, which is why we have to check it here.
     if (node.network != null) {
-      tmp.foreach(tmp => node.connect(tmp.node))
+      tmp.foreach(fs => node.connect(fs.node))
+      rom.foreach(fs => node.connect(fs.node))
     }
 
     try {
@@ -764,6 +771,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 object Machine extends MachineAPI {
   val checked = mutable.Set.empty[Class[_ <: Architecture]]
 
+  var roms = mutable.Map.empty[Class[_ <: Architecture], CompositeReadOnlyFileSystem]
+
   override def add(architecture: Class[_ <: Architecture]) {
     if (!checked.contains(architecture)) {
       try {
@@ -773,14 +782,26 @@ object Machine extends MachineAPI {
         case t: Throwable => throw new IllegalArgumentException("Architecture does not have required constructor.")
       }
       checked += architecture
+      roms += architecture -> new CompositeReadOnlyFileSystem()
     }
+  }
+
+  override def addRomResource(architecture: Class[_ <: Architecture], resource: fs.FileSystem, name: String) {
+    add(architecture)
+    val rom = roms(architecture)
+    if (rom.parts.contains(name)) {
+      throw new IllegalArgumentException(s"A file system with the name '$name' is already registered.")
+    }
+    rom.parts += name -> resource
   }
 
   override def architectures() = scala.collection.convert.WrapAsJava.asJavaIterable(checked)
 
   override def create(owner: Owner, architecture: Class[_ <: Architecture]) = {
     add(architecture)
-    new Machine(owner, architecture.getConstructor(classOf[machine.Machine]))
+    new Machine(owner,
+      Option(FileSystem.asManagedEnvironment(roms(architecture), "rom")),
+      architecture.getConstructor(classOf[machine.Machine]))
   }
 
   /** Possible states of the computer, and in particular its executor. */

@@ -21,10 +21,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
 
   @Callback(direct = true)
   def getLabel(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
-    label match {
-      case value: Label => result(label.getLabel)
-      case _ => null
-    }
+    if (label != null) result(label.getLabel) else null
   }
 
   @Callback
@@ -245,7 +242,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
       }
     })
 
-    label.load(nbt.getCompoundTag("label"))
+    if (label != null) {
+      label.load(nbt.getCompoundTag("label"))
+    }
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
@@ -265,7 +264,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
     nbt.setTag("owners", ownersNbt)
 
-    nbt.setNewCompoundTag("label", label.save)
+    if (label != null) {
+      nbt.setNewCompoundTag("label", label.save)
+    }
     nbt.setNewCompoundTag("fs", fileSystem.save)
   }
 

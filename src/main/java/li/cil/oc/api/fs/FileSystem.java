@@ -196,6 +196,12 @@ public interface FileSystem extends Persistable {
      * <p/>
      * It is the responsibility of the file system to restore all handles to
      * their previous state when it is reloaded (game loaded for example).
+     * <p/>
+     * <em>Important</em>: you should return a random value as the handle, to
+     * reduce the chance for conflicts. For example, a file system may be used
+     * in a compound of file systems (e.g. for the ROM of machines), in which
+     * case it is <em>essential</em> that the handles from different sub file
+     * systems do not overlap.
      *
      * @param path the path to the file to open.
      * @param mode the mode in which to open the file.

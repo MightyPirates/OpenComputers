@@ -6,6 +6,7 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc._
+import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.server.component.Keyboard
@@ -33,6 +34,10 @@ class Proxy {
       if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
+
+    api.Machine.addRomResource(api.Machine.LuaArchitecture,
+      FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom"),
+      Settings.resourceDomain + "/lua/rom")
   }
 
   def init(e: FMLInitializationEvent): Unit = {
