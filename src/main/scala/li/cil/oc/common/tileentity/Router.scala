@@ -5,6 +5,7 @@ import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api.network.Message
 import li.cil.oc.common.EventHandler
 import scala.collection.mutable
+import li.cil.oc.server.component.NetworkCard.Packet
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
 class Router extends Hub with IPeripheral {
@@ -84,10 +85,13 @@ class Router extends Hub with IPeripheral {
     super.onPlugMessage(plug, message)
     if (message.name == "network.message" && Loader.isModLoaded("ComputerCraft")) {
       message.data match {
-        case Array(port: Integer, answerPort: java.lang.Double, args@_*) =>
-          queueMessage(port, answerPort.toInt, args)
-        case Array(port: Integer, args@_*) =>
-          queueMessage(port, -1, args)
+        case Array(packet: Packet) =>
+          packet.data.headOption match {
+            case Some(answerPort: java.lang.Double) =>
+              queueMessage(packet.port, answerPort.toInt, packet.data.drop(1).toSeq)
+            case _ =>
+              queueMessage(packet.port, -1, packet.data.toSeq)
+          }
         case _ =>
       }
     }

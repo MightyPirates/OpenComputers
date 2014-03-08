@@ -4,7 +4,7 @@ import com.google.common.base.Strings
 import com.naef.jnlua._
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import li.cil.oc.api.machine.{LimitReachedException, ExecutionResult}
+import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
 import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
@@ -14,7 +14,7 @@ import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
-class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(machine) {
+class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private var lua: LuaState = null
 
   private var kernelMemory = 0
@@ -180,8 +180,6 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
   // ----------------------------------------------------------------------- //
 
   override def initialize(): Boolean = {
-    super.initialize()
-
     // Creates a new state with all base libraries and the persistence library
     // loaded into it. This means the state has much more power than it
     // rightfully should have, so we sandbox it a bit in the following.
@@ -325,10 +323,10 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
 
     // And its ROM address.
     lua.pushScalaFunction(lua => {
-      rom.foreach(fs => Option(fs.node.address) match {
+      Option(machine.romAddress) match {
         case None => lua.pushNil()
         case Some(address) => lua.pushString(address)
-      })
+      }
       1
     })
     lua.setField(-2, "romAddress")
@@ -568,9 +566,10 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
     true
   }
 
-  override def close() {
-    super.close()
+  override def onConnect() {
+  }
 
+  override def close() {
     if (lua != null) {
       lua.setTotalMemory(Integer.MAX_VALUE)
       lua.close()
@@ -588,8 +587,6 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
   private def state = machine.asInstanceOf[Machine].state
 
   override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-
     // Unlimit memory use while unpersisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -625,8 +622,6 @@ class NativeLuaArchitecture(machine: api.machine.Machine) extends LuaArchitectur
   }
 
   override def save(nbt: NBTTagCompound) {
-    super.save(nbt)
-
     // Unlimit memory while persisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 

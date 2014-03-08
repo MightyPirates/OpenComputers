@@ -1,5 +1,6 @@
 package li.cil.oc.api.machine;
 
+import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -12,6 +13,7 @@ import java.util.Map;
  * intended to be used by custom {@link Architecture}
  * implementations.
  */
+@SuppressWarnings("unused")
 public interface Machine extends ManagedEnvironment, Context {
     /**
      * The owner of the machine, usually a tile entity hosting the machine.
@@ -74,15 +76,30 @@ public interface Machine extends ManagedEnvironment, Context {
     void setCostPerTick(double value);
 
     /**
-     * The address of the file system that holds the machine's file system for
-     * temporary files (tmpfs). This may return <tt>null</tt> if either the
-     * creation of the file system failed, or if the size of the tmpfs has been
-     * set to zero in the config.
+     * The address of the file system that holds the machine's read only data
+     * (rom). This file system is populated based on the backing resource file
+     * systems specified for the machines architecture via
+     * {@link li.cil.oc.api.Machine#addRomResource(Class, FileSystem, String)}.
+     * This may return <tt>null</tt> if the creation of the file system
+     * failed.
      * <p/>
      * Use this in a custom architecture to allow code do differentiate the
      * tmpfs from other file systems, for example.
      *
-     * @return the address of the tmpfs components, or <tt>null</tt>.
+     * @return the address of the rom component, or <tt>null</tt>.
+     */
+    String romAddress();
+
+    /**
+     * The address of the file system that holds the machine's temporary files
+     * (tmpfs). This may return <tt>null</tt> if either the creation of the file
+     * system failed, or if the size of the tmpfs has been set to zero in the
+     * config.
+     * <p/>
+     * Use this in a custom architecture to allow code do differentiate the
+     * tmpfs from other file systems, for example.
+     *
+     * @return the address of the tmpfs component, or <tt>null</tt>.
      */
     String tmpAddress();
 

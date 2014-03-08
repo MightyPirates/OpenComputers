@@ -2,7 +2,7 @@ package li.cil.oc.server.component.machine
 
 import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import li.cil.oc.api.machine.{LimitReachedException, ExecutionResult}
+import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
 import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
@@ -13,7 +13,7 @@ import org.luaj.vm3.lib.jse.JsePlatform
 import scala.Some
 import scala.collection.convert.WrapAsScala._
 
-class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(machine) {
+class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private var lua: Globals = _
 
   private var thread: LuaThread = _
@@ -136,8 +136,6 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
   // ----------------------------------------------------------------------- //
 
   override def initialize() = {
-    super.initialize()
-
     lua = JsePlatform.debugGlobals()
     lua.set("package", LuaValue.NIL)
     lua.set("io", LuaValue.NIL)
@@ -258,10 +256,10 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
     computer.set("pushSignal", (args: Varargs) => LuaValue.valueOf(machine.signal(args.checkjstring(1), toSimpleJavaObjects(args, 2): _*)))
 
     // And its ROM address.
-    computer.set("romAddress", (_: Varargs) => rom.fold(LuaValue.NIL)(fs => Option(fs.node.address) match {
+    computer.set("romAddress", (_: Varargs) => Option(machine.romAddress) match {
       case Some(address) => LuaValue.valueOf(address)
       case _ => LuaValue.NIL
-    }))
+    })
 
     // And it's /tmp address...
     computer.set("tmpAddress", (_: Varargs) => {
@@ -386,9 +384,10 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
     true
   }
 
-  override def close() = {
-    super.close()
+  override def onConnect() {
+  }
 
+  override def close() = {
     lua = null
     thread = null
     synchronizedCall = null
@@ -399,11 +398,12 @@ class LuaJLuaArchitecture(machine: api.machine.Machine) extends LuaArchitecture(
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
-    super.load(nbt)
-
     if (machine.isRunning) {
       machine.stop()
       machine.start()
     }
+  }
+
+  override def save(nbt: NBTTagCompound) {
   }
 }
