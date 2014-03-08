@@ -82,14 +82,18 @@ class Hologram extends Environment with SidedEnvironment with Analyzable {
   @Callback(direct = true, doc = """function(x:number, z:number):number -- Returns the bit mask representing the specified column.""")
   def get(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val x = args.checkInteger(0) - 1
+    if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException()
     val z = args.checkInteger(1) - 1
+    if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException()
     result(volume(x + z * width))
   }
 
   @Callback(direct = true, limit = 256, doc = """function(x:number, z:number, value:number) -- Set the bit mask for the specified column.""")
   def set(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val x = args.checkInteger(0) - 1
+    if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException()
     val z = args.checkInteger(1) - 1
+    if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException()
     val value = args.checkInteger(2)
     volume(x + z * width) = value
     setDirty(x, z)
@@ -99,7 +103,9 @@ class Hologram extends Environment with SidedEnvironment with Analyzable {
   @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number) -- Fills a column to the specified height.""")
   def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val x = args.checkInteger(0) - 1
+    if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException()
     val z = args.checkInteger(1) - 1
+    if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException()
     val height = math.min(32, math.max(0, args.checkInteger(2)))
     // Bit shifts in the JVM only use the lowest five bits... so we have to
     // manually check the height, to avoid the shift being a no-op.
