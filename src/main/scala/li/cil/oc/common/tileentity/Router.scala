@@ -52,7 +52,10 @@ class Router extends Hub with IPeripheral {
     case "transmit" =>
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
-      plugs.foreach(_.node.sendToReachable("network.message", Seq(Int.box(sendPort), Int.box(answerPort)) ++ arguments.drop(2): _*))
+      val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
+      plugs.foreach(plug => {
+        plug.node.sendToReachable("network.message", new Packet(plug.node.address, None, sendPort, data))
+      })
       null
     case "isWireless" => Array(java.lang.Boolean.FALSE)
     case _ => null
