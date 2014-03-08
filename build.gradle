@@ -14,58 +14,19 @@ buildscript {
 apply plugin: 'forge'
 apply plugin: 'scala'
 
-compileScala {
-    repositories {
-        ivy {
-            name "forge-cb"
-            artifactPattern "http://files.minecraftforge.net/[module]/[module]-dev-[revision].[ext]"
-        }
-    }
-    dependencies {
-        compile name: 'CodeChickenLib', version: "1.6.4-1.0.0.62", ext: 'jar'
-        compile name: 'ForgeMultipart', version: "1.6.4-1.0.0.250", ext: 'jar'
-    }
+file "build.properties" withReader {
+    def prop = new Properties()
+    prop.load(it)
+    ext.config = new ConfigSlurper().parse prop
 }
 
-version = "1.2.2"
-group= "li.cil.oc" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "OpenComputers-MC1.6.4"
+version = "${config.oc.version}"
+group = "li.cil.oc"
+archivesBaseName = "OpenComputers-MC${config.minecraft.version}"
 
 if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
 
-minecraft {
-	version = "1.6.4-9.11.1.964"
-}
-
-processResources {
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod/info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
-}
-
-// because the normal default jar task has been modified to be obfuscated
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
-}
-
-task apiJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'api'
-    include 'li/cil/oc/api/**'
-}
-
-artifacts {
-    archives deobfJar
-    archives apiJar
-}
+apply from: 'gradle/forge.gradle'
+apply from: 'gradle/artifact.gradle'
+apply from: 'gradle/release.gradle'
