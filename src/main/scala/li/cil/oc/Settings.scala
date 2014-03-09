@@ -25,6 +25,7 @@ class Settings(config: Config) {
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
   val textAntiAlias = config.getBoolean("client.textAntiAlias")
   val pasteShortcut = config.getStringList("client.pasteShortcut").toSet
+  val robotLabels = config.getBoolean("client.robotLabels")
   val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //

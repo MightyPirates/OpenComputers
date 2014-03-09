@@ -164,7 +164,6 @@ local function handleCommand(prefix, command, args, message)
 	  sock:write("NOTICE " .. name(prefix) .. " :\001VERSION Minecraft/OpenComputers Lua 5.2\001\r\n")
 	  sock:flush()
 	elseif string.find(message, "\001PING") then
-	  print("NOTICE " .. name(prefix) .. " :" .. message .. "\001\r\n")
 	  sock:write("NOTICE " .. name(prefix) .. " :" .. message .. "\001\r\n")
 	  sock:flush()
 	end
