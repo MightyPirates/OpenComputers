@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer.tileentity
 
 import java.util.logging.Level
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Settings, OpenComputers}
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.client.renderer.entity.{RendererLivingEntity, RenderManager}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
@@ -174,6 +174,51 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
+
+    val name = robot.name
+    if (Settings.get.robotLabels && name != null && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+      GL11.glPushMatrix()
+
+      // This is pretty much copy-pasta from the entity's label renderer.
+      val t = Tessellator.instance
+      val f = func_147498_b
+      val scale = 1.6f / 60f
+      val width = f.getStringWidth(name)
+
+      GL11.glTranslated(0, 0.7, 0)
+      GL11.glNormal3f(0, 1, 0)
+
+      GL11.glRotatef(-field_147501_a.field_147562_h, 0, 1, 0)
+      GL11.glRotatef(field_147501_a.field_147563_i, 1, 0, 0)
+      GL11.glScalef(-scale, -scale, scale)
+
+      GL11.glDisable(GL11.GL_LIGHTING)
+      GL11.glDepthMask(false)
+      GL11.glDisable(GL11.GL_DEPTH_TEST)
+      GL11.glEnable(GL11.GL_BLEND)
+      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+      GL11.glDisable(GL11.GL_TEXTURE_2D)
+      t.startDrawingQuads()
+      val halfWidth = width / 2
+      t.setColorRGBA_F(0, 0, 0, 0.25f)
+      t.addVertex(-halfWidth - 1, -1, 0)
+      t.addVertex(-halfWidth - 1, 8, 0)
+      t.addVertex(halfWidth + 1, 8, 0)
+      t.addVertex(halfWidth + 1, -1, 0)
+      t.draw
+
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      f.drawString(name, -halfWidth, 0, 0x20FFFFFF)
+      GL11.glEnable(GL11.GL_DEPTH_TEST)
+      GL11.glDepthMask(true)
+      f.drawString(name, -halfWidth, 0, -1)
+      GL11.glEnable(GL11.GL_LIGHTING)
+      GL11.glDisable(GL11.GL_BLEND)
+      GL11.glColor4f(1, 1, 1, 1)
+
+      GL11.glPopMatrix()
+    }
 
     // If the move started while we were rendering and we have a reference to
     // the *old* proxy the robot would be rendered at the wrong position, so we

@@ -12,7 +12,7 @@ If you'd like to contribute code, please have a look at the [code conventions](h
 
 If you encounter any bugs, please report them [in the issue tracker](https://github.com/MightyPirates/OpenComputers/issues?state=open), if they have not already been reported. If you report a crash, always provide your log file.
 
-If you wish to discuss or suggest a new feature, the [forums](http://oc.cil.li//index.php?/forum/22-feedback-and-suggestions/) are a good place for that.
+If you wish to discuss or suggest a new feature, the [forums](http://oc.cil.li/forums/viewforum.php?f=11) are a good place for that.
 
 Extending
 ---------

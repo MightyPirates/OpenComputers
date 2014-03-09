@@ -6,6 +6,7 @@ import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
+import net.minecraft.tileentity.TileEntity;
 
 /**
  * This class provides factory methods for creating file systems that are
@@ -46,7 +47,8 @@ public final class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromClass(final Class<?> clazz, final String domain, final String root) {
-        if (instance != null) return instance.fromClass(clazz, domain, root);
+        if (instance != null)
+            return instance.fromClass(clazz, domain, root);
         return null;
     }
 
@@ -74,7 +76,8 @@ public final class FileSystem {
      * @return a file system wrapping the specified folder.
      */
     public static li.cil.oc.api.fs.FileSystem fromSaveDirectory(final String root, final long capacity, final boolean buffered) {
-        if (instance != null) return instance.fromSaveDirectory(root, capacity, buffered);
+        if (instance != null)
+            return instance.fromSaveDirectory(root, capacity, buffered);
         return null;
     }
 
@@ -103,7 +106,8 @@ public final class FileSystem {
      * @return a file system residing in memory.
      */
     public static li.cil.oc.api.fs.FileSystem fromMemory(final long capacity) {
-        if (instance != null) return instance.fromMemory(capacity);
+        if (instance != null)
+            return instance.fromMemory(capacity);
         return null;
     }
 
@@ -115,7 +119,8 @@ public final class FileSystem {
      */
     @Optional.Method(modid = "ComputerCraft")
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IMount mount) {
-        if (instance != null) return instance.fromComputerCraft(mount);
+        if (instance != null)
+            return instance.fromComputerCraft(mount);
         return null;
     }
 
@@ -127,7 +132,8 @@ public final class FileSystem {
      */
     @Optional.Method(modid = "ComputerCraft")
     public static li.cil.oc.api.fs.FileSystem fromComputerCraft(final IWritableMount mount) {
-        if (instance != null) return instance.fromComputerCraft(mount);
+        if (instance != null)
+            return instance.fromComputerCraft(mount);
         return null;
     }
 
@@ -140,13 +146,36 @@ public final class FileSystem {
      * more control over the node, implement your own, and connect this one to
      * it. In that case you will have to forward any disk driver messages to the
      * node, though.
+     * <p/>
+     * The container parameter is used to give the file system some physical
+     * relation to the world, for example this is used by hard drives to send
+     * the disk event notifications to the client that are used to play disk
+     * access sounds.
+     * <p/>
+     * The container may be <tt>null</tt>, if no such context can be provided.
+     *
+     * @param fileSystem the file system to wrap.
+     * @param label      the label of the file system.
+     * @param container  the tile entity containing the file system.
+     * @return the network node wrapping the file system.
+     */
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final TileEntity container) {
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem, label, container);
+        return null;
+    }
+
+    /**
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the label of the file system.
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label) {
-        if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem, label);
         return null;
     }
 
@@ -159,7 +188,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label) {
-        if (instance != null) return instance.asManagedEnvironment(fileSystem, label);
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem, label);
         return null;
     }
 
@@ -172,7 +202,8 @@ public final class FileSystem {
      * @return the network node wrapping the file system.
      */
     public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem) {
-        if (instance != null) return instance.asManagedEnvironment(fileSystem);
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem);
         return null;
     }
 

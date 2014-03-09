@@ -6,6 +6,7 @@ import dan200.computer.api.IWritableMount;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
+import net.minecraft.tileentity.TileEntity;
 
 public interface FileSystemAPI {
     /**
@@ -96,6 +97,24 @@ public interface FileSystemAPI {
      * more control over the node, implement your own, and connect this one to
      * it. In that case you will have to forward any disk driver messages to the
      * node, though.
+     * <p/>
+     * The container parameter is used to give the file system some physical
+     * relation to the world, for example this is used by hard drives to send
+     * the disk event notifications to the client that are used to play disk
+     * access sounds.
+     * <p/>
+     * The container may be <tt>null</tt>, if no such context can be provided.
+     *
+     * @param fileSystem the file system to wrap.
+     * @param label      the label of the file system.
+     * @param container  the tile entity containing the file system.
+     * @return the network node wrapping the file system.
+     */
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, TileEntity container);
+
+    /**
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the label of the file system.

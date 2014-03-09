@@ -10,6 +10,7 @@ import net.minecraft.item.{ItemStack, EnumRarity}
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraft.util.{IIcon, AxisAlignedBB}
 import net.minecraftforge.common.util.ForgeDirection
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 
 class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   val unlocalizedName = "Hologram"
@@ -27,6 +28,11 @@ class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 15
 
   override def isSolid(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = side == ForgeDirection.DOWN
+
+  @SideOnly(Side.CLIENT)
+  override def shouldSideBeRendered(world: IBlockAccess, x: Int, y: Int, z: Int, side: ForgeDirection) = {
+    super.shouldSideBeRendered(world, x, y, z, side) || side == ForgeDirection.UP
+  }
 
   override def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
     AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 3 / 16f, 1)

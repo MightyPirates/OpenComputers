@@ -1,16 +1,18 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
-import li.cil.oc.Settings
-import li.cil.oc.api.Network
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.common.Sound
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.{NBTTagIntArray, NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[TileEntity] = None) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -75,7 +77,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   @Callback
   def list(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     Option(fileSystem.list(clean(args.checkString(0)))) match {
-      case Some(list) => Array(list)
+      case Some(list) =>
+        container.foreach(Sound.playDiskActivity)
+        Array(list)
       case _ => null
     }
   }
@@ -84,19 +88,25 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
   def makeDirectory(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(path: String): Boolean = !fileSystem.exists(path) && (fileSystem.makeDirectory(path) ||
       (recurse(path.split("/").dropRight(1).mkString("/")) && fileSystem.makeDirectory(path)))
-    result(recurse(clean(args.checkString(0))))
+    val success = recurse(clean(args.checkString(0)))
+    if (success) container.foreach(Sound.playDiskActivity)
+    result(success)
   }
 
   @Callback
   def remove(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     def recurse(parent: String): Boolean = (!fileSystem.isDirectory(parent) ||
       fileSystem.list(parent).forall(child => recurse(parent + "/" + child))) && fileSystem.delete(parent)
-    result(recurse(clean(args.checkString(0))))
+    val success = recurse(clean(args.checkString(0)))
+    if (success) container.foreach(Sound.playDiskActivity)
+    result(success)
   }
 
   @Callback
   def rename(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
-    result(fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1))))
+    val success = fileSystem.rename(clean(args.checkString(0)), clean(args.checkString(1)))
+    if (success) container.foreach(Sound.playDiskActivity)
+    result(success)
   }
 
   @Callback(direct = true)
@@ -149,6 +159,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
           if (!node.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
+          container.foreach(Sound.playDiskActivity)
           result(bytes)
         }
         else {
@@ -186,7 +197,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
     checkOwner(context.node.address, handle)
     Option(fileSystem.getHandle(handle)) match {
-      case Some(file) => file.write(value); result(true)
+      case Some(file) =>
+        file.write(value)
+        container.foreach(Sound.playDiskActivity)
+        result(true)
       case _ => throw new IOException("bad file descriptor")
     }
   }

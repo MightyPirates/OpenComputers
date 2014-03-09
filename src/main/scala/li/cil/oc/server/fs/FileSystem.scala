@@ -72,6 +72,9 @@ object FileSystem extends api.detail.FileSystemAPI {
   @Optional.Method(modid = "ComputerCraft")
   def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: net.minecraft.tileentity.TileEntity) =
+    Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
 
