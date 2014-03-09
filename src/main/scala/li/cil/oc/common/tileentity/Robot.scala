@@ -9,7 +9,7 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Settings, api, common}
+import li.cil.oc._
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
@@ -17,6 +17,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
+import scala.io.Source
+import scala.Some
+import java.util.logging.Level
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -26,6 +29,7 @@ import net.minecraftforge.common.ForgeDirection
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
 class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
   def this() = this(false)
+
   if (isServer) {
     computer.setCostPerTick(Settings.get.robotCost)
   }
@@ -40,6 +44,16 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   var selectedSlot = actualSlot(0)
 
   override def player() = player(facing, facing)
+
+  def name: String = {
+    if (tag != null && tag.hasKey("display")) {
+      val display = tag.getCompoundTag("display")
+      if (display != null && display.hasKey("Name")) {
+        return display.getString("Name")
+      }
+    }
+    null
+  }
 
   override def saveUpgrade() = this.synchronized {
     components(3) match {
@@ -74,6 +88,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   else (null, null, null)
 
   var owner = "OpenComputers"
+
+  var tag: NBTTagCompound = _
 
   var xp = 0.0
 
@@ -196,23 +212,29 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   def createItemStack() = {
     val stack = Blocks.robotProxy.createItemStack()
-    if (globalBuffer > 1 || xp > 0) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
-    }
+    val tag = if (this.tag != null) this.tag.copy.asInstanceOf[NBTTagCompound] else new NBTTagCompound("tag")
+    stack.setTagCompound(tag)
     if (xp > 0) {
-      stack.getTagCompound.setDouble(Settings.namespace + "xp", xp)
+      tag.setDouble(Settings.namespace + "xp", xp)
     }
     if (globalBuffer > 1) {
-      stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", globalBuffer.toInt)
+      tag.setInteger(Settings.namespace + "storedEnergy", globalBuffer.toInt)
     }
     stack
   }
 
   def parseItemStack(stack: ItemStack) {
     if (stack.hasTagCompound) {
-      xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
+      tag = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]
+      xp = tag.getDouble(Settings.namespace + "xp")
       updateXpInfo()
       bot.node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+    }
+    else {
+      tag = new NBTTagCompound("tag")
+    }
+    if (name == null) {
+      tag.setNewCompoundTag("display", tag => tag.setString("Name", Robot.randomName))
     }
   }
 
@@ -330,6 +352,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
+    if (nbt.hasKey(Settings.namespace + "tag")) {
+      tag = nbt.getCompoundTag(Settings.namespace + "tag")
+    }
     xp = nbt.getDouble(Settings.namespace + "xp") max 0
     updateXpInfo()
     selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max actualSlot(0) min (getSizeInventory - 1)
@@ -353,6 +378,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
     nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     nbt.setNewCompoundTag(Settings.namespace + "robot", bot.save)
     nbt.setString(Settings.namespace + "owner", owner)
+    if (tag != null) {
+      nbt.setCompoundTag(Settings.namespace + "tag", tag)
+    }
     nbt.setDouble(Settings.namespace + "xp", xp)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
@@ -369,6 +397,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
+    if (nbt.hasKey(Settings.namespace + "tag")) {
+      tag = nbt.getCompoundTag(Settings.namespace + "tag")
+    }
     selectedSlot = nbt.getInteger("selectedSlot")
     if (nbt.hasKey("equipped")) {
       equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
@@ -391,6 +422,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
     super.writeToNBTForClient(nbt)
+    if (tag != null) {
+      nbt.setCompoundTag(Settings.namespace + "tag", tag)
+    }
     nbt.setInteger("selectedSlot", selectedSlot)
     if (getStackInSlot(0) != null) {
       nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
@@ -563,4 +597,19 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       case ForgeDirection.NORTH => Array(2, 3)
       case _ => (actualSlot(0) until getSizeInventory).toArray
     }
+}
+
+object Robot {
+  val names = try {
+    Source.fromInputStream(getClass.getResourceAsStream(
+      "/assets/" + Settings.resourceDomain + "/robot.names"))("UTF-8").
+      getLines().map(_.trim).filter(!_.startsWith("#")).filter(_ != "").toArray
+  }
+  catch {
+    case t: Throwable =>
+      OpenComputers.log.log(Level.WARNING, "Failed loading robot name list.", t)
+      Array.empty
+  }
+
+  def randomName = names((math.random * names.length).toInt)
 }
