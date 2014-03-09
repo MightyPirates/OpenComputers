@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import java.util.logging.Level
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Settings, OpenComputers}
 import li.cil.oc.client.TexturePreloader
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
@@ -176,7 +176,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
     val name = robot.name
-    if (name != null && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+    if (Settings.get.robotLabels && name != null && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
       GL11.glPushMatrix()
 
       // This is pretty much copy-pasta from the entity's label renderer.
