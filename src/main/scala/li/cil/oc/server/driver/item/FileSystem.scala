@@ -18,7 +18,7 @@ object FileSystem extends Item {
     if (ComputerCraft.isDisk(stack) && container != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, container.getWorldObj)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack))) match {
+      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container)) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
           environment
