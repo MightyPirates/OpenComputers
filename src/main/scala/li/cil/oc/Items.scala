@@ -26,7 +26,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Storage
-  var floppyDisk: item.FloppyDisk = _
+  var floppyDisk, lootDisk: item.FloppyDisk = _
   var hdd1, hdd2, hdd3: item.HardDiskDrive = _
 
   // ----------------------------------------------------------------------- //
@@ -139,6 +139,10 @@ object Items {
     server1 = Recipes.addItemDelegate(new item.Server(multi, 0), "server1")
     server2 = Recipes.addItemDelegate(new item.Server(multi, 1), "server2")
 
+    //v1.2.?
+    lootDisk = new item.FloppyDisk(multi)
+    lootDisk.showInItemList = false
+
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()
     api.Items.Acid = acid.createItemStack()
@@ -164,6 +168,7 @@ object Items {
     api.Items.HardDriveTier1 = hdd3.createItemStack()
     api.Items.InternetCard = internet.createItemStack()
     api.Items.IronNugget = ironNugget.createItemStack()
+    api.Items.LootFloppy = lootDisk.createItemStack()
     api.Items.MemoryTier1 = ram1.createItemStack()
     api.Items.MemoryTier2 = ram2.createItemStack()
     api.Items.MemoryTier3 = ram3.createItemStack()

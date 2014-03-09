@@ -48,6 +48,7 @@ class Proxy {
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
+    api.Driver.add(driver.item.LootFileSystem)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
     api.Driver.add(driver.item.Processor)
@@ -61,6 +62,8 @@ class Proxy {
 
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
+
+    Loot.init()
   }
 
   def postInit(e: FMLPostInitializationEvent): Unit = {
