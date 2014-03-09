@@ -22,10 +22,13 @@ file "build.properties" withReader {
 
 version = "${config.oc.version}"
 group = "li.cil.oc"
-archivesBaseName = "OpenComputers-MC${config.minecraft.version}"
+archivesBaseName = "OpenComputers"
 
 if (System.getenv("BUILD_NUMBER") != null)
     version += ".${System.getenv("BUILD_NUMBER")}"
+
+ext.simpleVersion = version
+version = "MC${config.minecraft.version}-${project.version}"
 
 apply from: 'gradle/forge.gradle'
 apply from: 'gradle/artifact.gradle'

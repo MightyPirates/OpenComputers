@@ -1,7 +1,8 @@
 jar {
     classifier = 'universal'
     manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader", FMLCorePluginContainsFMLMod: "true"
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
     }
 }
 

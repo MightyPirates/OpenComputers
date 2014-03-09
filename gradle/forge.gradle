@@ -18,7 +18,7 @@ minecraft {
 processResources {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod/info'
-        expand 'version':project.version, 'mcversion':config.minecraft.version
+        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
     }
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
