@@ -1,26 +1,28 @@
 package li.cil.oc.server.component.machine
 
+import java.io
 import java.lang.reflect.Constructor
+import java.util.concurrent.Callable
 import java.util.logging.Level
 import li.cil.oc.api.detail.MachineAPI
-import li.cil.oc.api.{fs, machine, FileSystem, Network}
 import li.cil.oc.api.machine.{LimitReachedException, Architecture, Owner, ExecutionResult}
 import li.cil.oc.api.network._
+import li.cil.oc.api.{fs, machine, FileSystem, Network}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
-import li.cil.oc.server.PacketSender
-import li.cil.oc.server.fs.CompositeReadOnlyFileSystem
 import li.cil.oc.server.component.ManagedComponent
+import li.cil.oc.server.fs.CompositeReadOnlyFileSystem
+import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.integrated.IntegratedServer
+import net.minecraft.server.MinecraftServer
+import net.minecraftforge.common.DimensionManager
 import scala.Array.canBuildFrom
 import scala.collection.mutable
-import java.util.concurrent.Callable
 
 class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
@@ -800,9 +802,24 @@ object Machine extends MachineAPI {
 
   override def create(owner: Owner, architecture: Class[_ <: Architecture]) = {
     add(architecture)
-    new Machine(owner,
-      Option(FileSystem.asManagedEnvironment(new CompositeReadOnlyFileSystem(roms(architecture)), "rom")),
+    val rom = new CompositeReadOnlyFileSystem(roms(architecture))
+    val instance = new Machine(owner,
+      Option(FileSystem.asManagedEnvironment(rom, "rom")),
       architecture.getConstructor(classOf[machine.Machine]))
+    val romPath = "rom/" + instance.architecture.name
+    try {
+      val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + romPath)
+      if ((path.exists || path.mkdirs()) && path.isDirectory && !rom.parts.contains(romPath)) {
+        rom.parts += romPath -> FileSystem.fromSaveDirectory(romPath, 0, false)
+      }
+      else {
+        OpenComputers.log.warning(s"Failed mounting user ROM override '$romPath'. It is either not a directory or another mod registered a ROM resource with that name.")
+      }
+    }
+    catch {
+      case t: Throwable => OpenComputers.log.log(Level.WARNING, s"Failed mounting user ROM override '$romPath'.", t)
+    }
+    instance
   }
 
   /** Possible states of the computer, and in particular its executor. */
