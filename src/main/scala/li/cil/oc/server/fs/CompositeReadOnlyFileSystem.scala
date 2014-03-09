@@ -1,12 +1,12 @@
 package li.cil.oc.server.fs
 
+import java.io.FileNotFoundException
+import java.util.concurrent.Callable
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.mutable
-import java.io.FileNotFoundException
-import java.util.concurrent.Callable
 
 class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Callable[api.fs.FileSystem]]) extends api.fs.FileSystem {
   var parts = mutable.LinkedHashMap.empty[String, api.fs.FileSystem]
@@ -35,7 +35,16 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   override def lastModified(path: String) = findFileSystem(path).fold(0L)(_.lastModified(path))
 
-  override def list(path: String) = findFileSystem(path).fold(null: Array[String])(_.list(path))
+  override def list(path: String) = parts.values.foldLeft(Array.empty[String])((acc, fs) => {
+    if (fs.exists(path)) try {
+      val l = fs.list(path)
+      if (l != null) acc ++ l else acc
+    }
+    catch {
+      case _: Throwable => acc
+    }
+    else acc
+  })
 
   // ----------------------------------------------------------------------- //
 

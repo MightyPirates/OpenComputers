@@ -1,7 +1,8 @@
 jar {
     classifier = 'universal'
     manifest {
-        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader", FMLCorePluginContainsFMLMod: "true"
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
     }
 }
 
@@ -9,6 +10,10 @@ jar {
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'deobf'
+    manifest {
+        attributes FMLCorePlugin: "li.cil.oc.common.launch.TransformerLoader"
+        attributes FMLCorePluginContainsFMLMod: "true"
+    }
 }
 
 task apiJar(type: Jar) {

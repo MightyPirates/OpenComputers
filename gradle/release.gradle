@@ -3,7 +3,6 @@ apply plugin: 'maven-publish'
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            version "MC${minecraft.version}-${project.version}"
             artifact apiJar
             artifact deobfJar
         }

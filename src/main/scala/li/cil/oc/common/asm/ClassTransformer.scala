@@ -134,7 +134,9 @@ class ClassTransformer extends IClassTransformer {
   val tileEntityName = FMLDeobfuscatingRemapper.INSTANCE.map("net.minecraft.tileentity.TileEntity").replace('.', '/')
 
   def isTileEntity(classNode: ClassNode): Boolean = {
-    classNode.name != "java/lang/Object" && (classNode.name == tileEntityName || isTileEntity(classNodeFor(classNode.superName)))
+    classNode != null && classNode.name != "java/lang/Object" &&
+      (classNode.name == tileEntityName || classNode.superName == tileEntityName ||
+        isTileEntity(classNodeFor(classNode.superName)))
   }
 
   def classNodeFor(name: String) = newClassNode(loader.getClassBytes(name.replace('/', '.')))
