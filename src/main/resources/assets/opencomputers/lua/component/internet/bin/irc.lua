@@ -76,6 +76,7 @@ local ignore = {
 
 -- command numbers to names.
 local commands = {
+--Replys
   RPL_WELCOME = "001",
   RPL_YOURHOST = "002",
   RPL_CREATED = "003",
@@ -102,7 +103,32 @@ local commands = {
   RPL_ENDOFNAMES = "366",
   RPL_MOTDSTART = "375",
   RPL_MOTD = "372",
-  RPL_ENDOFMOTD = "376"
+  RPL_ENDOFMOTD = "376",
+  RPL_WHOISSECURE = "671",
+  RPL_HELPSTART = "704",
+  RPL_HELPTXT = "705",
+  RPL_ENDOFHELP = "706",
+  RPL_UMODEGMSG = "718",
+  
+--Errors
+  ERR_BANLISTFULL = "478",
+  ERR_CHANNELISFULL = "471",
+  ERR_UNKNOWNMODE = "472",
+  ERR_INVITEONLYCHAN = "473",
+  ERR_BANNEDFROMCHAN = "474",
+  ERR_CHANOPRIVSNEEDED = "482",
+  ERR_UNIQOPRIVSNEEDED = "485",
+  ERR_USERNOTINCHANNEL = "441",
+  ERR_NOTONCHANNEL = "442",
+  ERR_NICKCOLLISION = "436",
+  ERR_NICKNAMEINUSE = "433",
+  ERR_ERRONEUSNICKNAME = "432",
+  ERR_WASNOSUCHNICK = "406",
+  ERR_TOOMANYCHANNELS = "405",
+  ERR_CANNOTSENDTOCHAN = "404",
+  ERR_NOSUCHCHANNEL = "403",
+  ERR_NOSUCHNICK = "401",
+  ERR_MODELOCK = "742"
 }
 
 -- main command handling callback.
@@ -116,7 +142,6 @@ local function handleCommand(prefix, command, args, message)
 
   ---------------------------------------------------
   -- General commands
-
   elseif command == "NICK" then
     print(name(prefix) .. " is now known as " .. tostring(args[1] or message) .. ".")
   elseif command == "MODE" then
@@ -132,6 +157,17 @@ local function handleCommand(prefix, command, args, message)
   elseif command == "KICK" then
     print("[" .. args[1] .. "] " .. name(prefix) .. " kicked " .. args[2])
   elseif command == "PRIVMSG" then
+    if string.find(message, "\001TIME\001") then
+	  sock:write("NOTICE " .. name(prefix) .. " :\001TIME " .. os.date() .. "\001\r\n")
+	  sock:flush()
+	elseif string.find(message, "\001VERSION\001") then
+	  sock:write("NOTICE " .. name(prefix) .. " :\001VERSION Minecraft/OpenComputers Lua 5.2\001\r\n")
+	  sock:flush()
+	elseif string.find(message, "\001PING") then
+	  print("NOTICE " .. name(prefix) .. " :" .. message .. "\001\r\n")
+	  sock:write("NOTICE " .. name(prefix) .. " :" .. message .. "\001\r\n")
+	  sock:flush()
+	end
     print("[" .. args[1] .. "] " .. name(prefix) .. ": " .. message)
   elseif command == "NOTICE" then
     print("[NOTICE] " .. message)
@@ -182,6 +218,9 @@ local function handleCommand(prefix, command, args, message)
   elseif command == commands.RPL_WHOISIDLE then
     local nick = args[2]:lower()
     whois[nick].idle = tonumber(args[3])
+  elseif command == commands.RPL_WHOISSECURE then
+    local nick = args[2]:lower()
+    whois[nick].secureconn = "Is using a secure connection"
   elseif command == commands.RPL_ENDOFWHOIS then
     local nick = args[2]:lower()
     local info = whois[nick]
@@ -190,6 +229,7 @@ local function handleCommand(prefix, command, args, message)
     if info.realName then print("Real name: " .. info.realName) end
     if info.host then print("Host: " .. info.host) end
     if info.server then print("Server: " .. info.server .. (info.serverInfo and (" (" .. info.serverInfo .. ")") or "")) end
+	if info.secureconn then print(info.secureconn) end
     if info.channels then print("Channels: " .. info.channels) end
     if info.idle then print("Idle for: " .. info.idle) end
     whois[nick] = nil
@@ -218,6 +258,26 @@ local function handleCommand(prefix, command, args, message)
       print(message)
     end
   elseif command == commands.RPL_ENDOFMOTD then -- ignore
+  elseif command == commands.RPL_HELPSTART or 
+  command == commands.RPL_HELPTXT or 
+  command == commands.RPL_ENDOFHELP then
+	print(message)
+  elseif command == commands.ERR_BANLISTFULL or
+  command == commands.ERR_BANNEDFROMCHAN or
+  command == commands.ERR_CANNOTSENDTOCHAN or
+  command == commands.ERR_CHANNELISFULL or
+  command == commands.ERR_CHANOPRIVSNEEDED or
+  command == commands.ERR_ERRONEUSNICKNAME or
+  command == commands.ERR_INVITEONLYCHAN or
+  command == commands.ERR_NICKCOLLISION or
+  command == commands.ERR_NOSUCHNICK or
+  command == commands.ERR_NOTONCHANNEL or
+  command == commands.ERR_UNIQOPRIVSNEEDED or
+  command == commands.ERR_UNKNOWNMODE or
+  command == commands.ERR_USERNOTINCHANNEL or
+  command == commands.ERR_WASNOSUCHNICK or
+  command == commands.ERR_MODELOCK then
+	print("[ERROR]: " .. message)
   elseif tonumber(command) and (tonumber(command) >= 200 and tonumber(command) < 400) then
     print("[Response " .. command .. "] " .. table.concat(args, ", ") .. ": " .. message)
 
@@ -232,7 +292,7 @@ local function handleCommand(prefix, command, args, message)
   -- Unhandled message.
 
   else
-    print("Unhandled command: " .. command)
+    print("Unhandled command: " .. command .. ": " .. message)
   end
 end
 
