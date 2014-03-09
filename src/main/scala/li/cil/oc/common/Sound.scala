@@ -1,10 +1,7 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
 import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.client.event.sound.SoundLoadEvent
 import scala.collection.mutable
 
 object Sound {
