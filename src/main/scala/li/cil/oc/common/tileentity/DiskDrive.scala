@@ -2,8 +2,9 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
-import li.cil.oc.server.TickHandler
+import li.cil.oc.common.Sound
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.TickHandler
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -45,5 +46,11 @@ class DiskDrive extends Environment with ComponentInventory with Rotatable with 
       }
       case _ =>
     }
+    Sound.playDiskInsert(this)
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    Sound.playDiskEject(this)
   }
 }

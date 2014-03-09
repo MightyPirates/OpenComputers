@@ -1,7 +1,7 @@
 package li.cil.oc.server
 
 import li.cil.oc.common
-import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
 
 object PacketSender {
-  def sendAbstractBusState(t: AbstractBusAware) {
+  def sendAbstractBusState(t: tileentity.AbstractBusAware) {
     val pb = new PacketBuilder(PacketType.AbstractBusState)
 
     pb.writeTileEntity(t)
@@ -26,7 +26,7 @@ object PacketSender {
     pb.sendToPlayer(player)
   }
 
-  def sendChargerState(t: Charger) {
+  def sendChargerState(t: tileentity.Charger) {
     val pb = new PacketBuilder(PacketType.ChargerState)
 
     pb.writeTileEntity(t)
@@ -35,7 +35,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendComputerState(t: Computer) {
+  def sendComputerState(t: tileentity.Computer) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
@@ -44,7 +44,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendComputerUserList(t: Computer, list: Array[String]) {
+  def sendComputerUserList(t: tileentity.Computer, list: Array[String]) {
     val pb = new PacketBuilder(PacketType.ComputerUserList)
 
     pb.writeTileEntity(t)
@@ -54,7 +54,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendHologramClear(t: Hologram) {
+  def sendHologramClear(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramClear)
 
     pb.writeTileEntity(t)
@@ -62,7 +62,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendHologramPowerChange(t: Hologram) {
+  def sendHologramPowerChange(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramPowerChange)
 
     pb.writeTileEntity(t)
@@ -71,7 +71,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendHologramScale(t: Hologram) {
+  def sendHologramScale(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramScale)
 
     pb.writeTileEntity(t)
@@ -80,7 +80,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendHologramSet(t: Hologram) {
+  def sendHologramSet(t: tileentity.Hologram) {
     val pb = new CompressedPacketBuilder(PacketType.HologramSet)
 
     pb.writeTileEntity(t)
@@ -97,7 +97,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendPowerState(t: PowerInformation) {
+  def sendPowerState(t: tileentity.PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 
     pb.writeTileEntity(t)
@@ -107,7 +107,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRedstoneState(t: RedstoneAware) {
+  def sendRedstoneState(t: tileentity.RedstoneAware) {
     val pb = new PacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)
@@ -119,7 +119,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRobotMove(t: Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
+  def sendRobotMove(t: tileentity.Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
     val pb = new PacketBuilder(PacketType.RobotMove)
 
     // Custom pb.writeTileEntity() with fake coordinates (valid for the client).
@@ -132,7 +132,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRobotAnimateSwing(t: Robot) {
+  def sendRobotAnimateSwing(t: tileentity.Robot) {
     val pb = new PacketBuilder(PacketType.RobotAnimateSwing)
 
     pb.writeTileEntity(t.proxy)
@@ -141,7 +141,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendRobotAnimateTurn(t: Robot) {
+  def sendRobotAnimateTurn(t: tileentity.Robot) {
     val pb = new PacketBuilder(PacketType.RobotAnimateTurn)
 
     pb.writeTileEntity(t.proxy)
@@ -151,7 +151,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendRobotEquippedItemChange(t: Robot, stack: ItemStack) {
+  def sendRobotEquippedItemChange(t: tileentity.Robot, stack: ItemStack) {
     val pb = new PacketBuilder(PacketType.RobotEquippedItemChange)
 
     pb.writeTileEntity(t.proxy)
@@ -160,7 +160,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRobotEquippedUpgradeChange(t: Robot, stack: ItemStack) {
+  def sendRobotEquippedUpgradeChange(t: tileentity.Robot, stack: ItemStack) {
     val pb = new PacketBuilder(PacketType.RobotEquippedUpgradeChange)
 
     pb.writeTileEntity(t.proxy)
@@ -169,7 +169,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRobotSelectedSlotChange(t: Robot) {
+  def sendRobotSelectedSlotChange(t: tileentity.Robot) {
     val pb = new PacketBuilder(PacketType.RobotSelectedSlotChange)
 
     pb.writeTileEntity(t.proxy)
@@ -178,7 +178,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 16)
   }
 
-  def sendRobotXp(t: Robot) {
+  def sendRobotXp(t: tileentity.Robot) {
     val pb = new PacketBuilder(PacketType.RobotXp)
 
     pb.writeTileEntity(t)
@@ -187,7 +187,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRotatableState(t: Rotatable) {
+  def sendRotatableState(t: tileentity.Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
@@ -201,7 +201,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -220,7 +220,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenCopy)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -243,7 +243,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenDepthChange)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -261,7 +261,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenFill)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -279,7 +279,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenPowerChange(t: Buffer, hasPower: Boolean) {
+  def sendScreenPowerChange(t: tileentity.Buffer, hasPower: Boolean) {
     val pb = new PacketBuilder(PacketType.ScreenPowerChange)
 
     pb.writeTileEntity(t)
@@ -292,7 +292,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -311,7 +311,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenSet)
 
     val t = b.owner match {
-      case t: Buffer =>
+      case t: tileentity.Buffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -327,7 +327,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerPresence(t: Rack) {
+  def sendServerPresence(t: tileentity.Rack) {
     val pb = new PacketBuilder(PacketType.ServerPresence)
 
     pb.writeTileEntity(t)
@@ -342,7 +342,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: Rack) {
+  def sendServerState(t: tileentity.Rack) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
@@ -352,7 +352,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendServerState(t: Rack, number: Int, player: Option[EntityPlayerMP] = None) {
+  def sendServerState(t: tileentity.Rack, number: Int, player: Option[EntityPlayerMP] = None) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)

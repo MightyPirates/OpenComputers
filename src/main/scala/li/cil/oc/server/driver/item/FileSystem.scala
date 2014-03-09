@@ -9,12 +9,12 @@ import li.cil.oc.util.mods.ComputerCraft
 import li.cil.oc.{Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import net.minecraft.tileentity.TileEntity
 
 object FileSystem extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk) || ComputerCraft.isDisk(stack)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) =
+  override def createEnvironment(stack: ItemStack, container: TileEntity) =
     if (ComputerCraft.isDisk(stack) && container != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, container.getWorldObj)
@@ -25,8 +25,8 @@ object FileSystem extends Item {
         case _ => null
       }
     } else Items.multi.subItem(stack) match {
-      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024)
-      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024)
+      case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, container)
+      case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, container)
       case _ => null
     }
 
@@ -44,18 +44,17 @@ object FileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int) = {
+  private def createEnvironment(stack: ItemStack, capacity: Int, container: TileEntity) = {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(dataTag(stack))
-    Option(oc.api.FileSystem.asManagedEnvironment(oc.api.FileSystem.
-      fromSaveDirectory(address, capacity, Settings.get.bufferChanges), new ItemLabel(stack))) match {
-      case Some(environment) =>
-        environment.node.asInstanceOf[oc.server.network.Node].address = address
-        environment
-      case _ => null
+    val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
+    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ItemLabel(stack), container)
+    if (environment != null) {
+      environment.node.asInstanceOf[oc.server.network.Node].address = address
     }
+    environment
   }
 
   private def addressFromTag(tag: NBTTagCompound) =

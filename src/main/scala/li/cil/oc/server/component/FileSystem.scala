@@ -1,15 +1,17 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
-import li.cil.oc.Settings
-import li.cil.oc.api.Network
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
+import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.common.Sound
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[TileEntity] = None) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -148,6 +150,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
           if (!node.tryChangeBuffer(-Settings.get.hddReadCost * bytes.length)) {
             throw new IOException("not enough energy")
           }
+          container.foreach(Sound.playDiskActivity)
           result(bytes)
         }
         else {
@@ -185,7 +188,10 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label) extends ManagedC
     }
     checkOwner(context.node.address, handle)
     Option(fileSystem.getHandle(handle)) match {
-      case Some(file) => file.write(value); result(true)
+      case Some(file) =>
+        file.write(value)
+        container.foreach(Sound.playDiskActivity)
+        result(true)
       case _ => throw new IOException("bad file descriptor")
     }
   }

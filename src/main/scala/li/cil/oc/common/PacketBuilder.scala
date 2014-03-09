@@ -5,11 +5,11 @@ import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
 import java.io.{OutputStream, ByteArrayOutputStream, DataOutputStream}
 import java.util.zip.GZIPOutputStream
-import li.cil.oc.common.tileentity.TileEntity
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.network.packet.Packet250CustomPayload
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
@@ -17,10 +17,10 @@ import scala.collection.convert.WrapAsScala._
 // Necessary to keep track of the GZIP stream.
 abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {
   def writeTileEntity(t: TileEntity) = {
-    writeInt(t.world.provider.dimensionId)
-    writeInt(t.x)
-    writeInt(t.y)
-    writeInt(t.z)
+    writeInt(t.getWorldObj.provider.dimensionId)
+    writeInt(t.xCoord)
+    writeInt(t.yCoord)
+    writeInt(t.zCoord)
   }
 
   def writeDirection(d: ForgeDirection) = writeInt(d.ordinal)
@@ -37,7 +37,7 @@ abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) ext
 
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 
-  def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.world, t.x + 0.5, t.y + 0.5, t.z + 0.5, range)
+  def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
     val dimension = world.provider.dimensionId
