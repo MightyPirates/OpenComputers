@@ -78,6 +78,7 @@ object MonospaceFontRenderer {
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
       GL11.glDepthMask(false)
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
 
       // Background first. We try to merge adjacent backgrounds of the same
       // color to reduce the number of quads we have to draw.
