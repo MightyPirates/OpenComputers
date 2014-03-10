@@ -25,9 +25,13 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
     Some(new FileHandle(new RandomAccessFile(new io.File(root, path), mode match {
       case Mode.Append | Mode.Write => "rw"
       case _ => throw new IllegalArgumentException()
-    }), this, id, path))
+    }), this, id, path, mode))
 
-  protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String) extends OutputHandle(owner, handle, path) {
+  protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String, mode: Mode) extends OutputHandle(owner, handle, path) {
+    if (mode == Mode.Write) {
+      file.setLength(0)
+    }
+
     override def position() = file.getFilePointer
 
     override def length() = file.length()
