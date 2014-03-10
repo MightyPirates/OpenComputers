@@ -14,7 +14,7 @@ object UpdateCheck {
 
   val version = Loader.instance.getIndexedModList.get("OpenComputers").getVersion
   val majorVersion = try version.split('.')(0).toInt catch {
-    case _: Throwable => "0" // Probably dev env.
+    case _: Throwable => 0
   }
 
   // Lazy to make initialize() execute once from the first thread that tries to

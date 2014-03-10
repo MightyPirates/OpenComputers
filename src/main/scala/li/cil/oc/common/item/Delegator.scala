@@ -8,10 +8,12 @@ import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack, Item}
-import net.minecraft.util.IIcon
+import net.minecraft.util.{WeightedRandomChestContent, IIcon}
 import net.minecraft.world.World
 import org.lwjgl.input
 import scala.collection.mutable
+import net.minecraftforge.common.ChestGenHooks
+import java.util.Random
 
 class Delegator extends Item {
   setHasSubtypes(true)
@@ -75,6 +77,8 @@ class Delegator extends Item {
     case Some(subItem) => subItem.rarity
     case _ => EnumRarity.common
   }
+
+  override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
   // ----------------------------------------------------------------------- //
 

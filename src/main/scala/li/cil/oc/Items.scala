@@ -25,7 +25,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Storage
-  var floppyDisk: item.FloppyDisk = _
+  var floppyDisk, lootDisk: item.FloppyDisk = _
   var hdd1, hdd2, hdd3: item.HardDiskDrive = _
 
   // ----------------------------------------------------------------------- //
@@ -137,6 +137,11 @@ object Items {
     internet = Recipes.addItemDelegate(new item.InternetCard(multi), "internetCard")
     server1 = Recipes.addItemDelegate(new item.Server(multi, 0), "server1")
     server2 = Recipes.addItemDelegate(new item.Server(multi, 1), "server2")
+
+    //v1.2.3
+    lootDisk = new item.FloppyDisk(multi) {
+      showInItemList = false
+    }
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()

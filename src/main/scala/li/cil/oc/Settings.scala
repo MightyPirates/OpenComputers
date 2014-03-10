@@ -169,6 +169,7 @@ class Settings(config: Config) {
   }
   val updateCheck = config.getBoolean("misc.updateCheck")
   val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
+  val lootProbability = config.getInt("misc.lootProbability")
 }
 
 object Settings {

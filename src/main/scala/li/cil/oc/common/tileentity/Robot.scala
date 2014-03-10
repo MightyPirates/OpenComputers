@@ -21,6 +21,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.io.Source
 import scala.Some
 import java.util.logging.Level
+import li.cil.oc.common.Sound
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -491,6 +492,27 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
 
   // ----------------------------------------------------------------------- //
 
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    if (isServer) {
+      if (isToolSlot(slot)) {
+        player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
+        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(slot))
+      }
+      if (isUpgradeSlot(slot)) {
+        ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
+      }
+      if (isFloppySlot(slot)) {
+        Sound.playDiskInsert(this)
+      }
+      if (isComponentSlot(slot)) {
+        super.onItemAdded(slot, stack)
+      }
+      if (isInventorySlot(slot)) {
+        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
+      }
+    }
+  }
+
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     if (isServer) {
@@ -501,23 +523,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
       if (isUpgradeSlot(slot)) {
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, null)
       }
-      if (isInventorySlot(slot)) {
-        computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
-      }
-    }
-  }
-
-  override protected def onItemAdded(slot: Int, stack: ItemStack) {
-    if (isServer) {
-      if (isToolSlot(slot)) {
-        player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(slot))
-      }
-      if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
-      }
-      if (isComponentSlot(slot)) {
-        super.onItemAdded(slot, stack)
+      if (isFloppySlot(slot)) {
+        Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
@@ -530,6 +537,8 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
   private def isInventorySlot(slot: Int) = slot >= actualSlot(0)
 
   private def isToolSlot(slot: Int) = slot == 0
+
+  private def isFloppySlot(slot: Int) = slot == 2
 
   private def isUpgradeSlot(slot: Int) = slot == 3
 

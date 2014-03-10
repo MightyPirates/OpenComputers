@@ -19,7 +19,7 @@ minecraft {
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod/info'
+        include 'mcmod.info'
         expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
     }
     from(sourceSets.main.resources.srcDirs) {

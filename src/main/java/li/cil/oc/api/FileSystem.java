@@ -167,6 +167,20 @@ public final class FileSystem {
 
     /**
      * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * but creates a read-only label initialized to the specified value.
+     *
+     * @param fileSystem the file system to wrap.
+     * @param label      the read-only label of the file system.
+     * @return the network node wrapping the file system.
+     */
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final TileEntity container) {
+        if (instance != null)
+            return instance.asManagedEnvironment(fileSystem, label, container);
+        return null;
+    }
+
+    /**
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
      * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.

@@ -2,6 +2,12 @@
 -- http://tools.ietf.org/html/rfc2812
 
 local component = require("component")
+
+if not component.isAvailable("internet") then
+  io.stderr:write("OpenIRC requires an Internet Card to run!\n")
+  return
+end
+
 local event = require("event")
 local internet = require("internet")
 local shell = require("shell")

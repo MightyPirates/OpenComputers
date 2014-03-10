@@ -114,6 +114,16 @@ public interface FileSystemAPI {
 
     /**
      * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * but creates a read-only label initialized to the specified value.
+     *
+     * @param fileSystem the file system to wrap.
+     * @param label      the read-only label of the file system.
+     * @return the network node wrapping the file system.
+     */
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, TileEntity container);
+
+    /**
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
      * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.
