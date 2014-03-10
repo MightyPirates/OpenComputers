@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.event._
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
@@ -13,10 +13,10 @@ import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
+import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
 import net.minecraftforge.common.MinecraftForge
-import li.cil.oc.server.network.WirelessNetwork
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
