@@ -43,9 +43,23 @@ function serialization.serialize(value, pretty)
       local i, r = 1, nil
       local f
       if pretty then
-        local ks = {}
-        for k in pairs(v) do table.insert(ks, k) end
-        table.sort(ks)
+        local ks, sks, oks = {}, {}, {}
+        for k in pairs(v) do
+          if type(k) == "number" then
+            table.insert(ks, k)
+          elseif type(k) == "string" then
+            table.insert(sks, k)
+          else
+            table.insert(oks, k)
+          end
+        end
+        table.sort(sks)
+        for _, k in ipairs(sks) do
+          table.insert(ks, k)
+        end
+        for _, k in ipairs(oks) do
+          table.insert(ks, k)
+        end
         local n = 0
         f = table.pack(function()
           n = n + 1
