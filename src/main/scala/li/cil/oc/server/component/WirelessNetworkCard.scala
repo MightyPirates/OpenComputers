@@ -1,22 +1,30 @@
 package li.cil.oc.server.component
 
 import java.io._
-import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.util.WirelessNetwork
+import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import scala.collection.convert.WrapAsScala._
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with WirelessNetwork.Endpoint {
+class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with WirelessEndpoint {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().
     create()
 
   var strength = Settings.get.maxWirelessRange
+
+  // ----------------------------------------------------------------------- //
+
+  override def x = owner.xCoord
+
+  override def y = owner.yCoord
+
+  override def z = owner.zCoord
+
+  override def world = owner.getWorldObj
 
   // ----------------------------------------------------------------------- //
 
@@ -31,31 +39,20 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with Wirele
 
   override def isWireless(context: Context, args: Arguments): Array[AnyRef] = result(true)
 
-  override def send(context: Context, args: Arguments) = {
-    val address = args.checkString(0)
-    val port = checkPort(args.checkInteger(1))
-    checkPacketSize(args.drop(2))
+  override protected def doSend(packet: Packet) {
     if (strength > 0) {
       checkPower()
-      val packet = new NetworkCard.Packet(node.address, Some(address), port, args.drop(2))
-      for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
-        endpoint.receivePacket(packet, distance)
-      }
+      api.Network.sendWirelessPacket(this, strength, packet)
     }
-    super.send(context, args)
+    super.doSend(packet)
   }
 
-  override def broadcast(context: Context, args: Arguments) = {
-    val port = checkPort(args.checkInteger(0))
-    checkPacketSize(args.drop(1))
+  override protected def doBroadcast(packet: Packet) {
     if (strength > 0) {
       checkPower()
-      val packet = new NetworkCard.Packet(node.address, None, port, args.drop(1))
-      for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
-        endpoint.receivePacket(packet, distance)
-      }
+      api.Network.sendWirelessPacket(this, strength, packet)
     }
-    super.broadcast(context, args)
+    super.doBroadcast(packet)
   }
 
   private def checkPower() {
@@ -73,21 +70,20 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with Wirele
 
   override def update() {
     super.update()
-    WirelessNetwork.update(this)
+    api.Network.updateWirelessNetwork(this)
   }
 
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
-      WirelessNetwork.add(this)
+      api.Network.joinWirelessNetwork(this)
     }
   }
 
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
-      val removed = WirelessNetwork.remove(this)
-      assert(removed)
+      api.Network.leaveWirelessNetwork(this)
     }
   }
 

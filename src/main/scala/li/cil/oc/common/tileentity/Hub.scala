@@ -2,19 +2,20 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
-import li.cil.oc.server.component.NetworkCard
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.entity.player.EntityPlayer
 
 trait Hub extends Environment with SidedEnvironment with Analyzable {
+  val queueSize = 20
+
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
-  protected val queue = mutable.Queue.empty[(ForgeDirection, NetworkCard.Packet)]
+  protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
   // ----------------------------------------------------------------------- //
 
@@ -39,7 +40,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
     }
   }
 
-  protected def relayPacket(sourceSide: ForgeDirection, packet: NetworkCard.Packet) {
+  protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     for (side <- ForgeDirection.VALID_DIRECTIONS if side != sourceSide) {
       sidedNode(side).sendToReachable("network.message", packet)
     }
@@ -54,7 +55,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
       case (list, index) =>
         val tag = list.getCompoundTagAt(index)
         val side = ForgeDirection.getOrientation(tag.getInteger("side"))
-        val packet = NetworkCard.loadPacket(tag)
+      val packet = api.Network.newPacket(tag)
         queue += side -> packet
     }
   }
@@ -104,7 +105,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
 
   protected def onPlugMessage(plug: Plug, message: Message) {
     if (message.name == "network.message") message.data match {
-      case Array(packet: NetworkCard.Packet) if packet.ttl > 0 && queue.size < 20 => queue += plug.side -> packet.hop()
+      case Array(packet: Packet) if packet.ttl > 0 && queue.size < queueSize => queue += plug.side -> packet.hop()
       case _ =>
     }
   }

@@ -8,7 +8,7 @@ import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
-import li.cil.oc.server.driver.CompoundBlockEnvironment
+import li.cil.oc.server.driver.{Registry, CompoundBlockEnvironment}
 import li.cil.oc.server.network.Component.{PeripheralCallback, ComponentCallback}
 import net.minecraft.nbt.NBTTagCompound
 import scala.Some
@@ -108,7 +108,7 @@ trait Component extends network.Component with Node {
   def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
       case Some(callback) => hosts(method) match {
-        case Some(environment) => callback(environment, context, new Component.VarArgs(Seq(arguments: _*)))
+        case Some(environment) => Registry.convert(callback(environment, context, new Component.VarArgs(Seq(arguments: _*))))
         case _ => throw new NoSuchMethodException()
       }
       case _ => throw new NoSuchMethodException()

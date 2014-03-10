@@ -11,8 +11,9 @@ import li.cil.oc.server
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.{driver, fs, network}
-import li.cil.oc.util.{LuaStateFactory, WirelessNetwork}
+import li.cil.oc.util.LuaStateFactory
 import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.server.network.WirelessNetwork
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -58,6 +59,8 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
+
+    api.Driver.add(driver.converter.ItemStack)
 
     Recipes.init()
 

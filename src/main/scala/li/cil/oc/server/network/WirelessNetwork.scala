@@ -1,15 +1,16 @@
-package li.cil.oc.util
+package li.cil.oc.server.network
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.Settings
-import li.cil.oc.server.component.NetworkCard
-import net.minecraft.tileentity.TileEntity
+import li.cil.oc.util.RTree
 import net.minecraft.util.Vec3
-import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
 object WirelessNetwork {
-  val dimensions = mutable.Map.empty[Int, RTree[Endpoint]]
+  val dimensions = mutable.Map.empty[Int, RTree[WirelessEndpoint]]
 
   @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
@@ -25,18 +26,27 @@ object WirelessNetwork {
     }
   }
 
-  def add(endpoint: Endpoint) {
-    dimensions.getOrElseUpdate(dimension(endpoint), new RTree[Endpoint](Settings.get.rTreeMaxEntries)((endpoint) => (endpoint.owner.xCoord + 0.5, endpoint.owner.yCoord + 0.5, endpoint.owner.zCoord + 0.5))).add(endpoint)
+  // Safety clean up, in case some tile entities didn't properly leave the net.
+  @SubscribeEvent
+  def onChunkUnload(e: ChunkEvent.Unload) {
+    e.getChunk.chunkTileEntityMap.values.foreach {
+      case endpoint: WirelessEndpoint => remove(endpoint)
+      case _ =>
+    }
   }
 
-  def update(endpoint: Endpoint) {
+  def add(endpoint: WirelessEndpoint) {
+    dimensions.getOrElseUpdate(dimension(endpoint), new RTree[WirelessEndpoint](Settings.get.rTreeMaxEntries)((endpoint) => (endpoint.x + 0.5, endpoint.y + 0.5, endpoint.z + 0.5))).add(endpoint)
+  }
+
+  def update(endpoint: WirelessEndpoint) {
     dimensions.get(dimension(endpoint)) match {
       case Some(tree) =>
         tree(endpoint) match {
           case Some((x, y, z)) =>
-            val dx = math.abs(endpoint.owner.xCoord + 0.5 - x)
-            val dy = math.abs(endpoint.owner.yCoord + 0.5 - y)
-            val dz = math.abs(endpoint.owner.zCoord + 0.5 - z)
+            val dx = math.abs(endpoint.x + 0.5 - x)
+            val dy = math.abs(endpoint.y + 0.5 - y)
+            val dz = math.abs(endpoint.z + 0.5 - z)
             if (dx > 0.5 || dy > 0.5 || dz > 0.5) {
               tree.remove(endpoint)
               tree.add(endpoint)
@@ -47,49 +57,42 @@ object WirelessNetwork {
     }
   }
 
-  def remove(endpoint: Endpoint) = {
+  def remove(endpoint: WirelessEndpoint) = {
     dimensions.get(dimension(endpoint)) match {
       case Some(set) => set.remove(endpoint)
       case _ => false
     }
   }
 
-  def computeReachableFrom(endpoint: Endpoint) = {
+  def computeReachableFrom(endpoint: WirelessEndpoint, strength: Double) = {
     dimensions.get(dimension(endpoint)) match {
-      case Some(tree) if endpoint.strength > 0 =>
-        val range = endpoint.strength + 1
+      case Some(tree) if strength > 0 =>
+        val range = strength + 1
         tree.query(offset(endpoint, -range), offset(endpoint, range)).
           filter(_ != endpoint).
-          map(zipWithDistance(endpoint)).
+          map(zipWithSquaredDistance(endpoint)).
           filter(_._2 <= range * range).
           map {
           case (c, distance) => (c, Math.sqrt(distance))
-        }.
-          filter(isUnobstructed(endpoint))
-      case _ => Iterable.empty[(Endpoint, Double)] // Should not be possible.
+        } filter isUnobstructed(endpoint, strength)
+      case _ => Iterable.empty[(WirelessEndpoint, Double)]
     }
   }
 
-  trait Endpoint {
-    def owner: TileEntity
+  private def dimension(endpoint: WirelessEndpoint) = endpoint.world.provider.dimensionId
 
-    def strength: Double
+  private def offset(endpoint: WirelessEndpoint, value: Double) =
+    (endpoint.x + 0.5 + value, endpoint.y + 0.5 + value, endpoint.z + 0.5 + value)
 
-    def receivePacket(packet: NetworkCard.Packet, distance: Double)
-  }
+  private def zipWithSquaredDistance(reference: WirelessEndpoint)(endpoint: WirelessEndpoint) =
+    (endpoint, {
+      val dx = endpoint.x - reference.x
+      val dy = endpoint.y - reference.y
+      val dz = endpoint.z - reference.z
+      dx * dx + dy * dy + dz * dz
+    })
 
-  private def dimension(endpoint: Endpoint) = endpoint.owner.getWorldObj.provider.dimensionId
-
-  private def offset(endpoint: Endpoint, value: Double) =
-    (endpoint.owner.xCoord + 0.5 + value, endpoint.owner.yCoord + 0.5 + value, endpoint.owner.zCoord + 0.5 + value)
-
-  private def zipWithDistance(reference: Endpoint)(endpoint: Endpoint) =
-    (endpoint, endpoint.owner.getDistanceFrom(
-      reference.owner.xCoord + 0.5,
-      reference.owner.yCoord + 0.5,
-      reference.owner.zCoord + 0.5))
-
-  private def isUnobstructed(reference: Endpoint)(info: (Endpoint, Double)): Boolean = {
+  private def isUnobstructed(reference: WirelessEndpoint, strength: Double)(info: (WirelessEndpoint, Double)): Boolean = {
     val (endpoint, distance) = info
     val gap = distance - 1
     if (gap > 0) {
@@ -100,11 +103,11 @@ object WirelessNetwork {
       // surplus strength left after crossing the distance between the two. If
       // we reach a point where the surplus strength does not suffice we block
       // the message.
-      val world = endpoint.owner.getWorldObj
+      val world = endpoint.world
       val pool = world.getWorldVec3Pool
 
-      val origin = pool.getVecFromPool(reference.owner.xCoord, reference.owner.yCoord, reference.owner.zCoord)
-      val target = pool.getVecFromPool(endpoint.owner.xCoord, endpoint.owner.yCoord, endpoint.owner.zCoord)
+      val origin = pool.getVecFromPool(reference.x, reference.y, reference.z)
+      val target = pool.getVecFromPool(endpoint.x, endpoint.y, endpoint.z)
 
       // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)
@@ -143,11 +146,8 @@ object WirelessNetwork {
       // Normalize and scale obstructions:
       hardness *= gap / samples
 
-      // Remaining signal strength.
-      val strength = reference.strength - gap
-
       // See if we have enough power to overcome the obstructions.
-      strength > hardness
+      strength - gap > hardness
     }
     else true
   }

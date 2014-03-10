@@ -210,13 +210,13 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
       f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
 
-      GL11.glDepthMask(true)
-      GL11.glEnable(GL11.GL_LIGHTING)
-      GL11.glDisable(GL11.GL_BLEND)
-      GL11.glColor4f(1, 1, 1, 1)
-
       GL11.glPopMatrix()
     }
+
+    GL11.glDepthMask(true)
+    GL11.glEnable(GL11.GL_LIGHTING)
+    GL11.glDisable(GL11.GL_BLEND)
+    GL11.glColor4f(1, 1, 1, 1)
 
     // If the move started while we were rendering and we have a reference to
     // the *old* proxy the robot would be rendered at the wrong position, so we

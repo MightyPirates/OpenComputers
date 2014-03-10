@@ -285,8 +285,7 @@ local callback = {
   end,
   __tostring = function(method)
     return libcomponent.doc(method.address, method.name) or "function"
-  end,
-  __metatable = "callback"
+  end
 }
 
 libcomponent = {
