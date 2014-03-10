@@ -87,14 +87,14 @@ object FileSystem extends Item {
     }
 
     override def load(nbt: NBTTagCompound) {
-      if (dataTag(stack).hasKey(Settings.namespace + "fs.label")) {
-        label = Option(dataTag(stack).getString(Settings.namespace + "fs.label"))
+      if (nbt.hasKey(Settings.namespace + "fs.label")) {
+        label = Option(nbt.getString(Settings.namespace + "fs.label"))
       }
     }
 
     override def save(nbt: NBTTagCompound) {
       label match {
-        case Some(value) => dataTag(stack).setString(Settings.namespace + "fs.label", value)
+        case Some(value) => nbt.setString(Settings.namespace + "fs.label", value)
         case _ =>
       }
     }

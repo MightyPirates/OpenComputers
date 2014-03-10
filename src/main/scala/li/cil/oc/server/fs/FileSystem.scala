@@ -75,6 +75,9 @@ object FileSystem extends api.detail.FileSystemAPI {
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: net.minecraft.tileentity.TileEntity) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
 
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: net.minecraft.tileentity.TileEntity) =
+    asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), container)
+
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label))).orNull
 
@@ -91,7 +94,11 @@ object FileSystem extends api.detail.FileSystemAPI {
 
     override def load(nbt: NBTTagCompound) {}
 
-    override def save(nbt: NBTTagCompound) {}
+    override def save(nbt: NBTTagCompound) {
+      if (label != null) {
+        nbt.setString(Settings.namespace + "fs.label", label)
+      }
+    }
   }
 
   private class ReadOnlyFileSystem(protected val root: io.File)

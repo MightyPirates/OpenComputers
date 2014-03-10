@@ -27,11 +27,11 @@ object Sound {
     t.world.playSoundEffect(t.x + 0.5, t.y + 0.5, t.z + 0.5, Settings.resourceDomain + ":" + name, 1, 1)
   }
 
-  def playDiskInsert(t: tileentity.DiskDrive) {
+  def playDiskInsert(t: tileentity.TileEntity) {
     play(t, "floppy_insert")
   }
 
-  def playDiskEject(t: tileentity.DiskDrive) {
+  def playDiskEject(t: tileentity.TileEntity) {
     play(t, "floppy_eject")
   }
 
@@ -40,6 +40,7 @@ object Sound {
       case Some(time) if time > System.currentTimeMillis() => // Cooldown.
       case _ =>
         t match {
+          case robot: tileentity.Robot => play(robot, "floppy_access")
           case computer: tileentity.Computer => play(computer, "hdd_access")
           case rack: tileentity.Rack => play(rack, "hdd_access")
           case drive: tileentity.DiskDrive => play(drive, "floppy_access")

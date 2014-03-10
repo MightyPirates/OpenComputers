@@ -257,7 +257,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     })
 
     if (label != null) {
-      label.load(nbt.getCompoundTag("label"))
+      label.load(nbt)
     }
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
@@ -279,7 +279,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     nbt.setTag("owners", ownersNbt)
 
     if (label != null) {
-      nbt.setNewCompoundTag("label", label.save)
+      label.save(nbt)
     }
     nbt.setNewCompoundTag("fs", fileSystem.save)
   }

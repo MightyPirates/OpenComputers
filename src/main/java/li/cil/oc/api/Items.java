@@ -31,7 +31,6 @@ public final class Items {
             HardDriveTier1,
             InternetCard,
             IronNugget,
-            LootFloppy,
             MemoryTier1,
             MemoryTier2,
             MemoryTier3,
