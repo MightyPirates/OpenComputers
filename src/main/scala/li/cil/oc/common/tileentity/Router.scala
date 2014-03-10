@@ -2,9 +2,9 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.api.network.Message
+import li.cil.oc.api
+import li.cil.oc.api.network.{Packet, Message}
 import scala.collection.mutable
-import li.cil.oc.server.component.NetworkCard.Packet
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
 class Router extends Hub with IPeripheral {
@@ -53,9 +53,8 @@ class Router extends Hub with IPeripheral {
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
-      plugs.foreach(plug => {
-        plug.node.sendToReachable("network.message", new Packet(plug.node.address, None, sendPort, data))
-      })
+      val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
+      relayPacket(null, packet)
       null
     case "isWireless" => Array(java.lang.Boolean.FALSE)
     case _ => null
@@ -73,9 +72,10 @@ class Router extends Hub with IPeripheral {
     port
   }
 
-  protected def queueMessage(port: Int, answerPort: Int, args: Seq[AnyRef]) {
+  protected def queueMessage(source: String, destination: String, port: Int, answerPort: Int, args: Array[AnyRef]) {
     for (computer <- computers.map(_.asInstanceOf[IComputerAccess])) {
-      if (openPorts(computer).contains(port))
+      val address = s"cc${computer.getID}_${computer.getAttachmentName}"
+      if (source != address && Option(destination).forall(_ == address) && openPorts(computer).contains(port))
         computer.queueEvent("modem_message", Array(Seq(computer.getAttachmentName, Int.box(port), Int.box(answerPort)) ++ args.map {
           case x: Array[Byte] => new String(x, "UTF-8")
           case x => x
@@ -90,9 +90,9 @@ class Router extends Hub with IPeripheral {
         case Array(packet: Packet) =>
           packet.data.headOption match {
             case Some(answerPort: java.lang.Double) =>
-              queueMessage(packet.port, answerPort.toInt, packet.data.drop(1).toSeq)
+              queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
             case _ =>
-              queueMessage(packet.port, -1, packet.data.toSeq)
+              queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
           }
         case _ =>
       }

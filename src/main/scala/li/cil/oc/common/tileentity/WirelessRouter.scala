@@ -1,15 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
-import li.cil.oc.server.component.NetworkCard.Packet
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.WirelessNetwork
 import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class WirelessRouter extends Router with WirelessNetwork.Endpoint {
+class WirelessRouter extends Router with WirelessEndpoint {
   var strength = Settings.get.maxWirelessRange
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
@@ -27,28 +25,24 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
 
   // ----------------------------------------------------------------------- //
 
-  override def owner = this
-
   override def receivePacket(packet: Packet, distance: Double) {
     if (queue.size < 20) {
       queue += ForgeDirection.UNKNOWN -> packet.hop()
     }
     packet.data.headOption match {
-      case Some(answerPort: java.lang.Double) => queueMessage(packet.port, answerPort.toInt, packet.data.drop(1).toSeq)
-      case _ => queueMessage(packet.port, -1, packet.data.toSeq)
+      case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+      case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
     }
   }
 
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     super.relayPacket(sourceSide, packet)
     if (sourceSide != ForgeDirection.UNKNOWN && strength > 0) {
-      val cost = Settings.get.wirelessCostPerRange
-      val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
-      if (connector.tryChangeBuffer(-strength * cost)) {
-        for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(this)) {
-          endpoint.receivePacket(packet, distance)
-        }
-      }
+      if (sourceSide == null || {
+        val cost = Settings.get.wirelessCostPerRange
+        val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
+        connector.tryChangeBuffer(-strength * cost)
+      }) api.Network.sendWirelessPacket(this, strength, packet)
     }
   }
 
@@ -59,7 +53,7 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
   override protected def onPlugConnect(plug: Plug, node: Node) {
     super.onPlugConnect(plug, node)
     if (node == plug.node) {
-      WirelessNetwork.add(this)
+      api.Network.joinWirelessNetwork(this)
     }
     if (!node.network.nodes.exists(componentNodes.contains)) {
       node.connect(componentNodes(plug.side.ordinal))
@@ -69,7 +63,7 @@ class WirelessRouter extends Router with WirelessNetwork.Endpoint {
   override protected def onPlugDisconnect(plug: Plug, node: Node) {
     super.onPlugDisconnect(plug, node)
     if (node == plug.node) {
-      WirelessNetwork.remove(this)
+      api.Network.leaveWirelessNetwork(this)
       componentNodes(plug.side.ordinal).remove()
     }
   }

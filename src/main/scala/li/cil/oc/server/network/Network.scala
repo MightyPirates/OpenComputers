@@ -4,12 +4,14 @@ import codechicken.lib.vec.Cuboid6
 import codechicken.multipart.{TFacePart, JNormalOcclusion, NormalOcclusionTest, TileMultipart}
 import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import cpw.mods.fml.relauncher.Side
-import li.cil.oc.api.network.{Node => ImmutableNode, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.api.network
+import li.cil.oc.api.network.{Node => ImmutableNode, WirelessEndpoint, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.{Settings, api}
+import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.JavaConverters._
@@ -433,7 +435,53 @@ object Network extends api.detail.NetworkAPI {
 
   // ----------------------------------------------------------------------- //
 
+  override def joinWirelessNetwork(endpoint: WirelessEndpoint) {
+    WirelessNetwork.add(endpoint)
+  }
+
+  override def updateWirelessNetwork(endpoint: WirelessEndpoint) {
+    WirelessNetwork.update(endpoint)
+  }
+
+  override def leaveWirelessNetwork(endpoint: WirelessEndpoint) {
+    WirelessNetwork.remove(endpoint)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def sendWirelessPacket(source: WirelessEndpoint, strength: Double, packet: network.Packet) {
+    for ((endpoint, distance) <- WirelessNetwork.computeReachableFrom(source, strength)) {
+      endpoint.receivePacket(packet, distance)
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
+
   def newNode(host: Environment, reachability: Visibility) = new NodeBuilder(host, reachability)
+
+  override def newPacket(source: String, destination: String, port: Int, data: Array[AnyRef]) =
+    new Packet(source, destination, port, data)
+
+  override def newPacket(nbt: NBTTagCompound) = {
+    val source = nbt.getString("source")
+    val destination =
+      if (nbt.getBoolean("broadcast")) null
+      else nbt.getString("dest")
+    val port = nbt.getInteger("port")
+    val ttl = nbt.getInteger("ttl")
+    val data = (for (i <- 0 until nbt.getInteger("dataLength")) yield {
+      if (nbt.hasKey("data" + i)) {
+        nbt.getTag("data" + i) match {
+          case boolean: NBTTagByte => Boolean.box(boolean.data == 1)
+          case double: NBTTagDouble => Double.box(double.data)
+          case string: NBTTagString => string.data: AnyRef
+          case array: NBTTagByteArray => array.byteArray
+        }
+      }
+      else null
+    }).toArray
+    new Packet(source, destination, port, data, ttl)
+  }
 
   class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
     def withComponent(name: String, visibility: Visibility) = new Network.ComponentBuilder(_host, _reachability, name, visibility)
@@ -539,6 +587,31 @@ object Network extends api.detail.NetworkAPI {
     var isCanceled = false
 
     def cancel() = isCanceled = true
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  class Packet(var source: String, var destination: String, var port: Int, var data: Array[AnyRef], var ttl: Int = 5) extends api.network.Packet {
+    override def hop() = new Packet(source, destination, port, data, ttl - 1)
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setString("source", source)
+      nbt.setBoolean("broadcast", destination.isEmpty)
+      if (destination != null) {
+        nbt.setString("dest", destination)
+      }
+      nbt.setInteger("port", port)
+      nbt.setInteger("ttl", ttl)
+      val dataArray = data.toArray
+      nbt.setInteger("dataLength", dataArray.length)
+      for (i <- 0 until dataArray.length) dataArray(i) match {
+        case null | Unit | None =>
+        case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
+        case value: java.lang.Double => nbt.setDouble("data" + i, value)
+        case value: java.lang.String => nbt.setString("data" + i, value)
+        case value: Array[Byte] => nbt.setByteArray("data" + i, value)
+      }
+    }
   }
 
   // ----------------------------------------------------------------------- //

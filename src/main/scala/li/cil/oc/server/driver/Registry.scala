@@ -60,7 +60,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else None
 
-  def convert(value: Array[AnyRef]) = value.map(convertRecursively)
+  def convert(value: Array[AnyRef]) = if (value != null) value.map(convertRecursively) else null
 
   def convertRecursively(value: AnyRef): AnyRef = value match {
     case null | Unit | None => null

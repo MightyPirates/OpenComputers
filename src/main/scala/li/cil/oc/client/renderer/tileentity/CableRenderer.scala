@@ -119,6 +119,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val cable = t.asInstanceOf[Cable]
 
+    GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glTranslated(x, y, z)
     renderCable(cable.neighbors)
     GL11.glTranslated(-x, -y, -z)

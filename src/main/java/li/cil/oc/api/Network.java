@@ -2,9 +2,8 @@ package li.cil.oc.api;
 
 import li.cil.oc.api.detail.Builder;
 import li.cil.oc.api.detail.NetworkAPI;
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.Node;
-import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.*;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 /**
@@ -42,7 +41,8 @@ public final class Network {
      * @param tileEntity the tile entity to initialize.
      */
     public static void joinOrCreateNetwork(final TileEntity tileEntity) {
-        if (instance != null) instance.joinOrCreateNetwork(tileEntity);
+        if (instance != null)
+            instance.joinOrCreateNetwork(tileEntity);
     }
 
     /**
@@ -56,8 +56,33 @@ public final class Network {
      * @throws IllegalArgumentException if the node already is in a network.
      */
     public static void joinNewNetwork(final Node node) {
-        if (instance != null) instance.joinNewNetwork(node);
+        if (instance != null)
+            instance.joinNewNetwork(node);
     }
+
+    public static void joinWirelessNetwork(final WirelessEndpoint endpoint) {
+        if (instance != null)
+            instance.joinWirelessNetwork(endpoint);
+    }
+
+    public static void updateWirelessNetwork(final WirelessEndpoint endpoint) {
+        if (instance != null)
+            instance.updateWirelessNetwork(endpoint);
+    }
+
+    public static void leaveWirelessNetwork(final WirelessEndpoint endpoint) {
+        if (instance != null)
+            instance.leaveWirelessNetwork(endpoint);
+    }
+
+    // ----------------------------------------------------------------------- //
+
+    public static void sendWirelessPacket(final WirelessEndpoint source, final double strength, final Packet packet) {
+        if (instance != null)
+            instance.sendWirelessPacket(source, strength, packet);
+    }
+
+    // ----------------------------------------------------------------------- //
 
     /**
      * Factory function for creating new nodes.
@@ -97,7 +122,20 @@ public final class Network {
      * @return a new node builder.
      */
     public static Builder.NodeBuilder newNode(final Environment host, final Visibility reachability) {
-        if (instance != null) return instance.newNode(host, reachability);
+        if (instance != null)
+            return instance.newNode(host, reachability);
+        return null;
+    }
+
+    public static Packet newPacket(final String source, final String destination, final int port, final Object[] data) {
+        if (instance != null)
+            return instance.newPacket(source, destination, port, data);
+        return null;
+    }
+
+    public static Packet newPacket(final NBTTagCompound nbt) {
+        if (instance != null)
+            return instance.newPacket(nbt);
         return null;
     }
 

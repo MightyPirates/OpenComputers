@@ -1,8 +1,7 @@
 package li.cil.oc.api.detail;
 
-import li.cil.oc.api.network.Environment;
-import li.cil.oc.api.network.Node;
-import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.*;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 public interface NetworkAPI {
@@ -34,6 +33,18 @@ public interface NetworkAPI {
      * @throws IllegalArgumentException if the node already is in a network.
      */
     void joinNewNetwork(Node node);
+
+    void joinWirelessNetwork(WirelessEndpoint endpoint);
+
+    void updateWirelessNetwork(WirelessEndpoint endpoint);
+
+    void leaveWirelessNetwork(WirelessEndpoint endpoint);
+
+    // ----------------------------------------------------------------------- //
+
+    void sendWirelessPacket(WirelessEndpoint source, double strength, Packet packet);
+
+    // ----------------------------------------------------------------------- //
 
     /**
      * Factory function for creating new nodes.
@@ -73,4 +84,8 @@ public interface NetworkAPI {
      * @return a new node builder.
      */
     Builder.NodeBuilder newNode(Environment host, Visibility reachability);
+
+    Packet newPacket(String source, String destination, int port, Object[] data);
+
+    Packet newPacket(NBTTagCompound nbt);
 }

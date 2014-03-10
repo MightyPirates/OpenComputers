@@ -14,8 +14,9 @@ import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.{TickHandler, driver, fs, network}
-import li.cil.oc.util.{LuaStateFactory, WirelessNetwork}
+import li.cil.oc.util.LuaStateFactory
 import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.server.network.WirelessNetwork
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent): Unit = {
