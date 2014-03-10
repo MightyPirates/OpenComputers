@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import scala.Some
 import scala.collection.mutable.ArrayBuffer
+import li.cil.oc.api.driver.Converter
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -21,9 +22,11 @@ import scala.collection.mutable.ArrayBuffer
  * the computer, but may also provide context-free functions.
  */
 private[oc] object Registry extends api.detail.DriverAPI {
-  private val blocks = ArrayBuffer.empty[api.driver.Block]
+  val blocks = ArrayBuffer.empty[api.driver.Block]
 
-  private val items = ArrayBuffer.empty[api.driver.Item]
+  val items = ArrayBuffer.empty[api.driver.Item]
+
+  val converters = ArrayBuffer.empty[api.driver.Converter]
 
   /** Used to keep track of whether we're past the init phase. */
   var locked = false
@@ -36,6 +39,11 @@ private[oc] object Registry extends api.detail.DriverAPI {
   override def add(driver: api.driver.Item) {
     if (locked) throw new IllegalStateException("Please register all drivers in the init phase.")
     if (!blocks.contains(driver)) items += driver
+  }
+
+  override def add(converter: Converter) {
+    if (locked) throw new IllegalStateException("Please register all converters in the init phase.")
+    if (!converters.contains(converter)) converters += converter
   }
 
   def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
