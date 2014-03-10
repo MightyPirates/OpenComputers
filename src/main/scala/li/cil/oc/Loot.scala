@@ -34,7 +34,7 @@ object Loot extends WeightedRandomChestContent(Items.lootDisk.createItemStack(),
       val data = new NBTTagCompound()
       data.setString(Settings.namespace + "fs.label", value)
 
-      val tag = new NBTTagCompound("tag")
+      val tag = new NBTTagCompound()
       tag.setTag(Settings.namespace + "data", data)
       // Store this top level, so it won't get wiped on save.
       tag.setString(Settings.namespace + "lootPath", key)
