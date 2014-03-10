@@ -13,7 +13,9 @@ object UpdateCheck {
   val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")
 
   val version = Loader.instance.getIndexedModList.get("OpenComputers").getVersion
-  val majorVersion = version.split('.')(0).toInt
+  val majorVersion = try version.split('.')(0).toInt catch {
+    case _: Throwable => 0
+  }
 
   // Lazy to make initialize() execute once from the first thread that tries to
   // read it. If other threads are spawned while it's running they will wait,
