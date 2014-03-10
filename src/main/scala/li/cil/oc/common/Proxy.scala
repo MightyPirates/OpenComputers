@@ -60,6 +60,8 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    api.Driver.add(driver.converter.ItemStack)
+
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
 

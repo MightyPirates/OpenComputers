@@ -1,11 +1,12 @@
 package li.cil.oc.server.driver
 
-import li.cil.oc.api
+import java.util
+import java.util.logging.Level
+import li.cil.oc.api.driver.Converter
+import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import scala.Some
 import scala.collection.mutable.ArrayBuffer
-import li.cil.oc.api.driver.Converter
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -58,4 +59,44 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case Some(driver) => Some(driver)
     }
     else None
+
+  def convert(value: Array[AnyRef]) = value.map(convertRecursively)
+
+  def convertRecursively(value: AnyRef): AnyRef = value match {
+    case null | Unit | None => null
+    case arg: java.lang.Boolean => arg
+    case arg: java.lang.Byte => arg
+    case arg: java.lang.Character => arg
+    case arg: java.lang.Short => arg
+    case arg: java.lang.Integer => arg
+    case arg: java.lang.Long => arg
+    case arg: java.lang.Float => arg
+    case arg: java.lang.Double => arg
+    case arg: java.lang.String => arg
+
+    case arg: Array[Boolean] => arg
+    case arg: Array[Byte] => arg
+    case arg: Array[Character] => arg
+    case arg: Array[Short] => arg
+    case arg: Array[Integer] => arg
+    case arg: Array[Long] => arg
+    case arg: Array[Float] => arg
+    case arg: Array[Double] => arg
+    case arg: Array[String] => arg
+
+    case arg: Array[_] => arg.map {
+      case (value: AnyRef) => convertRecursively(value)
+    }
+    case arg: Map[_, _] => arg.map {
+      case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
+    }
+
+    case arg =>
+      val result = new util.HashMap[AnyRef, AnyRef]()
+      converters.foreach(converter => try converter.convert(arg, result) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Type converter threw an exception.", t)
+      })
+      if (result.isEmpty) null
+      else result
+  }
 }
