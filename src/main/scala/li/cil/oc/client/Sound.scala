@@ -27,7 +27,7 @@ object Sound {
         val system = Minecraft.getMinecraft.sndManager.sndSystem
         sources.synchronized {
           for ((source, volume) <- sources.values) {
-            system.setVolume(source, lastVolume * volume)
+            system.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
           }
         }
       }
@@ -35,18 +35,20 @@ object Sound {
   }, 5000, 500)
 
   def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f) {
-    val resourceName = s"${Settings.resourceDomain}:$name"
-    val manager = Minecraft.getMinecraft.sndManager
-    val sound = manager.soundPoolSounds.getRandomSoundFromSoundPool(resourceName)
-    sources.synchronized {
-      val (source, _) = sources.getOrElseUpdate(tileEntity, {
-        val source = UUID.randomUUID.toString
-        manager.sndSystem.newStreamingSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
-        manager.sndSystem.setVolume(source, lastVolume * volume)
-        (source, volume)
-      })
-      manager.sndSystem.fadeOutIn(source, sound.getSoundUrl, sound.getSoundName, 50, 500)
-      manager.sndSystem.play(source)
+    if (Settings.get.soundVolume > 0) {
+      val resourceName = s"${Settings.resourceDomain}:$name"
+      val manager = Minecraft.getMinecraft.sndManager
+      val sound = manager.soundPoolSounds.getRandomSoundFromSoundPool(resourceName)
+      sources.synchronized {
+        val (source, _) = sources.getOrElseUpdate(tileEntity, {
+          val source = UUID.randomUUID.toString
+          manager.sndSystem.newStreamingSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
+          manager.sndSystem.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
+          (source, volume)
+        })
+        manager.sndSystem.fadeOutIn(source, sound.getSoundUrl, sound.getSoundName, 50, 500)
+        manager.sndSystem.play(source)
+      }
     }
   }
 
