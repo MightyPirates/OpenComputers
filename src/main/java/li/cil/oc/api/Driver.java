@@ -32,7 +32,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Block driver) {
-        if (instance != null) instance.add(driver);
+        if (instance != null)
+            instance.add(driver);
     }
 
     /**
@@ -47,7 +48,8 @@ public final class Driver {
      * @param driver the driver to register.
      */
     public static void add(final Item driver) {
-        if (instance != null) instance.add(driver);
+        if (instance != null)
+            instance.add(driver);
     }
 
     /**
@@ -62,7 +64,8 @@ public final class Driver {
      * @param converter the converter to register.
      */
     public static void add(final Converter converter) {
-        if (instance != null) instance.add(converter);
+        if (instance != null)
+            instance.add(converter);
     }
 
     // ----------------------------------------------------------------------- //

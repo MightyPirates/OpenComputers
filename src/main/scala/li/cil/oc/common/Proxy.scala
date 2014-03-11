@@ -19,7 +19,7 @@ import li.cil.oc.util.LuaStateFactory
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
-  def preInit(e: FMLPreInitializationEvent): Unit = {
+  def preInit(e: FMLPreInitializationEvent) {
     Settings.load(e.getSuggestedConfigurationFile)
 
     Blocks.init()
@@ -44,7 +44,7 @@ class Proxy {
       Settings.resourceDomain + "/lua/rom")
   }
 
-  def init(e: FMLInitializationEvent): Unit = {
+  def init(e: FMLInitializationEvent) {
     api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
@@ -61,6 +61,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
     Recipes.init()
@@ -69,7 +70,7 @@ class Proxy {
     Loot.init()
   }
 
-  def postInit(e: FMLPostInitializationEvent): Unit = {
+  def postInit(e: FMLPostInitializationEvent) {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
