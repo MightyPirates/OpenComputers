@@ -35,7 +35,8 @@ public final class Machine {
      * @param architecture the architecture to register.
      */
     public static void add(Class<? extends Architecture> architecture) {
-        if (instance != null) instance.add(architecture);
+        if (instance != null)
+            instance.add(architecture);
     }
 
     /**
@@ -71,7 +72,8 @@ public final class Machine {
      * until it also created a new machine using that architecture.
      */
     public static Iterable<Class<? extends Architecture>> architectures() {
-        if (instance != null) return instance.architectures();
+        if (instance != null)
+            return instance.architectures();
         return Collections.emptyList();
     }
 
@@ -87,7 +89,8 @@ public final class Machine {
      * @throws IllegalArgumentException if the specified architecture is invalid.
      */
     public static li.cil.oc.api.machine.Machine create(Owner owner, Class<? extends Architecture> architecture) {
-        if (instance != null) return instance.create(owner, architecture);
+        if (instance != null)
+            return instance.create(owner, architecture);
         return null;
     }
 
@@ -101,7 +104,8 @@ public final class Machine {
      * @return the newly created machine.
      */
     public static li.cil.oc.api.machine.Machine create(Owner owner) {
-        if (instance != null) return instance.create(owner, LuaArchitecture);
+        if (instance != null)
+            return instance.create(owner, LuaArchitecture);
         return null;
     }
 

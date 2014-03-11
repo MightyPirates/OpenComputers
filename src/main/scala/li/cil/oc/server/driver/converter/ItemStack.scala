@@ -7,7 +7,7 @@ import scala.collection.convert.WrapAsScala._
 import net.minecraft.item.Item
 
 object ItemStack extends api.driver.Converter {
-  override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) = {
+  override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =
     value match {
       case stack: item.ItemStack =>
         output += "id" -> Int.box(Item.getIdFromItem(stack.getItem))
@@ -22,5 +22,4 @@ object ItemStack extends api.driver.Converter {
         }
       case _ =>
     }
-  }
 }

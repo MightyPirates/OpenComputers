@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.NetworkRegistry
 import java.util.concurrent.Callable
 import li.cil.oc._
@@ -10,10 +10,10 @@ import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.server
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
+import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
 import net.minecraftforge.common.MinecraftForge
-import li.cil.oc.server.network.WirelessNetwork
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -60,6 +60,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
     Recipes.init()

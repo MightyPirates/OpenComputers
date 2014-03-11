@@ -1,5 +1,6 @@
 package li.cil.oc.api.machine;
 
+import li.cil.oc.api.Rotatable;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
@@ -9,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
  * case, the robot in question is the tile entity passed to item driver when
  * asked to create the component's environment.
  */
-public interface Robot {
+public interface Robot extends Rotatable {
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.

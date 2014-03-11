@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import org.lwjgl.opengl.GL11
-import li.cil.oc.server.network.WirelessNetwork
 
 object WirelessNetworkDebugRenderer {
   val colors = Array(0xFF0000, 0x00FFFF, 0x00FF00, 0x0000FF, 0xFF00FF, 0xFFFF00, 0xFFFFFF, 0x000000)
