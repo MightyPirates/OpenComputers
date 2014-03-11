@@ -1,16 +1,15 @@
 package li.cil.oc.common.asm
 
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
+import cpw.mods.fml.common.Loader
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
 import java.util.logging.{Level, Logger}
+import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.StargateTech2
 import net.minecraft.launchwrapper.{LaunchClassLoader, IClassTransformer}
-import net.minecraft.tileentity.TileEntity
 import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassWriter, ClassReader}
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.common.asm.template.SimpleComponentImpl
 
 @TransformerExclusions(Array("li.cil.oc.common.asm"))
 class ClassTransformer extends IClassTransformer {
@@ -95,7 +94,7 @@ class ClassTransformer extends IClassTransformer {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
         val descDeObf = mapper.mapMethodDesc(method.desc)
-        val methodNameDeObf = mapper.mapMethodName(tileEntityName, method.name, method.desc)
+        val methodNameDeObf = mapper.mapMethodName(tileEntityNameObfed, method.name, method.desc)
         val areSamePlain = method.name + descDeObf == methodName + desc
         val areSameDeObf = methodNameDeObf + descDeObf == methodNameSrg + desc
         areSamePlain || areSameDeObf
@@ -131,12 +130,13 @@ class ClassTransformer extends IClassTransformer {
     writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES)
   }
 
-  val tileEntityName = FMLDeobfuscatingRemapper.INSTANCE.map("net.minecraft.tileentity.TileEntity").replace('.', '/')
+  val tileEntityNamePlain = "net/minecraft/tileentity/TileEntity"
+  val tileEntityNameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(tileEntityNamePlain)
 
   def isTileEntity(classNode: ClassNode): Boolean = {
-    classNode != null && classNode.name != "java/lang/Object" &&
-      (classNode.name == tileEntityName || classNode.superName == tileEntityName ||
-        isTileEntity(classNodeFor(classNode.superName)))
+    log.finer(s"Checking if class ${classNode.name.replace('/', '.')} is a TileEntity...")
+    classNode.name == tileEntityNamePlain || classNode.name == tileEntityNameObfed ||
+      (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
   }
 
   def classNodeFor(name: String) = newClassNode(loader.getClassBytes(name.replace('/', '.')))
