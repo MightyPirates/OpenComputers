@@ -1,33 +1,43 @@
 {
-  "floppy_access": {
-    "category": "master",
+  "computer_running": {
+    "category": "block",
     "sounds": [
-      {"name": "floppy_access1", "stream": false},
-      {"name": "floppy_access2", "stream": false},
-      {"name": "floppy_access3", "stream": false},
-      {"name": "floppy_access4", "stream": false},
-      {"name": "floppy_access5", "stream": false},
-      {"name": "floppy_access6", "stream": false}
+      {"name": "computer_running", "stream": true}
+    ]
+  },
+  "floppy_access": {
+    "category": "block",
+    "sounds": [
+      "floppy_access1",
+      "floppy_access2",
+      "floppy_access3",
+      "floppy_access4",
+      "floppy_access5",
+      "floppy_access6"
     ]
   },
   "floppy_eject": {
-    "category": "master",
-    "sounds": [{"name": "floppy_eject", "stream": false}]
+    "category": "block",
+    "sounds": [
+      "floppy_eject"
+    ]
   },
   "floppy_insert": {
-    "category": "master",
-    "sounds": [{"name": "floppy_insert", "stream": false}]
+    "category": "block",
+    "sounds": [
+      "floppy_insert"
+    ]
   },
   "hdd_access": {
-    "category": "master",
+    "category": "block",
     "sounds": [
-      {"name": "hdd_access1", "stream": false},
-      {"name": "hdd_access2", "stream": false},
-      {"name": "hdd_access3", "stream": false},
-      {"name": "hdd_access4", "stream": false},
-      {"name": "hdd_access5", "stream": false},
-      {"name": "hdd_access6", "stream": false},
-      {"name": "hdd_access7", "stream": false}
+      "hdd_access1",
+      "hdd_access2",
+      "hdd_access3",
+      "hdd_access4",
+      "hdd_access5",
+      "hdd_access6",
+      "hdd_access7"
     ]
   }
 }
