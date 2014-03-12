@@ -2,20 +2,20 @@ package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.relauncher.ReflectionHelper
+import java.net.{MalformedURLException, URLConnection, URLStreamHandler, URL}
 import java.util.{TimerTask, Timer, UUID}
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
+import net.minecraft.client.audio.{SoundPoolEntry, SoundCategory, SoundManager}
 import net.minecraft.client.Minecraft
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.world.{WorldEvent, ChunkEvent}
 import paulscode.sound.{SoundSystem, SoundSystemConfig}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import net.minecraft.client.audio.{SoundCategory, SoundManager}
-import cpw.mods.fml.relauncher.ReflectionHelper
-import net.minecraft.util.ResourceLocation
-import java.net.{MalformedURLException, URLConnection, URLStreamHandler, URL}
 
 object Sound {
   val sources = mutable.Map.empty[TileEntity, (String, Float)]
@@ -48,7 +48,7 @@ object Sound {
     if (Settings.get.soundVolume > 0) {
       val resourceName = s"${Settings.resourceDomain}:$name"
       val sound = Minecraft.getMinecraft.getSoundHandler.getSound(new ResourceLocation(resourceName))
-      val resource = sound.func_148720_g.getSoundPoolEntryLocation
+      val resource = (sound.func_148720_g: SoundPoolEntry).getSoundPoolEntryLocation
       sources.synchronized {
         val (source, _) = sources.getOrElseUpdate(tileEntity, {
           val source = UUID.randomUUID.toString
