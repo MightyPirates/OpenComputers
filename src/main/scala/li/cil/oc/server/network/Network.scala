@@ -180,13 +180,13 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
 
   // ----------------------------------------------------------------------- //
 
-  private def contains(node: ImmutableNode) = data.contains(node.address)
+  private def contains(node: MutableNode) = node.network == wrapper && data.contains(node.address)
 
   private def node(node: ImmutableNode) = data(node.address)
 
   private def addNew(node: MutableNode) = {
     val newNode = new Network.Vertex(node)
-    if (node.address == null)
+    if (node.address == null || data.contains(node.address))
       node.address = java.util.UUID.randomUUID().toString
     data += node.address -> newNode
     node match {

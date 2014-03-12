@@ -17,6 +17,7 @@ class Settings(config: Config) {
   val textAntiAlias = config.getBoolean("client.textAntiAlias")
   val pasteShortcut = config.getStringList("client.pasteShortcut").toSet
   val robotLabels = config.getBoolean("client.robotLabels")
+  val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //

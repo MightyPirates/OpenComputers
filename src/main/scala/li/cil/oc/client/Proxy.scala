@@ -9,7 +9,7 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
-import li.cil.oc.common.{Proxy => CommonProxy, Sound, tileentity}
+import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.{Items, Settings, OpenComputers}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge

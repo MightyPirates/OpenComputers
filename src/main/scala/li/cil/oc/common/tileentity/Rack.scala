@@ -6,6 +6,7 @@ import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Connector, Visibility, Node}
+import li.cil.oc.client.Sound
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
@@ -63,6 +64,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   def setRunning(number: Int, value: Boolean) = {
     _isRunning(number) = value
     world.markBlockForUpdate(x, y, z)
+    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f)
+    else Sound.stopLoop(this)
     this
   }
 
@@ -289,6 +292,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     nbt.getTagList("terminals", NBT.TAG_COMPOUND).
       foreach((list, index) => if (index < terminals.length) terminals(index).readFromNBTForClient(list.getCompoundTagAt(index)))
     range = nbt.getInteger("range")
+    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f)
+    else Sound.stopLoop(this)
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

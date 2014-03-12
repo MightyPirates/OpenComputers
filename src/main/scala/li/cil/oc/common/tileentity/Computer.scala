@@ -2,11 +2,12 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Settings
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network._
+import li.cil.oc.client.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
@@ -51,6 +52,8 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   def setRunning(value: Boolean) = {
     _isRunning = value
     world.markBlockForUpdate(x, y, z)
+    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f)
+    else Sound.stopLoop(this)
     this
   }
 

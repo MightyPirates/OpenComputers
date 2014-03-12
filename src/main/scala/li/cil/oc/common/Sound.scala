@@ -33,5 +33,4 @@ object Sound {
         lastPlayed += t -> (System.currentTimeMillis() + 500)
     }
   }
-
 }

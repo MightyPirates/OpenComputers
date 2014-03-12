@@ -176,6 +176,21 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    // If the move started while we were rendering and we have a reference to
+    // the *old* proxy the robot would be rendered at the wrong position, so we
+    // correct for the offset.
+    if (robot.proxy != proxy) {
+      GL11.glTranslated(robot.proxy.x - proxy.x, robot.proxy.y - proxy.y, robot.proxy.z - proxy.z)
+    }
+
+    if (robot.isAnimatingMove) {
+      val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
+      val dx = robot.moveFromX - robot.x
+      val dy = robot.moveFromY - robot.y
+      val dz = robot.moveFromZ - robot.z
+      GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
+    }
+
     val name = robot.name
     if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
       GL11.glPushMatrix()
@@ -217,21 +232,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glDisable(GL11.GL_BLEND)
     GL11.glColor4f(1, 1, 1, 1)
-
-    // If the move started while we were rendering and we have a reference to
-    // the *old* proxy the robot would be rendered at the wrong position, so we
-    // correct for the offset.
-    if (robot.proxy != proxy) {
-      GL11.glTranslated(robot.proxy.x - proxy.x, robot.proxy.y - proxy.y, robot.proxy.z - proxy.z)
-    }
-
-    if (robot.isAnimatingMove) {
-      val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-      val dx = robot.moveFromX - robot.x
-      val dy = robot.moveFromY - robot.y
-      val dz = robot.moveFromZ - robot.z
-      GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
-    }
 
     if (robot.isAnimatingTurn) {
       val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble

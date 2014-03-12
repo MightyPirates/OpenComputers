@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
+import li.cil.oc.common
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot
@@ -21,7 +22,6 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.io.Source
 import scala.Some
 import java.util.logging.Level
-import li.cil.oc.common.Sound
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -325,6 +325,9 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         ServerPacketSender.sendRobotXp(this)
       }
     }
+    else if (isRunning && isAnimatingMove) {
+      client.Sound.updatePosition(this)
+    }
   }
 
   override def validate() {
@@ -502,7 +505,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
       }
       if (isFloppySlot(slot)) {
-        Sound.playDiskInsert(this)
+        common.Sound.playDiskInsert(this)
       }
       if (isComponentSlot(slot)) {
         super.onItemAdded(slot, stack)
@@ -524,7 +527,7 @@ class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory w
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, null)
       }
       if (isFloppySlot(slot)) {
-        Sound.playDiskEject(this)
+        common.Sound.playDiskEject(this)
       }
       if (isInventorySlot(slot)) {
         computer.signal("inventory_changed", Int.box(slot - actualSlot(0) + 1))
