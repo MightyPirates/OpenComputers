@@ -6,7 +6,6 @@ import li.cil.oc.api.network.SidedEnvironment;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
-import scala.Array;
 
 /**
  * TileEntities can implement the {@link li.cil.oc.api.network.SidedEnvironment}
@@ -61,7 +60,7 @@ public abstract class TileEntitySidedEnvironment extends TileEntity implements S
      * </pre>
      */
     protected TileEntitySidedEnvironment(final Node... nodes) {
-        Array.copy(nodes, 0, this.nodes, 0, Math.min(nodes.length, this.nodes.length));
+        System.arraycopy(nodes, 0, this.nodes, 0, Math.min(nodes.length, this.nodes.length));
     }
 
     // ----------------------------------------------------------------------- //
