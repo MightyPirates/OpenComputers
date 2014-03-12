@@ -6,6 +6,7 @@ import java.io._
 import li.cil.oc.util.PackedColor
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
+import scala.io.Source
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -202,12 +203,12 @@ object Settings {
     // reportedly fixed the problem.
     val defaults = {
       val in = classOf[Settings].getResourceAsStream("/reference.conf")
-      val config = ConfigFactory.parseReader(new BufferedReader(new InputStreamReader(in)))
+      val config = Source.fromInputStream(in).mkString.replace("\r\n", "\n")
       in.close()
-      config
+      ConfigFactory.parseString(config)
     }
     try {
-      val config = ConfigFactory.parseFile(file).withFallback(defaults)
+      val config = ConfigFactory.parseString(Source.fromFile(file).mkString.replace("\r\n", "\n")).withFallback(defaults)
       settings = new Settings(config.getConfig("opencomputers"))
 
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
