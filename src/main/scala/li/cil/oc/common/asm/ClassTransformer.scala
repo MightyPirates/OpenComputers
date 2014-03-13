@@ -64,6 +64,7 @@ class ClassTransformer extends IClassTransformer {
   }
 
   def injectEnvironmentImplementation(classNode: ClassNode, basicClass: Array[Byte]): Array[Byte] = {
+    log.fine(s"Injecting methods from Environment interface into ${classNode.name}.")
     // TODO find actual implementations, i.e. descend into sub-classes until in a leaf, and transform those?
     if (!isTileEntity(classNode)) {
       throw new InjectionFailedException("Found SimpleComponent on something that isn't a tile entity, ignoring.")
@@ -71,7 +72,6 @@ class ClassTransformer extends IClassTransformer {
 
     val template = classNodeFor("li/cil/oc/common/asm/template/SimpleEnvironment")
 
-    log.fine("Injecting methods from Environment interface.")
     def inject(methodName: String, signature: String, required: Boolean = false) {
       def filter(method: MethodNode) = method.name == methodName && method.desc == signature
       if (classNode.methods.exists(filter)) {
@@ -134,12 +134,25 @@ class ClassTransformer extends IClassTransformer {
   val tileEntityNameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(tileEntityNamePlain)
 
   def isTileEntity(classNode: ClassNode): Boolean = {
-    log.finer(s"Checking if class ${classNode.name.replace('/', '.')} is a TileEntity...")
-    classNode.name == tileEntityNamePlain || classNode.name == tileEntityNameObfed ||
-      (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
+    if (classNode == null) false
+    else {
+      log.finer(s"Checking if class ${classNode.name} is a TileEntity...")
+      classNode.name == tileEntityNamePlain || classNode.name == tileEntityNameObfed ||
+        (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
+    }
   }
 
-  def classNodeFor(name: String) = newClassNode(loader.getClassBytes(name.replace('/', '.')))
+  def classNodeFor(name: String) = {
+    val namePlain = name.replace('/', '.')
+    val bytes = loader.getClassBytes(namePlain)
+    if (bytes != null) newClassNode(bytes)
+    else {
+      val nameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(name).replace('/', '.')
+      val bytes = loader.getClassBytes(nameObfed)
+      if (bytes == null) throw new ClassNotFoundException(namePlain)
+      newClassNode(bytes)
+    }
+  }
 
   def newClassNode(data: Array[Byte]) = {
     val classNode = new ClassNode()
