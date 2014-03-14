@@ -1,21 +1,18 @@
-{
-  "modinfoversion": 2,
-  "modlist": [{
-    "modid": "OpenComponents",
-    "name": "OpenComponents",
-    "description": "This mod is an addon for OpenComputers that adds a bunch of drivers.",
-    "version": "1.0.0",
-    "mcversion": "1.6.4",
-    "url": "https://github.com/MightyPirates/OpenComponents",
-    "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
-    "credits" : "OpenPeripherals",
-    "requiredMods": [ "Forge@[9.11.1.940,)", "OpenComputers@[1.2.0,)" ],
-    "dependencies": [
-      "BuildCraft|Core",
-      "EnderStorage",
-      "IC2",
-      "ThermalExpansion"
-    ],
-    "useDependencyInformation": "true"
-  }]
-}
+[{
+  "modid": "OpenComponents",
+  "name": "OpenComponents",
+  "description": "This mod is an addon for OpenComputers that adds a bunch of drivers.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/MightyPirates/OpenComponents",
+  "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
+  "credits" : "OpenPeripherals",
+  "requiredMods": [ "Forge@[9.11.1.940,)", "OpenComputers@[1.2.0,)" ],
+  "dependencies": [
+    "BuildCraft|Core",
+    "EnderStorage",
+    "IC2",
+    "ThermalExpansion"
+  ],
+  "useDependencyInformation": "true"
+}]
