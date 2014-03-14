@@ -2,9 +2,6 @@ package li.cil.occ.mods.vanilla;
 
 import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
-import net.minecraft.item.ItemStack;
-
-import java.util.Map;
 
 public final class ModVanilla implements IMod {
     @Override
@@ -26,18 +23,5 @@ public final class ModVanilla implements IMod {
         Driver.add(new DriverNoteBlock());
         Driver.add(new DriverRecordPlayer());
         Driver.add(new DriverSign());
-    }
-
-    @Override
-    public void populate(final Map<String, Object> map, final ItemStack stack) {
-        map.put("damage", stack.getItemDamage());
-        map.put("maxDamage", stack.getMaxDamage());
-        map.put("size", stack.stackSize);
-        map.put("maxSize", stack.getMaxStackSize());
-        map.put("hasTag", stack.hasTagCompound());
-        map.put("name", stack.getUnlocalizedName());
-        if (stack.getDisplayName() != null) {
-            map.put("label", stack.getDisplayName());
-        }
     }
 }

@@ -1,5 +1,6 @@
 package li.cil.occ.mods.ic2;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -10,12 +11,17 @@ import li.cil.occ.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public final class DriverMassFab extends DriverTileEntity {
+public final class DriverMassFab extends DriverTileEntity implements NamedBlock {
     private static final Class<?> TileController = Reflection.getClass("ic2.core.block.machine.tileentity.TileEntityMatter");
 
     @Override
     public Class<?> getTileEntityClass() {
         return TileController;
+    }
+
+    @Override
+    public String preferredName() {
+        return "mass_fab";
     }
 
     @Override

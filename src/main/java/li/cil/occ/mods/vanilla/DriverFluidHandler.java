@@ -6,13 +6,9 @@ import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
-import li.cil.occ.util.TypeConversion;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-
-import java.util.Map;
 
 public final class DriverFluidHandler extends DriverTileEntity {
     @Override
@@ -33,12 +29,7 @@ public final class DriverFluidHandler extends DriverTileEntity {
         @Callback
         public Object[] getTankInfo(final Context context, final Arguments args) {
             ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
-            FluidTankInfo[] info = tileEntity.getTankInfo(side);
-            Map[] result = new Map[info.length];
-            for (int i = 0; i < info.length; ++i) {
-                result[i] = TypeConversion.toMap(info[i]);
+            return new Object[]{tileEntity.getTankInfo(side)};
             }
-            return new Object[]{result};
         }
-    }
 }

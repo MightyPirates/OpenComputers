@@ -2,6 +2,7 @@ package li.cil.occ.mods.ic2;
 
 import ic2.api.reactor.IReactor;
 import ic2.api.reactor.IReactorChamber;
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -10,10 +11,15 @@ import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.world.World;
 
-public final class DriverReactorChamber extends DriverTileEntity {
+public final class DriverReactorChamber extends DriverTileEntity implements NamedBlock {
     @Override
     public Class<?> getTileEntityClass() {
         return IReactorChamber.class;
+    }
+
+    @Override
+    public String preferredName() {
+        return "reactor_chamber";
     }
 
     @Override

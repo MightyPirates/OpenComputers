@@ -6,9 +6,7 @@ import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
-import li.cil.occ.util.TypeConversion;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidTank;
 
 public final class DriverFluidTank extends DriverTileEntity {
@@ -29,8 +27,7 @@ public final class DriverFluidTank extends DriverTileEntity {
 
         @Callback
         public Object[] getInfo(final Context context, final Arguments args) {
-            final FluidTankInfo info = tileEntity.getInfo();
-            return new Object[]{TypeConversion.toMap(info)};
+            return new Object[]{tileEntity.getInfo()};
         }
     }
 }

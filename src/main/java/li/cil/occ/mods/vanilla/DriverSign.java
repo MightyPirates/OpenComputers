@@ -1,5 +1,6 @@
 package li.cil.occ.mods.vanilla;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -9,10 +10,15 @@ import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.world.World;
 
-public final class DriverSign extends DriverTileEntity {
+public final class DriverSign extends DriverTileEntity implements NamedBlock {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntitySign.class;
+    }
+
+    @Override
+    public String preferredName() {
+        return "sign";
     }
 
     @Override

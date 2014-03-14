@@ -1,5 +1,6 @@
 package li.cil.occ.mods.vanilla;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -10,10 +11,15 @@ import net.minecraft.potion.Potion;
 import net.minecraft.tileentity.TileEntityBeacon;
 import net.minecraft.world.World;
 
-public final class DriverBeacon extends DriverTileEntity {
+public final class DriverBeacon extends DriverTileEntity implements NamedBlock {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityBeacon.class;
+    }
+
+    @Override
+    public String preferredName() {
+        return "beacon";
     }
 
     @Override

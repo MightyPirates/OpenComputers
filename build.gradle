@@ -1,0 +1,33 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.0-SNAPSHOT'
+    }
+}
+
+file "build.properties" withReader {
+    def prop = new Properties()
+    prop.load(it)
+    ext.config = new ConfigSlurper().parse prop
+}
+
+apply plugin: 'forge'
+
+version = "${config.occ.version}"
+group = "li.cil.occ"
+archivesBaseName = "OpenComponents"
+
+if (System.getenv("BUILD_NUMBER") != null)
+    version += ".${System.getenv("BUILD_NUMBER")}"
+
+ext.simpleVersion = version
+version = "MC${config.minecraft.version}-${project.version}"
+
+apply from: 'gradle/forge.gradle'
+apply from: 'gradle/artifact.gradle'

@@ -1,5 +1,6 @@
 package li.cil.occ.mods.vanilla;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -11,10 +12,15 @@ import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
-public final class DriverRecordPlayer extends DriverTileEntity {
+public final class DriverRecordPlayer extends DriverTileEntity implements NamedBlock {
     @Override
     public Class<?> getTileEntityClass() {
         return BlockJukebox.TileEntityJukebox.class;
+    }
+
+    @Override
+    public String preferredName() {
+        return "jukebox";
     }
 
     @Override

@@ -1,5 +1,6 @@
 package li.cil.occ.mods.vanilla;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -9,10 +10,15 @@ import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.world.World;
 
-public final class DriverComparator extends DriverTileEntity {
+public final class DriverComparator extends DriverTileEntity implements NamedBlock {
     @Override
     public Class<?> getTileEntityClass() {
         return TileEntityComparator.class;
+    }
+
+    @Override
+    public String preferredName() {
+        return "comparator";
     }
 
     @Override
