@@ -1,0 +1,25 @@
+buildscript {
+    repositories {
+        maven {
+            name = "oc"
+            url = "http://maven.cil.li/"
+        }
+    }
+    dependencies {
+        classpath "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
+    }
+}
+
+minecraft {
+    version = "${config.minecraft.version}-${config.forge.version}"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.simpleVersion, 'mcversion': config.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}

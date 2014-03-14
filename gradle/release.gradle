@@ -1,0 +1,15 @@
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact apiJar
+            artifact deobfJar
+        }
+    }
+    repositories {
+        maven {
+            url "${config.maven.url}"
+        }
+    }
+}
