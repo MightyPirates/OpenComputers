@@ -9,13 +9,13 @@ import net.minecraft.item.ItemStack;
  * 
  * @author Richard
  */
-public interface IListRecipeManager extends Iterable<ItemStack> {
+public interface IListRecipeManager extends Iterable<IRecipeInput> {
 	/**
 	 * Adds a stack to the list.
 	 * 
 	 * @param stack Stack to add
 	 */
-	public void add(ItemStack stack);
+	public void add(IRecipeInput input);
 
 	/**
 	 * Checks whether the specified stack is in the list.
@@ -37,5 +37,5 @@ public interface IListRecipeManager extends Iterable<ItemStack> {
 	 * 
 	 * @return List of stacks
 	 */
-	public List<ItemStack> getStacks();
+	public List<IRecipeInput> getInputs();
 }

@@ -10,6 +10,8 @@ public interface IEnergySource extends IEnergyEmitter {
 	 * Energy output provided by the source this tick.
 	 * This is typically Math.min(stored energy, max output/tick).
 	 * 
+	 * @note Modifying the energy net from this method is disallowed.
+	 * 
 	 * @return Energy offered this tick
 	 */
 	double getOfferedEnergy();

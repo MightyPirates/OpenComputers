@@ -39,11 +39,7 @@ public class Position {
 	}
 
 	public Position(NBTTagCompound nbttagcompound) {
-		x = nbttagcompound.getDouble("i");
-		y = nbttagcompound.getDouble("j");
-		z = nbttagcompound.getDouble("k");
-
-		orientation = ForgeDirection.UNKNOWN;
+		readFromNBT(nbttagcompound);
 	}
 
 	public Position(TileEntity tile) {
@@ -123,6 +119,12 @@ public class Position {
 		nbttagcompound.setDouble("i", x);
 		nbttagcompound.setDouble("j", y);
 		nbttagcompound.setDouble("k", z);
+	}
+
+	public void readFromNBT(NBTTagCompound nbttagcompound) {
+		x = nbttagcompound.getDouble("i");
+		y = nbttagcompound.getDouble("j");
+		z = nbttagcompound.getDouble("k");
 	}
 
 	@Override

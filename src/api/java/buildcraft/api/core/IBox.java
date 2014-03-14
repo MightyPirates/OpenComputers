@@ -8,8 +8,6 @@
  */
 package buildcraft.api.core;
 
-import net.minecraft.world.World;
-
 public interface IBox {
 
 	public void expand(int amount);
@@ -22,8 +20,6 @@ public interface IBox {
 
 	public Position pMax();
 
-	public void createLasers(World world, LaserKind kind);
-
-	public void deleteLasers();
+	public void createLaserData();
 
 }

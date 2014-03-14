@@ -8,7 +8,7 @@
  */
 package buildcraft.api.fuels;
 
-import buildcraft.api.core.StackWrapper;
+import buildcraft.api.core.StackKey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,10 +22,10 @@ import net.minecraftforge.fluids.FluidStack;
 public final class IronEngineCoolant {
 
 	public static Map<String, Coolant> liquidCoolants = new HashMap<String, Coolant>();
-	public static Map<StackWrapper, FluidStack> solidCoolants = new HashMap<StackWrapper, FluidStack>();
+	public static Map<StackKey, FluidStack> solidCoolants = new HashMap<StackKey, FluidStack>();
 
 	public static FluidStack getFluidCoolant(ItemStack stack) {
-		return solidCoolants.get(new StackWrapper(stack));
+		return solidCoolants.get(new StackKey(stack));
 	}
 
 	public static Coolant getCoolant(ItemStack stack) {
@@ -65,7 +65,7 @@ public final class IronEngineCoolant {
 	 */
 	public static void addCoolant(final ItemStack stack, final FluidStack coolant) {
 		if (stack != null && stack.getItem() != null && coolant != null) {
-			solidCoolants.put(new StackWrapper(stack), coolant);
+			solidCoolants.put(new StackKey(stack), coolant);
 		}
 	}
 

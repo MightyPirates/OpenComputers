@@ -3,10 +3,15 @@ repositories {
         name = "oc"
         url = "http://maven.cil.li/"
     }
+    //maven {
+    //    name = "bc"
+    //    url = "http://mod-buildcraft.com/"
+    //}
 }
 
 dependencies {
     compile "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
+    //compile "com.mod-buildcraft:BuildCraft:${config.bc.version}"
 }
 
 minecraft {
