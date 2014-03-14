@@ -53,7 +53,7 @@ object EventHandler {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningProjectRed")))
         }
-        if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
+        if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
         }

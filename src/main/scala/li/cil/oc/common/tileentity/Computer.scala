@@ -19,7 +19,9 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-abstract class Computer(isRemote: Boolean) extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
+trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
+  def isRemote: Boolean
+
   private lazy val _computer = if (isRemote) null else Machine.create(this)
 
   def computer = _computer
@@ -52,7 +54,7 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   def setRunning(value: Boolean) = {
     _isRunning = value
     world.markBlockForUpdate(x, y, z)
-    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f)
+    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 50 + world.rand.nextInt(50))
     else Sound.stopLoop(this)
     this
   }
@@ -131,6 +133,12 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
     super.updateEntity()
   }
 
+  // Note: chunk unload is handled by sound via event handler.
+  override def invalidate() {
+    super.invalidate()
+    Sound.stopLoop(this)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -148,9 +156,10 @@ abstract class Computer(isRemote: Boolean) extends Environment with ComponentInv
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
-    setRunning(nbt.getBoolean("isRunning"))
+    _isRunning = nbt.getBoolean("isRunning")
     _users.clear()
     _users ++= nbt.getTagList("users", NBT.TAG_STRING).map((list, index) => list.getStringTagAt(index))
+    if (_isRunning) Sound.startLoop(this, "computer_running", 0.5f, 1000 + world.rand.nextInt(2000))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

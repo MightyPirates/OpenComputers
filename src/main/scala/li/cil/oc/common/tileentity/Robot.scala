@@ -1,16 +1,16 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
+import java.util.logging.Level
+import li.cil.oc._
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
-import li.cil.oc.common
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc._
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -20,8 +20,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 import scala.io.Source
-import scala.Some
-import java.util.logging.Level
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -29,7 +27,7 @@ import java.util.logging.Level
 // robot moves we only create a new proxy tile entity, hook the instance of this
 // class that was held by the old proxy to it and can then safely forget the
 // old proxy, which will be cleaned up by Minecraft like any other tile entity.
-class Robot(isRemote: Boolean) extends Computer(isRemote) with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
+class Robot(val isRemote: Boolean) extends Computer with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
   def this() = this(false)
 
   if (isServer) {

@@ -21,7 +21,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice {
+class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -44,6 +44,8 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) sidedNode(side).asInstanceOf[Connector] else null)
 
+  override def getWorld = world
+
   // ----------------------------------------------------------------------- //
 
   override def canConnect(side: ForgeDirection) = side != facing
@@ -64,7 +66,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
   def setRunning(number: Int, value: Boolean) = {
     _isRunning(number) = value
     world.markBlockForUpdate(x, y, z)
-    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f)
+    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 50 + world.rand.nextInt(50))
     else Sound.stopLoop(this)
     this
   }
@@ -234,6 +236,12 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     super.updateEntity()
   }
 
+  // Note: chunk unload is handled by sound via event handler.
+  override def invalidate() {
+    super.invalidate()
+    Sound.stopLoop(this)
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -292,8 +300,7 @@ class Rack extends Hub with PowerBalancer with Inventory with Rotatable with Bun
     nbt.getTagList("terminals", NBT.TAG_COMPOUND).
       foreach((list, index) => if (index < terminals.length) terminals(index).readFromNBTForClient(list.getCompoundTagAt(index)))
     range = nbt.getInteger("range")
-    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f)
-    else Sound.stopLoop(this)
+    if (anyRunning) Sound.startLoop(this, "computer_running", 1.5f, 1000 + world.rand.nextInt(2000))
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

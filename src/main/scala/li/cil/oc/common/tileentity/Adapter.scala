@@ -7,7 +7,6 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import scala.{Array, Some}
 
 class Adapter extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()

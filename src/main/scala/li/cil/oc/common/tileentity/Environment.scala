@@ -1,70 +1,14 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.Settings
-import li.cil.oc.api.network.{Connector, SidedEnvironment}
+import li.cil.oc.api.network.SidedEnvironment
 import li.cil.oc.api.{Network, network}
+import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 import scala.math.ScalaNumber
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 
-// Because @UniversalClass injects custom invalidate and validate methods for
-// IC2 setup/teardown we have to use a base class and implement our own logic
-// in a child class. This also means we can't use the Environment base class,
-// since mixins are linked up at compile time, whereas UniversalClass injects
-// its methods at runtime.
-/* TODO Upgrade to UE for 1.7 once it's out.
-@UniversalClass
-@Optional.InterfaceList(Array(
-  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
-  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
-))
-*/
-abstract class PowerAcceptor extends TileEntity with network.Environment /* with IEnergyInterface with IEnergyContainer */ {
-  def canConnect(direction: ForgeDirection, source: AnyRef) =
-    (if (isClient) hasConnector(direction) else connector(direction).isDefined) &&
-      direction != null && direction != ForgeDirection.UNKNOWN
-
-  def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) = connector(from) match {
-    case Some(node) if !Settings.get.ignorePower =>
-      val energy = fromUE(receive)
-      if (doReceive) {
-        val surplus = node.changeBuffer(energy)
-        receive - toUE(surplus)
-      }
-      else {
-        val space = node.globalBufferSize - node.globalBuffer
-        math.min(receive, toUE(space))
-      }
-    case _ => 0
-  }
-
-  def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
-
-  def setEnergy(from: ForgeDirection, energy: Long) {}
-
-  def getEnergy(from: ForgeDirection) = connector(from) match {
-    case Some(node) => toUE(node.globalBuffer)
-    case _ => 0
-  }
-
-  def getEnergyCapacity(from: ForgeDirection) = connector(from) match {
-    case Some(node) => toUE(node.globalBufferSize)
-    case _ => 0
-  }
-
-  protected def toUE(energy: Double) = (energy * Settings.ratioBC).toLong
-
-  protected def fromUE(energy: Long) = energy / Settings.ratioBC
-
-  @SideOnly(Side.CLIENT)
-  protected def hasConnector(side: ForgeDirection) = false
-
-  protected def connector(side: ForgeDirection): Option[Connector] = None
-}
-
-abstract class Environment extends PowerAcceptor {
+trait Environment extends TileEntity with network.Environment {
   protected var addedToNetwork = false
 
   // ----------------------------------------------------------------------- //
