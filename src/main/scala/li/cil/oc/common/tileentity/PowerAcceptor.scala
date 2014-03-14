@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import buildcraft.api.power.{IPowerReceptor, PowerHandler}
-import cofh.api.energy.IEnergyHandler
+//import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{ModAPIManager, Loader, Optional}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import ic2.api.energy.event.{EnergyTileUnloadEvent, EnergyTileLoadEvent}
@@ -14,12 +14,12 @@ import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
-  new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2"),
-  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion"),
-  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
-  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
+  new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
+//  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion"),
+//  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
+//  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
-abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink with IEnergyHandler with IEnergyInterface with IEnergyContainer {
+abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink /* with IEnergyHandler with IEnergyInterface with IEnergyContainer */ {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: ForgeDirection) = false
 
@@ -165,11 +165,11 @@ abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergy
   // ----------------------------------------------------------------------- //
   // Universal Electricity
 
-  override def canConnect(direction: ForgeDirection, source: AnyRef) =
+  def canConnect(direction: ForgeDirection, source: AnyRef) =
     !Settings.get.ignorePower && direction != null && direction != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(direction) else connector(direction).isDefined)
 
-  override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =
+  def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =
     if (isClient || Settings.get.ignorePower) 0
     else connector(from) match {
       case Some(node) =>
@@ -185,18 +185,18 @@ abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergy
       case _ => 0
     }
 
-  override def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
+  def onExtractEnergy(from: ForgeDirection, extract: Long, doExtract: Boolean) = 0
 
-  override def setEnergy(from: ForgeDirection, energy: Long) {}
+  def setEnergy(from: ForgeDirection, energy: Long) {}
 
-  override def getEnergy(from: ForgeDirection) =
+  def getEnergy(from: ForgeDirection) =
     if (isClient) 0
     else connector(from) match {
       case Some(node) => (node.globalBuffer * Settings.ratioBC).toLong
       case _ => 0
     }
 
-  override def getEnergyCapacity(from: ForgeDirection) =
+  def getEnergyCapacity(from: ForgeDirection) =
     if (isClient) 0
     else connector(from) match {
       case Some(node) => (node.globalBufferSize * Settings.ratioBC).toLong

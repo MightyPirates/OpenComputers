@@ -38,7 +38,7 @@ object Sound {
   // Set in init event.
   var manager: SoundManager = _
 
-  def soundSystem: SoundSystem = ReflectionHelper.getPrivateValue(classOf[SoundManager], manager, "sndSystem")
+  def soundSystem: SoundSystem = ReflectionHelper.getPrivateValue(classOf[SoundManager], manager, "sndSystem", "field_148620_e", "e")
 
   private def updateVolume() {
     val volume = FMLClientHandler.instance.getClient.gameSettings.getSoundLevel(SoundCategory.BLOCKS)
