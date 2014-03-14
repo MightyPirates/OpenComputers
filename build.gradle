@@ -5,19 +5,23 @@ buildscript {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
+        maven {
+            name = "oc"
+            url = "http://maven.cil.li/"
+        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.0-SNAPSHOT'
     }
 }
 
-apply plugin: 'forge'
-
 file "build.properties" withReader {
     def prop = new Properties()
     prop.load(it)
     ext.config = new ConfigSlurper().parse prop
 }
+
+apply plugin: 'forge'
 
 version = "${config.occ.version}"
 group = "li.cil.occ"

@@ -1,13 +1,12 @@
-buildscript {
-    repositories {
-        maven {
-            name = "oc"
-            url = "http://maven.cil.li/"
-        }
+repositories {
+    maven {
+        name = "oc"
+        url = "http://maven.cil.li/"
     }
-    dependencies {
-        classpath "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
-    }
+}
+
+dependencies {
+    compile "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
 }
 
 minecraft {
