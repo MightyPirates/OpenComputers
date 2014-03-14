@@ -118,7 +118,11 @@ function internet.socket(address, port)
 end
 
 function internet.open(address, port)
-  return buffer.new("rwb", internet.socket(address, port))
+  local stream, reason = internet.socket(address, port)
+  if not stream then
+    return nil, reason
+  end
+  return buffer.new("rwb", stream)
 end
 
 -------------------------------------------------------------------------------
