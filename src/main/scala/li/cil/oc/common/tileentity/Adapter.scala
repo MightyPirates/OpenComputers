@@ -6,7 +6,6 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
-import scala.{Array, Some}
 
 class Adapter extends Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()

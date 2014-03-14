@@ -85,7 +85,6 @@ oc:gui.Analyzer.StoredEnergy=§6Накоплено энергии§f: %s
 oc:gui.Analyzer.TotalEnergy=§6Всего накоплено энергии§f: %s
 oc:gui.Analyzer.Users=§6Пользователи§f: %s
 oc:gui.Chat.WarningLuaFallback=Родные библиотеки Lua не доступны, компьютеры не смогут сохранять своё состояние. Они перезагрузятся после выгрузки чанка.
-oc:gui.Chat.WarningPower=Universal Electricity 3 недоступен. Компьютеры, дисплеи и другие компоненты §lне§f используют энергю. Заметьте, что UE3 используется для поддержки BuildCraft, IndustrialCraft2 и Thermal Expansion.
 oc:gui.Chat.WarningProjectRed=Вы используете версию Project: Red, несовместимую с OpenComputers. Попробуйте обновить Project: Red.
 oc:gui.Error.ComponentOverflow=Слишком много компонентов подключено к компьютеру.
 oc:gui.Error.DaylightCycle=Пожалуйста, включите doDaylightCycle для работы компьютеров.

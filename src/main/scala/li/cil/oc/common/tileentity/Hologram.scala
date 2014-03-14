@@ -4,10 +4,10 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.{Settings, api}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
-import net.minecraft.entity.player.EntityPlayer
 
 class Hologram extends Environment with SidedEnvironment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).

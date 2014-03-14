@@ -15,7 +15,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode) = mode match {
+  override def open(path: String, mode: Mode) = this.synchronized(mode match {
     case Mode.Read => super.open(path, mode)
     case _ => if (!isDirectory(path)) {
       val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
@@ -26,11 +26,11 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
         case _ => throw new FileNotFoundException()
       }
     } else throw new FileNotFoundException()
-  }
+  })
 
-  override def getHandle(handle: Int): api.fs.Handle = Option(super.getHandle(handle)).orElse(handles.get(handle)).orNull
+  override def getHandle(handle: Int): api.fs.Handle = this.synchronized(Option(super.getHandle(handle)).orElse(handles.get(handle)).orNull)
 
-  override def close() {
+  override def close() = this.synchronized {
     super.close()
     for (handle <- handles.values)
       handle.close()
@@ -53,7 +53,7 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     })
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) = this.synchronized {
     super.save(nbt)
 
     val handlesNbt = new NBTTagList()

@@ -11,13 +11,15 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Case(var tier: Int, isRemote: Boolean) extends Computer(isRemote) {
+class Case(var tier: Int, val isRemote: Boolean) extends PowerAcceptor with Computer {
   def this() = this(0, false)
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
 
   override protected def connector(side: ForgeDirection) = Option(if (side != facing && computer != null) computer.node.asInstanceOf[Connector] else null)
+
+  override def getWorld = world
 
   var maxComponents = 0
 

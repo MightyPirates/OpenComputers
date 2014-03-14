@@ -23,7 +23,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override def open(path: String, mode: Mode) = if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
+  override def open(path: String, mode: Mode) = this.synchronized(if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
     openInputStream(path) match {
       case Some(stream) =>
@@ -31,11 +31,11 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
         handle
       case _ => throw new FileNotFoundException()
     }
-  } else throw new FileNotFoundException()
+  } else throw new FileNotFoundException())
 
-  override def getHandle(handle: Int): api.fs.Handle = handles.get(handle).orNull
+  override def getHandle(handle: Int): api.fs.Handle = this.synchronized(handles.get(handle).orNull)
 
-  override def close() {
+  override def close() = this.synchronized {
     for (handle <- handles.values)
       handle.close()
     handles.clear()
@@ -59,7 +59,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
     })
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) = this.synchronized {
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {
       assert(!file.isClosed)

@@ -2,7 +2,7 @@ package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
 import java.util.{TimerTask, Timer, UUID}
-import li.cil.oc.Settings
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.common.tileentity
 import net.minecraft.client.Minecraft
 import net.minecraft.tileentity.TileEntity
@@ -12,61 +12,71 @@ import net.minecraftforge.event.world.{WorldEvent, ChunkEvent}
 import paulscode.sound.SoundSystemConfig
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import java.util.logging.Level
 
 object Sound {
-  val sources = mutable.Map.empty[TileEntity, (String, Float)]
+  private val sources = mutable.Map.empty[TileEntity, PseudoLoopingStream]
 
-  var lastVolume = FMLClientHandler.instance.getClient.gameSettings.soundVolume
+  private val commandQueue = mutable.PriorityQueue.empty[Command]
 
-  val volumeCheckTimer = new Timer("OpenComputers-VolumeUpdater", true)
-  volumeCheckTimer.scheduleAtFixedRate(new TimerTask {
-    override def run() {
-      val volume = FMLClientHandler.instance.getClient.gameSettings.soundVolume
-      if (volume != lastVolume) {
-        lastVolume = volume
-        val system = Minecraft.getMinecraft.sndManager.sndSystem
-        sources.synchronized {
-          for ((source, volume) <- sources.values) {
-            system.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
-          }
-        }
+  private var lastVolume = FMLClientHandler.instance.getClient.gameSettings.soundVolume
+
+  private val updateTimer = new Timer("OpenComputers-SoundUpdater", true)
+  if (Settings.get.soundVolume > 0) {
+    updateTimer.scheduleAtFixedRate(new TimerTask {
+      override def run() {
+        updateVolume()
+        processQueue()
       }
-    }
-  }, 5000, 500)
+    }, 500, 50)
+  }
 
-  def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f) {
-    if (Settings.get.soundVolume > 0) {
-      val resourceName = s"${Settings.resourceDomain}:$name"
-      val manager = Minecraft.getMinecraft.sndManager
-      val sound = manager.soundPoolSounds.getRandomSoundFromSoundPool(resourceName)
+  private def soundSystem = Minecraft.getMinecraft.sndManager.sndSystem
+
+  private def updateVolume() {
+    val volume = FMLClientHandler.instance.getClient.gameSettings.soundVolume
+    if (volume != lastVolume) {
+      lastVolume = volume
       sources.synchronized {
-        val (source, _) = sources.getOrElseUpdate(tileEntity, {
-          val source = UUID.randomUUID.toString
-          manager.sndSystem.newStreamingSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
-          manager.sndSystem.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
-          (source, volume)
-        })
-        manager.sndSystem.fadeOutIn(source, sound.getSoundUrl, sound.getSoundName, 50, 500)
-        manager.sndSystem.play(source)
+        for (sound <- sources.values) {
+          sound.updateVolume()
+        }
       }
     }
   }
 
-  def updatePosition(tileEntity: TileEntity) {
-    sources.synchronized {
-      sources.get(tileEntity) match {
-        case Some((source, _)) => Minecraft.getMinecraft.sndManager.sndSystem.
-          setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
-        case _ =>
+  private def processQueue() {
+    if (!commandQueue.isEmpty) {
+      commandQueue.synchronized {
+        while (!commandQueue.isEmpty && commandQueue.head.when < System.currentTimeMillis()) {
+          try commandQueue.dequeue()() catch {
+            case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error processing sound command.", t)
+          }
+        }
+      }
+    }
+  }
+
+  def startLoop(tileEntity: TileEntity, name: String, volume: Float = 1f, delay: Long = 0) {
+    if (Settings.get.soundVolume > 0) {
+      commandQueue.synchronized {
+        commandQueue += new StartCommand(System.currentTimeMillis() + delay, tileEntity, name, volume)
       }
     }
   }
 
   def stopLoop(tileEntity: TileEntity) {
-    sources.synchronized {
-      sources.get(tileEntity) match {
-        case Some((source, _)) => Minecraft.getMinecraft.sndManager.sndSystem.fadeOut(source, null, 500)
-        case _ =>
+    if (Settings.get.soundVolume > 0) {
+      commandQueue.synchronized {
+        commandQueue += new StopCommand(tileEntity)
+      }
+    }
+  }
+
+  def updatePosition(tileEntity: TileEntity) {
+    if (Settings.get.soundVolume > 0) {
+      commandQueue.synchronized {
+        commandQueue += new UpdatePositionCommand(tileEntity)
       }
     }
   }
@@ -95,24 +105,91 @@ object Sound {
     cleanup(event.world.loadedTileEntityList)
   }
 
-  def cleanup[_](list: Iterable[_]) {
-    val system = Minecraft.getMinecraft.sndManager.sndSystem
+  private def cleanup[_](list: Iterable[_]) {
+    commandQueue.synchronized(commandQueue.clear())
     sources.synchronized {
       list.foreach {
-        case robot: tileentity.RobotProxy => sources.remove(robot.robot) match {
-          case Some((source, _)) =>
-            system.stop(source)
-            system.removeSource(source)
-          case _ =>
-        }
-        case tileEntity: TileEntity => sources.remove(tileEntity) match {
-          case Some((source, _)) =>
-            system.stop(source)
-            system.removeSource(source)
-          case _ =>
-        }
+        case robot: tileentity.RobotProxy => stahp(robot.robot)
+        case tileEntity: TileEntity => stahp(tileEntity)
         case _ =>
       }
     }
   }
+
+  private def stahp(tileEntity: TileEntity) = sources.remove(tileEntity) match {
+    case Some(sound) => sound.stop()
+    case _ =>
+  }
+
+  private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {
+    def apply()
+
+    override def compare(that: Command) = (that.when - when).toInt
+  }
+
+  private class StartCommand(when: Long, tileEntity: TileEntity, val name: String, val volume: Float) extends Command(when, tileEntity) {
+    override def apply() {
+      sources.synchronized {
+        sources.getOrElseUpdate(tileEntity, new PseudoLoopingStream(tileEntity, volume)).play(name)
+      }
+    }
+  }
+
+  private class StopCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+    override def apply() {
+      sources.synchronized {
+        sources.remove(tileEntity) match {
+          case Some(sound) => sound.stop()
+          case _ =>
+        }
+      }
+      commandQueue.synchronized {
+        // Remove all other commands for this tile entity from the queue. This
+        // is inefficient, but we generally don't expect the command queue to
+        // be very long, so this should be OK.
+        commandQueue ++= commandQueue.dequeueAll.filter(_.tileEntity != tileEntity)
+      }
+    }
+  }
+
+  private class UpdatePositionCommand(tileEntity: TileEntity) extends Command(0, tileEntity) {
+    override def apply() {
+      sources.synchronized {
+        sources.get(tileEntity) match {
+          case Some(sound) => sound.updatePosition()
+          case _ =>
+        }
+      }
+    }
+  }
+
+  private class PseudoLoopingStream(val tileEntity: TileEntity, val volume: Float, val source: String = UUID.randomUUID.toString) {
+    var initialized = false
+
+    def updateVolume() {
+      soundSystem.setVolume(source, lastVolume * volume * Settings.get.soundVolume)
+    }
+
+    def updatePosition() {
+      soundSystem.setPosition(source, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord)
+    }
+
+    def play(name: String) {
+      val resourceName = s"${Settings.resourceDomain}:$name"
+      val sound = Minecraft.getMinecraft.sndManager.soundPoolSounds.getRandomSoundFromSoundPool(resourceName)
+      if (!initialized) {
+        initialized = true
+        soundSystem.newSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
+        updateVolume()
+        soundSystem.activate(source)
+      }
+      soundSystem.play(source)
+    }
+
+    def stop() {
+      soundSystem.stop(source)
+      soundSystem.removeSource(source)
+    }
+  }
+
 }

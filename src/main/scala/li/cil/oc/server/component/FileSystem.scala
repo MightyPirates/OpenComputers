@@ -206,7 +206,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
 
   // ----------------------------------------------------------------------- //
 
-  override def onMessage(message: Message) {
+  override def onMessage(message: Message) = fileSystem.synchronized {
     super.onMessage(message)
     message.data match {
       case Array() if message.name == "computer.stopped" || message.name == "computer.started" =>
@@ -223,7 +223,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     }
   }
 
-  override def onDisconnect(node: Node) {
+  override def onDisconnect(node: Node) = fileSystem.synchronized {
     super.onDisconnect(node)
     if (node == this.node) {
       fileSystem.close()
@@ -262,7 +262,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
     fileSystem.load(nbt.getCompoundTag("fs"))
   }
 
-  override def save(nbt: NBTTagCompound) {
+  override def save(nbt: NBTTagCompound) = fileSystem.synchronized {
     super.save(nbt)
 
     val ownersNbt = new NBTTagList()

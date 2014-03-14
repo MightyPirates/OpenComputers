@@ -1,6 +1,5 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
@@ -21,7 +20,7 @@ object ConnectionHandler extends IConnectionHandler {
         if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningProjectRed"))
         }
-        if (!Settings.get.pureIgnorePower && !Loader.isModLoaded("UniversalElectricity")) {
+        if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
         }
         // Do update check in local games and for OPs.
