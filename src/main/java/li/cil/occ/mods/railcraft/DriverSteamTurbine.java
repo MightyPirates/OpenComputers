@@ -1,5 +1,6 @@
 package li.cil.occ.mods.railcraft;
 
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -12,12 +13,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public final class DriverSteamTurbine extends DriverTileEntity {
+public final class DriverSteamTurbine extends DriverTileEntity implements NamedBlock {
     private static final Class<?> TileSteamTurbine = Reflection.getClass("mods.railcraft.common.blocks.machine.alpha.TileSteamTurbine");
 
     @Override
     public Class<?> getTileEntityClass() {
         return TileSteamTurbine;
+    }
+
+    @Override
+    public String preferredName() {
+        return "steam_turbine";
     }
 
     @Override

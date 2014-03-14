@@ -4,13 +4,13 @@ import appeng.api.exceptions.AppEngTileMissingException;
 import appeng.api.me.tiles.IGridTileEntity;
 import appeng.api.me.util.ICraftRequest;
 import appeng.api.me.util.IGridInterface;
+import li.cil.oc.api.driver.NamedBlock;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
-import li.cil.occ.mods.Registry;
 import li.cil.occ.util.Reflection;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -19,8 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class DriverTileController extends DriverTileEntity {
+public final class DriverTileController extends DriverTileEntity implements NamedBlock {
     private static final Class<?> TileController = Reflection.getClass("appeng.me.tile.TileController");
+
+    @Override
+    public String preferredName() {
+        return "me_controller";
+    }
 
     @Override
     public Class<?> getTileEntityClass() {
@@ -75,11 +80,9 @@ public final class DriverTileController extends DriverTileEntity {
             final ArrayList<Map> results = new ArrayList<Map>();
             final List<ItemStack> jobs = Reflection.tryInvoke(tileEntity, "getJobList");
             if (jobs != null) {
-                for (ItemStack stack : jobs) {
-                    results.add(Registry.toMap(stack));
-                }
+                return new Object[]{jobs.toArray()};
             }
-            return new Object[]{results.toArray()};
+            return null;
         }
     }
 }

@@ -10,12 +10,10 @@ import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
-import li.cil.occ.mods.Registry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public final class DriverCellProvider extends DriverTileEntity {
     @Override
@@ -102,9 +100,9 @@ public final class DriverCellProvider extends DriverTileEntity {
             if (cell == null) {
                 return new Object[]{null, "no storage cell"};
             }
-            final ArrayList<Map> list = new ArrayList<Map>();
+            final ArrayList<ItemStack> list = new ArrayList<ItemStack>();
             for (IAEItemStack stack : cell.getAvailableItems()) {
-                list.add(ModAppEng.toMap(stack));
+                list.add(stack.getItemStack());
             }
             return new Object[]{list.toArray()};
         }
@@ -158,11 +156,7 @@ public final class DriverCellProvider extends DriverTileEntity {
             if (cell == null) {
                 return new Object[]{null, "no storage cell"};
             }
-            final ArrayList<Map> list = new ArrayList<Map>();
-            for (ItemStack stack : cell.getPreformattedItems()) {
-                list.add(Registry.toMap(stack));
-            }
-            return new Object[]{list.toArray()};
+            return new Object[]{cell.getPreformattedItems().toArray()};
         }
 
         @Callback(doc = "function():boolean -- Returns whether the cell is pre-formatted")

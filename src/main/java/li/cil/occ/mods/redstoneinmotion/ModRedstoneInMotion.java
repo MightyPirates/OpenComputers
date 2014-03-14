@@ -2,9 +2,6 @@ package li.cil.occ.mods.redstoneinmotion;
 
 import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
-import net.minecraft.item.ItemStack;
-
-import java.util.Map;
 
 public final class ModRedstoneInMotion implements IMod {
     @Override
@@ -15,9 +12,5 @@ public final class ModRedstoneInMotion implements IMod {
     @Override
     public void initialize() {
         Driver.add(new DriverCarriageController());
-    }
-
-    @Override
-    public void populate(final Map<String, Object> map, final ItemStack stack) {
     }
 }
