@@ -47,7 +47,7 @@ class InternetCard extends ManagedComponent {
   @Callback(direct = true, doc = """function():boolean -- Returns whether HTTP requests can be made (config setting).""")
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
-  @Callback(doc = """function():boolean -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
+  @Callback(doc = """function(url:string[, postData:string]):boolean -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = {
     if (owner.isEmpty || context.node.address != owner.get.node.address) {
       throw new IllegalArgumentException("can only be used by the owning computer")
