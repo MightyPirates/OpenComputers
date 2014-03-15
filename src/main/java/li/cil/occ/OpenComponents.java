@@ -5,7 +5,6 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import li.cil.occ.mods.Registry;
 import li.cil.occ.mods.appeng.ModAppEng;
-import li.cil.occ.mods.atomicscience.ModAtomicScience;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
@@ -46,7 +45,6 @@ public class OpenComponents {
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
         Registry.add(new ModAppEng());
-        Registry.add(new ModAtomicScience());
         Registry.add(new ModBuildCraft());
         Registry.add(new ModEnderStorage());
         Registry.add(new ModIndustrialCraft2());
