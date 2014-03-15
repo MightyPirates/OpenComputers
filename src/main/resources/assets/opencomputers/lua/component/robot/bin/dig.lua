@@ -4,7 +4,7 @@ local robot = require("robot")
 local shell = require("shell")
 local sides = require("sides")
 
-if not computer.isRobot() then
+if not component.isAvailable("robot") then
   io.stderr:write("can only run on robots")
   return
 end
@@ -22,7 +22,7 @@ if not size then
   return
 end
 
-local r = component.computer
+local r = component.robot
 local x, y, z, f = 0, 0, 0, 0
 local dropping = false -- avoid recursing into drop()
 local delta = {[0] = function() x = x + 1 end, [1] = function() y = y + 1 end,
