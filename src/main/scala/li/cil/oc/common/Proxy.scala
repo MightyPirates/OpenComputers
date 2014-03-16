@@ -78,5 +78,6 @@ class Proxy {
     FMLCommonHandler.instance().bus().register(EventHandler)
     FMLCommonHandler.instance().bus().register(SimpleComponentTickHandler.Instance)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+    MinecraftForge.EVENT_BUS.register(SaveHandler)
   }
 }

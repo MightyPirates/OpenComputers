@@ -247,7 +247,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
     // Are we a robot? (No this is not a CAPTCHA.)
     // TODO deprecate this
-    computer.set("isRobot", (_: Varargs) => LuaValue.valueOf(machine.components.contains("robot")))
+    computer.set("isRobot", (_: Varargs) => LuaValue.valueOf(machine.components.containsValue("robot")))
 
     computer.set("freeMemory", (_: Varargs) => LuaValue.valueOf(memory / 2))
 
