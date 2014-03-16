@@ -82,9 +82,12 @@ object ZipFileInputStreamFileSystem {
       Option(cache.get(file.getPath + ":" + innerPath, new Callable[ArchiveDirectory] {
         def call = {
           val zip = new ZipFile(file.getPath)
-          val cleanedPath = innerPath.stripPrefix("/").stripSuffix("/") + "/"
-          val rootEntry = zip.getEntry(cleanedPath)
-          val result = if (rootEntry != null && rootEntry.isDirectory) {
+          try {
+            val cleanedPath = innerPath.stripPrefix("/").stripSuffix("/") + "/"
+            val rootEntry = zip.getEntry(cleanedPath)
+            if (rootEntry == null || !rootEntry.isDirectory) {
+              throw new IllegalArgumentException(s"Root path $innerPath doesn't exist or is not a directory in ZIP file ${file.getName}.")
+            }
             val directories = mutable.Set.empty[ArchiveDirectory]
             val files = mutable.Set.empty[ArchiveFile]
             val iterator = zip.entries()
@@ -111,9 +114,9 @@ object ZipFileInputStreamFileSystem {
             }
             root
           }
-          else null
-          zip.close()
-          result
+          finally {
+            zip.close()
+          }
         }
       })) match {
         case Some(archive) => new ZipFileInputStreamFileSystem(archive)
