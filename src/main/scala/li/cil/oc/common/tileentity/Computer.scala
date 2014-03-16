@@ -142,12 +142,22 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
+    // God, this is so ugly... will need to rework the robot architecture.
+    // This is required for loading auxiliary data (kernel state), because the
+    // coordinates in the actual robot won't be set properly, otherwise.
+    this match {
+      case proxy: RobotProxy =>
+        proxy.robot.xCoord = xCoord
+        proxy.robot.yCoord = yCoord
+        proxy.robot.zCoord = zCoord
+      case _ =>
+    }
     computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (!new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))) {
+    if (computer != null) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }

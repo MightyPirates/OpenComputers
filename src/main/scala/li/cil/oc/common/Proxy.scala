@@ -79,5 +79,6 @@ class Proxy {
     GameRegistry.registerPlayerTracker(Keyboard)
     NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
+    MinecraftForge.EVENT_BUS.register(SaveHandler)
   }
 }

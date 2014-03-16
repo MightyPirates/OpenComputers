@@ -6,11 +6,13 @@ import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
 import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
 import li.cil.oc.api.network.ComponentConnector
+import li.cil.oc.common.SaveHandler
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{api, OpenComputers, server, Settings}
 import net.minecraft.nbt.NBTTagCompound
-import scala.Some
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.world.ChunkCoordIntPair
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -295,7 +297,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     // Are we a robot? (No this is not a CAPTCHA.)
     // TODO deprecate this
     lua.pushScalaFunction(lua => {
-      lua.pushBoolean(machine.components.contains("robot"))
+      lua.pushBoolean(machine.components.containsValue("robot"))
       1
     })
     lua.setField(-2, "isRobot")
@@ -595,14 +597,26 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // on. First, clear the stack, meaning the current kernel.
       lua.setTop(0)
 
-      unpersist(nbt.getByteArray("kernel"))
+      val kernel =
+        if (nbt.hasKey("kernel")) nbt.getByteArray("kernel")
+        else machine.owner match {
+          case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel")
+          case _ => SaveHandler.load(null, node.address + "_kernel")
+        }
+      unpersist(kernel)
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
         // the save was corrupt (maybe someone modified the Lua files).
         throw new IllegalArgumentException("Invalid kernel.")
       }
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
-        unpersist(nbt.getByteArray("stack"))
+        val stack =
+          if (nbt.hasKey("stack")) nbt.getByteArray("stack")
+          else machine.owner match {
+            case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack")
+            case _ => SaveHandler.load(null, node.address + "_stack")
+          }
+        unpersist(stack)
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
           // could for the same reasons.
@@ -629,12 +643,22 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // Try persisting Lua, because that's what all of the rest depends on.
       // Save the kernel state (which is always at stack index one).
       assert(lua.isThread(1))
-      nbt.setByteArray("kernel", persist(1))
+      machine.owner match {
+        case t: TileEntity =>
+          SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel", persist(1))
+        case _ =>
+          SaveHandler.scheduleSave(null, node.address + "_kernel", persist(1))
+      }
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        nbt.setByteArray("stack", persist(2))
+        machine.owner match {
+          case t: TileEntity =>
+            SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack", persist(2))
+          case _ =>
+            SaveHandler.scheduleSave(null, node.address + "_stack", persist(1))
+        }
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)

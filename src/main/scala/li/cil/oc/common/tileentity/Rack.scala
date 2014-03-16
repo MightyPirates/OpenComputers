@@ -267,15 +267,13 @@ class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with
 
   // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    if (!new Exception().getStackTrace.exists(_.getClassName.startsWith("mcp.mobius.waila"))) {
-      nbt.setNewTagList(Settings.namespace + "servers", servers map {
-        case Some(server) =>
-          val serverNbt = new NBTTagCompound()
-          server.save(serverNbt)
-          serverNbt
-        case _ => new NBTTagCompound()
-      })
-    }
+    nbt.setNewTagList(Settings.namespace + "servers", servers map {
+      case Some(server) =>
+        val serverNbt = new NBTTagCompound()
+        server.save(serverNbt)
+        serverNbt
+      case _ => new NBTTagCompound()
+    })
     super.writeToNBT(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {
