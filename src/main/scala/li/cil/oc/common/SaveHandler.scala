@@ -1,12 +1,12 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import java.io
 import java.util.logging.Level
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
@@ -55,7 +55,7 @@ object SaveHandler {
   // Used by the native lua state to store kernel and stack data in auxiliary
   // files instead of directly in the tile entity data, avoiding potential
   // problems with the tile entity data becoming too large.
-  @ForgeSubscribe
+  @SubscribeEvent
   def onWorldSave(e: WorldEvent.Save) = saveData.synchronized {
     val path = savePath
     path.mkdirs()
