@@ -13,6 +13,21 @@ import net.minecraft.world.World;
  */
 public interface Owner extends Context {
     /**
+     * The X coordinate of this machine owner in the world, in block coordinates.
+     */
+    int x();
+
+    /**
+     * The Y coordinate of this machine owner in the world, in block coordinates.
+     */
+    int y();
+
+    /**
+     * The Z coordinate of this machine owner in the world, in block coordinates.
+     */
+    int z();
+
+    /**
      * The world the machine is running in, e.g. if the owner is a tile entity
      * this is the world the tile entity lives in.
      *

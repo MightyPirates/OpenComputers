@@ -600,11 +600,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
       val kernel =
         if (nbt.hasKey("kernel")) nbt.getByteArray("kernel")
-        else machine.owner match {
-          case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel")
-          case t: component.Server => SaveHandler.load(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_kernel")
-          case _ => SaveHandler.load(null, node.address + "_kernel")
-        }
+        else SaveHandler.load(new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4), node.address + "_kernel")
       unpersist(kernel)
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
@@ -614,11 +610,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         val stack =
           if (nbt.hasKey("stack")) nbt.getByteArray("stack")
-          else machine.owner match {
-            case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack")
-            case t: component.Server => SaveHandler.load(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_stack")
-            case _ => SaveHandler.load(null, node.address + "_stack")
-          }
+          else SaveHandler.load(new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4), node.address + "_stack")
         unpersist(stack)
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
@@ -646,26 +638,12 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // Try persisting Lua, because that's what all of the rest depends on.
       // Save the kernel state (which is always at stack index one).
       assert(lua.isThread(1))
-      machine.owner match {
-        case t: TileEntity =>
-          SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel", persist(1))
-        case t: component.Server =>
-          SaveHandler.scheduleSave(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_kernel", persist(1))
-        case _ =>
-          SaveHandler.scheduleSave(null, node.address + "_kernel", persist(1))
-      }
+      SaveHandler.scheduleSave(new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4), node.address + "_kernel", persist(1))
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        machine.owner match {
-          case t: TileEntity =>
-            SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack", persist(2))
-          case t: component.Server =>
-            SaveHandler.scheduleSave(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_stack", persist(2))
-          case _ =>
-            SaveHandler.scheduleSave(null, node.address + "_stack", persist(1))
-        }
+        SaveHandler.scheduleSave(new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4), node.address + "_stack", persist(2))
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)

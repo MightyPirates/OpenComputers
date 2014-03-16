@@ -70,6 +70,12 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
     case _ => false
   }
 
+  override def x = rack.x
+
+  override def y = rack.y
+
+  override def z = rack.z
+
   override def world = rack.world
 
   override def markAsChanged() = rack.markAsChanged()
