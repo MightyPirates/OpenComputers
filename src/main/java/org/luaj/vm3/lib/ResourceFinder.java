@@ -31,13 +31,13 @@ import java.io.InputStream;
  * for both the Jme and Jse platforms. 
  * <p>
  * The Jme version of base lib {@link BaseLib} 
- * implements {@link BaseLib#FINDER} via {@link Class#getResourceAsStream(String)}, 
+ * implements {@link Globals#finder} via {@link Class#getResourceAsStream(String)}, 
  * while the Jse version {@link JseBaseLib} implements it using {@link java.io.File#File(String)}.
  * <p>
  * The io library does not use this API for file manipulation.
  * <p>
  * @see BaseLib
- * @see BaseLib#FINDER
+ * @see Globals#finder
  * @see JseBaseLib
  * @see JmePlatform
  * @see JsePlatform 

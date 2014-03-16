@@ -38,7 +38,7 @@ import org.luaj.vm3.Varargs;
  * <p>
  * This contains all library functions listed as "basic functions" in the lua documentation for JME. 
  * The functions dofile and loadfile use the 
- * {@link #FINDER} instance to find resource files.
+ * {@link #finder} instance to find resource files.
  * Since JME has no file system by default, {@link BaseLib} implements 
  * {@link ResourceFinder} using {@link Class#getResource(String)}, 
  * which is the closest equivalent on JME.     
@@ -69,7 +69,7 @@ import org.luaj.vm3.Varargs;
  * This is a direct port of the corresponding library in C.
  * @see JseBaseLib
  * @see ResourceFinder
- * @see #FINDER
+ * @see #finder
  * @see LibFunction
  * @see JsePlatform
  * @see JmePlatform
@@ -81,7 +81,7 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 	
 	public LuaValue call(LuaValue modname, LuaValue env) {
 		globals = env.checkglobals();
-		globals.FINDER = this;
+		globals.finder = this;
 		globals.baselib = this;
 		env.set( "_G", env );
 		env.set( "_VERSION", Lua._VERSION );
@@ -424,7 +424,7 @@ public class BaseLib extends TwoArgFunction implements ResourceFinder {
 	 * @return Varargs containing chunk, or NIL,error-text on error
 	 */
 	public Varargs loadFile(String filename, String mode, LuaValue env) {
-		InputStream is = globals.FINDER.findResource(filename);
+		InputStream is = globals.finder.findResource(filename);
 		if ( is == null )
 			return varargsOf(NIL, valueOf("cannot open "+filename+": No such file or directory"));
 		try {

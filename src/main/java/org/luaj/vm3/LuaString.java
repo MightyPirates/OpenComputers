@@ -387,6 +387,12 @@ public class LuaString extends LuaValue {
 		return this;
 	}
 	
+	/** Take a substring using Java zero-based indexes for begin and end or range.
+	 * @param beginIndex  The zero-based index of the first character to include.
+	 * @param endIndex  The zero-based index of position after the last character.
+	 * @return LuaString which is a substring whose first character is at offset 
+	 * beginIndex and extending for (endIndex - beginIndex ) characters.
+	 */
 	public LuaString substring( int beginIndex, int endIndex ) {
 		return valueOf( m_bytes, m_offset + beginIndex, endIndex - beginIndex );
 	}

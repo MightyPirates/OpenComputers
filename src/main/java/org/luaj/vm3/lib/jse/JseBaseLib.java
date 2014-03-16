@@ -33,11 +33,11 @@ import org.luaj.vm3.lib.ResourceFinder;
 
 /** 
  * Subclass of {@link BaseLib} and {@link LibFunction} which implements the lua basic library functions
- * and provides a directory based {@link ResourceFinder} as the {@link #FINDER}. 
+ * and provides a directory based {@link ResourceFinder} as the {@link #finder}. 
  * <p>
  * Since JME has no file system by default, {@link BaseLib} implements 
  * {@link ResourceFinder} using {@link Class#getResource(String)}. 
- * The {@link JseBaseLib} implements {@link FINDER} by scanning the current directory
+ * The {@link JseBaseLib} implements {@link finder} by scanning the current directory
  * first, then falling back to   {@link Class#getResource(String)} if that fails.
  * Otherwise, the behavior is the same as that of {@link BaseLib}.  
  * <p>  
@@ -62,7 +62,7 @@ import org.luaj.vm3.lib.ResourceFinder;
  * @see Globals
  * @see BaseLib
  * @see ResourceFinder
- * @see {@link Globals.FINDER}
+ * @see {@link Globals.finder}
  * @see LibFunction
  * @see JsePlatform
  * @see org.luaj.vm3.lib.jme.JmePlatform

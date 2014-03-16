@@ -72,8 +72,12 @@ import org.luaj.vm3.Varargs;
  * @see <a href="http://www.lua.org/manual/5.2/manual.html#6.10">Lua 5.2 Debug Lib Reference</a>
  */
 public class DebugLib extends TwoArgFunction {
-	public static final boolean CALLS = (null != System.getProperty("CALLS"));
-	public static final boolean TRACE = (null != System.getProperty("TRACE"));
+	public static boolean CALLS;
+	public static boolean TRACE;
+	static {
+		try { CALLS = (null != System.getProperty("CALLS")); } catch (Exception e) {}
+		try { TRACE = (null != System.getProperty("TRACE")); } catch (Exception e) {}
+	}
 	
 	private static final LuaString LUA             = valueOf("Lua");  
 	private static final LuaString QMARK           = valueOf("?");  

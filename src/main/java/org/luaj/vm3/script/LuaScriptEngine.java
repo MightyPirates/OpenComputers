@@ -96,6 +96,21 @@ public class LuaScriptEngine extends AbstractScriptEngine implements ScriptEngin
 	}
 
 	@Override
+	public Object eval(Reader reader, Bindings bindings) throws ScriptException {
+		return ((LuajCompiledScript) compile(reader)).eval(context.globals, bindings);
+	}
+
+	@Override
+	public Object eval(String script, Bindings bindings) throws ScriptException {
+		return eval(new StringReader(script), bindings);
+	}
+
+	@Override
+	protected ScriptContext getScriptContext(Bindings nn) {
+		throw new IllegalStateException("LuajScriptEngine should not be allocating contexts.");
+	}
+
+	@Override
 	public Bindings createBindings() {
 		return new SimpleBindings();
 	}
@@ -109,7 +124,7 @@ public class LuaScriptEngine extends AbstractScriptEngine implements ScriptEngin
 	@Override
 	public Object eval(Reader reader, ScriptContext context)
 			throws ScriptException {
-        return compile(reader).eval();
+        return compile(reader).eval(context);
 	}
 
 	@Override
@@ -142,7 +157,7 @@ public class LuaScriptEngine extends AbstractScriptEngine implements ScriptEngin
 	    	return eval(((LuajContext) context).globals, context.getBindings(ScriptContext.ENGINE_SCOPE));
 		}
 	    
-	    private Object eval(Globals g, Bindings b) throws ScriptException {
+	    Object eval(Globals g, Bindings b) throws ScriptException {
 	    	g.setmetatable(new BindingsMetatable(b));
 			LuaFunction f = function;
 			if (f.isclosure())

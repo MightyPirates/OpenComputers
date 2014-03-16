@@ -81,8 +81,13 @@ public class PackageLib extends TwoArgFunction {
 
 	/** The default value to use for package.path.  This can be set with the system property
 	 * <code>"luaj.package.path"</code>, and is <code>"?.lua"</code> by default. */
-	public static String DEFAULT_LUA_PATH = System.getProperty("luaj.package.path");
+	public static String DEFAULT_LUA_PATH;
 	static {
+		try {
+			DEFAULT_LUA_PATH = System.getProperty("luaj.package.path");
+		} catch (Exception e) {
+			System.out.println(e.toString());
+		}
 		if (DEFAULT_LUA_PATH == null)
 			DEFAULT_LUA_PATH = "?.lua";
 	}
@@ -294,7 +299,7 @@ public class PackageLib extends TwoArgFunction {
 				}
 				
 				// try opening the file
-				InputStream is = globals.FINDER.findResource(filename);
+				InputStream is = globals.finder.findResource(filename);
 				if (is != null) {
 					try { is.close(); } catch ( java.io.IOException ioe ) {}
 					return valueOf(filename);
