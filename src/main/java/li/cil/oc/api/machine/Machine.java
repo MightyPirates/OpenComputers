@@ -1,6 +1,5 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -79,7 +78,7 @@ public interface Machine extends ManagedEnvironment, Context {
      * The address of the file system that holds the machine's read only data
      * (rom). This file system is populated based on the backing resource file
      * systems specified for the machines architecture via
-     * {@link li.cil.oc.api.Machine#addRomResource(Class, FileSystem, String)}.
+     * {@link li.cil.oc.api.Machine#addRomResource(Class, java.util.concurrent.Callable, String)}.
      * This may return <tt>null</tt> if the creation of the file system
      * failed.
      * <p/>

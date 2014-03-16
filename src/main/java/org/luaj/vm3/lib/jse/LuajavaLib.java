@@ -109,7 +109,7 @@ public class LuajavaLib extends VarArgFunction {
 				// LuaValue modname = args.arg1();
 				LuaValue env = args.arg(2);
 				LuaTable t = new LuaTable();
-				bind( t, LuajavaLib.class, NAMES, BINDCLASS );
+				bind( t, this.getClass(), NAMES, BINDCLASS );
 				env.set("luajava", t);
 				env.get("package").get("loaded").set("luajava", t);
 				return t;

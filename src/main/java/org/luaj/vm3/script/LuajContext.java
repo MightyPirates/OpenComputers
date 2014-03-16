@@ -103,7 +103,7 @@ public class LuajContext extends SimpleScriptContext implements ScriptContext {
 	@Override
 	public void setWriter(Writer writer) {
 		globals.STDOUT = writer != null?
-				new PrintStream(new WriterOutputStream(writer)):
+				new PrintStream(new WriterOutputStream(writer), true):
 				stdout;
 	}
 
@@ -113,7 +113,19 @@ public class LuajContext extends SimpleScriptContext implements ScriptContext {
 			this.w = w;
 		}
 		public void write(int b) throws IOException {
-			w.write(b);
+			w.write(new String(new byte[] {(byte)b}));
+		}
+		public void write(byte[] b, int o, int l) throws IOException {
+			w.write(new String(b, o, l));
+		}
+		public void write(byte[] b) throws IOException {
+			w.write(new String(b));
+		}
+		public void close() throws IOException {
+			w.close();
+		}
+		public void flush() throws IOException {
+			w.flush();
 		}
 	}
 	

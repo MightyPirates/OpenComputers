@@ -1,15 +1,15 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
-import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import li.cil.oc.api.Network
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
-import li.cil.oc.{UpdateCheck, Items, Settings}
+import li.cil.oc.{OpenComputers, UpdateCheck, Items, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.server.MinecraftServer
@@ -56,6 +56,11 @@ object EventHandler {
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
+        }
+        OpenComputers.tampered match {
+          case Some(event) => player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
+            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", "))))
+          case _ =>
         }
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player.getCommandSenderName)) {

@@ -80,7 +80,7 @@ import org.luaj.vm3.lib.ResourceFinder;
  * <li>{@link STDIN} Current value for standard input in the laaded IoLib, if any.
  * <li>{@link STDOUT} Current value for standard output in the loaded IoLib, if any.
  * <li>{@link STDERR} Current value for standard error in the loaded IoLib, if any.
- * <li>{@link FINDER} Current loaded {@link ResourceFinder}, if any.
+ * <li>{@link finder} Current loaded {@link ResourceFinder}, if any.
  * <li>{@link compiler} Current loaded {@link Compiler}, if any.
  * <li>{@link undumper} Current loaded {@link Undumper}, if any.
  * <li>{@link loader} Current loaded {@link Loader}, if any.
@@ -122,7 +122,7 @@ public class Globals extends LuaTable {
 	public PrintStream STDERR = System.err;
 
 	/** The installed ResourceFinder for looking files by name. */
-	public ResourceFinder FINDER;
+	public ResourceFinder finder;
 	
 	/** The currently running thread.  Should not be changed by non-library code. */
 	public LuaThread running = new LuaThread(this);
@@ -178,7 +178,7 @@ public class Globals extends LuaTable {
 	 */
 	public LuaValue loadfile(String filename) {
 		try {
-			return load(FINDER.findResource(filename), "@"+filename, "bt", this);
+			return load(finder.findResource(filename), "@"+filename, "bt", this);
 		} catch (Exception e) {
 			return error("load "+filename+": "+e);
 		}

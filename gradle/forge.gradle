@@ -15,6 +15,10 @@ compileScala {
 
 minecraft {
     version = "${config.minecraft.version}-${config.forge.version}"
+
+    replaceIn "li/cil/oc/OpenComputers.scala"
+    if (project.hasProperty("keystore_fingerprint"))
+        replace "@FINGERPRINT@", keystore_fingerprint
 }
 
 processResources {

@@ -233,7 +233,7 @@ class Robot(val isRemote: Boolean) extends Computer with ISidedInventory with Bu
     }
     else {
       tag = new NBTTagCompound()
-  }
+    }
     if (name == null) {
       tag.setNewCompoundTag("display", tag => tag.setString("Name", Robot.randomName))
     }
@@ -620,7 +620,7 @@ object Robot {
   catch {
     case t: Throwable =>
       OpenComputers.log.log(Level.WARNING, "Failed loading robot name list.", t)
-      Array.empty
+      Array.empty[String]
   }
 
   def randomName = names((math.random * names.length).toInt)

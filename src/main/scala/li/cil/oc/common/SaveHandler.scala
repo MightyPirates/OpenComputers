@@ -6,9 +6,12 @@ import java.util.logging.Level
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraftforge.common.DimensionManager
-import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
 import scala.collection.mutable
 
+// Used by the native lua state to store kernel and stack data in auxiliary
+// files instead of directly in the tile entity data, avoiding potential
+// problems with the tile entity data becoming too large.
 object SaveHandler {
   val saveData = mutable.Map.empty[ChunkCoordIntPair, mutable.Map[String, Array[Byte]]]
 
@@ -46,32 +49,35 @@ object SaveHandler {
     }
   }
 
-  // Used by the native lua state to store kernel and stack data in auxiliary
-  // files instead of directly in the tile entity data, avoiding potential
-  // problems with the tile entity data becoming too large.
+  @SubscribeEvent
+  def onChunkSave(e: ChunkDataEvent.Save) = saveData.synchronized {
+    val path = savePath
+    val chunk = e.getChunk.getChunkCoordIntPair
+    val chunkPath = new io.File(path, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
+    if (chunkPath.exists && chunkPath.isDirectory) {
+      for (file <- chunkPath.listFiles()) file.delete()
+    }
+    saveData.get(chunk) match {
+      case Some(entries) =>
+        chunkPath.mkdirs()
+        for ((name, data) <- entries) {
+          val file = new io.File(chunkPath, name)
+          try {
+            // val fos = new GZIPOutputStream(new io.FileOutputStream(file))
+            val fos = new io.BufferedOutputStream(new io.FileOutputStream(file))
+            fos.write(data)
+            fos.close()
+          }
+          catch {
+            case e: io.IOException => OpenComputers.log.log(Level.WARNING, s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
+          }
+        }
+      case _ => chunkPath.delete()
+    }
+  }
+
   @SubscribeEvent
   def onWorldSave(e: WorldEvent.Save) = saveData.synchronized {
-    val path = savePath
-    path.mkdirs()
-    for ((chunk, entries) <- saveData) {
-      val chunkPath = new io.File(path, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
-      chunkPath.mkdirs()
-      if (chunkPath.exists && chunkPath.isDirectory) {
-        for (file <- chunkPath.listFiles()) file.delete()
-      }
-      for ((name, data) <- entries) {
-        val file = new io.File(chunkPath, name)
-        try {
-          // val fos = new GZIPOutputStream(new io.FileOutputStream(file))
-          val fos = new io.BufferedOutputStream(new io.FileOutputStream(file))
-          fos.write(data)
-          fos.close()
-        }
-        catch {
-          case e: io.IOException => OpenComputers.log.log(Level.WARNING, s"Error saving auxiliary tile entity data to '${file.getAbsolutePath}.", e)
-        }
-      }
-    }
     saveData.clear()
   }
 }

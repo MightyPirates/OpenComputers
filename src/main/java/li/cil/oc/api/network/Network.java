@@ -178,7 +178,7 @@ public interface Network {
      * @param name   the name of the message.
      * @param data   the message to send.
      * @throws IllegalArgumentException if the source node is not in this network.
-     * @see `neighbors`
+     * @see #neighbors(Node)
      */
     void sendToNeighbors(Node source, String name, Object... data);
 
@@ -196,7 +196,7 @@ public interface Network {
      * @param source the node that sends the message.
      * @param data   the message to send.
      * @throws IllegalArgumentException if the source node is not in this network.
-     * @see {@link #nodes(Node)}
+     * @see #nodes(Node)
      */
     void sendToReachable(Node source, String name, Object... data);
 
@@ -218,8 +218,8 @@ public interface Network {
      * @param source the node that sends the message.
      * @param data   the message to send.
      * @throws IllegalArgumentException if the source node is not in this network.
-     * @see {@link #nodes(Node)}
-     * @see {@link Component#canBeSeenFrom(Node)}
+     * @see #nodes(Node)
+     * @see Component#canBeSeenFrom(Node)
      */
     void sendToVisible(Node source, String name, Object... data);
 }

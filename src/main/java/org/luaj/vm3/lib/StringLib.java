@@ -1155,18 +1155,19 @@ public class StringLib extends TwoArgFunction {
 			if ( poff == plen || poff + 1 == plen ) {
 				error( "unbalanced pattern" );
 			}
-			if ( soff >= s.length() || s.luaByte( soff ) != p.luaByte( poff ) )
+			final int slen = s.length();
+			if ( soff >= slen )
 				return -1;
-			else {
-				int b = p.luaByte( poff );
-				int e = p.luaByte( poff + 1 );
-				int cont = 1;
-				while ( ++soff < s.length() ) {
-					if ( s.luaByte( soff ) == e ) {
-						if ( --cont == 0 ) return soff + 1;
-					}
-					else if ( s.luaByte( soff ) == b ) cont++;
+			final int b = p.luaByte( poff );
+			if ( s.luaByte( soff ) != b )
+				return -1;
+			final int e = p.luaByte( poff + 1 );
+			int cont = 1;
+			while ( ++soff < slen ) {
+				if ( s.luaByte( soff ) == e ) {
+					if ( --cont == 0 ) return soff + 1;
 				}
+				else if ( s.luaByte( soff ) == b ) cont++;
 			}
 			return -1;
 		}
