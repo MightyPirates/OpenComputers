@@ -7,6 +7,7 @@ import java.util.logging.Level
 import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
 import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.common.SaveHandler
+import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{api, OpenComputers, server, Settings}
@@ -601,6 +602,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         if (nbt.hasKey("kernel")) nbt.getByteArray("kernel")
         else machine.owner match {
           case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel")
+          case t: component.Server => SaveHandler.load(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_kernel")
           case _ => SaveHandler.load(null, node.address + "_kernel")
         }
       unpersist(kernel)
@@ -614,6 +616,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           if (nbt.hasKey("stack")) nbt.getByteArray("stack")
           else machine.owner match {
             case t: TileEntity => SaveHandler.load(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack")
+            case t: component.Server => SaveHandler.load(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_stack")
             case _ => SaveHandler.load(null, node.address + "_stack")
           }
         unpersist(stack)
@@ -646,6 +649,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       machine.owner match {
         case t: TileEntity =>
           SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_kernel", persist(1))
+        case t: component.Server =>
+          SaveHandler.scheduleSave(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_kernel", persist(1))
         case _ =>
           SaveHandler.scheduleSave(null, node.address + "_kernel", persist(1))
       }
@@ -656,6 +661,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         machine.owner match {
           case t: TileEntity =>
             SaveHandler.scheduleSave(new ChunkCoordIntPair(t.xCoord >> 4, t.zCoord >> 4), node.address + "_stack", persist(2))
+          case t: component.Server =>
+            SaveHandler.scheduleSave(new ChunkCoordIntPair(t.rack.xCoord >> 4, t.rack.zCoord >> 4), node.address + "_stack", persist(2))
           case _ =>
             SaveHandler.scheduleSave(null, node.address + "_stack", persist(1))
         }
