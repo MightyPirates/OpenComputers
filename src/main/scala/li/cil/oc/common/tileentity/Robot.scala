@@ -618,7 +618,7 @@ object Robot {
   catch {
     case t: Throwable =>
       OpenComputers.log.log(Level.WARNING, "Failed loading robot name list.", t)
-      Array.empty
+      Array.empty[String]
   }
 
   def randomName = names((math.random * names.length).toInt)

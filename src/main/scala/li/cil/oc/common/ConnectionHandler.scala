@@ -3,7 +3,7 @@ package li.cil.oc.common
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.ProjectRed
-import li.cil.oc.{UpdateCheck, Settings}
+import li.cil.oc.{OpenComputers, UpdateCheck, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.packet.{Packet1Login, NetHandler}
 import net.minecraft.network.{NetLoginHandler, INetworkManager}
@@ -22,6 +22,10 @@ object ConnectionHandler extends IConnectionHandler {
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
+        }
+        OpenComputers.tampered match {
+          case Some(event) => p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
+          case _ =>
         }
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(p.getCommandSenderName)) {

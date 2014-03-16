@@ -1,0 +1,37 @@
+// Based on the code from TinkersConstruct and Cazzar's repo.
+// Thanks ProgWML6 and Cazzar!
+
+// verify the properties exist... or initialize.
+if (!project.hasProperty("keystore_location")) // keystore stuff
+    ext.keystore_location = ""
+
+if (!project.hasProperty("keystore_alias")) // keystore stuff
+    ext.keystore_alias = ""
+
+if (!project.hasProperty("keystore_password")) // keystore stuff
+    ext.keystore_password = ""
+
+task("signJar", dependsOn: "reobf") {
+    inputs.file jar.getArchivePath()
+    inputs.file keystore_location
+    inputs.property "keystore_alias", keystore_alias
+    inputs.property "keystore_password", keystore_password
+    outputs.file jar.getArchivePath()
+
+    // only sign if the keystore exists
+    onlyIf {
+        return !keystore_location.empty
+    }
+
+    // the actual action - sign the jar.
+    doLast {
+        ant.signjar(
+            destDir: jar.destinationDir,
+            jar: jar.getArchivePath(),
+            keystore: keystore_location,
+            alias: keystore_alias,
+            storepass: keystore_password,
+            keypass: keystore_password
+        )
+    }
+}

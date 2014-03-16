@@ -32,4 +32,5 @@ version = "MC${config.minecraft.version}-${project.version}"
 
 apply from: 'gradle/forge.gradle'
 apply from: 'gradle/artifact.gradle'
+apply from: 'gradle/sign.gradle'
 apply from: 'gradle/release.gradle'
