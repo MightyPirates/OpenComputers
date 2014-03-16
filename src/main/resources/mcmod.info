@@ -5,7 +5,7 @@
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "https://github.com/MightyPirates/OpenComponents",
-  "authors": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
+  "authorList": ["Florian 'Sangar' Nücke", "Johannes 'Lord Joda' Lohrer"],
   "credits" : "OpenPeripherals",
   "requiredMods": [ "Forge@[9.11.1.940,)", "OpenComputers@[1.2.3,)" ],
   "dependencies": [
@@ -14,5 +14,6 @@
     "IC2",
     "ThermalExpansion"
   ],
+  "dependants": [],
   "useDependencyInformation": "true"
 }]
