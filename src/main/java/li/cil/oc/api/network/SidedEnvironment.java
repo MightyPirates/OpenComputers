@@ -2,6 +2,7 @@ package li.cil.oc.api.network;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 
 /**
@@ -11,9 +12,9 @@ import net.minecraftforge.common.ForgeDirection;
  * <p/>
  * This interface is intended to be used on tile entities that are environments.
  * It is used to determine which neighbors a tile entity can connect to when
- * calling {@link li.cil.oc.api.Network#joinOrCreateNetwork}. It is used by the
- * keyboard to only interface with the side on which it is attached, as well as
- * the router to offer a different node for each side.
+ * calling {@link li.cil.oc.api.Network#joinOrCreateNetwork(TileEntity)}. It is
+ * used by the keyboard to only interface with the side on which it is attached,
+ * as well as the router to offer a different node for each side.
  */
 public interface SidedEnvironment {
     /**
