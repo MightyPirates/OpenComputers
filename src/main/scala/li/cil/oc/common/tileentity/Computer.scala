@@ -135,7 +135,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   // Note: chunk unload is handled by sound via event handler.
   override def invalidate() {
     super.invalidate()
-    Sound.stopLoop(this)
+    if (isClient) {
+      Sound.stopLoop(this)
+    }
   }
 
   // ----------------------------------------------------------------------- //
