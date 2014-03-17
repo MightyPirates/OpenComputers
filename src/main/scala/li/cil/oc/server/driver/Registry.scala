@@ -6,6 +6,7 @@ import li.cil.oc.api.driver.Converter
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -88,6 +89,9 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case (value: AnyRef) => convertRecursively(value)
     }
     case arg: Map[_, _] => arg.map {
+      case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
+    }
+    case arg: java.util.Map[_, _] => arg.map {
       case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
     }
 
