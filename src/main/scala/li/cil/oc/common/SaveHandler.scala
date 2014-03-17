@@ -24,6 +24,19 @@ object SaveHandler {
 
   def load(dimension: Int, chunk: ChunkCoordIntPair, name: String): Array[Byte] = {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
+    // Use data from 'cache' if possible. This avoids weird things happening
+    // when writeToNBT+readFromNBT is called by other mods (i.e. this is not
+    // used to actually save the data to disk).
+    saveData.get(dimension) match {
+      case Some(chunks) => chunks.get(chunk) match {
+        case Some(map) => map.get(name) match {
+          case Some(data) => return data
+          case _ =>
+        }
+        case _ =>
+      }
+      case _ =>
+    }
     val path = savePath
     val dimPath = new io.File(path, dimension.toString)
     val chunkPath = new io.File(dimPath, s"${chunk.chunkXPos}.${chunk.chunkZPos}")
