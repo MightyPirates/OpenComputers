@@ -3,8 +3,10 @@ apply plugin: 'maven-publish'
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifact jar
             artifact apiJar
-            artifact deobfJar
+            artifact javadocJar
+            artifact deobfJar { classifier '' }
         }
     }
     repositories {
