@@ -239,7 +239,9 @@ class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with
   // Note: chunk unload is handled by sound via event handler.
   override def invalidate() {
     super.invalidate()
-    Sound.stopLoop(this)
+    if (isClient) {
+      Sound.stopLoop(this)
+    }
   }
 
   // ----------------------------------------------------------------------- //
