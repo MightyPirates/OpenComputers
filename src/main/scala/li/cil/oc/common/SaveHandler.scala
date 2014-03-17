@@ -4,7 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import java.io
 import java.util.logging.Level
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.world.{World, ChunkCoordIntPair}
+import net.minecraft.world.ChunkCoordIntPair
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
 import scala.collection.mutable
