@@ -3,6 +3,7 @@ package li.cil.oc
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import cpw.mods.fml.common.{ModAPIManager, Loader}
 import java.io._
+import java.util.logging.Level
 import li.cil.oc.util.PackedColor
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
@@ -220,10 +221,22 @@ object Settings {
       in.close()
       ConfigFactory.parseString(config)
     }
+    val config =
+      try {
+        val plain = Source.fromFile(file).mkString.replace("\r\n", "\n")
+        val config = ConfigFactory.parseString(plain).withFallback(defaults)
+        settings = new Settings(config.getConfig("opencomputers"))
+        config
+      }
+      catch {
+        case e: Throwable =>
+          if (file.exists()) {
+            OpenComputers.log.log(Level.WARNING, "Failed loading config, using defaults.", e)
+          }
+          settings = new Settings(defaults.getConfig("opencomputers"))
+          defaults
+      }
     try {
-      val config = ConfigFactory.parseString(Source.fromFile(file).mkString.replace("\r\n", "\n")).withFallback(defaults)
-      settings = new Settings(config.getConfig("opencomputers"))
-
       val renderSettings = ConfigRenderOptions.defaults.setJson(false).setOriginComments(false)
       val nl = sys.props("line.separator")
       val nle = StringEscapeUtils.escapeJava(nl)
@@ -239,8 +252,7 @@ object Settings {
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.warning("Failed loading config, using defaults. The reason was: " + e.getMessage)
-        settings = new Settings(defaults.getConfig("opencomputers"))
+        OpenComputers.log.log(Level.WARNING, "Failed saving config.", e)
     }
   }
 }
