@@ -42,32 +42,40 @@ This mod is [licensed under the **MIT license**](https://github.com/MightyPirate
 To use [the API][api] in your own mod, either get the API JAR from the [build server][jenkins], or if you're using gradle, add a dependency to the maven repo:
 ```groovy
 repositories {
-    maven {
-        name = "oc"
-        url = "http://maven.cil.li/"
-    }
+    maven { url = "http://maven.cil.li/" }
 }
 dependencies {
-    compile "li.cil.oc:OpenComputers:MC1.6.4-1.2.3.262:api"
+    compile group: 'li.cil.oc', name: 'OpenComputers', version: 'MC1.6.4-1.2.3.280', classifier: 'api'
 }
 ```
-Adjust the version number accordingly to the version you'd like to build against (e.g. change it to MC1.7.2-... for Minecraft 1.7).
+Adjust the version number accordingly to the version you'd like to build against.
 
-To run the mod in your development environment, download the `deobf` JAR from the [build server][jenkins] and drop it into your dev env's `mods` folder.
+To run the mod in your development environment, download the [`deobf` JAR from the build server][deobf-jar] and drop it into your dev env's `eclipse/mods` folder.
+
+Alternatively, leave out the `api` classifier and you can build against the deobf JAR directly. This way you don't have to add it to your mods folder, but you will have to add `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options in your run configuration.
 
 If you have any questions, please do not hesitate to ask, either in the [forums][] or in the [IRC][irc]!
 
 ### OpenComputers
-To tinker with the mod itself, clone the repository, then run  
-`gradlew setupDecompWorkspace eclipse`  
-when using eclipse, or  
-`gradlew setupDecompWorkspace idea`  
-when using IntellJ IDEA. Open the workspace / project and you're almost good to go - you'll probably have to manually configure additionally referenced libraries (at this point CodeChickenLib and ForgeMultipart for MC 1.6). Note that your IDE will have to have Scala support to work on OpenComputers.
+Want to tinker with the mod itself? Here is how - for IntelliJ IDEA users. For eclipse I assume the process will be similar.
+
+**Important**
+- Make sure you have the Gradle plugin enabled in IDEA (File->Settings->Plugins).
+- Make sure you have the Scala plugin enabled.
+
+Clone the repository, then in it run  
+`gradlew setupDecompWorkspace`  
+to setup the workspace, including assets and such, then  
+`gradlew idea`  
+to create an IntellJ IDEA project.
+
+Open the project and you will be asked to import the Gradle project (check your Event Log if you missed the pop-up). Do so. This will configure additionally referenced libraries - at this point CodeChickenLib and ForgeMultipart. Since CCL will download stuff again and you'll get conflicts otherwise, go into the project settings and mark CCL and FMP as "provided" (instead of the default, "compile").
 
 
 
 [api]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api
 [code conventions]: https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions
+[deobf-jar]: http://oc.cil.li/index.php?/page/latest.php?type=deobf
 [forums]: http://oc.cil.li/
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open
