@@ -259,7 +259,7 @@ object Component {
     def checkInteger(index: Int) = {
       checkIndex(index, "number")
       args(index) match {
-        case value: java.lang.Double => value.longValue.intValue
+        case value: java.lang.Double => value.intValue
         case value => throw typeError(index, value, "number")
       }
     }
