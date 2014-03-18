@@ -45,7 +45,7 @@ repositories {
     maven { url = "http://maven.cil.li/" }
 }
 dependencies {
-    compile group: 'li.cil.oc', name: 'OpenComputers', version: 'MC1.6.4-1.2.3.280', classifier: 'api'
+    compile group: 'li.cil.oc', name: 'OpenComputers', version: 'MC1.7.2-1.2.3.88', classifier: 'api'
 }
 ```
 Adjust the version number accordingly to the version you'd like to build against.
@@ -69,13 +69,13 @@ to setup the workspace, including assets and such, then
 `gradlew idea`  
 to create an IntellJ IDEA project.
 
-Open the project and you will be asked to import the Gradle project (check your Event Log if you missed the pop-up). Do so. This will configure additionally referenced libraries - at this point CodeChickenLib and ForgeMultipart. Since CCL will download stuff again and you'll get conflicts otherwise, go into the project settings and mark CCL and FMP as "provided" (instead of the default, "compile").
+Open the project and you will be asked to import the Gradle project (check your Event Log if you missed the pop-up). Do so.
 
 
 
 [api]: https://github.com/MightyPirates/OpenComputers/tree/master/src/main/java/li/cil/oc/api
 [code conventions]: https://github.com/MightyPirates/OpenComputers/wiki/CodeConventions
-[deobf-jar]: http://oc.cil.li/index.php?/page/latest.php?type=deobf
+[deobf-jar]: http://oc.cil.li/index.php?/page/latest.php?repo=OpenComputers-MC1.7&type=deobf
 [forums]: http://oc.cil.li/
 [irc]: http://webchat.esper.net/?channels=#oc
 [issues]: https://github.com/MightyPirates/OpenComputers/issues?state=open
