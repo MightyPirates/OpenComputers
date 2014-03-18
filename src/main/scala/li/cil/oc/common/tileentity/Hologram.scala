@@ -94,7 +94,7 @@ class Hologram extends Environment with SidedEnvironment with Analyzable {
     if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException()
     val z = args.checkInteger(1) - 1
     if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException()
-    val value = args.checkInteger(2)
+    val value = args.checkDouble(2).longValue.intValue
     volume(x + z * width) = value
     setDirty(x, z)
     null
