@@ -7,12 +7,10 @@ import java.util.logging.Level
 import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
 import li.cil.oc.api.network.ComponentConnector
 import li.cil.oc.common.SaveHandler
-import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
 import li.cil.oc.{api, OpenComputers, server, Settings}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.ChunkCoordIntPair
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
