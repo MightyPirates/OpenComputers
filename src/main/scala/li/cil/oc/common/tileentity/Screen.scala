@@ -201,9 +201,6 @@ class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable 
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
-      updateRedstoneInput()
-    }
     if (isServer && isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank

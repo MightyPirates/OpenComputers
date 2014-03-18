@@ -57,31 +57,38 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
 
   def bundledOutput(side: ForgeDirection, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
     _bundledOutput(toLocal(side).ordinal())(color) = value
-    onRedstoneOutputChanged(side)
+
+    if (Loader.isModLoaded("MineFactoryReloaded")) {
+      val nx = x + side.offsetX
+      val ny = y + side.offsetY
+      val nz = z + side.offsetZ
+      Block.blocksList(world.getBlockId(nx, ny, nz)) match {
+        case block: IRedNetNetworkContainer => block.updateNetwork(world, nx, ny, nz)
+        case _ =>
+      }
+    }
+
+    onRedstoneOutputChanged()
   }
 
   // ----------------------------------------------------------------------- //
 
-  override def updateRedstoneInput() {
-    if (shouldUpdateInput) {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val oldBundledInput = _bundledInput(side.ordinal())
-        val newBundledInput = computeBundledInput(side)
-        var changed = false
-        if (newBundledInput != null) for (color <- 0 until 16) {
-          changed = changed || (oldBundledInput(color) >= 0 && oldBundledInput(color) != newBundledInput(color))
-          oldBundledInput(color) = newBundledInput(color)
-        }
-        else for (color <- 0 until 16) {
-          changed = changed || oldBundledInput(color) > 0
-          oldBundledInput(color) = 0
-        }
-        if (changed) {
-          onRedstoneInputChanged(side)
-        }
-      }
+  override protected def updateRedstoneInput(side: ForgeDirection) {
+    super.updateRedstoneInput(side)
+    val oldBundledInput = _bundledInput(side.ordinal())
+    val newBundledInput = computeBundledInput(side)
+    var changed = false
+    if (newBundledInput != null) for (color <- 0 until 16) {
+      changed = changed || (oldBundledInput(color) >= 0 && oldBundledInput(color) != newBundledInput(color))
+      oldBundledInput(color) = newBundledInput(color)
     }
-    super.updateRedstoneInput()
+    else for (color <- 0 until 16) {
+      changed = changed || oldBundledInput(color) > 0
+      oldBundledInput(color) = 0
+    }
+    if (changed) {
+      onRedstoneInputChanged(side)
+    }
   }
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -149,32 +156,19 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
     }
   }
 
-  override protected def onRedstoneOutputChanged(side: ForgeDirection) {
-    if (side == ForgeDirection.UNKNOWN) {
-      if (Loader.isModLoaded("MineFactoryReloaded")) {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          val nx = x + side.offsetX
-          val ny = y + side.offsetY
-          val nz = z + side.offsetZ
-          Block.blocksList(world.getBlockId(nx, ny, nz)) match {
-            case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
-            case _ =>
-          }
-        }
-      }
-    }
-    else {
-      val nx = x + side.offsetX
-      val ny = y + side.offsetY
-      val nz = z + side.offsetZ
-      if (Loader.isModLoaded("MineFactoryReloaded")) {
+  override protected def onRedstoneOutputEnabledChanged() {
+    if (Loader.isModLoaded("MineFactoryReloaded")) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        val nx = x + side.offsetX
+        val ny = y + side.offsetY
+        val nz = z + side.offsetZ
         Block.blocksList(world.getBlockId(nx, ny, nz)) match {
           case block: IRedNetNetworkContainer => block.updateNetwork(world, x, y, z)
           case _ =>
         }
       }
     }
-    super.onRedstoneOutputChanged(side)
+    super.onRedstoneOutputEnabledChanged()
   }
 
   // ----------------------------------------------------------------------- //

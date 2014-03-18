@@ -30,8 +30,6 @@ class Charger extends Environment with RedstoneAware with Analyzable {
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {
-      updateRedstoneInput()
-
       val charge = Settings.get.chargeRate * chargeSpeed
       robots.collect {
         case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
