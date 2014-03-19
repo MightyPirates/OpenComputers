@@ -382,6 +382,11 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
         switchTo(Machine.State.Running)
         try {
           architecture.runSynchronized()
+          // This sleep is used to avoid spammy synchronized calls to increase
+          // the tick time the computer eats unduly. This is a very... rough
+          // workaround for that problem, and may have to be addressed with
+          // more care at some point... aka when I have more time.
+          pause(0.1)
           // Check if the callback called pause() or stop().
           state.top match {
             case Machine.State.Running =>

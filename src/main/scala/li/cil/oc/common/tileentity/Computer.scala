@@ -125,7 +125,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
           ServerPacketSender.sendComputerState(this)
         }
 
-        updateRedstoneInput()
         updateComponents()
       }
     }

@@ -33,7 +33,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
           _output(i) = 0
         }
       }
-      onRedstoneOutputChanged(ForgeDirection.UNKNOWN)
+      onRedstoneOutputEnabledChanged()
     }
     this
   }
@@ -44,9 +44,16 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   def output(side: ForgeDirection) = _output(toLocal(side).ordinal())
 
-  def output(side: ForgeDirection, value: Int): Unit = if (value != output(side)) {
+  def output(side: ForgeDirection, value: Int): Unit = if (value != output(side)) this.synchronized {
     _output(toLocal(side).ordinal()) = value
-    onRedstoneOutputChanged(side)
+
+    val nx = x + side.offsetX
+    val ny = y + side.offsetY
+    val nz = z + side.offsetZ
+    world.notifyBlockOfNeighborChange(nx, ny, nz, block)
+    world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlock(nx, ny, nz), side.getOpposite.ordinal)
+
+    onRedstoneOutputChanged()
   }
 
   def checkRedstoneInputChanged() {
@@ -55,17 +62,24 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   // ----------------------------------------------------------------------- //
 
-  def updateRedstoneInput() {
-    if (shouldUpdateInput) {
-      shouldUpdateInput = false
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        val oldInput = _input(side.ordinal())
-        val newInput = computeInput(side)
-        _input(side.ordinal()) = newInput
-        if (oldInput >= 0 && input(side) != oldInput) {
-          onRedstoneInputChanged(side)
+  override def updateEntity() {
+    super.updateEntity()
+    if (isServer) {
+      if (shouldUpdateInput) {
+        shouldUpdateInput = false
+        for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          updateRedstoneInput(side)
         }
       }
+    }
+  }
+
+  protected def updateRedstoneInput(side: ForgeDirection) {
+    val oldInput = _input(side.ordinal())
+    val newInput = computeInput(side)
+    _input(side.ordinal()) = newInput
+    if (oldInput >= 0 && input(side) != oldInput) {
+      onRedstoneInputChanged(side)
     }
   }
 
@@ -124,17 +138,13 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
 
   protected def onRedstoneInputChanged(side: ForgeDirection) {}
 
-  protected def onRedstoneOutputChanged(side: ForgeDirection) {
-    if (side == ForgeDirection.UNKNOWN) {
-      world.notifyBlocksOfNeighborChange(x, y, z, block)
-    }
-    else {
-      val nx = x + side.offsetX
-      val ny = y + side.offsetY
-      val nz = z + side.offsetZ
-      world.notifyBlockOfNeighborChange(nx, ny, nz, block)
-      world.notifyBlocksOfNeighborChange(nx, ny, nz, world.getBlock(nx, ny, nz))
-    }
+  protected def onRedstoneOutputEnabledChanged() = this.synchronized {
+    world.notifyBlocksOfNeighborChange(x, y, z, block)
+    if (isServer) ServerPacketSender.sendRedstoneState(this)
+    else world.markBlockForUpdate(x, y, z)
+  }
+
+  protected def onRedstoneOutputChanged() {
     if (isServer) ServerPacketSender.sendRedstoneState(this)
     else world.markBlockForUpdate(x, y, z)
   }

@@ -219,7 +219,6 @@ class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with
         isOutputEnabled = hasRedstoneCard
         isAbstractBusAvailable = hasAbstractBusCard
 
-        updateRedstoneInput()
         servers collect {
           case Some(server) => server.inventory.updateComponents()
         }

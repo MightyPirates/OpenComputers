@@ -154,8 +154,6 @@ class RobotProxy(val robot: Robot) extends Computer with ISidedInventory with Bu
 
   override def checkRedstoneInputChanged() = robot.checkRedstoneInputChanged()
 
-  override def updateRedstoneInput() = robot.updateRedstoneInput()
-
   @Optional.Method(modid = "RedLogic")
   override def connects(wire: IWire, blockFace: Int, fromDirection: Int) = robot.connects(wire, blockFace, fromDirection)
 
