@@ -65,6 +65,8 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
 
   private var remainingPause = 0 // Ticks left to wait before resuming.
 
+  private var remainingSyncCooldown = 0 // Ticks left before next sync call.
+
   private var usersChanged = false // Send updated users list to clients?
 
   private var message: Option[String] = None // For error messages.
@@ -372,40 +374,48 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
         }
       // Perform a synchronized call (message sending).
       case Machine.State.SynchronizedCall =>
-        // Clear direct call limits again, just to be on the safe side...
-        // Theoretically it'd be possible for the executor to do some direct
-        // calls between the clear and the state check, which could in turn
-        // make this synchronized call fail due the limit still being maxed.
-        callCounts.clear()
-        // We switch into running state, since we'll behave as though the call
-        // were performed from our executor thread.
-        switchTo(Machine.State.Running)
-        try {
-          architecture.runSynchronized()
+        if (remainingSyncCooldown > 0) {
+          remainingSyncCooldown -= 1
+        }
+        else {
+          // Clear direct call limits again, just to be on the safe side...
+          // Theoretically it'd be possible for the executor to do some direct
+          // calls between the clear and the state check, which could in turn
+          // make this synchronized call fail due the limit still being maxed.
+          callCounts.clear()
+          // We switch into running state, since we'll behave as though the call
+          // were performed from our executor thread.
+          switchTo(Machine.State.Running)
+          try {
+            architecture.runSynchronized()
+            // Check if the callback called pause() or stop().
+            state.top match {
+              case Machine.State.Running =>
+                switchTo(Machine.State.SynchronizedReturn)
+              case Machine.State.Paused =>
+                state.pop() // Paused
+                state.pop() // Running, no switchTo to avoid new future.
+                state.push(Machine.State.SynchronizedReturn)
+                state.push(Machine.State.Paused)
+              case Machine.State.Stopping => // Nothing to do, we'll die anyway.
+              case _ => throw new AssertionError()
+            }
+          }
+          catch {
+            case e: java.lang.Error if e.getMessage == "not enough memory" =>
+              crash(Settings.namespace + "gui.Error.OutOfMemory")
+            case e: Throwable =>
+              OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
+              crash(Settings.namespace + "gui.Error.InternalError")
+          }
+
           // This sleep is used to avoid spammy synchronized calls to increase
           // the tick time the computer eats unduly. This is a very... rough
           // workaround for that problem, and may have to be addressed with
           // more care at some point... aka when I have more time.
-          pause(0.1)
-          // Check if the callback called pause() or stop().
-          state.top match {
-            case Machine.State.Running =>
-              switchTo(Machine.State.SynchronizedReturn)
-            case Machine.State.Paused =>
-              state.pop() // Paused
-              state.pop() // Running, no switchTo to avoid new future.
-              state.push(Machine.State.SynchronizedReturn)
-              state.push(Machine.State.Paused)
-            case Machine.State.Stopping => // Nothing to do, we'll die anyway.
-            case _ => throw new AssertionError()
-          }
-        } catch {
-          case e: java.lang.Error if e.getMessage == "not enough memory" =>
-            crash(Settings.namespace + "gui.Error.OutOfMemory")
-          case e: Throwable =>
-            OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
-            crash(Settings.namespace + "gui.Error.InternalError")
+          remainingSyncCooldown = Settings.get.syncPause
         }
+
         assert(state.top != Machine.State.Running)
       case _ => // Nothing special to do, just avoid match errors.
     })
