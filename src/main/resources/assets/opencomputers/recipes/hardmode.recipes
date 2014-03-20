@@ -1,6 +1,8 @@
 # Do not change this file, it is rewritten each time you start the game.
 # Instead, use the user.recipes file to edit recipes by redefining them there.
 
+include file("default.recipes")
+
 analyzer {
   input: [["", torchRedstoneActive, ""]
           ["oc:craftingTransistor", "oc:circuitTier1", nuggetGold]
