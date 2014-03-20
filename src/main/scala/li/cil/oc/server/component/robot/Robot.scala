@@ -16,7 +16,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
@@ -590,14 +592,19 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       case _ =>
         val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
         val block = world.getBlock(bx, by, bz)
+        val metadata = world.getBlockMetadata(bx, by, bz)
         if (block == null || block.isAir(world, bx, by, bz)) {
           (false, "air")
         }
         else if (FluidRegistry.lookupFluidForBlock(block) != null) {
-          (false, "liquid")
+          val event = new BlockEvent.BreakEvent(bx, by, bz, world, block, metadata, player)
+          MinecraftForge.EVENT_BUS.post(event)
+          (event.isCanceled, "liquid")
         }
         else if (block.isReplaceable(world, bx, by, bz)) {
-          (false, "replaceable")
+          val event = new BlockEvent.BreakEvent(bx, by, bz, world, block, metadata, player)
+          MinecraftForge.EVENT_BUS.post(event)
+          (event.isCanceled, "replaceable")
         }
         else {
           (true, "solid")

@@ -1,13 +1,12 @@
 package li.cil.oc.server.component.robot
 
-import cpw.mods.fml.common.Loader
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.eventhandler.Event
+import cpw.mods.fml.common.Loader
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.{UniversalElectricity, TinkersConstruct, PortalGun}
 import net.minecraft.block.{BlockPistonBase, Block}
-import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
@@ -19,9 +18,11 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeHooks
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
@@ -197,7 +198,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     callUsingItemInSlot(slot, stack => {
       val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
-      if (event.isCanceled || event.useBlock == Event.Result.DENY) {
+      if (event.isCanceled || event.useBlock == Event.Result.DENY || event.useItem == Event.Result.DENY) {
         return false
       }
 
@@ -208,7 +209,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
     callUsingItemInSlot(0, stack => {
       val event = ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side)
-      if (event.isCanceled) {
+      if (event.isCanceled || event.useBlock == Event.Result.DENY || event.useItem == Event.Result.DENY) {
         return 0
       }
 
@@ -219,11 +220,17 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
       val block = world.getBlock(x, y, z)
       val metadata = world.getBlockMetadata(x, y, z)
-      val mayClickBlock = event.useBlock != Event.Result.DENY && block != null
+      val mayClickBlock = block != null
       val canClickBlock = mayClickBlock &&
         !block.isAir(world, x, y, z) &&
         FluidRegistry.lookupFluidForBlock(block) == null
       if (!canClickBlock) {
+        return 0
+      }
+
+      val breakEvent = new BlockEvent.BreakEvent(x, y, z, world, block, metadata, this)
+      MinecraftForge.EVENT_BUS.post(breakEvent)
+      if (breakEvent.isCanceled) {
         return 0
       }
 
@@ -284,11 +291,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
         // check only serves to test whether the block can drop anything at all.
         if (block.canHarvestBlock(this, metadata)) {
           block.harvestBlock(world, this, x, y, z, metadata)
-          if (!EnchantmentHelper.getSilkTouchModifier(this)) {
-            val fortune = EnchantmentHelper.getFortuneModifier(this)
-            val xp = block.getExpDrop(world, metadata, fortune)
-            robot.addXp(xp * Settings.get.robotOreXpRate)
-          }
+          robot.addXp(breakEvent.getExpToDrop * Settings.get.robotOreXpRate)
         }
         if (stack != null) {
           robot.addXp(Settings.get.robotActionXp)
