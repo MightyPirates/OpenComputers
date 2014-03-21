@@ -113,9 +113,12 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   // ----------------------------------------------------------------------- //
 
+  // TODO remove compatibility check for older saves in version 1.3 or so.
   def load(nbt: NBTTagCompound) = {
-    node.load(nbt.getCompoundTag("node"))
-    buffer.load(nbt.getCompoundTag("buffer"))
+    if (nbt.hasKey("node")) node.load(nbt.getCompoundTag("node"))
+    else node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+    if (nbt.hasKey("buffer")) buffer.load(nbt.getCompoundTag("buffer"))
+    else buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -137,8 +140,8 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
       }
     }
 
-    nbt.setNewCompoundTag("node", node.save)
-    nbt.setNewCompoundTag("buffer", buffer.save)
+    nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
   }
 }
 

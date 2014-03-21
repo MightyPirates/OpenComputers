@@ -1,13 +1,15 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Optional
 import java.util
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{AxisAlignedBB, Icon}
+import net.minecraft.util.{StatCollector, AxisAlignedBB, Icon}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -19,6 +21,15 @@ class Keyboard(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "keyboard").getCompoundTag("node")
+    if (node.hasKey("address")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+    }
   }
 
   override def icon(side: ForgeDirection) = Some(icon)

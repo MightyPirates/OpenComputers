@@ -1,15 +1,17 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.robot
+import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Blocks, Settings, OpenComputers}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
@@ -29,6 +31,16 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   override def rarity = EnumRarity.epic
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
+    addLines(stack, tooltip)
+    tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    addLines(stack, tooltip)
+  }
+
+  private def addLines(stack: ItemStack, tooltip: util.List[String]) {
     if (stack.hasTagCompound) {
       if (stack.getTagCompound.hasKey(Settings.namespace + "xp")) {
         val xp = stack.getTagCompound.getDouble(Settings.namespace + "xp")
@@ -42,7 +54,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
       }
     }
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+
   }
 
   @SideOnly(Side.CLIENT)

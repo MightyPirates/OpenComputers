@@ -27,17 +27,15 @@ class WirelessRouter(val parent: SimpleDelegator) extends SimpleDelegate {
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    if (accessor.getNBTData != null) {
-      val nbt = accessor.getNBTData
-      val node = nbt.getTagList(Settings.namespace + "componentNodes").tagAt(accessor.getSide.ordinal).asInstanceOf[NBTTagCompound]
-      if (node.hasKey("address")) {
-        tooltip.add(StatCollector.translateToLocalFormatted(
-          Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
-      }
-      if (nbt.hasKey(Settings.namespace + "strength")) {
-        tooltip.add(StatCollector.translateToLocalFormatted(
-          Settings.namespace + "gui.Analyzer.WirelessStrength", nbt.getDouble(Settings.namespace + "strength").toInt.toString))
-      }
+    val nbt = accessor.getNBTData
+    val node = nbt.getTagList(Settings.namespace + "componentNodes").tagAt(accessor.getSide.ordinal).asInstanceOf[NBTTagCompound]
+    if (node.hasKey("address")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+    }
+    if (nbt.hasKey(Settings.namespace + "strength")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.WirelessStrength", nbt.getDouble(Settings.namespace + "strength").toInt.toString))
     }
   }
 

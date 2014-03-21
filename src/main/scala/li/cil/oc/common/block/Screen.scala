@@ -1,21 +1,22 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Optional
 import java.util
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.Icon
+import net.minecraft.util.{StatCollector, Icon}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import scala.Array
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Screen" + tier
@@ -28,6 +29,15 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
     tooltip.addAll(Tooltip.get("Screen", w, h, depth))
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+    if (node.hasKey("address")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+    }
   }
 
   object Icons {
