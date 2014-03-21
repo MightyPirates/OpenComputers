@@ -3,7 +3,9 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
@@ -11,6 +13,12 @@ class WirelessRouter extends Router with WirelessEndpoint {
   var strength = Settings.get.maxWirelessRange
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
+
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
+      Settings.namespace + "gui.Analyzer.WirelessStrength", Double.box(strength)))
+    Array(componentNodes(side))
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -83,10 +91,12 @@ class WirelessRouter extends Router with WirelessEndpoint {
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
     nbt.setDouble(Settings.namespace + "strength", strength)
-    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map(node => {
-      val tag = new NBTTagCompound()
-      node.save(tag)
-      tag
-    }))
+    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+      case node: Node =>
+        val tag = new NBTTagCompound()
+        node.save(tag)
+        tag
+      case _ => new NBTTagCompound()
+    })
   }
 }
