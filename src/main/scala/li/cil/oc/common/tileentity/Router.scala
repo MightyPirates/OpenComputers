@@ -7,7 +7,7 @@ import li.cil.oc.api.network.{Packet, Message}
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends Hub with IPeripheral {
+class Router extends traits.Hub with IPeripheral {
   // ----------------------------------------------------------------------- //
   // Peripheral
 

@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 
-class Adapter extends Environment with Analyzable {
+class Adapter extends traits.Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
@@ -34,7 +34,7 @@ class Adapter extends Environment with Analyzable {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
       world.getBlockTileEntity(x, y, z) match {
-        case env: Environment =>
+        case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
         // due to having a power interface. Might revisit this at some point,

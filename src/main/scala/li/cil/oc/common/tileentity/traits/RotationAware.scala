@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import net.minecraftforge.common.ForgeDirection
 

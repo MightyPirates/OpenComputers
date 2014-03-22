@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemBlock, ItemStack}
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.traits.Rotatable
 
 class Item(id: Int) extends ItemBlock(id) {
   setHasSubtypes(true)
@@ -44,7 +45,7 @@ class Item(id: Int) extends ItemBlock(id) {
         case keyboard: tileentity.Keyboard =>
           keyboard.setFromEntityPitchAndYaw(player)
           keyboard.setFromFacing(ForgeDirection.getOrientation(side))
-        case rotatable: tileentity.Rotatable =>
+        case rotatable: Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           rotatable match {
             case _@(_: tileentity.Computer | _: tileentity.DiskDrive | _: tileentity.Rack) =>

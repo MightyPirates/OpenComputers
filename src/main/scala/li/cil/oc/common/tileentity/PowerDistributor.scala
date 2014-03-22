@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class PowerDistributor extends Environment with PowerBalancer with Analyzable {
+class PowerDistributor extends traits.Environment with traits.PowerBalancer with Analyzable {
   val node = null
 
   private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).

@@ -7,9 +7,11 @@ import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.traits._
+import scala.Some
 
 object PacketSender {
-  def sendAbstractBusState(t: tileentity.AbstractBusAware) {
+  def sendAbstractBusState(t: AbstractBusAware) {
     val pb = new PacketBuilder(PacketType.AbstractBusState)
 
     pb.writeTileEntity(t)
@@ -97,7 +99,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendPowerState(t: tileentity.PowerInformation) {
+  def sendPowerState(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 
     pb.writeTileEntity(t)
@@ -107,7 +109,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRedstoneState(t: tileentity.RedstoneAware) {
+  def sendRedstoneState(t: RedstoneAware) {
     val pb = new PacketBuilder(PacketType.RedstoneState)
 
     pb.writeTileEntity(t)
@@ -187,7 +189,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendRotatableState(t: tileentity.Rotatable) {
+  def sendRotatableState(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableState)
 
     pb.writeTileEntity(t)
@@ -201,7 +203,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -220,7 +222,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenCopy)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -243,7 +245,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenDepthChange)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -261,7 +263,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenFill)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -279,7 +281,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendScreenPowerChange(t: tileentity.Buffer, hasPower: Boolean) {
+  def sendScreenPowerChange(t: TextBuffer, hasPower: Boolean) {
     val pb = new PacketBuilder(PacketType.ScreenPowerChange)
 
     pb.writeTileEntity(t)
@@ -292,7 +294,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>
@@ -311,7 +313,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.ScreenSet)
 
     val t = b.owner match {
-      case t: tileentity.Buffer =>
+      case t: TextBuffer =>
         pb.writeTileEntity(t)
         t
       case t: common.component.Terminal =>

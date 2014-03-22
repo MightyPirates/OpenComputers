@@ -18,7 +18,7 @@ import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
-abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink with IEnergyHandler with IEnergyInterface with IEnergyContainer {
+abstract class PowerAcceptor extends traits.TileEntity with IPowerReceptor with IEnergySink with IEnergyHandler with IEnergyInterface with IEnergyContainer {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: ForgeDirection) = false
 

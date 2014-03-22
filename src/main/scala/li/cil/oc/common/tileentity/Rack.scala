@@ -9,6 +9,7 @@ import li.cil.oc.client.Sound
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.Waila
 import li.cil.oc.{api, Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -19,7 +20,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice {
+class Rack extends PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).
@@ -268,13 +269,15 @@ class Rack extends PowerAcceptor with Hub with PowerBalancer with Inventory with
 
   // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) {
-    nbt.setNewTagList(Settings.namespace + "servers", servers map {
-      case Some(server) =>
-        val serverNbt = new NBTTagCompound()
-        server.save(serverNbt)
-        serverNbt
-      case _ => new NBTTagCompound()
-    })
+    if (!Waila.isSavingForTooltip) {
+      nbt.setNewTagList(Settings.namespace + "servers", servers map {
+        case Some(server) =>
+          val serverNbt = new NBTTagCompound()
+          server.save(serverNbt)
+          serverNbt
+        case _ => new NBTTagCompound()
+      })
+    }
     super.writeToNBT(nbt)
     nbt.setByteArray(Settings.namespace + "sides", sides.map(_.ordinal.toByte))
     nbt.setNewTagList(Settings.namespace + "terminals", terminals.map(t => {

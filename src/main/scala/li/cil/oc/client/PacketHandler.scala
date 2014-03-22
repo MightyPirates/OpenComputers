@@ -11,6 +11,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
+import li.cil.oc.common.tileentity.traits._
+import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -222,7 +224,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenColorChange(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
@@ -232,7 +234,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenCopy(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
@@ -247,7 +249,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenDepthChange(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
@@ -256,7 +258,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenFill(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
@@ -276,7 +278,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenResolutionChange(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
@@ -287,7 +289,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onScreenSet(p: PacketParser) {
     val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: Buffer) => t.buffer
+      case Some(t: TextBuffer) => t.buffer
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }

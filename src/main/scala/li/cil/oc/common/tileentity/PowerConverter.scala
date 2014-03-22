@@ -6,7 +6,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.ForgeDirection
 
-class PowerConverter extends PowerAcceptor with Environment with Analyzable {
+class PowerConverter extends PowerAcceptor with traits.Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Settings.get.bufferConverter).
     create()

@@ -10,6 +10,7 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
+import li.cil.oc.common.tileentity.traits.{TextBuffer, TileEntity}
 
 class PacketHandler extends CommonPacketHandler {
   override protected def world(player: Player, dimension: Int) =
@@ -67,7 +68,7 @@ class PacketHandler extends CommonPacketHandler {
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
         t.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
-      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
@@ -78,7 +79,7 @@ class PacketHandler extends CommonPacketHandler {
         val char = Char.box(p.readChar())
         val code = Int.box(p.readInt())
         t.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
-      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
+      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
       case _ => // Invalid packet.
     }
@@ -88,7 +89,7 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t: Screen) =>
         val value = p.readUTF()
         t.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
-      case Some(t: Buffer) => t.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
+      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
       case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
       case _ => // Invalid packet.
     }

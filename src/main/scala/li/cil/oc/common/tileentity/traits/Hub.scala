@@ -1,7 +1,8 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
@@ -9,7 +10,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-trait Hub extends Environment with SidedEnvironment with Analyzable {
+trait Hub extends traits.Environment with SidedEnvironment with Analyzable {
   val queueSize = 20
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
@@ -18,7 +19,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
-  override def node = null
+  override def node: Node = null
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = true

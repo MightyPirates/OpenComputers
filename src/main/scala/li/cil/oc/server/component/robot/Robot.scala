@@ -211,6 +211,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
               return result(true)
             }
           }
+          // TODO Drop into the direction of the call (i.e. down if dropDown).
           player.dropPlayerItemWithRandomChoice(dropped, inPlace = false)
           context.pause(Settings.get.dropDelay)
           result(true)

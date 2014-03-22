@@ -1,7 +1,7 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.network.{Arguments, Context, Callback}
-import li.cil.oc.common.tileentity.BundledRedstoneAware
+import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
 class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {
 
@@ -25,6 +25,7 @@ class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone
     val color = checkColor(args, 1)
     val value = args.checkInteger(2)
     owner.bundledOutput(side, color, value)
+    context.pause(0.1)
     result(owner.bundledOutput(side, color))
   }
 

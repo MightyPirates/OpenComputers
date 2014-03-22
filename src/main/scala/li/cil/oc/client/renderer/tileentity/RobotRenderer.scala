@@ -191,42 +191,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
     }
 
-    val name = robot.name
-    if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
-      GL11.glPushMatrix()
-
-      // This is pretty much copy-pasta from the entity's label renderer.
-      val t = Tessellator.instance
-      val f = getFontRenderer
-      val scale = 1.6f / 60f
-      val width = f.getStringWidth(name)
-      val halfWidth = width / 2
-
-      GL11.glTranslated(0, 0.7, 0)
-      GL11.glNormal3f(0, 1, 0)
-
-      GL11.glRotatef(-tileEntityRenderer.playerYaw, 0, 1, 0)
-      GL11.glRotatef(tileEntityRenderer.playerPitch, 1, 0, 0)
-      GL11.glScalef(-scale, -scale, scale)
-
-      RenderState.makeItBlend()
-      GL11.glDisable(GL11.GL_LIGHTING)
-      GL11.glDepthMask(false)
-      GL11.glDisable(GL11.GL_TEXTURE_2D)
-
-      t.startDrawingQuads()
-      t.setColorRGBA_F(0, 0, 0, 0.25f)
-      t.addVertex(-halfWidth - 1, -1, 0)
-      t.addVertex(-halfWidth - 1, 8, 0)
-      t.addVertex(halfWidth + 1, 8, 0)
-      t.addVertex(halfWidth + 1, -1, 0)
-      t.draw
-
-      GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
-      f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
-
-      GL11.glPopMatrix()
-    }
+    GL11.glPushMatrix()
 
     GL11.glDepthMask(true)
     GL11.glEnable(GL11.GL_LIGHTING)
@@ -296,6 +261,48 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             robot.equippedUpgrade = None
         }
       case _ =>
+    }
+    GL11.glPopMatrix()
+
+    val name = robot.name
+    if (Settings.get.robotLabels && !Strings.isNullOrEmpty(name) && x * x + y * y + z * z < RendererLivingEntity.NAME_TAG_RANGE) {
+      GL11.glPushMatrix()
+
+      // This is pretty much copy-pasta from the entity's label renderer.
+      val t = Tessellator.instance
+      val f = getFontRenderer
+      val scale = 1.6f / 60f
+      val width = f.getStringWidth(name)
+      val halfWidth = width / 2
+
+      GL11.glTranslated(0, 0.7, 0)
+      GL11.glNormal3f(0, 1, 0)
+
+      GL11.glRotatef(-tileEntityRenderer.playerYaw, 0, 1, 0)
+      GL11.glRotatef(tileEntityRenderer.playerPitch, 1, 0, 0)
+      GL11.glScalef(-scale, -scale, scale)
+
+      RenderState.makeItBlend()
+      GL11.glDepthMask(false)
+      GL11.glDisable(GL11.GL_LIGHTING)
+      GL11.glDisable(GL11.GL_TEXTURE_2D)
+
+      t.startDrawingQuads()
+      t.setColorRGBA_F(0, 0, 0, 0.25f)
+      t.addVertex(-halfWidth - 1, -1, 0)
+      t.addVertex(-halfWidth - 1, 8, 0)
+      t.addVertex(halfWidth + 1, 8, 0)
+      t.addVertex(halfWidth + 1, -1, 0)
+      t.draw
+
+      GL11.glEnable(GL11.GL_TEXTURE_2D) // For the font.
+      f.drawString(name, -halfWidth, 0, 0xFFFFFFFF)
+
+      GL11.glDepthMask(true)
+      GL11.glEnable(GL11.GL_LIGHTING)
+      GL11.glDisable(GL11.GL_BLEND)
+
+      GL11.glPopMatrix()
     }
 
     GL11.glPopMatrix()

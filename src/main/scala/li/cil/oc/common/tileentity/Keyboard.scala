@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable {
+class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatable with SidedEnvironment with Analyzable {
   def this() = this(false)
 
   val keyboard = if (isRemote) null

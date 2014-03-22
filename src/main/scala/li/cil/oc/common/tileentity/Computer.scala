@@ -9,6 +9,7 @@ import li.cil.oc.client.Sound
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.Waila
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraft.util.ChatMessageComponent
@@ -18,7 +19,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-trait Computer extends Environment with ComponentInventory with Rotatable with BundledRedstoneAware with AbstractBusAware with IBusDevice with Analyzable with Owner {
+trait Computer extends traits.Environment with traits.ComponentInventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with IBusDevice with Analyzable with Owner {
   def isRemote: Boolean
 
   private lazy val _computer = if (isRemote) null else Machine.create(this)
@@ -158,7 +159,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null) {
+    if (computer != null && !Waila.isSavingForTooltip) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }

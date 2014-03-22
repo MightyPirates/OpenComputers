@@ -23,6 +23,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
+import li.cil.oc.common.tileentity.traits.{Rotatable, BundledRedstoneAware}
 
 @Optional.Interface(iface = "mcp.mobius.waila.api.IWailaBlock", modid = "Waila")
 class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) with IWailaBlock {
@@ -79,27 +80,27 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) wit
 
   def getFacing(world: IBlockAccess, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case tileEntity: tileentity.Rotatable => tileEntity.facing
+      case tileEntity: Rotatable => tileEntity.facing
       case _ => ForgeDirection.UNKNOWN
     }
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable =>
+      case rotatable: Rotatable =>
         rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable =>
+      case rotatable: Rotatable =>
         rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   private def toLocal(world: IBlockAccess, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable => rotatable.toLocal(value)
+      case rotatable: Rotatable => rotatable.toLocal(value)
       case _ => value
     }
 
@@ -199,7 +200,7 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) wit
 
   override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable if rotatable.rotate(axis) =>
+      case rotatable: Rotatable if rotatable.rotate(axis) =>
         world.markBlockForRenderUpdate(x, y, z)
         true
       case _ => false
@@ -487,13 +488,13 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
 
   override def getOutputValue(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, color: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstoneAware => t.bundledOutput(side, color)
+      case t: BundledRedstoneAware => t.bundledOutput(side, color)
       case _ => 0
     }
 
   override def getOutputValues(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstoneAware => t.bundledOutput(side)
+      case t: BundledRedstoneAware => t.bundledOutput(side)
       case _ => Array.fill(16)(0)
     }
 
@@ -501,7 +502,7 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
 
   override def onInputsChanged(world: World, x: Int, y: Int, z: Int, side: ForgeDirection, inputValues: Array[Int]) =
     world.getBlockTileEntity(x, y, z) match {
-      case t: tileentity.BundledRedstoneAware => for (color <- 0 until 16) {
+      case t: BundledRedstoneAware => for (color <- 0 until 16) {
         t.rednetInput(side, color, inputValues(color))
       }
       case _ =>
@@ -510,7 +511,7 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
   abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, blockId: Int) {
     if (Loader.isModLoaded("MineFactoryReloaded")) {
       world.getBlockTileEntity(x, y, z) match {
-        case t: tileentity.BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        case t: BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
           Block.blocksList(world.getBlockId(x + side.offsetX, y + side.offsetY, z + side.offsetZ)) match {
             case block: IRedNetNetworkContainer =>
             case _ => for (color <- 0 until 16) {

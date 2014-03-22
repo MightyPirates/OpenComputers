@@ -14,6 +14,7 @@ import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.tileentity.traits.Inventory
 
 trait Delegate {
   val unlocalizedName: String
@@ -79,7 +80,7 @@ trait Delegate {
 
   def aboutToBeRemoved(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getBlockTileEntity(x, y, z) match {
-      case inventory: tileentity.Inventory => inventory.dropAllSlots()
+      case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
 

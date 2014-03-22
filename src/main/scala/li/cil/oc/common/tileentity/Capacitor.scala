@@ -6,7 +6,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
 
-class Capacitor extends Environment {
+class Capacitor extends traits.Environment {
   // Start with maximum theoretical capacity, gets reduced after validation.
   // This is done so that we don't lose energy while loading.
   val node = api.Network.newNode(this, Visibility.Network).
@@ -36,6 +36,7 @@ class Capacitor extends Environment {
     super.onChunkUnload()
     if (isServer) {
       // Avoid triggering a chunk load...
+      // TODO I'm pretty sure this actually isn't necessary.
       val in = indirectNeighbors
       world.loadedTileEntityList.collect {
         case capacitor: Capacitor if in.exists(coordinate => {

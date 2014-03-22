@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends Computer with ISidedInventory with Buffer with PowerInformation with api.machine.Robot {
+class RobotProxy(val robot: Robot) extends Computer with ISidedInventory with traits.TextBuffer with traits.PowerInformation with api.machine.Robot {
   def this() = this(new Robot(false))
 
   override def isRemote = robot.isClient
