@@ -10,7 +10,7 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
 trait Hub extends traits.Environment with SidedEnvironment {
-  val queueSize = 20
+  val maxQueueSize = 20
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
@@ -98,7 +98,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected def onPlugMessage(plug: Plug, message: Message) {
     if (message.name == "network.message") message.data match {
-      case Array(packet: Packet) if packet.ttl > 0 && queue.size < queueSize => queue += plug.side -> packet.hop()
+      case Array(packet: Packet) if packet.ttl > 0 && queue.size < maxQueueSize => queue += plug.side -> packet.hop()
       case _ =>
     }
   }

@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
+import cpw.mods.fml.common.Loader
 
 class WirelessRouter extends Router with WirelessEndpoint {
   var strength = Settings.get.maxWirelessRange
@@ -36,12 +37,14 @@ class WirelessRouter extends Router with WirelessEndpoint {
   // ----------------------------------------------------------------------- //
 
   override def receivePacket(packet: Packet, distance: Double) {
-    if (queue.size < 20) {
+    if (queue.size < maxQueueSize) {
       queue += ForgeDirection.UNKNOWN -> packet.hop()
     }
-    packet.data.headOption match {
-      case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-      case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+    if (Loader.isModLoaded("ComputerCraft")) {
+      packet.data.headOption match {
+        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+      }
     }
   }
 
