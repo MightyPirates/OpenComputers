@@ -5,12 +5,11 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
-trait Hub extends traits.Environment with SidedEnvironment with Analyzable {
+trait Hub extends traits.Environment with SidedEnvironment {
   val queueSize = 20
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
@@ -25,10 +24,6 @@ trait Hub extends traits.Environment with SidedEnvironment with Analyzable {
   override def canConnect(side: ForgeDirection) = true
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
-
-  // ----------------------------------------------------------------------- //
-
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = null
 
   // ----------------------------------------------------------------------- //
 

@@ -66,6 +66,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   override def sidedNode(side: ForgeDirection) = if (side == ForgeDirection.DOWN) node else null
 
+  // Override automatic analyzer implementation for sided environments.
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
   // ----------------------------------------------------------------------- //

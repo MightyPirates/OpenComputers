@@ -14,6 +14,8 @@ class WirelessRouter extends Router with WirelessEndpoint {
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
 
+  // ----------------------------------------------------------------------- //
+
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
       Settings.namespace + "gui.Analyzer.WirelessStrength", Double.box(strength)))

@@ -13,6 +13,8 @@ class Capacitor extends traits.Environment {
     withConnector(maxCapacity).
     create()
 
+  // ----------------------------------------------------------------------- //
+
   override def canUpdate = false
 
   override def validate() {
@@ -53,6 +55,8 @@ class Capacitor extends traits.Environment {
       recomputeCapacity(updateSecondGradeNeighbors = true)
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   def recomputeCapacity(updateSecondGradeNeighbors: Boolean = false) {
     node.setLocalBufferSize(

@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class Case(var tier: Int, val isRemote: Boolean) extends PowerAcceptor with Computer {
+class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with Computer {
   def this() = this(0, false)
 
   @SideOnly(Side.CLIENT)

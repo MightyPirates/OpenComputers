@@ -1,6 +1,6 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
-import buildcraft.api.power.{IPowerReceptor, PowerHandler}
+import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{ModAPIManager, Loader, Optional}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
@@ -18,7 +18,7 @@ import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
-abstract class PowerAcceptor extends traits.TileEntity with IPowerReceptor with IEnergySink with IEnergyHandler with IEnergyInterface with IEnergyContainer {
+trait PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink with IEnergyHandler with IEnergyInterface with IEnergyContainer {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: ForgeDirection) = false
 

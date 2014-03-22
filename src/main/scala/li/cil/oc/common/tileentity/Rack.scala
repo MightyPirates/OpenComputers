@@ -4,7 +4,7 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Connector, Visibility, Node}
+import li.cil.oc.api.network.{Analyzable, Connector, Visibility, Node}
 import li.cil.oc.client.Sound
 import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
@@ -20,7 +20,7 @@ import stargatetech2.api.bus.IBusDevice
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
-class Rack extends PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with IBusDevice {
+class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalancer with traits.Inventory with traits.Rotatable with traits.BundledRedstoneAware with traits.AbstractBusAware with Analyzable with IBusDevice {
   val servers = Array.fill(getSizeInventory)(None: Option[component.Server])
 
   val sides = Seq(ForgeDirection.UP, ForgeDirection.EAST, ForgeDirection.WEST, ForgeDirection.DOWN).

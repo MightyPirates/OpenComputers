@@ -20,12 +20,16 @@ class Charger extends traits.Environment with traits.RedstoneAware with Analyzab
 
   var invertSignal = false
 
+  // ----------------------------------------------------------------------- //
+
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
       Settings.namespace + "gui.Analyzer.ChargerSpeed",
       (chargeSpeed * 100).toInt + "%"))
     null
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
