@@ -26,7 +26,7 @@ object Sound {
       case _ =>
         t match {
           case robot: tileentity.Robot => play(robot, "floppy_access")
-          case computer: tileentity.Computer => play(computer, "hdd_access")
+          case computer: tileentity.traits.Computer => play(computer, "hdd_access")
           case rack: tileentity.Rack => play(rack, "hdd_access")
           case drive: tileentity.DiskDrive => play(drive, "floppy_access")
           case _ => // Huh?

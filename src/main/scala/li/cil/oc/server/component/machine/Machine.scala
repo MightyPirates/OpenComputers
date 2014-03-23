@@ -336,7 +336,7 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
         users
       }
       owner match {
-        case computer: tileentity.Computer => PacketSender.sendComputerUserList(computer, list)
+        case computer: tileentity.traits.Computer => PacketSender.sendComputerUserList(computer, list)
         case _ =>
       }
     }

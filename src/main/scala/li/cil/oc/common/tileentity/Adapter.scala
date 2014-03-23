@@ -25,6 +25,7 @@ class Adapter extends traits.Environment with Analyzable {
   override def updateEntity() {
     super.updateEntity()
     for (block <- blocks) block match {
+      // TODO Track updating environments in a list, loop that.
       case Some((environment, _)) if environment.canUpdate => environment.update()
       case _ => // Empty.
     }

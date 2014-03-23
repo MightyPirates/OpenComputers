@@ -2,13 +2,12 @@ package li.cil.oc.server
 
 import li.cil.oc.common
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.tileentity.traits._
-import scala.Some
 
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {
@@ -37,7 +36,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendComputerState(t: tileentity.Computer) {
+  def sendComputerState(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
     pb.writeTileEntity(t)
@@ -46,7 +45,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
-  def sendComputerUserList(t: tileentity.Computer, list: Array[String]) {
+  def sendComputerUserList(t: Computer, list: Array[String]) {
     val pb = new PacketBuilder(PacketType.ComputerUserList)
 
     pb.writeTileEntity(t)

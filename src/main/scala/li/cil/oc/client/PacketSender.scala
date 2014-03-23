@@ -1,9 +1,9 @@
 package li.cil.oc.client
 
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
 import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer}
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.tileentity.traits.TextBuffer
 
 object PacketSender {
   // Timestamp after which the next clipboard message may be sent. Used to

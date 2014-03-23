@@ -1,16 +1,16 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
 import li.cil.oc.api.machine.Machine
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.multipart.EventHandler
+import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer, TileEntity}
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.Settings
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, DimensionManager}
-import li.cil.oc.common.tileentity.traits.{TextBuffer, TileEntity}
 
 class PacketHandler extends CommonPacketHandler {
   override protected def world(player: Player, dimension: Int) =

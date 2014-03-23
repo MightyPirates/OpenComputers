@@ -10,18 +10,18 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
 trait Hub extends traits.Environment with SidedEnvironment {
-  val maxQueueSize = 20
+  override def node: Node = null
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
   protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
+  protected val maxQueueSize = 20
+
   // ----------------------------------------------------------------------- //
 
-  override def node: Node = null
-
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = true
+  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UNKNOWN
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
 

@@ -1,5 +1,6 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Loader
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
@@ -8,7 +9,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.convert.WrapAsScala._
-import cpw.mods.fml.common.Loader
 
 class WirelessRouter extends Router with WirelessEndpoint {
   var strength = Settings.get.maxWirelessRange

@@ -17,6 +17,8 @@ class Redstone extends Environment with BundledRedstoneAware {
     _isOutputEnabled = true
   }
 
+  // ----------------------------------------------------------------------- //
+
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     instance.load(nbt.getCompoundTag(Settings.namespace + "redstone"))
@@ -26,6 +28,8 @@ class Redstone extends Environment with BundledRedstoneAware {
     super.writeToNBT(nbt)
     nbt.setNewCompoundTag(Settings.namespace + "redstone", instance.save)
   }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def onRedstoneInputChanged(side: ForgeDirection) {
     super.onRedstoneInputChanged(side)

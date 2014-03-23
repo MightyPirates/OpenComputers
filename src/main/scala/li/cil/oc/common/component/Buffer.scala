@@ -134,7 +134,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
     // when their update() runs).
     if (node.network != null) {
       for (node <- node.reachableNodes) node.host match {
-        case host: tileentity.Computer if !host.isPaused =>
+        case host: tileentity.traits.Computer if !host.isPaused =>
           host.pause(0.1)
         case _ =>
       }
