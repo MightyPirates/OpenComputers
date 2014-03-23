@@ -1,16 +1,19 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.{Optional, Loader}
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
+import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.common.util.Constants.NBT
 
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "DiskDrive"
@@ -23,6 +26,22 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
     tooltip.addAll(Tooltip.get(unlocalizedName))
     if (Loader.isModLoaded("ComputerCraft")) {
       tooltip.addAll(Tooltip.get(unlocalizedName + ".CC"))
+    }
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val items = accessor.getNBTData.getTagList(Settings.namespace + "items", NBT.TAG_COMPOUND)
+    if (items.tagCount > 0) {
+      val node = items.getCompoundTagAt(0).
+        getCompoundTag("item").
+        getCompoundTag("tag").
+        getCompoundTag(Settings.namespace + "data").
+        getCompoundTag("node")
+      if (node.hasKey("address")) {
+        tooltip.add(StatCollector.translateToLocalFormatted(
+          Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      }
     }
   }
 

@@ -9,8 +9,11 @@ import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
+import net.minecraft.util.StatCollector
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.util.ForgeDirection
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import cpw.mods.fml.common.Optional
 
 class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Capacitor"
@@ -21,6 +24,15 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+    if (node.hasKey("buffer")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.StoredEnergy", node.getDouble("buffer").toInt.toString))
+    }
   }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))

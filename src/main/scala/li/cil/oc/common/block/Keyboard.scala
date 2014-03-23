@@ -1,17 +1,17 @@
 package li.cil.oc.common.block
 
+import java.util
 import java.util.Random
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.Tooltip
 import li.cil.oc.{CreativeTab, api, Settings}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.item.ItemStack
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
-import net.minecraft.item.ItemStack
-import java.util
-import li.cil.oc.util.Tooltip
 
 class Keyboard extends SimpleBlock(Material.rock) {
   setBlockName("Keyboard")

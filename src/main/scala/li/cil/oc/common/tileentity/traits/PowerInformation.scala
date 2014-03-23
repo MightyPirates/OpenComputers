@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}

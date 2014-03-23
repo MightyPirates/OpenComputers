@@ -1,6 +1,6 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.{Optional, Loader}
+import cpw.mods.fml.common.{Loader, Optional}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.ProjectRed
@@ -10,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import powercrystals.minefactoryreloaded.api.rednet.IRedNetNetworkContainer
-import scala.Array
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "mods.immibis.redlogic.api.wiring.IBundledEmitter", modid = "RedLogic"),

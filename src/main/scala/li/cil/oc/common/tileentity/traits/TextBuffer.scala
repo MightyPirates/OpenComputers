@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.Node
@@ -7,7 +7,7 @@ import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 
-trait Buffer extends Environment with component.Buffer.Owner {
+trait TextBuffer extends Environment with component.Buffer.Owner {
   protected val _buffer = new component.Buffer(this)
 
   protected var _bufferIsDirty = false

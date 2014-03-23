@@ -5,26 +5,23 @@ import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
-class PowerDistributor extends Environment with PowerBalancer with Analyzable {
+class PowerDistributor extends traits.Environment with traits.PowerBalancer with traits.NotAnalyzable {
   val node = null
 
   private val nodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).
     withConnector(Settings.get.bufferDistributor).
     create())
 
+  // ----------------------------------------------------------------------- //
+
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = true
 
   override def sidedNode(side: ForgeDirection) = nodes(side.ordinal)
-
-  // ----------------------------------------------------------------------- //
-
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 
   // ----------------------------------------------------------------------- //
 

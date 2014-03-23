@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(var tier: Int, val isRemote: Boolean) extends PowerAcceptor with Computer {
+class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with traits.Computer {
   def this() = this(0, false)
 
   @SideOnly(Side.CLIENT)
@@ -80,7 +80,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends PowerAcceptor with Comp
 
   override def isUseableByPlayer(player: EntityPlayer) =
     world.getTileEntity(x, y, z) match {
-      case t: TileEntity if t == this && computer.canInteract(player.getCommandSenderName) =>
+      case t: traits.TileEntity if t == this && computer.canInteract(player.getCommandSenderName) =>
         player.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
       case _ => false
     }

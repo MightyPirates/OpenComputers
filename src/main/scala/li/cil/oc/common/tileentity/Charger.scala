@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends Environment with RedstoneAware with Analyzable {
+class Charger extends traits.Environment with traits.RedstoneAware with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
@@ -20,12 +20,16 @@ class Charger extends Environment with RedstoneAware with Analyzable {
 
   var invertSignal = false
 
+  // ----------------------------------------------------------------------- //
+
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.addChatMessage(new ChatComponentTranslation(
       Settings.namespace + "gui.Analyzer.ChargerSpeed",
       (chargeSpeed * 100).toInt + "%"))
     null
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()

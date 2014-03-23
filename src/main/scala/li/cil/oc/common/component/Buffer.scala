@@ -113,9 +113,12 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   // ----------------------------------------------------------------------- //
 
+  // TODO remove compatibility check for older saves in version 1.3 or so.
   def load(nbt: NBTTagCompound) = {
-    node.load(nbt.getCompoundTag("node"))
-    buffer.load(nbt.getCompoundTag("buffer"))
+    if (nbt.hasKey("node")) node.load(nbt.getCompoundTag("node"))
+    else node.load(nbt.getCompoundTag(Settings.namespace + "node"))
+    if (nbt.hasKey("buffer")) buffer.load(nbt.getCompoundTag("buffer"))
+    else buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
   }
 
   // Null check for Waila (and other mods that may call this client side).
@@ -131,14 +134,14 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
     // when their update() runs).
     if (node.network != null) {
       for (node <- node.reachableNodes) node.host match {
-        case host: tileentity.Computer if !host.isPaused =>
+        case host: tileentity.traits.Computer if !host.isPaused =>
           host.pause(0.1)
         case _ =>
       }
     }
 
-    nbt.setNewCompoundTag("node", node.save)
-    nbt.setNewCompoundTag("buffer", buffer.save)
+    nbt.setNewCompoundTag(Settings.namespace + "node", node.save)
+    nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
   }
 }
 

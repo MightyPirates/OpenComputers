@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
 import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
@@ -7,15 +8,15 @@ import scala.collection.mutable
 object Sound {
   val lastPlayed = mutable.WeakHashMap.empty[TileEntity, Long]
 
-  def play(t: tileentity.TileEntity, name: String) {
+  def play(t: traits.TileEntity, name: String) {
     t.world.playSoundEffect(t.x + 0.5, t.y + 0.5, t.z + 0.5, Settings.resourceDomain + ":" + name, 1, 1)
   }
 
-  def playDiskInsert(t: tileentity.TileEntity) {
+  def playDiskInsert(t: traits.TileEntity) {
     play(t, "floppy_insert")
   }
 
-  def playDiskEject(t: tileentity.TileEntity) {
+  def playDiskEject(t: traits.TileEntity) {
     play(t, "floppy_eject")
   }
 
@@ -25,7 +26,7 @@ object Sound {
       case _ =>
         t match {
           case robot: tileentity.Robot => play(robot, "floppy_access")
-          case computer: tileentity.Computer => play(computer, "hdd_access")
+          case computer: tileentity.traits.Computer => play(computer, "hdd_access")
           case rack: tileentity.Rack => play(rack, "hdd_access")
           case drive: tileentity.DiskDrive => play(drive, "floppy_access")
           case _ => // Huh?

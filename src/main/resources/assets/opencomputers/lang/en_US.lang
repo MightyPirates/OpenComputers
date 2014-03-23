@@ -87,6 +87,7 @@ oc:gui.Analyzer.RobotXp=§6Experience§f: %s (Level %s)
 oc:gui.Analyzer.StoredEnergy=§6Stored energy§f: %s
 oc:gui.Analyzer.TotalEnergy=§6Total stored energy§f: %s
 oc:gui.Analyzer.Users=§6Users§f: %s
+oc:gui.Analyzer.WirelessStrength=§6Signal strength§f: %s
 oc:gui.Chat.NewVersion=A new version is available: %s
 oc:gui.Chat.WarningFingerprint=§cWARNING§f - fingerprint mismatch! Expected '§a%s§f' but got '§e%s§f'. Unless you are a modder and are running the deobfuscated version of the mod, it is §lstrongly§f recommended to redownload OpenComputers, because the JAR you are using may have been tampered with.
 oc:gui.Chat.WarningLuaFallback=Native Lua libraries are not available, computers will not be able to persist their state. They will reboot on chunk reloads.

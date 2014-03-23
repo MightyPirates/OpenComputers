@@ -23,19 +23,19 @@ class SimpleBlock(material: Material) extends Block(material) {
 
   def setFacing(world: World, x: Int, y: Int, z: Int, value: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable => rotatable.setFromFacing(value); true
+      case rotatable: tileentity.traits.Rotatable => rotatable.setFromFacing(value); true
       case _ => false
     }
 
   def setRotationFromEntityPitchAndYaw(world: World, x: Int, y: Int, z: Int, value: Entity) =
     world.getTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable => rotatable.setFromEntityPitchAndYaw(value); true
+      case rotatable: tileentity.traits.Rotatable => rotatable.setFromEntityPitchAndYaw(value); true
       case _ => false
     }
 
   override def rotateBlock(world: World, x: Int, y: Int, z: Int, axis: ForgeDirection) =
     world.getTileEntity(x, y, z) match {
-      case rotatable: tileentity.Rotatable if rotatable.rotate(axis) => world.markBlockForUpdate(x, y, z); true
+      case rotatable: tileentity.traits.Rotatable if rotatable.rotate(axis) => world.markBlockForUpdate(x, y, z); true
       case _ => false
     }
 

@@ -1,14 +1,17 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Optional
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.IIcon
+import net.minecraft.util.StatCollector
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
@@ -27,6 +30,16 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
       case 2 => "3/2/3"
     }
     tooltip.addAll(Tooltip.get("Case", slots))
+  }
+
+  @Optional.Method(modid = "Waila")
+  override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+    val nbt = accessor.getNBTData
+    val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
+    if (node.hasKey("address")) {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+    }
   }
 
   private object Icons {

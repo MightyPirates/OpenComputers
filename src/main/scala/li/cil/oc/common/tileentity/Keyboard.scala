@@ -10,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with Analyzable with Rotatable {
+class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatable with SidedEnvironment with Analyzable {
   def this() = this(false)
 
   val keyboard = if (isRemote) null
@@ -24,8 +24,10 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
 
   override lazy val isClient = keyboard == null
 
-  // Override automatic analyzer implementation for sided environments.
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
+  def hasNodeOnSide(side: ForgeDirection) =
+    side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = side == facing.getOpposite
@@ -33,12 +35,10 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
   override def sidedNode(side: ForgeDirection) =
     if (hasNodeOnSide(side)) node else null
 
-  def hasNodeOnSide(side: ForgeDirection) =
-    side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)
+  // Override automatic analyzer implementation for sided environments.
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
-  def isOnWall = facing != ForgeDirection.UP && facing != ForgeDirection.DOWN
-
-  def forward = if (isOnWall) ForgeDirection.UP else yaw
+  // ----------------------------------------------------------------------- //
 
   override def canUpdate = false
 
@@ -60,4 +60,10 @@ class Keyboard(isRemote: Boolean) extends Environment with SidedEnvironment with
       nbt.setNewCompoundTag(Settings.namespace + "keyboard", keyboard.save)
     }
   }
+
+  // ----------------------------------------------------------------------- //
+
+  private def isOnWall = facing != ForgeDirection.UP && facing != ForgeDirection.DOWN
+
+  private def forward = if (isOnWall) ForgeDirection.UP else yaw
 }

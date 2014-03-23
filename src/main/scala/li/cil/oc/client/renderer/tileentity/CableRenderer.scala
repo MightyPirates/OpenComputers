@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity.Cable
+import li.cil.oc.common.block
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import net.minecraft.tileentity.TileEntity
@@ -117,11 +117,9 @@ object CableRenderer extends TileEntitySpecialRenderer {
   }
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
-    val cable = t.asInstanceOf[Cable]
-
     GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glTranslated(x, y, z)
-    renderCable(cable.neighbors)
+    renderCable(block.Cable.neighbors(t.getWorldObj, t.xCoord, t.yCoord, t.zCoord))
     GL11.glTranslated(-x, -y, -z)
   }
 }

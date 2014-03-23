@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram extends Environment with SidedEnvironment with Analyzable {
+class Hologram extends traits.Environment with SidedEnvironment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("hologram").
     withConnector().
@@ -66,6 +66,7 @@ class Hologram extends Environment with SidedEnvironment with Analyzable {
 
   override def sidedNode(side: ForgeDirection) = if (side == ForgeDirection.DOWN) node else null
 
+  // Override automatic analyzer implementation for sided environments.
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
 
   // ----------------------------------------------------------------------- //

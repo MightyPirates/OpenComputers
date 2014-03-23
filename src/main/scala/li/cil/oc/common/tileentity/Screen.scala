@@ -17,7 +17,7 @@ import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
 import scala.language.postfixOps
 
-class Screen(var tier: Int) extends Buffer with SidedEnvironment with Rotatable with RedstoneAware with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
   _isOutputEnabled = true

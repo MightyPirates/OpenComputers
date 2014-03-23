@@ -1,14 +1,17 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.Owner
-import li.cil.oc.api.network._
+import li.cil.oc.api.network.{Node, Analyzable}
 import li.cil.oc.client.Sound
-import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
+import li.cil.oc.common.tileentity.RobotProxy
+import li.cil.oc.server.driver
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.Waila
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraft.util.ChatComponentTranslation
@@ -159,7 +162,7 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
-    if (computer != null) {
+    if (computer != null && !Waila.isSavingForTooltip) {
       nbt.setNewCompoundTag(Settings.namespace + "computer", computer.save)
     }
   }

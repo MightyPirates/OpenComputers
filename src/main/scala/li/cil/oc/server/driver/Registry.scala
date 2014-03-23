@@ -48,12 +48,14 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (!converters.contains(converter)) converters += converter
   }
 
+  // TODO Move this into the API?
   def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
       case drivers if !drivers.isEmpty => Some(new CompoundBlockDriver(drivers: _*))
       case _ => None
     }
 
+  // TODO Move this into the API?
   def itemDriverFor(stack: ItemStack) =
     if (stack != null) items.find(_.worksWith(stack)) match {
       case None => None

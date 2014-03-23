@@ -7,11 +7,14 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
+import scala.collection.mutable
 
-class Adapter extends Environment with Analyzable {
+class Adapter extends traits.Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
+
+  private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
 
@@ -25,9 +28,10 @@ class Adapter extends Environment with Analyzable {
 
   override def updateEntity() {
     super.updateEntity()
-    for (block <- blocks) block match {
-      case Some((environment, _)) if environment.canUpdate => environment.update()
-      case _ => // Empty.
+    if (blocks.nonEmpty) {
+      for (block <- updatingBlocks) {
+        block.update()
+      }
     }
   }
 
@@ -35,7 +39,7 @@ class Adapter extends Environment with Analyzable {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       val (x, y, z) = (this.x + d.offsetX, this.y + d.offsetY, this.z + d.offsetZ)
       world.getTileEntity(x, y, z) match {
-        case env: Environment =>
+        case env: traits.Environment =>
         // Don't provide adaption for our stuffs. This is mostly to avoid
         // cables and other non-functional stuff popping up in the adapter
         // due to having a power interface. Might revisit this at some point,
@@ -50,6 +54,10 @@ class Adapter extends Environment with Analyzable {
                   node.disconnect(oldEnvironment.node)
                   val environment = newDriver.createEnvironment(world, x, y, z)
                   blocks(d.ordinal()) = Some((environment, newDriver))
+                  updatingBlocks -= oldEnvironment
+                  if (environment.canUpdate) {
+                    updatingBlocks += environment
+                  }
                   blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
                   node.connect(environment.node)
                 } // else: the more things change, the more they stay the same.
@@ -57,6 +65,9 @@ class Adapter extends Environment with Analyzable {
                 // A challenger appears.
                 val environment = newDriver.createEnvironment(world, x, y, z)
                 blocks(d.ordinal()) = Some((environment, newDriver))
+                if (environment.canUpdate) {
+                  updatingBlocks += environment
+                }
                 blocksData(d.ordinal()) match {
                   case Some(data) if data.name == environment.getClass.getName =>
                     environment.load(data.data)
@@ -71,6 +82,7 @@ class Adapter extends Environment with Analyzable {
                 node.disconnect(environment.node)
                 environment.save(blocksData(d.ordinal()).get.data)
                 blocks(d.ordinal()) = None
+                updatingBlocks -= environment
               case _ => // Nothing before, nothing now.
             }
           }

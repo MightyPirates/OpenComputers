@@ -1,7 +1,8 @@
 package li.cil.oc.client
 
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
 import li.cil.oc.common.tileentity._
+import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer}
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
 import net.minecraftforge.common.util.ForgeDirection
 
 object PacketSender {
@@ -22,7 +23,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
     b.owner match {
-      case t: Buffer if t.hasKeyboard =>
+      case t: TextBuffer if t.hasKeyboard =>
         pb.writeTileEntity(t)
       case t: component.Terminal =>
         pb.writeTileEntity(t.rack)
@@ -39,7 +40,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
     b.owner match {
-      case t: Buffer if t.hasKeyboard =>
+      case t: TextBuffer if t.hasKeyboard =>
         pb.writeTileEntity(t)
       case t: component.Terminal =>
         pb.writeTileEntity(t.rack)
@@ -58,7 +59,7 @@ object PacketSender {
       val pb = new CompressedPacketBuilder(PacketType.Clipboard)
 
       b.owner match {
-        case t: Buffer if t.hasKeyboard =>
+        case t: TextBuffer if t.hasKeyboard =>
           pb.writeTileEntity(t)
         case t: component.Terminal =>
           pb.writeTileEntity(t.rack)
@@ -75,7 +76,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
     b.owner match {
-      case t: Buffer if t.tier > 0 =>
+      case t: TextBuffer if t.tier > 0 =>
         pb.writeTileEntity(t)
       case t: component.Terminal =>
         pb.writeTileEntity(t.rack)
@@ -94,7 +95,7 @@ object PacketSender {
     val pb = new PacketBuilder(PacketType.MouseScroll)
 
     b.owner match {
-      case t: Buffer if t.tier > 0 =>
+      case t: TextBuffer if t.tier > 0 =>
         pb.writeTileEntity(t)
       case t: component.Terminal =>
         pb.writeTileEntity(t.rack)

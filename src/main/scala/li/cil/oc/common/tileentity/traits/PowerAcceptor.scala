@@ -1,6 +1,6 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
-import buildcraft.api.power.{IPowerReceptor, PowerHandler}
+import buildcraft.api.power.{PowerHandler, IPowerReceptor}
 //import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{ModAPIManager, Loader, Optional}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
@@ -15,11 +15,11 @@ import net.minecraftforge.common.util.ForgeDirection
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
   new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
-//  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion"),
-//  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
-//  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
+  //  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion"),
+  //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
+  //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
-abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink /* with IEnergyHandler with IEnergyInterface with IEnergyContainer */ {
+trait PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink /* with IEnergyHandler with IEnergyInterface with IEnergyContainer */ {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: ForgeDirection) = false
 
@@ -92,7 +92,7 @@ abstract class PowerAcceptor extends TileEntity with IPowerReceptor with IEnergy
     else null
 
   // Don't strip, also defined by AbstractBusAware trait.
-  def getWorld = worldObj
+  def getWorld = getWorldObj
 
   @Optional.Method(modid = "BuildCraftAPI|power")
   def doWork(workProvider: PowerHandler) {}

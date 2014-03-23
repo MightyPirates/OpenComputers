@@ -52,10 +52,10 @@ class Item(value: Block) extends ItemBlock(value) {
         case keyboard: tileentity.Keyboard =>
           keyboard.setFromEntityPitchAndYaw(player)
           keyboard.setFromFacing(ForgeDirection.getOrientation(side))
-        case rotatable: tileentity.Rotatable =>
+        case rotatable: tileentity.traits.Rotatable =>
           rotatable.setFromEntityPitchAndYaw(player)
           rotatable match {
-            case _@(_: tileentity.Computer | _: tileentity.DiskDrive | _: tileentity.Rack) =>
+            case _@(_: tileentity.traits.Computer | _: tileentity.DiskDrive | _: tileentity.Rack) =>
               rotatable.pitch = ForgeDirection.NORTH
             case _ =>
           }

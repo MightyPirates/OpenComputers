@@ -4,17 +4,15 @@ import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.network.{Packet, Message}
-import li.cil.oc.common.EventHandler
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends Hub with IPeripheral {
-  // ----------------------------------------------------------------------- //
-  // Peripheral
-
+class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   private val computers = mutable.ArrayBuffer.empty[AnyRef]
 
   private val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+
+  // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "ComputerCraft")
   override def getType = "oc_adapter"
@@ -64,6 +62,8 @@ class Router extends Hub with IPeripheral {
   @Optional.Method(modid = "ComputerCraft")
   override def canAttachToSide(side: Int) = true
 
+  // ----------------------------------------------------------------------- //
+
   protected def checkPort(args: Array[AnyRef], index: Int) = {
     if (args.length < index - 1 || !args(index).isInstanceOf[Double])
       throw new IllegalArgumentException("bad argument #%d (number expected)".format(index + 1))
@@ -83,6 +83,8 @@ class Router extends Hub with IPeripheral {
         }: _*))
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   override protected def onPlugMessage(plug: Plug, message: Message) {
     super.onPlugMessage(plug, message)

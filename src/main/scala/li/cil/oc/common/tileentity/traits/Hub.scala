@@ -1,34 +1,30 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
+import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
 
-trait Hub extends Environment with SidedEnvironment with Analyzable {
-  val queueSize = 20
+trait Hub extends traits.Environment with SidedEnvironment {
+  override def node: Node = null
 
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
   protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
 
-  // ----------------------------------------------------------------------- //
+  protected val maxQueueSize = 20
 
-  override def node = null
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = true
+  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UNKNOWN
 
   override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UNKNOWN) plugs(side.ordinal()).node else null
-
-  // ----------------------------------------------------------------------- //
-
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = null
 
   // ----------------------------------------------------------------------- //
 
@@ -55,7 +51,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
       case (list, index) =>
         val tag = list.getCompoundTagAt(index)
         val side = ForgeDirection.getOrientation(tag.getInteger("side"))
-      val packet = api.Network.newPacket(tag)
+        val packet = api.Network.newPacket(tag)
         queue += side -> packet
     }
   }
@@ -105,7 +101,7 @@ trait Hub extends Environment with SidedEnvironment with Analyzable {
 
   protected def onPlugMessage(plug: Plug, message: Message) {
     if (message.name == "network.message") message.data match {
-      case Array(packet: Packet) if packet.ttl > 0 && queue.size < queueSize => queue += plug.side -> packet.hop()
+      case Array(packet: Packet) if packet.ttl > 0 && queue.size < maxQueueSize => queue += plug.side -> packet.hop()
       case _ =>
     }
   }

@@ -2,7 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.tileentity.RedstoneAware
+import li.cil.oc.common.tileentity.traits.RedstoneAware
 import net.minecraftforge.common.util.ForgeDirection
 
 class Redstone(val owner: RedstoneAware) extends ManagedComponent {
@@ -29,6 +29,7 @@ class Redstone(val owner: RedstoneAware) extends ManagedComponent {
     val side = checkSide(args, 0)
     val value = args.checkInteger(1)
     owner.output(side, value)
+    context.pause(0.1)
     result(owner.output(side))
   }
 

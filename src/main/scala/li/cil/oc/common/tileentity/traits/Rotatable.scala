@@ -1,8 +1,7 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.Settings
-import li.cil.oc.api
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{Settings, api}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.NBTTagCompound

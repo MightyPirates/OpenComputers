@@ -3,10 +3,9 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.network._
 import li.cil.oc.{Settings, api}
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.util.ForgeDirection
 
-class PowerConverter extends PowerAcceptor with Environment with Analyzable {
+class PowerConverter extends traits.PowerAcceptor with traits.Environment with traits.NotAnalyzable {
   val node = api.Network.newNode(this, Visibility.Network).
     withConnector(Settings.get.bufferConverter).
     create()
@@ -15,6 +14,4 @@ class PowerConverter extends PowerAcceptor with Environment with Analyzable {
   override protected def hasConnector(side: ForgeDirection) = true
 
   override protected def connector(side: ForgeDirection) = Option(node)
-
-  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = null
 }

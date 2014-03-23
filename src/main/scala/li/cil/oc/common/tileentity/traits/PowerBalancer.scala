@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{Connector, SidedEnvironment}

@@ -1,4 +1,4 @@
-package li.cil.oc.common.tileentity
+package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.common.inventory
 import net.minecraft.entity.item.EntityItem
@@ -54,11 +54,11 @@ trait Inventory extends TileEntity with inventory.Inventory {
     val rng = world.rand
     val (tx, ty, tz) = (
       0.1 * rng.nextGaussian + direction.offsetX * 0.45,
-      0.1 * rng.nextGaussian + 0.1,
+      0.1 * rng.nextGaussian + direction.offsetY * 0.65 + (direction.offsetX + direction.offsetZ) * 0.1,
       0.1 * rng.nextGaussian + direction.offsetZ * 0.45)
     val entity = new EntityItem(world, x + 0.5 + tx, y + 0.5 + ty, z + 0.5 + tz, stack.copy())
     entity.motionX = 0.0125 * rng.nextGaussian + direction.offsetX * 0.03
-    entity.motionY = 0.0125 * rng.nextGaussian + 0.03
+    entity.motionY = 0.0125 * rng.nextGaussian + direction.offsetY * 0.08 + (direction.offsetX + direction.offsetZ) * 0.03
     entity.motionZ = 0.0125 * rng.nextGaussian + direction.offsetZ * 0.03
     entity.delayBeforeCanPickup = 15
     world.spawnEntityInWorld(entity)

@@ -1,17 +1,20 @@
 package li.cil.oc.common.block
 
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.common.tileentity
+import java.util
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB, IIcon}
+import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.common.tileentity.traits.Inventory
 
 trait Delegate {
   val unlocalizedName: String
@@ -79,7 +82,7 @@ trait Delegate {
 
   def aboutToBeRemoved(world: World, x: Int, y: Int, z: Int) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {
-      case inventory: tileentity.Inventory => inventory.dropAllSlots()
+      case inventory: Inventory => inventory.dropAllSlots()
       case _ => // Ignore.
     }
 
@@ -103,6 +106,10 @@ trait Delegate {
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {}
+
+  @Optional.Method(modid = "Waila")
+  def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
+  }
 
   def opacity(world: IBlockAccess, x: Int, y: Int, z: Int) = 255
 

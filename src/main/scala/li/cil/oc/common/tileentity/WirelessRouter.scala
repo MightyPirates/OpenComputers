@@ -1,17 +1,28 @@
 package li.cil.oc.common.tileentity
 
+import cpw.mods.fml.common.Loader
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{api, Settings}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
-import net.minecraftforge.common.util.Constants.NBT
 
 class WirelessRouter extends Router with WirelessEndpoint {
   var strength = Settings.get.maxWirelessRange
 
   val componentNodes = Array.fill(6)(api.Network.newNode(this, Visibility.Network).withComponent("access_point").create())
+
+  // ----------------------------------------------------------------------- //
+
+  override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
+    player.addChatMessage(new ChatComponentTranslation(
+      Settings.namespace + "gui.Analyzer.WirelessStrength", Double.box(strength)))
+    Array(componentNodes(side))
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -27,12 +38,14 @@ class WirelessRouter extends Router with WirelessEndpoint {
   // ----------------------------------------------------------------------- //
 
   override def receivePacket(packet: Packet, distance: Double) {
-    if (queue.size < 20) {
+    if (queue.size < maxQueueSize) {
       queue += ForgeDirection.UNKNOWN -> packet.hop()
     }
-    packet.data.headOption match {
-      case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
-      case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+    if (Loader.isModLoaded("ComputerCraft")) {
+      packet.data.headOption match {
+        case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
+        case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)
+      }
     }
   }
 
@@ -84,10 +97,12 @@ class WirelessRouter extends Router with WirelessEndpoint {
   override def writeToNBT(nbt: NBTTagCompound) = {
     super.writeToNBT(nbt)
     nbt.setDouble(Settings.namespace + "strength", strength)
-    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map(node => {
-      val tag = new NBTTagCompound()
-      node.save(tag)
-      tag
-    }))
+    nbt.setNewTagList(Settings.namespace + "componentNodes", componentNodes.map {
+      case node: Node =>
+        val tag = new NBTTagCompound()
+        node.save(tag)
+        tag
+      case _ => new NBTTagCompound()
+    })
   }
 }
