@@ -21,7 +21,7 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   override def isReadOnly = true
 
-  override def spaceTotal = parts.values.map(_.spaceTotal).sum
+  override def spaceTotal = math.max(spaceUsed, parts.values.map(_.spaceTotal).sum)
 
   override def spaceUsed = parts.values.map(_.spaceUsed).sum
 
