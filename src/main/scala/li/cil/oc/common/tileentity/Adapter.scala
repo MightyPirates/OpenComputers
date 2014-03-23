@@ -6,11 +6,14 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
+import scala.collection.mutable
 
 class Adapter extends traits.Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
 
   private val blocks = Array.fill[Option[(ManagedEnvironment, api.driver.Block)]](6)(None)
+
+  private val updatingBlocks = mutable.ArrayBuffer.empty[ManagedEnvironment]
 
   private val blocksData = Array.fill[Option[BlockData]](6)(None)
 
@@ -24,10 +27,10 @@ class Adapter extends traits.Environment with Analyzable {
 
   override def updateEntity() {
     super.updateEntity()
-    for (block <- blocks) block match {
-      // TODO Track updating environments in a list, loop that.
-      case Some((environment, _)) if environment.canUpdate => environment.update()
-      case _ => // Empty.
+    if (blocks.nonEmpty) {
+      for (block <- updatingBlocks) {
+        block.update()
+      }
     }
   }
 
@@ -50,6 +53,10 @@ class Adapter extends traits.Environment with Analyzable {
                   node.disconnect(oldEnvironment.node)
                   val environment = newDriver.createEnvironment(world, x, y, z)
                   blocks(d.ordinal()) = Some((environment, newDriver))
+                  updatingBlocks -= oldEnvironment
+                  if (environment.canUpdate) {
+                    updatingBlocks += environment
+                  }
                   blocksData(d.ordinal()) = Some(new BlockData(environment.getClass.getName, new NBTTagCompound()))
                   node.connect(environment.node)
                 } // else: the more things change, the more they stay the same.
@@ -57,6 +64,9 @@ class Adapter extends traits.Environment with Analyzable {
                 // A challenger appears.
                 val environment = newDriver.createEnvironment(world, x, y, z)
                 blocks(d.ordinal()) = Some((environment, newDriver))
+                if (environment.canUpdate) {
+                  updatingBlocks += environment
+                }
                 blocksData(d.ordinal()) match {
                   case Some(data) if data.name == environment.getClass.getName =>
                     environment.load(data.data)
@@ -71,6 +81,7 @@ class Adapter extends traits.Environment with Analyzable {
                 node.disconnect(environment.node)
                 environment.save(blocksData(d.ordinal()).get.data)
                 blocks(d.ordinal()) = None
+                updatingBlocks -= environment
               case _ => // Nothing before, nothing now.
             }
           }
