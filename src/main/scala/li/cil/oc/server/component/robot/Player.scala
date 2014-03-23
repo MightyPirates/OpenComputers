@@ -290,7 +290,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
-    robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else robot.facing)
+    robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else facing)
 
   private def callUsingItemInSlot[T](slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems

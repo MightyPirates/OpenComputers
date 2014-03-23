@@ -8,7 +8,9 @@ import li.cil.oc.api.network.{Node, Analyzable}
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.driver
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
+import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
