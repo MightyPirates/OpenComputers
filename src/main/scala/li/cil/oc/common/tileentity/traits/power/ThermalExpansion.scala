@@ -6,7 +6,7 @@
 //import li.cil.oc.Settings
 //
 //@Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion")
-//trait ThermalExpansion extends UniversalElectricity with IEnergyHandler {
+//trait ThermalExpansion extends Common with IEnergyHandler {
 //  @Optional.Method(modid = "ThermalExpansion")
 //  def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) =
 //    (onReceiveEnergy(from, (maxReceive * Settings.ratioTE).toLong, !simulate) / Settings.ratioTE).toInt

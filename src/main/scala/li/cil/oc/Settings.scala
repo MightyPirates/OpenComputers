@@ -188,12 +188,19 @@ object Settings {
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
 
-  // From UniversalElectricity's CompatibilityType class, to avoid having to
-  // ship the UE API (causes weird issues because the way we build the mod it
-  // gets obfuscated which some other mods don't seem to like).
-  val ratioTE = 5628.0
-  val ratioIC2 = 22512.0
-  val ratioBC = 56280.0
+  // Power conversion values. These are the same values used by Universal
+  // Electricity to provide global power support.
+  val valueBC = 56280.0
+  val valueIC2 = 22512.0
+  val valueTE = 5628.0
+  val valueUE = 1.0
+
+  val valueOC = valueBC
+
+  val ratioBC = valueBC / valueOC
+  val ratioIC2 = valueIC2 / valueOC
+  val ratioTE = valueTE / valueOC
+  val ratioUE = valueUE / valueOC
 
   def basicScreenPixels = screenResolutionsByTier(0)._1 * screenResolutionsByTier(0)._2
 

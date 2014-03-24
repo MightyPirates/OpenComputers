@@ -6,7 +6,7 @@ import li.cil.oc.Settings
 import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power")
-trait BuildCraft extends UniversalElectricity with IPowerReceptor {
+trait BuildCraft extends Common with IPowerReceptor {
   private var powerHandler: Option[AnyRef] = None
 
   // ----------------------------------------------------------------------- //
@@ -14,15 +14,12 @@ trait BuildCraft extends UniversalElectricity with IPowerReceptor {
   @Optional.Method(modid = "BuildCraftAPI|power")
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && !Settings.get.ignorePower) {
-      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
-        for (side <- ForgeDirection.VALID_DIRECTIONS) connector(side) match {
-          case Some(node) =>
-            val demand = node.globalBufferSize - node.globalBuffer
-            if (demand > 1) {
-              node.changeBuffer(getPowerProvider.useEnergy(1, demand.toFloat, true))
-            }
-          case _ =>
+    if (isServer && !Settings.get.ignorePower && world.getWorldTime % Settings.get.tickFrequency == 0) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS) {
+        val demand = globalBufferSize(side) - globalBuffer(side)
+        if (demand > 1) {
+          val power = getPowerProvider.useEnergy(1, demand.toFloat, true)
+          tryChangeBuffer(side, power * Settings.ratioBC)
         }
       }
     }
@@ -40,13 +37,14 @@ trait BuildCraft extends UniversalElectricity with IPowerReceptor {
         powerHandler = Some(handler)
       }
     }
-    if (powerHandler.isDefined) powerHandler.get.asInstanceOf[PowerHandler]
+    if (powerHandler.isDefined)
+      powerHandler.get.asInstanceOf[PowerHandler]
     else null
   }
 
   @Optional.Method(modid = "BuildCraftAPI|power")
   def getPowerReceiver(side: ForgeDirection) =
-    if (!Settings.get.ignorePower && (if (isClient) hasConnector(side) else connector(side).isDefined))
+    if (canConnect(side))
       getPowerProvider.getPowerReceiver
     else null
 
