@@ -507,10 +507,10 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
     for ((address, name) <- _components) {
       if (node.network.node(address) == null) {
         if (name == "filesystem") {
-          OpenComputers.log.fine("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
+          OpenComputers.log.fine(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
           OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
         }
-        else OpenComputers.log.warning("A component of type '%s' disappeared! This usually means that it didn't save its node.".format(name))
+        else OpenComputers.log.warning(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
         signal("component_removed", address, name)
         invalid += address
       }

@@ -69,8 +69,8 @@ class Analyzer(val parent: Delegator) extends Delegate {
       player.addChatMessage(new ChatComponentTranslation(
         Settings.namespace + "gui.Analyzer.Address",
         address))
+      PacketSender.sendAnalyze(address, player)
     }
-    PacketSender.sendAnalyze(address, player)
   }
 
   override def registerIcons(iconRegister: IIconRegister) {

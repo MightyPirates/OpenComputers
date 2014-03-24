@@ -28,7 +28,7 @@ class Adapter extends traits.Environment with Analyzable {
 
   override def updateEntity() {
     super.updateEntity()
-    if (blocks.nonEmpty) {
+    if (updatingBlocks.nonEmpty) {
       for (block <- updatingBlocks) {
         block.update()
       }
@@ -100,6 +100,13 @@ class Adapter extends traits.Environment with Analyzable {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def onDisconnect(node: Node) {
+    super.onDisconnect(node)
+    if (node == this.node) {
+      updatingBlocks.clear()
+    }
+  }
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)

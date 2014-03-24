@@ -1,25 +1,23 @@
 package li.cil.oc.common.tileentity.traits
 
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
+import li.cil.oc.common.EventHandler
 //import cofh.api.energy.IEnergyHandler
 import cpw.mods.fml.common.{ModAPIManager, Loader, Optional}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import ic2.api.energy.event.{EnergyTileUnloadEvent, EnergyTileLoadEvent}
-import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.api.network.Connector
 import li.cil.oc.Settings
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 //import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
-  new Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
+  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
   //  new Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion"),
   //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
   //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 ))
-trait PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink /* with IEnergyHandler with IEnergyInterface with IEnergyContainer */ {
+trait PowerAcceptor extends TileEntity with IPowerReceptor with IC2PowerGridAware /* with IEnergyHandler with IEnergyInterface with IEnergyContainer */ {
   @SideOnly(Side.CLIENT)
   protected def hasConnector(side: ForgeDirection) = false
 
@@ -100,22 +98,14 @@ trait PowerAcceptor extends TileEntity with IPowerReceptor with IEnergySink /* w
   // ----------------------------------------------------------------------- //
   // IndustrialCraft2
 
-  private var addedToPowerGrid = false
-
   @Optional.Method(modid = "IC2")
   def loadIC2() {
-    if (!addedToPowerGrid) {
-      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this))
-      addedToPowerGrid = true
-    }
+    if (!addedToPowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
   @Optional.Method(modid = "IC2")
   def unloadIC2() {
-    if (addedToPowerGrid) {
-      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this))
-      addedToPowerGrid = false
-    }
+    if (addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   @Optional.Method(modid = "IC2")

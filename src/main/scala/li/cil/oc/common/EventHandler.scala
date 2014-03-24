@@ -1,10 +1,12 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
+import cpw.mods.fml.common.{Optional, FMLCommonHandler}
+import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc.api.Network
+import li.cil.oc.common.tileentity.traits.IC2PowerGridAware
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
@@ -15,14 +17,15 @@ import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
+import net.minecraftforge.common.MinecraftForge
 import scala.collection.mutable
 
 object EventHandler {
-  val pendingAdds = mutable.Buffer.empty[() => Unit]
+  val pending = mutable.Buffer.empty[() => Unit]
 
   def schedule(tileEntity: TileEntity) =
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pendingAdds.synchronized {
-      pendingAdds += (() => Network.joinOrCreateNetwork(tileEntity))
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
+      pending += (() => Network.joinOrCreateNetwork(tileEntity))
     }
 
   /* TODO FMP
@@ -33,12 +36,28 @@ object EventHandler {
     }
   */
 
+  @Optional.Method(modid = "IC2")
+  def scheduleIC2Add(tileEntity: TileEntity with IC2PowerGridAware) = pending.synchronized {
+    pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
+      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
+      tileEntity.addedToPowerGrid = true
+    })
+  }
+
+  @Optional.Method(modid = "IC2")
+  def scheduleIC2Remove(tileEntity: TileEntity with IC2PowerGridAware) = pending.synchronized {
+    pending += (() => if (tileEntity.addedToPowerGrid) {
+      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
+      tileEntity.addedToPowerGrid = false
+    })
+  }
+
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = pendingAdds.synchronized {
-    for (callback <- pendingAdds) {
+  def onTick(e: ServerTickEvent) = pending.synchronized {
+    for (callback <- pending) {
       callback()
     }
-    pendingAdds.clear()
+    pending.clear()
   }
 
   @SubscribeEvent

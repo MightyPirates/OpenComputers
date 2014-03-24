@@ -19,7 +19,13 @@ object SaveHandler {
 
   def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
-    else saveData.getOrElseUpdate(dimension, mutable.Map.empty).getOrElseUpdate(chunk, mutable.Map.empty) += name -> data
+    else {
+      val chunks = saveData.getOrElseUpdate(dimension, mutable.Map.empty)
+      // Make sure we get rid of old versions (e.g. left over by other mods
+      // triggering a save - this is mostly used for RiM compatibility).
+      chunks.values.foreach(_ -= name)
+      chunks.getOrElseUpdate(chunk, mutable.Map.empty) += name -> data
+    }
   }
 
   def load(dimension: Int, chunk: ChunkCoordIntPair, name: String): Array[Byte] = {
