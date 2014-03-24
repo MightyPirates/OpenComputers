@@ -6,7 +6,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Optional, FMLCommonHandler}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc.api.Network
-import li.cil.oc.common.tileentity.traits.IC2PowerGridAware
+import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
@@ -37,7 +37,7 @@ object EventHandler {
   */
 
   @Optional.Method(modid = "IC2")
-  def scheduleIC2Add(tileEntity: TileEntity with IC2PowerGridAware) = pending.synchronized {
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) = pending.synchronized {
     pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
       tileEntity.addedToPowerGrid = true
@@ -45,7 +45,7 @@ object EventHandler {
   }
 
   @Optional.Method(modid = "IC2")
-  def scheduleIC2Remove(tileEntity: TileEntity with IC2PowerGridAware) = pending.synchronized {
+  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) = pending.synchronized {
     pending += (() => if (tileEntity.addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
       tileEntity.addedToPowerGrid = false

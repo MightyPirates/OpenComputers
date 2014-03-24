@@ -38,6 +38,7 @@ object PacketType extends Enumeration {
   Clipboard,
   MouseClickOrDrag,
   MouseScroll,
+  MouseUp,
   MultiPartPlace,
   RobotStateRequest,
   ServerSide,

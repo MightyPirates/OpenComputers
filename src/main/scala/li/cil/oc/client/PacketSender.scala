@@ -109,6 +109,24 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendMouseUp(b: component.Buffer, x: Int, y: Int, button: Int) {
+    val pb = new PacketBuilder(PacketType.MouseUp)
+
+    b.owner match {
+      case t: TextBuffer if t.tier > 0 =>
+        pb.writeTileEntity(t)
+      case t: component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+      case _ => return
+    }
+    pb.writeInt(x)
+    pb.writeInt(y)
+    pb.writeByte(button.toByte)
+
+    pb.sendToServer()
+  }
+
   def sendMultiPlace() {
     val pb = new PacketBuilder(PacketType.MultiPartPlace)
     pb.sendToServer()
