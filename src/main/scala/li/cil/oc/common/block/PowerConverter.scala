@@ -16,6 +16,8 @@ import net.minecraftforge.common.ForgeDirection
 class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerConverter"
 
+  showInItemList = !Settings.get.ignorePower
+
   private val icons = Array.fill[Icon](6)(null)
 
   private val formatter = new DecimalFormat("#.#")
@@ -36,15 +38,17 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
       tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
     if (Loader.isModLoaded("BuildCraft|Energy")) {
-      addRatio("BC", 1)
+      addRatio("BC", Settings.ratioBC)
     }
     if (Loader.isModLoaded("IC2")) {
-      addRatio("IC2", Settings.ratioIC2 / Settings.ratioBC)
+      addRatio("IC2", Settings.ratioIC2)
     }
     if (Loader.isModLoaded("ThermalExpansion")) {
-      addRatio("TE", Settings.ratioTE / Settings.ratioBC)
+      addRatio("TE", Settings.ratioTE)
     }
-    addRatio("UE", 1.0 / Settings.ratioBC)
+    if (Loader.isModLoaded("UniversalElectricity")) {
+      addRatio("UE", Settings.ratioUE)
+    }
   }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))

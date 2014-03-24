@@ -7,7 +7,7 @@ import net.minecraftforge.common.ForgeDirection
 import li.cil.oc.Settings
 
 @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
-trait IndustrialCraft2 extends UniversalElectricity with IEnergySink {
+trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
   // ----------------------------------------------------------------------- //
@@ -33,26 +33,18 @@ trait IndustrialCraft2 extends UniversalElectricity with IEnergySink {
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "IC2")
-  def getMaxSafeInput = Integer.MAX_VALUE
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnect(direction)
 
   @Optional.Method(modid = "IC2")
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnect(direction, null)
+  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =
+    tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
+
+  @Optional.Method(modid = "IC2")
+  def getMaxSafeInput = Integer.MAX_VALUE
 
   @Optional.Method(modid = "IC2")
   def demandedEnergyUnits = {
     if (Settings.get.ignorePower || isClient) 0
-    else {
-      var maxDemand = 0.0
-      for (side <- ForgeDirection.VALID_DIRECTIONS) connector(side) match {
-        case Some(node) =>
-          maxDemand = math.max(maxDemand, node.globalBufferSize - node.globalBuffer)
-        case _ =>
-      }
-      maxDemand * Settings.ratioBC / Settings.ratioIC2
-    }
+    else ForgeDirection.VALID_DIRECTIONS.map(side => globalBufferSize(side) - globalBuffer(side)).max / Settings.ratioIC2
   }
-
-  @Optional.Method(modid = "IC2")
-  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =
-    amount - onReceiveEnergy(directionFrom, (amount * Settings.ratioIC2).toLong, doReceive = true) / Settings.ratioIC2
 }
