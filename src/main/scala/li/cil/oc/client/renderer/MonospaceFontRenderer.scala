@@ -43,6 +43,9 @@ object MonospaceFontRenderer {
 
     // Set up the display lists.
     {
+      val s = Settings.get.fontCharScale
+      val dw = charWidth * s - charWidth
+      val dh = charHeight * s - charHeight
       val t = Tessellator.instance
       // Now create lists for all printable chars.
       for (index <- 1 until 0xFF) {
@@ -52,10 +55,10 @@ object MonospaceFontRenderer {
         val v = y * vStep
         GL11.glNewList(charLists + index, GL11.GL_COMPILE)
         t.startDrawingQuads()
-        t.addVertexWithUV(0, charHeight, 0, u, v + vSize)
-        t.addVertexWithUV(charWidth, charHeight, 0, u + uSize, v + vSize)
-        t.addVertexWithUV(charWidth, 0, 0, u + uSize, v)
-        t.addVertexWithUV(0, 0, 0, u, v)
+        t.addVertexWithUV(-dw, charHeight * s, 0, u, v + vSize)
+        t.addVertexWithUV(charWidth * s, charHeight * s, 0, u + uSize, v + vSize)
+        t.addVertexWithUV(charWidth * s, -dh, 0, u + uSize, v)
+        t.addVertexWithUV(-dw, -dh, 0, u, v)
         t.draw()
         GL11.glTranslatef(charWidth, 0, 0)
         GL11.glEndList()

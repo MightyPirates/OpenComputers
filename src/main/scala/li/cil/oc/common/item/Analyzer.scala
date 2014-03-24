@@ -1,6 +1,5 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.common.network.Player
 import java.util
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
@@ -70,8 +69,8 @@ class Analyzer(val parent: Delegator) extends Delegate {
       player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
         Settings.namespace + "gui.Analyzer.Address",
         address))
+      PacketSender.sendAnalyze(address, player)
     }
-    PacketSender.sendAnalyze(address, player)
   }
 
   override def registerIcons(iconRegister: IconRegister) {
