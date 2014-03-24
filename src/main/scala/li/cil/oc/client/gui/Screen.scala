@@ -11,6 +11,8 @@ import org.lwjgl.opengl.GL11
 class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends Buffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
+  private var didDrag = false
+
   private var x, y = 0
 
   private var mx, my = 0
@@ -48,9 +50,21 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     }
   }
 
-  protected override def mouseMovedOrUp(mouseX: Int, mouseY: Int, which: Int) {
-    super.mouseMovedOrUp(mouseX, mouseY, which)
-    if (which == 0) {
+  protected override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseMovedOrUp(mouseX, mouseY, button)
+    if (button >= 0) {
+      if (didDrag) {
+        val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
+        val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+        val (bw, bh) = buffer.resolution
+        if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
+          PacketSender.sendMouseUp(buffer, bx, by, button)
+        }
+        else {
+          PacketSender.sendMouseUp(buffer, -1, -1, button)
+        }
+      }
+      didDrag = false
       mx = 0
       my = 0
     }
@@ -63,6 +77,7 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {
         PacketSender.sendMouseClick(buffer, bx, by, mx > 0 && my > 0, button)
+        didDrag = mx > 0 && my > 0
         mx = bx
         my = by
       }

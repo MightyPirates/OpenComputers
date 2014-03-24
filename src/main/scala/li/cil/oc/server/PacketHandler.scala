@@ -24,6 +24,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.Clipboard => onClipboard(p)
       case PacketType.MouseClickOrDrag => onMouseClick(p)
       case PacketType.MouseScroll => onMouseScroll(p)
+      case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
@@ -132,6 +133,28 @@ class PacketHandler extends CommonPacketHandler {
         }
         else {
           node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll))
+        }
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onMouseUp(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayerMP =>
+        val node = p.readTileEntity[TileEntity]() match {
+          case Some(t: Screen) => t.origin.node
+          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
+          case _ => return // Invalid packet.
+        }
+        val x = p.readInt()
+        val y = p.readInt()
+        val what = "drop"
+        val button = p.readByte()
+        if (Settings.get.inputUsername) {
+          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+        }
+        else {
+          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button))
         }
       case _ => // Invalid packet.
     }
