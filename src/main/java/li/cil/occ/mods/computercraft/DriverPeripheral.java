@@ -1,20 +1,37 @@
 package li.cil.occ.mods.computercraft;
 
-import com.google.common.collect.Iterables;
-import dan200.computer.api.*;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
-import li.cil.oc.api.network.*;
-import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.oc.api.network.Arguments;
+import li.cil.oc.api.network.Context;
+import li.cil.oc.api.network.ManagedEnvironment;
+import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.Visibility;
 import li.cil.occ.OpenComponents;
 import li.cil.occ.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import java.util.*;
+import com.google.common.collect.Iterables;
 
-public final class DriverPeripheral extends DriverTileEntity {
+import dan200.computer.api.IComputerAccess;
+import dan200.computer.api.ILuaContext;
+import dan200.computer.api.IMount;
+import dan200.computer.api.IPeripheral;
+import dan200.computer.api.IPeripheralHandler;
+import dan200.computer.api.IWritableMount;
+
+public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
+    private static Method cc_getPeripheralFromClass;
 
     static {
         for (String name : OpenComponents.peripheralBlacklist) {
@@ -23,11 +40,25 @@ public final class DriverPeripheral extends DriverTileEntity {
                 blacklist.add(clazz);
             }
         }
+
+        try {
+            cc_getPeripheralFromClass = Class.forName( "dan200.ComputerCraft" ).getMethod("getPeripheralFromClass", Class.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    public Class<?> getTileEntityClass() {
-        return IPeripheral.class;
+    public IPeripheral findPeripheral(TileEntity te) {
+        if (te instanceof IPeripheral) {
+            return (IPeripheral)te;
+        } else {
+            try {
+                return ((IPeripheralHandler)cc_getPeripheralFromClass.invoke(null, te.getClass())).getPeripheral(te);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -41,12 +72,12 @@ public final class DriverPeripheral extends DriverTileEntity {
                 // to be incompatible with OpenComputers when used directly.
                 && !blacklist.contains(tileEntity.getClass())
                 // Actual check if it's a peripheral.
-                && super.worksWith(world, x, y, z);
+                && findPeripheral(tileEntity) != null;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IPeripheral) world.getBlockTileEntity(x, y, z));
+        return new Environment(findPeripheral(world.getBlockTileEntity(x, y, z)));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {
@@ -154,7 +185,7 @@ public final class DriverPeripheral extends DriverTileEntity {
             }
 
             private String mount(final String path, final li.cil.oc.api.network.ManagedEnvironment fileSystem) {
-                fileSystems.put(path, fileSystem);
+                fileSystems.put(path, fileSystem); //TODO This is per peripheral/Environment. It would be far better with per computer
                 context.node().connect(fileSystem.node());
                 return path;
             }
