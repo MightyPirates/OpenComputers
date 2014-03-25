@@ -15,19 +15,19 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   @Optional.Method(modid = "IC2")
   override def validate() {
     super.validate()
-    if (!addedToPowerGrid) TickHandler.scheduleIC2Add(this)
+    if (isServer && !addedToPowerGrid) TickHandler.scheduleIC2Add(this)
   }
 
   @Optional.Method(modid = "IC2")
   override def invalidate() {
     super.invalidate()
-    if (addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (isServer && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
   }
 
   @Optional.Method(modid = "IC2")
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (isServer && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //
