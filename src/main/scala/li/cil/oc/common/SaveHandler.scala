@@ -20,10 +20,12 @@ object SaveHandler {
   def scheduleSave(dimension: Int, chunk: ChunkCoordIntPair, name: String, data: Array[Byte]) = saveData.synchronized {
     if (chunk == null) throw new IllegalArgumentException("chunk is null")
     else {
-      val chunks = saveData.getOrElseUpdate(dimension, mutable.Map.empty)
       // Make sure we get rid of old versions (e.g. left over by other mods
-      // triggering a save - this is mostly used for RiM compatibility).
-      chunks.values.foreach(_ -= name)
+      // triggering a save - this is mostly used for RiM compatibility). We
+      // need to do this for *each* dimension, in case computers are teleported
+      // across dimensions.
+      for (chunks <- saveData.values) chunks.values.foreach(_ -= name)
+      val chunks = saveData.getOrElseUpdate(dimension, mutable.Map.empty)
       chunks.getOrElseUpdate(chunk, mutable.Map.empty) += name -> data
     }
   }
