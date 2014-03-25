@@ -5,7 +5,7 @@ include file("hardmode.recipes")
 
 analyzer {
   input: [["oc:craftingTransistor", torchRedstoneActive, "oc:craftingTransistor"]
-          ["oc:circuitTier2", "item.GT_Scanner", "oc:circuitTier2"]
+          ["oc:circuitTier2",{item="item.GT_Scanner", subID=any}, "oc:circuitTier2"]
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
 
