@@ -1,6 +1,8 @@
 package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
+import cpw.mods.fml.common.Loader
+import li.cil.oc.Blocks
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
@@ -10,8 +12,6 @@ import net.minecraft.util.IIcon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.Blocks
-import scala.Some
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -60,7 +60,8 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     GL11.glPopMatrix()
   }
 
-  override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) =
+  override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, realRenderer: RenderBlocks) = {
+    val renderer = patchedRenderer(realRenderer)
     world.getTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         if (keyboard.facing == ForgeDirection.UP || keyboard.facing == ForgeDirection.DOWN) {
@@ -142,4 +143,47 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         true
       case _ => renderer.renderStandardBlock(block, x, y, z)
     }
+  }
+
+  val isOneSevenTwo = Loader.instance.getMinecraftModContainer.getVersion == "1.7.2"
+
+  def patchedRenderer(renderer: RenderBlocks) = if (isOneSevenTwo) {
+    PatchedRenderBlocks.blockAccess = renderer.blockAccess
+    PatchedRenderBlocks.overrideBlockTexture = renderer.overrideBlockTexture
+    PatchedRenderBlocks.flipTexture = renderer.flipTexture
+    PatchedRenderBlocks.renderAllFaces = renderer.renderAllFaces
+    PatchedRenderBlocks.useInventoryTint = renderer.useInventoryTint
+    PatchedRenderBlocks.renderFromInside = renderer.renderFromInside
+    PatchedRenderBlocks.renderMinX = renderer.renderMinX
+    PatchedRenderBlocks.renderMaxX = renderer.renderMaxX
+    PatchedRenderBlocks.renderMinY = renderer.renderMinY
+    PatchedRenderBlocks.renderMaxY = renderer.renderMaxY
+    PatchedRenderBlocks.renderMinZ = renderer.renderMinZ
+    PatchedRenderBlocks.renderMaxZ = renderer.renderMaxZ
+    PatchedRenderBlocks.lockBlockBounds = renderer.lockBlockBounds
+    PatchedRenderBlocks.partialRenderBounds = renderer.partialRenderBounds
+    PatchedRenderBlocks.uvRotateEast = renderer.uvRotateEast
+    PatchedRenderBlocks.uvRotateWest = renderer.uvRotateWest
+    PatchedRenderBlocks.uvRotateSouth = renderer.uvRotateSouth
+    PatchedRenderBlocks.uvRotateNorth = renderer.uvRotateNorth
+    PatchedRenderBlocks.uvRotateTop = renderer.uvRotateTop
+    PatchedRenderBlocks.uvRotateBottom = renderer.uvRotateBottom
+    PatchedRenderBlocks
+  }
+  else renderer
+
+  object PatchedRenderBlocks extends RenderBlocks {
+    override def renderFaceXPos(block: Block, x: Double, y: Double, z: Double, texture: IIcon) {
+      flipTexture = !flipTexture
+      super.renderFaceXPos(block, x, y, z, texture)
+      flipTexture = !flipTexture
+    }
+
+    override def renderFaceZNeg(block: Block, x: Double, y: Double, z: Double, texture: IIcon) {
+      flipTexture = !flipTexture
+      super.renderFaceZNeg(block, x, y, z, texture)
+      flipTexture = !flipTexture
+    }
+  }
+
 }
