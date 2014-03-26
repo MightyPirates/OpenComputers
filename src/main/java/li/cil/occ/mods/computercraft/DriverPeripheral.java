@@ -53,14 +53,18 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
             return (IPeripheral)te;
         } else {
             try {
-                return ((IPeripheralHandler)cc_getPeripheralFromClass.invoke(null, te.getClass())).getPeripheral(te);
+                if (cc_getPeripheralFromClass != null) {
+                    IPeripheralHandler iph = ((IPeripheralHandler)cc_getPeripheralFromClass.invoke(null, te.getClass()));
+                    if (iph != null)
+                        return iph.getPeripheral(te);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         return null;
     }
-
+    
     @Override
     public boolean worksWith(final World world, final int x, final int y, final int z) {
         final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
