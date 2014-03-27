@@ -1,33 +1,32 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.server.TickHandler
-import net.minecraftforge.common.ForgeDirection
 import li.cil.oc.Settings
+import net.minecraftforge.common.ForgeDirection
 
 @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
+  private val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Loader.isModLoaded("IC2")
+
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "IC2")
   override def validate() {
     super.validate()
-    if (isServer && !addedToPowerGrid) TickHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToPowerGrid) TickHandler.scheduleIC2Add(this)
   }
 
-  @Optional.Method(modid = "IC2")
   override def invalidate() {
     super.invalidate()
-    if (isServer && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
   }
 
-  @Optional.Method(modid = "IC2")
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (isServer && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //
