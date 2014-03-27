@@ -10,7 +10,7 @@ import net.minecraftforge.common.ForgeDirection
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
-  private val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Loader.isModLoaded("IC2")
+  private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Loader.isModLoaded("IC2")
 
   // ----------------------------------------------------------------------- //
 
