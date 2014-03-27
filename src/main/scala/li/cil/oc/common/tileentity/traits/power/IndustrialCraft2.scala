@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.{Loader, Optional}
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.common.EventHandler
 import li.cil.oc.Settings
@@ -10,24 +10,23 @@ import net.minecraftforge.common.util.ForgeDirection
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
+  private val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Loader.isModLoaded("IC2")
+
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "IC2")
   override def validate() {
     super.validate()
-    if (!addedToPowerGrid) EventHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToPowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
-  @Optional.Method(modid = "IC2")
   override def invalidate() {
     super.invalidate()
-    if (addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
-  @Optional.Method(modid = "IC2")
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //

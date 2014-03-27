@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import buildcraft.api.power.{PowerHandler, IPowerReceptor}
-import cpw.mods.fml.common.Optional
+import cpw.mods.fml.common.{ModAPIManager, Optional}
 import li.cil.oc.Settings
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -9,12 +9,13 @@ import net.minecraftforge.common.util.ForgeDirection
 trait BuildCraft extends Common with IPowerReceptor {
   private var powerHandler: Option[AnyRef] = None
 
+  private lazy val useBuildCraftPower = isServer && !Settings.get.ignorePower && ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power")
+
   // ----------------------------------------------------------------------- //
 
-  @Optional.Method(modid = "BuildCraftAPI|power")
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && !Settings.get.ignorePower && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (useBuildCraftPower && world.getWorldTime % Settings.get.tickFrequency == 0) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val demand = globalBufferSize(side) - globalBuffer(side)
         if (demand > 1) {
