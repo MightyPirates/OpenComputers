@@ -4,10 +4,14 @@ import cpw.mods.fml.common.{Loader, Optional}
 import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.network.{Packet, Message}
+import li.cil.oc.server.PacketSender
+import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
 class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+  var lastMessage = 0L
+
   private val computers = mutable.ArrayBuffer.empty[AnyRef]
 
   private val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
@@ -85,6 +89,15 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
+    super.relayPacket(sourceSide, packet)
+    val now = System.currentTimeMillis()
+    if (now - lastMessage > 250) {
+      lastMessage = now
+      PacketSender.sendRouterActivity(this)
+    }
+  }
 
   override protected def onPlugMessage(plug: Plug, message: Message) {
     super.onPlugMessage(plug, message)

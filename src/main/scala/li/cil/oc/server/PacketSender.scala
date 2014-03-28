@@ -198,6 +198,14 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendRouterActivity(t: tileentity.Router) {
+    val pb = new PacketBuilder(PacketType.RouterActivity)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToNearbyPlayers(t, 64)
+  }
+
   def sendScreenColorChange(b: common.component.Buffer, foreground: Int, background: Int) {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 

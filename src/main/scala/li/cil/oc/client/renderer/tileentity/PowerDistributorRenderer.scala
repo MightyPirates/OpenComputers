@@ -1,15 +1,17 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.Blocks
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
     if (distributor.globalBuffer > 0) {
       GL11.glPushAttrib(0xFFFFFF)
@@ -24,30 +26,36 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       GL11.glScalef(1.002f, -1.002f, 1.002f)
       GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-      bindTexture(Textures.blockPowerDistributorOn)
-
+      bindTexture(TextureMap.locationBlocksTexture)
       val t = Tessellator.instance
       t.startDrawingQuads()
 
-      t.addVertexWithUV(1, 1, 0, 0, 1)
-      t.addVertexWithUV(0, 1, 0, 1, 1)
-      t.addVertexWithUV(0, 0, 0, 1, 0)
-      t.addVertexWithUV(1, 0, 0, 0, 0)
+      val topOn = Blocks.powerDistributor.iconTopOn
+      t.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
+      t.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
+      t.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
+      t.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
 
-      t.addVertexWithUV(0, 1, 1, 0, 1)
-      t.addVertexWithUV(1, 1, 1, 1, 1)
-      t.addVertexWithUV(1, 0, 1, 1, 0)
-      t.addVertexWithUV(0, 0, 1, 0, 0)
+      val sideOn = Blocks.powerDistributor.iconSideOn
+      t.addVertexWithUV(1, 1, 0, sideOn.getMinU, sideOn.getMaxV)
+      t.addVertexWithUV(0, 1, 0, sideOn.getMaxU, sideOn.getMaxV)
+      t.addVertexWithUV(0, 0, 0, sideOn.getMaxU, sideOn.getMinV)
+      t.addVertexWithUV(1, 0, 0, sideOn.getMinU, sideOn.getMinV)
 
-      t.addVertexWithUV(1, 1, 1, 0, 1)
-      t.addVertexWithUV(1, 1, 0, 1, 1)
-      t.addVertexWithUV(1, 0, 0, 1, 0)
-      t.addVertexWithUV(1, 0, 1, 0, 0)
+      t.addVertexWithUV(0, 1, 1, sideOn.getMinU, sideOn.getMaxV)
+      t.addVertexWithUV(1, 1, 1, sideOn.getMaxU, sideOn.getMaxV)
+      t.addVertexWithUV(1, 0, 1, sideOn.getMaxU, sideOn.getMinV)
+      t.addVertexWithUV(0, 0, 1, sideOn.getMinU, sideOn.getMinV)
 
-      t.addVertexWithUV(0, 1, 0, 0, 1)
-      t.addVertexWithUV(0, 1, 1, 1, 1)
-      t.addVertexWithUV(0, 0, 1, 1, 0)
-      t.addVertexWithUV(0, 0, 0, 0, 0)
+      t.addVertexWithUV(1, 1, 1, sideOn.getMinU, sideOn.getMaxV)
+      t.addVertexWithUV(1, 1, 0, sideOn.getMaxU, sideOn.getMaxV)
+      t.addVertexWithUV(1, 0, 0, sideOn.getMaxU, sideOn.getMinV)
+      t.addVertexWithUV(1, 0, 1, sideOn.getMinU, sideOn.getMinV)
+
+      t.addVertexWithUV(0, 1, 0, sideOn.getMinU, sideOn.getMaxV)
+      t.addVertexWithUV(0, 1, 1, sideOn.getMaxU, sideOn.getMaxV)
+      t.addVertexWithUV(0, 0, 1, sideOn.getMaxU, sideOn.getMinV)
+      t.addVertexWithUV(0, 0, 0, sideOn.getMinU, sideOn.getMinV)
 
       t.draw()
 

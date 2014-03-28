@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 
-class Charger extends traits.Environment with traits.RedstoneAware with Analyzable {
+class Charger extends traits.Environment with traits.RedstoneAware with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()

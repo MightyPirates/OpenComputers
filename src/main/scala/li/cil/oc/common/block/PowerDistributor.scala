@@ -15,6 +15,8 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerDistributor"
 
   private val icons = Array.fill[IIcon](6)(null)
+  var iconSideOn: IIcon = _
+  var iconTopOn: IIcon = _
 
   // ----------------------------------------------------------------------- //
 
@@ -26,12 +28,15 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_top")
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor")
+    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+
+    iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_side_on")
+    iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_top_on")
   }
 
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5

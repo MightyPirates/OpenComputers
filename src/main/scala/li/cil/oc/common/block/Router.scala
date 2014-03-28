@@ -16,6 +16,8 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
 
   private val icons = Array.fill[IIcon](6)(null)
 
+  var iconSideActivity: IIcon = _
+
   // ----------------------------------------------------------------------- //
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
@@ -32,6 +34,8 @@ class Router(val parent: SimpleDelegator) extends SimpleDelegate {
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
+
+    iconSideActivity = iconRegister.registerIcon(Settings.resourceDomain + ":router_side_active")
   }
 
   // ----------------------------------------------------------------------- //

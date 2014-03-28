@@ -13,6 +13,8 @@ import net.minecraftforge.common.util.ForgeDirection
 class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatable with SidedEnvironment with Analyzable {
   def this() = this(false)
 
+  override def validFacings = ForgeDirection.VALID_DIRECTIONS
+
   val keyboard = if (isRemote) null
   else new component.Keyboard {
     override def isUseableByPlayer(p: EntityPlayer) =

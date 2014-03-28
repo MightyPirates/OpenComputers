@@ -465,7 +465,7 @@ object Network extends api.detail.NetworkAPI {
   override def newPacket(nbt: NBTTagCompound) = {
     val source = nbt.getString("source")
     val destination =
-      if (nbt.getBoolean("broadcast")) null
+      if (nbt.hasKey("dest")) null
       else nbt.getString("dest")
     val port = nbt.getInteger("port")
     val ttl = nbt.getInteger("ttl")
@@ -596,8 +596,7 @@ object Network extends api.detail.NetworkAPI {
 
     override def save(nbt: NBTTagCompound) {
       nbt.setString("source", source)
-      nbt.setBoolean("broadcast", destination.isEmpty)
-      if (destination != null) {
+      if (destination != null && !destination.isEmpty) {
         nbt.setString("dest", destination)
       }
       nbt.setInteger("port", port)

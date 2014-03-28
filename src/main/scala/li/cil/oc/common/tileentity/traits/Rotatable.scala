@@ -148,6 +148,8 @@ trait Rotatable extends RotationAware with api.Rotatable {
 
   override def toGlobal(value: ForgeDirection) = cachedInverseTranslation(value.ordinal)
 
+  def validFacings = Array(ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.EAST)
+
   // ----------------------------------------------------------------------- //
 
   protected def onRotationChanged() {
@@ -164,8 +166,12 @@ trait Rotatable extends RotationAware with api.Rotatable {
 
   override def readFromNBT(nbt: NBTTagCompound) = {
     super.readFromNBT(nbt)
-    pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
-    yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
+    if (nbt.hasKey(Settings.namespace + "pitch")) {
+      pitch = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "pitch"))
+    }
+    if (nbt.hasKey(Settings.namespace + "yaw")) {
+      yaw = ForgeDirection.getOrientation(nbt.getInteger(Settings.namespace + "yaw"))
+    }
     validatePitchAndYaw()
     updateTranslation()
   }
