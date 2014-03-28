@@ -42,6 +42,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RobotXp => onRobotXp(p)
       case PacketType.RotatableState => onRotatableState(p)
+      case PacketType.RouterActivity => onRouterActivity(p)
       case PacketType.ScreenColorChange => onScreenColorChange(p)
       case PacketType.ScreenCopy => onScreenCopy(p)
       case PacketType.ScreenDepthChange => onScreenDepthChange(p)
@@ -219,6 +220,12 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t) =>
         t.pitch = p.readDirection()
         t.yaw = p.readDirection()
+      case _ => // Invalid packet.
+    }
+
+  def onRouterActivity(p: PacketParser) =
+    p.readTileEntity[Router]() match {
+      case Some(t) => t.lastMessage = System.currentTimeMillis()
       case _ => // Invalid packet.
     }
 

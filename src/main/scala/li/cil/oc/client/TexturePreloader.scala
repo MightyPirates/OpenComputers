@@ -23,7 +23,6 @@ object TexturePreloader extends ResourceManagerReloadListener {
   val blockCable = new ResourceLocation(Settings.resourceDomain, "textures/blocks/cable.png")
   val blockCaseFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/case_front_on.png")
   val blockHologram = new ResourceLocation(Settings.resourceDomain, "textures/blocks/hologram_effect.png")
-  val blockPowerDistributorOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/power_distributor_on.png")
   val blockRackFrontOn = new ResourceLocation(Settings.resourceDomain, "textures/blocks/rack_front_on.png")
   val blockRobot = new ResourceLocation(Settings.resourceDomain, "textures/blocks/robot.png")
   val blockScreenUpIndicator = new ResourceLocation(Settings.resourceDomain, "textures/blocks/screen/up_indicator.png")
@@ -49,7 +48,6 @@ object TexturePreloader extends ResourceManagerReloadListener {
 
     manager.getResource(blockCable)
     manager.getResource(blockCaseFrontOn)
-    manager.getResource(blockPowerDistributorOn)
     manager.getResource(blockRackFrontOn)
     manager.getResource(blockRobot)
     manager.getResource(blockScreenUpIndicator)

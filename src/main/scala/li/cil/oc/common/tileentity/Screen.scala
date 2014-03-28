@@ -22,6 +22,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   _isOutputEnabled = true
 
+  override def validFacings = ForgeDirection.VALID_DIRECTIONS
+
   // ----------------------------------------------------------------------- //
 
   override protected val _buffer = new component.Buffer(this) {

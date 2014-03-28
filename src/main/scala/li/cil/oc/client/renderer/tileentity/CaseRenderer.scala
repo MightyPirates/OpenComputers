@@ -10,7 +10,7 @@ import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 
 object CaseRenderer extends TileEntitySpecialRenderer {
-  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+  override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val computer = tileEntity.asInstanceOf[Case]
     if (computer.isRunning) {
       GL11.glPushAttrib(0xFFFFFF)
