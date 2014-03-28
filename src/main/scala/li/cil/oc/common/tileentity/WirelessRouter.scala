@@ -37,9 +37,7 @@ class WirelessRouter extends Router with WirelessEndpoint {
   // ----------------------------------------------------------------------- //
 
   override def receivePacket(packet: Packet, distance: Double) {
-    if (queue.size < maxQueueSize) {
-      queue += ForgeDirection.UNKNOWN -> packet.hop()
-    }
+    tryEnqueuePacket(ForgeDirection.UNKNOWN, packet)
     if (Loader.isModLoaded("ComputerCraft")) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
@@ -50,8 +48,8 @@ class WirelessRouter extends Router with WirelessEndpoint {
 
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     super.relayPacket(sourceSide, packet)
-    if (sourceSide != ForgeDirection.UNKNOWN && strength > 0) {
-      if (sourceSide == null || {
+    if (strength > 0) {
+      if (sourceSide == null || sourceSide == ForgeDirection.UNKNOWN || {
         val cost = Settings.get.wirelessCostPerRange
         val connector = plugs(sourceSide.ordinal).node.asInstanceOf[Connector]
         connector.tryChangeBuffer(-strength * cost)

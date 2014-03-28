@@ -18,6 +18,10 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val maxQueueSize = 20
 
+  protected var relayCooldown = 0
+
+  protected val relayDelay = 5
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
@@ -29,9 +33,22 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   override def updateEntity() {
     super.updateEntity()
-    if (world.getWorldTime % 5 == 0 && queue.nonEmpty) {
+    if (relayCooldown > 0) {
+      relayCooldown -= 1
+    }
+    else if (queue.nonEmpty) {
       val (sourceSide, packet) = queue.dequeue()
       relayPacket(sourceSide, packet)
+      relayCooldown = relayDelay
+    }
+  }
+
+  protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) {
+    if (packet.ttl > 0 && queue.size < maxQueueSize) {
+      queue += sourceSide -> packet.hop()
+      if (relayCooldown <= 0) {
+        relayCooldown = relayDelay
+      }
     }
   }
 
@@ -51,6 +68,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
       val packet = api.Network.newPacket(tag)
       queue += side -> packet
     })
+    if (nbt.hasKey(Settings.namespace + "relayCooldown")) {
+      relayCooldown = nbt.getInteger(Settings.namespace + "relayCooldown")
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -69,6 +89,9 @@ trait Hub extends traits.Environment with SidedEnvironment {
           packet.save(tag)
           tag
       })
+      if (relayCooldown > 0) {
+        nbt.setInteger(Settings.namespace + "relayCooldown", relayCooldown)
+      }
     }
   }
 
@@ -98,7 +121,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected def onPlugMessage(plug: Plug, message: Message) {
     if (message.name == "network.message") message.data match {
-      case Array(packet: Packet) if packet.ttl > 0 && queue.size < maxQueueSize => queue += plug.side -> packet.hop()
+      case Array(packet: Packet) => tryEnqueuePacket(plug.side, packet)
       case _ =>
     }
   }

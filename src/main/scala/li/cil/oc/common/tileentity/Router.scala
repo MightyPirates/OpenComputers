@@ -93,7 +93,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   override protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
     super.relayPacket(sourceSide, packet)
     val now = System.currentTimeMillis()
-    if (now - lastMessage > 250) {
+    if (now - lastMessage >= (relayDelay - 1) * 50) {
       lastMessage = now
       PacketSender.sendRouterActivity(this)
     }
