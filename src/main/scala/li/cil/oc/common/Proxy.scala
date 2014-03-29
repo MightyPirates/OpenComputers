@@ -16,6 +16,7 @@ import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchite
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.util.mods.ComputerCraft
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -24,8 +25,12 @@ class Proxy {
 
     Blocks.init()
     Items.init()
+
     if (Loader.isModLoaded("ForgeMultipart")) {
       MultiPart.init()
+    }
+    if (Loader.isModLoaded("ComputerCraft")) {
+      ComputerCraft.init()
     }
 
     api.CreativeTab.Instance = CreativeTab

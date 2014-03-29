@@ -1,6 +1,6 @@
 package li.cil.oc.server.fs
 
-import dan200.computer.api.IWritableMount
+import dan200.computercraft.api.filesystem.IWritableMount
 import java.io.{IOException, OutputStream}
 import li.cil.oc.api.fs.Mode
 

@@ -1,21 +1,21 @@
 /**
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2013. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2014. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 
-package dan200.computer.api;
+package dan200.computercraft.api.filesystem;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 /**
- * Represents a read only part of a virtual filesystem that can be mounted onto a computer using IComputerAccess.mount().
+ * Represents a read only part of a virtual filesystem that can be mounted onto a computercraft using IComputerAccess.mount().
  * Ready made implementations of this interface can be created using ComputerCraftAPI.createSaveDirMount() or ComputerCraftAPI.createResourceMount(), or you're free to implement it yourselves!
- * @see ComputerCraftAPI#createSaveDirMount(World, String)
- * @see ComputerCraftAPI#createResourceMount(Class, String, String)
- * @see IComputerAccess#mount(String, IMount)
+ * @see dan200.computercraft.api.ComputerCraftAPI#createSaveDirMount(World, String)
+ * @see dan200.computercraft.api.ComputerCraftAPI#createResourceMount(Class, String, String)
+ * @see dan200.computercraft.api.peripheral.IComputerAccess#mount(String, IMount)
  * @see IWritableMount
  */
 public interface IMount

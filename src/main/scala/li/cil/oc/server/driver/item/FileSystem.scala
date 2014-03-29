@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import dan200.computer.api.IMedia
+import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.fs.Label

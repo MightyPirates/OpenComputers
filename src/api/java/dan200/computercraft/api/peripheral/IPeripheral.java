@@ -1,15 +1,17 @@
 /**
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2013. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2014. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 
-package dan200.computer.api;
+package dan200.computercraft.api.peripheral;
+
+import dan200.computercraft.api.lua.ILuaContext;
 
 /**
  * The interface that defines a peripheral. This should be implemented by the
- * TileEntity of any block that you wish to be interacted with by
- * computer or turtle.
+ * TileEntity of any common that you wish to be interacted with by
+ * computercraft or turtle.
  */
 public interface IPeripheral
 {
@@ -30,16 +32,16 @@ public interface IPeripheral
     public String[] getMethodNames();
     
 	/**
-	 * This is called when a lua program on an attached computer calls peripheral.call() with
+	 * This is called when a lua program on an attached computercraft calls peripheral.call() with
 	 * one of the methods exposed by getMethodNames().<br>
 	 * <br>
 	 * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
 	 * when interacting with minecraft objects.
-	 * @param 	computer	The interface to the computer that is making the call. Remember that multiple
+	 * @param 	computer	The interface to the computercraft that is making the call. Remember that multiple
 	 *						computers can be attached to a peripheral at once.
 	 * @param	context		The context of the currently running lua thread. This can be used to wait for events
 	 *						or otherwise yield.
-	 * @param	method		An integer identifying which of the methods from getMethodNames() the computer
+	 * @param	method		An integer identifying which of the methods from getMethodNames() the computercraft
 	 *						wishes to call. The integer indicates the index into the getMethodNames() table
 	 *						that corresponds to the string passed into peripheral.call()
 	 * @param	arguments	An array of objects, representing the arguments passed into peripheral.call().<br>
@@ -60,47 +62,38 @@ public interface IPeripheral
     public Object[] callMethod( IComputerAccess computer, ILuaContext context, int method, Object[] arguments ) throws Exception;
     
 	/**
-	 * Is called before the computer attempts to attach to the peripheral, and should return whether to allow
-	 * the attachment. Use this to restrict the number of computers that can attach, or to limit attachments to
-	 * certain world directions.<br>
-	 * If true is returned, attach() will be called shortly afterwards, and the computer will be able to make method calls.
-	 * If false is returned, attach() will not be called, and the peripheral will be invisible to the computer.
-	 * @param 	side		The world direction (0=bottom, 1=top, etc) that the computer lies relative to the peripheral.
-	 * @return	Whether to allow the attachment, as a boolean.
-	 * @see 	#attach
-	 */
-    public boolean canAttachToSide( int side );
-
-	/**
-	 * Is called when canAttachToSide has returned true, and a computer is attaching to the peripheral.
-	 * This will occur when a peripheral is placed next to an active computer, when a computer is turned on next to a peripheral,
+	 * Is called when canAttachToSide has returned true, and a computercraft is attaching to the peripheral.
+	 * This will occur when a peripheral is placed next to an active computercraft, when a computercraft is turned on next to a peripheral,
 	 * or when a turtle travels into a square next to a peripheral.
-	 * Between calls to attach() and detach(), the attached computer can make method calls on the peripheral using peripheral.call().
+	 * Between calls to attach() and detach(), the attached computercraft can make method calls on the peripheral using peripheral.call().
 	 * This method can be used to keep track of which computers are attached to the peripheral, or to take action when attachment
 	 * occurs.<br>
 	 * <br>
 	 * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
 	 * when interacting with minecraft objects.
-	 * @param 	computer		The interface to the computer that is being attached. Remember that multiple
+	 * @param 	computer		The interface to the computercraft that is being attached. Remember that multiple
 	 *							computers can be attached to a peripheral at once.
-	 * @see		#canAttachToSide
 	 * @see		#detach
 	 */
     public void attach( IComputerAccess computer );
 
 	/**
-	 * Is called when a computer is detaching from the peripheral.
-	 * This will occur when a computer shuts down, when the peripheral is removed while attached to computers,
+	 * Is called when a computercraft is detaching from the peripheral.
+	 * This will occur when a computercraft shuts down, when the peripheral is removed while attached to computers,
 	 * or when a turtle moves away from a square attached to a peripheral.
 	 * This method can be used to keep track of which computers are attached to the peripheral, or to take action when detachment
 	 * occurs.<br>
 	 * <br>
 	 * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
 	 * when interacting with minecraft objects.
-	 * @param 	computer		The interface to the computer that is being detached. Remember that multiple
+	 * @param 	computer		The interface to the computercraft that is being detached. Remember that multiple
 	 *							computers can be attached to a peripheral at once.
-	 * @see		#canAttachToSide
 	 * @see		#detach
 	 */
     public void detach( IComputerAccess computer );
+
+    /**
+     * TODO: Document me
+     */
+    public boolean equals( IPeripheral other );
 }
