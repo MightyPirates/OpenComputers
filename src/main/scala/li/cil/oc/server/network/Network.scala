@@ -1,11 +1,12 @@
 package li.cil.oc.server.network
 
-import cpw.mods.fml.common.{Loader, FMLCommonHandler}
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, WirelessEndpoint, SidedEnvironment, Environment, Visibility}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
@@ -370,7 +371,7 @@ object Network extends api.detail.NetworkAPI {
           case Some(node: MutableNode) =>
             neighborNode match {
               case Some(neighbor: MutableNode) if neighbor != node && neighbor.network != null =>
-                val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
+                val canConnect = !Mods.ForgeMultipart.isAvailable ||
                   (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
                 val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
                 if (canConnect && canConnectIM) neighbor.connect(node)
@@ -395,7 +396,7 @@ object Network extends api.detail.NetworkAPI {
     tileEntity match {
       case host: SidedEnvironment => Option(host.sidedNode(side))
       case host: Environment => Some(host.node)
-      case host if Loader.isModLoaded("ForgeMultipart") => getMultiPartNode(host)
+      case host if Mods.ForgeMultipart.isAvailable => getMultiPartNode(host)
       case _ => None
     }
 

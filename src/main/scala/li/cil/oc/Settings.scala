@@ -1,13 +1,14 @@
 package li.cil.oc
 
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
-import cpw.mods.fml.common.{ModAPIManager, Loader}
+import cpw.mods.fml.common.ModAPIManager
 import java.io._
 import java.util.logging.Level
 import li.cil.oc.util.PackedColor
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
+import li.cil.oc.util.mods.Mods
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -98,10 +99,10 @@ class Settings(config: Config) {
 
   val pureIgnorePower = config.getBoolean("power.ignorePower")
   val ignorePower = pureIgnorePower ||
-    (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|power") &&
-      !Loader.isModLoaded("IC2") &&
-      !Loader.isModLoaded("ThermalExpansion") &&
-      !Loader.isModLoaded("UniversalElectricity"))
+    (!Mods.BuildCraftPower.isAvailable &&
+      !Mods.IndustrialCraft2.isAvailable &&
+      !Mods.ThermalExpansion.isAvailable &&
+      !Mods.UniversalElectricity.isAvailable)
   val tickFrequency = config.getDouble("power.tickFrequency") max 1
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")

@@ -11,7 +11,7 @@ import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.ProjectRed
+import li.cil.oc.util.mods.{Mods, ProjectRed}
 import li.cil.oc.{OpenComputers, UpdateCheck, Items, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.{ItemMap, ItemStack}
@@ -74,7 +74,7 @@ object EventHandler {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningLuaFallback")))
         }
-        if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
           player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
             new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningProjectRed")))
         }

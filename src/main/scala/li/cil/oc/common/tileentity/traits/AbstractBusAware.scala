@@ -6,7 +6,7 @@ import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
 import li.cil.oc.server.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.mods.{StargateTech2API, StargateTech2}
+import li.cil.oc.util.mods.{Mods, StargateTech2}
 import net.minecraft.nbt.NBTTagCompound
 import stargatetech2.api.bus.{IBusInterface, IBusDevice}
 import stargatetech2.api.StargateTechAPI
@@ -19,7 +19,8 @@ import stargatetech2.api.StargateTechAPI
 // probably is something derping up in the class loader... the thing that
 // confuses me the most, though, is that it apparently works for redstone and
 // the CC interface, so... yeah. I'm out of ideas.
-trait AbstractBusAware extends TileEntity with network.Environment { self: IBusDevice =>
+trait AbstractBusAware extends TileEntity with network.Environment {
+  self: IBusDevice =>
   protected var _isAbstractBusAvailable: Boolean = _
 
   protected lazy val fakeInterface = Array[AnyRef](StargateTechAPI.api.getFactory.getIBusInterface(this, null))
@@ -51,9 +52,9 @@ trait AbstractBusAware extends TileEntity with network.Environment { self: IBusD
   def isAbstractBusAvailable_=(value: Boolean) = {
     if (value != isAbstractBusAvailable) {
       _isAbstractBusAvailable = value
-      if (isServer && StargateTech2.isAvailable) {
-        if (isAbstractBusAvailable) StargateTech2API.addDevice(world, x, y, z)
-        else StargateTech2API.removeDevice(world, x, y, z)
+      if (isServer && Mods.StargateTech2.isAvailable) {
+        if (isAbstractBusAvailable) StargateTech2.addDevice(world, x, y, z)
+        else StargateTech2.removeDevice(world, x, y, z)
       }
       world.notifyBlocksOfNeighborChange(x, y, z, block)
       if (isServer) ServerPacketSender.sendAbstractBusState(this)

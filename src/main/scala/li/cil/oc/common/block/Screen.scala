@@ -12,7 +12,7 @@ import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.item.{ItemDye, EnumRarity, ItemStack}
 import net.minecraft.util.IIcon
 import net.minecraft.util.StatCollector
 import net.minecraft.world.IBlockAccess
@@ -371,19 +371,19 @@ object Screen {
   class Tier1(parent: SimpleDelegator) extends Screen(parent) {
     def tier = 0
 
-    override def color = 0x7F7F7F
+    override def color = ItemDye.field_150922_c(ItemDye.field_150923_a.indexOf("silver"))
   }
 
   class Tier2(parent: SimpleDelegator) extends Screen(parent) {
     def tier = 1
 
-    override def color = 0xFFFF66
+    override def color = 0xFFFF66 // ItemDye.dyeColors(ItemDye.dyeColorNames.indexOf("yellow"))
   }
 
   class Tier3(parent: SimpleDelegator) extends Screen(parent) {
     def tier = 2
 
-    override def color = 0x66FFFF
+    override def color = 0x66FFFF // ItemDye.dyeColors(ItemDye.dyeColorNames.indexOf("lightBlue"))
   }
 
 }

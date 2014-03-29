@@ -2,7 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
-import li.cil.oc.util.mods.StargateTech2
+import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
@@ -122,7 +122,7 @@ object Items {
     upgradeNavigation = Recipes.addItemDelegate(new item.UpgradeNavigation(multi), "navigationUpgrade")
 
     abstractBus = new item.AbstractBusCard(multi)
-    if (StargateTech2.isAvailable) {
+    if (Mods.StargateTech2.isAvailable) {
       Recipes.addItemDelegate(abstractBus, "abstractBusCard")
     }
 

@@ -1,11 +1,11 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -94,7 +94,7 @@ object Cable {
       if (!world.isAirBlock(tx, ty, tz)) {
         val neighborTileEntity = world.getTileEntity(tx, ty, tz)
         val neighborHasNode = hasNetworkNode(neighborTileEntity, side.getOpposite)
-        val canConnect = !Loader.isModLoaded("ForgeMultipart") ||
+        val canConnect = !Mods.ForgeMultipart.isAvailable ||
           (canConnectFromSide(tileEntity, side) && canConnectFromSide(neighborTileEntity, side.getOpposite))
         val canConnectIM = canConnectFromSideIM(tileEntity, side) && canConnectFromSideIM(neighborTileEntity, side.getOpposite)
         if (neighborHasNode && canConnect && canConnectIM) {
@@ -114,7 +114,7 @@ object Cable {
         if (host.getWorldObj.isRemote) host.canConnect(side)
         else host.sidedNode(side) != null
       case host: Environment => true
-      case host if Loader.isModLoaded("ForgeMultipart") => hasMultiPartNode(tileEntity)
+      case host if Mods.ForgeMultipart.isAvailable => hasMultiPartNode(tileEntity)
       case _ => false
     }
 

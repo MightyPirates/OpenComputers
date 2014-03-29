@@ -1,16 +1,17 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import ic2.api.energy.tile.IEnergySink
 import li.cil.oc.common.EventHandler
 import li.cil.oc.Settings
+import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.util.ForgeDirection
 
 @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
-  private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Loader.isModLoaded("IC2")
+  private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
 
   // ----------------------------------------------------------------------- //
 

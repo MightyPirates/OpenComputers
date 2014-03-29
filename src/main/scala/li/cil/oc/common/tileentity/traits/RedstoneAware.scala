@@ -1,9 +1,10 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
+import li.cil.oc.util.mods.Mods
 import mods.immibis.redlogic.api.wiring.{IWire, IRedstoneUpdatable, IRedstoneEmitter, IConnectable}
 import net.minecraft.init.Blocks
 import net.minecraft.nbt.NBTTagCompound
@@ -121,7 +122,7 @@ trait RedstoneAware extends RotationAware with IConnectable with IRedstoneEmitte
     // See BlockRedstoneLogic.getInputStrength() for reference.
     val vanilla = math.max(world.getIndirectPowerLevelTo(sx, sy, sz, side.ordinal()),
       if (world.getBlock(sx, sy, sz) == Blocks.redstone_wire) world.getBlockMetadata(sx, sy, sz) else 0)
-    val redLogic = if (Loader.isModLoaded("RedLogic")) {
+    val redLogic = if (Mods.RedLogic.isAvailable) {
       world.getTileEntity(sx, sy, sz) match {
         case emitter: IRedstoneEmitter =>
           var strength = 0

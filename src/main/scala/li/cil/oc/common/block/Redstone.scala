@@ -1,8 +1,8 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Loader
 import java.util
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Items, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -19,10 +19,10 @@ class Redstone(val parent: SimpleDelegator) extends RedstoneAware with SimpleDel
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    if (Loader.isModLoaded("RedLogic")) {
+    if (Mods.RedLogic.isAvailable) {
       tooltip.addAll(Tooltip.get(Items.rs.unlocalizedName + ".RedLogic"))
     }
-    if (Loader.isModLoaded("MineFactoryReloaded")) {
+    if (Mods.MineFactoryReloaded.isAvailable) {
       tooltip.addAll(Tooltip.get(Items.rs.unlocalizedName + ".RedNet"))
     }
   }

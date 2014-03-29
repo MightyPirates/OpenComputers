@@ -1,12 +1,13 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity.traits.{Rotatable, BundledRedstoneAware}
 import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, CreativeTab}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaBlock}
 import net.minecraft.block.Block
@@ -508,7 +509,7 @@ trait RedstoneDelegator[Child <: Delegate] extends Delegator[Child] with IConnec
     }
 
   abstract override def onNeighborBlockChange(world: World, x: Int, y: Int, z: Int, block: Block) {
-    if (Loader.isModLoaded("MineFactoryReloaded")) {
+    if (Mods.MineFactoryReloaded.isAvailable) {
       world.getTileEntity(x, y, z) match {
         case t: BundledRedstoneAware => for (side <- ForgeDirection.VALID_DIRECTIONS) {
           world.getBlock(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
