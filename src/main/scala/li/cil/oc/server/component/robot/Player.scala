@@ -1,9 +1,8 @@
 package li.cil.oc.server.component.robot
 
-import cpw.mods.fml.common.Loader
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
-import li.cil.oc.util.mods.{UniversalElectricity, TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{Mods, UniversalElectricity, TinkersConstruct, PortalGun}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
@@ -327,7 +326,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       }
       else 0
     }
-    if (Loader.isModLoaded("UniversalElectricity") && UniversalElectricity.isEnergyItem(stack)) {
+    if (Mods.UniversalElectricity.isAvailable && UniversalElectricity.isEnergyItem(stack)) {
       UniversalElectricity.chargeItem(stack, repair(UniversalElectricity.getEnergyInItem(oldStack), UniversalElectricity.getEnergyInItem(stack)))
     }
     else if (stack.isItemStackDamageable) {

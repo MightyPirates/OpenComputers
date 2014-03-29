@@ -1,7 +1,6 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
@@ -16,7 +15,7 @@ import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchite
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.ComputerCraft
+import li.cil.oc.util.mods.{Mods, ComputerCraft}
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -26,10 +25,10 @@ class Proxy {
     Blocks.init()
     Items.init()
 
-    if (Loader.isModLoaded("ForgeMultipart")) {
+    if (Mods.ForgeMultipart.isAvailable) {
       MultiPart.init()
     }
-    if (Loader.isModLoaded("ComputerCraft")) {
+    if (Mods.ComputerCraft.isAvailable) {
       ComputerCraft.init()
     }
 

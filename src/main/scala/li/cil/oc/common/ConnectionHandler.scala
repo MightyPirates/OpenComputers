@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.network.{Player, IConnectionHandler}
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.ProjectRed
+import li.cil.oc.util.mods.{Mods, ProjectRed}
 import li.cil.oc.{OpenComputers, UpdateCheck, Settings}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.packet.{Packet1Login, NetHandler}
@@ -17,7 +17,7 @@ object ConnectionHandler extends IConnectionHandler {
         if (!LuaStateFactory.isAvailable) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningLuaFallback"))
         }
-        if (ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
           p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningProjectRed"))
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {

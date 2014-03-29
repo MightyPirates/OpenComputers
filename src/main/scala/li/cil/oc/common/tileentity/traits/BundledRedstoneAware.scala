@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits
 import cpw.mods.fml.common.{Loader, Optional}
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.mods.ProjectRed
+import li.cil.oc.util.mods.{Mods, ProjectRed}
 import mods.immibis.redlogic.api.wiring.{IInsulatedRedstoneWire, IBundledUpdatable, IBundledEmitter}
 import mrtjp.projectred.api.{ProjectRedAPI, IBundledTile}
 import net.minecraft.block.Block
@@ -57,7 +57,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   def bundledOutput(side: ForgeDirection, color: Int, value: Int): Unit = if (value != bundledOutput(side, color)) {
     _bundledOutput(toLocal(side).ordinal())(color) = value
 
-    if (Loader.isModLoaded("MineFactoryReloaded")) {
+    if (Mods.MineFactoryReloaded.isAvailable) {
       val nx = x + side.offsetX
       val ny = y + side.offsetY
       val nz = z + side.offsetZ
@@ -123,7 +123,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   // ----------------------------------------------------------------------- //
 
   protected def computeBundledInput(side: ForgeDirection): Array[Int] = {
-    val redLogic = if (Loader.isModLoaded("RedLogic")) {
+    val redLogic = if (Mods.RedLogic.isAvailable) {
       world.getBlockTileEntity(
         x + side.offsetX,
         y + side.offsetY,
@@ -144,7 +144,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
         case _ => null
       }
     } else null
-    val projectRed = if (ProjectRed.isAvailable && ProjectRed.isAPIAvailable) {
+    val projectRed = if (Mods.ProjectRed.isAvailable && ProjectRed.isAPIAvailable) {
       Option(ProjectRedAPI.transmissionAPI.getBundledInput(world, x, y, z, side.ordinal)).fold(null: Array[Int])(_.map(_ & 0xFF))
     } else null
     (redLogic, projectRed) match {
@@ -156,7 +156,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
   }
 
   override protected def onRedstoneOutputEnabledChanged() {
-    if (Loader.isModLoaded("MineFactoryReloaded")) {
+    if (Mods.MineFactoryReloaded.isAvailable) {
       for (side <- ForgeDirection.VALID_DIRECTIONS) {
         val nx = x + side.offsetX
         val ny = y + side.offsetY

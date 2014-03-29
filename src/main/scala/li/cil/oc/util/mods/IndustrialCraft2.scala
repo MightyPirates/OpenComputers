@@ -1,6 +1,5 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Loader
 import net.minecraft.item.ItemStack
 
 object IndustrialCraft2 {
@@ -13,7 +12,7 @@ object IndustrialCraft2 {
     case _: Throwable => None
   }
 
-  def isMiningLaser(stack: ItemStack) = stack != null && Loader.isModLoaded("IC2") && (miningLaser match {
+  def isMiningLaser(stack: ItemStack) = stack != null && Mods.IndustrialCraft2.isAvailable && (miningLaser match {
     case Some(laser) => laser.itemID == stack.itemID
     case _ => false
   })

@@ -1,8 +1,9 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.{Optional, Loader}
+import cpw.mods.fml.common.Optional
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -23,7 +24,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    if (Loader.isModLoaded("ComputerCraft")) {
+    if (Mods.ComputerCraft.isAvailable) {
       tooltip.addAll(Tooltip.get(unlocalizedName + ".CC"))
     }
   }

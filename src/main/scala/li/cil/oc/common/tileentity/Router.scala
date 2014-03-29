@@ -1,11 +1,12 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
 import li.cil.oc.api
 import li.cil.oc.api.network.{Packet, Message}
 import li.cil.oc.server.PacketSender
+import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 
@@ -102,7 +103,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
 
   override protected def onPlugMessage(plug: Plug, message: Message) {
     super.onPlugMessage(plug, message)
-    if (message.name == "network.message" && Loader.isModLoaded("ComputerCraft")) {
+    if (message.name == "network.message" && Mods.ComputerCraft.isAvailable) {
       message.data match {
         case Array(packet: Packet) =>
           packet.data.headOption match {

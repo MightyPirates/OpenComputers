@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.common.Loader
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -38,7 +38,7 @@ class WirelessRouter extends Router with WirelessEndpoint {
 
   override def receivePacket(packet: Packet, distance: Double) {
     tryEnqueuePacket(ForgeDirection.UNKNOWN, packet)
-    if (Loader.isModLoaded("ComputerCraft")) {
+    if (Mods.ComputerCraft.isAvailable) {
       packet.data.headOption match {
         case Some(answerPort: java.lang.Double) => queueMessage(packet.source, packet.destination, packet.port, answerPort.toInt, packet.data.drop(1))
         case _ => queueMessage(packet.source, packet.destination, packet.port, -1, packet.data)

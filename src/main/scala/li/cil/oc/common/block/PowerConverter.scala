@@ -1,10 +1,10 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Loader
 import java.text.DecimalFormat
 import java.util
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -37,16 +37,16 @@ class PowerConverter(val parent: SimpleDelegator) extends SimpleDelegate {
         else (1.0 / ratio, 1.0)
       tooltip.addAll(Tooltip.get(unlocalizedName + "." + name, addExtension(a), addExtension(b)))
     }
-    if (Loader.isModLoaded("BuildCraft|Energy")) {
+    if (Mods.BuildCraftPower.isAvailable) {
       addRatio("BC", Settings.ratioBC)
     }
-    if (Loader.isModLoaded("IC2")) {
+    if (Mods.IndustrialCraft2.isAvailable) {
       addRatio("IC2", Settings.ratioIC2)
     }
-    if (Loader.isModLoaded("ThermalExpansion")) {
+    if (Mods.ThermalExpansion.isAvailable) {
       addRatio("TE", Settings.ratioTE)
     }
-    if (Loader.isModLoaded("UniversalElectricity")) {
+    if (Mods.UniversalElectricity.isAvailable) {
       addRatio("UE", Settings.ratioUE)
     }
   }

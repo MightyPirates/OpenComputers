@@ -1,6 +1,5 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Loader
 import dan200.computercraft.api.ComputerCraftAPI
 import dan200.computercraft.api.filesystem.{IMount, IWritableMount}
 import dan200.computercraft.api.media.IMedia
@@ -20,7 +19,7 @@ object ComputerCraft {
     })
   }
 
-  def isDisk(stack: ItemStack) = Loader.isModLoaded("ComputerCraft") && stack.getItem.isInstanceOf[IMedia]
+  def isDisk(stack: ItemStack) = stack.getItem.isInstanceOf[IMedia]
 
   def createDiskMount(stack: ItemStack, world: World) = if (isDisk(stack)) {
     stack.getItem.asInstanceOf[IMedia].createDataMount(stack, world) match {

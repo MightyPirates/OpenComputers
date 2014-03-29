@@ -1,6 +1,5 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Loader
 import net.minecraft.item.ItemStack
 
 object PortalGun {
@@ -13,7 +12,7 @@ object PortalGun {
 
   def isPortalGun(stack: ItemStack) =
     stack != null && stack.stackSize > 0 &&
-      Loader.isModLoaded("PortalGun") &&
+      Mods.PortalGun.isAvailable &&
       portalGunClass != null &&
       portalGunClass.isAssignableFrom(stack.getItem.getClass)
 

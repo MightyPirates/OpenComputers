@@ -1,7 +1,5 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Loader
-
 object NEI {
   private lazy val layoutManagerClass = try {
     Class.forName("codechicken.nei.LayoutManager")
@@ -11,7 +9,7 @@ object NEI {
   }
 
   def isInputFocused =
-    Loader.isModLoaded("NotEnoughItems") && layoutManagerClass != null && (try {
+    Mods.NotEnoughItems.isAvailable && layoutManagerClass != null && (try {
       layoutManagerClass.getDeclaredMethods.find(m => m.getName == "getInputFocused").fold(false)(m => m.invoke(null) != null)
     }
     catch {
