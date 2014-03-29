@@ -5,6 +5,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Optional, FMLCommonHandler}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
+import java.util.logging.Level
 import li.cil.oc.api.Network
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.driver.Registry
@@ -53,11 +54,16 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = pending.synchronized {
-    for (callback <- pending) {
-      callback()
-    }
-    pending.clear()
+  def onTick(e: ServerTickEvent) = {
+    pending.synchronized {
+      val adds = pending.toArray
+      pending.clear()
+      adds
+    } foreach (callback => {
+      try callback() catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in scheduled tick action.", t)
+      }
+    })
   }
 
   @SubscribeEvent

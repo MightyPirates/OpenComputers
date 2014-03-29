@@ -11,7 +11,7 @@ import java.util.ArrayList;
 // This class is used for adding simple components to the component network.
 // It is triggered from a validate call, and executed in the next update tick.
 public final class SimpleComponentTickHandler {
-    public static final ArrayList<Runnable> pendingAdds = new java.util.ArrayList<Runnable>();
+    public static final ArrayList<Runnable> pending = new java.util.ArrayList<Runnable>();
 
     public static final SimpleComponentTickHandler Instance = new SimpleComponentTickHandler();
 
@@ -20,8 +20,8 @@ public final class SimpleComponentTickHandler {
 
     public static void schedule(final TileEntity tileEntity) {
         if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
-            synchronized (pendingAdds) {
-                pendingAdds.add(new Runnable() {
+            synchronized (pending) {
+                pending.add(new Runnable() {
                     @Override
                     public void run() {
                         Network.joinOrCreateNetwork(tileEntity);
@@ -33,11 +33,13 @@ public final class SimpleComponentTickHandler {
 
     @SubscribeEvent
     public void onTick(TickEvent.ServerTickEvent e) {
-        synchronized (pendingAdds) {
-            for (Runnable runnable : pendingAdds) {
-                runnable.run();
-            }
-            pendingAdds.clear();
+        final Runnable[] adds;
+        synchronized (pending) {
+            adds = pending.toArray(new Runnable[pending.size()]);
+            pending.clear();
+        }
+        for (Runnable runnable : adds) {
+            runnable.run();
         }
     }
 }
