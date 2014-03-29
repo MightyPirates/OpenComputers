@@ -48,12 +48,15 @@ object TickHandler extends ITickHandler {
 
   override def tickStart(`type`: util.EnumSet[TickType], tickData: AnyRef*) {}
 
-  override def tickEnd(`type`: util.EnumSet[TickType], tickData: AnyRef*) = pending.synchronized {
-    for (callback <- pending) {
+  override def tickEnd(`type`: util.EnumSet[TickType], tickData: AnyRef*) = {
+    pending.synchronized {
+      val adds = pending.toArray
+      pending.clear()
+      adds
+    } foreach (callback => {
       try callback() catch {
         case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in scheduled tick action.", t)
       }
-    }
-    pending.clear()
+    })
   }
 }
