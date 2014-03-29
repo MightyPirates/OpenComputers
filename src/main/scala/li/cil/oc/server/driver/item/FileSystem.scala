@@ -1,5 +1,6 @@
 package li.cil.oc.server.driver.item
 
+import cpw.mods.fml.common.Loader
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.api.driver.Slot
@@ -12,10 +13,12 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 
 object FileSystem extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk) || ComputerCraft.isDisk(stack)
+  override def worksWith(stack: ItemStack) =
+    isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk) ||
+      (Loader.isModLoaded("ComputerCraft") && ComputerCraft.isDisk(stack))
 
   override def createEnvironment(stack: ItemStack, container: TileEntity) =
-    if (ComputerCraft.isDisk(stack) && container != null) {
+    if (Loader.isModLoaded("ComputerCraft") && ComputerCraft.isDisk(stack) && container != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft.createDiskMount(stack, container.getWorldObj)
       Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container)) match {
@@ -24,14 +27,15 @@ object FileSystem extends Item {
           environment
         case _ => null
       }
-    } else Items.multi.subItem(stack) match {
+    }
+    else Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, container)
       case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, container)
       case _ => null
     }
 
   override def slot(stack: ItemStack) =
-    if (ComputerCraft.isDisk(stack)) Slot.Disk
+    if (Loader.isModLoaded("ComputerCraft") && ComputerCraft.isDisk(stack)) Slot.Disk
     else Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => Slot.HardDiskDrive
       case Some(disk: FloppyDisk) => Slot.Disk
