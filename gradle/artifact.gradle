@@ -21,6 +21,7 @@ task deobfJar(type: Jar) {
 }
 
 task apiJar(type: Jar) {
+    from sourceSets.main.output
     from sourceSets.main.java
     classifier = 'api'
     include 'li/cil/oc/api/**'
