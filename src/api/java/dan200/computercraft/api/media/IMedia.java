@@ -1,12 +1,14 @@
 /**
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2013. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2014. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 
-package dan200.computer.api;
-import net.minecraft.world.World;
+package dan200.computercraft.api.media;
+
+import dan200.computercraft.api.filesystem.IMount;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 /**
  * Represents an item that can be placed in a disk drive and used by a Computer.
@@ -44,14 +46,14 @@ public interface IMedia
 	public String getAudioRecordName( ItemStack stack );	
     
 	/**
-	 * If this disk represents an item with data (like a floppy disk), get a mount representing it's contents. This will be mounted onto the filesystem of the computer while the media is in the disk drive.
+	 * If this disk represents an item with data (like a floppy disk), get a mount representing it's contents. This will be mounted onto the filesystem of the computercraft while the media is in the disk drive.
 	 * @param stack The itemstack to inspect.
 	 * @param world The world in which the item and disk drive reside.
 	 * @return The mount, or null if this item does not represent an item with data. If the IMount returned also implements IWritableMount, it will mounted using mountWritable()
-	 * @see IMount
-	 * @see IWritableMount
-	 * @see ComputerCraftAPI#createSaveDirMount(World, String)
-	 * @see ComputerCraftAPI#createResourceMount(Class, String, String)
+	 * @see dan200.computercraft.api.filesystem.IMount
+	 * @see dan200.computercraft.api.filesystem.IWritableMount
+	 * @see dan200.computercraft.api.ComputerCraftAPI#createSaveDirMount(World, String, long)
+	 * @see dan200.computercraft.api.ComputerCraftAPI#createResourceMount(Class, String, String)
 	 */
     public IMount createDataMount( ItemStack stack, World world );
 }

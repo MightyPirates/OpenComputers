@@ -1,37 +1,25 @@
 package li.cil.occ.mods.computercraft;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Iterables;
+import dan200.computercraft.api.filesystem.IMount;
+import dan200.computercraft.api.filesystem.IWritableMount;
+import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.peripheral.IComputerAccess;
+import dan200.computercraft.api.peripheral.IPeripheral;
 import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
-import li.cil.oc.api.network.Arguments;
-import li.cil.oc.api.network.Context;
-import li.cil.oc.api.network.ManagedEnvironment;
-import li.cil.oc.api.network.Node;
-import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.network.*;
 import li.cil.occ.OpenComponents;
 import li.cil.occ.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import com.google.common.collect.Iterables;
-
-import dan200.computer.api.IComputerAccess;
-import dan200.computer.api.ILuaContext;
-import dan200.computer.api.IMount;
-import dan200.computer.api.IPeripheral;
-import dan200.computer.api.IPeripheralHandler;
-import dan200.computer.api.IWritableMount;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
-    private static Method cc_getPeripheralFromClass;
+    private static final Method ComputerCraft_getPeripheralAt;
 
     static {
         for (String name : OpenComponents.peripheralBlacklist) {
@@ -41,30 +29,27 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
             }
         }
 
+        Method getPeripheralAt = null;
         try {
-            cc_getPeripheralFromClass = Class.forName( "dan200.ComputerCraft" ).getMethod("getPeripheralFromClass", Class.class);
+            getPeripheralAt = Class.forName("dan200.computercraft.ComputerCraft").
+                    getMethod("getPeripheralAt", World.class, int.class, int.class, int.class, int.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        ComputerCraft_getPeripheralAt = getPeripheralAt;
     }
 
-    public IPeripheral findPeripheral(TileEntity te) {
-        if (te instanceof IPeripheral) {
-            return (IPeripheral)te;
-        } else {
+    protected static IPeripheral findPeripheral(World world, int x, int y, int z) {
+        if (ComputerCraft_getPeripheralAt != null) {
             try {
-                if (cc_getPeripheralFromClass != null) {
-                    IPeripheralHandler iph = ((IPeripheralHandler)cc_getPeripheralFromClass.invoke(null, te.getClass()));
-                    if (iph != null)
-                        return iph.getPeripheral(te);
-                }
+                return (IPeripheral) ComputerCraft_getPeripheralAt.invoke(null, world, x, y, z, -1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         return null;
     }
-    
+
     @Override
     public boolean worksWith(final World world, final int x, final int y, final int z) {
         final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
@@ -76,12 +61,12 @@ public final class DriverPeripheral implements li.cil.oc.api.driver.Block {
                 // to be incompatible with OpenComputers when used directly.
                 && !blacklist.contains(tileEntity.getClass())
                 // Actual check if it's a peripheral.
-                && findPeripheral(tileEntity) != null;
+                && findPeripheral(world, x, y, z) != null;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment(findPeripheral(world.getBlockTileEntity(x, y, z)));
+        return new Environment(findPeripheral(world, x, y, z));
     }
 
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {

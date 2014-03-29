@@ -6,7 +6,7 @@ repositories {
 }
 
 dependencies {
-    compile "li.cil.oc:OpenComputers:MC${config.minecraft.version}-${config.oc.version}:api"
+    compile group: 'li.cil.oc', name: 'OpenComputers', version: "MC${config.minecraft.version}-${config.oc.version}", classifier: 'api'
 }
 
 minecraft {
