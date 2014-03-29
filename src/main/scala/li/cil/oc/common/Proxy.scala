@@ -1,8 +1,8 @@
 package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
-import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.NetworkRegistry
+import cpw.mods.fml.common.{Loader, FMLCommonHandler}
 import java.util.concurrent.Callable
 import li.cil.oc._
 import li.cil.oc.api.FileSystem
@@ -13,6 +13,7 @@ import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchite
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.util.mods.ComputerCraft
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -21,11 +22,15 @@ class Proxy {
 
     Blocks.init()
     Items.init()
+
     /* TODO FMP
     if (Loader.isModLoaded("ForgeMultipart")) {
       MultiPart.init()
     }
     */
+    if (Loader.isModLoaded("ComputerCraft")) {
+      ComputerCraft.init()
+    }
 
     api.CreativeTab.Instance = CreativeTab
     api.Driver.instance = driver.Registry

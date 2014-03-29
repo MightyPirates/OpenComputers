@@ -1,8 +1,8 @@
 package li.cil.oc.api;
 
 import cpw.mods.fml.common.Optional;
-import dan200.computer.api.IMount;
-import dan200.computer.api.IWritableMount;
+import dan200.computercraft.api.filesystem.IMount;
+import dan200.computercraft.api.filesystem.IWritableMount;
 import li.cil.oc.api.detail.FileSystemAPI;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
