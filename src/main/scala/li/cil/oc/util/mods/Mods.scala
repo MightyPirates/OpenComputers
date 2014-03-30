@@ -4,6 +4,7 @@ import cpw.mods.fml.common.versioning.VersionParser
 import cpw.mods.fml.common.{ModAPIManager, Loader}
 
 object Mods {
+  val BattleGear2 = new Mod("battlegear2")
   val BuildCraftPower = new Mod("BuildCraftAPI|power")
   val ComputerCraft = new Mod("ComputerCraft@[1.6,1.50)")
   val ForgeMultipart = new Mod("ForgeMultipart")
