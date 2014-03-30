@@ -24,5 +24,5 @@ public interface IWailaConfigHandler {
 	/* Returns the current value of an option (true/false) with a default value true if not set*/	
 	public boolean getConfig(String key);	
 	
-	public void setConfig(String key, boolean value);
+	//public void setConfig(String key, boolean value);
 }

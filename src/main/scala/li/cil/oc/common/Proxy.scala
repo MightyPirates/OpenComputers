@@ -79,6 +79,8 @@ class Proxy {
     GameRegistry.registerCraftingHandler(CraftingHandler)
 
     Loot.init()
+
+    FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }
 
   def postInit(e: FMLPostInitializationEvent) {

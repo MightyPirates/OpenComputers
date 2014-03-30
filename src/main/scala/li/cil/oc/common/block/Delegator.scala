@@ -9,7 +9,6 @@ import li.cil.oc.common.tileentity.traits.{Rotatable, BundledRedstoneAware}
 import li.cil.oc.util.ItemCosts
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, CreativeTab}
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaBlock}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
@@ -25,8 +24,7 @@ import org.lwjgl.input
 import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
 import scala.collection.mutable
 
-@Optional.Interface(iface = "mcp.mobius.waila.api.IWailaBlock", modid = "Waila")
-class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) with IWailaBlock {
+class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
   setHardness(2f)
   setCreativeTab(CreativeTab)
 
@@ -410,30 +408,6 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) wit
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
     subBlocks.foreach(_.registerIcons(iconRegister))
-  }
-
-  // ----------------------------------------------------------------------- //
-  // Waila
-  // ----------------------------------------------------------------------- //
-
-  @Optional.Method(modid = "Waila")
-  override def getWailaStack(accessor: IWailaDataAccessor, config: IWailaConfigHandler) =
-    subBlock(accessor.getMetadata).fold(null: ItemStack)(_.createItemStack())
-
-  @Optional.Method(modid = "Waila")
-  override def getWailaHead(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = {
-    tooltip
-  }
-
-  @Optional.Method(modid = "Waila")
-  override def getWailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = {
-    subBlock(stack).foreach(_.wailaBody(stack, tooltip, accessor, config))
-    tooltip
-  }
-
-  @Optional.Method(modid = "Waila")
-  override def getWailaTail(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) = {
-    tooltip
   }
 }
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.item.ItemStack;
 
+@Deprecated
 public interface IWailaBlock {
 	/*
 	 *  Use this method to return an item stack in case the default lookup system fails.
