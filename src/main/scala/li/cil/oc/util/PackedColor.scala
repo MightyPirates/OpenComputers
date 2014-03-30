@@ -47,16 +47,16 @@ object PackedColor {
     private val rScale = 255.0 / ((1 << rBits) - 1)
 
     def inflate(value: Int) = {
-      val r = ((((value & rMask) >>> rShift) * rScale).toInt << rShift32) & rMask32
-      val g = ((((value & gMask) >>> gShift) * gScale).toInt << gShift32) & gMask32
-      val b = ((((value & bMask) >>> bShift) * bScale).toInt << bShift32) & bMask32
+      val r = ((((value & rMask) >>> rShift) * rScale + 0.5).toInt << rShift32) & rMask32
+      val g = ((((value & gMask) >>> gShift) * gScale + 0.5).toInt << gShift32) & gMask32
+      val b = ((((value & bMask) >>> bShift) * bScale + 0.5).toInt << bShift32) & bMask32
       r | g | b
     }
 
     def deflate(value: Int) = {
-      val r = ((((value & rMask32) >>> rShift32) / rScale).toInt << rShift) & rMask
-      val g = ((((value & gMask32) >>> gShift32) / gScale).toInt << gShift) & gMask
-      val b = ((((value & bMask32) >>> bShift32) / bScale).toInt << bShift) & bMask
+      val r = ((((value & rMask32) >>> rShift32) / rScale + 0.5).toInt << rShift) & rMask
+      val g = ((((value & gMask32) >>> gShift32) / gScale + 0.5).toInt << gShift) & gMask
+      val b = ((((value & bMask32) >>> bShift32) / bScale + 0.5).toInt << bShift) & bMask
       r | g | b
     }
   }
