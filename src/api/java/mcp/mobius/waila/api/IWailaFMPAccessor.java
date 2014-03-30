@@ -1,6 +1,5 @@
 package mcp.mobius.waila.api;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,19 +14,15 @@ import net.minecraftforge.common.util.ForgeDirection;
  * It will also return things that are unmodified by the overriding systems (like getWailaStack).
  */
 
-public interface IWailaDataAccessor {
-		
+public interface IWailaFMPAccessor {
 	World        		 getWorld();
 	EntityPlayer 		 getPlayer();
-	Block        		 getBlock();
-	int          		 getBlockID();
-	int          		 getMetadata();
 	TileEntity           getTileEntity();
 	MovingObjectPosition getPosition();
-	Vec3                 getRenderingPosition();
 	NBTTagCompound       getNBTData();
+	NBTTagCompound       getFullNBTData();
 	int                  getNBTInteger(NBTTagCompound tag, String keyname);
 	double               getPartialFrame();
-	ForgeDirection       getSide();
-	ItemStack            getStack();
+	Vec3                 getRenderingPosition();
+	String               getID();
 }

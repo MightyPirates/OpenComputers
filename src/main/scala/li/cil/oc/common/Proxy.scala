@@ -78,6 +78,8 @@ class Proxy {
     OpenComputers.channel.register(server.PacketHandler)
 
     Loot.init()
+
+    FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }
 
   def postInit(e: FMLPostInitializationEvent) {
