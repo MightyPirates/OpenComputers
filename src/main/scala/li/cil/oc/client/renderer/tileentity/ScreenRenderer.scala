@@ -45,7 +45,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       return
     }
 
-    val distance = playerDistanceSq()
+    val distance = playerDistanceSq() / math.min(screen.width, screen.height)
     if (distance > maxRenderDistanceSq) {
       return
     }

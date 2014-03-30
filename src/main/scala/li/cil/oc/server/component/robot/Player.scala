@@ -2,9 +2,11 @@ package li.cil.oc.server.component.robot
 
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.eventhandler.Event
+import cpw.mods.fml.common.ObfuscationReflectionHelper
+import java.util.logging.Level
 import li.cil.oc.common.tileentity
-import li.cil.oc.Settings
 import li.cil.oc.util.mods.{Mods, UniversalElectricity, TinkersConstruct, PortalGun}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.{BlockPistonBase, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
@@ -19,6 +21,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.ForgeEventFactory
 import net.minecraftforge.event.world.BlockEvent
@@ -46,7 +49,10 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   setSize(1, 1)
 
   val robotInventory = new Inventory(this)
-  inventory = robotInventory
+  if (Mods.BattleGear2.isAvailable) {
+    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robotInventory, "inventory", "field_71071_by")
+  }
+  else inventory = robotInventory
 
   var facing, side = ForgeDirection.UNKNOWN
 
@@ -122,8 +128,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     callUsingItemInSlot(0, stack => {
-      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
-      if (event.isCanceled || event.useBlock == Event.Result.DENY) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
         return ActivationType.None
       }
 
@@ -153,8 +158,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1)
-      if (!event.isCanceled && event.useItem != Event.Result.DENY) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
         tryUseItem(getCurrentEquippedItem, duration)
       }
       else false
@@ -196,8 +200,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     callUsingItemInSlot(slot, stack => {
-      val event = ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side)
-      if (event.isCanceled || event.useBlock == Event.Result.DENY || event.useItem == Event.Result.DENY) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
         return false
       }
 
@@ -207,8 +210,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
     callUsingItemInSlot(0, stack => {
-      val event = ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side)
-      if (event.isCanceled || event.useBlock == Event.Result.DENY || event.useItem == Event.Result.DENY) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side))) {
         return 0
       }
 
@@ -303,6 +305,20 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
     robot.spawnStackInWorld(stack, if (inPlace) ForgeDirection.UNKNOWN else facing)
+
+  private def shouldCancel(f: () => PlayerInteractEvent) = {
+    try {
+      val event = f()
+      event.isCanceled || event.useBlock == Event.Result.DENY || event.useItem == Event.Result.DENY
+    }
+    catch {
+      case t: Throwable =>
+        if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
+          OpenComputers.log.log(Level.WARNING, "Some event handler screwed up!", t)
+        }
+        false
+    }
+  }
 
   private def callUsingItemInSlot[T](slot: Int, f: (ItemStack) => T, repair: Boolean = true) = {
     val itemsBefore = adjacentItems
