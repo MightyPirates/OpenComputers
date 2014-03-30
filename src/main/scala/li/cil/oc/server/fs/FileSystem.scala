@@ -1,7 +1,6 @@
 package li.cil.oc.server.fs
 
 import cpw.mods.fml.common.Optional
-import dan200.computercraft.api.filesystem.{IWritableMount, IMount}
 import java.io
 import java.net.URL
 import li.cil.oc.api.fs.Label
@@ -67,10 +66,10 @@ object FileSystem extends api.detail.FileSystemAPI {
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
   @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: IMount) = new ComputerCraftFileSystem(mount)
+  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IMount) = new ComputerCraftFileSystem(mount)
 
   @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: IWritableMount) = new ComputerCraftWritableFileSystem(mount)
+  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IWritableMount) = new ComputerCraftWritableFileSystem(mount)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: net.minecraft.tileentity.TileEntity) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull

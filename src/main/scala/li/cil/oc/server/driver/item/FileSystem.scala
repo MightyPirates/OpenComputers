@@ -1,11 +1,9 @@
 package li.cil.oc.server.driver.item
 
-import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
-import li.cil.oc.util.mods.{Mods, ComputerCraft}
 import li.cil.oc.{Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -13,29 +11,17 @@ import net.minecraft.tileentity.TileEntity
 
 object FileSystem extends Item {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk) ||
-      (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack))
+    isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk)
 
   override def createEnvironment(stack: ItemStack, container: TileEntity) =
-    if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && container != null) {
-      val address = addressFromTag(dataTag(stack))
-      val mount = ComputerCraft.createDiskMount(stack, container.getWorldObj)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container)) match {
-        case Some(environment) =>
-          environment.node.asInstanceOf[oc.server.network.Node].address = address
-          environment
-        case _ => null
-      }
-    }
-    else Items.multi.subItem(stack) match {
+    Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, container)
       case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, container)
       case _ => null
     }
 
   override def slot(stack: ItemStack) =
-    if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack)) Slot.Disk
-    else Items.multi.subItem(stack) match {
+    Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => Slot.HardDiskDrive
       case Some(disk: FloppyDisk) => Slot.Disk
       case _ => throw new IllegalArgumentException()
@@ -65,20 +51,6 @@ object FileSystem extends Item {
       tag.getCompoundTag("node").getString("address")
     }
     else java.util.UUID.randomUUID().toString
-
-  private class ComputerCraftLabel(val stack: ItemStack) extends Label {
-    val media = stack.getItem.asInstanceOf[IMedia]
-
-    override def getLabel = media.getLabel(stack)
-
-    override def setLabel(value: String) {
-      media.setLabel(stack, value)
-    }
-
-    override def load(nbt: NBTTagCompound) {}
-
-    override def save(nbt: NBTTagCompound) {}
-  }
 
   private class ItemLabel(val stack: ItemStack) extends Label {
     var label: Option[String] = None

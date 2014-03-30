@@ -1,22 +1,22 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import dan200.computercraft.api.lua.ILuaContext
-import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
-import li.cil.oc.api
 import li.cil.oc.api.network.{Packet, Message}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.mutable
+import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
+import dan200.computercraft.api.lua.ILuaContext
 
-@Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
+@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
 class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   var lastMessage = 0L
 
-  private val computers = mutable.ArrayBuffer.empty[AnyRef]
+  val computers = mutable.Buffer.empty[AnyRef]
 
-  private val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+  val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
 
   // ----------------------------------------------------------------------- //
 
@@ -36,7 +36,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   }
 
   @Optional.Method(modid = "ComputerCraft")
-  override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "transmit", "isWireless")
+  override def getMethodNames = Array("open", "isOpen", "close", "closeAll", "maxPacketSize", "transmit", "isWireless")
 
   @Optional.Method(modid = "ComputerCraft")
   override def callMethod(computer: IComputerAccess, context: ILuaContext, method: Int, arguments: Array[AnyRef]) = getMethodNames()(method) match {
@@ -44,24 +44,25 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
       val port = checkPort(arguments, 0)
       if (openPorts(computer).size >= 128)
         throw new IllegalArgumentException("too many open channels")
-      Array(Boolean.box(openPorts(computer).add(port)))
+      result(openPorts(computer).add(port))
     case "isOpen" =>
       val port = checkPort(arguments, 0)
-      Array(Boolean.box(openPorts(computer).contains(port)))
+      result(openPorts(computer).contains(port))
     case "close" =>
       val port = checkPort(arguments, 0)
-      Array(Boolean.box(openPorts(computer).remove(port)))
+      result(openPorts(computer).remove(port))
     case "closeAll" =>
       openPorts(computer).clear()
       null
+    case "maxPacketSize" =>
+      result(Settings.get.maxNetworkPacketSize)
     case "transmit" =>
       val sendPort = checkPort(arguments, 0)
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
-      relayPacket(null, packet)
-      null
-    case "isWireless" => Array(java.lang.Boolean.FALSE)
+      result(tryEnqueuePacket(null, packet))
+    case "isWireless" => result(this.isInstanceOf[WirelessRouter])
     case _ => null
   }
 

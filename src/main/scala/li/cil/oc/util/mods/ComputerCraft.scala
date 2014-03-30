@@ -27,5 +27,6 @@ object ComputerCraft {
       case mount: IMount => oc.api.FileSystem.fromComputerCraft(mount)
       case _ => null
     }
-  } else null
+  }
+  else null
 }

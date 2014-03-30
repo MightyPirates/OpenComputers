@@ -65,6 +65,10 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    if (Mods.ComputerCraft.isAvailable) {
+      api.Driver.add(driver.item.ComputerCraftMedia)
+    }
+
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
