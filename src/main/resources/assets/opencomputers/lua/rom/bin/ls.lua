@@ -37,7 +37,7 @@ for i = 1, #dirs do
     end
     table.sort(lsd)
     table.sort(lsf)
-    setColor(0x99CCFF)
+    setColor(0x66CCFF)
     for _, d in ipairs(lsd) do
       if options.a or d:sub(1, 1) ~= "." then
         io.write(d .. "\t")

@@ -14,7 +14,7 @@ local function findFile(name, ext)
       dir = shell.resolve(dir)
     end
     dir = fs.concat(fs.concat(dir, name), "..")
-    name = fs.name(name)
+    local name = fs.name(name)
     local list = fs.list(dir)
     if list then
       local files = {}
