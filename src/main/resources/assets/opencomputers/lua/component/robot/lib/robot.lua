@@ -10,6 +10,10 @@ function robot.level()
   return component.robot.level()
 end
 
+function robot.name()
+  return component.robot.name()
+end
+
 -------------------------------------------------------------------------------
 -- World
 

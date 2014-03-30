@@ -54,6 +54,9 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     result(robot.level + xpProgress / xpNeeded)
   }
 
+  @Callback
+  def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
+
   // ----------------------------------------------------------------------- //
 
   @Callback
