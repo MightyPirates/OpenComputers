@@ -1,8 +1,8 @@
 package li.cil.oc.server.fs
 
-import dan200.computercraft.api.filesystem.IMount
+import dan200.computer.api.IMount
 
-class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
+class CC15FileSystem(val mount: IMount) extends InputStreamFileSystem {
   override def spaceTotal = 0
 
   override def spaceUsed = 0

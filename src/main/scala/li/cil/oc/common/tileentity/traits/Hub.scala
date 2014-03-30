@@ -36,20 +36,22 @@ trait Hub extends traits.Environment with SidedEnvironment {
     if (relayCooldown > 0) {
       relayCooldown -= 1
     }
-    else if (queue.nonEmpty) {
+    else if (queue.nonEmpty) queue.synchronized {
       val (sourceSide, packet) = queue.dequeue()
       relayPacket(sourceSide, packet)
       relayCooldown = relayDelay
     }
   }
 
-  protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) {
+  protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
       if (relayCooldown <= 0) {
         relayCooldown = relayDelay
       }
+      true
     }
+    else false
   }
 
   protected def relayPacket(sourceSide: ForgeDirection, packet: Packet) {
@@ -73,7 +75,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
     }
   }
 
-  override def writeToNBT(nbt: NBTTagCompound) {
+  override def writeToNBT(nbt: NBTTagCompound) = queue.synchronized {
     super.writeToNBT(nbt)
     // Side check for Waila (and other mods that may call this client side).
     if (isServer) {

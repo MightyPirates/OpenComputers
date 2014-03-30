@@ -50,7 +50,6 @@ class NetworkCard extends ManagedComponent {
   def send(context: Context, args: Arguments): Array[AnyRef] = {
     val address = args.checkString(0)
     val port = checkPort(args.checkInteger(1))
-    checkPacketSize(args.drop(2))
     val packet = api.Network.newPacket(node.address, address, port, args.drop(2).toArray)
     doSend(packet)
     result(true)
@@ -59,7 +58,6 @@ class NetworkCard extends ManagedComponent {
   @Callback(doc = """function(port:number, data...) -- Broadcasts the specified data on the specified port.""")
   def broadcast(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
-    checkPacketSize(args.drop(1))
     val packet = api.Network.newPacket(node.address, null, port, args.drop(1).toArray)
     doBroadcast(packet)
     result(true)
@@ -121,19 +119,4 @@ class NetworkCard extends ManagedComponent {
   protected def checkPort(port: Int) =
     if (port < 1 || port > 0xFFFF) throw new IllegalArgumentException("invalid port number")
     else port
-
-  protected def checkPacketSize(data: Iterable[AnyRef]) {
-    val size = data.foldLeft(0)((acc, arg) => {
-      acc + (arg match {
-        case null | Unit | None => 4
-        case _: java.lang.Boolean => 4
-        case _: java.lang.Double => 8
-        case value: java.lang.String => value.length
-        case value: Array[Byte] => value.length
-      })
-    })
-    if (size > Settings.get.maxNetworkPacketSize) {
-      throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
-    }
-  }
 }

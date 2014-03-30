@@ -15,7 +15,7 @@ import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchite
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{Mods, ComputerCraft}
+import li.cil.oc.util.mods.{Mods, ComputerCraft16}
 import net.minecraftforge.common.MinecraftForge
 
 class Proxy {
@@ -28,8 +28,8 @@ class Proxy {
     if (Mods.ForgeMultipart.isAvailable) {
       MultiPart.init()
     }
-    if (Mods.ComputerCraft.isAvailable) {
-      ComputerCraft.init()
+    if (Mods.ComputerCraft16.isAvailable) {
+      ComputerCraft16.init()
     }
 
     api.CreativeTab.Instance = CreativeTab
@@ -64,6 +64,13 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.WirelessNetworkCard)
+
+    if (Mods.ComputerCraft15.isAvailable) {
+      api.Driver.add(driver.item.CC15Media)
+    }
+    if (Mods.ComputerCraft16.isAvailable) {
+      api.Driver.add(driver.item.CC16Media)
+    }
 
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)

@@ -4,22 +4,38 @@ import cpw.mods.fml.common.versioning.VersionParser
 import cpw.mods.fml.common.{ModAPIManager, Loader}
 
 object Mods {
-  val BattleGear2 = new Mod("battlegear2")
-  val BuildCraftPower = new Mod("BuildCraftAPI|power")
-  val ComputerCraft = new Mod("ComputerCraft@[1.6,1.50)")
-  val ForgeMultipart = new Mod("ForgeMultipart")
-  val GregTech = new Mod("gregtech_addon")
-  val IndustrialCraft2 = new Mod("IC2")
-  val MineFactoryReloaded = new Mod("MineFactoryReloaded")
-  val NotEnoughItems = new Mod("NotEnoughItems")
-  val PortalGun = new Mod("PortalGun")
-  val ProjectRed = new Mod("ProjRed|Transmission")
-  val RedLogic = new Mod("RedLogic")
-  val StargateTech2 = new Mod("StargateTech2@[0.6.0,)")
-  val ThermalExpansion = new Mod("ThermalExpansion")
-  val UniversalElectricity = new Mod("UniversalElectricity@[3.1,)")
+  val BattleGear2 = new SimpleMod("battlegear2")
+  val BuildCraftPower = new SimpleMod("BuildCraftAPI|power")
+  val ComputerCraft15 = new Mod {
+    val isAvailable = try Class.forName("dan200.computer.api.ComputerCraftAPI") != null catch {
+      case _: Throwable => false
+    }
+  }
+  val ComputerCraft16 = new Mod {
+    val isAvailable = try Class.forName("dan200.computercraft.api.ComputerCraftAPI") != null catch {
+      case _: Throwable => false
+    }
+  }
+  val ComputerCraft = new Mod {
+    override def isAvailable = ComputerCraft15.isAvailable || ComputerCraft16.isAvailable
+  }
+  val ForgeMultipart = new SimpleMod("ForgeMultipart")
+  val GregTech = new SimpleMod("gregtech_addon")
+  val IndustrialCraft2 = new SimpleMod("IC2")
+  val MineFactoryReloaded = new SimpleMod("MineFactoryReloaded")
+  val NotEnoughItems = new SimpleMod("NotEnoughItems")
+  val PortalGun = new SimpleMod("PortalGun")
+  val ProjectRed = new SimpleMod("ProjRed|Transmission")
+  val RedLogic = new SimpleMod("RedLogic")
+  val StargateTech2 = new SimpleMod("StargateTech2@[0.6.0,)")
+  val ThermalExpansion = new SimpleMod("ThermalExpansion")
+  val UniversalElectricity = new SimpleMod("UniversalElectricity@[3.1,)")
 
-  class Mod(val id: String) {
+  trait Mod {
+    def isAvailable: Boolean
+  }
+
+  class SimpleMod(val id: String) {
     val isAvailable = {
       val version = VersionParser.parseVersionReference(id)
       if (Loader.isModLoaded(version.getLabel))

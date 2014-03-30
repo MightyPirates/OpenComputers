@@ -1,11 +1,11 @@
 package li.cil.oc.server.fs
 
-import dan200.computercraft.api.filesystem.IWritableMount
-import java.io.{IOException, OutputStream}
+import dan200.computer.api.IWritableMount
+import java.io.{OutputStream, IOException}
 import li.cil.oc.api.fs.Mode
 
-class ComputerCraftWritableFileSystem(override val mount: IWritableMount)
-  extends ComputerCraftFileSystem(mount)
+class CC15WritableFileSystem(override val mount: IWritableMount)
+  extends CC15FileSystem(mount)
   with OutputStreamFileSystem {
 
   override def delete(path: String) = try {
