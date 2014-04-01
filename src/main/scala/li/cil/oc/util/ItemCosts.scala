@@ -6,7 +6,6 @@ import net.minecraft.block.Block
 import net.minecraft.item.crafting._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
-import scala.Some
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

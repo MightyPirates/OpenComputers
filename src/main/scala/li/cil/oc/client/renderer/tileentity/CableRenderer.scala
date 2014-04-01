@@ -66,8 +66,8 @@ object CableRenderer extends TileEntitySpecialRenderer {
 
         if (connects) {
           val (axis, sign, uv1, uv2, uv3, uv4) = side match {
-            case ForgeDirection.WEST => (0, -1, 1, 1, 1, 1)
-            case ForgeDirection.EAST => (0, 1, 3, 3, 1, 1)
+            case ForgeDirection.WEST => (0, -1, 1, 1, 0, 0)
+            case ForgeDirection.EAST => (0, 1, 2, 2, 1, 1)
             case ForgeDirection.DOWN => (1, -1, 1, 3, 2, 0)
             case ForgeDirection.UP => (1, 1, 2, 0, 3, 1)
             case ForgeDirection.NORTH => (2, -1, 0, 2, 1, 1)
