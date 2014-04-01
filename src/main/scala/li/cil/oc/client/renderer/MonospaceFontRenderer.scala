@@ -107,10 +107,10 @@ object MonospaceFontRenderer {
       // unless every char has a different color this should be quite efficient.
       var cfg = -1
       for ((ch, col) <- value.zip(color.map(PackedColor.unpackForeground(_, depth)))) {
-        val index = 1 + chars.indexOf(ch) match {
+        val index = 1 + (chars.indexOf(ch) match {
           case -1 => chars.indexOf('?')
           case i => i
-        }
+        })
         if (col != cfg) {
           // Color changed, force flush and adjust colors.
           flush()
