@@ -26,8 +26,7 @@ class ClassTransformer extends IClassTransformer {
       if (transformedClass != null
         && !name.startsWith("""net.minecraft.""")
         && !name.startsWith("""net.minecraftforge.""")
-        && !name.startsWith("""li.cil.oc.common.asm.""")
-        && !name.startsWith("""li.cil.oc.api.""")) {
+        && !name.startsWith("""li.cil.oc.common.asm.""")) {
         if (name.startsWith("""li.cil.oc.""")) {
           // Strip foreign interfaces from scala generated classes. This is
           // primarily intended to clean up mix-ins / synthetic classes
