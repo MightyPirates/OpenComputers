@@ -208,9 +208,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
         // scaled to multi-block screens, since we only compute this for the
-        // origin. We add 1 to make sure we at least consume `screenCost`.
+        // origin.
         val (w, h) = buffer.resolution
-        relativeLitArea = 1 + width * height * buffer.lines.foldLeft(0) {
+        relativeLitArea = width * height * buffer.lines.foldLeft(0) {
           (acc, line) => acc + line.count(' ' !=)
         } / (w * h).toDouble
       }
