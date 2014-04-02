@@ -1,6 +1,6 @@
 local package = {}
 
-package.path = "./?.lua;/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua"
+package.path = "/lib/?.lua;/usr/lib/?.lua;/home/lib/?.lua;./?.lua"
 
 local loading = {}
 
