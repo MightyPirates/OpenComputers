@@ -28,7 +28,7 @@ function serialization.serialize(value, pretty)
         return tostring(v)
       end
     elseif t == "string" then
-      return string.format("%q", v)
+      return string.format("%q", v):gsub("\\\n","\\n")
     elseif t == "table" and pretty and getmetatable(v) and getmetatable(v).__tostring then
       return tostring(v)
     elseif t == "table" then
