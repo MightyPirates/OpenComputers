@@ -9,13 +9,13 @@ import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
 import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
-import net.minecraft.item.{ItemBlock, ItemStack}
+import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
 import net.minecraft.world.World
 import net.minecraftforge.common.{MinecraftForge, ForgeHooks, ForgeDirection}
-import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.{Event, ForgeEventFactory}
@@ -107,7 +107,25 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   }
 
   override def interactWith(entity: Entity) = {
-    callUsingItemInSlot(0, stack => super.interactWith(entity))
+    val cancel = try MinecraftForge.EVENT_BUS.post(new EntityInteractEvent(this, entity)) catch {
+      case t: Throwable =>
+        if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
+          OpenComputers.log.log(Level.WARNING, "Some event handler screwed up!", t)
+        }
+        false
+    }
+    !cancel && callUsingItemInSlot(0, stack => {
+      val current = getCurrentEquippedItem
+
+      val result = isItemUseAllowed(stack) && (entity.interactFirst(this) || (entity match {
+        case living: EntityLivingBase if current != null => current.func_111282_a(this, living)
+        case _ => false
+      }))
+      if (current != null && current.stackSize <= 0) {
+        destroyCurrentEquippedItem()
+      }
+      result
+    })
   }
 
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
@@ -130,7 +148,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       val result =
         if (shouldActivate && block.onBlockActivated(world, x, y, z, this, side, hitX, hitY, hitZ))
           ActivationType.BlockActivated
-        else if (tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
+        else if (isItemUseAllowed(stack) && tryPlaceBlockWhileHandlingFunnySpecialCases(stack, x, y, z, side, hitX, hitY, hitZ))
           ActivationType.ItemPlaced
         else if (tryUseItem(stack, duration))
           ActivationType.ItemUsed
@@ -152,9 +170,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   private def tryUseItem(stack: ItemStack, duration: Double) = {
     clearItemInUse()
-    stack != null && stack.stackSize > 0 &&
-      (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
-      (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) && {
+    stack != null && stack.stackSize > 0 && isItemUseAllowed(stack) && {
       val oldSize = stack.stackSize
       val oldDamage = if (stack != null) stack.getItemDamage else 0
       val oldData = if (stack.hasTagCompound) stack.getTagCompound.copy() else null
@@ -288,6 +304,12 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       }
       0
     })
+  }
+
+  private def isItemUseAllowed(stack: ItemStack) = {
+    (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
+      (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) &&
+      !stack.isItemEqual(new ItemStack(Item.leash))
   }
 
   override def dropPlayerItemWithRandomChoice(stack: ItemStack, inPlace: Boolean) =
