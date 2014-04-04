@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.common.{Loader, Optional}
+import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.{Mods, ProjectRed}
@@ -67,7 +67,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       }
     }
 
-    onRedstoneOutputChanged()
+    onRedstoneOutputChanged(side)
   }
 
   // ----------------------------------------------------------------------- //
