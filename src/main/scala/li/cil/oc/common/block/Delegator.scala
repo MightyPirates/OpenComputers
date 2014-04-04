@@ -5,8 +5,8 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
 import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.common.tileentity.traits.{Rotatable, BundledRedstoneAware}
-import li.cil.oc.util.ItemCosts
+import li.cil.oc.common.tileentity.traits.{Colored, Rotatable, BundledRedstoneAware}
+import li.cil.oc.util.{Color, ItemCosts}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.block.Block
@@ -297,10 +297,16 @@ class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {
     }
 
   override def onBlockActivated(world: World, x: Int, y: Int, z: Int, player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
-    subBlock(world, x, y, z) match {
-      case Some(subBlock) => subBlock.rightClick(
-        world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
-      case _ => false
+    world.getBlockTileEntity(x, y, z) match {
+      case colored: Colored if Color.isDye(player.getHeldItem) =>
+        colored.color = Color.dyeColor(player.getHeldItem)
+        world.markBlockForUpdate(x, y, z)
+        true
+      case _ => subBlock(world, x, y, z) match {
+        case Some(subBlock) => subBlock.rightClick(
+          world, x, y, z, player, ForgeDirection.getOrientation(side), hitX, hitY, hitZ)
+        case _ => false
+      }
     }
 
   override def onEntityWalking(world: World, x: Int, y: Int, z: Int, entity: Entity) =

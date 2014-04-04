@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.Settings
+import li.cil.oc.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -17,8 +18,10 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 import scala.language.postfixOps
 
-class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with Analyzable with Ordered[Screen] {
+class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
   def this() = this(0)
+
+  color = Color.byTier(tier)
 
   _isOutputEnabled = true
 
@@ -313,6 +316,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
+    color = Color.byTier(tier)
     super.readFromNBT(nbt)
     // This check is just to avoid powering off any screens that have been
     // placed before this was introduced.

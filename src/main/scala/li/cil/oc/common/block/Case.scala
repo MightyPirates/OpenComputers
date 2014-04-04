@@ -9,7 +9,7 @@ import li.cil.oc.{OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{ItemDye, EnumRarity, ItemStack}
+import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{StatCollector, Icon}
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
@@ -104,20 +104,14 @@ object Case {
 
   class Tier1(parent: SimpleDelegator) extends Case(parent) {
     def tier = 0
-
-    override def color = ItemDye.dyeColors(ItemDye.dyeColorNames.indexOf("silver"))
   }
 
   class Tier2(parent: SimpleDelegator) extends Case(parent) {
     def tier = 1
-
-    override def color = 0xFFFF66 // ItemDye.dyeColors(ItemDye.dyeColorNames.indexOf("yellow"))
   }
 
   class Tier3(parent: SimpleDelegator) extends Case(parent) {
     def tier = 2
-
-    override def color = 0x66FFFF // ItemDye.dyeColors(ItemDye.dyeColorNames.indexOf("lightBlue"))
   }
 
 }

@@ -120,7 +120,11 @@ trait Delegate {
   def color = 0xFFFFFF
 
   @SideOnly(Side.CLIENT)
-  def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int = color
+  def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getBlockTileEntity(x, y, z) match {
+      case colored: tileentity.traits.Colored => colored.color
+      case _ => color
+    }
 
   @SideOnly(Side.CLIENT)
   def icon(side: ForgeDirection): Option[Icon] = None
