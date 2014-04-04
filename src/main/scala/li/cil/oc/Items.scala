@@ -68,6 +68,8 @@ object Items {
   var pcb: item.PrintedCircuitBoard = _
   var card: item.CardBase = _
 
+  var interweb: item.Interweb = _
+
   def init() {
     multi = new item.Delegator(Settings.get.itemId)
 
@@ -139,10 +141,13 @@ object Items {
     server1 = Recipes.addItemDelegate(new item.Server(multi, 0), "server1")
     server2 = Recipes.addItemDelegate(new item.Server(multi, 1), "server2")
 
-    //v1.2.3
+    // v1.2.3
     lootDisk = new item.FloppyDisk(multi) {
       showInItemList = false
     }
+
+    // v1.2.6
+    interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()
@@ -198,41 +203,53 @@ object Items {
     registerExclusive("craftingPiston", new ItemStack(Block.pistonBase), new ItemStack(Block.pistonStickyBase))
     registerExclusive("nuggetGold", new ItemStack(Item.goldNugget))
     registerExclusive("nuggetIron", ironNugget.createItemStack())
-    register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
-    register("oc:craftingCircuitBoard", circuitBoard.createItemStack())
-    register("oc:craftingCircuitBoardPrinted", pcb.createItemStack())
-    register("oc:craftingCard", card.createItemStack())
-    register("oc:craftingWire", cuttingWire.createItemStack())
-    register("oc:circuitTier1", chip1.createItemStack())
-    register("oc:circuitTier2", chip2.createItemStack())
-    register("oc:circuitTier3", chip3.createItemStack())
-    register("oc:craftingTransistor", transistor.createItemStack())
-    register("oc:craftingCU", cu.createItemStack())
-    register("oc:craftingALU", alu.createItemStack())
-    register("oc:craftingCPUTier1", cpu0.createItemStack())
-    register("oc:craftingCPUTier2", cpu1.createItemStack())
-    register("oc:craftingCPUTier3", cpu2.createItemStack())
-    register("oc:componentCardRedstone", rs.createItemStack())
-    register("oc:componentCardLan", lan.createItemStack())
-    register("oc:componentCardWLan", wlan.createItemStack())
-    register("oc:craftingGPUTier1", gpu1.createItemStack())
-    register("oc:craftingGPUTier2", gpu2.createItemStack())
-    register("oc:craftingGPUTier3", gpu3.createItemStack())
+
     register("oc:craftingRAMTier1", ram1.createItemStack())
     register("oc:craftingRAMTier2", ram2.createItemStack())
     register("oc:craftingRAMTier3", ram3.createItemStack())
     register("oc:craftingRAMTier4", ram4.createItemStack())
     register("oc:craftingRAMTier5", ram5.createItemStack())
+
     register("oc:craftingHDDTier1", hdd1.createItemStack())
     register("oc:craftingHDDTier2", hdd2.createItemStack())
     register("oc:craftingHDDTier3", hdd3.createItemStack())
+
+    register("oc:craftingGPUTier1", gpu1.createItemStack())
+    register("oc:craftingGPUTier2", gpu2.createItemStack())
+    register("oc:craftingGPUTier3", gpu3.createItemStack())
+
+    register("oc:componentCardLan", lan.createItemStack())
+    register("oc:componentCardRedstone", rs.createItemStack())
+    register("oc:componentCardWLan", wlan.createItemStack())
+
+    register("oc:craftingGenerator", upgradeGenerator.createItemStack())
+    register("oc:craftingSolarGenerator", upgradeSolarGenerator.createItemStack())
+
+    register("oc:craftingWire", cuttingWire.createItemStack())
+    register("oc:craftingAcid", acid.createItemStack())
+    register("oc:craftingDisk", disk.createItemStack())
+
     register("oc:craftingButtonGroup", buttonGroup.createItemStack())
     register("oc:craftingArrowKey", arrowKeys.createItemStack())
     register("oc:craftingNumPad", numPad.createItemStack())
-    register("oc:craftingDisk", disk.createItemStack())
-    register("oc:craftingAcid", acid.createItemStack())
-    register("oc:craftingGenerator", upgradeGenerator.createItemStack())
-    register("oc:craftingSolarGenerator", upgradeSolarGenerator.createItemStack())
+
+    register("oc:craftingTransistor", transistor.createItemStack())
+    register("oc:circuitTier1", chip1.createItemStack())
+    register("oc:circuitTier2", chip2.createItemStack())
+    register("oc:circuitTier3", chip3.createItemStack())
+    register("oc:craftingALU", alu.createItemStack())
+    register("oc:craftingCU", cu.createItemStack())
+    register("oc:craftingCPUTier1", cpu0.createItemStack())
+    register("oc:craftingCPUTier2", cpu1.createItemStack())
+    register("oc:craftingCPUTier3", cpu2.createItemStack())
+
+    register("oc:craftingCircuitBoardRaw", rawCircuitBoard.createItemStack())
+    register("oc:craftingCircuitBoard", circuitBoard.createItemStack())
+    register("oc:craftingCircuitBoardPrinted", pcb.createItemStack())
+    register("oc:craftingCard", card.createItemStack())
+
+    register("oc:craftingInterweb", interweb.createItemStack())
+
 
     if (OreDictionary.getOres("nuggetIron").exists(ironNugget.createItemStack().isItemEqual)) {
       Recipes.addItemDelegate(ironNugget, "nuggetIron")
