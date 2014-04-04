@@ -3,6 +3,9 @@ package li.cil.oc.client
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer}
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
+import net.minecraft.client.audio.PositionedSoundRecord
+import net.minecraft.client.Minecraft
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 
 object PacketSender {
@@ -54,21 +57,28 @@ object PacketSender {
   }
 
   def sendClipboard(b: component.Buffer, value: String) {
-    if (value != null && !value.isEmpty && System.currentTimeMillis() > clipboardCooldown) {
-      clipboardCooldown = System.currentTimeMillis() + value.length
-      val pb = new CompressedPacketBuilder(PacketType.Clipboard)
-
-      b.owner match {
-        case t: TextBuffer if t.hasKeyboard =>
-          pb.writeTileEntity(t)
-        case t: component.Terminal =>
-          pb.writeTileEntity(t.rack)
-          pb.writeInt(t.number)
-        case _ => return
+    if (value != null && !value.isEmpty) {
+      if (System.currentTimeMillis() < clipboardCooldown) {
+        val player = Minecraft.getMinecraft.thePlayer
+        val handler = Minecraft.getMinecraft.getSoundHandler
+        handler.playSound(new PositionedSoundRecord(new ResourceLocation("note.harp"), 1, 1, player.posX.toFloat, player.posY.toFloat, player.posZ.toFloat))
       }
-      pb.writeUTF(value.substring(0, math.min(value.length, 64 * 1024)))
+      else {
+        clipboardCooldown = System.currentTimeMillis() + value.length / 10
+        val pb = new CompressedPacketBuilder(PacketType.Clipboard)
 
-      pb.sendToServer()
+        b.owner match {
+          case t: TextBuffer if t.hasKeyboard =>
+            pb.writeTileEntity(t)
+          case t: component.Terminal =>
+            pb.writeTileEntity(t.rack)
+            pb.writeInt(t.number)
+          case _ => return
+        }
+        pb.writeUTF(value.substring(0, math.min(value.length, 64 * 1024)))
+
+        pb.sendToServer()
+      }
     }
   }
 

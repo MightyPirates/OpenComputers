@@ -67,7 +67,7 @@ trait BundledRedstoneAware extends RedstoneAware with IBundledEmitter with IBund
       }
     }
 
-    onRedstoneOutputChanged()
+    onRedstoneOutputChanged(side)
   }
 
   // ----------------------------------------------------------------------- //

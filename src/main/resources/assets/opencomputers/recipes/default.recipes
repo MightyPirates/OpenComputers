@@ -87,7 +87,7 @@ graphicsCard3 {
           ["", "oc:craftingCard", ""]]
 }
 internetCard {
-  input: [[web, "oc:circuitTier2", torchRedstoneActive]
+  input: [["oc:craftingInterweb", "oc:circuitTier2", torchRedstoneActive]
           ["", "oc:craftingCard", obsidian]]
 }
 redstoneCard {
@@ -218,6 +218,12 @@ card {
   input: [[nuggetIron, "", ""]
           [nuggetIron, "oc:craftingCircuitBoardPrinted", ""]
           [nuggetIron, nuggetGold, ""]]
+}
+
+interweb {
+  input: [[string, string, string]
+          [string, enderPearl, string]
+          [string, string, string]]
 }
 
 adapter {

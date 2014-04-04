@@ -26,6 +26,7 @@ object ItemCosts {
   terminate(Blocks.stone)
   terminate(Items.blaze_rod)
   terminate(Items.bucket)
+  terminate(Items.clay_ball)
   terminate(Items.coal)
   terminate(Items.diamond)
   for (i <- 0 to 15) terminate(Items.dye, i)
