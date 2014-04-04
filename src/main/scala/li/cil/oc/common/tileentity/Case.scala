@@ -1,18 +1,21 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.Settings
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
 import li.cil.oc.server.driver.Registry
+import li.cil.oc.Settings
+import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with traits.Computer {
+class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
   def this() = this(0, false)
+
+  color = Color.byTier(tier)
 
   @SideOnly(Side.CLIENT)
   override protected def hasConnector(side: ForgeDirection) = side != facing
@@ -53,6 +56,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
 
   override def readFromNBT(nbt: NBTTagCompound) {
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
+    color = Color.byTier(tier)
     super.readFromNBT(nbt)
     recomputeMaxComponents()
   }

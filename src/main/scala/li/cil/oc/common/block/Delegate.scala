@@ -3,9 +3,10 @@ package li.cil.oc.common.block
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+import li.cil.oc.common.tileentity.traits.{Colored, Inventory}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
@@ -14,7 +15,6 @@ import net.minecraft.util._
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import li.cil.oc.common.tileentity.traits.Inventory
 
 trait Delegate {
   val unlocalizedName: String
@@ -122,7 +122,11 @@ trait Delegate {
   def color = 0xFFFFFF
 
   @SideOnly(Side.CLIENT)
-  def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int = color
+  def color(world: IBlockAccess, x: Int, y: Int, z: Int): Int =
+    world.getTileEntity(x, y, z) match {
+      case colored: Colored => colored.color
+      case _ => color
+    }
 
   @SideOnly(Side.CLIENT)
   def icon(side: ForgeDirection): Option[IIcon] = None
