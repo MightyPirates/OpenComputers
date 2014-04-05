@@ -11,6 +11,13 @@ public final class ModComputerCraft implements IMod {
 
     @Override
     public void initialize() {
-        Driver.add(new DriverPeripheral());
+        try {
+            Driver.add(new DriverPeripheral15());
+        } catch (Throwable ignored) {
+        }
+        try {
+            Driver.add(new DriverPeripheral16());
+        } catch (Throwable ignored) {
+        }
     }
 }
