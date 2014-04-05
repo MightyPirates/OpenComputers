@@ -361,6 +361,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
         case _ =>
       }
       servers(slot) = None
+      terminals(slot).keys.clear()
     }
   }
 
