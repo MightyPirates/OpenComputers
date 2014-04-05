@@ -3,15 +3,15 @@ package li.cil.oc.server.network
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import java.lang.reflect.{Modifier, Method, InvocationTargetException}
-import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver.MethodWhitelist
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
+import li.cil.oc.OpenComputers
 import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.server.driver.{Registry, CompoundBlockEnvironment}
 import li.cil.oc.server.network.Component.{PeripheralCallback, ComponentCallback}
 import net.minecraft.nbt.NBTTagCompound
-import scala.Some
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 import scala.collection.{immutable, mutable}
@@ -152,12 +152,20 @@ object Component {
 
   private def analyze(host: Environment) = {
     val callbacks = mutable.Map.empty[String, Callback]
+    val whitelists = mutable.Buffer.empty[Set[String]]
     val seeds = host match {
       case multi: CompoundBlockEnvironment => multi.environments.map {
-        case (_, environment) => environment.getClass: Class[_]
+        case (_, environment) =>
+          environment match {
+            case list: MethodWhitelist => whitelists += Option(list.whitelistedMethods(multi.world, multi.x, multi.y, multi.z)).fold(Set.empty[String])(_.toSet)
+            case _ =>
+          }
+          environment.getClass: Class[_]
       }
-      case _ => Seq(host.getClass: Class[_])
+      case single => Seq(host.getClass: Class[_])
     }
+    val whitelist = whitelists.reduceOption(_.intersect(_)).getOrElse(Set.empty[String])
+    def shouldAdd(name: String) = !callbacks.contains(name) && (whitelist.isEmpty || whitelist.contains(name))
     for (seed <- seeds) {
       var c: Class[_] = seed
       while (c != classOf[Object]) {
@@ -178,7 +186,7 @@ object Component {
           else {
             val a = m.getAnnotation[network.Callback](classOf[network.Callback])
             val name = if (a.value != null && a.value.trim != "") a.value else m.getName
-            if (!callbacks.contains(name)) {
+            if (shouldAdd(name)) {
               callbacks += name -> new ComponentCallback(m, a.direct, a.limit, a.doc)
             }
           }
@@ -190,14 +198,15 @@ object Component {
     host match {
       case multi: CompoundBlockEnvironment => multi.environments.map {
         case (_, environment) => environment match {
-          case peripheral: ManagedPeripheral => for (name <- peripheral.methods() if !callbacks.contains(name)) {
-            callbacks += name -> new PeripheralCallback(name)
-          }
+          case peripheral: ManagedPeripheral =>
+            for (name <- peripheral.methods() if shouldAdd(name)) {
+              callbacks += name -> new PeripheralCallback(name)
+            }
           case _ =>
         }
       }
       case peripheral: ManagedPeripheral =>
-        for (name <- peripheral.methods() if !callbacks.contains(name)) {
+        for (name <- peripheral.methods() if shouldAdd(name)) {
           callbacks += name -> new PeripheralCallback(name)
         }
       case _ =>

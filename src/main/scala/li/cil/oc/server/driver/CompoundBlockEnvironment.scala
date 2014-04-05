@@ -6,8 +6,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.World
 
-class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {
+class CompoundBlockEnvironment(val world: World, val x: Int, val y: Int, val z: Int, val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,
   // but let's play it safe and use the least possible visibility based on
   // the drivers we encapsulate.
