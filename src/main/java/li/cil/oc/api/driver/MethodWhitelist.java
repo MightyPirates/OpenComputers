@@ -18,7 +18,7 @@ import net.minecraft.world.World;
  * <p/>
  * <em>Important</em>: if multiple drivers apply to a single block that each
  * provide a whitelist, the list of allowed methods is the intersection of the
- * two whitelists!
+ * different whitelists!
  */
 public interface MethodWhitelist {
     /**

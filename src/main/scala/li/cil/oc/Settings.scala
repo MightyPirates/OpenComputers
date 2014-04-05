@@ -66,7 +66,6 @@ class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
   // robot
 
-  val canPlaceInAir = config.getBoolean("robot.canPlaceInAir")
   val allowActivateBlocks = config.getBoolean("robot.allowActivateBlocks")
   val allowUseItemsWithDuration = config.getBoolean("robot.allowUseItemsWithDuration")
   val canAttackPlayers = config.getBoolean("robot.canAttackPlayers")

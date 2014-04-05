@@ -1,10 +1,11 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{Color, Tooltip}
 import li.cil.oc.{OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -21,6 +22,9 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
   def tier: Int
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+
+  @SideOnly(Side.CLIENT)
+  override def color = Color.byTier(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val slots = tier match {

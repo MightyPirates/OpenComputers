@@ -40,12 +40,12 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Upgrades
+  var upgradeAngel: item.UpgradeAngel = _
   var upgradeCrafting: item.UpgradeCrafting = _
   var upgradeGenerator: item.UpgradeGenerator = _
   var upgradeNavigation: item.UpgradeNavigation = _
   var upgradeSign: item.UpgradeSign = _
   var upgradeSolarGenerator: item.UpgradeSolarGenerator = _
-  var upgradeAngel: item.UpgradeAngel = _
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -149,7 +149,7 @@ object Items {
 
     // v1.2.6
     interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
-    upgradeAngel = Recipes.addItemDelegate(new item.UpgradeAngel(multi), "AngelUpgrade")
+    upgradeAngel = Recipes.addItemDelegate(new item.UpgradeAngel(multi), "angelUpgrade")
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()

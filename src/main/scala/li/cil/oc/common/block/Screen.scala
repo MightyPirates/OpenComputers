@@ -1,11 +1,12 @@
 package li.cil.oc.common.block
 
 import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.BuildCraft
-import li.cil.oc.util.{PackedColor, Tooltip}
+import li.cil.oc.util.{Color, PackedColor, Tooltip}
 import li.cil.oc.{Settings, OpenComputers}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -24,6 +25,9 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   def tier: Int
 
   override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+
+  @SideOnly(Side.CLIENT)
+  override def color = Color.byTier(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)

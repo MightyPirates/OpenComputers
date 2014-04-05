@@ -46,6 +46,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def saveUpgrade() = robot.saveUpgrade()
 
+  def hasAngelUpgrade = Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel
+
   @Callback(direct = true)
   def level(context: Context, args: Arguments): Array[AnyRef] = {
     val xpNeeded = robot.xpForNextLevel - robot.xpForLevel(robot.level)
@@ -244,7 +246,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if (Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel) && player.closestEntity[Entity]().isEmpty =>
+        case None if hasAngelUpgrade && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
@@ -455,7 +457,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
-          (if (Settings.get.canPlaceInAir) {
+          (if (hasAngelUpgrade) {
             val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
             player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
           } else ActivationType.None) match {
