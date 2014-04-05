@@ -244,7 +244,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if (Items.multi.subItem(robot.getStackInSlot(3)) == Items.upgradeBlockPlacerAir) && player.closestEntity[Entity]().isEmpty =>
+        case None if (Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeBlockPlacerAir) && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
