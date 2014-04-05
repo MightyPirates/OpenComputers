@@ -63,7 +63,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
-    api.Driver.add(driver.item.UpgradeBlockPlacerAir)
+    api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     if (Mods.ComputerCraft15.isAvailable) {

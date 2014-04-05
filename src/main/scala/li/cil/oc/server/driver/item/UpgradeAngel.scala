@@ -7,12 +7,12 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 
-object UpgradeBlockPlacerAir extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeBlockPlacerAir)
+object UpgradeAngel extends Item {
+  override def worksWith(stack: ItemStack) = isOneOf(stack, Items.upgradeAngel)
 
   override def createEnvironment(stack: ItemStack, container: TileEntity) =
     container match {
-      case robot: Robot => new component.UpgradeBlockPlacerAir(robot)
+      case robot: Robot => new component.UpgradeAngel(robot)
       case _ => null
     }
 

@@ -7,8 +7,8 @@ import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 
-class UpgradeBlockPlacerAir(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "UpgradeBlockPlacerAir"
+class UpgradeAngel(val parent: Delegator) extends Delegate {
+  val unlocalizedName = "UpgradeAngel"
 
   override def rarity = EnumRarity.epic
 
@@ -20,6 +20,6 @@ class UpgradeBlockPlacerAir(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_block_placer_air")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_angel")
   }
 }

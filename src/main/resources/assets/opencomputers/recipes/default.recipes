@@ -118,7 +118,7 @@ navigationUpgrade {
           ["oc:circuitTier3", {item=map, subID=any}, "oc:circuitTier3"]
           [ingotGold, potion, ingotGold]]
 }
-blockPlacerAirUpgrade {
+blockAngel {
   input: [[ingotIron,  enderPearl, ingotIron]
           ["oc:circuitTier1", pistonStickyBase, "oc:circuitTier1"]
           [ingotIron, enderPearl, ingotIron]]

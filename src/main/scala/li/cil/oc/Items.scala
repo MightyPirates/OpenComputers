@@ -45,7 +45,7 @@ object Items {
   var upgradeNavigation: item.UpgradeNavigation = _
   var upgradeSign: item.UpgradeSign = _
   var upgradeSolarGenerator: item.UpgradeSolarGenerator = _
-  var upgradeBlockPlacerAir: item.UpgradeBlockPlacerAir = _
+  var upgradeAngel: item.UpgradeAngel = _
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -149,7 +149,7 @@ object Items {
 
     // v1.2.6
     interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
-    upgradeBlockPlacerAir = Recipes.addItemDelegate(new item.UpgradeBlockPlacerAir(multi), "blockPlacerAirUpgrade")
+    upgradeAngel = Recipes.addItemDelegate(new item.UpgradeAngel(multi), "AngelUpgrade")
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()
