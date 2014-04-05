@@ -1,12 +1,11 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.api
+import li.cil.oc.{Items, api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.{BlockFluid, Block}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
@@ -245,7 +244,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if Settings.get.canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
+        case None if (Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel) && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
