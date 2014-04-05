@@ -36,9 +36,11 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
   def isServer = rack.isServer
 
   def connect(node: Node) {
-    node.connect(buffer.node)
-    node.connect(keyboard.node)
-    buffer.node.connect(keyboard.node)
+    if (keys.size > 0) {
+      node.connect(buffer.node)
+      node.connect(keyboard.node)
+      buffer.node.connect(keyboard.node)
+    }
   }
 
   override def tier = 1
