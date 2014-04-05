@@ -45,6 +45,7 @@ object Items {
   var upgradeNavigation: item.UpgradeNavigation = _
   var upgradeSign: item.UpgradeSign = _
   var upgradeSolarGenerator: item.UpgradeSolarGenerator = _
+  var upgradeBlockPlacerAir: item.UpgradeBlockPlacerAir = _
 
   // ----------------------------------------------------------------------- //
   // Crafting
@@ -95,6 +96,7 @@ object Items {
 
     upgradeCrafting = Recipes.addItemDelegate(new item.UpgradeCrafting(multi), "craftingUpgrade")
     upgradeGenerator = Recipes.addItemDelegate(new item.UpgradeGenerator(multi), "generatorUpgrade")
+    upgradeBlockPlacerAir = Recipes.addItemDelegate(new item.UpgradeBlockPlacerAir(multi), "blockPlacerAirUpgrade")
 
     ironNugget = new item.IronNugget(multi)
 
