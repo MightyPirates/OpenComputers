@@ -1,33 +1,55 @@
 package li.cil.oc.util
 
-import net.minecraft.item.{ItemDye, ItemStack}
+import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
 
 object Color {
-  def Black = 0x444444 // 0x1E1B1B
-  def Red = 0xB3312C
-  def Green = 0x339911 // 0x3B511A
-  def Brown = 0x51301A
-  def Blue = 0x6666FF // 0x253192
-  def Purple = 0x7B2FBE
-  def Cyan = 0x66FFFF // 0x287697
-  def Silver = 0xABABAB
-  def Gray = 0x666666 // 0x434343
-  def Pink = 0xD88198
-  def Lime = 0x66FF66 // 0x41CD34
-  def Yellow = 0xFFFF66 // 0xDECF2A
-  def LightBlue = 0xAAAAFF // 0x6689D3
-  def Magenta = 0xC354CD
-  def Orange = 0xEB8844
-  def White = 0xF0F0F0
+  val Black = 0x444444
+  // 0x1E1B1B
+  val Red = 0xB3312C
+  val Green = 0x339911
+  // 0x3B511A
+  val Brown = 0x51301A
+  val Blue = 0x6666FF
+  // 0x253192
+  val Purple = 0x7B2FBE
+  val Cyan = 0x66FFFF
+  // 0x287697
+  val LightGray = 0xABABAB
+  val Gray = 0x666666
+  // 0x434343
+  val Pink = 0xD88198
+  val Lime = 0x66FF66
+  // 0x41CD34
+  val Yellow = 0xFFFF66
+  // 0xDECF2A
+  val LightBlue = 0xAAAAFF
+  // 0x6689D3
+  val Magenta = 0xC354CD
+  val Orange = 0xEB8844
+  val White = 0xF0F0F0
 
-  def byDyeNumber = Array(Black, Red, Green, Brown, Blue, Purple, Cyan, Silver, Gray, Pink, Lime, Yellow, LightBlue, Magenta, Orange, White)
+  val byOreName = Map(
+    "dyeBlack" -> Black,
+    "dyeRed" -> Red,
+    "dyeGreen" -> Green,
+    "dyeBrown" -> Brown,
+    "dyeBlue" -> Blue,
+    "dyePurple" -> Purple,
+    "dyeCyan" -> Cyan,
+    "dyeLightGray" -> LightGray,
+    "dyeGray" -> Gray,
+    "dyePink" -> Pink,
+    "dyeLime" -> Lime,
+    "dyeYellow" -> Yellow,
+    "dyeLightBlue" -> LightBlue,
+    "dyeMagenta" -> Magenta,
+    "dyeOrange" -> Orange,
+    "dyeWhite" -> White)
 
-  val byTier = Array(Silver, Yellow, Cyan)
+  val byTier = Array(LightGray, Yellow, Cyan)
 
-  def isDye(stack: ItemStack) = stack != null && stack.getItem.isInstanceOf[ItemDye]
+  def isDye(stack: ItemStack) = byOreName.contains(OreDictionary.getOreName(OreDictionary.getOreID(stack)))
 
-  def dyeColor(stack: ItemStack) = stack.getItem match {
-    case dye: ItemDye => byDyeNumber(math.max(0, math.min(15, stack.getItemDamage)))
-    case _ => 0xFF00FF
-  }
+  def dyeColor(stack: ItemStack) = byOreName.get(OreDictionary.getOreName(OreDictionary.getOreID(stack))).getOrElse(0xFF00FF)
 }
