@@ -96,7 +96,6 @@ object Items {
 
     upgradeCrafting = Recipes.addItemDelegate(new item.UpgradeCrafting(multi), "craftingUpgrade")
     upgradeGenerator = Recipes.addItemDelegate(new item.UpgradeGenerator(multi), "generatorUpgrade")
-    upgradeBlockPlacerAir = Recipes.addItemDelegate(new item.UpgradeBlockPlacerAir(multi), "blockPlacerAirUpgrade")
 
     ironNugget = new item.IronNugget(multi)
 
@@ -150,6 +149,7 @@ object Items {
 
     // v1.2.6
     interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
+    upgradeBlockPlacerAir = Recipes.addItemDelegate(new item.UpgradeBlockPlacerAir(multi), "blockPlacerAirUpgrade")
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()
