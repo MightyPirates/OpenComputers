@@ -8,6 +8,7 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
+import li.cil.oc.api.network.ManagedEnvironment
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = {
@@ -18,7 +19,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       }
     } filter (_ != null)
     if (list.isEmpty) null
-    else new CompoundBlockEnvironment(world, x, y, z, cleanName(tryGetName(world, x, y, z)), list: _*)
+    else new CompoundBlockEnvironment(cleanName(tryGetName(world, x, y, z, list.map(_._2))), list: _*)
   }
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))
@@ -28,7 +29,12 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
     case _ => false
   }
 
-  private def tryGetName(world: World, x: Int, y: Int, z: Int): String = {
+  private def tryGetName(world: World, x: Int, y: Int, z: Int, environments: Seq[ManagedEnvironment]): String = {
+    for (environment <- environments) environment match {
+      case named: NamedBlock => return named.preferredName
+      case _ =>
+    }
+    // TODO Deprecated, remove in 1.3.
     for (block <- blocks) block match {
       case named: NamedBlock => return named.preferredName
       case _ =>
