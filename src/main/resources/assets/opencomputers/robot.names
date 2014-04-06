@@ -22,17 +22,18 @@ Clank
 Claptrap
 Dog
 GLaDOS
+HAL 9000
 Heron
+J.A.R.V.I.S
+KARR
 KITT
 Marvin
 P-Body
 R2-D2
-Wheatley
-Terminator T-1000
-HAL 9000
-Terminator T-800
 Skynet
-J.A.R.V.I.S
+Terminator T-1000
+Terminator T-800
+Wheatley
 
 # Perry Rhodan Robots, definitly not all...
 Anson Argyris
@@ -45,14 +46,13 @@ TARA UH
 Vertigo
 
 # Real robots used in science at one point or the other
-# mostly the latter half of the 20th century
-# Two of the first robots developed by William Gray Walter
+# mostly the latter half of the 20th century.
+# Two of the first robots developed by William Gray Walter.
 Elmer
 Elsie
-# simple intelligent agents.
+# Simple intelligent agents.
 BraitenBurg
-# First programmable robot
+# First programmable robot.
 Unimate
-# The first general-purpose mobile robot that could reason about its actions
+# The first general-purpose mobile robot that could reason about its actions.
 Shakey
-

@@ -26,6 +26,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.AbstractBusState => onAbstractBusState(p)
       case PacketType.Analyze => onAnalyze(p)
       case PacketType.ChargerState => onChargerState(p)
+      case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.HologramClear => onHologramClear(p)
@@ -74,6 +75,14 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Charger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
+        t.world.markBlockForRenderUpdate(t.x, t.y, t.z)
+      case _ => // Invalid packet.
+    }
+
+  def onColorChange(p: PacketParser) =
+    p.readTileEntity[Colored]() match {
+      case Some(t) =>
+        t.color = p.readInt()
         t.world.markBlockForRenderUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }
