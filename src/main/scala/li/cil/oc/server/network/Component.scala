@@ -157,7 +157,7 @@ object Component {
       case multi: CompoundBlockEnvironment => multi.environments.map {
         case (_, environment) =>
           environment match {
-            case list: MethodWhitelist => whitelists += Option(list.whitelistedMethods(multi.world, multi.x, multi.y, multi.z)).fold(Set.empty[String])(_.toSet)
+            case list: MethodWhitelist => whitelists += Option(list.whitelistedMethods).fold(Set.empty[String])(_.toSet)
             case _ =>
           }
           environment.getClass: Class[_]
