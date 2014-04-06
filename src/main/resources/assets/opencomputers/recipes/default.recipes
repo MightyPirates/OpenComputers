@@ -103,6 +103,11 @@ wlanCard {
           ["", "oc:craftingCard", ""]]
 }
 
+angelUpgrade {
+  input: [[ingotIron, enderPearl, ingotIron]
+          ["oc:circuitTier1", pistonStickyBase, "oc:circuitTier1"]
+          [ingotIron, enderPearl, ingotIron]]
+}
 craftingUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitTier1", workbench, "oc:circuitTier1"]

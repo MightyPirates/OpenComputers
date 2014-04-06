@@ -18,7 +18,7 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       }
     } filter (_ != null)
     if (list.isEmpty) null
-    else new CompoundBlockEnvironment(cleanName(tryGetName(world, x, y, z)), list: _*)
+    else new CompoundBlockEnvironment(world, x, y, z, cleanName(tryGetName(world, x, y, z)), list: _*)
   }
 
   override def worksWith(world: World, x: Int, y: Int, z: Int) = blocks.forall(_.worksWith(world, x, y, z))

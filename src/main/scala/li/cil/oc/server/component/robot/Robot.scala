@@ -1,12 +1,11 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.api
+import li.cil.oc.{Items, api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.init.Blocks
@@ -48,6 +47,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   def player = robot.player()
 
   def saveUpgrade() = robot.saveUpgrade()
+
+  def hasAngelUpgrade = Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel
 
   @Callback(direct = true)
   def level(context: Context, args: Arguments): Array[AnyRef] = {
@@ -247,7 +248,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if Settings.get.canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
+        case None if hasAngelUpgrade && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
           player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
         case _ => false
@@ -462,7 +463,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
-          (if (Settings.get.canPlaceInAir) {
+          (if (hasAngelUpgrade) {
             val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
             player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
           } else ActivationType.None) match {

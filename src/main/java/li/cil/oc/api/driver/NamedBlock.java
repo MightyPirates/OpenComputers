@@ -15,5 +15,6 @@ public interface NamedBlock {
      *
      * @return the preferred name.
      */
+    // TODO Provide world, x, y, z here in the next bigger API version.
     String preferredName();
 }

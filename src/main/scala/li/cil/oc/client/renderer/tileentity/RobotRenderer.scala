@@ -6,15 +6,20 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import li.cil.oc.{Settings, OpenComputers}
+import net.minecraft.block.Block
 import net.minecraft.client.renderer.entity.{RendererLivingEntity, RenderManager}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{RenderBlocks, Tessellator, GLAllocation}
+import net.minecraft.init.Items
+import net.minecraft.item.{ItemBlock, Item}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
+import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.util.ForgeDirection
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.{GL12, GL11}
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
@@ -191,6 +196,12 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslated(dx * remaining, dy * remaining, dz * remaining)
     }
 
+    val timeJitter = robot.hashCode ^ 0xFF
+    val hover =
+      if (robot.isRunning) (Math.sin(timeJitter + (worldTime + f) / 20.0) * 0.03).toFloat
+      else -0.03f
+    GL11.glTranslatef(0, hover, 0)
+
     GL11.glPushMatrix()
 
     GL11.glDepthMask(true)
@@ -212,12 +223,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
 
-    val timeJitter = robot.hashCode
-    val hover =
-      if (robot.isRunning) (Math.sin(timeJitter + worldTime / 20.0) * 0.03).toFloat
-      else -0.03f
-    GL11.glTranslatef(0, hover, 0)
-
     if (MinecraftForgeClient.getRenderPass == 0) {
       val offset = timeJitter + worldTime / 20.0
       renderChassis(robot.isRunning, robot.level, offset)
@@ -225,18 +230,81 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     robot.equippedItem match {
       case Some(stack) =>
+        val player = robot.player()
+        val itemRenderer = RenderManager.instance.itemRenderer
+
         GL11.glPushMatrix()
-        GL11.glTranslatef(0.1f, 0.25f, 0.75f)
-        GL11.glScalef(0.4f, 0.4f, -0.4f)
-        if (robot.isAnimatingSwing) {
-          val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-          GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, -1, 0, 0)
-        }
-        GL11.glRotatef(-30, 1, 0, 0)
-        GL11.glRotatef(40, 0, 1, 0)
-        GL11.glDisable(GL11.GL_CULL_FACE)
         try {
-          RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
+          // Copy-paste from player render code, with minor adjustments for
+          // robot scale.
+
+          GL11.glDisable(GL11.GL_CULL_FACE)
+          GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+
+          GL11.glScalef(1, -1, -1)
+          GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
+
+          if (robot.isAnimatingSwing) {
+            val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
+            GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
+          }
+
+          val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
+          val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
+
+          if (is3D || (stack.getItem.isInstanceOf[ItemBlock] && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem).getRenderType))) {
+            val scale = 0.375f
+            GL11.glTranslatef(0, 0.1875f, -0.3125f)
+            GL11.glRotatef(20, 1, 0, 0)
+            GL11.glRotatef(45, 0, 1, 0)
+            GL11.glScalef(-scale, -scale, scale)
+          }
+          else if (stack.getItem == Items.bow) {
+            val scale = 0.375f
+            GL11.glTranslatef(0, 0.2f, -0.2f)
+            GL11.glRotatef(-10, 0, 1, 0)
+            GL11.glScalef(scale, -scale, scale)
+            GL11.glRotatef(-20, 1, 0, 0)
+            GL11.glRotatef(45, 0, 1, 0)
+          }
+          else if (stack.getItem.isFull3D) {
+            val scale = 0.375f
+            if (stack.getItem.shouldRotateAroundWhenRendering) {
+              GL11.glRotatef(180, 0, 0, 1)
+              GL11.glTranslatef(0, -0.125f, 0)
+            }
+            GL11.glTranslatef(0, 0.1f, 0)
+            GL11.glScalef(scale, -scale, scale)
+            GL11.glRotatef(-100, 1, 0, 0)
+            GL11.glRotatef(45, 0, 1, 0)
+          }
+          else {
+            val scale = 0.375f
+            GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
+            GL11.glScalef(scale, scale, scale)
+            GL11.glRotatef(60, 0, 0, 1)
+            GL11.glRotatef(-90, 1, 0, 0)
+            GL11.glRotatef(20, 0, 0, 1)
+          }
+
+          if (stack.getItem.requiresMultipleRenderPasses) {
+            for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
+              val tint = stack.getItem.getColorFromItemStack(stack, pass)
+              val r = ((tint >> 16) & 0xFF) / 255f
+              val g = ((tint >> 8) & 0xFF) / 255f
+              val b = ((tint >> 0) & 0xFF) / 255f
+              GL11.glColor4f(r, g, b, 1)
+              itemRenderer.renderItem(player, stack, pass)
+            }
+          }
+          else {
+            val tint = stack.getItem.getColorFromItemStack(stack, 0)
+            val r = ((tint >> 16) & 0xFF) / 255f
+            val g = ((tint >> 8) & 0xFF) / 255f
+            val b = ((tint >> 0) & 0xFF) / 255f
+            GL11.glColor4f(r, g, b, 1)
+            itemRenderer.renderItem(player, stack, 0)
+          }
         }
         catch {
           case e: Throwable =>
@@ -244,6 +312,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             robot.equippedItem = None
         }
         GL11.glEnable(GL11.GL_CULL_FACE)
+        GL11.glDisable(GL12.GL_RESCALE_NORMAL)
         GL11.glPopMatrix()
       case _ =>
     }
@@ -251,8 +320,14 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     robot.equippedUpgrade match {
       case Some(stack) =>
         try {
-          if (MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null) {
-            RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass, ItemRenderType.EQUIPPED)
+          if (MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null &&
+            (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
+            val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
+            val r = ((tint >> 16) & 0xFF) / 255f
+            val g = ((tint >> 8) & 0xFF) / 255f
+            val b = ((tint >> 0) & 0xFF) / 255f
+            GL11.glColor4f(r, g, b, 1)
+            RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
           }
         }
         catch {
@@ -275,8 +350,9 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       val width = f.getStringWidth(name)
       val halfWidth = width / 2
 
-      GL11.glTranslated(0, 0.7, 0)
+      GL11.glTranslated(0, 0.8, 0)
       GL11.glNormal3f(0, 1, 0)
+      GL11.glColor3f(1, 1, 1)
 
       GL11.glRotatef(-field_147501_a.field_147562_h, 0, 1, 0)
       GL11.glRotatef(field_147501_a.field_147563_i, 1, 0, 0)

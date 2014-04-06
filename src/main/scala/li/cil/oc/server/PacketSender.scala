@@ -36,6 +36,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendColorChange(t: Colored) {
+    val pb = new PacketBuilder(PacketType.ColorChange)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(t.color)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendComputerState(t: Computer) {
     val pb = new PacketBuilder(PacketType.ComputerState)
 
