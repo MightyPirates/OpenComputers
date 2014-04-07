@@ -22,7 +22,7 @@ object Items {
 
   // ----------------------------------------------------------------------- //
   // Memory
-  var ram1, ram2, ram3, ram4, ram5: item.Memory = _
+  var ram1, ram2, ram3, ram4, ram5, ram6: item.Memory = _
 
   // ----------------------------------------------------------------------- //
   // Storage
@@ -79,8 +79,8 @@ object Items {
     analyzer = Recipes.addItemDelegate(new item.Analyzer(multi), "analyzer")
 
     ram1 = Recipes.addItemDelegate(new item.Memory(multi, 0), "ram1")
-    ram2 = Recipes.addItemDelegate(new item.Memory(multi, 1), "ram2")
     ram3 = Recipes.addItemDelegate(new item.Memory(multi, 2), "ram3")
+    ram4 = Recipes.addItemDelegate(new item.Memory(multi, 3), "ram4")
 
     floppyDisk = Recipes.addItemDelegate(new item.FloppyDisk(multi), "floppy")
     hdd1 = Recipes.addItemDelegate(new item.HardDiskDrive(multi, 0), "hdd1")
@@ -130,8 +130,8 @@ object Items {
       Recipes.addItemDelegate(abstractBus, "abstractBusCard")
     }
 
-    ram4 = Recipes.addItemDelegate(new item.Memory(multi, 3), "ram4")
     ram5 = Recipes.addItemDelegate(new item.Memory(multi, 4), "ram5")
+    ram6 = Recipes.addItemDelegate(new item.Memory(multi, 5), "ram6")
 
     // v1.2.0
     server3 = Recipes.addItemDelegate(new item.Server(multi, 2), "server3")
@@ -150,6 +150,7 @@ object Items {
     // v1.2.6
     interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
     upgradeAngel = Recipes.addItemDelegate(new item.UpgradeAngel(multi), "angelUpgrade")
+    ram2 = Recipes.addItemDelegate(new item.Memory(multi, 1), "ram2")
 
     // Initialize API.
     api.Items.AbstractBusCard = abstractBus.createItemStack()
@@ -211,6 +212,7 @@ object Items {
     register("oc:craftingRAMTier3", ram3.createItemStack())
     register("oc:craftingRAMTier4", ram4.createItemStack())
     register("oc:craftingRAMTier5", ram5.createItemStack())
+    register("oc:craftingRAMTier6", ram6.createItemStack())
 
     register("oc:craftingHDDTier1", hdd1.createItemStack())
     register("oc:craftingHDDTier2", hdd2.createItemStack())
