@@ -122,5 +122,10 @@ object ItemCosts {
     accumulate(what)
   }
 
-  def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) = stack1.isItemEqual(stack2) || (stack1.itemID == stack2.itemID && (stack1.getItemDamage == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage == OreDictionary.WILDCARD_VALUE))
+  // In case you'd like to use this class for your items and your items use
+  // NBT data in the item stack to differentiate them uncomment the last part.
+  // We don't use this in OC because the NBT of items can change dynamically,
+  // for example by components being assigned an address, which will break the
+  // equals check.
+  private def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) = stack1.isItemEqual(stack2) || (stack1.itemID == stack2.itemID && (stack1.getItemDamage == OreDictionary.WILDCARD_VALUE || stack2.getItemDamage == OreDictionary.WILDCARD_VALUE)) // && ItemStack.areItemStackTagsEqual(stack1, stack2)
 }
