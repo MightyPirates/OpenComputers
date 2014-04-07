@@ -71,7 +71,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
   def resolution_=(value: (Int, Int)) = {
     val (w, h) = value
     val (mw, mh) = maxResolution
-    if (w < 1 || w > mw || h < 1 || h > mh)
+    if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
     if (buffer.size = value) {
       if (node != null) {

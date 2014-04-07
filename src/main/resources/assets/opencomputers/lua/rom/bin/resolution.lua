@@ -23,7 +23,9 @@ end
 
 local result, reason = component.gpu.setResolution(w, h)
 if not result then
-  io.stderr:write(reason)
+  if reason then -- otherwise we didn't change anything
+    io.stderr:write(reason)
+  end
   return
 end
 term.clear()
