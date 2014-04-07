@@ -351,8 +351,10 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
       // Computer is rebooting.
       case Machine.State.Restarting =>
         close()
-        tmp.foreach(_.node.remove()) // To force deleting contents.
-        tmp.foreach(tmp => node.connect(tmp.node))
+        if (Settings.get.eraseTmpOnReboot) {
+          tmp.foreach(_.node.remove()) // To force deleting contents.
+          tmp.foreach(tmp => node.connect(tmp.node))
+        }
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
