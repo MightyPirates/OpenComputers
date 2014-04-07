@@ -22,7 +22,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
 
   def tier: Int
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.epic).apply(tier)
 
   @SideOnly(Side.CLIENT)
   override def color = Color.byTier(tier)
@@ -31,7 +31,8 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     val slots = tier match {
       case 0 => "2/1/1"
       case 1 => "2/2/2"
-      case 2 => "3/2/3"
+      case 2 | 3 => "3/2/3"
+      case _ => "0/0/0"
     }
     tooltip.addAll(Tooltip.get("Case", slots))
   }
@@ -117,6 +118,10 @@ object Case {
 
   class Tier3(parent: SimpleDelegator) extends Case(parent) {
     def tier = 2
+  }
+
+  class TierCreative(parent: SimpleDelegator) extends Case(parent) {
+    def tier = 3
   }
 
 }

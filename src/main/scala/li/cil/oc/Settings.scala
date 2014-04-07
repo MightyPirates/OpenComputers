@@ -1,7 +1,6 @@
 package li.cil.oc
 
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
-import cpw.mods.fml.common.ModAPIManager
 import java.io._
 import java.util.logging.Level
 import li.cil.oc.util.PackedColor
@@ -34,11 +33,14 @@ class Settings(config: Config) {
     case Array(tier1, tier2, tier3) =>
       // For compatibility with older config files.
       Array(tier1: Int, tier2: Int, tier3: Int, tier3 * 2: Int, tier3 * 4: Int)
-    case Array(tier1, tier2, tier3, tier4, tier5) =>
-      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int)
+    case Array(tier1, tier3, tier4, tier5, tier6) =>
+      // For compatibility with older config files.
+      Array(tier1: Int, (tier1: Int) * 3 / 2, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
+    case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
+      Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
     case _ =>
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
-      Array(64, 128, 256, 512, 1024)
+      Array(64, 96, 128, 256, 512, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {

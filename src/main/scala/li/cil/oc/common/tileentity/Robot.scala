@@ -545,7 +545,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = 96 * 1024
+  override def installedMemory = Settings.get.ramSizes(1) * 1024
 
   override def tier = 0
 

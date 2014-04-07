@@ -135,11 +135,11 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     // Loop over the target rectangle, starting from the directions away from
     // the source rectangle and copy the data. This way we ensure we don't
     // overwrite anything we still need to copy.
-    val (dx0, dx1) = (math.max(col + tx + w - 1, math.min(0, width - 1)), math.max(col + tx, math.min(0, width))) match {
+    val (dx0, dx1) = (math.max(0, math.min(width - 1, col + tx + w - 1)), math.max(0, math.min(width, col + tx))) match {
       case dx if tx > 0 => dx
       case dx => dx.swap
     }
-    val (dy0, dy1) = (math.max(row + ty + h - 1, math.min(0, height - 1)), math.max(row + ty, math.min(0, height))) match {
+    val (dy0, dy1) = (math.max(0, math.min(height - 1, row + ty + h - 1)), math.max(0, math.min(height, row + ty))) match {
       case dy if ty > 0 => dy
       case dy => dy.swap
     }

@@ -15,17 +15,17 @@ terminal {
 }
 
 server1 {
-  input: [["oc:circuitTier1", "oc:craftingRAMTier3", "oc:circuitTier1"]
+  input: [["oc:circuitTier1", "oc:craftingRAMTier4", "oc:circuitTier1"]
           ["oc:circuitTier2", "oc:craftingCaseTier1", "oc:circuitTier2"]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]]
 }
 server2 {
-  input: [["oc:circuitTier2", "oc:craftingRAMTier4", "oc:circuitTier2"]
+  input: [["oc:circuitTier2", "oc:craftingRAMTier5", "oc:circuitTier2"]
           ["oc:circuitTier3", "oc:craftingCaseTier2", "oc:circuitTier3"]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]]
 }
 server3 {
-  input: [["oc:circuitTier3", "oc:craftingRAMTier5", "oc:circuitTier3"]
+  input: [["oc:circuitTier3", "oc:craftingRAMTier6", "oc:circuitTier3"]
           ["oc:circuitTier3", "oc:craftingCaseTier3", "oc:circuitTier3"]
           ["oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted", "oc:craftingCircuitBoardPrinted"]]
 }
@@ -36,19 +36,23 @@ ram1 {
 }
 ram2 {
   input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
-          ["oc:craftingRAMTier1", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier1"]]
+          ["", "oc:craftingRAMTier1", ""]]
 }
 ram3 {
   input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
           ["oc:craftingRAMTier2", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier2"]]
 }
 ram4 {
-  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
           ["oc:craftingRAMTier3", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier3"]]
 }
 ram5 {
   input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
           ["oc:craftingRAMTier4", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier4"]]
+}
+ram6 {
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+          ["oc:craftingRAMTier5", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier5"]]
 }
 
 floppy {
@@ -81,11 +85,11 @@ graphicsCard1 {
           ["", "oc:craftingCard", ""]]
 }
 graphicsCard2 {
-  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:craftingRAMTier2"]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:craftingRAMTier3"]
           ["", "oc:craftingGPUTier1", ""]]
 }
 graphicsCard3 {
-  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:craftingRAMTier4"]
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:craftingRAMTier5"]
           ["", "oc:craftingGPUTier2", ""]]
 }
 internetCard {
@@ -193,14 +197,14 @@ cpu0 {
           [nuggetIron, "oc:craftingALU", nuggetIron]]
 }
 cpu1 {
-  input: [[nuggetGold, "oc:craftingRAMTier2", nuggetGold]
+  input: [[nuggetGold, "oc:craftingRAMTier3", nuggetGold]
           ["oc:circuitTier2", "oc:craftingCPUTier1", "oc:circuitTier2"]
-          [nuggetGold, "oc:craftingRAMTier2", nuggetGold]]
+          [nuggetGold, "oc:craftingRAMTier3", nuggetGold]]
 }
 cpu2 {
-  input: [[diamond, "oc:craftingRAMTier4", diamond]
+  input: [[diamond, "oc:craftingRAMTier5", diamond]
           ["oc:circuitTier3", "oc:craftingCPUTier2", "oc:circuitTier3"]
-          [diamond, "oc:craftingRAMTier4", diamond]]
+          [diamond, "oc:craftingRAMTier5", diamond]]
 }
 cu {
   input: [[nuggetGold, torchRedstoneActive, nuggetGold]

@@ -17,7 +17,7 @@ object Blocks {
   var cable: Cable = _
   var capacitor: Capacitor = _
   var charger: Charger = _
-  var case1, case2, case3: Case = _
+  var case1, case2, case3, case4: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
   var keyboardDeprecated: KeyboardDeprecated = _
@@ -107,6 +107,9 @@ object Blocks {
     // v1.2.2
     hologram = Recipes.addBlockDelegate(new Hologram(blockSpecial), "hologram")
     wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "wirelessRouter")
+
+    // v1.2.6
+    case4 = new Case.TierCreative(blockSimpleWithRedstone)
 
     // Initialize API.
     api.Blocks.AccessPoint = wirelessRouter.createItemStack()

@@ -123,8 +123,11 @@ abstract class GraphicsCard extends ManagedComponent {
     val w = args.checkInteger(0)
     val h = args.checkInteger(1)
     val (mw, mh) = maxResolution
-    if (w > 0 && h > 0 && w <= mw && h <= mh) screen(s => result(s.resolution = (w, h)))
-    else throw new IllegalArgumentException("unsupported resolution")
+    // Even though the buffer itself checks this again, we need this here for
+    // the minimum of screen and GPU resolution.
+    if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
+      throw new IllegalArgumentException("unsupported resolution")
+    screen(s => result(s.resolution = (w, h)))
   }
 
   @Callback(direct = true)

@@ -9,8 +9,18 @@ analyzer {
           [screwAluminium, craftingToolScrewdriver, screwAluminium]]
 }
 
-server {
-  input: [["oc:circuitTier3", "oc:craftingRAMTier4", "oc:circuitTier3"]
+server1 {
+  input: [["oc:circuitTier1", "oc:craftingRAMTier4", "oc:circuitTier1"]
+          ["oc:circuitTier1", "oc:craftingCaseTier1", "oc:circuitTier2"]
+          [craftingToolScrewdriver, "oc:craftingCircuitBoardPrinted", craftingToolWrench]]
+}
+server2 {
+  input: [["oc:circuitTier2", "oc:craftingRAMTier5", "oc:circuitTier2"]
+          ["oc:circuitTier3", "oc:craftingCaseTier2", "oc:circuitTier3"]
+          [craftingToolScrewdriver, "oc:craftingCircuitBoardPrinted", craftingToolWrench]]
+}
+server3 {
+  input: [["oc:circuitTier3", "oc:craftingRAMTier6", "oc:circuitTier3"]
           ["oc:circuitTier3", "oc:craftingCaseTier3", "oc:circuitTier3"]
           [craftingToolScrewdriver, "oc:craftingCircuitBoardPrinted", craftingToolWrench]]
 }
@@ -23,9 +33,9 @@ ram1 {
   time: 250
 }
 ram2 {
-  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
-          ["oc:craftingRAMTier1", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier1"]
-          [Dataorb, craftingToolWrench, Dataorb]]
+  input: [["oc:circuitTier1", "oc:circuitTier1", "oc:circuitTier1"]
+          ["", "oc:craftingRAMTier1", ""]
+          ["", craftingToolWrench, ""]]
 }
 ram3 {
   input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
@@ -33,13 +43,18 @@ ram3 {
           [Dataorb, craftingToolWrench, Dataorb]]
 }
 ram4 {
-  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
           ["oc:craftingRAMTier3", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier3"]
           [Dataorb, craftingToolWrench, Dataorb]]
 }
 ram5 {
   input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
           ["oc:craftingRAMTier4", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier4"]
+          [Dataorb, craftingToolWrench, Dataorb]]
+}
+ram6 {
+  input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
+          ["oc:craftingRAMTier5", "oc:craftingCircuitBoardPrinted", "oc:craftingRAMTier5"]
           [Dataorb, craftingToolWrench, Dataorb]]
 }
 
@@ -174,12 +189,12 @@ cpu0 {
 }
 cpu1 {
   input: [["oc:circuitTier2", plateStainlessSteel, "oc:circuitTier2"]
-          ["oc:craftingRAMTier2", "oc:craftingCPUTier1", "oc:craftingRAMTier2"]
+          ["oc:craftingRAMTier3", "oc:craftingCPUTier1", "oc:craftingRAMTier3"]
           ["oc:circuitTier2", craftingToolScrewdriver, "oc:circuitTier2"]]
 }
 cpu2 {
   input: [["oc:circuitTier3", plateTitanium, "oc:circuitTier3"]
-          ["oc:craftingRAMTier4", "oc:craftingCPUTier2", "oc:craftingRAMTier4"]
+          ["oc:craftingRAMTier5", "oc:craftingCPUTier2", "oc:craftingRAMTier5"]
           ["oc:circuitTier3", craftingToolScrewdriver, "oc:circuitTier3"]]
 }
 cu {

@@ -13,17 +13,17 @@ terminal {
 }
 
 server1 {
-  input: [[obsidian, "oc:craftingRAMTier3", obsidian]
+  input: [[obsidian, "oc:craftingRAMTier4", obsidian]
           ["oc:circuitTier1", "oc:circuitTier2", "oc:circuitTier1"]
           [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
 }
 server2 {
-  input: [[obsidian, "oc:craftingRAMTier4", obsidian]
+  input: [[obsidian, "oc:craftingRAMTier5", obsidian]
           ["oc:circuitTier2", "oc:circuitTier3", "oc:circuitTier2"]
           [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
 }
 server3 {
-  input: [[obsidian, "oc:craftingRAMTier5", obsidian]
+  input: [[obsidian, "oc:craftingRAMTier6", obsidian]
           ["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
           [obsidian, "oc:craftingCircuitBoardPrinted", obsidian]]
 }
@@ -33,18 +33,22 @@ ram1 {
           ["", "oc:craftingCircuitBoardPrinted", ""]]
 }
 ram2 {
-  input: [["oc:circuitTier2", "", "oc:circuitTier2"]
+  input: [["oc:circuitTier1", "oc:circuitTier1", "oc:circuitTier1"]
           ["", "oc:craftingCircuitBoardPrinted", ""]]
 }
 ram3 {
-  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
+  input: [["oc:circuitTier2", "", "oc:circuitTier2"]
           ["", "oc:craftingCircuitBoardPrinted", ""]]
 }
 ram4 {
-  input: [["oc:circuitTier3", "", "oc:circuitTier3"]
+  input: [["oc:circuitTier2", "oc:circuitTier2", "oc:circuitTier2"]
           ["", "oc:craftingCircuitBoardPrinted", ""]]
 }
 ram5 {
+  input: [["oc:circuitTier3", "", "oc:circuitTier3"]
+          ["", "oc:craftingCircuitBoardPrinted", ""]]
+}
+ram6 {
   input: [["oc:circuitTier3", "oc:circuitTier3", "oc:circuitTier3"]
           ["", "oc:craftingCircuitBoardPrinted", ""]]
 }
@@ -79,11 +83,11 @@ graphicsCard1 {
           ["", "oc:craftingCard", ""]]
 }
 graphicsCard2 {
-  input: [["oc:circuitTier2", "oc:craftingALU", "oc:craftingRAMTier2"]
+  input: [["oc:circuitTier2", "oc:craftingALU", "oc:craftingRAMTier3"]
           ["", "oc:craftingCard", ""]]
 }
 graphicsCard3 {
-  input: [["oc:circuitTier3", "oc:craftingALU", "oc:craftingRAMTier4"]
+  input: [["oc:circuitTier3", "oc:craftingALU", "oc:craftingRAMTier5"]
           ["", "oc:craftingCard", ""]]
 }
 internetCard {

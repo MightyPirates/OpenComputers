@@ -52,10 +52,18 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
     case _ => false
   }
 
+  override def updateEntity() {
+    if (tier == 3 && isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
+      // Creative case, make it generate power.
+      node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
+    }
+    super.updateEntity()
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
-    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
+    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 3
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
     recomputeMaxComponents()
@@ -79,6 +87,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
     case 0 => 6
     case 1 => 7
     case 2 => 9
+    case 3 => 9
     case _ => 0
   }
 
@@ -114,6 +123,16 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
       case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
       case (8, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
       case _ => false // Invalid slot.
+
+    }
+    case 3 => (slot, Registry.itemDriverFor(stack)) match {
+      case (_, None) => false // Invalid item.
+      case (0 | 1 | 2, Some(driver)) => driver.slot(stack) == Slot.Card
+      case (3 | 4, Some(driver)) => driver.slot(stack) == Slot.Memory
+      case (5 | 6, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive
+      case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
+      case (8, Some(driver)) => driver.slot(stack) == Slot.Processor
+      case _ => false // Invalid slot.
     }
     case _ => false
   }
@@ -139,6 +158,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
       case 8 => 2
       case _ => -1 // Invalid slot.
     }
+    case 3 => 2
     case _ => -1
   }
 }
