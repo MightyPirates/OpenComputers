@@ -47,7 +47,7 @@ object Color {
     "dyeOrange" -> Orange,
     "dyeWhite" -> White)
 
-  val byTier = Array(LightGray, Yellow, Cyan)
+  val byTier = Array(LightGray, Yellow, Cyan, Magenta)
 
   def isDye(stack: ItemStack) = byOreName.contains(OreDictionary.getOreName(OreDictionary.getOreID(stack)))
 

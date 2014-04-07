@@ -9,6 +9,7 @@ oc:tile.Capacitor.name=Capacitor
 oc:tile.Case0.name=Computer Case (Tier 1)
 oc:tile.Case1.name=Computer Case (Tier 2)
 oc:tile.Case2.name=Computer Case (Tier 3)
+oc:tile.Case3.name=Computer Case (Creative)
 oc:tile.Charger.name=Charger
 oc:tile.DiskDrive.name=Disk Drive
 oc:tile.Keyboard.name=Keyboard
