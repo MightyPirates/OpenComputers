@@ -1,10 +1,11 @@
 package li.cil.oc.util
 
 import java.util
-import li.cil.oc.Items
+import li.cil.oc.{Settings, Items}
 import net.minecraft.block.Block
 import net.minecraft.item.crafting._
 import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.util.StatCollector
 import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -44,7 +45,7 @@ object ItemCosts {
   terminate(Item.stick)
 
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {
-    tooltip.add("Materials:")
+    tooltip.add(StatCollector.translateToLocal(Settings.namespace + "tooltip.Materials"))
     for ((ingredient, count) <- computeIngredients(stack)) {
       val line = math.ceil(count).toInt + "x " + ingredient.getDisplayName
       tooltip.add(line)

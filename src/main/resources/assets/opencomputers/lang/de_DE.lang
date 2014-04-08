@@ -123,6 +123,11 @@ oc:container.DiskDrive=Diskettenlaufwerk
 oc:container.Rack=Serverschrank
 oc:container.Server=Server
 
+# Keybinds
+key.extendedTooltip=Tooltip erweitern
+key.materialCosts=Materialkosten anzeigen
+key.clipboardPaste=Zwischenablage einfügen
+
 # Item / Block Tooltips
 oc:tooltip.AbstractBusCard=Erlaubt es, LIP-Pakete des Abstrakten Busses von §fStargateTech 2§7 zu senden und zu empfangen.
 oc:tooltip.Acid=Eine hochgiftige Möchtegernflüssigkeit, wird üblicherweise nur von gewissen Piraten konsumiert. Dank ihrer korrosiven Eigenschaften ideal zum Bedrucken von Leiterplatten geeignet.
@@ -147,6 +152,8 @@ oc:tooltip.Interweb=Kann in einer Internetkarte verwendet werden, um Computer mi
 oc:tooltip.IronNugget=Ein Nugget, das aus Eisen besteht, darum wird es ja auch Eisennugget genannt, duh...
 oc:tooltip.Keyboard=Kann an Bildschirmen befestigt werden, um auf ihnen zu tippen.
 oc:tooltip.Hologram=Ein Volumendisplay, das beliebige, von Computern festgelegte Voxelstrukturen anzeigt.[nl] Auflösung: §f48x32x48§7. [nl] Farbtiefe: §fMonochrom§7.
+oc:tooltip.MaterialCosts=Halte [§f%s§7] gedrückt für Materialkosten.
+oc:tooltip.Materials=Materialien:
 oc:tooltip.Memory=Braucht ein jeder Computer, um zu starten. Je mehr vorhanden, desto komplexere Programme können ausgeführt werden.
 oc:tooltip.Microchip=Tritt auch unter dem Alias Integrierter Schaltkreis auf. Keine Ahnung, warum das auch mit Redstone klappt, aber es funktioniert.
 oc:tooltip.NetworkCard=Erlaubt es Computern, die über mehrere Blöcke miteinander verbunden sind (z.B. Kabel), mittels Netzwerknachrichten zu kommunizieren.
@@ -172,7 +179,7 @@ oc:tooltip.Server=Ein Server kann wie ein gewöhnliches Computergehäuse mit Kom
 oc:tooltip.Server.Components=Installierte Komponenten:
 oc:tooltip.ServerRack=Erlaubt die Installation von bis zu vier Servern. Stellt für jeden eingebauten Server eine virtuelle Tastatur- und Bildschirmkomponente zur Verfügung, welche je eine Fernbedienung repräsentieren.
 oc:tooltip.Terminal=Erlaubt es, einen Server aus der Ferne zu steuern, so lange man sich in Reichweite des Servers befindet. Verhält sich wie Bildschirm und Tastatur in einem. Kann mit Shift-Rechtsklick an einen Server in einem Serverschrank gebunden werden.
-oc:tooltip.TooLong=Shift gedrückt halten für mehr Infos.
+oc:tooltip.TooLong=Halte [§f%s§7] gedrückt für mehr Infos.
 oc:tooltip.Transistor=Elementarer Baustein der meisten Computerkomponenten. Nicht zu verwechseln mit Steinelementaren.
 oc:tooltip.UpgradeAngel=Erlaubt es Robotern Blöcke in die Luft zu setzen, selbst wenn kein Referenzblock daneben existiert.
 oc:tooltip.UpgradeCrafting=Ermöglicht Robotern, in dem oberen linken Bereich ihres Inventars Dinge zu fertigen. Gegenstände müssen so angeordnet sein, wie sie es in einer Werkbank wären.

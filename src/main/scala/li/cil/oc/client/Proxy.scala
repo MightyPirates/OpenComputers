@@ -1,14 +1,14 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.{RenderingRegistry, ClientRegistry}
+import cpw.mods.fml.client.registry.{KeyBindingRegistry, RenderingRegistry, ClientRegistry}
 import cpw.mods.fml.common.event.{FMLPreInitializationEvent, FMLPostInitializationEvent, FMLInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
-import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.client.renderer.tileentity._
+import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.{Items, Settings, OpenComputers}
 import net.minecraft.client.Minecraft
@@ -51,6 +51,8 @@ private[oc] class Proxy extends CommonProxy {
         manager.registerReloadListener(TexturePreloader)
       case _ =>
     }
+
+    KeyBindingRegistry.registerKeyBinding(KeyBindings.Handler)
   }
 
   override def postInit(e: FMLPostInitializationEvent) {

@@ -26,7 +26,6 @@ class Settings(config: Config) {
   val maxScreenTextRenderDistance = config.getDouble("client.maxScreenTextRenderDistance")
   val textLinearFiltering = config.getBoolean("client.textLinearFiltering")
   val textAntiAlias = config.getBoolean("client.textAntiAlias")
-  val pasteShortcut = config.getStringList("client.pasteShortcut").toSet
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2

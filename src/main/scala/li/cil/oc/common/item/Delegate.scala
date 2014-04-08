@@ -1,12 +1,16 @@
 package li.cil.oc.common.item
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import java.util
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.Settings
+import li.cil.oc.util.ItemCosts
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.Icon
+import net.minecraft.util.{StatCollector, Icon}
 import net.minecraft.world.World
+import org.lwjgl.input
 
 trait Delegate {
   val parent: Delegator
@@ -47,6 +51,14 @@ trait Delegate {
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    if (KeyBindings.showMaterialCosts) {
+      ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
+    }
+    else {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "tooltip.MaterialCosts",
+        input.Keyboard.getKeyName(KeyBindings.materialCosts.keyCode)))
+    }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
       if (data.hasKey("node") && data.getCompoundTag("node").hasKey("address")) {
