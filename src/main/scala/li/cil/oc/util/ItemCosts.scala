@@ -41,6 +41,7 @@ object ItemCosts {
   terminate(Item.netherQuartz)
   terminate(Item.netherStar)
   terminate(Item.redstone)
+  terminate(Item.silk)
   terminate(Item.slimeBall)
   terminate(Item.stick)
 
