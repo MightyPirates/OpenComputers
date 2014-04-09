@@ -220,9 +220,32 @@ abstract class GraphicsCard extends ManagedComponent {
         case Some(buffer) => buffer.synchronized {
           val (w, h) = buffer.resolution
           buffer.foreground = 0xFFFFFF
-          buffer.background = 0x000000
-          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
-            buffer.owner.onScreenFill(0, 0, w, h, ' ')
+          message.source.host match {
+            case machine: machine.Machine if machine.lastError != null =>
+              if (buffer.depth > PackedColor.Depth.OneBit) buffer.background = 0x0000FF
+              else buffer.background = 0x000000
+              if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+                buffer.owner.onScreenFill(0, 0, w, h, ' ')
+              }
+              try {
+                val message = "Unrecoverable error:\n" + machine.lastError + "\n"
+                val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
+                val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
+                for ((line, idx) <- lines.zipWithIndex) {
+                  val col = (w - line.length) / 2
+                  val row = (h - lines.length) / 2 + idx
+                  buffer.buffer.set(col, row, line)
+                  buffer.owner.onScreenSet(col, row, line)
+                }
+              }
+              catch {
+                case t: Throwable => t.printStackTrace()
+              }
+            case _ =>
+              buffer.background = 0x000000
+              if (buffer.buffer.fill(0, 0, w, h, ' ')) {
+                buffer.owner.onScreenFill(0, 0, w, h, ' ')
+              }
           }
         }
         case _ =>

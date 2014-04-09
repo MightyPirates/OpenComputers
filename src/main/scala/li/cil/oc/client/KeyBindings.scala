@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import cpw.mods.fml.client.FMLClientHandler
 import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 
@@ -8,7 +9,7 @@ object KeyBindings {
 
   def showMaterialCosts = Keyboard.isKeyDown(materialCosts.getKeyCode)
 
-  val extendedTooltip = new KeyBinding("key.extendedTooltip", Keyboard.KEY_LSHIFT, "OpenComputers")
+  val extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 
   val materialCosts = new KeyBinding("key.materialCosts", Keyboard.KEY_LMENU, "OpenComputers")
 
