@@ -5,7 +5,7 @@ import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.common.item
 import net.minecraft.item.ItemStack
-import net.minecraft.tileentity.{TileEntity => MCTileEntity}
+import net.minecraft.tileentity.TileEntity
 
 object Memory extends Item with driver.Memory {
   override def amount(stack: ItemStack) = Items.multi.subItem(stack) match {
@@ -15,7 +15,7 @@ object Memory extends Item with driver.Memory {
 
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.ram1, Items.ram2, Items.ram3, Items.ram4, Items.ram5, Items.ram6)
 
-  override def createEnvironment(stack: ItemStack, container: MCTileEntity) = null
+  override def createEnvironment(stack: ItemStack, container: TileEntity) = null
 
   override def slot(stack: ItemStack) = Slot.Memory
 

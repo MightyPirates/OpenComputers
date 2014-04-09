@@ -543,7 +543,13 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = Settings.get.ramSizes(1) * 1024
+  override def installedMemory = Settings.get.ramSizes(1) * 1024 + (items(3) match {
+    case Some(stack) => Registry.itemDriverFor(stack) match {
+      case Some(driver: api.driver.Memory) => driver.amount(stack)
+      case _ => 0
+    }
+    case _ => 0
+  })
 
   override def tier = 0
 
@@ -586,7 +592,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
-    case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade
+    case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade || (driver.slot(stack) == Slot.Memory && driver.tier(stack) == 0)
     case (i, _) if actualSlot(0) until getSizeInventory contains i => true // Normal inventory.
     case _ => false // Invalid slot.
   }
