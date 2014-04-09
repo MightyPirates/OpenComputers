@@ -1,11 +1,12 @@
 package li.cil.oc.util
 
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.util.StatCollector
-import org.lwjgl.input.Keyboard
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
+import org.lwjgl.input.Keyboard
 
 object Tooltip {
   val maxWidth = 200
@@ -14,12 +15,10 @@ object Tooltip {
     val tooltip = StatCollector.translateToLocal(Settings.namespace + "tooltip." + name).format(args.map(_.toString): _*)
     val isSubTooltip = name.contains(".")
     val font = Minecraft.getMinecraft.fontRenderer
-    val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) &&
-      !Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) &&
-      !Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
+    val shouldShorten = (isSubTooltip || font.getStringWidth(tooltip) > maxWidth) && !KeyBindings.showExtendedTooltips
     if (shouldShorten) {
       if (isSubTooltip) Seq.empty[String]
-      else Seq(StatCollector.translateToLocal(Settings.namespace + "tooltip.TooLong"))
+      else Seq(StatCollector.translateToLocalFormatted(Settings.namespace + "tooltip.TooLong", Keyboard.getKeyName(KeyBindings.extendedTooltip.getKeyCode)))
     }
     else {
       val nl = """\[nl\]"""

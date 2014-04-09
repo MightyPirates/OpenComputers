@@ -4,10 +4,11 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity.traits.{Colored, Rotatable, BundledRedstoneAware}
-import li.cil.oc.util.{Color, ItemCosts}
 import li.cil.oc.util.mods.Mods
+import li.cil.oc.util.{Color, ItemCosts}
 import li.cil.oc.{Settings, CreativeTab}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -17,7 +18,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{MovingObjectPosition, Vec3, AxisAlignedBB}
+import net.minecraft.util.{StatCollector, MovingObjectPosition, Vec3, AxisAlignedBB}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
@@ -331,8 +332,13 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
       case _ =>
     }
-    if (input.Keyboard.isKeyDown(input.Keyboard.KEY_LMENU)) {
+    if (KeyBindings.showMaterialCosts) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
+    }
+    else {
+      tooltip.add(StatCollector.translateToLocalFormatted(
+        Settings.namespace + "tooltip.MaterialCosts",
+        input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
     }
   }
 

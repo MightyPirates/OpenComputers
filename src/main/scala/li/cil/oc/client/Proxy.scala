@@ -44,6 +44,10 @@ private[oc] class Proxy extends CommonProxy {
     MinecraftForgeClient.registerItemRenderer(Items.multi, UpgradeRenderer)
 
     OpenComputers.channel.register(client.PacketHandler)
+
+    ClientRegistry.registerKeyBinding(KeyBindings.extendedTooltip)
+    ClientRegistry.registerKeyBinding(KeyBindings.materialCosts)
+    ClientRegistry.registerKeyBinding(KeyBindings.clipboardPaste)
   }
 
   override def postInit(e: FMLPostInitializationEvent) {

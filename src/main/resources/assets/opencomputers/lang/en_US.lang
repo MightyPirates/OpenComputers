@@ -123,6 +123,11 @@ oc:container.DiskDrive=Disk Drive
 oc:container.Rack=Server Rack
 oc:container.Server=Server
 
+# Keybinds
+key.extendedTooltip=Expand Tooltip
+key.materialCosts=Show Material Costs
+key.clipboardPaste=Paste Clipboard
+
 # Item / Block Tooltips
 oc:tooltip.AbstractBusCard=Allows interacting with §fStargateTech 2§7's abstract bus by sending and receiving LIP packets.
 oc:tooltip.Acid=A highly toxic pseudo-liquid, usually only consumed by certain pirates. Thanks to its corrosive nature it is perfectly suited for etching circuit boards.
@@ -147,6 +152,8 @@ oc:tooltip.Interweb=Congratulations, you win one (1) interweb. You can connect t
 oc:tooltip.IronNugget=A nugget made of iron, that's why it's called an Iron Nugget, duh...
 oc:tooltip.Keyboard=Can be attached to screens to allow typing on them.
 oc:tooltip.Hologram=A volumetric display that can be controlled by computers to display arbitrary voxel structures.[nl] Resolution: §f48x32x48§7. [nl] Color depth: §fMonochrome§7.
+oc:tooltip.MaterialCosts=Hold [§f%s§7] for material costs.
+oc:tooltip.Materials=Materials:
 oc:tooltip.Memory=Required to get computers to run. The more you have, the more complex the programs you can run.
 oc:tooltip.Microchip=The chip formerly known as Integrated Circuit. I have no idea why this works with redstone, but it does.
 oc:tooltip.NetworkCard=Allows distant computers connected by other blocks (such as cable) to communicate by sending messages to each other.
@@ -172,7 +179,7 @@ oc:tooltip.Server=This is a server, there are many like it, but this one can be 
 oc:tooltip.Server.Components=Installed components:
 oc:tooltip.ServerRack=Allows the installation of up to four servers. Use a Remote Terminal to access the servers built into this server rack.
 oc:tooltip.Terminal=Allows controlling a server remotely, as long as you are in range of it. Acts like a portable screen and keyboard. Shift-right-click a server in a server rack to bind the terminal to it.
-oc:tooltip.TooLong=Hold shift for a detailed tooltip.
+oc:tooltip.TooLong=Hold [§f%s§7] for a detailed tooltip.
 oc:tooltip.Transistor=A basic element in most other computer parts. It's a bit twisted, but it does the job.
 oc:tooltip.UpgradeAngel=Allows robots to place blocks in thin air, even if there is no point of reference.
 oc:tooltip.UpgradeCrafting=Enables robots to use the top left area of their inventory for crafting objects. Items have to be aligned as they would be in a crafting table.

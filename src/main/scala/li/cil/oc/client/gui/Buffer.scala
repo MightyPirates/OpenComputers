@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.Settings
-import li.cil.oc.client.PacketSender
+import li.cil.oc.client.{KeyBindings, PacketSender}
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.common.component
@@ -84,7 +83,7 @@ trait Buffer extends GuiScreen {
         case _ => // Wasn't pressed while viewing the screen.
       }
 
-      if (isPasteShortcutPressed && Keyboard.getEventKeyState) {
+      if (Keyboard.isKeyDown(KeyBindings.clipboardPaste.getKeyCode) && Keyboard.getEventKeyState) {
         PacketSender.sendClipboard(buffer, GuiScreen.getClipboardString)
       }
     }
@@ -108,10 +107,5 @@ trait Buffer extends GuiScreen {
       code == Keyboard.KEY_RSHIFT ||
       code == Keyboard.KEY_LMETA ||
       code == Keyboard.KEY_RMETA
-  }
-
-  private def isPasteShortcutPressed = {
-    val want = Settings.get.pasteShortcut.map(name => Keyboard.getKeyIndex(name.toUpperCase)).filter(_ != Keyboard.KEY_NONE)
-    pressedKeys.keySet.equals(want)
   }
 }

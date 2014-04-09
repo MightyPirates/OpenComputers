@@ -27,11 +27,11 @@ class Terminal(val parent: Delegator) extends Delegate {
   @SideOnly(Side.CLIENT)
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
+    super.tooltipLines(stack, player, tooltip, advanced)
     if (hasServer(stack)) {
       val server = stack.getTagCompound.getString(Settings.namespace + "server")
       tooltip.add("§8" + server.substring(0, 13) + "...§7")
     }
-    super.tooltipLines(stack, player, tooltip, advanced)
   }
 
   // TODO check if server is in range and running
