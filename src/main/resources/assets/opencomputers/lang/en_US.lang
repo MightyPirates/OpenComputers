@@ -124,7 +124,6 @@ oc:container.Rack=Server Rack
 oc:container.Server=Server
 
 # Keybinds
-key.extendedTooltip=Expand Tooltip
 key.materialCosts=Show Material Costs
 key.clipboardPaste=Paste Clipboard
 

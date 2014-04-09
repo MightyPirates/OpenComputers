@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.client.registry.KeyBindingRegistry.KeyHandler
 import cpw.mods.fml.common.TickType
 import java.util
@@ -11,18 +12,16 @@ object KeyBindings {
 
   def showMaterialCosts = Keyboard.isKeyDown(materialCosts.keyCode)
 
-  val extendedTooltip = new KeyBinding("key.extendedTooltip", Keyboard.KEY_LSHIFT)
+  val extendedTooltip = FMLClientHandler.instance.getClient.gameSettings.keyBindSneak
 
   val materialCosts = new KeyBinding("key.materialCosts", Keyboard.KEY_LMENU)
 
   val clipboardPaste = new KeyBinding("key.clipboardPaste", Keyboard.KEY_INSERT)
 
   object Handler extends KeyHandler(Array(
-    extendedTooltip,
     materialCosts,
     clipboardPaste
   ), Array(
-    false,
     false,
     false
   )) {

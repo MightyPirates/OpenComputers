@@ -124,7 +124,6 @@ oc:container.Rack=Serverschrank
 oc:container.Server=Server
 
 # Keybinds
-key.extendedTooltip=Tooltip erweitern
 key.materialCosts=Materialkosten anzeigen
 key.clipboardPaste=Zwischenablage einfügen
 

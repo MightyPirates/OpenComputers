@@ -6,7 +6,6 @@ import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import scala.Array
 
 class Memory(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "Memory"
