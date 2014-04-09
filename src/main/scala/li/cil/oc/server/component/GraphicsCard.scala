@@ -1,13 +1,13 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.Buffer
 import li.cil.oc.common.tileentity
+import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
-import scala.Some
+import net.minecraft.util.StatCollector
 
 abstract class GraphicsCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
@@ -228,7 +228,7 @@ abstract class GraphicsCard extends ManagedComponent {
                 buffer.owner.onScreenFill(0, 0, w, h, ' ')
               }
               try {
-                val message = "Unrecoverable error:\n" + machine.lastError + "\n"
+                val message = "Unrecoverable error:\n" + StatCollector.translateToLocal(machine.lastError) + "\n"
                 val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
                 val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
                 for ((line, idx) <- lines.zipWithIndex) {

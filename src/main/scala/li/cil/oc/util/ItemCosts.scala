@@ -41,6 +41,7 @@ object ItemCosts {
   terminate(Items.iron_ingot)
   terminate(Items.quartz)
   terminate(Items.nether_star)
+  terminate(Items.paper)
   terminate(Items.redstone)
   terminate(Items.string)
   terminate(Items.slime_ball)
