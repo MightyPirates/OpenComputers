@@ -2,10 +2,12 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util.logging.Level
+import li.cil.oc.client.Sound
 import li.cil.oc.OpenComputers
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
+import cpw.mods.fml.common.FMLCommonHandler
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def world = getWorldObj
@@ -18,9 +20,37 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  lazy val isClient = world.isRemote
+  val isClient = FMLCommonHandler.instance.getEffectiveSide.isClient
 
-  lazy val isServer = !isClient
+  val isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
+
+  // ----------------------------------------------------------------------- //
+
+  override def validate() {
+    super.validate()
+    initialize()
+  }
+
+  override def invalidate() {
+    super.invalidate()
+    dispose()
+  }
+
+  override def onChunkUnload() {
+    super.onChunkUnload()
+    dispose()
+  }
+
+  protected def initialize() {}
+
+  protected def dispose() {
+    if (isClient) {
+      // Note: chunk unload is handled by sound via event handler.
+      Sound.stopLoop(this)
+    }
+  }
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {}

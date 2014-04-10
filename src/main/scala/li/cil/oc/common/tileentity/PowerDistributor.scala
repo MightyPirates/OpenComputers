@@ -15,6 +15,8 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
     withConnector(Settings.get.bufferDistributor).
     create())
 
+  override def canUpdate = isServer
+
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)

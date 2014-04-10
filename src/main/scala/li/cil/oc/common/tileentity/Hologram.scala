@@ -180,6 +180,8 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {

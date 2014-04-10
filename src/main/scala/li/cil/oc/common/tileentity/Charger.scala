@@ -31,6 +31,8 @@ class Charger extends traits.Environment with traits.RedstoneAware with traits.R
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = true
+
   override def updateEntity() {
     super.updateEntity()
     if (isServer) {

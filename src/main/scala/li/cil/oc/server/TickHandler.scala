@@ -46,9 +46,7 @@ object TickHandler extends ITickHandler {
 
   override def ticks() = util.EnumSet.of(TickType.SERVER)
 
-  override def tickStart(`type`: util.EnumSet[TickType], tickData: AnyRef*) {}
-
-  override def tickEnd(`type`: util.EnumSet[TickType], tickData: AnyRef*) = {
+  override def tickStart(`type`: util.EnumSet[TickType], tickData: AnyRef*) {
     pending.synchronized {
       val adds = pending.toArray
       pending.clear()
@@ -59,4 +57,6 @@ object TickHandler extends ITickHandler {
       }
     })
   }
+
+  override def tickEnd(`type`: util.EnumSet[TickType], tickData: AnyRef*) = {}
 }

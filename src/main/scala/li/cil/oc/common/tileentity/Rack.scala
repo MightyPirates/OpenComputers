@@ -17,6 +17,7 @@ import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
+import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
@@ -182,67 +183,61 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
-    if (isServer) {
-      if (addedToNetwork) {
-        if (range > 0 && !Settings.get.ignorePower && anyRunning) {
-          val running = servers.count {
-            case Some(server) => server.machine.isRunning
-            case _ => false
-          }
-          var cost = -(running * range * Settings.get.wirelessCostPerRange)
-          for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
-            sidedNode(side) match {
-              case connector: Connector => cost = connector.changeBuffer(cost)
-              case _ =>
-            }
-          }
-        }
-
-        servers collect {
-          case Some(server) => server.machine.update()
-        }
-
-        if (hasChanged) {
-          hasChanged = false
-          world.markTileEntityChunkModified(x, y, z, this)
-        }
-
-        for (i <- 0 until servers.length) {
-          val isRunning = servers(i).fold(false)(_.machine.isRunning)
-          if (_isRunning(i) != isRunning) {
-            _isRunning(i) = isRunning
-            ServerPacketSender.sendServerState(this, i)
-          }
-        }
-        isOutputEnabled = hasRedstoneCard
-        isAbstractBusAvailable = hasAbstractBusCard
-
-        servers collect {
-          case Some(server) => server.inventory.updateComponents()
-        }
-      }
-      else {
-        for ((serverOption, terminal) <- servers.zip(terminals)) serverOption match {
-          case Some(server) =>
-            Network.joinNewNetwork(server.machine.node)
-            terminal.connect(server.machine.node)
-          case _ =>
-        }
-      }
-    }
     super.updateEntity()
-  }
+    if (isServer) {
+      if (range > 0 && !Settings.get.ignorePower && anyRunning) {
+        val running = servers.count {
+          case Some(server) => server.machine.isRunning
+          case _ => false
+        }
+        var cost = -(running * range * Settings.get.wirelessCostPerRange)
+        for (side <- ForgeDirection.VALID_DIRECTIONS if cost < 0) {
+          sidedNode(side) match {
+            case connector: Connector => cost = connector.changeBuffer(cost)
+            case _ =>
+          }
+        }
+      }
 
-  // Note: chunk unload is handled by sound via event handler.
-  override def invalidate() {
-    super.invalidate()
-    if (isClient) {
-      Sound.stopLoop(this)
+      servers collect {
+        case Some(server) => server.machine.update()
+      }
+
+      if (hasChanged) {
+        hasChanged = false
+        world.markTileEntityChunkModified(x, y, z, this)
+      }
+
+      for (i <- 0 until servers.length) {
+        val isRunning = servers(i).fold(false)(_.machine.isRunning)
+        if (_isRunning(i) != isRunning) {
+          _isRunning(i) = isRunning
+          ServerPacketSender.sendServerState(this, i)
+        }
+      }
+      isOutputEnabled = hasRedstoneCard
+      isAbstractBusAvailable = hasAbstractBusCard
+
+      servers collect {
+        case Some(server) => server.inventory.updateComponents()
+      }
     }
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def initialize() {
+    super.initialize()
+    Rack.list += this
+  }
+
+  override protected def dispose() {
+    super.dispose()
+    Rack.list -= this
+  }
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
@@ -390,4 +385,8 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   }
 
   override def rotate(axis: ForgeDirection) = false
+}
+
+object Rack {
+  val list = mutable.Set.empty[Rack]
 }

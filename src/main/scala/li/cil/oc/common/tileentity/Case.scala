@@ -52,8 +52,10 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
     case _ => false
   }
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
-    if (tier == 3 && isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && tier == 3 && world.getWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }

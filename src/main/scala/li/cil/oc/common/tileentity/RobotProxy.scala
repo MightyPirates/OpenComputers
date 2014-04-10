@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import mods.immibis.redlogic.api.wiring.IWire
@@ -62,16 +61,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
 
   override def updateEntity() {
     robot.updateEntity()
-    if (!addedToNetwork) {
-      addedToNetwork = true
-      // Use the same address we use internally on the outside.
-      if (isServer) {
-        val nbt = new NBTTagCompound()
-        nbt.setString("address", robot.node.address)
-        node.load(nbt)
-      }
-      Network.joinOrCreateNetwork(this)
-    }
   }
 
   override def validate() {
@@ -85,17 +74,16 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
     if (firstProxy) {
       robot.validate()
     }
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    if (robot.proxy == this) {
-      robot.invalidate()
+    if (isServer) {
+      // Use the same address we use internally on the outside.
+      val nbt = new NBTTagCompound()
+      nbt.setString("address", robot.node.address)
+      node.load(nbt)
     }
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
+  override protected def dispose() {
+    super.dispose()
     if (robot.proxy == this) {
       robot.onChunkUnload()
     }
@@ -127,10 +115,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
   override def shouldRenderInPass(pass: Int) = robot.shouldRenderInPass(pass)
 
   override def onInventoryChanged() = robot.onInventoryChanged()
-
-  override lazy val isClient = robot.isClient
-
-  override lazy val isServer = robot.isServer
 
   // ----------------------------------------------------------------------- //
 

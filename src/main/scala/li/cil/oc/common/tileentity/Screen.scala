@@ -295,17 +295,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    cleanup()
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    cleanup()
-  }
-
-  protected def cleanup() {
+  override protected def dispose() {
+    super.dispose()
     if (currentGui.isDefined) {
       Minecraft.getMinecraft.displayGuiScreen(null)
     }

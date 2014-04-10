@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
-import li.cil.oc.server.{TickHandler, component}
+import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -23,8 +23,6 @@ class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatab
 
   override def node = if (isClient) null else keyboard.node
 
-  override lazy val isClient = keyboard == null
-
   def hasNodeOnSide(side: ForgeDirection) =
     side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)
 
@@ -42,11 +40,6 @@ class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatab
   // ----------------------------------------------------------------------- //
 
   override def canUpdate = false
-
-  override def validate() {
-    super.validate()
-    TickHandler.schedule(this)
-  }
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)

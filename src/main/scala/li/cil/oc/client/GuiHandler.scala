@@ -5,7 +5,6 @@ import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiTy
 import li.cil.oc.{Settings, Items}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
-import scala.collection.convert.WrapAsScala._
 import net.minecraft.util.StatCollector
 import net.minecraft.client.Minecraft
 
@@ -37,16 +36,14 @@ object GuiHandler extends CommonGuiHandler {
             val address = stack.getTagCompound.getString(Settings.namespace + "server")
             val key = stack.getTagCompound.getString(Settings.namespace + "key")
             if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
-              // Check if bound to server is loaded. TODO optimize this?
-              world.loadedTileEntityList.flatMap {
-                case rack: tileentity.Rack => rack.terminals
-                case _ => Iterable.empty
-              } find (term => term.rack.isPresent(term.number) match {
+              tileentity.Rack.list.
+                flatMap(_.terminals).
+                find(term => term.rack.isPresent(term.number) match {
                 case Some(value) => value == address
                 case _ => false
               }) match {
                 case Some(term) =>
-                  def inRange = player.isEntityAlive && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
+                  def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                   if (inRange) {
                     if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => {
                       // Check if someone else bound a term to our server.

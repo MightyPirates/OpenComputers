@@ -294,12 +294,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
-    if (isServer && !addedToNetwork) {
-      addedToNetwork = true
-      api.Network.joinNewNetwork(node)
-      // For upgrading from when the energy was stored by the machine's node.
-      node.asInstanceOf[Connector].setLocalBufferSize(0)
-    }
     if (animationTicksLeft > 0) {
       animationTicksLeft -= 1
       if (animationTicksLeft == 0) {
@@ -326,19 +320,25 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     }
   }
 
-  override def validate() {
-    super.validate()
+  override protected def initialize() {
     if (isServer) {
       items(0) match {
         case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
         case _ =>
       }
       updateXpInfo()
+
+      // Ensure we have a node address, because the proxy needs this to initialize
+      // its own node to the same address ours has.
+      api.Network.joinNewNetwork(node)
+
+      // For upgrading from when the energy was stored by the machine's node.
+      node.asInstanceOf[Connector].setLocalBufferSize(0)
     }
   }
 
-  override def invalidate() {
-    super.invalidate()
+  override protected def dispose() {
+    super.dispose()
     if (currentGui.isDefined) {
       Minecraft.getMinecraft.displayGuiScreen(null)
     }

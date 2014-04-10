@@ -248,6 +248,8 @@ private class Network private(private val data: mutable.Map[String, Network.Vert
         }
         node.data.network = wrapper
       })
+      otherNetwork.data.clear()
+      otherNetwork.connectors.clear()
 
       Network.Edge(oldNode, node(addedNode))
     }
