@@ -68,7 +68,7 @@ sandbox = {
   end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
-    if not allowBytecode() then
+    if not system.allowBytecode() then
       mode = "t"
     end
     env = env or select(2, libprocess.running())
@@ -595,7 +595,7 @@ local function main()
   coroutine.yield()
 
   while true do
-    deadline = computer.realTime() + timeout -- timeout global is set by host
+    deadline = computer.realTime() + system.timeout()
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
