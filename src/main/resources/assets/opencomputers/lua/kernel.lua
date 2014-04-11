@@ -9,29 +9,6 @@ end
 
 -------------------------------------------------------------------------------
 
-local function invoke(direct, ...)
-  local result
-  if direct then
-    result = table.pack(component.invoke(...))
-    if result.n == 0 then -- limit for direct calls reached
-      result = nil
-    end
-  end
-  if not result then
-    local args = table.pack(...) -- for access in closure
-    result = select(1, coroutine.yield(function()
-      return table.pack(component.invoke(table.unpack(args, 1, args.n)))
-    end))
-  end
-  if not result[1] then -- error that should be re-thrown.
-    error(result[2], 0)
-  else -- success or already processed error.
-    return table.unpack(result, 2, result.n)
-  end
-end
-
--------------------------------------------------------------------------------
-
 local function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
@@ -64,6 +41,15 @@ local function findProcess(co)
 end
 
 -------------------------------------------------------------------------------
+
+local function spcall(...)
+  local result = table.pack(pcall(...))
+  if not result[1] then
+    error(tostring(result[2]), 0)
+  else
+    return table.unpack(result, 2, result.n)
+  end
+end
 
 --[[ This is the global environment we make available to userland programs. ]]
 -- You'll notice that we do a lot of wrapping of native functions and adding
@@ -209,19 +195,10 @@ sandbox = {
     pow = math.pow,
     rad = math.rad,
     random = function(low, high)
-      if low then
-        checkArg(1, low, "number")
-        if high then
-          checkArg(1, high, "number")
-          return math.random(low, high)
-        end
-        return math.random(low)
-      end
-      return math.random()
+      return spcall(math.random, low, high)
     end,
     randomseed = function(seed)
-      checkArg(1, seed, "number")
-      math.randomseed(seed)
+      spcall(math.randomseed, seed)
     end,
     sin = math.sin,
     sinh = math.sinh,
@@ -250,9 +227,7 @@ sandbox = {
   os = {
     clock = os.clock,
     date = function(format, time)
-      checkArg(1, format, "string", "nil")
-      checkArg(2, time, "number", "nil")
-      return os.date(format, time)
+      return spcall(os.date, format, time)
     end,
     difftime = function(t2, t1)
       return t2 - t1
@@ -269,7 +244,7 @@ sandbox = {
     traceback = debug.traceback
   },
 
-  _OSVERSION = "OpenOS 1.1",
+  _OSVERSION = "OpenOS 1.2",
   checkArg = checkArg
 }
 sandbox._G = sandbox
@@ -277,14 +252,35 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
+local function invoke(direct, ...)
+  local result
+  if direct then
+    result = table.pack(component.invoke(...))
+    if result.n == 0 then -- limit for direct calls reached
+      result = nil
+    end
+  end
+  if not result then
+    local args = table.pack(...) -- for access in closure
+    result = select(1, coroutine.yield(function()
+      return table.pack(component.invoke(table.unpack(args, 1, args.n)))
+    end))
+  end
+  if not result[1] then -- error that should be re-thrown.
+    error(result[2], 0)
+  else -- success or already processed error.
+    return table.unpack(result, 2, result.n)
+  end
+end
+
 local libcomponent
 
-local callback = {
-  __call = function(method, ...)
-    return libcomponent.invoke(method.address, method.name, ...)
+local componentCallback = {
+  __call = function(self, ...)
+    return libcomponent.invoke(self.address, self.name, ...)
   end,
-  __tostring = function(method)
-    return libcomponent.doc(method.address, method.name) or "function"
+  __tostring = function(self)
+    return libcomponent.doc(self.address, self.name) or "function"
   end
 }
 
@@ -335,7 +331,7 @@ libcomponent = {
       return nil, reason
     end
     for method in pairs(methods) do
-      proxy[method] = setmetatable({address=address,name=method}, callback)
+      proxy[method] = setmetatable({address=address,name=method}, componentCallback)
     end
     return proxy
   end,
@@ -358,24 +354,17 @@ local libcomputer = {
 
   users = computer.users,
   addUser = function(name)
-    checkArg(1, name, "string")
-    return computer.addUser(name)
+    return spcall(computer.addUser, name)
   end,
   removeUser = function(name)
-    checkArg(1, name, "string")
-    return computer.removeUser(name)
+    return spcall(computer.removeUser, name)
   end,
 
   shutdown = function(reboot)
     coroutine.yield(reboot ~= nil and reboot ~= false)
   end,
   pushSignal = function(name, ...)
-    checkArg(1, name, "string")
-    local args = table.pack(...)
-    for i = 1, args.n do
-      checkArg(i + 1, args[i], "nil", "boolean", "string", "number")
-    end
-    return computer.pushSignal(name, ...)
+    return spcall(computer.pushSignal, name, ...)
   end,
   pullSignal = function(timeout)
     local deadline = computer.uptime() +
@@ -436,36 +425,25 @@ libprocess = {
 
 local libunicode = {
   char = function(...)
-    local args = table.pack(...)
-    for i = 1, args.n do
-      checkArg(i, args[i], "number")
-    end
-    return unicode.char(...)
+    return spcall(unicode.char, ...)
   end,
   len = function(s)
-    checkArg(1, s, "string")
-    return unicode.len(s)
+    return spcall(unicode.len, s)
   end,
   lower = function(s)
-    checkArg(1, s, "string")
-    return unicode.lower(s)
+    return spcall(unicode.lower, s)
   end,
   reverse = function(s)
-    checkArg(1, s, "string")
-    return unicode.reverse(s)
+    return spcall(unicode.reverse, s)
   end,
   sub = function(s, i, j)
-    checkArg(1, s, "string")
-    checkArg(2, i, "number")
-    checkArg(3, j, "number", "nil")
     if j then
-      return unicode.sub(s, i, j)
+      return spcall(unicode.sub, s, i, j)
     end
-    return unicode.sub(s, i)
+    return spcall(unicode.sub, s, i)
   end,
   upper = function(s)
-    checkArg(1, s, "string")
-    return unicode.upper(s)
+    return spcall(unicode.upper, s)
   end
 }
 
@@ -555,6 +533,54 @@ local function bootstrap()
   return coroutine.create(function() dofile("/init.lua") end), {n=0}
 end
 
+local function wrapUserdata(values)
+  for i = 1, values.n do
+    if type(values[i]) == "userdata" then
+      local function wrap(data)
+        local mtcallback = {
+          __call = function(self, ...)
+            return userdata.invoke(data, self.name, ...)
+          end,
+          __tostring = function(self)
+            return userdata.doc(data, self.name) or "function"
+          end
+        }
+        local callbacks = userdata.callbacks(data)
+        local proxy = {}
+        for j = 1, callbacks.n do
+          local method = callbacks[j]
+          proxy[method] = setmetatable({name = method}, mtcallback)
+        end
+        return setmetatable(proxy, {
+          __index = function(_, ...)
+            return userdata.apply(data, ...)
+          end,
+          __newindex = function(_, ...)
+            userdata.unapply(data, ...)
+          end,
+          __call = function(_, ...)
+            return userdata.call(data, ...)
+          end,
+          __gc = function()
+            userdata.dispose(data)
+          end,
+          __metatable = "userdata",
+          __tostring = "userdata",
+          __persist = function()
+            local className, nbt = userdata.save(data)
+            return function()
+              return wrap(userdata.load(className, nbt))
+            end
+          end
+        })
+      end
+      values[i] = wrap(values[i])
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
+
 local function main()
   -- Make all calls in the bootstrapper direct to speed up booting.
   local realInvoke = invoke
@@ -578,6 +604,7 @@ local function main()
       error("computer stopped unexpectedly", 0)
     else
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
+      wrapUserdata(args)
     end
   end
 end

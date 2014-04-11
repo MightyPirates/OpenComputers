@@ -3,6 +3,7 @@ package li.cil.oc.server.driver
 import java.util
 import java.util.logging.Level
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -86,6 +87,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
     case arg: Array[Float] => arg
     case arg: Array[Double] => arg
     case arg: Array[String] => arg
+
+    case arg: Value => arg
 
     case arg: Array[_] => arg.map {
       case (value: AnyRef) => convertRecursively(value)
