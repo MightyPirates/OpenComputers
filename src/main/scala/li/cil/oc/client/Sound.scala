@@ -167,8 +167,10 @@ object Sound {
     }
 
     def stop() {
-      soundSystem.stop(source)
-      soundSystem.removeSource(source)
+      if (soundSystem != null) {
+        soundSystem.stop(source)
+        soundSystem.removeSource(source)
+      }
     }
   }
 

@@ -17,7 +17,6 @@ end
 function text.padRight(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
-  local unicode = require("unicode")
   if not value or unicode.len(value) == 0 then
     return string.rep(" ", length)
   else
@@ -28,7 +27,6 @@ end
 function text.padLeft(value, length)
   checkArg(1, value, "string", "nil")
   checkArg(2, length, "number")
-  local unicode = require("unicode")
   if not value or unicode.len(value) == 0 then
     return string.rep(" ", length)
   else
@@ -97,14 +95,6 @@ function text.tokenize(value)
     table.insert(tokens, token)
   end
   return tokens
-end
-
-function text.serialize(value, pretty) -- deprecated, use serialization module
-  return require("serialization").serialize(value, pretty)
-end
-
-function text.unserialize(data) -- deprecated, use serialization module
-  return require("serialization").unserialize(data)
 end
 
 -------------------------------------------------------------------------------

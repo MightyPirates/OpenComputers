@@ -27,21 +27,6 @@ end
 
 -------------------------------------------------------------------------------
 
-local running = setmetatable({}, {__mode="k"})
-
-local function findProcess(co)
-  co = co or coroutine.running()
-  for _, process in pairs(running) do
-    for _, instance in pairs(process.instances) do
-      if instance == co then
-        return process
-      end
-    end
-  end
-end
-
--------------------------------------------------------------------------------
-
 local function spcall(...)
   local result = table.pack(pcall(...))
   if not result[1] then
@@ -71,7 +56,6 @@ sandbox = {
     if not system.allowBytecode() then
       mode = "t"
     end
-    env = env or select(2, libprocess.running())
     return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in boot/*_base.lua
@@ -100,11 +84,7 @@ sandbox = {
   end,
 
   coroutine = {
-    create = function(f)
-      local co = coroutine.create(f)
-      table.insert(findProcess().instances, co)
-      return co
-    end,
+    create = coroutine.create,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
       checkArg(1, co, "thread")
       local args = table.pack(...)
@@ -194,8 +174,8 @@ sandbox = {
     pi = math.pi,
     pow = math.pow,
     rad = math.rad,
-    random = function(low, high)
-      return spcall(math.random, low, high)
+    random = function(...)
+      return spcall(math.random, ...)
     end,
     randomseed = function(seed)
       spcall(math.randomseed, seed)
@@ -288,7 +268,7 @@ libcomponent = {
   doc = function(address, method)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
-    local result, reason = component.doc(address, method)
+    local result, reason = spcall(component.doc, address, method)
     if not result and reason then
       error(reason, 2)
     end
@@ -297,7 +277,7 @@ libcomponent = {
   invoke = function(address, method, ...)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
-    local methods, reason = component.methods(address)
+    local methods, reason = spcall(component.methods, address)
     if not methods then
       return nil, reason
     end
@@ -310,7 +290,7 @@ libcomponent = {
   end,
   list = function(filter)
     checkArg(1, filter, "string", "nil")
-    local list = component.list(filter)
+    local list = spcall(component.list, filter)
     local key = nil
     return function()
       key = next(list, key)
@@ -321,12 +301,12 @@ libcomponent = {
   end,
   proxy = function(address)
     checkArg(1, address, "string")
-    local type, reason = component.type(address)
+    local type, reason = spcall(component.type, address)
     if not type then
       return nil, reason
     end
     local proxy = {address = address, type = type}
-    local methods, reason = component.methods(address)
+    local methods, reason = spcall(component.methods, address)
     if not methods then
       return nil, reason
     end
@@ -340,6 +320,7 @@ libcomponent = {
     return component.type(address)
   end
 }
+sandbox.component = libcomponent
 
 local libcomputer = {
   isRobot = computer.isRobot,
@@ -351,6 +332,11 @@ local libcomputer = {
   uptime = computer.uptime,
   energy = computer.energy,
   maxEnergy = computer.maxEnergy,
+
+  getBootAddress = computer.getBootAddress,
+  setBootAddress = function(address)
+    return spcall(computer.setBootAddress, address)
+  end,
 
   users = computer.users,
   addUser = function(name)
@@ -377,51 +363,7 @@ local libcomputer = {
     until computer.uptime() >= deadline
   end
 }
-
-libprocess = {
-  load = function(path, env, init, name)
-    checkArg(1, path, "string")
-    checkArg(2, env, "table", "nil")
-    checkArg(3, init, "function", "nil")
-    checkArg(4, name, "string", "nil")
-
-    local process = findProcess()
-    if process then
-      env = env or process.env
-    end
-    env = setmetatable({}, {__index=env or sandbox})
-    local code, reason = sandbox.loadfile(path, "t", env)
-    if not code then
-      return nil, reason
-    end
-
-    local thread = coroutine.create(function(...)
-      if init then
-        init()
-      end
-      return code(...)
-    end)
-    running[thread] = {
-      path = path,
-      command = name,
-      env = env,
-      parent = process,
-      instances = setmetatable({thread}, {__mode="v"})
-    }
-    return thread
-  end,
-  running = function(level)
-    level = level or 1
-    local process = findProcess()
-    while level > 1 and process do
-      process = process.parent
-      level = level - 1
-    end
-    if process then
-      return process.path, process.env, process.command
-    end
-  end
-}
+sandbox.computer = libcomputer
 
 local libunicode = {
   char = function(...)
@@ -446,91 +388,48 @@ local libunicode = {
     return spcall(unicode.upper, s)
   end
 }
+sandbox.unicode = libunicode
 
 -------------------------------------------------------------------------------
 
 local function bootstrap()
-  -- Minimalistic hard-coded pure async proxy for our ROM.
-  local rom = {}
-  function rom.invoke(method, ...)
-    return invoke(true, computer.romAddress(), method, ...)
-  end
-  function rom.open(file) return rom.invoke("open", file) end
-  function rom.read(handle) return rom.invoke("read", handle, math.huge) end
-  function rom.close(handle) return rom.invoke("close", handle) end
-  function rom.inits(file) return ipairs(rom.invoke("list", "boot")) end
-  function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
-
-  -- Custom low-level loadfile/dofile implementation reading from our ROM.
-  local function loadfile(file)
-    local handle, reason = rom.open(file)
+  local function tryLoadFrom(address)
+    function boot_invoke(method, ...)
+      local result = table.pack(pcall(invoke, true, address, method, ...))
+      if not result[1] then
+        return nil, result[2]
+      else
+        return table.unpack(result, 2, result.n)
+      end
+    end
+    local handle, reason = boot_invoke("open", "/init.lua")
     if not handle then
-      error(reason)
+      return nil, reason
     end
     local buffer = ""
     repeat
-      local data, reason = rom.read(handle)
+      local data, reason = boot_invoke("read", handle, math.huge)
       if not data and reason then
-        error(reason)
+        return nil, reason
       end
       buffer = buffer .. (data or "")
     until not data
-    rom.close(handle)
-    return load(buffer, "=" .. file, "t", sandbox)
+    boot_invoke("close", handle)
+    return load(buffer, "=init", "t", sandbox)
   end
-  local function dofile(file)
-    local program, reason = loadfile(file)
-    if program then
-      local result = table.pack(pcall(program))
-      if result[1] then
-        return table.unpack(result, 2, result.n)
-      else
-        error(result[2])
-      end
-    else
-      error(reason)
-    end
+  local init, reason
+  if computer.getBootAddress() then
+    init, reason = tryLoadFrom(computer.getBootAddress())
+  end
+  if not init then
+    computer.setBootAddress()
+    init, reason = tryLoadFrom(computer.romAddress())
+  end
+  if not init then
+    error(reason)
   end
 
-  -- Load file system related libraries we need to load other stuff moree
-  -- comfortably. This is basically wrapper stuff for the file streams
-  -- provided by the filesystem components.
-  local package = dofile("/lib/package.lua")
-
-  -- Initialize the package module with some of our own APIs.
-  package.preload["buffer"] = loadfile("/lib/buffer.lua")
-  package.preload["component"] = function() return libcomponent end
-  package.preload["computer"] = function() return libcomputer end
-  package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
-  package.preload["io"] = loadfile("/lib/io.lua")
-  package.preload["process"] = function() return libprocess end
-  package.preload["unicode"] = function() return libunicode end
-
-  -- Inject the package and io modules into the global namespace, as in Lua.
-  sandbox.package = package
-  sandbox.io = sandbox.require("io")
-
-  -- Mount the ROM and temporary file systems to allow working on the file
-  -- system module from this point on.
-  sandbox.require("filesystem").mount(computer.romAddress(), "/")
-  if computer.tmpAddress() then
-    sandbox.require("filesystem").mount(computer.tmpAddress(), "/tmp")
-  end
-
-  -- Run library startup scripts. These mostly initialize event handlers.
-  local scripts = {}
-  for _, file in rom.inits() do
-    local path = "boot/" .. file
-    if not rom.isDirectory(path) then
-      table.insert(scripts, path)
-    end
-  end
-  table.sort(scripts)
-  for i = 1, #scripts do
-    dofile(scripts[i])
-  end
-
-  return coroutine.create(function() dofile("/init.lua") end), {n=0}
+  return coroutine.create(init), {n=0}
 end
 
 local function wrapUserdata(values)
@@ -582,17 +481,11 @@ end
 -------------------------------------------------------------------------------
 
 local function main()
-  -- Make all calls in the bootstrapper direct to speed up booting.
-  local realInvoke = invoke
-  invoke = function(_, ...) return realInvoke(true, ...) end
-
-  local co, args = bootstrap()
-
-  -- Step out of the fast lane, all the basic stuff should now be loaded.
-  invoke = realInvoke
-
   -- Yield once to get a memory baseline.
   coroutine.yield()
+
+  -- After memory footprint to avoid init.lua bumping the baseline.
+  local co, args = bootstrap()
 
   while true do
     deadline = computer.realTime() + system.timeout()

@@ -1,7 +1,7 @@
 local component = require("component")
 local package = require("package")
 local term = require("term")
-local text = require("text")
+local serialization = require("serialization")
 
 local function optrequire(...)
   local success, module = pcall(require, ...)
@@ -49,7 +49,7 @@ while term.isAvailable() do
       io.stderr:write(tostring(result[2]) .. "\n")
     else
       for i = 2, result.n do
-        term.write(text.serialize(result[i], true) .. "\t", true)
+        term.write(serialization.serialize(result[i], true) .. "\t", true)
       end
       if term.getCursor() > 1 then
         term.write("\n")

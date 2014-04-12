@@ -1,6 +1,4 @@
-local event = require("event")
 local fs = require("filesystem")
-local process = require("process")
 local text = require("text")
 local unicode = require("unicode")
 
@@ -163,10 +161,6 @@ function shell.parse(...)
     end
   end
   return args, options
-end
-
-function shell.running(level) -- deprecated
-  return require("process").running(level)
 end
 
 -------------------------------------------------------------------------------

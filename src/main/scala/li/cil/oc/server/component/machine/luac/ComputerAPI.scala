@@ -38,6 +38,23 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "address")
 
+    // Get/set address of boot device.
+    lua.pushScalaFunction(lua => {
+      owner.bootAddress match {
+        case "" => lua.pushNil()
+        case address => lua.pushString(address)
+      }
+      1
+    })
+    lua.setField(-2, "getBootAddress")
+
+    lua.pushScalaFunction(lua => {
+      if (lua.isNoneOrNil(1)) owner.bootAddress = ""
+      else owner.bootAddress = lua.checkString(1)
+      0
+    })
+    lua.setField(-2, "setBootAddress")
+
     lua.pushScalaFunction(lua => {
       // This is *very* unlikely, but still: avoid this getting larger than
       // what we report as the total memory.

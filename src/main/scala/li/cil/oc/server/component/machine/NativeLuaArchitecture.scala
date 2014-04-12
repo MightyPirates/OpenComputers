@@ -17,6 +17,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
   private[machine] val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
 
+  private[machine] var bootAddress = ""
+
   private val persistence = new PersistenceAPI(this)
 
   private val apis = Array(
@@ -27,6 +29,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     new SystemAPI(this),
     new UnicodeAPI(this),
     new UserdataAPI(this))
+
+  private var lastCollection = 0L
 
   // ----------------------------------------------------------------------- //
 
@@ -73,9 +77,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
 
-      if (Settings.get.activeGC) {
+      if (Settings.get.activeGC && (machine.worldTime - lastCollection) > 20) {
         // Help out the GC a little. The emergency GC has a few limitations
         // that will make it free less memory than doing a full step manually.
+        lastCollection = machine.worldTime
         lua.gc(LuaState.GcAction.COLLECT, 0)
       }
 

@@ -120,10 +120,11 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
         return
       elseif command ~= "" then
         local result, reason = execute(command)
+        if term.getCursor() > 1 then
+          term.write("\n")
+        end
         if not result then
           io.stderr:write((tostring(reason) or "unknown error").. "\n")
-        elseif term.getCursor() > 1 then
-          term.write("\n")
         end
       end
     end
@@ -132,7 +133,7 @@ else
   -- execute command.
   local result = table.pack(execute(table.unpack(args)))
   if not result[1] then
-    error(result[2])
+    error(result[2], 0)
   end
   return table.unpack(result, 2)
 end

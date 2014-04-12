@@ -2,7 +2,7 @@ local io, file = {}, {}
 
 local input, output
 local programs = setmetatable({}, {__mode="k"}) -- maps program envs to i/o
-function io.progs() return programs end
+
 local function findOverride(filter)
   local override
   pcall(function()
