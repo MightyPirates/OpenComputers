@@ -1,6 +1,7 @@
 package li.cil.occ.mods.computercraft;
 
 import com.google.common.collect.Iterables;
+import cpw.mods.fml.common.Loader;
 import dan200.computer.api.*;
 import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
@@ -17,16 +18,18 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
-    private static final Method ComputerCraft_getPeripheralFromClass;
+    private static final Method ComputerCraft_getPeripheralFromTileEntity;
 
     static {
-        Method getPeripheralFromClass = null;
+        Method getPeripheralFromTileEntity = null;
         try {
-            getPeripheralFromClass = Class.forName("dan200.ComputerCraft").getMethod("getPeripheralFromClass", Class.class);
+            getPeripheralFromTileEntity = Class.forName("dan200.ComputerCraft").getMethod("getPeripheralFromTileEntity", TileEntity.class);
         } catch (Exception e) {
-            OpenComponents.Log.log(Level.WARNING, "Error getting access to ComputerCraft peripheral handlers.", e);
+            if (Loader.instance().getIndexedModList().get("ComputerCraft").getVersion().startsWith("1.5")) {
+                OpenComponents.Log.log(Level.WARNING, "Error getting access to ComputerCraft peripheral handlers.", e);
+            }
         }
-        ComputerCraft_getPeripheralFromClass = getPeripheralFromClass;
+        ComputerCraft_getPeripheralFromTileEntity = getPeripheralFromTileEntity;
     }
 
     @Override
@@ -34,9 +37,9 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
         final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
         if (tileEntity instanceof IPeripheral) {
             return (IPeripheral) tileEntity;
-        } else if (ComputerCraft_getPeripheralFromClass != null) {
+        } else if (ComputerCraft_getPeripheralFromTileEntity != null) {
             try {
-                final IPeripheralHandler handler = ((IPeripheralHandler) ComputerCraft_getPeripheralFromClass.invoke(null, tileEntity.getClass()));
+                final IPeripheralHandler handler = ((IPeripheralHandler) ComputerCraft_getPeripheralFromTileEntity.invoke(null, tileEntity));
                 if (handler != null) {
                     return handler.getPeripheral(tileEntity);
                 }

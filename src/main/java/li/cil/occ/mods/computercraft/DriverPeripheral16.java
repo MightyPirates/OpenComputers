@@ -1,6 +1,7 @@
 package li.cil.occ.mods.computercraft;
 
 import com.google.common.collect.Iterables;
+import cpw.mods.fml.common.Loader;
 import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.lua.ILuaContext;
@@ -28,7 +29,9 @@ public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
             getPeripheralAt = Class.forName("dan200.computercraft.ComputerCraft").
                     getMethod("getPeripheralAt", World.class, int.class, int.class, int.class, int.class);
         } catch (Exception e) {
-            OpenComponents.Log.log(Level.WARNING, "Error getting access to ComputerCraft peripherals.", e);
+            if (Loader.instance().getIndexedModList().get("ComputerCraft").getVersion().startsWith("1.6")) {
+                OpenComponents.Log.log(Level.WARNING, "Error getting access to ComputerCraft peripherals.", e);
+            }
         }
         ComputerCraft_getPeripheralAt = getPeripheralAt;
     }
