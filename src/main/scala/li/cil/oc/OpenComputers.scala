@@ -26,8 +26,8 @@ object OpenComputers {
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
 
-  @EventHandler
-  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
+//  @EventHandler
+//  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)
