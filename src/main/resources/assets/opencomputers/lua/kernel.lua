@@ -6,7 +6,7 @@ local function checkDeadline()
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
     if not hitDeadline then
       deadline = deadline + 0.5
-  	end
+    end
     hitDeadline = true
     error("too long without yielding", 0)
   end
