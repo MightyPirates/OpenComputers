@@ -220,12 +220,12 @@ object LuaStateFactory {
             case 0 => lua.pushNumber(random.nextDouble())
             case 1 =>
               val u = lua.checkNumber(1).toInt
-              lua.checkArg(1, 1 < u, "interval is empty")
+              lua.checkArg(1, 1 <= u, "interval is empty")
               lua.pushInteger(1 + random.nextInt(u))
             case 2 =>
               val l = lua.checkNumber(1).toInt
               val u = lua.checkNumber(2).toInt
-              lua.checkArg(1, l < u, "interval is empty")
+              lua.checkArg(1, l <= u, "interval is empty")
               lua.pushInteger(l + random.nextInt(u - (l - 1)))
             case _ => throw new IllegalArgumentException("wrong number of arguments")
           }
