@@ -1,8 +1,13 @@
 local hookInterval = 100
 local deadline = math.huge
+local hitDeadline = false
 local function checkDeadline()
   if computer.realTime() > deadline then
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
+    if not hitDeadline then
+      deadline = deadline + 0.5
+    end
+    hitDeadline = true
     error("too long without yielding", 0)
   end
 end
@@ -570,6 +575,7 @@ local function main()
 
   while true do
     deadline = computer.realTime() + timeout -- timeout global is set by host
+    hitDeadline = false
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
