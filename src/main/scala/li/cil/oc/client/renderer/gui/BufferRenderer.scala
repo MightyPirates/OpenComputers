@@ -18,7 +18,7 @@ object BufferRenderer {
 
   def init(tm: TextureManager) = this.synchronized(if (!textureManager.isDefined) {
     textureManager = Some(tm)
-    displayLists = GLAllocation.generateDisplayLists(2)
+    displayLists = GLAllocation.generateDisplayLists(3)
     RenderState.checkError("BufferRenderer.displayLists")
   })
 
@@ -74,8 +74,16 @@ object BufferRenderer {
       GL11.glDepthMask(false)
 
       GL11.glScaled(scale, scale, 1)
-      lines.zip(colors).zipWithIndex.foreach {
-        case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, depth)
+
+      for (i <- 0 until math.min(25, lines.length)) {
+        MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, lines(i), colors(i), depth)
+      }
+
+      GL11.glEndList()
+      GL11.glNewList(displayLists + 2, GL11.GL_COMPILE)
+
+      for (i <- 25 until lines.length) {
+        MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, lines(i), colors(i), depth)
       }
 
       GL11.glPopAttrib()
@@ -90,6 +98,7 @@ object BufferRenderer {
   def drawText() =
     if (textureManager.isDefined) {
       GL11.glCallList(displayLists + 1)
+      GL11.glCallList(displayLists + 2)
     }
 
   private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {

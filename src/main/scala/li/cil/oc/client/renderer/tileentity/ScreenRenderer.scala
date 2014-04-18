@@ -174,17 +174,29 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for (((line, color), i) <- screen.buffer.lines.zip(screen.buffer.color).zipWithIndex) {
-      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
+    val lines = screen.buffer.lines
+    val colors = screen.buffer.color
+    for (i <- 0 until math.min(25, lines.length)) {
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, lines(i), colors(i), screen.buffer.depth)
+    }
+
+    if (doCompile) {
+      GL11.glEndList()
+      GL11.glNewList(list + 1, GL11.GL_COMPILE_AND_EXECUTE)
+    }
+
+    for (i <- 25 until lines.length) {
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, lines(i), colors(i), screen.buffer.depth)
     }
 
     if (doCompile) {
       GL11.glEndList()
     }
-
-    true
   }
-  else GL11.glCallList(list)
+  else {
+    GL11.glCallList(list)
+    GL11.glCallList(list + 1)
+  }
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
@@ -236,7 +248,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
   // ----------------------------------------------------------------------- //
 
   def call = {
-    val list = GLAllocation.generateDisplayLists(1)
+    val list = GLAllocation.generateDisplayLists(2)
     screen.bufferIsDirty = true // Force compilation.
     list
   }
