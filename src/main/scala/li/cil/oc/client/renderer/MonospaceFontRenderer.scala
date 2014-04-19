@@ -4,7 +4,6 @@ import li.cil.oc.client.TexturePreloader
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL11
 import scala.io.Source
@@ -46,7 +45,6 @@ object MonospaceFontRenderer {
       val s = Settings.get.fontCharScale
       val dw = charWidth * s - charWidth
       val dh = charHeight * s - charHeight
-      val t = Tessellator.instance
       // Now create lists for all printable chars.
       for (index <- 1 until 0xFF) {
         val x = (index - 1) % cols
@@ -54,12 +52,16 @@ object MonospaceFontRenderer {
         val u = x * uStep
         val v = y * vStep
         GL11.glNewList(charLists + index, GL11.GL_COMPILE)
-        t.startDrawingQuads()
-        t.addVertexWithUV(-dw, charHeight * s, 0, u, v + vSize)
-        t.addVertexWithUV(charWidth * s, charHeight * s, 0, u + uSize, v + vSize)
-        t.addVertexWithUV(charWidth * s, -dh, 0, u + uSize, v)
-        t.addVertexWithUV(-dw, -dh, 0, u, v)
-        t.draw()
+        GL11.glBegin(GL11.GL_QUADS)
+        GL11.glTexCoord2d(u, v + vSize)
+        GL11.glVertex3d(-dw, charHeight * s, 0)
+        GL11.glTexCoord2d(u + uSize, v + vSize)
+        GL11.glVertex3d(charWidth * s, charHeight * s, 0)
+        GL11.glTexCoord2d(u + uSize, v)
+        GL11.glVertex3d(charWidth * s, -dh, 0)
+        GL11.glTexCoord2d(u, v)
+        GL11.glVertex3d(-dw, -dh, 0)
+        GL11.glEnd()
         GL11.glTranslatef(charWidth, 0, 0)
         GL11.glEndList()
       }
