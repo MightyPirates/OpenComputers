@@ -2,6 +2,7 @@ package li.cil.occ.mods.appeng;
 
 import appeng.api.AEApi;
 import appeng.api.storage.ICellInventory;
+import appeng.api.storage.ICellInventoryHandler;
 import li.cil.oc.api.driver.Converter;
 
 import java.util.Map;
@@ -28,6 +29,8 @@ public final class ConverterCellInventory implements Converter {
 
             output.put("fuzzyMode", cell.getFuzzyMode().toString());
             output.put("name", cell.getItemStack().getDisplayName());
+        } else if (value instanceof ICellInventoryHandler) {
+            convert(((ICellInventoryHandler) value).getCellInv(), output);
         }
     }
 }
