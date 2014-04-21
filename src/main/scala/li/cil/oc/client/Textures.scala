@@ -2,6 +2,7 @@ package li.cil.oc.client
 
 import li.cil.oc.Settings
 import net.minecraft.util.ResourceLocation
+import net.minecraft.client.renderer.texture.TextureManager
 
 object Textures {
   val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
@@ -28,4 +29,31 @@ object Textures {
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
+
+  def init(tm: TextureManager) {
+    tm.bindTexture(fontAntiAliased)
+    tm.bindTexture(fontAliased)
+
+    tm.bindTexture(guiBackground)
+    tm.bindTexture(guiBorders)
+    tm.bindTexture(guiButtonPower)
+    tm.bindTexture(guiButtonRange)
+    tm.bindTexture(guiButtonSide)
+    tm.bindTexture(guiComputer)
+    tm.bindTexture(guiRange)
+    tm.bindTexture(guiRobot)
+    tm.bindTexture(guiRobotSelection)
+    tm.bindTexture(guiServer)
+    tm.bindTexture(guiSlot)
+
+    tm.bindTexture(blockCable)
+    tm.bindTexture(blockCaseFrontOn)
+    tm.bindTexture(blockHologram)
+    tm.bindTexture(blockRackFrontOn)
+    tm.bindTexture(blockRobot)
+    tm.bindTexture(blockScreenUpIndicator)
+
+    tm.bindTexture(upgradeCrafting)
+    tm.bindTexture(upgradeGenerator)
+  }
 }

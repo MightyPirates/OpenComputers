@@ -20,6 +20,7 @@ object BufferRenderer {
     textureManager = Some(tm)
     displayLists = GLAllocation.generateDisplayLists(2)
     RenderState.checkError("BufferRenderer.displayLists")
+    Textures.init(tm)
   })
 
   def compileBackground(bufferWidth: Int, bufferHeight: Int) =
