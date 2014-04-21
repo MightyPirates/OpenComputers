@@ -42,7 +42,7 @@ public class OpenComponents {
         Registry.add(new ModBuildCraft());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModTMechworks());
-	    Registry.add(new ModAppEng());
+        Registry.add(new ModAppEng());
         Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it
