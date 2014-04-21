@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import li.cil.occ.mods.Registry;
+import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
@@ -41,6 +42,7 @@ public class OpenComponents {
         Registry.add(new ModBuildCraft());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModTMechworks());
+	    Registry.add(new ModAppEng());
         Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it
