@@ -271,7 +271,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
       }
 
       val hardness = block.getBlockHardness(world, x, y, z)
-      val strength = getBreakSpeed(block, false, metadata)
+      val strength = getBreakSpeed(block, false, x, y, z, metadata)
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
