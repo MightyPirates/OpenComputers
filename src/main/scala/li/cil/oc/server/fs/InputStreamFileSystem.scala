@@ -1,11 +1,13 @@
 package li.cil.oc.server.fs
 
-import java.io.{FileNotFoundException, IOException, InputStream}
+import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
+import java.nio.channels.ReadableByteChannel
+import java.nio.ByteBuffer
 
 trait InputStreamFileSystem extends api.fs.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]
@@ -26,9 +28,9 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   override def open(path: String, mode: Mode) = this.synchronized(if (mode == Mode.Read && exists(path) && !isDirectory(path)) {
     val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
-    openInputStream(path) match {
-      case Some(stream) =>
-        handles += handle -> new Handle(this, handle, path, stream)
+    openInputChannel(path) match {
+      case Some(channel) =>
+        handles += handle -> new Handle(this, handle, path, channel)
         handle
       case _ => throw new FileNotFoundException()
     }
@@ -50,10 +52,10 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
       val handle = handleNbt.getInteger("handle")
       val path = handleNbt.getString("path")
       val position = handleNbt.getLong("position")
-      openInputStream(path) match {
-        case Some(stream) =>
-          val fileHandle = new Handle(this, handle, path, stream)
-          fileHandle.position = stream.skip(position) // May be != position if the file changed since we saved.
+      openInputChannel(path) match {
+        case Some(channel) =>
+          val fileHandle = new Handle(this, handle, path, channel)
+          channel.position(position)
           handles += handle -> fileHandle
         case _ => // The source file seems to have disappeared since last time.
       }
@@ -63,7 +65,7 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
   override def save(nbt: NBTTagCompound) = this.synchronized {
     val handlesNbt = new NBTTagList()
     for (file <- handles.values) {
-      assert(!file.isClosed)
+      assert(file.channel.isOpen)
       val handleNbt = new NBTTagCompound()
       handleNbt.setInteger("handle", file.handle)
       handleNbt.setString("path", file.path)
@@ -75,34 +77,73 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def openInputStream(path: String): Option[InputStream]
+  protected def openInputChannel(path: String): Option[InputChannel]
+
+  protected trait InputChannel extends ReadableByteChannel {
+    def isOpen: Boolean
+
+    def close()
+
+    def position: Long
+
+    def position(newPosition: Long): Long
+
+    def read(dst: Array[Byte]): Int
+
+    override def read(dst: ByteBuffer) = {
+      if (dst.hasArray) {
+        read(dst.array())
+      }
+      else {
+        val count = dst.limit - dst.position
+        val buffer = new Array[Byte](count)
+        val n = read(buffer)
+        dst.put(buffer, 0, n)
+        n
+      }
+    }
+  }
+
+  protected class InputStreamChannel(val inputStream: java.io.InputStream) extends InputChannel {
+    var isOpen = true
+
+    private var position_ = 0L
+
+    override def close() = if (isOpen) {
+      isOpen = false
+      inputStream.close()
+    }
+
+    override def position = position_
+
+    override def position(newPosition: Long) = {
+      inputStream.reset()
+      position_ = inputStream.skip(newPosition)
+      position_
+    }
+
+    override def read(dst: Array[Byte]) = {
+      val read = inputStream.read(dst)
+      position_ += read
+      read
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
-  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val stream: InputStream) extends api.fs.Handle {
-    var isClosed = false
-    var position = 0L
+  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val channel: InputChannel) extends api.fs.Handle {
+    override def position = channel.position
 
     override def length = owner.size(path)
 
-    override def close() = if (!isClosed) {
-      isClosed = true
+    override def close() = if (channel.isOpen) {
       owner.handles -= handle
-      stream.close()
+      channel.close()
     }
 
-    override def read(into: Array[Byte]) = {
-      val read = stream.read(into)
-      if (read >= 0)
-        position += read
-      read
-    }
+    override def read(into: Array[Byte]) = channel.read(into)
 
-    override def seek(to: Long) = {
-      stream.reset()
-      position = stream.skip(to)
-      position
-    }
+    override def seek(to: Long) = channel.position(to)
 
     override def write(value: Array[Byte]) = throw new IOException("bad file descriptor")
   }

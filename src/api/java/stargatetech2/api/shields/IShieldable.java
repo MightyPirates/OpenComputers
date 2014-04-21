@@ -10,16 +10,16 @@ import net.minecraft.world.World;
 public interface IShieldable {
 	/**
 	 * Called by shield emitters to make blocks raise their shields.
-	 * The block on {px, py, pz} contains an ITileShieldEmitter from which
-	 * you can get the current ShieldPermissions object.
+	 * The block on {px, py, pz} contains an IShieldController from
+	 * which you can get the current ShieldPermissions object.
 	 * 
 	 * @param world The world this IShieldable is on.
 	 * @param x This IShieldable's X Coordinate.
 	 * @param y This IShieldable's Y Coordinate.
 	 * @param z This IShieldable's Z Coordinate.
-	 * @param px The X Coordinate of the shield emitter raising a shield on this block.
-	 * @param py The Y Coordinate of the shield emitter raising a shield on this block.
-	 * @param pz The Z Coordinate of the shield emitter raising a shield on this block.
+	 * @param px The X Coordinate of the shield controller in charge of the shield on this block.
+	 * @param py The Y Coordinate of the shield controller in charge of the shield on this block.
+	 * @param pz The Z Coordinate of the shield controller in charge of the shield on this block.
 	 */
 	public void onShield(World world, int x, int y, int z, int px, int py, int pz);
 	

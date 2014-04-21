@@ -58,8 +58,8 @@ class ZipFileInputStreamFileSystem(private val archive: ArchiveDirectory) extend
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openInputStream(path: String) = ZipFileInputStreamFileSystem.synchronized {
-    entry(path).map(_.openStream())
+  override protected def openInputChannel(path: String) = ZipFileInputStreamFileSystem.synchronized {
+    entry(path).map(entry => new InputStreamChannel(entry.openStream()))
   }
 
   // ----------------------------------------------------------------------- //

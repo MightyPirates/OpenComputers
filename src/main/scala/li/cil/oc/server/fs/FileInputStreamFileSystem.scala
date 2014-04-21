@@ -43,6 +43,23 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openInputStream(path: String): Option[io.InputStream] =
-    Some(new io.FileInputStream(new io.File(root, path)))
+  override protected def openInputChannel(path: String) = Some(new FileChannel(new io.File(root, path)))
+
+  protected class FileChannel(file: io.File) extends InputChannel {
+    val channel = new io.RandomAccessFile(file, "r").getChannel
+
+    override def position(newPosition: Long) = {
+      channel.position(newPosition)
+      channel.position
+    }
+
+    override def position = channel.position
+
+    override def close() = channel.close()
+
+    override def isOpen = channel.isOpen
+
+    override def read(dst: Array[Byte]) = channel.read(java.nio.ByteBuffer.wrap(dst))
+  }
+
 }

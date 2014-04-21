@@ -233,7 +233,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = player.robotInventory.selectedItemStack
@@ -339,7 +340,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
@@ -420,7 +422,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val duration =

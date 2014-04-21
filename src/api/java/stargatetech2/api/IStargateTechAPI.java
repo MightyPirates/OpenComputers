@@ -24,4 +24,9 @@ public interface IStargateTechAPI {
 	 * @return The current IFactory instance.
 	 */
 	public IFactory getFactory();
+	
+	/**
+	 * @return The current IStackManager instance.
+	 */
+	public IStackManager getStackManager();
 }

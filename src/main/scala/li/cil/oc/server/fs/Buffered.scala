@@ -94,7 +94,7 @@ trait Buffered extends OutputStreamFileSystem {
             FileUtils.deleteQuietly(childFile)
             childFile.createNewFile()
             val out = new io.FileOutputStream(childFile).getChannel
-            val in = java.nio.channels.Channels.newChannel(openInputStream(childPath).get)
+            val in = openInputChannel(childPath).get
             out.transferFrom(in, 0, Long.MaxValue)
             out.close()
             in.close()

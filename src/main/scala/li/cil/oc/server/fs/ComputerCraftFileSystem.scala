@@ -25,8 +25,8 @@ class ComputerCraftFileSystem(val mount: IMount) extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def openInputStream(path: String) = try {
-    Some(mount.openForRead(path))
+  protected def openInputChannel(path: String) = try {
+    Some(new InputStreamChannel(mount.openForRead(path)))
   } catch {
     case _: Throwable => None
   }

@@ -319,7 +319,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     })
   }
 
-  private def isItemUseAllowed(stack: ItemStack) = {
+  private def isItemUseAllowed(stack: ItemStack) = stack == null || {
     (Settings.get.allowUseItemsWithDuration || stack.getMaxItemUseDuration <= 0) &&
       (!PortalGun.isPortalGun(stack) || PortalGun.isStandardPortalGun(stack)) &&
       !stack.isItemEqual(new ItemStack(Items.lead))
