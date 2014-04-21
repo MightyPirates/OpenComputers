@@ -26,7 +26,7 @@ class CC15FileSystem(val mount: IMount) extends InputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   protected def openInputChannel(path: String) = try {
-    Some(new InputFileChannel(mount.openForRead(path)))
+    Some(new InputStreamChannel(mount.openForRead(path)))
   } catch {
     case _: Throwable => None
   }

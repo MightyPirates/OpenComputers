@@ -5,7 +5,7 @@ import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import scala.collection.mutable
-import java.nio.channels.SeekableByteChannel
+import java.nio.channels.ReadableByteChannel
 import java.nio.ByteBuffer
 
 trait InputStreamFileSystem extends api.fs.FileSystem {
@@ -76,49 +76,61 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected def openInputChannel(path: String): Option[SeekableByteChannel]
+  protected def openInputChannel(path: String): Option[InputChannel]
 
-  protected class InputFileChannel(val inputStream: java.io.InputStream) extends SeekableByteChannel {
+  protected trait InputChannel extends ReadableByteChannel {
+    def isOpen: Boolean
+
+    def close()
+
+    def position: Long
+
+    def position(newPosition: Long): Long
+
+    def read(dst: Array[Byte]): Int
+
+    override def read(dst: ByteBuffer) = {
+      if (dst.hasArray) {
+        read(dst.array())
+      }
+      else {
+        val count = dst.limit - dst.position
+        val buffer = new Array[Byte](count)
+        val n = read(buffer)
+        dst.put(buffer, 0, n)
+        n
+      }
+    }
+  }
+
+  protected class InputStreamChannel(val inputStream: java.io.InputStream) extends InputChannel {
     var isOpen = true
 
     private var position_ = 0L
 
-    override def close() = inputStream.close()
-
-    override def truncate(size: Long) = throw new java.io.IOException()
-
-    override def size() = inputStream.available()
-
-    override def position(newPosition: Long) = {
-      inputStream.reset()
-      position_ = inputStream.skip(newPosition)
-      this
+    override def close() = if (isOpen) {
+      isOpen = false
+      inputStream.close()
     }
 
     override def position = position_
 
-    override def write(src: ByteBuffer) = throw new java.io.IOException()
+    override def position(newPosition: Long) = {
+      inputStream.reset()
+      position_ = inputStream.skip(newPosition)
+      position_
+    }
 
-    override def read(dst: ByteBuffer): Int = {
-      if (dst.hasArray) {
-        inputStream.read(dst.array())
-      }
-      else {
-        val count = dst.limit - dst.position
-        for (i <- 0 until count) {
-          inputStream.read match {
-            case -1 => return i
-            case b => dst.put(b.toByte)
-          }
-        }
-        count
-      }
+    override def read(dst: Array[Byte]) = {
+      val read = inputStream.read(dst)
+      position_ += read
+      read
     }
   }
 
   // ----------------------------------------------------------------------- //
 
-  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val channel: SeekableByteChannel) extends api.fs.Handle {
+  private class Handle(val owner: InputStreamFileSystem, val handle: Int, val path: String, val channel: InputChannel) extends api.fs.Handle {
     override def position = channel.position
 
     override def length = owner.size(path)
@@ -128,14 +140,9 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
       channel.close()
     }
 
-    override def read(into: Array[Byte]) = {
-      channel.read(ByteBuffer.wrap(into))
-    }
+    override def read(into: Array[Byte]) = channel.read(into)
 
-    override def seek(to: Long) = {
-      channel.position(to)
-      channel.position
-    }
+    override def seek(to: Long) = channel.position(to)
 
     override def write(value: Array[Byte]) = throw new IOException("bad file descriptor")
   }

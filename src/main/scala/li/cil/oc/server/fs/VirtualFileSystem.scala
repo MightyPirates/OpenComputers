@@ -99,7 +99,7 @@ trait VirtualFileSystem extends OutputStreamFileSystem {
 
   protected def openInputChannel(path: String) =
     root.get(segments(path)) match {
-      case Some(obj: VirtualFile) => obj.openInputStream().map(new InputFileChannel(_))
+      case Some(obj: VirtualFile) => obj.openInputStream().map(new InputStreamChannel(_))
       case _ => None
     }
 

@@ -35,16 +35,26 @@ class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Calla
 
   override def lastModified(path: String) = findFileSystem(path).fold(0L)(_.lastModified(path))
 
-  override def list(path: String) = parts.values.foldLeft(Array.empty[String])((acc, fs) => {
-    if (fs.exists(path)) try {
-      val l = fs.list(path)
-      if (l != null) acc ++ l else acc
-    }
-    catch {
-      case _: Throwable => acc
-    }
-    else acc
-  })
+  override def list(path: String) = if (isDirectory(path)) {
+    parts.values.foldLeft(mutable.Set.empty[String])((acc, fs) => {
+      if (fs.exists(path)) try {
+        val l = fs.list(path)
+        if (l != null) for (e <- l) {
+          val f = e.stripSuffix("/")
+          val d = f + "/"
+          // Avoid duplicates and always only use the latest entry.
+          acc -= f
+          acc -= d
+          acc += e
+        }
+      }
+      catch {
+        case _: Throwable =>
+      }
+      acc
+    }).toArray
+  }
+  else null
 
   // ----------------------------------------------------------------------- //
 

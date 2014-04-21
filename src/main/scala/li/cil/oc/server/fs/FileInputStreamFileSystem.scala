@@ -1,7 +1,6 @@
 package li.cil.oc.server.fs
 
 import java.io
-import java.nio.channels.SeekableByteChannel
 
 trait FileInputStreamFileSystem extends InputStreamFileSystem {
   protected val root: io.File
@@ -44,6 +43,23 @@ trait FileInputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  override protected def openInputChannel(path: String): Option[SeekableByteChannel] =
-    Some(new io.RandomAccessFile(new io.File(root, path), "r").getChannel)
+  override protected def openInputChannel(path: String) = Some(new FileChannel(new io.File(root, path)))
+
+  protected class FileChannel(file: io.File) extends InputChannel {
+    val channel = new io.RandomAccessFile(file, "r").getChannel
+
+    override def position(newPosition: Long) = {
+      channel.position(newPosition)
+      channel.position
+    }
+
+    override def position = channel.position
+
+    override def close() = channel.close()
+
+    override def isOpen = channel.isOpen
+
+    override def read(dst: Array[Byte]) = channel.read(java.nio.ByteBuffer.wrap(dst))
+  }
+
 }
