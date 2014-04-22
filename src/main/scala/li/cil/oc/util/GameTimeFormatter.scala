@@ -17,15 +17,15 @@ object GameTimeFormatter {
 
   // See http://www.cplusplus.com/reference/ctime/strftime/
   private val specifiers: Map[Char, (DateTime) => String] = Map(
-    'a' -> (t => shortWeekDays(t.weekDay)),
-    'A' -> (t => weekDays(t.weekDay)),
-    'b' -> (t => shortMonths(t.month)),
-    'B' -> (t => months(t.month)),
+    'a' -> (t => shortWeekDays(t.weekDay - 1)),
+    'A' -> (t => weekDays(t.weekDay - 1)),
+    'b' -> (t => shortMonths(t.month - 1)),
+    'B' -> (t => months(t.month - 1)),
     'c' -> (t => format("%a %b %d %H:%M:%S %Y", t)),
     'C' -> (t => "%02d".format(t.year / 100)),
-    'd' -> (t => "%02d".format(t.day + 1)),
+    'd' -> (t => "%02d".format(t.day)),
     'D' -> (t => format("%m/%d/%y", t)),
-    'e' -> (t => "% 2d".format(t.day + 1)),
+    'e' -> (t => "% 2d".format(t.day)),
     'F' -> (t => format("%Y-%m-%d", t)),
     //'g' -> (t => ""),
     //'G' -> (t => ""),
@@ -33,7 +33,7 @@ object GameTimeFormatter {
     'H' -> (t => "%02d".format(t.hour)),
     'I' -> (t => "%02d".format(t.hour % 12 + 1)),
     'j' -> (t => "%03d".format(t.yearDay)),
-    'm' -> (t => "%02d".format(t.month + 1)),
+    'm' -> (t => "%02d".format(t.month)),
     'M' -> (t => "%02d".format(t.minute)),
     'n' -> (t => "\n"),
     'p' -> (t => amPm(if (t.hour < 12) 0 else 1)),
@@ -42,10 +42,10 @@ object GameTimeFormatter {
     'S' -> (t => "%02d".format(t.second)),
     't' -> (t => "\t"),
     'T' -> (t => format("%H:%M:%S", t)),
-    'u' -> (t => ""),
+    //'u' -> (t => ""),
     //'U' -> (t => ""),
     //'V' -> (t => ""),
-    'w' -> (t => "%d".format(t.weekDay)),
+    'w' -> (t => "%d".format(t.weekDay - 1)),
     //'W' -> (t => ""),
     'x' -> (t => format("%D", t)),
     'X' -> (t => format("%T", t)),
@@ -56,17 +56,21 @@ object GameTimeFormatter {
     '%' -> (t => "%")
   )
 
+  private val monthLengths = Array(
+    Array(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
+    Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))
+
+  private def monthLengthsForYear(year: Int) = {
+    if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) monthLengths(0) else monthLengths(1)
+  }
+
   def parse(time: Double) = {
     var day = (time / 24000).toLong
     val weekDay = ((4 + day) % 7).toInt
     val year = 1970 + (day / 365.2425).toInt
     val yearDay = (day % 365.2425).toInt
     day = yearDay
-    val monthLengths =
-      if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0)
-        Array(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-      else
-        Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    val monthLengths = monthLengthsForYear(year)
     var month = 0
     while (day > monthLengths(month)) {
       day = day - monthLengths(month)
@@ -76,10 +80,10 @@ object GameTimeFormatter {
     var seconds = ((time % 24000) * 60 * 60 / 1000).toInt
     var minutes = seconds / 60
     seconds = seconds % 60
-    val hours = (minutes / 60) % 24
+    val hours = (1 + minutes / 60) % 24
     minutes = minutes % 60
 
-    new DateTime(year, month, day.toInt, weekDay, yearDay, hours, minutes, seconds)
+    new DateTime(year, month + 1, day.toInt + 1, weekDay + 1, yearDay + 1, hours, minutes, seconds)
   }
 
   def format(format: String, time: DateTime) = {
@@ -96,5 +100,14 @@ object GameTimeFormatter {
       }
     }
     result.toString()
+  }
+
+  def mktime(year: Int, mon: Int, mday: Int, hour: Int, min: Int, sec: Int): Integer = {
+    if (year < 1970 || mon < 1 || mon > 12) return null
+    val monthLengths = monthLengthsForYear(year)
+    val days = ((year - 1970) * 365.2425).ceil.toInt + (0 until mon - 1).foldLeft(0)((d, m) => d + monthLengths(m)) + mday - 1
+    val secs = sec + (min + (hour - 1 + days * 24) * 60) * 60
+    if (secs < 0) null
+    else secs
   }
 }
