@@ -394,6 +394,10 @@ local libcomputer = {
         return table.unpack(signal, 1, signal.n)
       end
     until computer.uptime() >= deadline
+  end,
+
+  bell = function()
+    libcomponent.invoke(computer.address(), "bell")
   end
 }
 
