@@ -279,6 +279,12 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
+  @Callback(doc = """function() -- Plays a tone, useful to alert users via audible feedback.""")
+  def bell(context: Context, args: Arguments): Array[AnyRef] = {
+    owner.world.playSoundEffect(owner.x + 0.5, owner.y + 0.5, owner.z + 0.5, "note.harp", 1, 1)
+    null
+  }
+
   // ----------------------------------------------------------------------- //
 
   override val canUpdate = true

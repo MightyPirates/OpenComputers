@@ -189,7 +189,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
         else "%d/%m/%y %H:%M:%S"
       val time =
         if (args.narg > 1 && args.isnumber(2)) args.todouble(2) * 1000 / 60 / 60
-        else machine.worldTime + 6000
+        else machine.worldTime + 5000
 
       val dt = GameTimeFormatter.parse(time)
       def fmt(format: String) = {
@@ -218,12 +218,37 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     })
 
     // Return ingame time for os.time().
-    os.set("time", (_: Varargs) => {
-      // Game time is in ticks, so that each day has 24000 ticks, meaning
-      // one hour is game time divided by one thousand. Also, Minecraft
-      // starts days at 6 o'clock, so we add those six hours. Thus:
-      // timestamp = (time + 6000) * 60[kh] * 60[km] / 1000[s]
-      LuaValue.valueOf((machine.worldTime + 6000) * 60 * 60 / 1000)
+    os.set("time", (args: Varargs) => {
+      if (args.isnoneornil(1)) {
+        // Game time is in ticks, so that each day has 24000 ticks, meaning
+        // one hour is game time divided by one thousand. Also, Minecraft
+        // starts days at 6 o'clock, versus the 1 o'clock of timestamps so we
+        // add those five hours. Thus:
+        // timestamp = (time + 5000) * 60[kh] * 60[km] / 1000[s]
+        LuaValue.valueOf((machine.worldTime + 5000) * 60 * 60 / 1000)
+      }
+      else {
+        val table = args.checktable(1)
+
+        def getField(key: String, d: Int) = {
+          val res = table.get(key)
+          if (!res.isint())
+            if (d < 0) throw new Exception("field '" + key + "' missing in date table")
+            else d
+          else res.toint()
+        }
+
+        val sec = getField("sec", 0)
+        val min = getField("min", 0)
+        val hour = getField("hour", 12)
+        val mday = getField("day", -1)
+        val mon = getField("month", -1)
+        val year = getField("year", -1)
+
+        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
+        if (time == null) LuaValue.NIL
+        else LuaValue.valueOf(time: Int)
+      }
     })
 
     // Computer API, stuff that kinda belongs to os, but we don't want to

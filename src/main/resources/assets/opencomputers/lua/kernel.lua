@@ -266,7 +266,10 @@ sandbox = {
     exit = nil, -- in boot/*_os.lua
     remove = nil, -- in boot/*_os.lua
     rename = nil, -- in boot/*_os.lua
-    time = os.time,
+    time = function(table)
+      checkArg(1, table, "table", "nil")
+      return os.time(table)
+    end,
     tmpname = nil, -- in boot/*_os.lua
   },
 
@@ -391,6 +394,10 @@ local libcomputer = {
         return table.unpack(signal, 1, signal.n)
       end
     until computer.uptime() >= deadline
+  end,
+
+  bell = function()
+    libcomponent.invoke(computer.address(), "bell")
   end
 }
 
