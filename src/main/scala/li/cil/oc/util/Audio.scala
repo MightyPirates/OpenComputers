@@ -62,44 +62,44 @@ object Audio extends ITickHandler {
     // Clear error stack.
     AL10.alGetError()
 
-    val source = BufferUtils.createIntBuffer(1)
-
-    val buffer = BufferUtils.createIntBuffer(1)
-
-    AL10.alGenBuffers(buffer)
-    Util.checkALError()
-
-    try {
-      AL10.alBufferData(buffer.get(0), AL10.AL_FORMAT_MONO8, data, sampleRate)
-      Util.checkALError()
-
-      AL10.alGenSources(source)
+    val (source, buffer) = {
+      val buffer = AL10.alGenBuffers()
       Util.checkALError()
 
       try {
-        AL10.alSourceQueueBuffers(source.get(0), buffer)
+        AL10.alBufferData(buffer, AL10.AL_FORMAT_MONO8, data, sampleRate)
         Util.checkALError()
 
-        AL10.alSource3f(source.get(0), AL10.AL_POSITION, x, y, z)
-        AL10.alSourcef(source.get(0), AL10.AL_GAIN, gain * 0.3f)
+        val source = AL10.alGenSources()
         Util.checkALError()
 
-        AL10.alSourcePlay(source.get(0))
-        Util.checkALError()
+        try {
+          AL10.alSourceQueueBuffers(source, buffer)
+          Util.checkALError()
+
+          AL10.alSource3f(source, AL10.AL_POSITION, x, y, z)
+          AL10.alSourcef(source, AL10.AL_GAIN, gain * 0.3f)
+          Util.checkALError()
+
+          AL10.alSourcePlay(source)
+          Util.checkALError()
+
+          (source, buffer)
+        }
+        catch {
+          case t: Throwable =>
+            AL10.alDeleteSources(source)
+            throw t
+        }
       }
       catch {
         case t: Throwable =>
-          AL10.alDeleteSources(source)
+          AL10.alDeleteBuffers(buffer)
           throw t
       }
     }
-    catch {
-      case t: Throwable =>
-        AL10.alDeleteBuffers(buffer)
-        throw t
-    }
 
-    def checkFinished = AL10.alGetSourcei(source.get(0), AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING && {
+    def checkFinished = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING && {
       AL10.alDeleteSources(source)
       AL10.alDeleteBuffers(buffer)
       true
