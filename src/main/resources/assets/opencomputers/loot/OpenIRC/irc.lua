@@ -409,12 +409,12 @@ local result, reason = pcall(function()
             line = tostring(reason)
           end
         end
-      elseif line:lower():sub(1,3) == "/me" then
+      elseif line:lower():sub(1,4) == "/me " then
         if not target then
           print("No default target set. Use /msg or /join to set one.")
           line = ""
         else
-          line = "PRIVMSG " .. target .. " :\001ACTION\001 " .. line:sub(5)
+          line = "PRIVMSG " .. target .. " :\001ACTION " .. line:sub(5) .. "\001"
         end
       elseif line:sub(1, 1) == "/" then
         line = line:sub(2)
