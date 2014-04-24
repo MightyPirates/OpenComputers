@@ -277,9 +277,16 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
   def isRunning(context: Context, args: Arguments): Array[AnyRef] =
     result(isRunning)
 
-  @Callback(doc = """function() -- Plays a tone, useful to alert users via audible feedback.""")
-  def bell(context: Context, args: Arguments): Array[AnyRef] = {
-    owner.world.playSoundEffect(owner.x + 0.5, owner.y + 0.5, owner.z + 0.5, "note.harp", 1, 1)
+  @Callback(doc = """function([frequency:number[, duration:number]]) -- Plays a tone, useful to alert users via audible feedback.""")
+  def beep(context: Context, args: Arguments): Array[AnyRef] = {
+    val frequency = if (args.count() > 0) args.checkInteger(0) else 440
+    if (frequency < 20 || frequency > 2000) {
+      throw new IllegalArgumentException("invalid frequency, must be in [20, 2000]")
+    }
+    val duration = if (args.count() > 1) args.checkDouble(1) else 0.1
+    val durationInMilliseconds = math.max(50, math.min(5000, (duration * 1000).toInt))
+    context.pause(durationInMilliseconds / 1000.0)
+    PacketSender.sendSound(owner.world, owner.x, owner.y, owner.z, frequency, durationInMilliseconds)
     null
   }
 

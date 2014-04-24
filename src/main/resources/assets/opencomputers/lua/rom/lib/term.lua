@@ -336,7 +336,7 @@ function term.write(value, wrap)
     local noBell = value:gsub("\a", "")
     if #noBell ~= #value then
       value = noBell
-      computer.bell()
+      computer.beep()
     end
   end
   value = text.detab(value)

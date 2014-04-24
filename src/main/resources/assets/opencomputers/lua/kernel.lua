@@ -396,8 +396,8 @@ local libcomputer = {
     until computer.uptime() >= deadline
   end,
 
-  bell = function()
-    libcomponent.invoke(computer.address(), "bell")
+  beep = function(...)
+    libcomponent.invoke(computer.address(), "beep", ...)
   end
 }
 
