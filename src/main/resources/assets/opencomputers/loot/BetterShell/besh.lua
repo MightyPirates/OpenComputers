@@ -173,10 +173,11 @@ expand = function(token)
       table.insert(matchStack, "'")
       lastEnd = i+1
     elseif char == "$" and not singleQuote then
-      table.insert(expr, {})
       if #expr <= 0 then
         table.insert(endToken, unicode.sub(token, lastEnd, i-1))
       end
+      table.insert(expr, {})
+      lastEnd = i -1
     elseif char == '{' and #expr > 0 and #(expr[#expr]) == 0 then
       table.insert(matchStack, '}')
       if expr[#expr] == 0 then
@@ -207,8 +208,9 @@ expand = function(token)
   while #expr > 0 do
     local xpr = table.remove(expr)
     table.insert(expr[#expr] or endToken, os.getenv(table.concat(xpr)))
+    lastEnd = #token + 1
   end
-  if lastEnd >= #token then
+  if lastEnd <= #token then
     table.insert(endToken, unicode.sub(token, lastEnd, -1))
   end
   return table.concat(endToken)
