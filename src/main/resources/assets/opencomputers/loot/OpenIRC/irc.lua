@@ -414,7 +414,7 @@ local result, reason = pcall(function()
           print("No default target set. Use /msg or /join to set one.")
           line = ""
         else
-          line = "PRIVMSG " .. target .. " :\x01ACTION\x01 " .. line
+          line = "PRIVMSG " .. target .. " :\001ACTION\001 " .. line
         end
       elseif line:sub(1, 1) == "/" then
         line = line:sub(2)
