@@ -150,13 +150,24 @@ function shell.parse(...)
   local params = table.pack(...)
   local args = {}
   local options = {}
+  local doneWithOptions = false
   for i = 1, params.n do
     local param = params[i]
-    if type(param) == "string" and unicode.sub(param, 1, 2) == "--" then
-      options[unicode.sub(param, 3)] = true
-    elseif type(param) == "string" and unicode.sub(param, 1, 1) == "-" then
-      for j = 2, unicode.len(param) do
-        options[unicode.sub(param, j, j)] = true
+    if not doneWithOptions and type(param) == "string" then
+      if param == "--" then
+        doneWithOptions = true -- stop processing options at `--`
+      elseif unicode.sub(param, 1, 2) == "--" then
+        if param:match("%-%-(.-)=") ~= nil then
+          options[param:match("%-%-(.-)=")] = param:match("=(.*)")
+        else
+          options[unicode.sub(param, 3)] = true
+        end
+      elseif unicode.sub(param, 1, 1) == "-" and param ~= "-" then
+        for j = 2, unicode.len(param) do
+          options[unicode.sub(param, j, j)] = true
+        end
+      else
+        table.insert(args, param)
       end
     else
       table.insert(args, param)

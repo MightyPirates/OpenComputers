@@ -6,6 +6,7 @@ import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.util.{Audio, PackedColor}
 import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
@@ -57,6 +58,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
       case PacketType.ServerPresence => onServerPresence(p)
+      case PacketType.Sound => onSound(p)
       case _ => // Invalid packet.
     }
   }
@@ -330,4 +332,16 @@ object PacketHandler extends CommonPacketHandler {
       }
       case _ => // Invalid packet.
     }
+
+  def onSound(p: PacketParser) {
+    val dimension = p.readInt()
+    if (world(p.player, dimension).isDefined) {
+      val x = p.readInt()
+      val y = p.readInt()
+      val z = p.readInt()
+      val frequency = p.readShort()
+      val duration = p.readShort()
+      Audio.play(x + 0.5f, y + 0.5f, z + 0.5f, frequency, duration)
+    }
+  }
 }

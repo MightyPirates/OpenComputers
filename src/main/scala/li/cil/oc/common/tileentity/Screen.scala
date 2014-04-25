@@ -21,8 +21,6 @@ import scala.language.postfixOps
 class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
-  color = Color.byTier(tier)
-
   _isOutputEnabled = true
 
   override def validFacings = ForgeDirection.VALID_DIRECTIONS
@@ -85,6 +83,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   var cachedBounds: Option[AxisAlignedBB] = None
 
   private val arrows = mutable.Set.empty[EntityArrow]
+
+  color = Color.byTier(tier)
 
   @SideOnly(Side.CLIENT)
   override def canConnect(side: ForgeDirection) = toLocal(side) != ForgeDirection.SOUTH
@@ -312,6 +312,11 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     screens.clone().foreach(_.checkMultiBlock())
   }
 
+  override protected def onColorChanged() {
+    super.onColorChanged()
+    screens.clone().foreach(_.checkMultiBlock())
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
@@ -430,7 +435,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     def tryMergeTowards(dx: Int, dy: Int) = {
       val (nx, ny, nz) = unproject(ox + dx, oy + dy, oz)
       world.getTileEntity(nx, ny, nz) match {
-        case s: Screen if s.tier == tier && s.pitch == pitch && s.yaw == yaw && !screens.contains(s) =>
+        case s: Screen if s.tier == tier && s.pitch == pitch && s.color == color && s.yaw == yaw && !screens.contains(s) =>
           val (sx, sy, _) = project(s.origin)
           val canMergeAlongX = sy == oy && s.height == height && s.width + width <= Settings.get.maxScreenWidth
           val canMergeAlongY = sx == ox && s.width == width && s.height + height <= Settings.get.maxScreenHeight

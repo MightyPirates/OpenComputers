@@ -178,7 +178,7 @@ object Sound {
       val resource = (sound.func_148720_g: SoundPoolEntry).getSoundPoolEntryLocation
       if (!initialized) {
         initialized = true
-        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
+        soundSystem.newSource(false, source, toUrl(resource), resource.toString, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
         updateVolume()
         soundSystem.activate(source)
       }

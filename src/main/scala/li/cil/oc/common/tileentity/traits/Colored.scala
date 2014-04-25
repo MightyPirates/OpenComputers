@@ -12,6 +12,10 @@ trait Colored extends TileEntity {
 
   def color_=(value: Int) = if (value != _color) {
     _color = value
+    onColorChanged()
+  }
+
+  protected def onColorChanged() {
     if (world != null && isServer) {
       PacketSender.sendColorChange(this)
     }
