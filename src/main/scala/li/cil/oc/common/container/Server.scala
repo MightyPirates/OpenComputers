@@ -1,24 +1,33 @@
 package li.cil.oc.common.container
 
-import li.cil.oc.api
 import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import li.cil.oc.common.InventorySlots
 
 class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory) extends Player(playerInventory, serverInventory) {
   for (i <- 0 to 1) {
-    addSlotToContainer(76, 7 + i * slotSize, api.driver.Slot.Card, 2 - i)
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(76, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 0 to 1 + serverInventory.tier) {
-    addSlotToContainer(100, 7 + i * slotSize, api.driver.Slot.Processor, 2)
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(100, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 0 to 1 + serverInventory.tier) {
-    addSlotToContainer(124, 7 + i * slotSize, api.driver.Slot.Memory, 2)
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(124, 7 + i * slotSize, slot.slot, slot.tier)
   }
 
   for (i <- 0 to 1 + serverInventory.tier) {
-    addSlotToContainer(148, 7 + i * slotSize, api.driver.Slot.HardDiskDrive, 2)
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(148, 7 + i * slotSize, slot.slot, slot.tier)
+  }
+
+  for (i <- 1 to serverInventory.tier) {
+    val slot = InventorySlots.server(serverInventory.tier)(getInventory.size)
+    addSlotToContainer(76, 7 + (i + 1) * slotSize, slot.slot, slot.tier)
   }
 
   // Show the player's inventory.
