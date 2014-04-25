@@ -152,9 +152,13 @@ function shell.parse(...)
   local options = {}
   for i = 1, params.n do
     local param = params[i]
-    if type(param) == "string" and unicode.sub(param, 1, 2) == "--" then
-      options[unicode.sub(param, 3)] = true
-    elseif type(param) == "string" and unicode.sub(param, 1, 1) == "-" then
+    if type(param) == "string" and unicode.sub(param, 1, 2) == "--" and param ~= "--" then
+	  if param:match("%-%-(.-)=") ~= nil then
+	    options[param:match("%-%-(.-)=")] = param:match("=(.*)")
+	  else
+        options[unicode.sub(param, 3)] = true
+	  end
+    elseif type(param) == "string" and unicode.sub(param, 1, 1) == "-" and param ~= "--" and param ~= "-" then
       for j = 2, unicode.len(param) do
         options[unicode.sub(param, j, j)] = true
       end
