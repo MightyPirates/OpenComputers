@@ -15,8 +15,8 @@ buildscript {
     }
 }
 
-apply plugin: 'forge'
 apply plugin: 'scala'
+apply plugin: 'forge'
 
 file "build.properties" withReader {
     def prop = new Properties()
