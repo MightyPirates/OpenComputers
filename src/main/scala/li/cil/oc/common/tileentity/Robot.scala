@@ -11,7 +11,7 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.block.Block
+import net.minecraft.block.{BlockLiquid, BlockDynamicLiquid, Block}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
@@ -20,6 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 import scala.io.Source
+import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -197,7 +198,17 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (!wasAir) {
-            world.playAuxSFX(2001, nx, ny, nz, Block.getIdFromBlock(block) + (metadata << 12))
+            if (block != null) {
+              if (FluidRegistry.lookupFluidForBlock(block) == null &&
+                !block.isInstanceOf[BlockFluidBase] &&
+                !block.isInstanceOf[BlockLiquid]) {
+                world.playAuxSFX(2001, nx, ny, nz, Block.getIdFromBlock(block) + (metadata << 12))
+              }
+              else {
+                world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
+                  world.rand.nextFloat * 0.25F + 0.75F, world.rand.nextFloat * 1.0F + 0.5F, false)
+              }
+            }
           }
           world.markBlockForUpdate(ox, oy, oz)
           world.markBlockForUpdate(nx, ny, nz)

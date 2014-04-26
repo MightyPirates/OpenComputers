@@ -95,10 +95,10 @@ trait InputStreamFileSystem extends api.fs.FileSystem {
         read(dst.array())
       }
       else {
-        val count = dst.limit - dst.position
+        val count = math.max(0, dst.limit - dst.position)
         val buffer = new Array[Byte](count)
         val n = read(buffer)
-        dst.put(buffer, 0, n)
+        if (n > 0) dst.put(buffer, 0, n)
         n
       }
     }
