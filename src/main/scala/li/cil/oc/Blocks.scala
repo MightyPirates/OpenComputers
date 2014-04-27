@@ -106,28 +106,6 @@ object Blocks {
     // v1.2.6
     case4 = new Case.TierCreative(blockSimpleWithRedstone)
 
-    // Initialize API.
-    api.Blocks.AccessPoint = wirelessRouter.createItemStack()
-    api.Blocks.Adapter = adapter.createItemStack()
-    api.Blocks.Cable = cable.createItemStack()
-    api.Blocks.Capacitor = capacitor.createItemStack()
-    api.Blocks.Charger = charger.createItemStack()
-    api.Blocks.CaseTier1 = case1.createItemStack()
-    api.Blocks.CaseTier2 = case2.createItemStack()
-    api.Blocks.CaseTier3 = case3.createItemStack()
-    api.Blocks.DiskDrive = diskDrive.createItemStack()
-    api.Blocks.Keyboard = keyboard.createItemStack()
-    api.Blocks.HologramProjector = hologram.createItemStack()
-    api.Blocks.PowerConverter = powerConverter.createItemStack()
-    api.Blocks.PowerDistributor = powerDistributor.createItemStack()
-    api.Blocks.RedstoneIO = redstone.createItemStack()
-    api.Blocks.Robot = robotProxy.createItemStack()
-    api.Blocks.Switch = router.createItemStack()
-    api.Blocks.ScreenTier1 = screen1.createItemStack()
-    api.Blocks.ScreenTier2 = screen2.createItemStack()
-    api.Blocks.ScreenTier3 = screen3.createItemStack()
-    api.Blocks.ServerRack = serverRack.createItemStack()
-
     // ----------------------------------------------------------------------- //
 
     register("oc:craftingCable", cable.createItemStack())

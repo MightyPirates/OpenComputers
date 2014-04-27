@@ -13,23 +13,48 @@ import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreR
 import org.apache.commons.io.FileUtils
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import li.cil.oc.api.detail.ItemInfo
 
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
 
-  def addBlockDelegate[T <: common.block.Delegate](block: T, name: String) = {
-    list += block.createItemStack() -> name
-    block
+  def addBlockDelegate[T <: common.block.Delegate](delegate: T, name: String) = {
+    Items.descriptors += name -> new ItemInfo {
+      override def block = delegate.parent
+
+      override def item = null
+
+      override def createItemStack(size: Int) = delegate.createItemStack(size)
+    }
+    Items.names += delegate -> name
+    list += delegate.createItemStack() -> name
+    delegate
   }
 
-  def addItemDelegate[T <: common.item.Delegate](item: T, name: String) = {
-    list += item.createItemStack() -> name
-    item
+  def addItemDelegate[T <: common.item.Delegate](delegate: T, name: String) = {
+    Items.descriptors += name -> new ItemInfo {
+      override def block = null
+
+      override def item = delegate.parent
+
+      override def createItemStack(size: Int) = delegate.createItemStack(size)
+    }
+    Items.names += delegate -> name
+    list += delegate.createItemStack() -> name
+    delegate
   }
 
-  def addItem(item: Item, name: String) = {
-    list += new ItemStack(item) -> name
-    item
+  def addItem(instance: Item, name: String) = {
+    Items.descriptors += name -> new ItemInfo {
+      override def block = null
+
+      override def item = instance
+
+      override def createItemStack(size: Int) = new ItemStack(instance, size)
+    }
+    Items.names += instance -> name
+    list += new ItemStack(instance) -> name
+    instance
   }
 
   def init() {

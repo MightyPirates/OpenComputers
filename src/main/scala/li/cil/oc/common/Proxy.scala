@@ -35,6 +35,7 @@ class Proxy {
     api.CreativeTab.Instance = CreativeTab
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
+    api.Items.instance = Items
     api.Machine.instance = machine.Machine
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]

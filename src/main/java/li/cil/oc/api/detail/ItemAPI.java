@@ -1,14 +1,8 @@
-package li.cil.oc.api;
+package li.cil.oc.api.detail;
 
-import li.cil.oc.api.detail.ItemAPI;
-import li.cil.oc.api.detail.ItemInfo;
 import net.minecraft.item.ItemStack;
 
-/**
- * Access to item definitions for all blocks and items provided by
- * OpenComputers.
- */
-public final class Items {
+public interface ItemAPI {
     /**
      * Get a descriptor object for the block or item with the specified name.
      * <p/>
@@ -21,11 +15,7 @@ public final class Items {
      * @return the descriptor for the item with the specified name, or
      * <tt>null</tt> if there is no such item.
      */
-    public static ItemInfo get(String name) {
-        if (instance != null)
-            return instance.get(name);
-        return null;
-    }
+    ItemInfo get(String name);
 
     /**
      * Get a descriptor object for the block or item represented by the
@@ -35,16 +25,5 @@ public final class Items {
      * @return the descriptor for the specified item stack, or <tt>null</tt>
      * if the stack is not a valid OpenComputers item or block.
      */
-    public static ItemInfo get(ItemStack stack) {
-        if (instance != null)
-            return instance.get(stack);
-        return null;
-    }
-
-    // ----------------------------------------------------------------------- //
-
-    private Items() {
-    }
-
-    public static ItemAPI instance = null;
+    ItemInfo get(ItemStack stack);
 }

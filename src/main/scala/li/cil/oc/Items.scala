@@ -4,11 +4,41 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.item
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.{ItemBlock, Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
+import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 
-object Items {
+object Items extends ItemAPI {
+  val descriptors = mutable.Map.empty[String, ItemInfo]
+
+  val names = mutable.Map.empty[Any, String]
+
+  override def get(name: String): ItemInfo = descriptors.get(name).orNull
+
+  override def get(stack: ItemStack) = names.get(getBlockOrItem(stack)) match {
+    case Some(name) => get(name)
+    case _ => null
+  }
+
+  private def getBlockOrItem(stack: ItemStack): Any = {
+    multi.subItem(stack).getOrElse(
+      Blocks.blockSimple.subBlock(stack).getOrElse(
+        Blocks.blockSimpleWithRedstone.subBlock(stack).getOrElse(
+          Blocks.blockSpecial.subBlock(stack).getOrElse(
+            Blocks.blockSpecialWithRedstone.subBlock(stack).getOrElse(stack.getItem match {
+              case block: ItemBlock if block.getBlockID >= 0 => net.minecraft.block.Block.blocksList(block.getBlockID)
+              case item => item
+            })
+          )
+        )
+      )
+    )
+  }
+
+  // ----------------------------------------------------------------------- //
+
   var multi: item.Delegator = _
 
   // ----------------------------------------------------------------------- //
@@ -151,55 +181,6 @@ object Items {
     interweb = Recipes.addItemDelegate(new item.Interweb(multi), "interweb")
     upgradeAngel = Recipes.addItemDelegate(new item.UpgradeAngel(multi), "angelUpgrade")
     ram2 = Recipes.addItemDelegate(new item.Memory(multi, 1), "ram2")
-
-    // Initialize API.
-    api.Items.AbstractBusCard = abstractBus.createItemStack()
-    api.Items.Acid = acid.createItemStack()
-    api.Items.ALU = alu.createItemStack()
-    api.Items.Analyzer = analyzer.createItemStack()
-    api.Items.ButtonArrows = arrowKeys.createItemStack()
-    api.Items.ButtonGroup = buttonGroup.createItemStack()
-    api.Items.ButtonNumPad = numPad.createItemStack()
-    api.Items.CardBase = card.createItemStack()
-    api.Items.CircuitBoard = circuitBoard.createItemStack()
-    api.Items.ControlUnit = cu.createItemStack()
-    api.Items.CPUTier1 = cpu0.createItemStack()
-    api.Items.CPUTier2 = cpu1.createItemStack()
-    api.Items.CPUTier3 = cpu2.createItemStack()
-    api.Items.CuttingWire = cuttingWire.createItemStack()
-    api.Items.DiskPlatter = disk.createItemStack()
-    api.Items.FloppyDisk = floppyDisk.createItemStack()
-    api.Items.GraphicsCardTier1 = gpu1.createItemStack()
-    api.Items.GraphicsCardTier2 = gpu2.createItemStack()
-    api.Items.GraphicsCardTier3 = gpu3.createItemStack()
-    api.Items.HardDiskTier2 = hdd1.createItemStack()
-    api.Items.HardDiskTier3 = hdd2.createItemStack()
-    api.Items.HardDriveTier1 = hdd3.createItemStack()
-    api.Items.InternetCard = internet.createItemStack()
-    api.Items.IronNugget = ironNugget.createItemStack()
-    api.Items.MemoryTier1 = ram1.createItemStack()
-    api.Items.MemoryTier2 = ram2.createItemStack()
-    api.Items.MemoryTier3 = ram3.createItemStack()
-    api.Items.MemoryTier4 = ram4.createItemStack()
-    api.Items.MemoryTier5 = ram5.createItemStack()
-    api.Items.MicrochipTier1 = chip1.createItemStack()
-    api.Items.MicroChipTier2 = chip2.createItemStack()
-    api.Items.MicroChipTier3 = chip3.createItemStack()
-    api.Items.NetworkCard = lan.createItemStack()
-    api.Items.PrintedCircuitBoard = pcb.createItemStack()
-    api.Items.RawCircuitBoard = rawCircuitBoard.createItemStack()
-    api.Items.RedstoneCard = rs.createItemStack()
-    api.Items.ServerTier1 = server1.createItemStack()
-    api.Items.ServerTier2 = server2.createItemStack()
-    api.Items.ServerTier3 = server3.createItemStack()
-    api.Items.Terminal = terminal.createItemStack()
-    api.Items.Transistor = transistor.createItemStack()
-    api.Items.UpgradeCrafting = upgradeCrafting.createItemStack()
-    api.Items.UpgradeGenerator = upgradeGenerator.createItemStack()
-    api.Items.UpgradeNavigation = upgradeNavigation.createItemStack()
-    api.Items.UpgradeSign = upgradeSign.createItemStack()
-    api.Items.UpgradeSolarGenerator = upgradeSolarGenerator.createItemStack()
-    api.Items.WirelessNetworkCard = wlan.createItemStack()
 
     // ----------------------------------------------------------------------- //
 
