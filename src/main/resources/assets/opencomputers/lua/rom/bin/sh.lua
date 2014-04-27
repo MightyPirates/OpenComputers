@@ -131,7 +131,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
   end
 else
   -- execute command.
-  local result = table.pack(execute(table.unpack(args)))
+  local result = table.pack(execute(...))
   if not result[1] then
     error(result[2], 0)
   end

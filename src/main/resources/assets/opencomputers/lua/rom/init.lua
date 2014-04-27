@@ -145,7 +145,7 @@ local event = require("event")
 while true do
   require("term").clear()
   io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
-  local result, reason = os.execute(os.getenv("SHELL") .. " -")
+  local result, reason = os.execute(os.getenv("SHELL"))
   if not result then
     io.stderr:write((tostring(reason) or "unknown error") .. "\n")
     print("Press any key to continue.")

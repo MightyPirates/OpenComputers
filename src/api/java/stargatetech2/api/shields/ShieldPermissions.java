@@ -1,6 +1,7 @@
 package stargatetech2.api.shields;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -13,21 +14,22 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public class ShieldPermissions {
 	// Permission Flags
-	public static final int PERM_PLAYER		= 0x01;
-	public static final int PERM_VILLAGER	= 0x02;
-	public static final int PERM_ANIMAL		= 0x04;
-	public static final int PERM_MONSTER	= 0x08;
-	public static final int PERM_MINECART	= 0x10;
+	public static final int PERM_FRIEND		= 0x01;
+	public static final int PERM_PLAYER		= 0x02;
+	public static final int PERM_VILLAGER	= 0x04;
+	public static final int PERM_ANIMAL		= 0x08;
+	public static final int PERM_MONSTER	= 0x10;
+	public static final int PERM_VESSEL		= 0x20;
 	
 	private int permValue = 0;
-	private ArrayList<String> playerExceptions = new ArrayList<String>();
+	private LinkedList<String> playerExceptions = new LinkedList<String>();
 	
 	/**
 	 * @return A default ShieldPermissions object.
 	 */
 	public static ShieldPermissions getDefault(){
 		ShieldPermissions perm = new ShieldPermissions();
-		perm.allow(PERM_PLAYER);
+		perm.allow(PERM_FRIEND | PERM_PLAYER);
 		return perm;
 	}
 	
@@ -68,7 +70,7 @@ public class ShieldPermissions {
 	 * @return A list of strings containing the names of all the players
 	 * who currently are exceptions to the player permission setting.
 	 */
-	public ArrayList<String> getExceptionList(){
+	public List<String> getExceptionList(){
 		return playerExceptions;
 	}
 	
@@ -96,7 +98,7 @@ public class ShieldPermissions {
 		}else if(entity instanceof EntityMob){
 			allow = hasBit(PERM_MONSTER);
 		}else if(entity instanceof EntityMinecart){
-			allow = hasBit(PERM_MINECART);
+			allow = hasBit(PERM_VESSEL);
 		}
 		if(allow && entity.riddenByEntity != null && doDismount && entity.worldObj.isRemote == false){
 			if(!isEntityAllowed(entity.riddenByEntity, true)){
@@ -141,7 +143,7 @@ public class ShieldPermissions {
 		if(nbt != null){
 			int exceptions = nbt.getInteger("exceptions");
 			permissions.permValue = nbt.getInteger("permValue");
-			permissions.playerExceptions = new ArrayList<String>(exceptions);
+			permissions.playerExceptions = new LinkedList<String>();
 			for(int i = 0; i < exceptions; i++){
 				permissions.setPlayerException(nbt.getString("pex" + i));
 			}

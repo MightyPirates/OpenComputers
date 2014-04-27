@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.common.InventorySlots
 
 class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
   def this() = this(0, false)
@@ -100,67 +101,11 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
       case _ => false
     }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = tier match {
-    case 0 => (slot, Registry.itemDriverFor(stack)) match {
-      case (_, None) => false // Invalid item.
-      case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (2 | 5, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (3, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (4, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case _ => false // Invalid slot.
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) =
+    Registry.itemDriverFor(stack) match {
+      case Some(driver) =>
+        val provided = InventorySlots.computer(tier)(slot)
+        driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+      case _ => false // Invalid item.
     }
-    case 1 => (slot, Registry.itemDriverFor(stack)) match {
-      case (_, None) => false // Invalid item.
-      case (0 | 1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (2 | 3, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (4 | 5, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (6, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case _ => false // Invalid slot.
-    }
-    case 2 => (slot, Registry.itemDriverFor(stack)) match {
-      case (_, None) => false // Invalid item.
-      case (0 | 1 | 2, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (3 | 4, Some(driver)) => driver.slot(stack) == Slot.Memory && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (5 | 6, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
-      case (8, Some(driver)) => driver.slot(stack) == Slot.Processor && driver.tier(stack) <= maxComponentTierForSlot(slot)
-      case _ => false // Invalid slot.
-
-    }
-    case 3 => (slot, Registry.itemDriverFor(stack)) match {
-      case (_, None) => false // Invalid item.
-      case (0 | 1 | 2, Some(driver)) => driver.slot(stack) == Slot.Card
-      case (3 | 4, Some(driver)) => driver.slot(stack) == Slot.Memory
-      case (5 | 6, Some(driver)) => driver.slot(stack) == Slot.HardDiskDrive
-      case (7, Some(driver)) => driver.slot(stack) == Slot.Disk
-      case (8, Some(driver)) => driver.slot(stack) == Slot.Processor
-      case _ => false // Invalid slot.
-    }
-    case _ => false
-  }
-
-  def maxComponentTierForSlot(slot: Int) = tier match {
-    case 0 if slot >= 0 && slot < getSizeInventory => 0
-    case 1 => slot match {
-      case 0 => 1
-      case 1 => 0
-      case (2 | 3) => 1
-      case 4 => 1
-      case 5 => 0
-      case 6 => 1
-      case _ => -1 // Invalid slot.
-    }
-    case 2 => slot match {
-      case 0 => 2
-      case 1 | 2 => 1
-      case (3 | 4) => 2
-      case 5 => 2
-      case 6 => 1
-      case 7 => 0
-      case 8 => 2
-      case _ => -1 // Invalid slot.
-    }
-    case 3 => 2
-    case _ => -1
-  }
 }

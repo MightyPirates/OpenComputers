@@ -1,4 +1,5 @@
 local component = require("component")
+local computer = require("computer")
 local event = require("event")
 local keyboard = require("keyboard")
 local text = require("text")
@@ -330,6 +331,13 @@ function term.write(value, wrap)
   value = tostring(value)
   if unicode.len(value) == 0 then
     return
+  end
+  do
+    local noBell = value:gsub("\a", "")
+    if #noBell ~= #value then
+      value = noBell
+      computer.beep()
+    end
   end
   value = text.detab(value)
   local w, h = component.gpu.getResolution()

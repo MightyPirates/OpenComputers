@@ -86,13 +86,12 @@ class ClassTransformer extends IClassTransformer {
 
   def ensureStargateTechCompatibility(basicClass: Array[Byte]): Array[Byte] = {
     if (!Mods.StargateTech2.isAvailable) {
-      return basicClass
+      // No SGT2 or version is too old, abstract bus API doesn't exist.
+      val classNode = newClassNode(basicClass)
+      classNode.interfaces.remove("stargatetech2/api/bus/IBusDevice")
+      writeClass(classNode)
     }
-
-    // Version of SGT2 is too old, abstract bus API doesn't exist.
-    val classNode = newClassNode(basicClass)
-    classNode.interfaces.remove("stargatetech2/api/bus/IBusDevice")
-    writeClass(classNode)
+    else basicClass
   }
 
   def injectEnvironmentImplementation(classNode: ClassNode, basicClass: Array[Byte]): Array[Byte] = {

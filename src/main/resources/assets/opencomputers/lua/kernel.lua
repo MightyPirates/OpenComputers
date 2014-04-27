@@ -1,8 +1,13 @@
 local hookInterval = 100
 local deadline = math.huge
+local hitDeadline = false
 local function checkDeadline()
   if computer.realTime() > deadline then
     debug.sethook(coroutine.running(), checkDeadline, "", 1)
+    if not hitDeadline then
+      deadline = deadline + 0.5
+    end
+    hitDeadline = true
     error("too long without yielding", 0)
   end
 end
@@ -216,7 +221,10 @@ sandbox = {
     exit = nil, -- in boot/*_os.lua
     remove = nil, -- in boot/*_os.lua
     rename = nil, -- in boot/*_os.lua
-    time = os.time,
+    time = function(table)
+      checkArg(1, table, "table", "nil")
+      return os.time(table)
+    end,
     tmpname = nil, -- in boot/*_os.lua
   },
 
@@ -361,6 +369,10 @@ local libcomputer = {
         return table.unpack(signal, 1, signal.n)
       end
     until computer.uptime() >= deadline
+  end,
+
+  beep = function(...)
+    libcomponent.invoke(computer.address(), "beep", ...)
   end
 }
 sandbox.computer = libcomputer
@@ -489,6 +501,7 @@ local function main()
 
   while true do
     deadline = computer.realTime() + system.timeout()
+    hitDeadline = false
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then

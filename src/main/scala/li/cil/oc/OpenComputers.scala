@@ -12,7 +12,7 @@ import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler}
 
 @Mod(modid = "OpenComputers", modLanguage = "scala",
-  certificateFingerprint = "@FINGERPRINT@", useMetadata = true)
+  /* certificateFingerprint = "@FINGERPRINT@", */ useMetadata = true)
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),
@@ -26,8 +26,8 @@ object OpenComputers {
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
 
-  @EventHandler
-  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
+//  @EventHandler
+//  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)

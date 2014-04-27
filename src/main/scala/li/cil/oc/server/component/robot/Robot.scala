@@ -231,7 +231,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val stack = player.robotInventory.selectedItemStack
@@ -247,8 +248,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
         case None if hasAngelUpgrade && player.closestEntity[Entity]().isEmpty =>
-          val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
-          player.placeBlock(robot.selectedSlot, bx, by, bz, side.getOpposite.ordinal, hx, hy, hz)
+          val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
+          player.placeBlock(robot.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
         case _ => false
       }
       player.setSneaking(false)
@@ -337,7 +338,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
 
@@ -414,7 +416,8 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(checkSideForFace(args, 1, facing))
       }
       else {
-        ForgeDirection.VALID_DIRECTIONS.filter(_ != facing.getOpposite).toIterable
+        // Always try the direction we're looking first.
+        Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
     val duration =
@@ -458,8 +461,13 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
           (if (hasAngelUpgrade) {
-            val (bx, by, bz, hx, hy, hz) = clickParamsFromFacing(facing, side)
-            player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
+            val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
+            if (player.placeBlock(0, bx, by, bz, facing.ordinal, hx, hy, hz))
+              ActivationType.ItemPlaced
+            else {
+              val (bx, by, bz, hx, hy, hz) = clickParamsForItemUse(facing, side)
+              player.activateBlockOrUseItem(bx, by, bz, side.getOpposite.ordinal, hx, hy, hz, duration)
+            }
           } else ActivationType.None) match {
             case ActivationType.None =>
               if (player.useEquippedItem(duration)) {
@@ -611,15 +619,6 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     }
   }
 
-  private def clickParamsFromFacing(facing: ForgeDirection, side: ForgeDirection) = {
-    (x + facing.offsetX + side.offsetX,
-      y + facing.offsetY + side.offsetY,
-      z + facing.offsetZ + side.offsetZ,
-      0.5f - side.offsetX * 0.5f,
-      0.5f - side.offsetY * 0.5f,
-      0.5f - side.offsetZ * 0.5f)
-  }
-
   private def pick(player: Player, range: Double) = {
     val origin = world.getWorldVec3Pool.getVecFromPool(
       player.posX + player.facing.offsetX * 0.5,
@@ -638,6 +637,22 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
+  }
+
+  private def clickParamsForPlace(facing: ForgeDirection) = {
+    (x, y, z,
+      0.5f + facing.offsetX * 0.5f,
+      0.5f + facing.offsetY * 0.5f,
+      0.5f + facing.offsetZ * 0.5f)
+  }
+
+  private def clickParamsForItemUse(facing: ForgeDirection, side: ForgeDirection) = {
+    (x + facing.offsetX + side.offsetX,
+      y + facing.offsetY + side.offsetY,
+      z + facing.offsetZ + side.offsetZ,
+      0.5f - side.offsetX * 0.5f,
+      0.5f - side.offsetY * 0.5f,
+      0.5f - side.offsetZ * 0.5f)
   }
 
   private def clickParamsFromHit(hit: MovingObjectPosition) = {

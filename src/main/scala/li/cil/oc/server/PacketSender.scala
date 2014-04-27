@@ -8,6 +8,7 @@ import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
+import net.minecraft.world.World
 
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {
@@ -387,5 +388,18 @@ object PacketSender {
       case Some(p) => pb.sendToPlayer(p)
       case _ => pb.sendToNearbyPlayers(t)
     }
+  }
+
+  def sendSound(world: World, x: Int, y: Int, z: Int, frequency: Int, duration: Int) {
+    val pb = new PacketBuilder(PacketType.Sound)
+
+    pb.writeInt(world.provider.dimensionId)
+    pb.writeInt(x)
+    pb.writeInt(y)
+    pb.writeInt(z)
+    pb.writeShort(frequency.toShort)
+    pb.writeShort(duration.toShort)
+
+    pb.sendToNearbyPlayers(world, x, y, z, 16)
   }
 }

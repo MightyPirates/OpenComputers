@@ -3,6 +3,7 @@ package li.cil.oc.server.component.machine.luac
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.GameTimeFormatter
+import com.naef.jnlua.LuaType
 
 class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -25,7 +26,7 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         else "%d/%m/%y %H:%M:%S"
       val time =
         if (lua.getTop > 1 && lua.isNumber(2)) lua.toNumber(2) * 1000 / 60 / 60
-        else machine.worldTime + 6000
+        else machine.worldTime + 5000
 
       val dt = GameTimeFormatter.parse(time)
       def fmt(format: String) {
@@ -64,11 +65,39 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     // Return ingame time for os.time().
     lua.pushScalaFunction(lua => {
-      // Game time is in ticks, so that each day has 24000 ticks, meaning
-      // one hour is game time divided by one thousand. Also, Minecraft
-      // starts days at 6 o'clock, so we add those six hours. Thus:
-      // timestamp = (time + 6000) * 60[kh] * 60[km] / 1000[s]
-      lua.pushNumber((machine.worldTime + 6000) * 60 * 60 / 1000)
+      if (lua.isNoneOrNil(1)) {
+        // Game time is in ticks, so that each day has 24000 ticks, meaning
+        // one hour is game time divided by one thousand. Also, Minecraft
+        // starts days at 6 o'clock, versus the 1 o'clock of timestamps so we
+        // add those five hours. Thus:
+        // timestamp = (time + 5000) * 60[kh] * 60[km] / 1000[s]
+        lua.pushNumber((machine.worldTime + 5000) * 60 * 60 / 1000)
+      }
+      else {
+        def getField(key: String, d: Int) = {
+          lua.getField(-1, key)
+          val res = lua.toIntegerX(-1)
+          lua.pop(1)
+          if (res == null)
+            if (d < 0) throw new Exception("field '" + key + "' missing in date table")
+            else d
+          else res: Int
+        }
+
+        lua.checkType(1, LuaType.TABLE)
+        lua.setTop(1)
+
+        val sec = getField("sec", 0)
+        val min = getField("min", 0)
+        val hour = getField("hour", 12)
+        val mday = getField("day", -1)
+        val mon = getField("month", -1)
+        val year = getField("year", -1)
+
+        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
+        if (time == null) lua.pushNil()
+        else lua.pushNumber(time: Int)
+      }
       1
     })
     lua.setField(-2, "time")

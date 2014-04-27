@@ -10,7 +10,6 @@ import java.util.logging.Level
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
-import org.lwjgl.LWJGLUtil
 import scala.util.Random
 import scala.util.control.Breaks._
 import li.cil.oc.server.component.machine.Machine
@@ -61,27 +60,14 @@ object LuaStateFactory {
       }
     _is64Bit = architecture == "64"
 
-    val extension = try {
-      LWJGLUtil.getPlatform match {
-        case LWJGLUtil.PLATFORM_LINUX => ".so"
-        case LWJGLUtil.PLATFORM_MACOSX => ".dylib"
-        case LWJGLUtil.PLATFORM_WINDOWS => ".dll"
-        case _ =>
-          OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
-          break()
-      }
-    }
-    catch {
-      // Dedicated server doesn't necessarily have LWJGLUtil...
-      case _: NoClassDefFoundError =>
-        System.getProperty("os.name").toLowerCase match {
-          case name if name.startsWith("linux") => ".so"
-          case name if name.startsWith("mac") => ".dylib"
-          case name if name.startsWith("windows") => ".dll"
-          case _ =>
-            OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
-            break()
-        }
+    val extension = System.getProperty("os.name").toLowerCase match {
+      case name if name.startsWith("linux") => ".so"
+      case name if name.startsWith("mac") => ".dylib"
+      case name if name.startsWith("windows") => ".dll"
+      case name if name.contains("bsd") => ".bsd.so"
+      case _ =>
+        OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
+        break()
     }
     isWindows = extension == ".dll"
     val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
@@ -220,12 +206,12 @@ object LuaStateFactory {
             case 0 => lua.pushNumber(random.nextDouble())
             case 1 =>
               val u = lua.checkNumber(1).toInt
-              lua.checkArg(1, 1 < u, "interval is empty")
+              lua.checkArg(1, 1 <= u, "interval is empty")
               lua.pushInteger(1 + random.nextInt(u))
             case 2 =>
               val l = lua.checkNumber(1).toInt
               val u = lua.checkNumber(2).toInt
-              lua.checkArg(1, l < u, "interval is empty")
+              lua.checkArg(1, l <= u, "interval is empty")
               lua.pushInteger(l + random.nextInt(u - (l - 1)))
             case _ => throw new IllegalArgumentException("wrong number of arguments")
           }
