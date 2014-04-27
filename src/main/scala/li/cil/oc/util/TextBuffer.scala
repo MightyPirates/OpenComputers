@@ -11,46 +11,46 @@ import net.minecraft.nbt._
  * relatively fast updates, given a smart algorithm (using copy()/fill()
  * instead of set()ing everything).
  */
-class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Depth.Value) {
-  def this(size: (Int, Int), depth: PackedColor.Depth.Value) = this(size._1, size._2, depth)
+class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.ColorFormat) {
+  def this(size: (Int, Int), format: PackedColor.ColorFormat) = this(size._1, size._2, format)
 
-  private var _depth = initialDepth
+  private var _format = initialFormat
 
   private var _foreground = 0xFFFFFF
 
   private var _background = 0x000000
 
-  private var packed = PackedColor.pack(_foreground, _background, _depth)
+  private var packed = PackedColor.pack(_foreground, _background, _format)
 
   def foreground = _foreground
 
   def foreground_=(value: Int) = {
     _foreground = value
-    packed = PackedColor.pack(_foreground, _background, _depth)
+    packed = PackedColor.pack(_foreground, _background, _format)
   }
 
   def background = _background
 
   def background_=(value: Int) = {
     _background = value
-    packed = PackedColor.pack(_foreground, _background, _depth)
+    packed = PackedColor.pack(_foreground, _background, _format)
   }
 
-  def depth = _depth
+  def format = _format
 
-  def depth_=(value: PackedColor.Depth.Value) = {
-    if (depth != value) {
+  def format_=(value: PackedColor.ColorFormat) = {
+    if (format.depth != value.depth) {
       for (row <- 0 until height) {
         val rowColor = color(row)
         for (col <- 0 until width) {
           val packed = rowColor(col)
-          val fg = PackedColor.unpackForeground(packed, _depth)
-          val bg = PackedColor.unpackBackground(packed, _depth)
+          val fg = PackedColor.unpackForeground(packed, _format)
+          val bg = PackedColor.unpackBackground(packed, _format)
           rowColor(col) = PackedColor.pack(fg, bg, value)
         }
       }
-      _depth = value
-      packed = PackedColor.pack(_foreground, _background, _depth)
+      _format = value
+      packed = PackedColor.pack(_foreground, _background, _format)
       true
     }
     else false
@@ -178,7 +178,9 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
       }
     }
 
-    _depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
+    val depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
+    _format = PackedColor.Depth.format(depth)
+    _format.load(nbt)
     foreground = nbt.getInteger("foreground")
     background = nbt.getInteger("background")
 
@@ -207,7 +209,8 @@ class TextBuffer(var width: Int, var height: Int, initialDepth: PackedColor.Dept
     }
     nbt.setTag("buffer", b)
 
-    nbt.setInteger("depth", _depth.id)
+    nbt.setInteger("depth", _format.depth.id)
+    _format.save(nbt)
     nbt.setInteger("foreground", _foreground)
     nbt.setInteger("background", _background)
 

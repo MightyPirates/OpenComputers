@@ -14,7 +14,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
     withConnector().
     create()
 
-  val buffer = new TextBuffer(maxResolution, maxDepth)
+  val buffer = new TextBuffer(maxResolution, PackedColor.Depth.format(maxDepth))
 
   def maxResolution = Settings.screenResolutionsByTier(owner.tier)
 
@@ -30,13 +30,13 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def depth = buffer.depth
+  def format = buffer.format
 
-  def depth_=(value: PackedColor.Depth.Value) = {
-    if (value > maxDepth)
+  def format_=(value: PackedColor.ColorFormat) = {
+    if (value.depth > maxDepth)
       throw new IllegalArgumentException("unsupported depth")
-    if (buffer.depth = value) {
-      owner.onScreenDepthChange(value)
+    if (buffer.format = value) {
+      owner.onScreenDepthChange(value.depth)
       true
     }
     else false

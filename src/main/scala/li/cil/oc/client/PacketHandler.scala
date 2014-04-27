@@ -270,7 +270,7 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
-    buffer.depth = PackedColor.Depth(p.readInt())
+    buffer.format = PackedColor.Depth.format(PackedColor.Depth(p.readInt()))
   }
 
   def onScreenFill(p: PacketParser) {

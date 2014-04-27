@@ -54,7 +54,7 @@ trait Buffer extends GuiScreen {
       currentWidth = w
       currentHeight = h
       scale = changeSize(currentWidth, currentHeight)
-      BufferRenderer.compileText(scale, buffer.lines, buffer.color, buffer.depth)
+      BufferRenderer.compileText(scale, buffer.lines, buffer.color, buffer.format)
     }
     GL11.glPushMatrix()
     RenderState.disableLighting()

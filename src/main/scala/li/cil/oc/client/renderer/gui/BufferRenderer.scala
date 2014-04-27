@@ -67,7 +67,7 @@ object BufferRenderer {
       GL11.glEndList()
     }
 
-  def compileText(scale: Double, lines: Array[Array[Char]], colors: Array[Array[Short]], depth: PackedColor.Depth.Value) =
+  def compileText(scale: Double, lines: Array[Array[Char]], colors: Array[Array[Short]], format: PackedColor.ColorFormat) =
     if (textureManager.isDefined) {
       GL11.glNewList(displayLists + 1, GL11.GL_COMPILE)
       GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
@@ -75,7 +75,7 @@ object BufferRenderer {
 
       GL11.glScaled(scale, scale, 1)
       lines.zip(colors).zipWithIndex.foreach {
-        case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, depth)
+        case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, format)
       }
 
       GL11.glPopAttrib()

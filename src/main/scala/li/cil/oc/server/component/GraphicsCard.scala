@@ -61,7 +61,7 @@ abstract class GraphicsCard extends ManagedComponent {
           val (gmw, gmh) = maxResolution
           val (smw, smh) = s.maxResolution
           s.resolution = (math.min(gmw, smw), math.min(gmh, smh))
-          s.depth = PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id))
+          s.format = PackedColor.Depth.format(PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id)))
           s.foreground = 0xFFFFFF
           s.background = 0x000000
           result(true)
@@ -90,15 +90,15 @@ abstract class GraphicsCard extends ManagedComponent {
 
   @Callback(direct = true)
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth.bits(s.depth)))
+    screen(s => result(PackedColor.Depth.bits(s.format.depth)))
 
   @Callback
   def setDepth(context: Context, args: Arguments): Array[AnyRef] = {
     val depth = args.checkInteger(0)
-    screen(s => result(s.depth = depth match {
-      case 1 => PackedColor.Depth.OneBit
-      case 4 if maxDepth >= PackedColor.Depth.FourBit => PackedColor.Depth.FourBit
-      case 8 if maxDepth >= PackedColor.Depth.EightBit => PackedColor.Depth.EightBit
+    screen(s => result(s.format = depth match {
+      case 1 => PackedColor.Depth.format(PackedColor.Depth.OneBit)
+      case 4 if maxDepth >= PackedColor.Depth.FourBit => PackedColor.Depth.format(PackedColor.Depth.FourBit)
+      case 8 if maxDepth >= PackedColor.Depth.EightBit => PackedColor.Depth.format(PackedColor.Depth.EightBit)
       case _ => throw new IllegalArgumentException("unsupported depth")
     }))
   }
@@ -152,9 +152,9 @@ abstract class GraphicsCard extends ManagedComponent {
     screen(s => {
       val char = s.get(x, y)
       val color = s.color(y)(x)
-      val depth = s.depth
-      val foreground = PackedColor.unpackForeground(color, depth)
-      val background = PackedColor.unpackBackground(color, depth)
+      val format = s.format
+      val foreground = PackedColor.unpackForeground(color, format)
+      val background = PackedColor.unpackBackground(color, format)
       result(char, foreground, background)
     })
   }
@@ -222,7 +222,7 @@ abstract class GraphicsCard extends ManagedComponent {
           buffer.foreground = 0xFFFFFF
           message.source.host match {
             case machine: machine.Machine if machine.lastError != null =>
-              if (buffer.depth > PackedColor.Depth.OneBit) buffer.background = 0x0000FF
+              if (buffer.format.depth > PackedColor.Depth.OneBit) buffer.background = 0x0000FF
               else buffer.background = 0x000000
               if (buffer.buffer.fill(0, 0, w, h, ' ')) {
                 buffer.owner.onScreenFill(0, 0, w, h, ' ')

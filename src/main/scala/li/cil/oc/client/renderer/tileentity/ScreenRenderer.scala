@@ -175,7 +175,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     GL11.glTranslatef(0, 0, 0.01f)
 
     for (((line, color), i) <- screen.buffer.lines.zip(screen.buffer.color).zipWithIndex) {
-      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
+      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.format)
     }
 
     if (doCompile) {
