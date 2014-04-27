@@ -32,6 +32,7 @@ object PacketType extends Enumeration {
   ScreenResolutionChange,
   ScreenSet,
   ServerPresence,
+  Sound,
 
   // Client -> Server
   ComputerPower,

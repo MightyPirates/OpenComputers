@@ -11,7 +11,11 @@ local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
 
-local function expandParam(param)
+-- Avoid scoping issues by simple forward declaring all methods... it's
+-- not a beauty, but it works :P
+local expand, expandCmd, expandMath, expandParam, parseCommand, parseCommands
+
+expandParam = function(param)
   local par, word, op = nil, nil, nil
   for _, oper in ipairs{':%-', '%-', ':=', '=', ':%?','%?', ':%+', '%+'} do
     par, word = param:match("(.-)"..oper.."(.*)")
@@ -86,11 +90,11 @@ local function expandParam(param)
   end
 end
 
-local function expandCmd(cmd)
+expandCmd = function(cmd)
   return cmd
 end
 
-local function expandMath(expr)
+expandMath = function(expr)
   local success, reason = load("return "..expr, os.getenv("SHELL"), 't', {})
   if success then
     return success()
@@ -99,7 +103,7 @@ local function expandMath(expr)
   end
 end
 
-local function expand(token)
+expand = function(token)
   local expr = {}
   local matchStack = {}
   local escaped = false
@@ -169,10 +173,11 @@ local function expand(token)
       table.insert(matchStack, "'")
       lastEnd = i+1
     elseif char == "$" and not singleQuote then
-      table.insert(expr, {})
       if #expr <= 0 then
         table.insert(endToken, unicode.sub(token, lastEnd, i-1))
       end
+      table.insert(expr, {})
+      lastEnd = i -1
     elseif char == '{' and #expr > 0 and #(expr[#expr]) == 0 then
       table.insert(matchStack, '}')
       if expr[#expr] == 0 then
@@ -203,14 +208,15 @@ local function expand(token)
   while #expr > 0 do
     local xpr = table.remove(expr)
     table.insert(expr[#expr] or endToken, os.getenv(table.concat(xpr)))
+    lastEnd = #token + 1
   end
-  if lastEnd >= #token then
+  if lastEnd <= #token then
     table.insert(endToken, unicode.sub(token, lastEnd, -1))
   end
   return table.concat(endToken)
 end
 
-local function parseCommand(tokens)
+parseCommand = function(tokens)
   if #tokens == 0 then
     return
   end
@@ -263,14 +269,15 @@ local function parseCommand(tokens)
       return nil, state
     end
   end
-
   return program, args, input, output, mode
 end
 
-local function parseCommands(command)
+parseCommands = function(command)
   local tokens, reason = text.tokenize(command)
   if not tokens then
     return nil, reason
+  elseif #tokens == 0 then
+    return true
   end
 
   local commands, command = {}, {}
@@ -468,5 +475,48 @@ local function execute(command, env, ...)
   return table.unpack(result, 1, result.n)
 end
 
-local env = setmetatable({os=setmetatable({execute=execute}, {__index=os})}, {__index=_ENV})
-shell.execute("/bin/sh", env, ...)
+local args, options = shell.parse(...)
+local history = {}
+
+if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
+  -- interactive shell.
+  while true do
+    if not term.isAvailable() then -- don't clear unless we lost the term
+      while not term.isAvailable() do
+        event.pull("term_available")
+      end
+      term.clear()
+    end
+    while term.isAvailable() do
+      local foreground = component.gpu.setForeground(0xFF0000)
+      term.write(expand(os.getenv("PS1") or "$ "))
+      component.gpu.setForeground(foreground)
+      local command = term.read(history)
+      if not command then
+        term.write("exit\n")
+        return -- eof
+      end
+      while #history > 10 do
+        table.remove(history, 1)
+      end
+      command = text.trim(command)
+      if command == "exit" then
+        return
+      elseif command ~= "" then
+        local result, reason = execute(command)
+        if not result then
+          io.stderr:write((tostring(reason) or "unknown error").. "\n")
+        elseif term.getCursor() > 1 then
+          term.write("\n")
+        end
+      end
+    end
+  end
+else
+  -- execute command.
+  local result = table.pack(execute(...))
+  if not result[1] then
+    error(result[2])
+  end
+  return table.unpack(result, 2)
+end

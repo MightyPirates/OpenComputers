@@ -19,6 +19,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import scala.io.Source
+import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
+import net.minecraft.block.{BlockFlowing, Block}
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -195,7 +197,18 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
         else {
           // If we broke some replaceable block (like grass) play its break sound.
           if (blockId > 0) {
-            world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+            val block = Block.blocksList(blockId)
+            if (block != null) {
+              if (FluidRegistry.lookupFluidForBlock(block) == null &&
+                !block.isInstanceOf[BlockFluidBase] &&
+                !block.isInstanceOf[BlockFlowing]) {
+                world.playAuxSFX(2001, nx, ny, nz, blockId + (metadata << 12))
+              }
+              else {
+                world.playSound(nx + 0.5, ny + 0.5, nz + 0.5, "liquid.water",
+                  world.rand.nextFloat * 0.25F + 0.75F, world.rand.nextFloat * 1.0F + 0.5F, false)
+              }
+            }
           }
           world.markBlockForRenderUpdate(ox, oy, oz)
           world.markBlockForRenderUpdate(nx, ny, nz)

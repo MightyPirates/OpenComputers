@@ -179,7 +179,7 @@ object Sound {
       val sound = Minecraft.getMinecraft.sndManager.soundPoolSounds.getRandomSoundFromSoundPool(resourceName)
       if (!initialized) {
         initialized = true
-        soundSystem.newSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16.0f)
+        soundSystem.newSource(false, source, sound.getSoundUrl, sound.getSoundName, true, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, SoundSystemConfig.ATTENUATION_LINEAR, 16)
         updateVolume()
         soundSystem.activate(source)
       }
