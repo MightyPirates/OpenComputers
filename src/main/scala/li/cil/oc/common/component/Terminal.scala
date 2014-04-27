@@ -12,6 +12,7 @@ import li.cil.oc.{Items, Settings, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import scala.collection.mutable
+import li.cil.oc.util.PackedColor
 
 class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner {
   val buffer = new common.component.Buffer(this)
@@ -76,7 +77,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
 
   // ----------------------------------------------------------------------- //
 
-  override def onScreenColorChange(foreground: Int, background: Int) {
+  override def onScreenColorChange(foreground: PackedColor.Color, background: PackedColor.Color) {
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenColorChange(buffer, foreground, background)
@@ -104,6 +105,14 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
     if (isServer) {
       rack.markAsChanged()
       ServerPacketSender.sendScreenFill(buffer, col, row, w, h, c)
+    }
+    else currentGui.foreach(_.recompileDisplayLists())
+  }
+
+  override def onScreenPaletteChange(index: Int, color: Int) {
+    if (isServer) {
+      rack.markAsChanged()
+      ServerPacketSender.sendScreenPaletteChange(buffer, index, color)
     }
     else currentGui.foreach(_.recompileDisplayLists())
   }

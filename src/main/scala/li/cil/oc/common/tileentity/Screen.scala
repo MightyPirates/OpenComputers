@@ -7,7 +7,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
-import li.cil.oc.util.Color
+import li.cil.oc.util.{PackedColor, Color}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -276,8 +276,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
           }
           val buffer = screen.buffer
           val (w, h) = buffer.resolution
-          buffer.foreground = 0xFFFFFF
-          buffer.background = 0x000000
+          buffer.foreground = PackedColor.Color(0xFFFFFF)
+          buffer.background = PackedColor.Color(0x000000)
           if (buffer.buffer.fill(0, 0, w, h, ' ')) {
             onScreenFill(0, 0, w, h, ' ')
           }
@@ -393,6 +393,11 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
     super.onScreenFill(col, row, w, h, c)
+    relativeLitArea = -1
+  }
+
+  override def onScreenPaletteChange(index: Int, color: Int){
+    super.onScreenPaletteChange(index, color)
     relativeLitArea = -1
   }
 

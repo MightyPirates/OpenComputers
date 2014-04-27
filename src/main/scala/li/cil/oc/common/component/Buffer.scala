@@ -44,7 +44,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   def foreground = buffer.foreground
 
-  def foreground_=(value: Int) = {
+  def foreground_=(value: PackedColor.Color) = {
     if (buffer.foreground != value) {
       val result = buffer.foreground
       buffer.foreground = value
@@ -56,7 +56,7 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
 
   def background = buffer.background
 
-  def background_=(value: Int) = {
+  def background_=(value: PackedColor.Color) = {
     if (buffer.background != value) {
       val result = buffer.background
       buffer.background = value
@@ -64,6 +64,20 @@ class Buffer(val owner: Buffer.Owner) extends api.network.Environment {
       result
     }
     else value
+  }
+
+  def getPalette(index: Int) = format match {
+    case palette: PackedColor.MutablePaletteFormat => palette(index)
+    case _ => throw new Exception("palette not available")
+  }
+
+  def setPalette(index: Int, color: Int) = format match {
+    case palette: PackedColor.MutablePaletteFormat =>
+      val result = palette(index)
+      palette(index) = color
+      owner.onScreenPaletteChange(index, color)
+      result
+    case _ => throw new Exception("palette not available")
   }
 
   def resolution = buffer.size
@@ -158,13 +172,15 @@ object Buffer {
 
     def tier: Int
 
-    def onScreenColorChange(foreground: Int, background: Int)
+    def onScreenColorChange(foreground: PackedColor.Color, background: PackedColor.Color)
 
     def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
 
     def onScreenDepthChange(depth: PackedColor.Depth.Value)
 
     def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
+
+    def onScreenPaletteChange(index: Int, color: Int)
 
     def onScreenResolutionChange(w: Int, h: Int)
 

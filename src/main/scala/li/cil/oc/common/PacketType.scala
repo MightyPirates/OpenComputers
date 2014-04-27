@@ -28,6 +28,7 @@ object PacketType extends Enumeration {
   ScreenCopy,
   ScreenDepthChange,
   ScreenFill,
+  ScreenPaletteChange,
   ScreenPowerChange,
   ScreenResolutionChange,
   ScreenSet,

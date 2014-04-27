@@ -216,7 +216,7 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendScreenColorChange(b: common.component.Buffer, foreground: Int, background: Int) {
+  def sendScreenColorChange(b: common.component.Buffer, foreground: PackedColor.Color, background: PackedColor.Color) {
     val pb = new PacketBuilder(PacketType.ScreenColorChange)
 
     val t = b.owner match {
@@ -229,8 +229,10 @@ object PacketSender {
         t.rack
       case _ => return
     }
-    pb.writeInt(foreground)
-    pb.writeInt(background)
+    pb.writeInt(foreground.value)
+    pb.writeBoolean(foreground.isPalette)
+    pb.writeInt(background.value)
+    pb.writeBoolean(background.isPalette)
 
     pb.sendToNearbyPlayers(t)
   }
@@ -294,6 +296,25 @@ object PacketSender {
     pb.writeInt(w)
     pb.writeInt(h)
     pb.writeChar(c)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendScreenPaletteChange(b: common.component.Buffer, index: Int, color: Int) {
+    val pb = new PacketBuilder(PacketType.ScreenPaletteChange)
+
+    val t = b.owner match {
+      case t: TextBuffer =>
+        pb.writeTileEntity(t)
+        t
+      case t: common.component.Terminal =>
+        pb.writeTileEntity(t.rack)
+        pb.writeInt(t.number)
+        t.rack
+      case _ => return
+    }
+    pb.writeInt(index)
+    pb.writeInt(color)
 
     pb.sendToNearbyPlayers(t)
   }

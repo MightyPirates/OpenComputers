@@ -49,7 +49,7 @@ trait TextBuffer extends Environment with component.Buffer.Owner {
 
   // ----------------------------------------------------------------------- //
 
-  override def onScreenColorChange(foreground: Int, background: Int) {
+  override def onScreenColorChange(foreground: PackedColor.Color, background: PackedColor.Color) {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenColorChange(buffer, foreground, background)
@@ -76,6 +76,14 @@ trait TextBuffer extends Environment with component.Buffer.Owner {
     if (isServer) {
       world.markTileEntityChunkModified(x, y, z, this)
       ServerPacketSender.sendScreenFill(buffer, col, row, w, h, c)
+    }
+    else markForRenderUpdate()
+  }
+
+  override def onScreenPaletteChange(index: Int, color: Int) {
+    if (isServer) {
+      world.markTileEntityChunkModified(x, y, z, this)
+      ServerPacketSender.sendScreenPaletteChange(buffer, index, color)
     }
     else markForRenderUpdate()
   }

@@ -48,6 +48,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ScreenCopy => onScreenCopy(p)
       case PacketType.ScreenDepthChange => onScreenDepthChange(p)
       case PacketType.ScreenFill => onScreenFill(p)
+      case PacketType.ScreenPaletteChange => onScreenPaletteChange(p)
       case PacketType.ScreenPowerChange => onScreenPowerChange(p)
       case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
       case PacketType.ScreenSet => onScreenSet(p)
@@ -245,8 +246,12 @@ class PacketHandler extends CommonPacketHandler {
       case Some(t: Rack) => t.terminals(p.readInt()).buffer
       case _ => return // Invalid packet.
     }
-    buffer.foreground = p.readInt()
-    buffer.background = p.readInt()
+    val foreground = p.readInt()
+    val foregroundIsPalette = p.readBoolean()
+    buffer.foreground = PackedColor.Color(foreground, foregroundIsPalette)
+    val background = p.readInt()
+    val backgroundIsPalette = p.readBoolean()
+    buffer.background = PackedColor.Color(background, backgroundIsPalette)
   }
 
   def onScreenCopy(p: PacketParser) {
@@ -285,6 +290,17 @@ class PacketHandler extends CommonPacketHandler {
     val h = p.readInt()
     val c = p.readChar()
     buffer.fill(col, row, w, h, c)
+  }
+
+  def onScreenPaletteChange(p: PacketParser) {
+    val buffer = p.readTileEntity[TileEntity]() match {
+      case Some(t: TextBuffer) => t.buffer
+      case Some(t: Rack) => t.terminals(p.readInt()).buffer
+      case _ => return // Invalid packet.
+    }
+    val index = p.readInt()
+    val color = p.readInt()
+    buffer.setPalette(index, color)
   }
 
   def onScreenPowerChange(p: PacketParser) =

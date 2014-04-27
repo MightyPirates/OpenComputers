@@ -62,8 +62,8 @@ abstract class GraphicsCard extends ManagedComponent {
           val (smw, smh) = s.maxResolution
           s.resolution = (math.min(gmw, smw), math.min(gmh, smh))
           s.format = PackedColor.Depth.format(PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id)))
-          s.foreground = 0xFFFFFF
-          s.background = 0x000000
+          s.foreground = PackedColor.Color(0xFFFFFF)
+          s.background = PackedColor.Color(0x000000)
           result(true)
         })
       case _ => result(Unit, "not a screen")
@@ -72,20 +72,40 @@ abstract class GraphicsCard extends ManagedComponent {
 
   @Callback(direct = true)
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(s.background))
+    screen(s => result(s.background.value, s.background.isPalette))
 
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
-    screen(s => result(s.background = color))
+    screen(s => {
+      val background = s.background = PackedColor.Color(color, args.count > 1 && args.checkBoolean(1))
+      result(background.value, background.isPalette)
+    })
   }
 
   @Callback(direct = true)
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(s.foreground))
+    screen(s => result(s.foreground.value, s.foreground.isPalette))
 
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
-    screen(s => result(s.foreground = color))
+    screen(s => {
+      val foreground = s.foreground = PackedColor.Color(color, args.count > 1 && args.checkBoolean(1))
+      result(foreground.value, foreground.isPalette)
+    })
+  }
+
+  @Callback(direct = true)
+  def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    screen(s => result(s.getPalette(index)))
+  }
+
+  @Callback
+  def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    val color = args.checkInteger(1)
+    context.pause(0.1)
+    screen(s => result(s.setPalette(index, color)))
   }
 
   @Callback(direct = true)
@@ -219,11 +239,11 @@ abstract class GraphicsCard extends ManagedComponent {
       screenInstance match {
         case Some(buffer) => buffer.synchronized {
           val (w, h) = buffer.resolution
-          buffer.foreground = 0xFFFFFF
+          buffer.foreground = PackedColor.Color(0xFFFFFF)
           message.source.host match {
             case machine: machine.Machine if machine.lastError != null =>
-              if (buffer.format.depth > PackedColor.Depth.OneBit) buffer.background = 0x0000FF
-              else buffer.background = 0x000000
+              if (buffer.format.depth > PackedColor.Depth.OneBit) buffer.background = PackedColor.Color(0x0000FF)
+              else buffer.background = PackedColor.Color(0x000000)
               if (buffer.buffer.fill(0, 0, w, h, ' ')) {
                 buffer.owner.onScreenFill(0, 0, w, h, ' ')
               }
@@ -242,7 +262,7 @@ abstract class GraphicsCard extends ManagedComponent {
                 case t: Throwable => t.printStackTrace()
               }
             case _ =>
-              buffer.background = 0x000000
+              buffer.background = PackedColor.Color(0x000000)
               if (buffer.buffer.fill(0, 0, w, h, ' ')) {
                 buffer.owner.onScreenFill(0, 0, w, h, ' ')
               }

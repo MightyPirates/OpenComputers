@@ -37,7 +37,7 @@ object PackedColor {
 
     def inflate(value: Int): Int
 
-    def deflate(value: Int): Int
+    def deflate(value: Color): Byte
 
     override def load(nbt: NBTTagCompound) {}
 
@@ -49,13 +49,15 @@ object PackedColor {
 
     override def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
 
-    override def deflate(value: Int) = if (value == 0) 0 else 1
+    override def deflate(value: Color) = (if (value.value == 0) 0 else 1).toByte
   }
 
   abstract class PaletteFormat extends ColorFormat {
     override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))
 
-    override def deflate(value: Int) = palette.map(delta(value, _)).zipWithIndex.minBy(_._1)._2
+    override def deflate(value: Color) =
+      if (value.isPalette) (math.max(0, value.value) % palette.length).toByte
+      else palette.map(delta(value.value, _)).zipWithIndex.minBy(_._1)._2.toByte
 
     protected def palette: Array[Int]
 
@@ -106,7 +108,7 @@ object PackedColor {
 
     override def depth = Depth.EightBit
 
-    override def inflate(value: Int) = {
+    override def inflate(value: Int) =
       if (value < palette.length) super.inflate(value)
       else {
         val index = value - palette.length
@@ -118,22 +120,25 @@ object PackedColor {
         val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
         (r << rShift32) | (g << gShift32) | (b << bShift32)
       }
-    }
 
-    override def deflate(value: Int) = {
-      val (r, g, b) = extract(value)
-      val idxR = (r * (reds - 1.0) / 0xFF + 0.5).toInt
-      val idxG = (g * (greens - 1.0) / 0xFF + 0.5).toInt
-      val idxB = (b * (blues - 1.0) / 0xFF + 0.5).toInt
-      palette.length + idxR * greens * blues + idxG * blues + idxB
-    }
+    override def deflate(value: Color) =
+      if (value.isPalette) super.deflate(value)
+      else {
+        val (r, g, b) = extract(value.value)
+        val idxR = (r * (reds - 1.0) / 0xFF + 0.5).toInt
+        val idxG = (g * (greens - 1.0) / 0xFF + 0.5).toInt
+        val idxB = (b * (blues - 1.0) / 0xFF + 0.5).toInt
+        (palette.length + idxR * greens * blues + idxG * blues + idxB).toByte
+      }
   }
+
+  case class Color(value: Int, isPalette: Boolean = false)
 
   // Colors are packed: 0xFFBB (F = foreground, B = background)
   private val fgShift = 8
   private val bgMask = 0x000000FF
 
-  def pack(foreground: Int, background: Int, format: ColorFormat) = {
+  def pack(foreground: Color, background: Color, format: ColorFormat) = {
     ((format.deflate(foreground) << fgShift) | format.deflate(background)).toShort
   }
 

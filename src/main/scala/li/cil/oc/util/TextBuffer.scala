@@ -16,22 +16,22 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
   private var _format = initialFormat
 
-  private var _foreground = 0xFFFFFF
+  private var _foreground = PackedColor.Color(0xFFFFFF)
 
-  private var _background = 0x000000
+  private var _background = PackedColor.Color(0x000000)
 
   private var packed = PackedColor.pack(_foreground, _background, _format)
 
   def foreground = _foreground
 
-  def foreground_=(value: Int) = {
+  def foreground_=(value: PackedColor.Color) = {
     _foreground = value
     packed = PackedColor.pack(_foreground, _background, _format)
   }
 
   def background = _background
 
-  def background_=(value: Int) = {
+  def background_=(value: PackedColor.Color) = {
     _background = value
     packed = PackedColor.pack(_foreground, _background, _format)
   }
@@ -44,8 +44,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         val rowColor = color(row)
         for (col <- 0 until width) {
           val packed = rowColor(col)
-          val fg = PackedColor.unpackForeground(packed, _format)
-          val bg = PackedColor.unpackBackground(packed, _format)
+          val fg = PackedColor.Color(PackedColor.unpackForeground(packed, _format))
+          val bg = PackedColor.Color(PackedColor.unpackBackground(packed, _format))
           rowColor(col) = PackedColor.pack(fg, bg, value)
         }
       }
@@ -181,8 +181,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
     _format = PackedColor.Depth.format(depth)
     _format.load(nbt)
-    foreground = nbt.getInteger("foreground")
-    background = nbt.getInteger("background")
+    foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
+    background = PackedColor.Color(nbt.getInteger("background"), nbt.getBoolean("backgroundIsPalette"))
 
     val c = nbt.getTagList("color")
     for (i <- 0 until h) {
@@ -211,8 +211,10 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
 
     nbt.setInteger("depth", _format.depth.id)
     _format.save(nbt)
-    nbt.setInteger("foreground", _foreground)
-    nbt.setInteger("background", _background)
+    nbt.setInteger("foreground", _foreground.value)
+    nbt.setBoolean("foregroundIsPalette", _foreground.isPalette)
+    nbt.setInteger("background", _background.value)
+    nbt.setBoolean("backgroundIsPalette", _background.isPalette)
 
     val c = new NBTTagList()
     for (i <- 0 until height) {
