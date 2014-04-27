@@ -31,7 +31,7 @@ object GameTimeFormatter {
     //'G' -> (t => ""),
     'h' -> (t => format("%b", t)),
     'H' -> (t => "%02d".format(t.hour)),
-    'I' -> (t => "%02d".format(t.hour % 12 + 1)),
+    'I' -> (t => "%02d".format((t.hour + 11) % 12 + 1)),
     'j' -> (t => "%03d".format(t.yearDay)),
     'm' -> (t => "%02d".format(t.month)),
     'M' -> (t => "%02d".format(t.minute)),
