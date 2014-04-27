@@ -6,14 +6,6 @@ package li.cil.oc.api.network;
  */
 public interface Context {
     /**
-     * The network address of the computer.
-     *
-     * @deprecated Use <tt>node().address()</tt> instead.
-     */
-    @Deprecated
-    String address();
-
-    /**
      * The node through which the computer is attached to the component network.
      */
     Node node();

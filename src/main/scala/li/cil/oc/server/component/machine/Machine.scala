@@ -95,8 +95,6 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
 
   // ----------------------------------------------------------------------- //
 
-  override def address = node.address
-
   override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
     MinecraftServer.getServer.isSinglePlayer ||

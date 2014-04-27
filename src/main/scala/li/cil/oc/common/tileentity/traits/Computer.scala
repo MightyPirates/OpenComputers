@@ -41,8 +41,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   // Note: we implement IContext in the TE to allow external components to cast
   // their owner to it (to allow interacting with their owning computer).
 
-  override def address = computer.address
-
   override def canInteract(player: String) =
     if (isServer) computer.canInteract(player)
     else !Settings.get.canComputersBeOwned ||
