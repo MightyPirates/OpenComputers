@@ -18,6 +18,9 @@ import li.cil.oc.api.network.Context;
  * <li>Values <em>must</em> have a default constructor for loading.</li>
  * <li>Values must be persistable (implement save/load).</li>
  * </ul>
+ * <p/>
+ * Callbacks can be defined in a manner similar to environments, i.e. using the
+ * {@link li.cil.oc.api.network.Callback} annotation as well as the
  */
 public interface Value extends Persistable {
     /**

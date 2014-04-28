@@ -1,6 +1,5 @@
 package li.cil.oc.api.machine;
 
-import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
@@ -197,6 +196,39 @@ public interface Machine extends ManagedEnvironment, Context {
      * @return the docstring for that method.
      */
     String documentation(String address, String method);
+
+    /**
+     * Makes the machine call a value callback.
+     * <p/>
+     * This is intended to be used from architectures, but may be useful in
+     * other scenarios, too. It will make the machine call the method with the
+     * specified name on the specified value.
+     * <p/>
+     * This will will ensure that the direct call limit for individual
+     * callbacks is respected.
+     *
+     * @param value  the value to call the method on.
+     * @param method the name of the method to call.
+     * @param args   the list of arguments to pass to the callback.
+     * @return a list of results returned by the callback, or <tt>null</tt>.
+     * @throws LimitReachedException    when the called method supports direct
+     *                                  calling, but the number of calls in this
+     *                                  tick has exceeded the allowed limit.
+     * @throws IllegalArgumentException if there is no such component.
+     * @throws Exception                if the callback throws an exception.
+     */
+    Object[] invoke(Value value, String method, Object[] args) throws Exception;
+
+    /**
+     * Retrieves the docstring for the specified method of the specified
+     * value. This is the string set in a method's {@link Callback}
+     * annotation.
+     *
+     * @param value  the value.
+     * @param method the name of the method.
+     * @return the docstring for that method.
+     */
+    String documentation(Value value, String method);
 
     /**
      * The list of users registered on this machine.

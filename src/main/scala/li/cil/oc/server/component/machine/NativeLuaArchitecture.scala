@@ -1,7 +1,7 @@
 package li.cil.oc.server.component.machine
 
 import com.naef.jnlua._
-import li.cil.oc.api.machine.{Architecture, ExecutionResult}
+import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.component.machine.luac._
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
@@ -9,6 +9,9 @@ import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
+import java.util.logging.Level
+import java.io.{IOException, FileNotFoundException}
+import com.google.common.base.Strings
 
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: LuaState = null
@@ -31,6 +34,91 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     new UserdataAPI(this))
 
   private var lastCollection = 0L
+
+  private[machine] def invoke(f: () => Array[AnyRef]): Int = try {
+    f() match {
+      case results: Array[_] =>
+        lua.pushBoolean(true)
+        results.foreach(result => lua.pushValue(result))
+        1 + results.length
+      case _ =>
+        lua.pushBoolean(true)
+        1
+    }
+  }
+  catch {
+    case e: Throwable =>
+      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+      }
+      e match {
+        case _: LimitReachedException =>
+          0
+        case e: IllegalArgumentException if e.getMessage != null =>
+          lua.pushBoolean(false)
+          lua.pushString(e.getMessage)
+          2
+        case e: Throwable if e.getMessage != null =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString(e.getMessage)
+          if (Settings.get.logLuaCallbackErrors) {
+            lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
+            4
+          }
+          else 3
+        case _: IndexOutOfBoundsException =>
+          lua.pushBoolean(false)
+          lua.pushString("index out of bounds")
+          2
+        case _: IllegalArgumentException =>
+          lua.pushBoolean(false)
+          lua.pushString("bad argument")
+          2
+        case _: NoSuchMethodException =>
+          lua.pushBoolean(false)
+          lua.pushString("no such method")
+          2
+        case _: FileNotFoundException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("file not found")
+          3
+        case _: SecurityException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("access denied")
+          3
+        case _: IOException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("i/o error")
+          3
+        case e: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("unknown error")
+          3
+      }
+  }
+
+  private[machine] def documentation(f: () => String): Int = try {
+    val doc = f()
+    if (Strings.isNullOrEmpty(doc)) lua.pushNil()
+    else lua.pushString(doc)
+    1
+  }
+  catch {
+    case e: NoSuchMethodException =>
+      lua.pushNil()
+      lua.pushString("no such method")
+      2
+    case t: Throwable =>
+      lua.pushNil()
+      lua.pushString(if (t.getMessage != null) t.getMessage else t.toString)
+      2
+  }
 
   // ----------------------------------------------------------------------- //
 

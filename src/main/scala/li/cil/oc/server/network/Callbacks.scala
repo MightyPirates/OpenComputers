@@ -85,11 +85,11 @@ object Callbacks {
   // ----------------------------------------------------------------------- //
 
   abstract class Callback(val direct: Boolean, val limit: Int, val doc: String = "") {
-    def apply(instance: Environment, context: Context, args: network.Arguments): Array[AnyRef]
+    def apply(instance: AnyRef, context: Context, args: network.Arguments): Array[AnyRef]
   }
 
   class ComponentCallback(val method: Method, direct: Boolean, limit: Int, doc: String) extends Callback(direct, limit, doc) {
-    override def apply(instance: Environment, context: Context, args: network.Arguments) = try {
+    override def apply(instance: AnyRef, context: Context, args: network.Arguments) = try {
       method.invoke(instance, context, args).asInstanceOf[Array[AnyRef]]
     } catch {
       case e: InvocationTargetException => throw e.getCause
@@ -97,7 +97,7 @@ object Callbacks {
   }
 
   class PeripheralCallback(val name: String) extends Callback(true, 100) {
-    override def apply(instance: Environment, context: Context, args: network.Arguments) =
+    override def apply(instance: AnyRef, context: Context, args: network.Arguments) =
       instance match {
         case peripheral: ManagedPeripheral => peripheral.invoke(name, context, args)
         case _ => throw new NoSuchMethodException()

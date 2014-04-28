@@ -1,12 +1,8 @@
 package li.cil.oc.server.component.machine.luac
 
-import com.google.common.base.Strings
-import java.io.{IOException, FileNotFoundException}
-import java.util.logging.Level
-import li.cil.oc.api.machine.LimitReachedException
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.{OpenComputers, Settings, server}
+import li.cil.oc.server
 import scala.collection.convert.WrapAsScala._
 
 class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
@@ -62,96 +58,14 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       val address = lua.checkString(1)
       val method = lua.checkString(2)
       val args = lua.toSimpleJavaObjects(3)
-      try {
-        machine.invoke(address, method, args.toArray) match {
-          case results: Array[_] =>
-            lua.pushBoolean(true)
-            results.foreach(result => lua.pushValue(result))
-            1 + results.length
-          case _ =>
-            lua.pushBoolean(true)
-            1
-        }
-      }
-      catch {
-        case e: Throwable =>
-          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-            OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
-          }
-          e match {
-            case _: LimitReachedException =>
-              0
-            case e: IllegalArgumentException if e.getMessage != null =>
-              lua.pushBoolean(false)
-              lua.pushString(e.getMessage)
-              2
-            case e: Throwable if e.getMessage != null =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString(e.getMessage)
-              if (Settings.get.logLuaCallbackErrors) {
-                lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
-                4
-              }
-              else 3
-            case _: IndexOutOfBoundsException =>
-              lua.pushBoolean(false)
-              lua.pushString("index out of bounds")
-              2
-            case _: IllegalArgumentException =>
-              lua.pushBoolean(false)
-              lua.pushString("bad argument")
-              2
-            case _: NoSuchMethodException =>
-              lua.pushBoolean(false)
-              lua.pushString("no such method")
-              2
-            case _: FileNotFoundException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("file not found")
-              3
-            case _: SecurityException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("access denied")
-              3
-            case _: IOException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("i/o error")
-              3
-            case e: Throwable =>
-              OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("unknown error")
-              3
-          }
-      }
+      owner.invoke(() => machine.invoke(address, method, args.toArray))
     })
     lua.setField(-2, "invoke")
 
     lua.pushScalaFunction(lua => {
       val address = lua.checkString(1)
       val method = lua.checkString(2)
-      try {
-        val doc = machine.documentation(address, method)
-        if (Strings.isNullOrEmpty(doc))
-          lua.pushNil()
-        else
-          lua.pushString(doc)
-        1
-      } catch {
-        case e: NoSuchMethodException =>
-          lua.pushNil()
-          lua.pushString("no such method")
-          2
-        case t: Throwable =>
-          lua.pushNil()
-          lua.pushString(if (t.getMessage != null) t.getMessage else t.toString)
-          2
-      }
+      owner.documentation(() => machine.documentation(address, method))
     })
     lua.setField(-2, "doc")
 

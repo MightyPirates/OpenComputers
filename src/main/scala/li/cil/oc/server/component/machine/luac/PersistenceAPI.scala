@@ -17,6 +17,13 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     val perms = lua.getTop - 1
     val uperms = lua.getTop
 
+    lua.getGlobal("eris")
+    lua.getField(-1, "settings")
+    lua.pushString("path")
+    lua.pushBoolean(true)
+    lua.call(2, 0)
+    lua.pop(1)
+
     def flattenAndStore() {
       /* ... k v */
       // We only care for tables and functions, any value types are safe.

@@ -240,10 +240,21 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
-local function invoke(direct, ...)
+local wrapUserdata
+
+local function processResult(result)
+  wrapUserdata(result)
+  if not result[1] then -- error that should be re-thrown.
+    error(result[2], 0)
+  else -- success or already processed error.
+    return table.unpack(result, 2, result.n)
+  end
+end
+
+local function invoke(target, direct, ...)
   local result
   if direct then
-    result = table.pack(component.invoke(...))
+    result = table.pack(target.invoke(...))
     if result.n == 0 then -- limit for direct calls reached
       result = nil
     end
@@ -251,15 +262,87 @@ local function invoke(direct, ...)
   if not result then
     local args = table.pack(...) -- for access in closure
     result = select(1, coroutine.yield(function()
-      return table.pack(component.invoke(table.unpack(args, 1, args.n)))
+      return table.pack(target.invoke(table.unpack(args, 1, args.n)))
     end))
   end
-  if not result[1] then -- error that should be re-thrown.
-    error(result[2], 0)
-  else -- success or already processed error.
-    return table.unpack(result, 2, result.n)
+  return processResult(result)
+end
+
+function wrapUserdata(values)
+  -- JNLua derps when the metatable of userdata is changed, so we have to
+  -- wrap and isolate it, to make sure it can't be touched by user code.
+  -- This sadly means we need a separate metatable for each userdata value,
+  -- which means higher memory consumption.
+  local function wrap(data)
+    local proxy = {type = "userdata"}
+    local methods, reason = spcall(userdata.methods, data)
+    if not methods then
+      return nil, reason
+    end
+    do
+      local userdataCallback = {
+        __call = function(self, ...)
+          local methods, reason = spcall(userdata.methods, data)
+          if not methods then
+            return nil, reason
+          end
+          for name, direct in pairs(methods) do
+            if name == self.name then
+              return invoke(userdata, direct, data, name, ...)
+            end
+          end
+          error("no such method", 1)
+        end,
+        __tostring = function(self)
+          return userdata.doc(data, self.name) or "function"
+        end
+      }
+      for method in pairs(methods) do
+        proxy[method] = setmetatable({name=method}, userdataCallback)
+      end
+    end
+    -- Metatable for additional functionality on userdata.
+    return setmetatable(proxy, {
+      __index = function(_, ...)
+        return processResult(table.pack(userdata.apply(data, ...)))
+      end,
+      __newindex = function(_, ...)
+        return processResult(table.pack(userdata.unapply(data, ...)))
+      end,
+      __call = function(_, ...)
+        return processResult(table.pack(userdata.call(data, ...)))
+      end,
+      __gc = function()
+        userdata.dispose(data)
+      end,
+      -- This is the persistence protocol for userdata. Userdata is considered
+      -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
+      -- of the actual class when saving, so we can create a new instance via
+      -- reflection when loading again (and then immediately wrap it again).
+      -- Collect wrapped callback methods.
+      __persist = function()
+        local className, nbt = userdata.save(data)
+        -- The returned closure is what actually gets persisted, including the
+        -- upvalues, that being the classname and a byte array representing the
+        -- nbt data of the userdata value.
+        return function()
+          return wrap(userdata.load(className, nbt))
+        end
+      end,
+      -- Do not allow changing the metatable to avoid the gc callback being
+      -- unset, leading to potential resource leakage on the host side.
+      __metatable = "userdata",
+      __tostring = "userdata"
+    })
+  end
+  for i = 1, values.n do
+    if type(values[i]) == "userdata" then
+      values[i] = wrap(values[i])
+    end
   end
 end
+
+-------------------------------------------------------------------------------
 
 local libcomponent
 
@@ -291,7 +374,7 @@ libcomponent = {
     end
     for name, direct in pairs(methods) do
       if name == method then
-        return invoke(direct, address, method, ...)
+        return invoke(component, direct, address, method, ...)
       end
     end
     error("no such method", 1)
@@ -407,7 +490,7 @@ sandbox.unicode = libunicode
 local function bootstrap()
   local function tryLoadFrom(address)
     function boot_invoke(method, ...)
-      local result = table.pack(pcall(invoke, true, address, method, ...))
+      local result = table.pack(pcall(invoke, component, true, address, method, ...))
       if not result[1] then
         return nil, result[2]
       else
@@ -442,52 +525,6 @@ local function bootstrap()
   end
 
   return coroutine.create(init), {n=0}
-end
-
-local function wrapUserdata(values)
-  for i = 1, values.n do
-    if type(values[i]) == "userdata" then
-      local function wrap(data)
-        local mtcallback = {
-          __call = function(self, ...)
-            return userdata.invoke(data, self.name, ...)
-          end,
-          __tostring = function(self)
-            return userdata.doc(data, self.name) or "function"
-          end
-        }
-        local callbacks = userdata.callbacks(data)
-        local proxy = {}
-        for j = 1, callbacks.n do
-          local method = callbacks[j]
-          proxy[method] = setmetatable({name = method}, mtcallback)
-        end
-        return setmetatable(proxy, {
-          __index = function(_, ...)
-            return userdata.apply(data, ...)
-          end,
-          __newindex = function(_, ...)
-            userdata.unapply(data, ...)
-          end,
-          __call = function(_, ...)
-            return userdata.call(data, ...)
-          end,
-          __gc = function()
-            userdata.dispose(data)
-          end,
-          __metatable = "userdata",
-          __tostring = "userdata",
-          __persist = function()
-            local className, nbt = userdata.save(data)
-            return function()
-              return wrap(userdata.load(className, nbt))
-            end
-          end
-        })
-      end
-      values[i] = wrap(values[i])
-    end
-  end
 end
 
 -------------------------------------------------------------------------------

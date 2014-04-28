@@ -103,7 +103,7 @@ trait Component extends network.Component with Node {
   def invoke(method: String, context: Context, arguments: AnyRef*) =
     callbacks.get(method) match {
       case Some(callback) => hosts(method) match {
-        case Some(environment) => Registry.convert(callback(environment, context, new Arguments(Seq(arguments: _*))))
+        case Some(environment) => Registry.convert(callback(environment, context, new ArgumentsImpl(Seq(arguments: _*))))
         case _ => throw new NoSuchMethodException()
       }
       case _ => throw new NoSuchMethodException()

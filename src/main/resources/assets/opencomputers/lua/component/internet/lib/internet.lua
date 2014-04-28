@@ -30,27 +30,13 @@ function internet.request(url, data)
     error(reason, 2)
   end
 
-  function pullResponse()
-    while true do
-      local _, responseUrl, result, reason = event.pull("http_response")
-      if responseUrl == url then
-        return result, reason
-      end
-    end
-  end
-
-  -- Wait for the first response, which tells us whether it was a success.
-  local result, reason = pullResponse()
-  if not result and reason then
-    error(reason, 2)
-  end
   return function()
-    local thisResult
-    if result then
-      thisResult = result
-      result = pullResponse()
+    local data, reason = result.read()
+    if not data and reason then
+      error(reason, 2)
+    else
+      return data
     end
-    return thisResult
   end
 end
 

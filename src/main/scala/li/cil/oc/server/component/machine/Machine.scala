@@ -5,7 +5,7 @@ import java.lang.reflect.Constructor
 import java.util.concurrent.Callable
 import java.util.logging.Level
 import li.cil.oc.api.detail.MachineAPI
-import li.cil.oc.api.machine.{LimitReachedException, Architecture, Owner, ExecutionResult}
+import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
 import li.cil.oc.api.{fs, machine, FileSystem, Network}
 import li.cil.oc.common.tileentity
@@ -16,13 +16,16 @@ import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
 import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.server.MinecraftServer
 import net.minecraftforge.common.DimensionManager
 import scala.Array.canBuildFrom
 import scala.collection.mutable
+import scala.Some
+import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
+import li.cil.oc.server.driver.Registry
+import net.minecraft.entity.player.EntityPlayer
 
 class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
@@ -234,6 +237,22 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
   override def documentation(address: String, method: String) = Option(node.network.node(address)) match {
     case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node => component.doc(method)
     case _ => throw new IllegalArgumentException("no such component")
+  }
+
+  override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
+    case Some(callback) =>
+      val direct = callback.direct
+      if (direct && architecture.isInitialized) {
+        val limit = callback.limit
+        // TODO callcount limit
+      }
+      Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
+    case _ => throw new NoSuchMethodException()
+  }
+
+  override def documentation(value: Value, method: String): String = Callbacks(value).get(method) match {
+    case Some(callback) => callback.doc
+    case _ => throw new NoSuchMethodException()
   }
 
   override def addUser(name: String) {

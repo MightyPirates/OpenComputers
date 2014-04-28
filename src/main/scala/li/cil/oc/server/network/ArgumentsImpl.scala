@@ -4,7 +4,7 @@ import li.cil.oc.api.network
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 
-class Arguments(val args: Seq[AnyRef]) extends network.Arguments {
+class ArgumentsImpl(val args: Seq[AnyRef]) extends network.Arguments {
   def iterator() = args.iterator
 
   def count() = args.length

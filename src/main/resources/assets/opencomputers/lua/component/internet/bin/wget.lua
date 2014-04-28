@@ -56,11 +56,11 @@ if not options.q then
 end
 local result, response = pcall(internet.request, url)
 if result then
-  if not options.q then
-    io.write("success.\n")
-  end
   for chunk in response do
     f:write(chunk)
+  end
+  if not options.q then
+    io.write("success.\n")
   end
 
   f:close()

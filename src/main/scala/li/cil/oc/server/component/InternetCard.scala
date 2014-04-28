@@ -14,6 +14,7 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.collection.mutable
+import li.cil.oc.api.prefab.AbstractValue
 
 class InternetCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
@@ -27,20 +28,7 @@ class InternetCard extends ManagedComponent {
 
   protected val connections = mutable.Map.empty[Int, SocketChannel]
 
-  // For HTTP requests the state switches like so:
-  // Pre: request == None && queue == None
-  // request = value
-  // thread {
-  //   queue = value
-  //   request = None
-  // }
-  // while (request == None && queue contains elements) { signal(queue.pop()) }
-  // queue = None
-  // Post: request == None && queue == None
-
-  protected var request: Option[(String, Option[String])] = None
-
-  protected var queue: Option[(String, mutable.Queue[Array[Byte]])] = None
+  protected var request: Option[InternetCard.Request] = None
 
   // ----------------------------------------------------------------------- //
 
@@ -58,76 +46,12 @@ class InternetCard extends ManagedComponent {
     }
     val post = if (args.isString(1)) Option(args.checkString(1)) else None
     this.synchronized {
-      if (request.isDefined || queue.isDefined) {
+      if (request.isDefined) {
         return result(Unit, "already busy with another request")
       }
-      scheduleRequest(address, post)
+      request = Some(new InternetCard.Request(this, checkAddress(address), post))
+      result(request.get)
     }
-    result(true)
-  }
-
-  protected def scheduleRequest(address: String, post: Option[String]) {
-    val url = checkAddress(address)
-    request = Some((address, post))
-    InternetCard.threadPool.submit(new Runnable {
-      override def run() = try {
-        val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-        url.openConnection(proxy) match {
-          case http: HttpURLConnection => try {
-            http.setDoInput(true)
-            if (post.isDefined) {
-              http.setRequestMethod("POST")
-              http.setDoOutput(true)
-              http.setReadTimeout(Settings.get.httpTimeout)
-
-              val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-              out.write(post.get)
-              out.close()
-            }
-            else {
-              http.setRequestMethod("GET")
-              http.setDoOutput(false)
-            }
-
-            val input = http.getInputStream
-            val data = mutable.ArrayBuffer.empty[Byte]
-            val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
-            var count = 0
-            do {
-              count = input.read(buffer)
-              if (count > 0) {
-                data ++= buffer.take(count)
-              }
-            } while (count != -1)
-            input.close()
-            queue = Some(address -> (mutable.Queue(data.toArray.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
-          }
-          finally {
-            http.disconnect()
-          }
-          case other => owner.foreach(_.signal("http_response", address, Unit, "connection failed"))
-        }
-      }
-      catch {
-        case e: FileNotFoundException =>
-          owner.foreach(_.signal("http_response", address, Unit, "not found: " + Option(e.getMessage).getOrElse(e.toString)))
-        case _: SocketTimeoutException =>
-          owner.foreach(_.signal("http_response", address, Unit, "timeout"))
-        case e: Throwable =>
-          owner.foreach(_.signal("http_response", address, Unit, Option(e.getMessage).getOrElse(e.toString)))
-      }
-      finally {
-        InternetCard.this.synchronized {
-          if (request.isDefined) {
-            request = None
-          }
-          else {
-            // Got disconnected in the meantime.
-            queue = None
-          }
-        }
-      }
-    })
   }
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
@@ -194,26 +118,6 @@ class InternetCard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  override val canUpdate = true
-
-  override def update() {
-    super.update()
-
-    this.synchronized {
-      if (request.isEmpty && queue.isDefined) {
-        val (address, packets) = queue.get
-        if (owner.fold(true)(_.signal("http_response", address, packets.front))) {
-          packets.dequeue()
-        }
-        if (packets.isEmpty) {
-          queue = None
-        }
-      }
-    }
-  }
-
-  // ----------------------------------------------------------------------- //
-
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (owner.isEmpty && node.host.isInstanceOf[Context] && node.isNeighborOf(this.node)) {
@@ -231,7 +135,6 @@ class InternetCard extends ManagedComponent {
       }
       connections.clear()
       request = None
-      queue = None
       romInternet.foreach(_.node.remove())
     }
   }
@@ -242,9 +145,8 @@ class InternetCard extends ManagedComponent {
       case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>
         connections.values.foreach(_.close())
         connections.clear()
-        InternetCard.this.synchronized {
+        this.synchronized {
           request = None
-          queue = None
         }
       case _ =>
     }
@@ -255,46 +157,11 @@ class InternetCard extends ManagedComponent {
   override def load(nbt: NBTTagCompound) {
     super.load(nbt)
     romInternet.foreach(_.load(nbt.getCompoundTag("romInternet")))
-    if (nbt.hasKey("url")) {
-      val address = nbt.getString("url")
-      val data = nbt.getByteArray("data")
-      queue = Some(address -> (mutable.Queue(data.grouped(Settings.get.maxNetworkPacketSize).toSeq: _*) ++ Iterable(null)))
-    }
-    if (nbt.hasKey("request")) {
-      val address = nbt.getString("request")
-      val post =
-        if (nbt.hasKey("postData")) Option(nbt.getString("postData"))
-        else None
-      // Restart request?
-      if (!queue.isDefined) {
-        scheduleRequest(address, post)
-      }
-      // Otherwise this should have been None anyway...
-    }
   }
 
   override def save(nbt: NBTTagCompound) {
     super.save(nbt)
     romInternet.foreach(fs => nbt.setNewCompoundTag("romInternet", fs.save))
-    this.synchronized {
-      request match {
-        case Some((address, data)) =>
-          nbt.setString("request", address)
-          data match {
-            case Some(value) => nbt.setString("postData", value)
-            case _ =>
-          }
-        case _ =>
-      }
-      queue match {
-        case Some((address, packets)) =>
-          nbt.setString("url", address)
-          val data = mutable.ArrayBuffer.empty[Byte]
-          packets.toIterable.dropRight(1).foreach(data.appendAll(_))
-          nbt.setByteArray("data", data.toArray)
-        case _ =>
-      }
-    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -345,4 +212,114 @@ class InternetCard extends ManagedComponent {
 
 object InternetCard {
   private val threadPool = ThreadPoolFactory.create("HTTP", Settings.get.httpThreads)
+
+  class Request(val owner: Option[InternetCard] = None) extends AbstractValue {
+    def this(owner: InternetCard, url: URL, post: Option[String]) {
+      this(Option(owner))
+      this.url = url
+      this.post = post
+      scheduleRequest()
+    }
+
+    private var url: URL = null
+    private var post: Option[String] = None
+    private var data: Option[Array[Byte]] = None
+    private var error: Option[String] = None
+
+    @Callback
+    def read(context: Context, args: Arguments): Array[AnyRef] = {
+      if (data.isDefined) {
+        val buffer = data.get
+        if (buffer.length == 0) Array(Unit)
+        else {
+          val n = math.min(Settings.get.maxReadBuffer, if (args.count > 0) args.checkInteger(0) else Int.MaxValue)
+          val count = math.min(n, buffer.length)
+          val result = buffer.take(count)
+          data = Some(buffer.drop(count))
+          Array(result)
+        }
+      }
+      else if (error.isDefined) Array(Unit, error.get)
+      else Array("")
+    }
+
+    protected def scheduleRequest() {
+      InternetCard.threadPool.submit(new Runnable {
+        override def run() = try {
+          val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
+          url.openConnection(proxy) match {
+            case http: HttpURLConnection => try {
+              http.setDoInput(true)
+              if (post.isDefined) {
+                http.setRequestMethod("POST")
+                http.setDoOutput(true)
+                http.setReadTimeout(Settings.get.httpTimeout)
+
+                val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
+                out.write(post.get)
+                out.close()
+              }
+              else {
+                http.setRequestMethod("GET")
+                http.setDoOutput(false)
+              }
+
+              val input = http.getInputStream
+              val data = mutable.ArrayBuffer.empty[Byte]
+              val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
+              var count = 0
+              do {
+                count = input.read(buffer)
+                if (count > 0) {
+                  data ++= buffer.take(count)
+                }
+              } while (count != -1)
+              input.close()
+              this.synchronized {
+                Request.this.data = Some(data.toArray)
+              }
+            }
+            finally {
+              http.disconnect()
+            }
+            case other => error = Some("connection failed")
+          }
+        }
+        catch {
+          case e: FileNotFoundException =>
+            error = Some("not found: " + Option(e.getMessage).getOrElse(e.toString))
+          case e: UnknownHostException =>
+            error = Some("unknown host: " + Option(e.getMessage).getOrElse(e.toString))
+          case _: SocketTimeoutException =>
+            error = Some("timeout")
+          case e: Throwable =>
+            error = Some(Option(e.getMessage).getOrElse(e.toString))
+        }
+        finally {
+          owner match {
+            case Some(card) => card.synchronized {
+              card.request = None
+            }
+            case _ =>
+          }
+        }
+      })
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey("url")) url = new URL(nbt.getString("url"))
+      if (nbt.hasKey("post")) post = Option(nbt.getString("post"))
+      if (nbt.hasKey("error")) error = Option(nbt.getString("error"))
+      if (nbt.hasKey("data")) data = Option(nbt.getByteArray("data"))
+      if (error.isEmpty && data.isEmpty) scheduleRequest()
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      if (url != null) nbt.setString("url", url.toString)
+      if (post.isDefined) nbt.setString("post", post.get)
+      if (error.isDefined) nbt.setString("error", error.get)
+      if (data.isDefined) nbt.setByteArray("data", data.get)
+    }
+  }
+
 }

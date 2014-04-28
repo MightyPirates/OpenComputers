@@ -1,13 +1,16 @@
 package li.cil.oc.server.component.machine
 
 import java.util.logging.Level
-import li.cil.oc.api.machine.{Architecture, ExecutionResult}
+import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
 import li.cil.oc.server.component.machine.luaj._
 import li.cil.oc.util.ScalaClosure
 import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
+import li.cil.oc.util.ScalaClosure._
+import java.io.{IOException, FileNotFoundException}
+import com.google.common.base.Strings
 
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: Globals = _
@@ -29,6 +32,55 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     new SystemAPI(this),
     new UserdataAPI(this))
 
+  private[machine] def invoke(f: () => Array[AnyRef]): Varargs = try {
+    f() match {
+      case results: Array[_] =>
+        LuaValue.varargsOf(Array(LuaValue.TRUE) ++ results.map(toLuaValue))
+      case _ =>
+        LuaValue.TRUE
+    }
+  }
+  catch {
+    case e: Throwable =>
+      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+      }
+      e match {
+        case _: LimitReachedException =>
+          LuaValue.NONE
+        case e: IllegalArgumentException if e.getMessage != null =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(e.getMessage))
+        case e: Throwable if e.getMessage != null =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf(e.getMessage))
+        case _: IndexOutOfBoundsException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("index out of bounds"))
+        case _: IllegalArgumentException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("bad argument"))
+        case _: NoSuchMethodException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("no such method"))
+        case _: FileNotFoundException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("file not found"))
+        case _: SecurityException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("access denied"))
+        case _: IOException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("i/o error"))
+        case e: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("unknown error"))
+      }
+  }
+
+  private[machine] def documentation(f: () => String): Varargs = try {
+    val doc = f()
+    if (Strings.isNullOrEmpty(doc)) LuaValue.NIL
+    else LuaValue.valueOf(doc)
+  }
+  catch {
+    case e: NoSuchMethodException =>
+      LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such method"))
+    case t: Throwable =>
+      LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf(if (t.getMessage != null) t.getMessage else t.toString))
+  }
 
   // ----------------------------------------------------------------------- //
 
