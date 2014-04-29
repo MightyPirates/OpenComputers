@@ -214,17 +214,17 @@ object InternetCard {
   private val threadPool = ThreadPoolFactory.create("HTTP", Settings.get.httpThreads)
 
   class Request(val owner: Option[InternetCard] = None) extends AbstractValue {
+    private var url: URL = null
+    private var post: Option[String] = None
+    private var data: Option[Array[Byte]] = None
+    private var error: Option[String] = None
+
     def this(owner: InternetCard, url: URL, post: Option[String]) {
       this(Option(owner))
       this.url = url
       this.post = post
       scheduleRequest()
     }
-
-    private var url: URL = null
-    private var post: Option[String] = None
-    private var data: Option[Array[Byte]] = None
-    private var error: Option[String] = None
 
     @Callback
     def read(context: Context, args: Arguments): Array[AnyRef] = {
@@ -241,6 +241,21 @@ object InternetCard {
       }
       else if (error.isDefined) Array(Unit, error.get)
       else Array("")
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey("url")) url = new URL(nbt.getString("url"))
+      if (nbt.hasKey("post")) post = Option(nbt.getString("post"))
+      if (nbt.hasKey("error")) error = Option(nbt.getString("error"))
+      if (nbt.hasKey("data")) data = Option(nbt.getByteArray("data"))
+      if (error.isEmpty && data.isEmpty) scheduleRequest()
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      if (url != null) nbt.setString("url", url.toString)
+      if (post.isDefined) nbt.setString("post", post.get)
+      if (error.isDefined) nbt.setString("error", error.get)
+      if (data.isDefined) nbt.setByteArray("data", data.get)
     }
 
     protected def scheduleRequest() {
@@ -304,21 +319,6 @@ object InternetCard {
           }
         }
       })
-    }
-
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey("url")) url = new URL(nbt.getString("url"))
-      if (nbt.hasKey("post")) post = Option(nbt.getString("post"))
-      if (nbt.hasKey("error")) error = Option(nbt.getString("error"))
-      if (nbt.hasKey("data")) data = Option(nbt.getByteArray("data"))
-      if (error.isEmpty && data.isEmpty) scheduleRequest()
-    }
-
-    override def save(nbt: NBTTagCompound) {
-      if (url != null) nbt.setString("url", url.toString)
-      if (post.isDefined) nbt.setString("post", post.get)
-      if (error.isDefined) nbt.setString("error", error.get)
-      if (data.isDefined) nbt.setByteArray("data", data.get)
     }
   }
 

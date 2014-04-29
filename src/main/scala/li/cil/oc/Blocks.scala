@@ -21,7 +21,7 @@ object Blocks {
   var case1, case2, case3, case4: Case = _
   var diskDrive: DiskDrive = _
   var keyboard: Keyboard = _
-  var hologram: Hologram = _
+  var hologram0, hologram1: Hologram = _
   var powerConverter: PowerConverter = _
   var powerDistributor: PowerDistributor = _
   var redstone: Redstone = _
@@ -100,11 +100,14 @@ object Blocks {
     serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack")
 
     // v1.2.2
-    hologram = Recipes.addBlockDelegate(new Hologram(blockSpecial), "hologram")
+    hologram0 = Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1")
     wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "wirelessRouter")
 
     // v1.2.6
     case4 = new Case.TierCreative(blockSimpleWithRedstone)
+
+    // v1.3.0
+    hologram1 = Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2")
 
     // ----------------------------------------------------------------------- //
 

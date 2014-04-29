@@ -167,9 +167,12 @@ object Sound {
     }
 
     def stop() {
-      if (soundSystem != null) {
+      if (soundSystem != null) try {
         soundSystem.stop(source)
         soundSystem.removeSource(source)
+      }
+      catch {
+        case _: Throwable =>
       }
     }
   }

@@ -325,10 +325,15 @@ screen3 {
           [yellowDust, "oc:circuitTier3", glass]
           [obsidian, yellowDust, obsidian]]
 }
-hologram {
-  input: [[obsidian, glass, obsidian]
+hologram1 {
+  input: [[obsidian, thinGlass, obsidian]
           ["oc:craftingCircuitBoardPrinted", diamond, "oc:craftingCircuitBoardPrinted"]
-          ["oc:circuitTier3", blazeRod, "oc:circuitTier3"]]
+          ["oc:circuitTier2", yellowDust, "oc:circuitTier2"]]
+}
+hologram2 {
+  input: [[obsidian, glass, obsidian]
+          ["oc:craftingCircuitBoardPrinted", blockDiamond, "oc:craftingCircuitBoardPrinted"]
+          ["oc:circuitTier3", blazePowder, "oc:circuitTier3"]]
 }
 wirelessRouter {
   input: [[ingotIron, "oc:componentCardWLan", ingotIron]

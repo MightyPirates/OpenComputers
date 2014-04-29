@@ -192,6 +192,7 @@ object Settings {
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
+  val hologramMaxScaleByTier = Array(3, 4)
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.

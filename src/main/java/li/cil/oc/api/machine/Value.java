@@ -19,22 +19,19 @@ import li.cil.oc.api.network.Context;
  * <li>Values must be persistable (implement save/load).</li>
  * </ul>
  * <p/>
- * Callbacks can be defined in a manner similar to environments, i.e. using the
- * {@link li.cil.oc.api.network.Callback} annotation as well as the
+ * Callbacks can be defined in a manner similar to environments, e.g. using the
+ * {@link li.cil.oc.api.network.Callback} annotation.
  */
 public interface Value extends Persistable {
     /**
      * This is called when the code running on a machine tries to index this
      * value.
-     * <p/>
-     * If this value is not indexable, throws an exception.
      *
      * @param context   the context from which the method is called, usually the
      *                  instance of the computer running the script that made
      *                  the call.
      * @param arguments the arguments passed to the method.
-     * @return the current value at the specified index.
-     * @throws java.lang.RuntimeException if this value is not indexable.
+     * @return the current value at the specified index, or <tt>null</tt>.
      */
     Object apply(Context context, Arguments arguments);
 
@@ -42,13 +39,12 @@ public interface Value extends Persistable {
      * This is called when the code running on a machine tries to assign a new
      * value at the specified index of this value.
      * <p/>
-     * If this value is not indexable, throws an exception.
+     * Does nothing if the value is not indexable.
      *
      * @param context   the context from which the method is called, usually the
      *                  instance of the computer running the script that made
      *                  the call.
      * @param arguments the arguments passed to the method.
-     * @throws java.lang.RuntimeException if this value is not indexable.
      */
     void unapply(Context context, Arguments arguments);
 

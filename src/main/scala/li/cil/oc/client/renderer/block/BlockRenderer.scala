@@ -2,11 +2,10 @@ package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
-import li.cil.oc.common.block.{RobotAfterimage, RobotProxy, Cable, Delegator}
+import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
-import net.minecraft.util.Icon
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -28,15 +27,12 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
+      case Some(hologram: Hologram) =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        renderHologram(block, metadata, renderer)
+        Tessellator.instance.draw()
       case _ =>
-        val renderFace = Array(
-          (icon: Icon) => renderer.renderFaceYNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceYPos(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceZNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceZPos(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceXNeg(block, 0, 0, 0, icon),
-          (icon: Icon) => renderer.renderFaceXPos(block, 0, 0, 0, icon)
-        )
         block match {
           case delegator: Delegator[_] =>
             delegator.setBlockBoundsForItemRender(metadata)
@@ -45,13 +41,14 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         }
         renderer.setRenderBoundsFromBlock(block)
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
-        val t = Tessellator.instance
-        for (side <- ForgeDirection.VALID_DIRECTIONS) {
-          t.startDrawingQuads()
-          t.setNormal(side.offsetX, side.offsetY, side.offsetZ)
-          renderFace(side.ordinal)(renderer.getBlockIconFromSideAndMetadata(block, side.ordinal, metadata))
-          t.draw()
-        }
+        Tessellator.instance.startDrawingQuads()
+        renderFaceYNeg(block, metadata, renderer)
+        renderFaceYPos(block, metadata, renderer)
+        renderFaceZNeg(block, metadata, renderer)
+        renderFaceZPos(block, metadata, renderer)
+        renderFaceXNeg(block, metadata, renderer)
+        renderFaceXPos(block, metadata, renderer)
+        Tessellator.instance.draw()
     }
     GL11.glPopMatrix()
   }
@@ -136,6 +133,128 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         renderer.renderAllFaces = previousRenderAllFaces
         true
+      case hologram: tileentity.Hologram =>
+        renderHologram(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
+        true
       case _ => renderer.renderStandardBlock(block, x, y, z)
     }
+
+  def renderHologram(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
+    // Center.
+    renderer.setRenderBounds(4 / 16f, 0, 4 / 16f, 12 / 16f, 3 / 16f, 12 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    val previousRenderAllFaces = renderer.renderAllFaces
+    renderer.renderAllFaces = true
+
+    // Walls.
+    renderer.setRenderBounds(0, 0, 0, 2 / 16f, 7 / 16f, 1)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(14 / 16f, 0, 0, 1, 7 / 16f, 1)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(2 / 16f, 0, 0, 14 / 16f, 7 / 16f, 2 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(2 / 16f, 0, 14 / 16f, 14 / 16f, 7 / 16f, 1)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    // Inner.
+    renderer.setRenderBounds(2 / 16f, 3 / 16f, 2 / 16f, 4 / 16f, 5 / 16f, 14 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(12 / 16f, 3 / 16f, 2 / 16f, 14 / 16f, 5 / 16f, 14 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(4 / 16f, 3 / 16f, 2 / 16f, 12 / 16f, 5 / 16f, 4 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.setRenderBounds(4 / 16f, 3 / 16f, 12 / 16f, 12 / 16f, 5 / 16f, 14 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.renderAllFaces = previousRenderAllFaces
+  }
+
+  def renderHologram(block: Block, metadata: Int, renderer: RenderBlocks) {
+    val previousRenderAllFaces = renderer.renderAllFaces
+    renderer.renderAllFaces = true
+
+    // Base and walls.
+    renderer.setRenderBounds(4 / 16f, 0, 4 / 16f, 12 / 16f, 3 / 16f, 12 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+
+    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
+    renderFaceYNeg(block, metadata, renderer)
+    renderFaceXPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    // Layer 1.
+    renderer.setRenderBounds(2 / 16f, 3 / 16f, 2 / 16f, 4 / 16f, 5 / 16f, 14 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceXPos(block, metadata, renderer)
+
+    renderer.setRenderBounds(12 / 16f, 3 / 16f, 2 / 16f, 14 / 16f, 5 / 16f, 14 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+
+    renderer.setRenderBounds(4 / 16f, 3 / 16f, 2 / 16f, 12 / 16f, 5 / 16f, 4 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+
+    renderer.setRenderBounds(4 / 16f, 3 / 16f, 12 / 16f, 12 / 16f, 5 / 16f, 14 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    // Layer 2.
+    renderer.setRenderBounds(0, 3 / 16f, 0, 2 / 16f, 7 / 16f, 1)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceXPos(block, metadata, renderer)
+
+    renderer.setRenderBounds(14 / 16f, 3 / 16f, 0, 1, 7 / 16f, 1)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+
+    renderer.setRenderBounds(2 / 16f, 3 / 16f, 0, 14 / 16f, 7 / 16f, 2 / 16f)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+
+    renderer.setRenderBounds(2 / 16f, 3 / 16f, 14 / 16f, 14 / 16f, 7 / 16f, 1)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    renderer.renderAllFaces = previousRenderAllFaces
+  }
+
+  protected def renderFaceXPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(1, 0, 0)
+    renderer.renderFaceXPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.EAST.ordinal, metadata))
+  }
+
+  protected def renderFaceXNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(-1, 0, 0)
+    renderer.renderFaceXNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.WEST.ordinal, metadata))
+  }
+
+  protected def renderFaceYPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(0, 1, 0)
+    renderer.renderFaceYPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.UP.ordinal, metadata))
+  }
+
+  protected def renderFaceYNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(0, -1, 0)
+    renderer.renderFaceYNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.DOWN.ordinal, metadata))
+  }
+
+  protected def renderFaceZPos(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(0, 0, 1)
+    renderer.renderFaceZPos(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.SOUTH.ordinal, metadata))
+  }
+
+  protected def renderFaceZNeg(block: Block, metadata: Int, renderer: RenderBlocks) {
+    Tessellator.instance.setNormal(0, 0, -1)
+    renderer.renderFaceZNeg(block, 0, 0, 0, renderer.getBlockIconFromSideAndMetadata(block, ForgeDirection.NORTH.ordinal, metadata))
+  }
 }

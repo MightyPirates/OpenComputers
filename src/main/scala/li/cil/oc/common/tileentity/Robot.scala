@@ -11,6 +11,7 @@ import li.cil.oc.server.component.robot
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.block.{BlockFlowing, Block}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.ISidedInventory
@@ -18,9 +19,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
-import scala.io.Source
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
-import net.minecraft.block.{BlockFlowing, Block}
+import scala.io.Source
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any

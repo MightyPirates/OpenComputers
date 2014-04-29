@@ -20,7 +20,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
-  val unlocalizedName = "Screen" + tier
+  val baseName = "Screen"
+  val unlocalizedName = baseName + tier
 
   def tier: Int
 
@@ -32,7 +33,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
-    tooltip.addAll(Tooltip.get("Screen", w, h, depth))
+    tooltip.addAll(Tooltip.get(baseName, w, h, depth))
   }
 
   @Optional.Method(modid = "Waila")

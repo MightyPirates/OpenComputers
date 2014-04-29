@@ -30,6 +30,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
       case PacketType.HologramClear => onHologramClear(p)
+      case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
@@ -126,6 +127,16 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onHologramColor(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        val index = p.readInt()
+        val value = p.readInt()
+        t.colors(index) = value & 0xFFFFFF
+        t.dirty = true
+      case _ => // Invalid packet.
+    }
+
   def onHologramPowerChange(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) => t.hasPower = p.readBoolean()
@@ -150,6 +161,7 @@ class PacketHandler extends CommonPacketHandler {
         for (x <- fromX until untilX) {
           for (z <- fromZ until untilZ) {
             t.volume(x + z * t.width) = p.readInt()
+            t.volume(x + z * t.width + t.width * t.width) = p.readInt()
           }
         }
         t.dirty = true

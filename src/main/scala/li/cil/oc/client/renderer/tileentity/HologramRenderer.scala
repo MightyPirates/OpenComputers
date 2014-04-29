@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.{GLAllocation, Tessellator}
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 import scala.util.Random
+import org.lwjgl.input.Keyboard
 
 object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   val random = new Random()
@@ -32,6 +33,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
     GL11.glPushAttrib(0xFFFFFFFF)
     RenderState.makeItBlend()
+    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
@@ -66,10 +68,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
     }
 
-    def isSolid(hx: Int, hy: Int, hz: Int) = {
-      hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width &&
-        (hologram.volume(hx + hz * hologram.width) & (1 << hy)) != 0
-    }
+    def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
+
+    def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
 
     bindTexture(TexturePreloader.blockHologram)
     val t = Tessellator.instance
@@ -86,6 +87,8 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
           val wy = hy * s
 
           if (isSolid(hx, hy, hz)) {
+            t.setColorRGBA_I(hologram.colors(value(hx, hy, hz) - 1), 127)
+
             /*
                   0---1
                   | N |

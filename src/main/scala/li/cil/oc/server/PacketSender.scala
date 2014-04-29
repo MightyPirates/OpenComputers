@@ -73,6 +73,16 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendHologramColor(t: tileentity.Hologram, index: Int, value: Int) {
+    val pb = new PacketBuilder(PacketType.HologramColor)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(index)
+    pb.writeInt(value)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramPowerChange(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramPowerChange)
 
@@ -102,6 +112,7 @@ object PacketSender {
     for (x <- t.dirtyFromX until t.dirtyUntilX) {
       for (z <- t.dirtyFromZ until t.dirtyUntilZ) {
         pb.writeInt(t.volume(x + z * t.width))
+        pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
       }
     }
 
