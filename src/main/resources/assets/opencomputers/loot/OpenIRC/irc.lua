@@ -242,7 +242,7 @@ local function handleCommand(prefix, command, args, message)
     if info.realName then print("Real name: " .. info.realName) end
     if info.host then print("Host: " .. info.host) end
     if info.server then print("Server: " .. info.server .. (info.serverInfo and (" (" .. info.serverInfo .. ")") or "")) end
-	if info.secureconn then print(info.secureconn) end
+    if info.secureconn then print(info.secureconn) end
     if info.channels then print("Channels: " .. info.channels) end
     if info.idle then print("Idle for: " .. info.idle) end
     whois[nick] = nil
@@ -274,7 +274,7 @@ local function handleCommand(prefix, command, args, message)
   elseif command == commands.RPL_HELPSTART or 
   command == commands.RPL_HELPTXT or 
   command == commands.RPL_ENDOFHELP then
-	print(message)
+    print(message)
   elseif command == commands.ERR_BANLISTFULL or
   command == commands.ERR_BANNEDFROMCHAN or
   command == commands.ERR_CANNOTSENDTOCHAN or
@@ -290,7 +290,7 @@ local function handleCommand(prefix, command, args, message)
   command == commands.ERR_USERNOTINCHANNEL or
   command == commands.ERR_WASNOSUCHNICK or
   command == commands.ERR_MODELOCK then
-	print("[ERROR]: " .. message)
+    print("[ERROR]: " .. message)
   elseif tonumber(command) and (tonumber(command) >= 200 and tonumber(command) < 400) then
     print("[Response " .. command .. "] " .. table.concat(args, ", ") .. ": " .. message)
 
