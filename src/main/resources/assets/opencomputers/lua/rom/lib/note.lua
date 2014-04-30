@@ -3,7 +3,7 @@
 local computer = require("computer")
 
 local note = {}
---The table containing all the notes
+--The table that maps note names to their respective MIDI codes
 local notes = {}
 --The reversed table "notes"
 local reverseNotes = {}
