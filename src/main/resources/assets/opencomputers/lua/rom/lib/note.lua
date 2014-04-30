@@ -3,10 +3,13 @@
 local computer = require("computer")
 
 local note = {}
+--The table containing all the notes
 local notes = {}
+--The reversed table "notes"
 local reverseNotes = {}
 
 do
+  --All the base notes
   local tempNotes = {
     "c",
     "c#",
@@ -21,7 +24,9 @@ do
     "a#",
     "b"
     }
+  --The table containing all the standard notes and # semitones in correct order, temporarily
   local sNotes = {}
+  --The table containing all the b semitones
   local bNotes = {}
 
   --Registers all possible notes in order
@@ -43,6 +48,7 @@ do
     notes[sNotes[i-20]]=tostring(i)
   end
 
+  --Reversing the whole table in reverseNotes, used for note.get
   do
     for k,v in pairs(notes) do
       reverseNotes[tonumber(v)]=k
@@ -62,12 +68,12 @@ function note.midi(n)
     if tonumber(notes[n])~=nil then
       return tonumber(notes[n])
     else
-      error("Error: Wrong input "..tostring(n).." given to note.midi, needs to be <note>[semitone sign]<octave>, e.g. A#0 or Gb4")
+      error("Wrong input "..tostring(n).." given to note.midi, needs to be <note>[semitone sign]<octave>, e.g. A#0 or Gb4")
     end
   elseif type(n) == "number" then
     return math.floor((12*math.log(n/440,2))+69)
   else
-    error("Error: Wrong input "..tostring(n).." given to note.midi, needs to be a number or a string")
+    error("Wrong input "..tostring(n).." given to note.midi, needs to be a number or a string")
   end
 end
 
@@ -78,22 +84,22 @@ function note.freq(n)
     if tonumber(notes[n])~=nil then
       return math.pow(2,(tonumber(notes[n])-69)/12)*440
     else
-      error("Error: Wrong input "..tostring(n).." given to note.freq, needs to be <note>[semitone sign]<octave>, e.g. A#0 or Gb4",2)
+      error("Wrong input "..tostring(n).." given to note.freq, needs to be <note>[semitone sign]<octave>, e.g. A#0 or Gb4",2)
     end
   elseif type(n) == "number" then
     return math.pow(2,(n-69)/12)*440
   else
-    error("Error: Wrong input "..tostring(n).." given to note.freq, needs to be a number or a string",2)
+    error("Wrong input "..tostring(n).." given to note.freq, needs to be a number or a string",2)
   end
 end
 
 --Converts a MIDI value back into a string
-function note.get(n)
+function note.name(n)
   n = tonumber(n)
   if reverseNotes[n] then
     return string.upper(string.match(reverseNotes[n],"^(.)"))..string.gsub(reverseNotes[n],"^.(.*)","%1")
   else
-    error("Error: Attempt to get a note for a non-exsisting MIDI code",2)
+    error("Attempt to get a note for a non-exsisting MIDI code",2)
   end
 end
 
@@ -105,10 +111,10 @@ function note.ticks(n)
     elseif n>=34 and n<=58 then
       return n-34
     else
-      error("Error: Wrong input "..tostring(n).." given to note.ticks, needs to be a number [0-24 or 34-58]",2)
+      error("Wrong input "..tostring(n).." given to note.ticks, needs to be a number [0-24 or 34-58]",2)
     end
   else
-    error("Error: Wrong input "..tostring(n).." given to note.ticks, needs to be a number",2)
+    error("Wrong input "..tostring(n).." given to note.ticks, needs to be a number",2)
   end
 end
 
