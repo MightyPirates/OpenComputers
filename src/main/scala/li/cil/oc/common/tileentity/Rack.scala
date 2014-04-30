@@ -146,11 +146,10 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def getInventoryStackLimit = 1
 
-  override def isItemValidForSlot(i: Int, stack: ItemStack) =
-    Items.multi.subItem(stack) match {
-      case Some(subItem) => subItem == Items.server1 || subItem == Items.server2 || subItem == Items.server3
-      case _ => false
-    }
+  override def isItemValidForSlot(i: Int, stack: ItemStack) = {
+    val descriptor = api.Items.get(stack)
+    descriptor == api.Items.get("server1") || descriptor == api.Items.get("server2") || descriptor == api.Items.get("server3")
+  }
 
   // ----------------------------------------------------------------------- //
 

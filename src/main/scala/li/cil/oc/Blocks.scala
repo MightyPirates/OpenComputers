@@ -3,10 +3,8 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
-import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.oredict.OreDictionary
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -71,24 +69,24 @@ object Blocks {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
-    adapter = Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter")
-    cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable")
-    capacitor = Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor")
-    case1 = Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1")
-    case2 = Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2")
-    case3 = Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3")
-    charger = Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger")
-    diskDrive = Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive")
-    keyboard = Recipes.addBlockDelegate(new Keyboard(blockSpecial), "keyboard")
-    powerDistributor = Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor")
-    powerConverter = Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter")
-    redstone = Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone")
+    adapter = Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter", "oc:adapter")
+    cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable", "oc:cable")
+    capacitor = Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
+    case1 = Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
+    case2 = Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
+    case3 = Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
+    charger = Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
+    diskDrive = Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
+    keyboard = Recipes.addBlockDelegate(new Keyboard(blockSpecial), "keyboard", "oc:keyboard")
+    powerDistributor = Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
+    powerConverter = Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
+    redstone = Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
     robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot")
-    router = Recipes.addBlockDelegate(new Router(blockSimple), "router")
-    screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1")
-    screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2")
-    screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3")
+    robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot", "oc:robot")
+    router = Recipes.addBlockDelegate(new Router(blockSimple), "switch", "oc:switch")
+    screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
+    screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
+    screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
 
     // For automatic conversion from old format (when screens did not take
     // redstone inputs) to keep save format compatible.
@@ -97,38 +95,16 @@ object Blocks {
     blockSimple.subBlocks += screen3
 
     // v1.2.0
-    serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack")
+    serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
 
     // v1.2.2
-    hologram0 = Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1")
-    wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "wirelessRouter")
+    hologram0 = Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
+    wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
     case4 = new Case.TierCreative(blockSimpleWithRedstone)
 
     // v1.3.0
-    hologram1 = Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2")
-
-    // ----------------------------------------------------------------------- //
-
-    register("oc:craftingCable", cable.createItemStack())
-    register("oc:craftingCapacitor", capacitor.createItemStack())
-    register("oc:craftingCaseTier1", case1.createItemStack())
-    register("oc:craftingCaseTier2", case2.createItemStack())
-    register("oc:craftingCaseTier3", case3.createItemStack())
-    register("oc:craftingDiskDrive", diskDrive.createItemStack())
-    register("oc:craftingKeyboard", keyboard.createItemStack())
-    register("oc:craftingPowerDistributor", powerDistributor.createItemStack())
-    register("oc:craftingRouter", router.createItemStack())
-    register("oc:craftingScreenTier1", screen1.createItemStack())
-    register("oc:craftingScreenTier2", screen2.createItemStack())
-    register("oc:craftingScreenTier3", screen3.createItemStack())
-    register("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
-  }
-
-  private def register(name: String, item: ItemStack) {
-    if (!OreDictionary.getOres(name).contains(item)) {
-      OreDictionary.registerOre(name, item)
-    }
+    hologram1 = Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
   }
 }

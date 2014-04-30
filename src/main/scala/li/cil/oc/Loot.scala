@@ -9,7 +9,7 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import scala.collection.mutable
 
-object Loot extends WeightedRandomChestContent(Items.lootDisk.createItemStack(), 1, 1, Settings.get.lootProbability) {
+object Loot extends WeightedRandomChestContent(api.Items.get("lootDisk").createItemStack(1), 1, 1, Settings.get.lootProbability) {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
@@ -39,7 +39,8 @@ object Loot extends WeightedRandomChestContent(Items.lootDisk.createItemStack(),
       // Store this top level, so it won't get wiped on save.
       tag.setString(Settings.namespace + "lootPath", key)
 
-      val disk = Items.lootDisk.createItemStack()
+
+      val disk = api.Items.get("lootDisk").createItemStack(1)
       disk.setTagCompound(tag)
 
       disks += disk

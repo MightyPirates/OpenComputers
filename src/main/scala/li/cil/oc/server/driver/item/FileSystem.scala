@@ -4,14 +4,14 @@ import li.cil.oc
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
-import li.cil.oc.{Settings, Items}
+import li.cil.oc.{api, Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 
 object FileSystem extends Item {
   override def worksWith(stack: ItemStack) =
-    isOneOf(stack, Items.hdd1, Items.hdd2, Items.hdd3, Items.floppyDisk)
+    isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
 
   override def createEnvironment(stack: ItemStack, container: TileEntity) =
     Items.multi.subItem(stack) match {

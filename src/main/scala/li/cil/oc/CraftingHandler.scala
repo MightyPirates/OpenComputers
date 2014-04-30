@@ -8,8 +8,12 @@ import net.minecraft.inventory.IInventory
 import net.minecraft.item.{ItemMap, Item, ItemStack}
 
 object CraftingHandler extends ICraftingHandler {
+  lazy val acid = api.Items.get("acid").createItemStack(1)
+  lazy val pcb = api.Items.get("printedCircuitBoard").createItemStack(1)
+  lazy val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
+
   override def onCrafting(player: EntityPlayer, craftedStack: ItemStack, inventory: IInventory) = {
-    if (craftedStack.isItemEqual(Items.acid.createItemStack())) {
+    if (craftedStack.isItemEqual(acid)) {
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
         if (stack != null && stack.getItem == Item.bucketWater) {
@@ -19,10 +23,10 @@ object CraftingHandler extends ICraftingHandler {
       }
     }
 
-    if (craftedStack.isItemEqual(Items.pcb.createItemStack())) {
+    if (craftedStack.isItemEqual(pcb)) {
       for (i <- 0 until inventory.getSizeInventory) {
         val stack = inventory.getStackInSlot(i)
-        if (stack != null && stack.isItemEqual(Items.acid.createItemStack())) {
+        if (stack != null && stack.isItemEqual(acid)) {
           val container = new ItemStack(Item.bucketEmpty, 1)
           if (!player.inventory.addItemStackToInventory(container)) {
             player.dropPlayerItem(container)
@@ -31,14 +35,14 @@ object CraftingHandler extends ICraftingHandler {
       }
     }
 
-    if (craftedStack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
+    if (craftedStack.isItemEqual(navigationUpgrade)) {
       Registry.itemDriverFor(craftedStack) match {
         case Some(driver) =>
           var oldMap = None: Option[ItemStack]
           for (i <- 0 until inventory.getSizeInventory) {
             val stack = inventory.getStackInSlot(i)
             if (stack != null) {
-              if (stack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
+              if (stack.isItemEqual(navigationUpgrade)) {
                 // Restore the map currently used in the upgrade.
                 val nbt = driver.dataTag(stack)
                 oldMap = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map")))

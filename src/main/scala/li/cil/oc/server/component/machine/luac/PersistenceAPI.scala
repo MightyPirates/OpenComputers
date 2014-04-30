@@ -3,6 +3,7 @@ package li.cil.oc.server.component.machine.luac
 import com.naef.jnlua.LuaState
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import scala.collection.mutable
+import li.cil.oc.Settings
 
 class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -17,12 +18,14 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     val perms = lua.getTop - 1
     val uperms = lua.getTop
 
-    lua.getGlobal("eris")
-    lua.getField(-1, "settings")
-    lua.pushString("path")
-    lua.pushBoolean(true)
-    lua.call(2, 0)
-    lua.pop(1)
+    if (Settings.get.debugPersistence) {
+      lua.getGlobal("eris")
+      lua.getField(-1, "settings")
+      lua.pushString("path")
+      lua.pushBoolean(true)
+      lua.call(2, 0)
+      lua.pop(1)
+    }
 
     def flattenAndStore() {
       /* ... k v */

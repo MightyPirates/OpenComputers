@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
+import li.cil.oc.api
 import li.cil.oc.api.driver
-import li.cil.oc.common
-import li.cil.oc.{Settings, Items}
+import li.cil.oc.Settings
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
@@ -11,11 +11,7 @@ trait Item extends driver.Item {
 
   override def dataTag(stack: ItemStack) = Item.dataTag(stack)
 
-  protected def isOneOf(stack: ItemStack, items: common.item.Delegate*) =
-    Items.multi.subItem(stack) match {
-      case Some(subItem) => items.contains(subItem)
-      case _ => false
-    }
+  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.contains(api.Items.get(stack))
 }
 
 object Item {

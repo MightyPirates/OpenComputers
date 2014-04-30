@@ -17,6 +17,10 @@ import li.cil.oc.server.{TickHandler, driver, fs, network}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ComputerCraft16}
 import net.minecraftforge.common.MinecraftForge
+import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.block.Block
+import net.minecraftforge.oredict.OreDictionary
+import scala.collection.convert.WrapAsScala._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -24,6 +28,16 @@ class Proxy {
 
     Blocks.init()
     Items.init()
+
+    registerExclusive("craftingPiston", new ItemStack(Block.pistonBase), new ItemStack(Block.pistonStickyBase))
+    registerExclusive("torchRedstoneActive", new ItemStack(Block.torchRedstoneActive, 1, 0))
+    registerExclusive("nuggetGold", new ItemStack(Item.goldNugget))
+    registerExclusive("nuggetIron", Items.ironNugget.createItemStack())
+
+    if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
+      Recipes.addItemDelegate(Items.ironNugget, "nuggetIron")
+      Recipes.addItem(Item.ingotIron, "ingotIron")
+    }
 
     if (Mods.ForgeMultipart.isAvailable) {
       MultiPart.init()
@@ -95,5 +109,13 @@ class Proxy {
     NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
+  }
+
+  private def registerExclusive(name: String, items: ItemStack*) {
+    if (OreDictionary.getOres(name).isEmpty) {
+      for (item <- items) {
+        OreDictionary.registerOre(name, item)
+      }
+    }
   }
 }

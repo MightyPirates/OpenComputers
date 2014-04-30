@@ -13,48 +13,34 @@ import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreR
 import org.apache.commons.io.FileUtils
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import li.cil.oc.api.detail.ItemInfo
 
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
 
-  def addBlockDelegate[T <: common.block.Delegate](delegate: T, name: String) = {
-    Items.descriptors += name -> new ItemInfo {
-      override def block = delegate.parent
-
-      override def item = null
-
-      override def createItemStack(size: Int) = delegate.createItemStack(size)
-    }
-    Items.names += delegate -> name
+  def addBlockDelegate[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
+    Items.register(delegate, name)
     list += delegate.createItemStack() -> name
+    register(oreDict, delegate.createItemStack())
     delegate
   }
 
-  def addItemDelegate[T <: common.item.Delegate](delegate: T, name: String) = {
-    Items.descriptors += name -> new ItemInfo {
-      override def block = null
-
-      override def item = delegate.parent
-
-      override def createItemStack(size: Int) = delegate.createItemStack(size)
-    }
-    Items.names += delegate -> name
+  def addItemDelegate[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+    Items.register(delegate, name)
     list += delegate.createItemStack() -> name
+    register(oreDict, delegate.createItemStack())
     delegate
   }
 
   def addItem(instance: Item, name: String) = {
-    Items.descriptors += name -> new ItemInfo {
-      override def block = null
-
-      override def item = instance
-
-      override def createItemStack(size: Int) = new ItemStack(instance, size)
-    }
-    Items.names += instance -> name
+    Items.register(instance, name)
     list += new ItemStack(instance) -> name
     instance
+  }
+
+  private def register(name: String, item: ItemStack) {
+    if (name != null && !OreDictionary.getOres(name).contains(item)) {
+      OreDictionary.registerOre(name, item)
+    }
   }
 
   def init() {
@@ -98,14 +84,15 @@ object Recipes {
       }
 
       // Navigation upgrade recrafting.
-      GameRegistry.addRecipe(new ShapelessOreRecipe(Items.upgradeNavigation.createItemStack(), Items.upgradeNavigation.createItemStack(), new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+      val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
+      GameRegistry.addRecipe(new ShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
     }
   }
 
-  def addRecipe(output: ItemStack, list: Config, name: String) = try {
+  private def addRecipe(output: ItemStack, list: Config, name: String) = try {
     if (list.hasPath(name)) {
       val recipe = list.getConfig(name)
       val recipeType = tryGetType(recipe)

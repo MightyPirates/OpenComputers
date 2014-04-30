@@ -46,7 +46,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def saveUpgrade() = robot.saveUpgrade()
 
-  def hasAngelUpgrade = Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel
+  def hasAngelUpgrade = api.Items.get(robot.getStackInSlot(3)) == api.Items.get("angelUpgrade")
 
   @Callback(direct = true)
   def level(context: Context, args: Arguments): Array[AnyRef] = {
