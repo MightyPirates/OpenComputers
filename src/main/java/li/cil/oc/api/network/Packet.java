@@ -35,6 +35,15 @@ public interface Packet {
     Object[] data();
 
     /**
+     * The size of the packet's payload.
+     * <p/>
+     * This is computed based on the types in the data array, but is only defined
+     * for primitive types, i.e. null, boolean, integer, boolean byte array and
+     * string. All other types do <em>not</em> contribute to the packet's size.
+     */
+    int size();
+
+    /**
      * The remaining 'time to live' for this packet. When a packet with a TTL of
      * zero is received it will not be relayed by switches and access points. It
      * will however still be received by a network card.

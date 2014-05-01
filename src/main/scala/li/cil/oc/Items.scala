@@ -170,6 +170,6 @@ object Items extends ItemAPI {
     Recipes.addItemDelegate(new item.Memory(multi, 1), "ram2", "oc:ram2")
 
     // v1.3.0
-    Recipes.addItemDelegate(new item.EntangledCard(multi), "entangledCard", "oc:entangledCard")
+    Recipes.addItemDelegate(new item.LinkedCard(multi), "linkedCard", "oc:linkedCard")
   }
 }

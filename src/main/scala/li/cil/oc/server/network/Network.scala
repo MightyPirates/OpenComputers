@@ -463,8 +463,13 @@ object Network extends api.detail.NetworkAPI {
   def newNode(host: Environment, reachability: Visibility) = new NodeBuilder(host, reachability)
 
   override def newPacket(source: String, destination: String, port: Int, data: Array[AnyRef]) = {
-    checkPacketSize(data)
-    new Packet(source, destination, port, data)
+    val packet = new Packet(source, destination, port, data)
+    // We do the size check here instead of in the constructor of the packet
+    // itself to avoid errors when loading packets.
+    if (packet.size > Settings.get.maxNetworkPacketSize) {
+      throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
+    }
+    packet
   }
 
   override def newPacket(nbt: NBTTagCompound) = {
@@ -486,23 +491,6 @@ object Network extends api.detail.NetworkAPI {
       else null
     }).toArray
     new Packet(source, destination, port, data, ttl)
-  }
-
-  private def checkPacketSize(data: Iterable[AnyRef]) {
-    val size = data.foldLeft(0)((acc, arg) => {
-      acc + (arg match {
-        case null | Unit | None => 4
-        case _: java.lang.Boolean => 4
-        case _: java.lang.Integer => 4
-        case _: java.lang.Double => 8
-        case value: java.lang.String => value.length
-        case value: Array[Byte] => value.length
-        case _ => 0
-      })
-    })
-    if (size > Settings.get.maxNetworkPacketSize) {
-      throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
-    }
   }
 
   class NodeBuilder(val _host: Environment, val _reachability: Visibility) extends api.detail.Builder.NodeBuilder {
@@ -614,6 +602,18 @@ object Network extends api.detail.NetworkAPI {
   // ----------------------------------------------------------------------- //
 
   class Packet(var source: String, var destination: String, var port: Int, var data: Array[AnyRef], var ttl: Int = 5) extends api.network.Packet {
+    val size = Option(data).fold(0)(_.foldLeft(0)((acc, arg) => {
+      acc + (arg match {
+        case null | Unit | None => 4
+        case _: java.lang.Boolean => 4
+        case _: java.lang.Integer => 4
+        case _: java.lang.Double => 8
+        case value: java.lang.String => value.length
+        case value: Array[Byte] => value.length
+        case _ => 0
+      })
+    }))
+
     override def hop() = new Packet(source, destination, port, data, ttl - 1)
 
     override def save(nbt: NBTTagCompound) {

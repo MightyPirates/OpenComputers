@@ -94,6 +94,12 @@ internetCard {
   input: [["oc:materialInterweb", "oc:circuitChip2", torchRedstoneActive]
           ["", "oc:materialCard", obsidian]]
 }
+linkedCard {
+  input: [[eyeOfEnder, "", eyeOfEnder]
+          ["oc:lanCard", "oc:materialInterweb", "oc:lanCard"]
+          ["oc:circuitChip3", "", "oc:circuitChip3"]]
+  output: 2 # Note: all resulting cards are linked to each other.
+}
 redstoneCard {
   input: [[torchRedstoneActive, "oc:circuitChip1", ""]
           ["", "oc:materialCard", ""]]
@@ -235,6 +241,11 @@ interweb {
           [string, string, string]]
 }
 
+accessPoint {
+  input: [[ingotIron, "oc:wlanCard", ingotIron]
+          ["oc:cable", "oc:lanCard", "oc:cable"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 adapter {
   input: [[ingotIron, "oc:cable", ingotIron]
           ["oc:cable", "oc:circuitChip1", "oc:cable"]
@@ -275,6 +286,16 @@ diskDrive {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]
           [craftingPiston, stickWood, ""]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+hologram1 {
+  input: [[obsidian, thinGlass, obsidian]
+          ["oc:materialCircuitBoardPrinted", diamond, "oc:materialCircuitBoardPrinted"]
+          ["oc:circuitChip2", yellowDust, "oc:circuitChip2"]]
+}
+hologram2 {
+  input: [[obsidian, glass, obsidian]
+          ["oc:materialCircuitBoardPrinted", blockDiamond, "oc:materialCircuitBoardPrinted"]
+          ["oc:circuitChip3", blazePowder, "oc:circuitChip3"]]
 }
 keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]
@@ -324,19 +345,4 @@ screen3 {
   input: [[obsidian, yellowDust, obsidian]
           [yellowDust, "oc:circuitChip3", glass]
           [obsidian, yellowDust, obsidian]]
-}
-hologram1 {
-  input: [[obsidian, thinGlass, obsidian]
-          ["oc:materialCircuitBoardPrinted", diamond, "oc:materialCircuitBoardPrinted"]
-          ["oc:circuitChip2", yellowDust, "oc:circuitChip2"]]
-}
-hologram2 {
-  input: [[obsidian, glass, obsidian]
-          ["oc:materialCircuitBoardPrinted", blockDiamond, "oc:materialCircuitBoardPrinted"]
-          ["oc:circuitChip3", blazePowder, "oc:circuitChip3"]]
-}
-accessPoint {
-  input: [[ingotIron, "oc:wlanCard", ingotIron]
-          ["oc:cable", "oc:lanCard", "oc:cable"]
-          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }

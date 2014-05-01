@@ -85,7 +85,7 @@ object Recipes {
 
       // Navigation upgrade recrafting.
       val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
-      GameRegistry.addRecipe(new ShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
@@ -148,7 +148,7 @@ object Recipes {
       input ++= ingredients
     }
     if (input.size > 0 && output.stackSize > 0) {
-      GameRegistry.addRecipe(new ShapedOreRecipe(output, shape ++ input: _*))
+      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, shape ++ input: _*))
     }
     else hide(output)
   }
@@ -161,7 +161,7 @@ object Recipes {
     output.stackSize = tryGetCount(recipe)
 
     if (input.size > 0 && output.stackSize > 0) {
-      GameRegistry.addRecipe(new ShapelessOreRecipe(output, input: _*))
+      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, input: _*))
     }
     else hide(output)
   }
