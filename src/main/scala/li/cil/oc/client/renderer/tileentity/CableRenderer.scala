@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.block
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
@@ -112,7 +112,7 @@ object CableRenderer extends TileEntitySpecialRenderer {
   compileLists()
 
   def renderCable(neighbors: Int) {
-    bindTexture(TexturePreloader.blockCable)
+    bindTexture(Textures.blockCable)
     GL11.glCallList(displayLists + neighbors)
   }
 

@@ -14,7 +14,7 @@ import net.minecraft.util.{StatCollector, Icon}
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
-class WirelessRouter(val parent: SimpleDelegator) extends SimpleDelegate {
+class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "WirelessRouter"
 
   private val icons = Array.fill[Icon](6)(null)

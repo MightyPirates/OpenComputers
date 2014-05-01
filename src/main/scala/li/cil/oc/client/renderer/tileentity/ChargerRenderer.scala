@@ -1,6 +1,5 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Blocks
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -9,6 +8,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
+import li.cil.oc.client.Textures
 
 object ChargerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
@@ -35,7 +35,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
 
       val t = Tessellator.instance
 
-      val frontIcon = Blocks.charger.iconFrontCharging
+      val frontIcon = Textures.Charger.iconFrontCharging
       bindTexture(TextureMap.locationBlocksTexture)
       t.startDrawingQuads()
 
@@ -45,7 +45,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       t.addVertexWithUV(1, inverse, 0.005, frontIcon.getMaxU, frontIcon.getInterpolatedV(inverse * 16))
       t.addVertexWithUV(0, inverse, 0.005, frontIcon.getMinU, frontIcon.getInterpolatedV(inverse * 16))
 
-      val sideIcon = Blocks.charger.iconSideCharging
+      val sideIcon = Textures.Charger.iconSideCharging
       t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
       t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
       t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)

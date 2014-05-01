@@ -21,6 +21,7 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.recipe.Recipes
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {

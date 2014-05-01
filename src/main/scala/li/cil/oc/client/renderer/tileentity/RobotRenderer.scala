@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
 import java.util.logging.Level
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import li.cil.oc.{Settings, OpenComputers}
@@ -118,7 +118,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
-    bindTexture(TexturePreloader.blockRobot)
+    bindTexture(Textures.blockRobot)
     if (level > 19) {
       GL11.glColor3f(0.4f, 1, 1)
     }

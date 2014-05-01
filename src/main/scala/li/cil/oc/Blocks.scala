@@ -5,6 +5,7 @@ import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.common.recipe.Recipes
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -12,23 +13,10 @@ object Blocks {
   var blockSpecial: SpecialDelegator = _
   var blockSpecialWithRedstone: SpecialDelegator = _
 
-  var adapter: Adapter = _
   var cable: Cable = _
-  var capacitor: Capacitor = _
-  var charger: Charger = _
-  var case1, case2, case3, case4: Case = _
-  var diskDrive: DiskDrive = _
-  var keyboard: Keyboard = _
-  var hologram0, hologram1: Hologram = _
-  var powerConverter: PowerConverter = _
-  var powerDistributor: PowerDistributor = _
-  var redstone: Redstone = _
   var robotProxy: RobotProxy = _
   var robotAfterimage: RobotAfterimage = _
-  var router: Router = _
   var screen1, screen2, screen3: Screen = _
-  var serverRack: Rack = _
-  var wirelessRouter: WirelessRouter = _
 
   def init() {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
@@ -57,6 +45,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
+    GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
@@ -69,21 +58,21 @@ object Blocks {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
-    adapter = Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter", "oc:adapter")
+    Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter", "oc:adapter")
     cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable", "oc:cable")
-    capacitor = Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
-    case1 = Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
-    case2 = Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
-    case3 = Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
-    charger = Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
-    diskDrive = Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
-    keyboard = Recipes.addBlockDelegate(new Keyboard(blockSpecial), "keyboard", "oc:keyboard")
-    powerDistributor = Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
-    powerConverter = Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
-    redstone = Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
+    Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
+    Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
+    Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
+    Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
+    Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
+    Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
+    Recipes.addBlockDelegate(new Keyboard(blockSpecial), "keyboard", "oc:keyboard")
+    Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
+    Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
+    Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
     robotAfterimage = new RobotAfterimage(blockSpecial)
     robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot", "oc:robot")
-    router = Recipes.addBlockDelegate(new Router(blockSimple), "switch", "oc:switch")
+    Recipes.addBlockDelegate(new Switch(blockSimple), "switch", "oc:switch")
     screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
     screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
     screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
@@ -95,16 +84,17 @@ object Blocks {
     blockSimple.subBlocks += screen3
 
     // v1.2.0
-    serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
+    Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
 
     // v1.2.2
-    hologram0 = Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
-    wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "accessPoint", "oc:accessPoint")
+    Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
+    Recipes.addBlockDelegate(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
-    case4 = new Case.TierCreative(blockSimpleWithRedstone)
+    new Case.TierCreative(blockSimpleWithRedstone)
 
     // v1.3.0
-    hologram1 = Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
+    Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
+    Recipes.addBlockDelegate(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
   }
 }

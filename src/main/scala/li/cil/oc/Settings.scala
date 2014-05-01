@@ -137,6 +137,7 @@ class Settings(config: Config) {
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
   val wirelessCostPerRange = config.getDouble("power.cost.wirelessCostPerRange") max 0
   val abstractBusPacketCost = config.getDouble("power.cost.abstractBusPacket") max 0
+  val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -184,6 +185,7 @@ class Settings(config: Config) {
   val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
   val debugPersistence = true
+  val geolyzerRange = config.getInt("misc.geolyzerRange")
 }
 
 object Settings {

@@ -287,15 +287,20 @@ diskDrive {
           [craftingPiston, stickWood, ""]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+geolyzer {
+  input: [[ingotGold, compass, ingotGold]
+          [eyeOfEnder, "oc:circuitChip2", eyeOfEnder]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
 hologram1 {
-  input: [[obsidian, thinGlass, obsidian]
+  input: [["oc:circuitChip2", thinGlass, "oc:circuitChip2"]
           ["oc:materialCircuitBoardPrinted", diamond, "oc:materialCircuitBoardPrinted"]
-          ["oc:circuitChip2", yellowDust, "oc:circuitChip2"]]
+          [obsidian, yellowDust, obsidian]]
 }
 hologram2 {
-  input: [[obsidian, glass, obsidian]
+  input: [["oc:circuitChip3", glass, "oc:circuitChip3"]
           ["oc:materialCircuitBoardPrinted", blockDiamond, "oc:materialCircuitBoardPrinted"]
-          ["oc:circuitChip3", blazePowder, "oc:circuitChip3"]]
+          [obsidian, blazePowder, obsidian]]
 }
 keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]

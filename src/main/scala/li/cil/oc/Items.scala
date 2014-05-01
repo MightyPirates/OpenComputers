@@ -7,6 +7,7 @@ import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import scala.collection.mutable
 import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 import net.minecraft.block.Block
+import li.cil.oc.common.recipe.Recipes
 
 object Items extends ItemAPI {
   private val descriptors = mutable.Map.empty[String, ItemInfo]

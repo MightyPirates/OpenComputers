@@ -2,9 +2,9 @@ package li.cil.oc.client
 
 import li.cil.oc.Settings
 import net.minecraft.client.resources.{ResourceManager, ResourceManagerReloadListener}
-import net.minecraft.util.ResourceLocation
+import net.minecraft.util.{Icon, ResourceLocation}
 
-object TexturePreloader extends ResourceManagerReloadListener {
+object Textures extends ResourceManagerReloadListener {
   val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")
   val fontAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars_aliased.png")
 
@@ -29,6 +29,28 @@ object TexturePreloader extends ResourceManagerReloadListener {
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
+
+  object Charger {
+    var iconFrontCharging: Icon = _
+    var iconSideCharging: Icon = _
+  }
+
+  object Geolyzer {
+    var iconTopOn: Icon = _
+  }
+
+  object PowerDistributor {
+    var iconSideOn: Icon = _
+    var iconTopOn: Icon = _
+  }
+
+  object Rack {
+    val icons = Array.fill[Icon](6)(null)
+  }
+
+  object Switch {
+    var iconSideActivity: Icon = _
+  }
 
   def onResourceManagerReload(manager: ResourceManager) {
     manager.getResource(fontAntiAliased)

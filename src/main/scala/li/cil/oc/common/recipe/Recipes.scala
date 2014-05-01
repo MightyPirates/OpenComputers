@@ -1,15 +1,18 @@
-package li.cil.oc
+package li.cil.oc.common.recipe
 
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import java.io.{FileReader, File}
 import java.util.logging.Level
+import li.cil.oc.{Items, OpenComputers}
+import li.cil.oc.api
+import li.cil.oc.common
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
-import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
+import net.minecraftforge.oredict.OreDictionary
 import org.apache.commons.io.FileUtils
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -85,7 +88,7 @@ object Recipes {
 
       // Navigation upgrade recrafting.
       val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
-      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
@@ -161,7 +164,7 @@ object Recipes {
     output.stackSize = tryGetCount(recipe)
 
     if (input.size > 0 && output.stackSize > 0) {
-      GameRegistry.addRecipe(new ExtendedShapedOreRecipe(output, input: _*))
+      GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(output, input: _*))
     }
     else hide(output)
   }

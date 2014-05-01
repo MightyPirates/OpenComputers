@@ -5,7 +5,7 @@ import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
@@ -113,7 +113,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
         })) {
         GL11.glPushMatrix()
         transform()
-        bindTexture(TexturePreloader.blockScreenUpIndicator)
+        bindTexture(Textures.blockScreenUpIndicator)
         GL11.glDepthMask(false)
         GL11.glTranslatef(screen.width / 2f - 0.5f, screen.height / 2f - 0.5f, 0.05f)
         val t = Tessellator.instance

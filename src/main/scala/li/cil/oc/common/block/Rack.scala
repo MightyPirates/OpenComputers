@@ -8,14 +8,12 @@ import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.client.Textures
 
 class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "ServerRack"
-
-  val icons = Array.fill[Icon](6)(null)
 
   // ----------------------------------------------------------------------- //
 
@@ -23,16 +21,16 @@ class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDeleg
     tooltip.addAll(Tooltip.get(unlocalizedName))
   }
 
-  override def icon(side: ForgeDirection) = Some(icons(side.ordinal))
+  override def icon(side: ForgeDirection) = Some(Textures.Rack.icons(side.ordinal))
 
   override def registerIcons(iconRegister: IconRegister) = {
-    icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = icons(ForgeDirection.DOWN.ordinal)
+    Textures.Rack.icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
+    Textures.Rack.icons(ForgeDirection.UP.ordinal) = Textures.Rack.icons(ForgeDirection.DOWN.ordinal)
 
-    icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
-    icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_front")
-    icons(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
-    icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.WEST.ordinal)
+    Textures.Rack.icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
+    Textures.Rack.icons(ForgeDirection.SOUTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_front")
+    Textures.Rack.icons(ForgeDirection.WEST.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":rack_side")
+    Textures.Rack.icons(ForgeDirection.EAST.ordinal) = Textures.Rack.icons(ForgeDirection.WEST.ordinal)
   }
 
   @SideOnly(Side.CLIENT)

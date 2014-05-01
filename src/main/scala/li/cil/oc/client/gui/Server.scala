@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.container
 import li.cil.oc.common.inventory.ServerInventory
 import net.minecraft.entity.player.InventoryPlayer
@@ -20,7 +20,7 @@ class Server(playerInventory: InventoryPlayer, serverInventory: ServerInventory)
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(TexturePreloader.guiServer)
+    mc.renderEngine.bindTexture(Textures.guiServer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

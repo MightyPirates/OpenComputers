@@ -1,20 +1,18 @@
-package li.cil.oc
+package li.cil.oc.common.recipe
 
-import net.minecraftforge.oredict.ShapedOreRecipe
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraft.inventory.InventoryCrafting
+import li.cil.oc.{Settings, api}
 import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import cpw.mods.fml.common.FMLCommonHandler
 import java.util.UUID
+import net.minecraft.inventory.InventoryCrafting
 
-class ExtendedShapedOreRecipe(result: ItemStack, ingredients: AnyRef*) extends ShapedOreRecipe(result, ingredients: _*) {
-  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
-  lazy val linkedCard = api.Items.get("linkedCard")
+object ExtendedRecipe {
+  private lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+  private lazy val linkedCard = api.Items.get("linkedCard")
 
-  override def getCraftingResult(inventory: InventoryCrafting) = {
-    val craftedStack = super.getCraftingResult(inventory)
-
+  def addNBTToResult(craftedStack: ItemStack, inventory: InventoryCrafting) = {
     if (api.Items.get(craftedStack) == navigationUpgrade) {
       Registry.itemDriverFor(craftedStack) match {
         case Some(driver) =>

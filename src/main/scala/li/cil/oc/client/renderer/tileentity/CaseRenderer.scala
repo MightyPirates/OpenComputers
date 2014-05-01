@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Case
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -32,7 +32,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       GL11.glTranslatef(-0.5f, 0.5f, 0.501f)
       GL11.glScalef(1, -1, 1)
 
-      bindTexture(TexturePreloader.blockCaseFrontOn)
+      bindTexture(Textures.blockCaseFrontOn)
       val t = Tessellator.instance
       t.startDrawingQuads()
       t.addVertexWithUV(0, 1, 0, 0, 1)

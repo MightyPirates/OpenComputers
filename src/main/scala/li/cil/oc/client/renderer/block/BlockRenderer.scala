@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.Blocks
+import li.cil.oc.client.Textures
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -118,7 +118,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
           else {
             val isBack = front == side.getOpposite
             if (isBack) {
-              renderer.setOverrideBlockTexture(Blocks.serverRack.icons(ForgeDirection.NORTH.ordinal))
+              renderer.setOverrideBlockTexture(Textures.Rack.icons(ForgeDirection.NORTH.ordinal))
             }
             renderer.setRenderBounds(lx, v1, lz, hx, v2, hz)
             renderer.renderStandardBlock(block, x, y, z)

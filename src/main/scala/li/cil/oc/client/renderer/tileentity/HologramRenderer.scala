@@ -4,7 +4,7 @@ import com.google.common.cache.{RemovalNotification, RemovalListener, CacheBuild
 import cpw.mods.fml.common.{TickType, ITickHandler}
 import java.util
 import java.util.concurrent.{Callable, TimeUnit}
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
@@ -72,10 +72,9 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
     def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
 
-    bindTexture(TexturePreloader.blockHologram)
+    bindTexture(Textures.blockHologram)
     val t = Tessellator.instance
     t.startDrawingQuads()
-    t.setColorRGBA_F(1, 1, 1, 0.5f)
 
     // TODO merge quads for better rendering performance
     val s = 1f / 16f * hologram.scale
@@ -87,7 +86,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
           val wy = hy * s
 
           if (isSolid(hx, hy, hz)) {
-            t.setColorRGBA_I(hologram.colors(value(hx, hy, hz) - 1), 127)
+            t.setColorRGBA_I(hologram.colors(value(hx, hy, hz) - 1), 192)
 
             /*
                   0---1

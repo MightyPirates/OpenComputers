@@ -4,7 +4,7 @@ import java.util
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.common.tileentity
@@ -60,7 +60,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -119,7 +119,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(TexturePreloader.guiRobot)
+    mc.renderEngine.bindTexture(Textures.guiRobot)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
     drawSelection()
@@ -141,7 +141,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   private def drawSelection() {
     RenderState.makeItBlend()
-    Minecraft.getMinecraft.renderEngine.bindTexture(TexturePreloader.guiRobotSelection)
+    Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
     val now = System.currentTimeMillis() / 1000.0
     val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
     val slot = robot.selectedSlot - robot.actualSlot(0)

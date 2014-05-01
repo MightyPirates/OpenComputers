@@ -2,7 +2,7 @@ package li.cil.oc.client.gui
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender, TexturePreloader}
+import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
@@ -28,7 +28,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, TexturePreloader.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 70, guiTop + 33, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -50,7 +50,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
     super.drawGuiContainerBackgroundLayer(dt, mouseX, mouseY)
-    mc.renderEngine.bindTexture(TexturePreloader.guiComputer)
+    mc.renderEngine.bindTexture(Textures.guiComputer)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 

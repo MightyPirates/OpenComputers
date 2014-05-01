@@ -1,6 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.client.TexturePreloader
+import li.cil.oc.client.Textures
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.util.RenderState
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -18,7 +18,7 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
-    mc.renderEngine.bindTexture(TexturePreloader.guiBackground)
+    mc.renderEngine.bindTexture(Textures.guiBackground)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
   }
 
@@ -43,7 +43,7 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
 
   private def drawSlotBackground(x: Int, y: Int) {
     GL11.glColor4f(1, 1, 1, 1)
-    mc.renderEngine.bindTexture(TexturePreloader.guiSlot)
+    mc.renderEngine.bindTexture(Textures.guiSlot)
     val t = Tessellator.instance
     t.startDrawingQuads()
     t.addVertexWithUV(x, y + 18, zLevel, 0, 1)
