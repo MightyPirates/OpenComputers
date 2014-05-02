@@ -1,9 +1,10 @@
-package li.cil.oc
+package li.cil.oc.common
 
 import cpw.mods.fml.common.ICraftingHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
+import li.cil.oc.{Settings, api}
 
 object CraftingHandler extends ICraftingHandler {
   lazy val acid = api.Items.get("acid")

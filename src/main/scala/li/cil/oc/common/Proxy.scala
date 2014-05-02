@@ -9,6 +9,7 @@ import li.cil.oc._
 import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.server.component.Keyboard
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
@@ -21,7 +22,6 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.common.recipe.Recipes
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {

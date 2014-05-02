@@ -2,6 +2,7 @@ package li.cil.oc
 
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import li.cil.oc.common.Loot
 import net.minecraft.creativetab.CreativeTabs
 
 object CreativeTab extends CreativeTabs(CreativeTabs.getNextID, "OpenComputers") {

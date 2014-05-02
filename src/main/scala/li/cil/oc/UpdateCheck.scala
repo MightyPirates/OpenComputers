@@ -77,4 +77,3 @@ object UpdateCheck {
   }
 
 }
-

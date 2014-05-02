@@ -1,4 +1,4 @@
-package li.cil.oc
+package li.cil.oc.common
 
 import net.minecraftforge.common.ChestGenHooks
 import net.minecraft.util.WeightedRandomChestContent
@@ -8,6 +8,7 @@ import java.util.Random
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
 import scala.collection.mutable
+import li.cil.oc.{Settings, api}
 
 object Loot extends WeightedRandomChestContent(api.Items.get("lootDisk").createItemStack(1), 1, 1, Settings.get.lootProbability) {
   val containers = Array(
