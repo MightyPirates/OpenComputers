@@ -4,7 +4,7 @@ import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Message, Node}
-import li.cil.oc.api.{Machine, driver}
+import li.cil.oc.api.{Driver, Machine, driver}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
@@ -45,7 +45,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   // ----------------------------------------------------------------------- //
 
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
+    case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -53,7 +53,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   }))
 
   lazy val maxComponents = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
+    case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
     }
@@ -61,7 +61,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   }))
 
   def hasCPU = inventory.items.exists {
-    case Some(stack) => Registry.itemDriverFor(stack) match {
+    case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver) => driver.slot(stack) == Slot.Processor
       case _ => false
     }

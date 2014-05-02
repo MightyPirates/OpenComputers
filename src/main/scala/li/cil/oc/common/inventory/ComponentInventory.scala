@@ -2,10 +2,10 @@ package li.cil.oc.common.inventory
 
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Item => ItemDriver}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node, ManagedEnvironment}
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
@@ -37,21 +37,22 @@ trait ComponentInventory extends Inventory with network.Environment {
     for ((stack, slot) <- items.zipWithIndex collect {
       case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
     } if components(slot).isEmpty && isComponentSlot(slot)) {
-      components(slot) = Registry.itemDriverFor(stack) match {
+      components(slot) = Option(Driver.driverFor(stack)) match {
         case Some(driver) =>
-          Option(driver.createEnvironment(stack, componentContainer)) match {
-            case Some(component) =>
-              try {
-                component.load(dataTag(driver, stack))
-              } catch {
-                case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
-              }
-              if (component.canUpdate) {
-                assert(!updatingComponents.contains(component))
-                updatingComponents += component
-              }
-              Some(component)
-            case _ => None
+        Option(driver.createEnvironment(stack, componentContainer)) match {
+          case Some(component) =>
+            try {
+              component.load(dataTag(driver, stack))
+            }
+            catch {
+              case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+            }
+            if (component.canUpdate) {
+              assert(!updatingComponents.contains(component))
+              updatingComponents += component
+            }
+            Some(component)
+          case _ => None
           }
         case _ => None
       }
@@ -76,7 +77,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       case (stack, slot) => components(slot) match {
         case Some(component) =>
           // We're guaranteed to have a driver for entries.
-          save(component, Registry.itemDriverFor(stack).get, stack)
+          save(component, Driver.driverFor(stack), stack)
         case _ => // Nothing special to save.
       }
     }
@@ -88,8 +89,8 @@ trait ComponentInventory extends Inventory with network.Environment {
   override def getInventoryStackLimit = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
-    Registry.itemDriverFor(stack) match {
-      case Some(driver) => Option(driver.createEnvironment(stack, componentContainer)) match {
+    Option(Driver.driverFor(stack)).foreach(driver =>
+      Option(driver.createEnvironment(stack, componentContainer)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
           try {
@@ -105,9 +106,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           save(component, driver, stack)
         }
         case _ => // No environment (e.g. RAM).
-      }
-      case _ => // No driver.
-    }
+      })
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
@@ -121,7 +120,7 @@ trait ComponentInventory extends Inventory with network.Environment {
         components(slot) = None
         updatingComponents -= component
         component.node.remove()
-        Registry.itemDriverFor(stack).foreach(driver => save(component, driver, stack))
+        Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
       }
       case _ => // Nothing to do.
     }

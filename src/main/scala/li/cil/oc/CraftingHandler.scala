@@ -1,7 +1,6 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.ICraftingHandler
-import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
@@ -35,21 +34,18 @@ object CraftingHandler extends ICraftingHandler {
     }
 
     if (api.Items.get(craftedStack) == navigationUpgrade) {
-      Registry.itemDriverFor(craftedStack) match {
-        case Some(driver) =>
-          for (i <- 0 until inventory.getSizeInventory) {
-            val stack = inventory.getStackInSlot(i)
-            if (stack != null && api.Items.get(stack) == navigationUpgrade) {
-              // Restore the map currently used in the upgrade.
-              val nbt = driver.dataTag(stack)
-              val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
-              if (!player.inventory.addItemStackToInventory(map)) {
-                player.dropPlayerItemWithRandomChoice(map, false)
-              }
+      Option(api.Driver.driverFor(craftedStack)).foreach(driver =>
+        for (i <- 0 until inventory.getSizeInventory) {
+          val stack = inventory.getStackInSlot(i)
+          if (stack != null && api.Items.get(stack) == navigationUpgrade) {
+            // Restore the map currently used in the upgrade.
+            val nbt = driver.dataTag(stack)
+            val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+            if (!player.inventory.addItemStackToInventory(map)) {
+              player.dropPlayerItemWithRandomChoice(map, false)
             }
           }
-        case _ =>
-      }
+        })
     }
   }
 

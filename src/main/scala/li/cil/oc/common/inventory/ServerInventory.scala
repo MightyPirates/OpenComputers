@@ -1,10 +1,10 @@
 package li.cil.oc.common.inventory
 
 import li.cil.oc.Settings
-import li.cil.oc.server.driver.Registry
+import li.cil.oc.api.Driver
+import li.cil.oc.common.InventorySlots
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import li.cil.oc.common.InventorySlots
 
 trait ServerInventory extends ItemStackInventory {
   def tier: Int
@@ -22,10 +22,8 @@ trait ServerInventory extends ItemStackInventory {
   override def isUseableByPlayer(player: EntityPlayer) = false
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Registry.itemDriverFor(stack) match {
-      case Some(driver) =>
-        val provided = InventorySlots.server(tier)(slot)
-        driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
-      case _ => false // Invalid item.
-    }
+    Option(Driver.driverFor(stack)).fold(false)(driver => {
+      val provided = InventorySlots.server(tier)(slot)
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+    })
 }

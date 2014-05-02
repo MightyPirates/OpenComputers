@@ -3,12 +3,12 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util.logging.Level
 import li.cil.oc._
+import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.GraphicsCard
 import li.cil.oc.server.component.robot
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.block.{BlockFlowing, Block}
@@ -61,7 +61,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       case Some(environment) =>
         val stack = getStackInSlot(3)
         // We're guaranteed to have a driver for entries.
-        environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
+        environment.save(dataTag(Driver.driverFor(stack), stack))
         ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
       case _ =>
     }
@@ -452,7 +452,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
         case Some(environment) =>
           val stack = getStackInSlot(3)
           // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Registry.itemDriverFor(stack).get, stack))
+          environment.save(dataTag(Driver.driverFor(stack), stack))
         case _ => // See onConnect()
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
@@ -557,7 +557,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
   // ----------------------------------------------------------------------- //
 
   override def installedMemory = Settings.get.ramSizes(1) * 1024 + (items(3) match {
-    case Some(stack) => Registry.itemDriverFor(stack) match {
+    case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver: api.driver.Memory) => driver.amount(stack)
       case _ => 0
     }
@@ -601,7 +601,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       case _ => false
     }
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, _) => true // Allow anything in the tool slot.
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
