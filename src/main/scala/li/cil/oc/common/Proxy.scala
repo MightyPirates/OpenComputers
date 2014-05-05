@@ -10,8 +10,7 @@ import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.server.component.Keyboard
-import li.cil.oc.server.component.machine
+import li.cil.oc.server.component.{Keyboard, machine}
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server.{TickHandler, driver, fs, network}
@@ -73,8 +72,10 @@ class Proxy {
     api.Driver.add(driver.item.Loot)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
+    api.Driver.add(driver.item.Keyboard)
     api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
+    api.Driver.add(driver.item.Screen)
     api.Driver.add(driver.item.UpgradeCrafting)
     api.Driver.add(driver.item.UpgradeGenerator)
     api.Driver.add(driver.item.UpgradeNavigation)

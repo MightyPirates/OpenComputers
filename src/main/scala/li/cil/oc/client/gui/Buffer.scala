@@ -1,9 +1,8 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.client.{KeyBindings, PacketSender}
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.common.component
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
 import net.minecraft.client.Minecraft
@@ -11,9 +10,10 @@ import net.minecraft.client.gui.GuiScreen
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import scala.collection.mutable
+import li.cil.oc.api
 
 trait Buffer extends GuiScreen {
-  protected def buffer: component.Buffer
+  protected def buffer: api.component.Screen
 
   private val pressedKeys = mutable.Map.empty[Int, Char]
 
@@ -34,15 +34,13 @@ trait Buffer extends GuiScreen {
     MonospaceFontRenderer.init(Minecraft.getMinecraft.renderEngine)
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
-    buffer.owner.currentGui = Some(this)
     recompileDisplayLists()
   }
 
   override def onGuiClosed() = {
     super.onGuiClosed()
-    buffer.owner.currentGui = None
     for ((code, char) <- pressedKeys) {
-      PacketSender.sendKeyUp(buffer, char, code)
+      buffer.keyUp(char, code, null)
     }
     Keyboard.enableRepeatEvents(false)
   }
@@ -50,11 +48,9 @@ trait Buffer extends GuiScreen {
   protected def drawBufferLayer() {
     if (shouldRecompileDisplayLists) {
       shouldRecompileDisplayLists = false
-      val (w, h) = buffer.resolution
-      currentWidth = w
-      currentHeight = h
+      currentWidth = buffer.getWidth
+      currentHeight = buffer.getHeight
       scale = changeSize(currentWidth, currentHeight)
-      BufferRenderer.compileText(scale, buffer.lines, buffer.color, buffer.format)
     }
     GL11.glPushMatrix()
     RenderState.disableLighting()
@@ -74,17 +70,17 @@ trait Buffer extends GuiScreen {
       if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
         if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
-          PacketSender.sendKeyDown(buffer, char, code)
+          buffer.keyDown(char, code, null)
           pressedKeys += code -> char
         }
       }
       else pressedKeys.remove(code) match {
-        case Some(char) => PacketSender.sendKeyUp(buffer, char, code)
+        case Some(char) => buffer.keyUp(char, code, null)
         case _ => // Wasn't pressed while viewing the screen.
       }
 
       if (Keyboard.isKeyDown(KeyBindings.clipboardPaste.keyCode) && Keyboard.getEventKeyState) {
-        PacketSender.sendClipboard(buffer, GuiScreen.getClipboardString)
+        buffer.clipboard(GuiScreen.getClipboardString, null)
       }
     }
   }
@@ -92,7 +88,7 @@ trait Buffer extends GuiScreen {
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
     if (button == 2) {
-      PacketSender.sendClipboard(buffer, GuiScreen.getClipboardString)
+      buffer.clipboard(GuiScreen.getClipboardString, null)
     }
   }
 

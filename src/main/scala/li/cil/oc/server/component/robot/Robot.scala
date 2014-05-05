@@ -3,7 +3,6 @@ package li.cil.oc.server.component.robot
 import li.cil.oc.{Items, api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.block.{BlockFluid, Block}
@@ -18,6 +17,7 @@ import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.component.ManagedComponent
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).

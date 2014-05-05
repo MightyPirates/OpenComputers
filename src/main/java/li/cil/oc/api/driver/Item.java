@@ -1,6 +1,7 @@
 package li.cil.oc.api.driver;
 
 import li.cil.oc.api.network.ManagedEnvironment;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -61,6 +62,24 @@ public interface Item {
      * @return the environment for that item.
      */
     ManagedEnvironment createEnvironment(ItemStack stack, TileEntity container);
+
+    /**
+     * Create a new managed environment interfacing the specified item.
+     * <p/>
+     * This is the same as {@link #createEnvironment(net.minecraft.item.ItemStack, net.minecraft.tileentity.TileEntity)},
+     * except that it allows specifying entities, such as players, as the
+     * container of the environment, specifying information such as the
+     * position in the world that way.
+     * <p/>
+     * Not all components will support both types of environment. If you only
+     * intend your component to be used from within computers, for example,
+     * it is safe to simply return <tt>null</tt> here.
+     *
+     * @param stack     the item stack for which to get the environment.
+     * @param container the entity the environment will be managed by.
+     * @return the environment for that item.
+     */
+    ManagedEnvironment createEnvironment(ItemStack stack, Entity container);
 
     /**
      * The slot type of the specified item this driver supports.

@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.network.{Analyzable, SidedEnvironment}
-import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -14,14 +14,12 @@ class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatab
 
   override def validFacings = ForgeDirection.VALID_DIRECTIONS
 
-  val keyboard = if (isRemote) null
-  else new component.Keyboard {
-    override def isUseableByPlayer(p: EntityPlayer) =
-      world.getBlockTileEntity(x, y, z) == Keyboard.this &&
-        p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
+  val keyboard = {
+    val keyboardItem = api.Items.get("keyboard").createItemStack(1)
+    api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, this)
   }
 
-  override def node = if (isClient) null else keyboard.node
+  override def node = keyboard.node
 
   def hasNodeOnSide(side: ForgeDirection) =
     side == facing.getOpposite || side == forward || (isOnWall && side == forward.getOpposite)

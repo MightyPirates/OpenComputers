@@ -20,7 +20,7 @@ object GuiHandler extends CommonGuiHandler {
       case rack: tileentity.Rack if id == GuiType.Rack.id =>
         new gui.Rack(player.inventory, rack)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
-        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasPower)
+        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.buffer.isRenderingEnabled)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {

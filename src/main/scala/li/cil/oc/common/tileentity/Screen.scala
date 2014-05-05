@@ -2,13 +2,8 @@ package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
-import li.cil.oc.client.renderer.MonospaceFontRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender}
-import li.cil.oc.common.component
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
-import li.cil.oc.util.{PackedColor, Color}
-import net.minecraft.client.Minecraft
+import li.cil.oc.util.Color
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
@@ -21,44 +16,12 @@ import scala.language.postfixOps
 class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with traits.Rotatable with traits.RedstoneAware with traits.Colored with Analyzable with Ordered[Screen] {
   def this() = this(0)
 
+  // Enable redstone functionality.
   _isOutputEnabled = true
 
   override def validFacings = ForgeDirection.VALID_DIRECTIONS
 
   // ----------------------------------------------------------------------- //
-
-  override protected val _buffer = new component.Buffer(this) {
-    @Callback(doc = """function():boolean -- Returns whether the screen is currently on.""")
-    def isOn(computer: Context, args: Arguments): Array[AnyRef] = result(origin.isOn)
-
-    @Callback(doc = """function():boolean -- Turns the screen on. Returns true if it was off.""")
-    def turnOn(computer: Context, args: Arguments): Array[AnyRef] = {
-      if (!origin.isOn) {
-        origin.turnOn()
-        result(true, origin.isOn)
-      }
-      else result(false, origin.isOn)
-    }
-
-    @Callback(doc = """function():boolean -- Turns off the screen. Returns true if it was on.""")
-    def turnOff(computer: Context, args: Arguments): Array[AnyRef] = {
-      if (origin.isOn) {
-        origin.turnOff()
-        result(true, origin.isOn)
-      }
-      else result(false, origin.isOn)
-    }
-  }
-
-  // This is the energy cost (per tick) to keep the screen running if every
-  // single "pixel" is lit. This cost increases with higher tiers as their
-  // maximum resolution (pixel density) increases. For a basic screen this is
-  // simply the configured cost.
-  val fullyLitCost = {
-    val (w, h) = Settings.screenResolutionsByTier(0)
-    val (mw, mh) = buffer.maxResolution
-    Settings.get.screenCost * (mw * mh) / (w * h)
-  }
 
   /**
    * Check for multi-block screen option in next update. We do this in the
@@ -71,12 +34,6 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   var origin = this
 
   val screens = mutable.Set(this)
-
-  var relativeLitArea = -1.0
-
-  var hasPower = true
-
-  var isOn = true
 
   var hadRedstoneInput = false
 
@@ -102,7 +59,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     (lx - ox, ly - oy)
   }
 
-  override def hasKeyboard = screens.exists(screen =>
+  def hasKeyboard = screens.exists(screen =>
     ForgeDirection.VALID_DIRECTIONS.map(side => (side, world.getBlockTileEntity(screen.x + side.offsetX, screen.y + side.offsetY, screen.z + side.offsetZ))).exists {
       case (side, keyboard: Keyboard) => keyboard.hasNodeOnSide(side.getOpposite)
       case _ => false
@@ -136,8 +93,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
-    val (bw, bh) = origin.buffer.resolution
-    val (bpw, bph) = (bw * MonospaceFontRenderer.fontWidth / iw.toDouble, bh * MonospaceFontRenderer.fontHeight / ih.toDouble)
+    val bw = buffer.getWidth
+    val bh = buffer.getHeight
+    val (bpw, bph) = (buffer.renderWidth / iw.toDouble, buffer.renderHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
@@ -160,7 +118,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
     // Convert to absolute coordinates and send the packet to the server.
     if (world.isRemote) {
-      ClientPacketSender.sendMouseClick(this.buffer, (brx * bw).toInt + 1, (bry * bh).toInt + 1, drag = false, 0)
+      buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
     }
     true
   }
@@ -190,40 +148,10 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
   }
 
-  def turnOn() {
-    origin.isOn = true
-    val neededPower = width * height * Settings.get.screenCost * Settings.get.tickFrequency
-    origin.hasPower = buffer.node.changeBuffer(-neededPower) == 0
-    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
-  }
-
-  def turnOff() {
-    origin.isOn = false
-    ServerPacketSender.sendScreenPowerChange(origin, origin.isOn && origin.hasPower)
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
-      if (relativeLitArea < 0) {
-        // The relative lit area is the number of pixels that are not blank
-        // versus the number of pixels in the *current* resolution. This is
-        // scaled to multi-block screens, since we only compute this for the
-        // origin.
-        val (w, h) = buffer.resolution
-        relativeLitArea = width * height * buffer.lines.foldLeft(0) {
-          (acc, line) => acc + line.count(' ' !=)
-        } / (w * h).toDouble
-      }
-      val hadPower = hasPower
-      val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
-      hasPower = buffer.node.tryChangeBuffer(-neededPower)
-      if (hasPower != hadPower) {
-        ServerPacketSender.sendScreenPowerChange(this, isOn && hasPower)
-      }
-    }
     if (shouldCheckForMultiBlock) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
@@ -253,7 +181,6 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         current.screens.foreach {
           screen =>
             screen.shouldCheckForMultiBlock = false
-            screen.bufferIsDirty = true
             pending.remove(screen)
             queue += screen
         }
@@ -264,25 +191,28 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
         }
       }
       // Update visibility after everything is done, to avoid noise.
-      queue.foreach(screen =>
+      queue.foreach(screen => {
+        val buffer = screen.buffer
         if (screen.isOrigin) {
           if (isServer) {
-            screen.buffer.node.setVisibility(Visibility.Network)
+            buffer.node.asInstanceOf[Component].setVisibility(Visibility.Network)
+            buffer.setEnergyCostPerTick(Settings.get.screenCost * width * height)
+            buffer.setAspectRatio(width, height)
           }
         }
         else {
           if (isServer) {
-            screen.buffer.node.setVisibility(Visibility.None)
+            buffer.node.asInstanceOf[Component].setVisibility(Visibility.None)
+            buffer.setEnergyCostPerTick(Settings.get.screenCost)
           }
-          val buffer = screen.buffer
-          val (w, h) = buffer.resolution
-          buffer.foreground = PackedColor.Color(0xFFFFFF)
-          buffer.background = PackedColor.Color(0x000000)
-          if (buffer.buffer.fill(0, 0, w, h, ' ')) {
-            onScreenFill(0, 0, w, h, ' ')
-          }
+          buffer.setAspectRatio(1, 1)
+          val w = buffer.getWidth
+          val h = buffer.getHeight
+          buffer.setForegroundColor(0xFFFFFF, false)
+          buffer.setBackgroundColor(0x000000, false)
+          buffer.fill(0, 0, w, h, ' ')
         }
-      )
+      })
     }
     if (arrows.size > 0) {
       for (arrow <- arrows) {
@@ -297,9 +227,6 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override protected def dispose() {
     super.dispose()
-    if (currentGui.isDefined) {
-      Minecraft.getMinecraft.displayGuiScreen(null)
-    }
     screens.clone().foreach(_.checkMultiBlock())
   }
 
@@ -314,34 +241,13 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     tier = nbt.getByte(Settings.namespace + "tier") max 0 min 2
     color = Color.byTier(tier)
     super.readFromNBT(nbt)
-    // This check is just to avoid powering off any screens that have been
-    // placed before this was introduced.
-    if (nbt.hasKey(Settings.namespace + "isOn")) {
-      isOn = nbt.getBoolean(Settings.namespace + "isOn")
-    }
-    if (nbt.hasKey(Settings.namespace + "isOn")) {
-      hasPower = nbt.getBoolean(Settings.namespace + "hasPower")
-    }
     hadRedstoneInput = nbt.getBoolean(Settings.namespace + "hadRedstoneInput")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
-    nbt.setBoolean(Settings.namespace + "isOn", isOn)
-    nbt.setBoolean(Settings.namespace + "hasPower", hasPower)
     nbt.setBoolean(Settings.namespace + "hadRedstoneInput", hadRedstoneInput)
-  }
-
-  @SideOnly(Side.CLIENT)
-  override def readFromNBTForClient(nbt: NBTTagCompound) {
-    super.readFromNBTForClient(nbt)
-    hasPower = nbt.getBoolean("hasPower")
-  }
-
-  override def writeToNBTForClient(nbt: NBTTagCompound) {
-    super.writeToNBTForClient(nbt)
-    nbt.setBoolean("hasPower", isOn && hasPower)
   }
 
   // ----------------------------------------------------------------------- //
@@ -376,7 +282,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     if (hasRedstoneInput != hadRedstoneInput) {
       hadRedstoneInput = hasRedstoneInput
       if (hasRedstoneInput) {
-        if (origin.isOn) turnOff() else turnOn()
+        origin.buffer.setPowerState(!origin.buffer.getPowerState)
       }
     }
   }
@@ -384,37 +290,6 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
   override def onRotationChanged() {
     super.onRotationChanged()
     screens.clone().foreach(_.checkMultiBlock())
-  }
-
-  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-    super.onScreenCopy(col, row, w, h, tx, ty)
-    relativeLitArea = -1
-  }
-
-  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-    super.onScreenFill(col, row, w, h, c)
-    relativeLitArea = -1
-  }
-
-  override def onScreenPaletteChange(index: Int, color: Int){
-    super.onScreenPaletteChange(index, color)
-    relativeLitArea = -1
-  }
-
-  override def onScreenResolutionChange(w: Int, h: Int) {
-    super.onScreenResolutionChange(w, h)
-    relativeLitArea = -1
-  }
-
-  override def onScreenSet(col: Int, row: Int, s: String) {
-    super.onScreenSet(col, row, s)
-    relativeLitArea = -1
-  }
-
-  @SideOnly(Side.CLIENT)
-  override protected def markForRenderUpdate() {
-    super.markForRenderUpdate()
-    currentGui.foreach(_.recompileDisplayLists())
   }
 
   // ----------------------------------------------------------------------- //

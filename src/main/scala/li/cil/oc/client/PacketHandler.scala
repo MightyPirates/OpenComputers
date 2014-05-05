@@ -2,17 +2,17 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Settings
+import li.cil.oc.api.component
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.util.{Audio, PackedColor}
+import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.util.Audio
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
-import li.cil.oc.common.tileentity.traits._
-import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -45,14 +45,14 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RobotXp => onRobotXp(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.RouterActivity => onRouterActivity(p)
-      case PacketType.ScreenColorChange => onScreenColorChange(p)
-      case PacketType.ScreenCopy => onScreenCopy(p)
-      case PacketType.ScreenDepthChange => onScreenDepthChange(p)
-      case PacketType.ScreenFill => onScreenFill(p)
-      case PacketType.ScreenPaletteChange => onScreenPaletteChange(p)
-      case PacketType.ScreenPowerChange => onScreenPowerChange(p)
-      case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
-      case PacketType.ScreenSet => onScreenSet(p)
+      case PacketType.TextBufferColorChange => onTextBufferColorChange(p)
+      case PacketType.TextBufferCopy => onTextBufferCopy(p)
+      case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p)
+      case PacketType.TextBufferFill => onTextBufferFill(p)
+      case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
+      case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
+      case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
+      case PacketType.TextBufferSet => onTextBufferSet(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case _ => // Invalid packet.
@@ -252,96 +252,90 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onScreenColorChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferColorChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val foreground = p.readInt()
+        val foregroundIsPalette = p.readBoolean()
+        buffer.setForegroundColor(foreground, foregroundIsPalette)
+        val background = p.readInt()
+        val backgroundIsPalette = p.readBoolean()
+        buffer.setBackgroundColor(background, backgroundIsPalette)
+      case _ => // Invalid packet.
     }
-    val foreground = p.readInt()
-    val foregroundIsPalette = p.readBoolean()
-    buffer.foreground = PackedColor.Color(foreground, foregroundIsPalette)
-    val background = p.readInt()
-    val backgroundIsPalette = p.readBoolean()
-    buffer.background = PackedColor.Color(background, backgroundIsPalette)
   }
 
-  def onScreenCopy(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferCopy(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val col = p.readInt()
+        val row = p.readInt()
+        val w = p.readInt()
+        val h = p.readInt()
+        val tx = p.readInt()
+        val ty = p.readInt()
+        buffer.copy(col, row, w, h, tx, ty)
+      case _ => // Invalid packet.
     }
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val tx = p.readInt()
-    val ty = p.readInt()
-    buffer.copy(col, row, w, h, tx, ty)
   }
 
-  def onScreenDepthChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferDepthChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        buffer.setColorDepth(component.Screen.ColorDepth.values.apply(p.readInt()))
+      case _ => // Invalid packet.
     }
-    buffer.format = PackedColor.Depth.format(PackedColor.Depth(p.readInt()))
   }
 
-  def onScreenFill(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferFill(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val col = p.readInt()
+        val row = p.readInt()
+        val w = p.readInt()
+        val h = p.readInt()
+        val c = p.readChar()
+        buffer.fill(col, row, w, h, c)
+      case _ => // Invalid packet.
     }
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val c = p.readChar()
-    buffer.fill(col, row, w, h, c)
   }
 
-  def onScreenPaletteChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferPaletteChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val index = p.readInt()
+        val color = p.readInt()
+        buffer.setPaletteColor(index, color)
+      case _ => // Invalid packet.
     }
-    val index = p.readInt()
-    val color = p.readInt()
-    buffer.setPalette(index, color)
   }
 
-  def onScreenPowerChange(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => t.hasPower = p.readBoolean()
+  def onTextBufferPowerChange(p: PacketParser) =
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
-  def onScreenResolutionChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferResolutionChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val w = p.readInt()
+        val h = p.readInt()
+        buffer.setResolution(w, h)
+      case _ => // Invalid packet.
     }
-    val w = p.readInt()
-    val h = p.readInt()
-    buffer.resolution = (w, h)
   }
 
-  def onScreenSet(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferSet(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.Screen) =>
+        val col = p.readInt()
+        val row = p.readInt()
+        val s = p.readUTF()
+        buffer.set(col, row, s)
+      case _ => // Invalid packet.
     }
-    val col = p.readInt()
-    val row = p.readInt()
-    val s = p.readUTF()
-    buffer.set(col, row, s)
   }
 
   def onServerPresence(p: PacketParser) =

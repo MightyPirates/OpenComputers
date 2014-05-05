@@ -3,11 +3,11 @@ package li.cil.oc
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import java.io._
 import java.util.logging.Level
-import li.cil.oc.util.PackedColor
+import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
-import li.cil.oc.util.mods.Mods
 
 class Settings(config: Config) {
   val itemId = config.getInt("ids.item")
@@ -194,7 +194,7 @@ object Settings {
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
-  val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
+  val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
   val hologramMaxScaleByTier = Array(3, 4)
 
   // Power conversion values. These are the same values used by Universal

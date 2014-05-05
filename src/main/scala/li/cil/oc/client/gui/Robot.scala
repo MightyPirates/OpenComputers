@@ -82,18 +82,18 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     GL11.glTranslatef(8, 8, 0)
     RenderState.disableLighting()
     RenderState.makeItBlend()
-    val (w, h) = buffer.resolution
-    val scaleX = 48f / w
-    val scaleY = 14f / h
+    val scaleX = 48f / buffer.getWidth
+    val scaleY = 14f / buffer.getHeight
     val scale = math.min(scaleX, scaleY)
     if (scaleX > scale) {
-      GL11.glTranslated(MonospaceFontRenderer.fontWidth * w * (scaleX - scale) / 2, 0, 0)
+      GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
     }
     else if (scaleY > scale) {
-      GL11.glTranslated(0, MonospaceFontRenderer.fontHeight * h * (scaleY - scale) / 2, 0)
+      GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
     }
     GL11.glScalef(scale, scale, scale)
-    BufferRenderer.drawText()
+    GL11.glScaled(this.scale, this.scale, 1)
+    BufferRenderer.drawText(buffer)
   }
 
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {

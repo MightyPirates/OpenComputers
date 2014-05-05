@@ -6,10 +6,10 @@ import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network._
+import li.cil.oc.client.gui
 import li.cil.oc.common.block.Delegator
-import li.cil.oc.server.component.GraphicsCard
-import li.cil.oc.server.component.robot
-import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
+import li.cil.oc.server.component.{GraphicsCard, robot}
+import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.block.{BlockFlowing, Block}
 import net.minecraft.client.Minecraft
@@ -71,22 +71,22 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   override def node = if (isServer) computer.node else null
 
-  override val _buffer = new common.component.Buffer(this) {
-    override def maxResolution = (48, 14)
-  }
-  val (bot, gpu, keyboard) = if (isServer) {
+  override def tier: Int = 0
+
+  buffer.setMaximumResolution(48, 14)
+  val (bot, gpu) = if (isServer) {
     val bot = new robot.Robot(this)
     val gpu = new GraphicsCard.Tier1 {
       override val maxResolution = (48, 14)
     }
-    val keyboard = new component.Keyboard {
-      override def isUseableByPlayer(p: EntityPlayer) =
-        world.getBlockTileEntity(x, y, z) == proxy &&
-          p.getDistanceSq(x + 0.5, y + 0.5, z + 0.5) <= 64
-    }
-    (bot, gpu, keyboard)
+    (bot, gpu)
   }
-  else (null, null, null)
+  else (null, null)
+
+  lazy val keyboard = {
+    val keyboardItem = api.Items.get("keyboard").createItemStack(1)
+    api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, this)
+  }
 
   var owner = "OpenComputers"
 
@@ -352,8 +352,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   override protected def dispose() {
     super.dispose()
-    if (currentGui.isDefined) {
-      Minecraft.getMinecraft.displayGuiScreen(null)
+    Minecraft.getMinecraft.currentScreen match {
+      case robotGui: gui.Robot if robotGui.robot == this =>
+        Minecraft.getMinecraft.displayGuiScreen(null)
+      case _ =>
     }
   }
 
@@ -564,15 +566,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     case _ => 0
   })
 
-  override def tier = 0
-
   override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
-
-  @SideOnly(Side.CLIENT)
-  override protected def markForRenderUpdate() {
-    super.markForRenderUpdate()
-    currentGui.foreach(_.recompileDisplayLists())
-  }
 
   // ----------------------------------------------------------------------- //
 

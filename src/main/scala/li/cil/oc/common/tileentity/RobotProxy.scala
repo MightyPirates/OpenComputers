@@ -4,7 +4,6 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.api.network._
-import li.cil.oc.client.gui
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -229,14 +228,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
   // ----------------------------------------------------------------------- //
 
   override lazy val buffer = robot.buffer
-
-  override def bufferIsDirty = robot.bufferIsDirty
-
-  override def bufferIsDirty_=(value: Boolean) = robot.bufferIsDirty = value
-
-  override def currentGui = robot.currentGui
-
-  override def currentGui_=(value: Option[gui.Buffer]) = robot.currentGui = value
 
   override def tier = robot.tier
 

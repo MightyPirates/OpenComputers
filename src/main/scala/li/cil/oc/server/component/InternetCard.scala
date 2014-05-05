@@ -5,16 +5,17 @@ import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.util.regex.Matcher
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.api.prefab.AbstractValue
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.collection.mutable
-import li.cil.oc.api.prefab.AbstractValue
 
 class InternetCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).

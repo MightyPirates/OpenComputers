@@ -1,5 +1,6 @@
-package li.cil.oc.server.component
+package li.cil.oc.common.component
 
+import li.cil.oc.api
 import li.cil.oc.api.network.{ManagedEnvironment, Node, Message}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
@@ -21,6 +22,11 @@ abstract class ManagedComponent extends ManagedEnvironment {
   }
 
   override def save(nbt: NBTTagCompound) = {
+    // Force joining a network when saving and we're not in one yet, so that
+    // the address is embedded in the saved data that gets sent to the client,
+    // so that that address can be used to associate components on server and
+    // client (for example keyboard and screen/text buffer).
+    if (node == null) api.Network.joinNewNetwork(node)
     if (node != null) nbt.setNewCompoundTag("node", node.save)
   }
 

@@ -1,7 +1,8 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network._
 import li.cil.oc.api.{Rotatable, Network}
+import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.tileentity.{TileEntity, TileEntitySign}
 
 class UpgradeSign(val owner: TileEntity) extends ManagedComponent {

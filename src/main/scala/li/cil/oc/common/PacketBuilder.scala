@@ -5,6 +5,7 @@ import cpw.mods.fml.common.network.PacketDispatcher
 import cpw.mods.fml.common.network.Player
 import java.io.{OutputStream, ByteArrayOutputStream, DataOutputStream}
 import java.util.zip.GZIPOutputStream
+import li.cil.oc.server.component.Container
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
@@ -38,6 +39,8 @@ abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) ext
   def sendToAllPlayers() = PacketDispatcher.sendPacketToAllPlayers(packet)
 
   def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
+
+  def sendToNearbyPlayers(c: Container): Unit = sendToNearbyPlayers(c.world, c.x, c.y, c.z, 1024)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
     val dimension = world.provider.dimensionId

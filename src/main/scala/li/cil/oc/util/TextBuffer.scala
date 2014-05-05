@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
+import li.cil.oc.api.component.Screen.ColorDepth
 import net.minecraft.nbt._
 
 /**
@@ -178,7 +179,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       }
     }
 
-    val depth = PackedColor.Depth(nbt.getInteger("depth") max 0 min PackedColor.Depth.maxId)
+    val depth = ColorDepth.values.apply(nbt.getInteger("depth") min (ColorDepth.values.length - 1) max 0)
     _format = PackedColor.Depth.format(depth)
     _format.load(nbt)
     foreground = PackedColor.Color(nbt.getInteger("foreground"), nbt.getBoolean("foregroundIsPalette"))
@@ -209,7 +210,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     }
     nbt.setTag("buffer", b)
 
-    nbt.setInteger("depth", _format.depth.id)
+    nbt.setInteger("depth", _format.depth.ordinal)
     _format.save(nbt)
     nbt.setInteger("foreground", _foreground.value)
     nbt.setBoolean("foregroundIsPalette", _foreground.isPalette)

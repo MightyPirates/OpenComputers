@@ -4,8 +4,9 @@ import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.{Container, InventoryCrafting}
+import net.minecraft.inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraft.tileentity.TileEntity
@@ -24,7 +25,7 @@ class UpgradeCrafting(val owner: TileEntity with Robot) extends ManagedComponent
     result(CraftingInventory.craft(count))
   }
 
-  private object CraftingInventory extends InventoryCrafting(new Container {
+  private object CraftingInventory extends inventory.InventoryCrafting(new inventory.Container {
     override def canInteractWith(player: EntityPlayer) = true
   }, 3, 3) {
     var amountPossible = 0

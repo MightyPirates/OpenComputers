@@ -8,7 +8,7 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
+import li.cil.oc.client.renderer.{TextBufferRenderCache, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.{Items, Settings, OpenComputers}
 import net.minecraft.client.Minecraft
@@ -60,7 +60,7 @@ private[oc] class Proxy extends CommonProxy {
     super.postInit(e)
 
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
-    TickRegistry.registerTickHandler(ScreenRenderer, Side.CLIENT)
+    TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
     if (Settings.get.rTreeDebugRenderer) {
       MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     }

@@ -2,22 +2,21 @@ package li.cil.oc.util
 
 import li.cil.oc.api.Persistable
 import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.api.component.Screen.ColorDepth
 
 object PackedColor {
 
-  object Depth extends Enumeration {
-    val OneBit, FourBit, EightBit = Value
-
-    def bits(depth: Depth.Value) = depth match {
-      case OneBit => 1
-      case FourBit => 4
-      case EightBit => 8
+  object Depth {
+    def bits(depth: ColorDepth) = depth match {
+      case ColorDepth.OneBit => 1
+      case ColorDepth.FourBit => 4
+      case ColorDepth.EightBit => 8
     }
 
-    def format(depth: Depth.Value) = depth match {
-      case OneBit => SingleBitFormat
-      case FourBit => new MutablePaletteFormat
-      case EightBit => new HybridFormat
+    def format(depth: ColorDepth) = depth match {
+      case ColorDepth.OneBit => SingleBitFormat
+      case ColorDepth.FourBit => new MutablePaletteFormat
+      case ColorDepth.EightBit => new HybridFormat
     }
   }
 
@@ -33,7 +32,7 @@ object PackedColor {
   }
 
   trait ColorFormat extends Persistable {
-    def depth: Depth.Value
+    def depth: ColorDepth
 
     def inflate(value: Int): Int
 
@@ -45,7 +44,7 @@ object PackedColor {
   }
 
   object SingleBitFormat extends ColorFormat {
-    override def depth = Depth.OneBit
+    override def depth = ColorDepth.OneBit
 
     override def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
 
@@ -72,7 +71,7 @@ object PackedColor {
   }
 
   class MutablePaletteFormat extends PaletteFormat {
-    override def depth = Depth.FourBit
+    override def depth = ColorDepth.FourBit
 
     def apply(index: Int) = palette(index)
 
@@ -106,7 +105,7 @@ object PackedColor {
       this(i) = (shade << rShift32) | (shade << gShift32) | (shade << bShift32)
     }
 
-    override def depth = Depth.EightBit
+    override def depth = ColorDepth.EightBit
 
     override def inflate(value: Int) =
       if (value < palette.length) super.inflate(value)

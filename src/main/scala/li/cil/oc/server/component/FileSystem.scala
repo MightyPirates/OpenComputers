@@ -1,11 +1,12 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
+import li.cil.oc.Settings
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.Sound
-import li.cil.oc.Settings
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
 import net.minecraft.tileentity.TileEntity

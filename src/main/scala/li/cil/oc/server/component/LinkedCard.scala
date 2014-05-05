@@ -1,10 +1,11 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import scala.collection.convert.WrapAsScala._
-import li.cil.oc.Settings
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.server.network.QuantumNetwork
+import scala.collection.convert.WrapAsScala._
 import net.minecraft.nbt.NBTTagCompound
 
 class LinkedCard extends ManagedComponent {

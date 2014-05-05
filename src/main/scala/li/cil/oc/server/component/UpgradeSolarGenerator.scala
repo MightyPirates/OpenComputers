@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraft.world.biome.BiomeGenDesert

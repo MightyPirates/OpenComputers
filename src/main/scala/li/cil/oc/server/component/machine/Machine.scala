@@ -10,7 +10,6 @@ import li.cil.oc.api.network._
 import li.cil.oc.api.{fs, machine, FileSystem, Network}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server
-import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.fs.CompositeReadOnlyFileSystem
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedNBT._
@@ -26,6 +25,7 @@ import scala.Some
 import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
+import li.cil.oc.common.component.ManagedComponent
 
 class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).

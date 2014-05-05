@@ -7,13 +7,13 @@ import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
 import li.cil.oc.{api, Settings, Items}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
+import li.cil.oc.server.component
 
 object FileSystem extends Item {
   override def worksWith(stack: ItemStack) =
     isOneOf(stack, api.Items.get("hdd1"), api.Items.get("hdd2"), api.Items.get("hdd3"), api.Items.get("floppy"))
 
-  override def createEnvironment(stack: ItemStack, container: TileEntity) =
+  override def createEnvironment(stack: ItemStack, container: component.Container) =
     Items.multi.subItem(stack) match {
       case Some(hdd: HardDiskDrive) => createEnvironment(stack, hdd.kiloBytes * 1024, container)
       case Some(disk: FloppyDisk) => createEnvironment(stack, Settings.get.floppySize * 1024, container)
@@ -33,13 +33,13 @@ object FileSystem extends Item {
       case _ => 0
     }
 
-  private def createEnvironment(stack: ItemStack, capacity: Int, container: TileEntity) = {
+  private def createEnvironment(stack: ItemStack, capacity: Int, container: component.Container) = {
     // We have a bit of a chicken-egg problem here, because we want to use the
     // node's address as the folder name... so we generate the address here,
     // if necessary. No one will know, right? Right!?
     val address = addressFromTag(dataTag(stack))
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
-    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ItemLabel(stack), container)
+    val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ItemLabel(stack), container.tileEntity.orNull)
     if (environment != null) {
       environment.node.asInstanceOf[oc.server.network.Node].address = address
     }
