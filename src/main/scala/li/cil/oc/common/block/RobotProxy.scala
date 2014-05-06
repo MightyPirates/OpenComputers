@@ -162,7 +162,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
         if (robot.player == player) return false
-        if (!world.isRemote && (!player.capabilities.isCreativeMode || proxy.globalBuffer > 1 || proxy.robot.xp > 0)) {
+        if (!world.isRemote) {
           parent.dropBlockAsItem(world, x, y, z, robot.createItemStack())
         }
         if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {

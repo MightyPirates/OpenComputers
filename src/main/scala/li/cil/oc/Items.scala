@@ -172,5 +172,6 @@ object Items extends ItemAPI {
 
     // v1.3.0
     Recipes.addItemDelegate(new item.LinkedCard(multi), "linkedCard", "oc:linkedCard")
+    Recipes.addItemDelegate(new item.UpgradeExperience(multi), "experienceUpgrade", "oc:experienceUpgrade")
   }
 }

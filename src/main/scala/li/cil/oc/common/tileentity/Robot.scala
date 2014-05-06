@@ -5,6 +5,7 @@ import java.util.logging.Level
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
 import li.cil.oc.common.block.Delegator
@@ -18,7 +19,7 @@ import net.minecraft.inventory.ISidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
 import scala.io.Source
 
@@ -39,8 +40,13 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  // Note: we implement IRobotContext in the TE to allow external components
-  //to cast their owner to it (to allow interacting with their owning robot).
+  override def dynamicComponentCapacity = 3
+
+  override def componentCapacity = 3
+
+  override def inventorySize = getSizeInventory
+
+  override def getComponentInSlot(index: Int) = components(index).orNull
 
   var selectedSlot = actualSlot(0)
 
@@ -92,16 +98,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   var tag: NBTTagCompound = _
 
-  var xp = 0.0
-
-  def xpForNextLevel = xpForLevel(level + 1)
-
-  def xpForLevel(level: Int) = Settings.get.baseXpToLevel + Math.pow(level * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
-
-  var level = 0
-
-  var xpChanged = false
-
   var globalBuffer, globalBufferSize = 0.0
 
   var equippedItem: Option[ItemStack] = None
@@ -120,25 +116,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   private lazy val player_ = new robot.Player(this)
 
-  def addXp(value: Double) {
-    if (level < 30 && isServer) {
-      xp = xp + value
-      xpChanged = true
-      if (xp >= xpForNextLevel) {
-        updateXpInfo()
-      }
-    }
-  }
-
-  def updateXpInfo() {
-    // xp(level) = base + (level * const) ^ exp
-    // pow(xp(level) - base, 1/exp) / const = level
-    level = math.min((Math.pow(xp - Settings.get.baseXpToLevel, 1 / Settings.get.exponentialXpGrowth) / Settings.get.constantXpGrowth).toInt, 30)
-    if (isServer) {
-      bot.node.setLocalBufferSize(Settings.get.bufferRobot + Settings.get.bufferPerLevel * level)
-    }
-  }
-
   override def maxComponents = 8
 
   // ----------------------------------------------------------------------- //
@@ -148,8 +125,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       Settings.namespace + "gui.Analyzer.RobotOwner", owner))
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
       Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotXp", xp.formatted("%.2f"), level: Integer))
+    MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
 
@@ -166,6 +142,13 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     if (!world.blockExists(nx, ny, nz)) {
       return false // Don't fall off the earth.
     }
+
+    if (isServer) {
+      val event = new RobotMoveEvent.Pre(this, direction)
+      MinecraftForge.EVENT_BUS.post(event)
+      if (event.isCanceled) return false
+    }
+
     val blockId = world.getBlockId(nx, ny, nz)
     val metadata = world.getBlockMetadata(nx, ny, nz)
     try {
@@ -193,6 +176,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
         if (isServer) {
           ServerPacketSender.sendRobotMove(this, ox, oy, oz, direction)
           checkRedstoneInputChanged()
+          MinecraftForge.EVENT_BUS.post(new RobotMoveEvent.Post(this, direction))
         }
         else {
           // If we broke some replaceable block (like grass) play its break sound.
@@ -226,9 +210,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     val stack = Blocks.robotProxy.createItemStack()
     val tag = if (this.tag != null) this.tag.copy.asInstanceOf[NBTTagCompound] else new NBTTagCompound("tag")
     stack.setTagCompound(tag)
-    if (xp > 0) {
-      tag.setDouble(Settings.namespace + "xp", xp)
-    }
     if (globalBuffer > 1) {
       tag.setInteger(Settings.namespace + "storedEnergy", globalBuffer.toInt)
     }
@@ -238,9 +219,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
   def parseItemStack(stack: ItemStack) {
     if (stack.hasTagCompound) {
       tag = stack.getTagCompound.copy.asInstanceOf[NBTTagCompound]
-      xp = tag.getDouble(Settings.namespace + "xp")
-      updateXpInfo()
       bot.node.changeBuffer(stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy"))
+      // TODO migration: xp to xp upgrade
+      // xp = tag.getDouble(Settings.namespace + "xp")
     }
     else {
       tag = new NBTTagCompound("tag")
@@ -323,10 +304,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       globalBuffer = bot.node.globalBuffer
       globalBufferSize = bot.node.globalBufferSize
       updatePowerInformation()
-      if (xpChanged && world.getWorldInfo.getWorldTotalTime % 200 == 0) {
-        xpChanged = false
-        ServerPacketSender.sendRobotXp(this)
-      }
     }
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
@@ -339,7 +316,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
         case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
         case _ =>
       }
-      updateXpInfo()
 
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
@@ -372,8 +348,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     if (nbt.hasKey(Settings.namespace + "tag")) {
       tag = nbt.getCompoundTag(Settings.namespace + "tag")
     }
-    xp = nbt.getDouble(Settings.namespace + "xp") max 0
-    updateXpInfo()
     selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max actualSlot(0) min (getSizeInventory - 1)
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
@@ -384,6 +358,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
+
+    // TODO migration: xp to xp upgrade
+    // xp = nbt.getDouble(Settings.namespace + "xp") max 0
   }
 
   // Side check for Waila (and other mods that may call this client side).
@@ -398,7 +375,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     if (tag != null) {
       nbt.setCompoundTag(Settings.namespace + "tag", tag)
     }
-    nbt.setDouble(Settings.namespace + "xp", xp)
     nbt.setInteger(Settings.namespace + "selectedSlot", selectedSlot)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger(Settings.namespace + "animationTicksTotal", animationTicksTotal)
@@ -424,8 +400,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     if (nbt.hasKey("upgrade")) {
       equippedUpgrade = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("upgrade")))
     }
-    xp = nbt.getDouble(Settings.namespace + "xp")
-    updateXpInfo()
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     moveFromX = nbt.getInteger("moveFromX")
@@ -459,7 +433,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
       }
       nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
     }
-    nbt.setDouble(Settings.namespace + "xp", xp)
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)

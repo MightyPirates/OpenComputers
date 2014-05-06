@@ -2,8 +2,9 @@ package li.cil.oc.server.component.robot
 
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import java.util.logging.Level
+import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{Mods, UniversalElectricity, TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{Mods, TinkersConstruct, PortalGun}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
 import net.minecraft.entity.item.EntityItem
@@ -99,9 +100,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     callUsingItemInSlot(0, stack => entity match {
       case player: EntityPlayer if !canAttackPlayer(player) => // Avoid player damage.
       case _ =>
-        super.attackTargetEntityWithCurrentItem(entity)
-        if (stack != null && entity.isDead) {
-          robot.addXp(Settings.get.robotActionXp)
+        val event = new RobotAttackEntityEvent.Pre(robot, entity)
+        MinecraftForge.EVENT_BUS.post(event)
+        if (!event.isCanceled) {
+          super.attackTargetEntityWithCurrentItem(entity)
+          MinecraftForge.EVENT_BUS.post(new RobotAttackEntityEvent.Post(robot, entity))
         }
     })
   }
@@ -262,7 +265,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       val breakTime =
         if (cobwebOverride) Settings.get.swingDelay
         else hardness * 1.5 / strength
-      val adjustedBreakTime = math.max(0.05, breakTime * Settings.get.harvestRatio * math.max(1 - robot.level * Settings.get.harvestSpeedBoostPerLevel, 0))
+
+      val preEvent = new RobotBreakBlockEvent.Pre(robot, world, x, y, z, breakTime * Settings.get.harvestRatio)
+      MinecraftForge.EVENT_BUS.post(preEvent)
+      if (preEvent.isCanceled) return 0
+      val adjustedBreakTime = math.max(0.05, preEvent.getBreakTime)
 
       // Special handling for Tinkers Construct - tools like the hammers do
       // their break logic in onBlockStartBreak but return true to cancel
@@ -295,10 +302,10 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
         // check only serves to test whether the block can drop anything at all.
         if (block.canHarvestBlock(this, metadata)) {
           block.harvestBlock(world, this, x, y, z, metadata)
-          robot.addXp(breakEvent.getExpToDrop * Settings.get.robotOreXpRate)
+          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, breakEvent.getExpToDrop))
         }
-        if (stack != null) {
-          robot.addXp(Settings.get.robotActionXp)
+        else if (stack != null) {
+          MinecraftForge.EVENT_BUS.post(new RobotBreakBlockEvent.Post(robot, 0))
         }
         return adjustedBreakTime
       }
@@ -351,37 +358,28 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   }
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
-    def repair(high: Long, low: Long) = {
-      val needsRepairing = low < high
-      val damageRate = Settings.get.itemDamageRate * math.max(1 - robot.level * Settings.get.toolEfficiencyPerLevel, 0)
-      val shouldRepair = needsRepairing && getRNG.nextDouble() >= damageRate
-      if (shouldRepair) {
-        // If an item takes a lot of damage at once we don't necessarily want to
-        // make *all* of that damage go away. Instead we scale it according to
-        // our damage probability. This makes sure we don't discard massive
-        // damage spikes (e.g. on axes when using the TreeCapitator mod or such).
-        math.ceil((high - low) * (1 - damageRate)).toInt
-      }
-      else 0
-    }
-    if (Mods.UniversalElectricity.isAvailable && UniversalElectricity.isEnergyItem(stack)) {
-      UniversalElectricity.chargeItem(stack, repair(UniversalElectricity.getEnergyInItem(oldStack), UniversalElectricity.getEnergyInItem(stack)))
-    }
-    else if (stack.isItemStackDamageable) {
-      stack.setItemDamage(stack.getItemDamage - repair(stack.getItemDamage, oldStack.getItemDamage))
+    val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
+    MinecraftForge.EVENT_BUS.post(damageRate)
+    if (damageRate.getDamageRate < 1) {
+      MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
     }
   }
 
   private def tryPlaceBlockWhileHandlingFunnySpecialCases(stack: ItemStack, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     stack != null && stack.stackSize > 0 && {
-      val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
-      setPosition(posX, posY - fakeEyeHeight, posZ)
-      val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
-      setPosition(posX, posY + fakeEyeHeight, posZ)
-      if (didPlace) {
-        robot.addXp(Settings.get.robotActionXp)
+      val event = new RobotPlaceBlockEvent.Pre(robot, stack, world, x, y, z)
+      MinecraftForge.EVENT_BUS.post(event)
+      if (event.isCanceled) false
+      else {
+        val fakeEyeHeight = if (rotationPitch < 0 && isSomeKindOfPiston(stack)) 1.82 else 0
+        setPosition(posX, posY - fakeEyeHeight, posZ)
+        val didPlace = stack.tryPlaceItemIntoWorld(this, world, x, y, z, side, hitX, hitY, hitZ)
+        setPosition(posX, posY + fakeEyeHeight, posZ)
+        if (didPlace) {
+          MinecraftForge.EVENT_BUS.post(new RobotPlaceBlockEvent.Post(robot, stack, world, x, y, z))
+        }
+        didPlace
       }
-      didPlace
     }
   }
 
@@ -409,7 +407,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     if (Settings.get.robotExhaustionCost > 0) {
       robot.bot.node.changeBuffer(-Settings.get.robotExhaustionCost * amount)
     }
-    robot.addXp(Settings.get.robotExhaustionXpRate * amount)
+    MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
   }
 
   override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}

@@ -123,6 +123,11 @@ craftingUpgrade {
           ["oc:circuitChip1", workbench, "oc:circuitChip1"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+experienceUpgrade {
+  input: [[ingotIron, "", ingotIron]
+          ["oc:circuitChip1", expBottle, "oc:circuitChip1"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 generatorUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitChip1", craftingPiston, "oc:circuitChip1"]

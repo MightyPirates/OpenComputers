@@ -1,6 +1,6 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.{Items, api, OpenComputers, Settings}
+import li.cil.oc.{api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -22,7 +22,7 @@ import li.cil.oc.common.component.ManagedComponent
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("robot").
-    withConnector(Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel).
+    withConnector(Settings.get.bufferRobot).
     create()
 
   def actualSlot(n: Int) = robot.actualSlot(n)
@@ -47,13 +47,6 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   def saveUpgrade() = robot.saveUpgrade()
 
   def hasAngelUpgrade = api.Items.get(robot.getStackInSlot(3)) == api.Items.get("angelUpgrade")
-
-  @Callback(direct = true)
-  def level(context: Context, args: Arguments): Array[AnyRef] = {
-    val xpNeeded = robot.xpForNextLevel - robot.xpForLevel(robot.level)
-    val xpProgress = math.max(0, robot.xp - robot.xpForLevel(robot.level))
-    result(robot.level + xpProgress / xpNeeded)
-  }
 
   @Callback
   def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
@@ -521,7 +514,6 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         }
         else if (robot.move(direction)) {
           context.pause(Settings.get.moveDelay)
-          robot.addXp(Settings.get.robotExhaustionXpRate * 0.01)
           result(true)
         }
         else {

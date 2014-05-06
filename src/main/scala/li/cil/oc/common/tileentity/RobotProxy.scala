@@ -29,16 +29,21 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  // Note: we implement IRobotContext in the TE to allow external components
-  //to cast their owner to it (to allow interacting with their owning robot).
-
   override def isRunning = robot.isRunning
 
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
-  override def selectedSlot() = robot.selectedSlot
-
   override def player() = robot.player()
+
+  override def dynamicComponentCapacity = robot.dynamicComponentCapacity
+
+  override def componentCapacity = robot.componentCapacity
+
+  override def inventorySize = robot.inventorySize
+
+  override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
+
+  override def selectedSlot() = robot.selectedSlot
 
   override def saveUpgrade() = robot.saveUpgrade()
 

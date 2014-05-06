@@ -21,6 +21,7 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.event.{ExperienceUpgradeHandler, UniversalElectricityToolHandler, RobotCommonHandler}
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -77,6 +78,7 @@ class Proxy {
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
     api.Driver.add(driver.item.UpgradeCrafting)
+    api.Driver.add(driver.item.UpgradeExperience)
     api.Driver.add(driver.item.UpgradeGenerator)
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
@@ -93,6 +95,12 @@ class Proxy {
 
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
+
+    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    if (Mods.UniversalElectricity.isAvailable) {
+      MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
+    }
 
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
