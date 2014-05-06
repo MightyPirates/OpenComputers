@@ -30,6 +30,10 @@ while term.isAvailable() do
   local command = term.read(history)
   if command == nil then -- eof
     return
+  else
+    if not (string.find(command,"=") or string.find(command,"end")) then
+      command = "term.write("..command..")"
+    end
   end
   while #history > 10 do
     table.remove(history, 1)
