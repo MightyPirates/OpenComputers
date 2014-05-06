@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound
 trait TextBuffer extends Environment {
   lazy val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
-    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, this).asInstanceOf[api.component.Screen]
+    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, this).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(tier)
     buffer.setMaximumResolution(maxWidth, maxHeight)
     buffer.setMaximumColorDepth(Settings.screenDepthsByTier(tier))

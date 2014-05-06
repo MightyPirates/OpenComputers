@@ -2,14 +2,14 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector
-import li.cil.oc.api.component.Screen
+import li.cil.oc.api.component.TextBuffer
 
 abstract class GraphicsCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
@@ -23,9 +23,9 @@ abstract class GraphicsCard extends ManagedComponent {
 
   private var screenAddress: Option[String] = None
 
-  private var screenInstance: Option[Screen] = None
+  private var screenInstance: Option[TextBuffer] = None
 
-  private def screen(f: (Screen) => Array[AnyRef]) = screenInstance match {
+  private def screen(f: (TextBuffer) => Array[AnyRef]) = screenInstance match {
     case Some(screen) => screen.synchronized(f(screen))
     case _ => Array(Unit, "no screen")
   }
@@ -38,8 +38,8 @@ abstract class GraphicsCard extends ManagedComponent {
     super.update()
     if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[Screen] =>
-          screenInstance = Some(node.host.asInstanceOf[Screen])
+        case Some(node: Node) if node.host.isInstanceOf[TextBuffer] =>
+          screenInstance = Some(node.host.asInstanceOf[TextBuffer])
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -56,9 +56,9 @@ abstract class GraphicsCard extends ManagedComponent {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => result(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Screen] =>
+      case node: Node if node.host.isInstanceOf[TextBuffer] =>
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[Screen])
+        screenInstance = Some(node.host.asInstanceOf[TextBuffer])
         screen(s => {
           val (gmw, gmh) = maxResolution
           val smw = s.getMaximumWidth
@@ -172,7 +172,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     screen(s => {
-      result(s.get(x, y), s.getForegroundColor, s.getBackgroundColor, s.isForegroundFromPalette, s.isBackgroundFromPalette)
+      result(s.get(x, y), s.getForegroundColor(x, y), s.getBackgroundColor(x, y), s.isForegroundFromPalette(x, y), s.isBackgroundFromPalette(x, y))
     })
   }
 
@@ -180,10 +180,11 @@ abstract class GraphicsCard extends ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
+    val vertical = args.count > 3 && args.checkBoolean(3)
 
     screen(s => {
       if (consumePower(value.length, Settings.get.gpuSetCost)) {
-        s.set(x, y, value)
+        s.set(x, y, value, vertical)
         result(true)
       }
       else result(Unit, "not enough energy")
@@ -250,7 +251,7 @@ abstract class GraphicsCard extends ManagedComponent {
                 for ((line, idx) <- lines.zipWithIndex) {
                   val col = (w - line.length) / 2
                   val row = (h - lines.length) / 2 + idx
-                  buffer.set(col, row, line)
+                  buffer.set(col, row, line, false)
                 }
               }
               catch {

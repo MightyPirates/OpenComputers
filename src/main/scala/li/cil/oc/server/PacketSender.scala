@@ -8,7 +8,7 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.ForgeDirection
 import net.minecraft.world.World
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.server.component.Container
 
 object PacketSender {
@@ -305,13 +305,14 @@ object PacketSender {
     pb.sendToNearbyPlayers(container)
   }
 
-  def sendTextBufferSet(address: String, col: Int, row: Int, s: String, container: Container) {
+  def sendTextBufferSet(address: String, col: Int, row: Int, s: String, vertical: Boolean, container: Container) {
     val pb = new PacketBuilder(PacketType.TextBufferSet)
 
     pb.writeUTF(address)
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeUTF(s)
+    pb.writeBoolean(vertical)
 
     pb.sendToNearbyPlayers(container)
   }

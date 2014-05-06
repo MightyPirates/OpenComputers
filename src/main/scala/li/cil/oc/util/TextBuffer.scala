@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
 import li.cil.oc.Settings
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 import net.minecraft.nbt._
 
 /**
@@ -94,19 +94,36 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   def get(col: Int, row: Int) = buffer(row)(col)
 
   /** String based fill starting at a specified location. */
-  def set(col: Int, row: Int, s: String): Boolean =
-    if (row < 0 || row >= height) false
-    else {
-      var changed = false
-      val line = buffer(row)
-      val lineColor = color(row)
-      for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
-        val c = s(x - col)
-        changed = changed || (line(x) != c) || (lineColor(x) != packed)
-        line(x) = c
-        lineColor(x) = packed
+  def set(col: Int, row: Int, s: String, vertical: Boolean): Boolean =
+    if (vertical) {
+      if (col < 0 || col >= width) false
+      else {
+        var changed = false
+        for (y <- row until math.min(row + s.length, height)) if (y >= 0) {
+          val line = buffer(y)
+          val lineColor = color(y)
+          val c = s(y - row)
+          changed = changed || (line(col) != c) || (lineColor(col) != packed)
+          line(col) = c
+          lineColor(col) = packed
+        }
+        changed
       }
-      changed
+    }
+    else {
+      if (row < 0 || row >= height) false
+      else {
+        var changed = false
+        val line = buffer(row)
+        val lineColor = color(row)
+        for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
+          val c = s(x - col)
+          changed = changed || (line(x) != c) || (lineColor(x) != packed)
+          line(x) = c
+          lineColor(x) = packed
+        }
+        changed
+      }
     }
 
   /** Fills an area of the buffer with the specified character. */
@@ -174,7 +191,7 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val b = nbt.getTagList("buffer")
     for (i <- 0 until math.min(h, b.tagCount)) {
       b.tagAt(i) match {
-        case tag: NBTTagString => set(0, i, tag.data)
+        case tag: NBTTagString => set(0, i, tag.data, vertical = false)
         case _ =>
       }
     }

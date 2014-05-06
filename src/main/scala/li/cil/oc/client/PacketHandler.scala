@@ -254,7 +254,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferColorChange(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val foreground = p.readInt()
         val foregroundIsPalette = p.readBoolean()
         buffer.setForegroundColor(foreground, foregroundIsPalette)
@@ -267,7 +267,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferCopy(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
         val w = p.readInt()
@@ -281,15 +281,15 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferDepthChange(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
-        buffer.setColorDepth(component.Screen.ColorDepth.values.apply(p.readInt()))
+      case Some(buffer: component.TextBuffer) =>
+        buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
       case _ => // Invalid packet.
     }
   }
 
   def onTextBufferFill(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
         val w = p.readInt()
@@ -302,7 +302,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferPaletteChange(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val index = p.readInt()
         val color = p.readInt()
         buffer.setPaletteColor(index, color)
@@ -312,14 +312,14 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferPowerChange(p: PacketParser) =
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
   def onTextBufferResolutionChange(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val w = p.readInt()
         val h = p.readInt()
         buffer.setResolution(w, h)
@@ -329,11 +329,12 @@ class PacketHandler extends CommonPacketHandler {
 
   def onTextBufferSet(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
-      case Some(buffer: component.Screen) =>
+      case Some(buffer: component.TextBuffer) =>
         val col = p.readInt()
         val row = p.readInt()
         val s = p.readUTF()
-        buffer.set(col, row, s)
+        val vertical = p.readBoolean()
+        buffer.set(col, row, s, vertical)
       case _ => // Invalid packet.
     }
   }

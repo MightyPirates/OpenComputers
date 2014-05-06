@@ -3,7 +3,7 @@ package li.cil.oc
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import java.io._
 import java.util.logging.Level
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._

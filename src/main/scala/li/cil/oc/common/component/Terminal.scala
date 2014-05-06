@@ -2,7 +2,6 @@ package li.cil.oc.common.component
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
-import li.cil.oc.api.component.{Screen, Keyboard}
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.{Component, Node, Visibility}
 import li.cil.oc.common.item
@@ -16,7 +15,7 @@ import scala.collection.mutable
 class Terminal(val rack: tileentity.Rack, val number: Int) {
   val buffer = {
     val screenItem = api.Items.get("screen1").createItemStack(1)
-    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, rack).asInstanceOf[Screen]
+    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
     val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(1)
     buffer.setMaximumResolution(maxWidth, maxHeight)
     buffer.setMaximumColorDepth(Settings.screenDepthsByTier(1))
@@ -25,9 +24,9 @@ class Terminal(val rack: tileentity.Rack, val number: Int) {
 
   val keyboard = {
     val keyboardItem = api.Items.get("keyboard").createItemStack(1)
-    val keyboard = api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, rack).asInstanceOf[Keyboard]
+    val keyboard = api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
     keyboard.setUsableOverride(new UsabilityChecker {
-      override def isUsableByPlayer(keyboard: Keyboard, player: EntityPlayer) = {
+      override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
         val stack = player.getCurrentEquippedItem
         Items.multi.subItem(stack) match {
           case Some(t: item.Terminal) if stack.hasTagCompound => keys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))

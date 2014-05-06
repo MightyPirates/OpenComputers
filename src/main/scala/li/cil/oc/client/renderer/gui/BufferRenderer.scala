@@ -5,7 +5,7 @@ import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import org.lwjgl.opengl.GL11
-import li.cil.oc.api.component.Screen
+import li.cil.oc.api.component.TextBuffer
 
 object BufferRenderer {
   val margin = 7
@@ -72,7 +72,7 @@ object BufferRenderer {
       GL11.glCallList(displayLists)
     }
 
-  def drawText(screen: Screen) =
+  def drawText(screen: TextBuffer) =
     if (textureManager.isDefined) {
       GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
       GL11.glDepthMask(false)

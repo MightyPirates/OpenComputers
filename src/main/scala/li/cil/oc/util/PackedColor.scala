@@ -2,7 +2,7 @@ package li.cil.oc.util
 
 import li.cil.oc.api.Persistable
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 
 object PackedColor {
 
@@ -58,6 +58,8 @@ object PackedColor {
       if (value.isPalette) (math.max(0, value.value) % palette.length).toByte
       else palette.map(delta(value.value, _)).zipWithIndex.minBy(_._1)._2.toByte
 
+    def isFromPalette(value: Int): Boolean
+
     protected def palette: Array[Int]
 
     protected def delta(colorA: Int, colorB: Int) = {
@@ -76,6 +78,8 @@ object PackedColor {
     def apply(index: Int) = palette(index)
 
     def update(index: Int, value: Int) = palette(index) = value
+
+    override def isFromPalette(value: Int) = true
 
     protected val palette = Array(
       0xFFFFFF, 0xFFCC33, 0xCC66CC, 0x6699FF,
@@ -108,7 +112,7 @@ object PackedColor {
     override def depth = ColorDepth.EightBit
 
     override def inflate(value: Int) =
-      if (value < palette.length) super.inflate(value)
+      if (isFromPalette(value)) super.inflate(value)
       else {
         val index = value - palette.length
         val idxB = index % blues
@@ -129,6 +133,8 @@ object PackedColor {
         val idxB = (b * (blues - 1.0) / 0xFF + 0.5).toInt
         (palette.length + idxR * greens * blues + idxG * blues + idxB).toByte
       }
+
+    override def isFromPalette(value: Int) = value < palette.length
   }
 
   case class Color(value: Int, isPalette: Boolean = false)
@@ -141,9 +147,13 @@ object PackedColor {
     ((format.deflate(foreground) << fgShift) | format.deflate(background)).toShort
   }
 
+  def extractForeground(color: Short) = (color & 0xFFFF) >>> fgShift
+
+  def extractBackground(color: Short) = color & bgMask
+
   def unpackForeground(color: Short, format: ColorFormat) =
-    format.inflate((color & 0xFFFF) >>> fgShift)
+    format.inflate(extractForeground(color))
 
   def unpackBackground(color: Short, format: ColorFormat) =
-    format.inflate(color & bgMask)
+    format.inflate(extractBackground(color))
 }

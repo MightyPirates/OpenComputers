@@ -12,8 +12,8 @@ import org.lwjgl.opengl.GL11
 import scala.collection.mutable
 import li.cil.oc.api
 
-trait Buffer extends GuiScreen {
-  protected def buffer: api.component.Screen
+trait TextBuffer extends GuiScreen {
+  protected def buffer: api.component.TextBuffer
 
   private val pressedKeys = mutable.Map.empty[Int, Char]
 

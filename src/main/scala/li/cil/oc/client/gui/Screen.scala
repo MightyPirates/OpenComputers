@@ -7,7 +7,7 @@ import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Screen(val buffer: api.component.Screen, val hasMouse: Boolean, val hasPower: () => Boolean) extends Buffer {
+class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends TextBuffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var didDrag = false

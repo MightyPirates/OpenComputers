@@ -3,7 +3,7 @@ package li.cil.oc.common.component
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.{api, Settings}
-import li.cil.oc.api.component.Screen.ColorDepth
+import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender, ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.renderer.{MonospaceFontRenderer, TextBufferRenderCache}
@@ -16,7 +16,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class TextBuffer(val owner: component.Container) extends ManagedComponent with api.component.Screen {
+class TextBuffer(val owner: component.Container) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().
@@ -228,17 +228,39 @@ class TextBuffer(val owner: component.Container) extends ManagedComponent with a
     if (data.fill(col, row, w, h, c))
       proxy.onScreenFill(col, row, w, h, c)
 
-  def set(col: Int, row: Int, s: String) = if (col < data.width && (col >= 0 || -col < s.length)) {
+  def set(col: Int, row: Int, s: String, vertical: Boolean) = if (col < data.width && (col >= 0 || -col < s.length)) {
     // Make sure the string isn't longer than it needs to be, in particular to
     // avoid sending too much data to our clients.
-    val (x, truncated) =
-      if (col < 0) (0, s.substring(-col))
-      else (col, s.substring(0, math.min(s.length, data.width - col)))
-    if (data.set(x, row, truncated))
-      proxy.onScreenSet(x, row, truncated)
+    val (x, y, truncated) =
+      if (vertical) {
+        if (row < 0) (col, 0, s.substring(-row))
+        else (col, row, s.substring(0, math.min(s.length, data.height - row)))
+      }
+      else {
+        if (col < 0) (0, row, s.substring(-col))
+        else (col, row, s.substring(0, math.min(s.length, data.width - col)))
+      }
+    if (data.set(x, y, truncated, vertical))
+      proxy.onScreenSet(x, row, truncated, vertical)
   }
 
   def get(col: Int, row: Int) = data.get(col, row)
+
+  override def getForegroundColor(column: Int, row: Int) =
+    PackedColor.unpackForeground(data.color(row)(column), data.format)
+
+  override def isForegroundFromPalette(column: Int, row: Int) = data.format match {
+    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
+    case _ => false
+  }
+
+  override def getBackgroundColor(column: Int, row: Int) =
+    PackedColor.unpackBackground(data.color(row)(column), data.format)
+
+  override def isBackgroundFromPalette(column: Int, row: Int) = data.format match {
+    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
+    case _ => false
+  }
 
   @SideOnly(Side.CLIENT)
   override def renderText() = proxy.render()
@@ -357,7 +379,7 @@ object TextBuffer {
 
     def onScreenResolutionChange(w: Int, h: Int)
 
-    def onScreenSet(col: Int, row: Int, s: String)
+    def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean)
 
     def keyDown(character: Char, code: Int, player: EntityPlayer)
 
@@ -389,7 +411,7 @@ object TextBuffer {
 
     override def onScreenResolutionChange(w: Int, h: Int) = dirty = true
 
-    override def onScreenSet(col: Int, row: Int, s: String) = dirty = true
+    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) = dirty = true
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) =
       ClientPacketSender.sendKeyDown(nodeAddress, character, code)
@@ -447,10 +469,10 @@ object TextBuffer {
       ServerPacketSender.sendTextBufferResolutionChange(buffer.node.address, w, h, buffer.owner)
     }
 
-    override def onScreenSet(col: Int, row: Int, s: String) {
+    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
       buffer.relativeLitArea = -1
       buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferSet(buffer.node.address, col, row, s, buffer.owner)
+      ServerPacketSender.sendTextBufferSet(buffer.node.address, col, row, s, vertical, buffer.owner)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {

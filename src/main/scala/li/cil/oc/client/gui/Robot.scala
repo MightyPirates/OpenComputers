@@ -20,7 +20,7 @@ import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
-class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with Buffer {
+class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
   xSize = 256
   ySize = 242
 
