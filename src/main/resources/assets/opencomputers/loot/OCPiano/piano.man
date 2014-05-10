@@ -1,0 +1,18 @@
+NAME
+  piano - play piano
+
+SYNOPSIS
+  piano
+
+DESCRIPTION
+Lets you play piano on your Noteblock using your keyboard
+
+OPTIONS
+  -y
+    Run in QWERTY-MODE
+  -z
+    Run in QWERTZ-MODE
+
+EXAMPLES
+  piano -y
+    Starts piano in QWERTY-MODE
