@@ -51,12 +51,12 @@ object InventorySlots {
   val assembler = Array(
     Array(
       InventorySlot(Slot.None, Tier.None), // Reserved for computer case.
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
-      InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.One),
       InventorySlot(Slot.Upgrade, Tier.One),
       InventorySlot(Slot.Upgrade, Tier.One),
+      InventorySlot(Slot.None, Tier.None),
+      InventorySlot(Slot.None, Tier.None),
+      InventorySlot(Slot.None, Tier.None),
       InventorySlot(Slot.None, Tier.None),
       InventorySlot(Slot.None, Tier.None),
       InventorySlot(Slot.None, Tier.None),

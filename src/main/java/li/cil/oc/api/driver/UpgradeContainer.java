@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
  * These drivers will not be queried for environments. The reported tier is the
  * maximum tier supported in the dynamic slot they provide.
  */
-public interface UpgradeSlot extends Item {
+public interface UpgradeContainer extends Item {
     /**
      * The type of slot provided as the dynamic slot. This will usually be
      * for other upgrades, but may be for any type of item component.

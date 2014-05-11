@@ -173,5 +173,12 @@ object Items extends ItemAPI {
     // v1.3.0
     Recipes.addItemDelegate(new item.LinkedCard(multi), "linkedCard", "oc:linkedCard")
     Recipes.addItemDelegate(new item.UpgradeExperience(multi), "experienceUpgrade", "oc:experienceUpgrade")
+    Recipes.addItemDelegate(new item.UpgradeInventory(multi), "inventoryUpgrade", "oc:inventoryUpgrade")
+    Recipes.addItemDelegate(new item.UpgradeContainerUpgrade(multi, 0), "upgradeContainer1", "oc:upgradeContainer1")
+    Recipes.addItemDelegate(new item.UpgradeContainerUpgrade(multi, 1), "upgradeContainer2", "oc:upgradeContainer2")
+    Recipes.addItemDelegate(new item.UpgradeContainerUpgrade(multi, 2), "upgradeContainer3", "oc:upgradeContainer3")
+    Recipes.addItemDelegate(new item.UpgradeContainerCard(multi, 0), "cardContainer1", "oc:cardContainer1")
+    Recipes.addItemDelegate(new item.UpgradeContainerCard(multi, 1), "cardContainer2", "oc:cardContainer2")
+    Recipes.addItemDelegate(new item.UpgradeContainerCard(multi, 2), "cardContainer3", "oc:cardContainer3")
   }
 }

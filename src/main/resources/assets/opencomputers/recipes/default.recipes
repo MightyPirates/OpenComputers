@@ -124,14 +124,19 @@ craftingUpgrade {
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 experienceUpgrade {
-  input: [[ingotIron, "", ingotIron]
-          ["oc:circuitChip1", expBottle, "oc:circuitChip1"]
-          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+  input: [[ingotGold, "", ingotGold]
+          ["oc:circuitChip2", emerald, "oc:circuitChip2"]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 generatorUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitChip1", craftingPiston, "oc:circuitChip1"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+inventoryUpgrade {
+  input: [[plankWood, hopper, plankWood]
+          [dispenser, chest, craftingPiston]
+          [plankWood, "oc:circuitChip1", plankWood]]
 }
 navigationUpgrade {
   input: [[ingotGold, compass, ingotGold]
@@ -146,6 +151,36 @@ signUpgrade {
 solarGeneratorUpgrade {
   input: [[glass, glass, glass]
           ["oc:circuitChip3", "oc:generatorUpgrade", "oc:circuitChip3"]]
+}
+cardContainer1 {
+  input: [[ingotIron, "oc:materialTransistor", ingotIron]
+          [craftingPiston, chest, ""]
+          [ingotIron, "oc:materialCard", ingotIron]]
+}
+cardContainer2 {
+  input: [[ingotIron, "oc:circuitChip2", ingotIron]
+          [craftingPiston, chest, ""]
+          [ingotIron, "oc:materialCard", ingotIron]]
+}
+cardContainer3 {
+  input: [[ingotGold, "oc:circuitChip2", ingotGold]
+          [craftingPiston, chest, ""]
+          [ingotGold, "oc:materialCard", ingotGold]]
+}
+upgradeContainer1 {
+  input: [[ingotIron, "oc:circuitChip1", ingotIron]
+          [craftingPiston, chest, ""]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+upgradeContainer2 {
+  input: [[ingotIron, "oc:circuitChip2", ingotIron]
+          [craftingPiston, chest, ""]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
+upgradeContainer3 {
+  input: [[ingotGold, "oc:circuitChip2", ingotGold]
+          [craftingPiston, chest, ""]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 
 # Note: iron ingot and nugget recipes are *only* registered if no other mod

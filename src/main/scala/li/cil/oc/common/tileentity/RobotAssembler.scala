@@ -7,6 +7,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.api.driver.UpgradeContainer
 
 class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable {
   val node = api.Network.newNode(this, Visibility.None).
@@ -16,6 +17,7 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
   var isAssembling = false
 
   def complexity = items.drop(1).foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack.orNull)) match {
+    case Some(driver: UpgradeContainer) => (1 + driver.tier(stack.get)) * 2
     case Some(driver) => 1 + driver.tier(stack.get)
     case _ => 0
   }))
