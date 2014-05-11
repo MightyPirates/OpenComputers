@@ -19,6 +19,8 @@ object GuiHandler extends CommonGuiHandler {
         new gui.Robot(player.inventory, proxy.robot)
       case rack: tileentity.Rack if id == GuiType.Rack.id =>
         new gui.Rack(player.inventory, rack)
+      case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
+        new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
         new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.buffer.isRenderingEnabled)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {

@@ -65,7 +65,7 @@ object Items extends ItemAPI {
     names += instance -> name
   }
 
-  private def getBlockOrItem(stack: ItemStack): Any = {
+  private def getBlockOrItem(stack: ItemStack): Any = if (stack == null) null else {
     multi.subItem(stack).getOrElse(
       Blocks.blockSimple.subBlock(stack).getOrElse(
         Blocks.blockSimpleWithRedstone.subBlock(stack).getOrElse(

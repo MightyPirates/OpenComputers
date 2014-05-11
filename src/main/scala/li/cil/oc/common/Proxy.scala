@@ -80,6 +80,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeCrafting)
     api.Driver.add(driver.item.UpgradeExperience)
     api.Driver.add(driver.item.UpgradeGenerator)
+    api.Driver.add(driver.item.UpgradeInventory)
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)

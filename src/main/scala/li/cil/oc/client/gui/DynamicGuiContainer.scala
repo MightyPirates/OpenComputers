@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
+import li.cil.oc.common.InventorySlots.Tier
 
 abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
@@ -23,21 +24,25 @@ abstract class DynamicGuiContainer(container: Container) extends GuiContainer(co
   }
 
   override def drawSlotInventory(slot: Slot) {
-    if (slot.slotNumber < container.inventorySlots.size() - 36) {
-      GL11.glDisable(GL11.GL_LIGHTING)
-      drawSlotBackground(slot.xDisplayPosition - 1, slot.yDisplayPosition - 1)
-      GL11.glEnable(GL11.GL_LIGHTING)
-    }
-    RenderState.makeItBlend()
-    super.drawSlotInventory(slot)
-    GL11.glDisable(GL11.GL_BLEND)
-    if (!slot.getHasStack) slot match {
-      case component: ComponentSlot if component.tierIcon != null =>
-        mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
-        GL11.glDisable(GL11.GL_DEPTH_TEST)
-        drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
+    slot match {
+      case component: ComponentSlot if component.tier == Tier.None => // Ignore.
       case _ =>
+        if (slot.slotNumber < container.inventorySlots.size() - 36) {
+          GL11.glDisable(GL11.GL_LIGHTING)
+          drawSlotBackground(slot.xDisplayPosition - 1, slot.yDisplayPosition - 1)
+          GL11.glEnable(GL11.GL_LIGHTING)
+        }
+        RenderState.makeItBlend()
+        super.drawSlotInventory(slot)
+        GL11.glDisable(GL11.GL_BLEND)
+        if (!slot.getHasStack) slot match {
+          case component: ComponentSlot if component.tierIcon != null =>
+            mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
+          case _ =>
+        }
     }
   }
 

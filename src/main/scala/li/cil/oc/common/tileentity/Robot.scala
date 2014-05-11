@@ -40,11 +40,11 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  override def dynamicComponentCapacity = 3
+  var dynamicComponentCapacity = 3
 
-  override def componentCapacity = 3
+  var componentCapacity = 3
 
-  override def inventorySize = getSizeInventory
+  var inventorySize = 20
 
   override def getComponentInSlot(index: Int) = components(index).orNull
 
@@ -134,7 +134,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     player_
   }
 
-  def actualSlot(n: Int) = n + 4
+  def actualSlot(n: Int) = n + 1 + componentCapacity
 
   def move(direction: ForgeDirection): Boolean = {
     val (ox, oy, oz) = (x, y, z)
@@ -338,6 +338,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
+//    dynamicComponentCapacity = nbt.getInteger("dynamicComponentCapacity")
+//    componentCapacity = nbt.getInteger("componentCapacity")
+//    inventorySize = nbt.getInteger("inventorySize")
+
     buffer.load(nbt.getCompoundTag(Settings.namespace + "buffer"))
     gpu.load(nbt.getCompoundTag(Settings.namespace + "gpu"))
     keyboard.load(nbt.getCompoundTag(Settings.namespace + "keyboard"))
@@ -365,6 +369,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // Side check for Waila (and other mods that may call this client side).
   override def writeToNBT(nbt: NBTTagCompound) = if (isServer) this.synchronized {
+//    nbt.setInteger("dynamicComponentCapacity", dynamicComponentCapacity)
+//    nbt.setInteger("componentCapacity", componentCapacity)
+//    nbt.setInteger("inventorySize", inventorySize)
+
     // Note: computer is saved when proxy is saved (in proxy's super writeToNBT)
     // which is a bit ugly, and may be refactored some day, but it works.
     nbt.setNewCompoundTag(Settings.namespace + "buffer", buffer.save)
@@ -531,21 +539,21 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  override def installedMemory = Settings.get.ramSizes(1) * 1024 + (items(3) match {
+  override def installedMemory = (1 to componentCapacity).foldLeft(0)((acc, slot) => acc + (items(slot) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver: api.driver.Memory) => driver.amount(stack)
       case _ => 0
     }
     case _ => 0
-  })
+  }))
 
-  override def hasRedstoneCard = items(1).fold(false)(driver.item.RedstoneCard.worksWith)
+  override def hasRedstoneCard = (1 to componentCapacity).exists(items(_).fold(false)(driver.item.RedstoneCard.worksWith))
 
   // ----------------------------------------------------------------------- //
 
   override def getInvName = Settings.namespace + "container.Robot"
 
-  override def getSizeInventory = 20
+  override def getSizeInventory = inventorySize
 
   override def getInventoryStackLimit = 64
 
@@ -573,7 +581,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
     case (1, Some(driver)) => driver.slot(stack) == Slot.Card && driver.tier(stack) < 2
     case (2, Some(driver)) => driver.slot(stack) == Slot.Disk
     case (3, Some(driver)) => driver.slot(stack) == Slot.Upgrade || (driver.slot(stack) == Slot.Memory && driver.tier(stack) == 0)
-    case (i, _) if actualSlot(0) until getSizeInventory contains i => true // Normal inventory.
+    case (i, _) if actualSlot(0) until inventorySize contains i => true // Normal inventory.
     case _ => false // Invalid slot.
   }
 
@@ -589,8 +597,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.TextBuffe
   override def getAccessibleSlotsFromSide(side: Int) =
     toLocal(ForgeDirection.getOrientation(side)) match {
       case ForgeDirection.WEST => Array(0)
-      case ForgeDirection.EAST => Array(1)
-      case ForgeDirection.NORTH => Array(2, 3)
+      case ForgeDirection.EAST => (1 to componentCapacity).toArray
       case _ => (actualSlot(0) until getSizeInventory).toArray
     }
 }

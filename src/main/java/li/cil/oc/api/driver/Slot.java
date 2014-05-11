@@ -65,5 +65,10 @@ public enum Slot {
      * <p/>
      * Used for special robot upgrades such as internal engines and the like.
      */
-    Upgrade
+    Upgrade,
+
+    /**
+     * Upgrade that provides a slot in the assembled robot.
+     */
+    UpgradeContainer
 }

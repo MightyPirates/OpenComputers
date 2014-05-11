@@ -1,8 +1,8 @@
 package li.cil.oc.common.item
 
 import java.util
-import li.cil.oc.Settings
-import li.cil.oc.util.Tooltip
+import li.cil.oc.{server, Settings}
+import li.cil.oc.util.{Rarity, Tooltip}
 import li.cil.oc.util.mods.Mods
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -12,6 +12,8 @@ class AbstractBusCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "AbstractBusCard"
 
   showInItemList = Mods.StargateTech2.isAvailable
+
+  override def rarity = Rarity.byTier(server.driver.item.AbstractBusCard.tier(createItemStack()))
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))

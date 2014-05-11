@@ -1,22 +1,16 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.api
-import li.cil.oc.client.gui.Icons
-import net.minecraft.inventory.{IInventory, Slot}
-import net.minecraft.item.ItemStack
+import net.minecraft.util.Icon
+import net.minecraft.inventory.Slot
+import li.cil.oc.common.InventorySlots.Tier
 
-class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot = api.driver.Slot.None, val tier: Int = -1) extends Slot(inventory, index, x, y) {
-  setBackgroundIcon(Icons.get(slot))
+trait ComponentSlot extends Slot {
+  def slot: api.driver.Slot
 
-  val tierIcon = Icons.get(tier)
+  def tier: Int
 
-  override def getSlotStackLimit =
-    slot match {
-      case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
-      case _ => 1
-    }
+  def tierIcon: Icon
 
-  override def isItemValid(stack: ItemStack) = {
-    inventory.isItemValidForSlot(index, stack)
-  }
+  override def func_111238_b() = tier != Tier.None && super.func_111238_b()
 }

@@ -50,6 +50,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
+    GameRegistry.registerTileEntity(classOf[tileentity.RobotAssembler], Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
@@ -96,5 +97,6 @@ object Blocks {
     // v1.3.0
     Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
     Recipes.addBlockDelegate(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
+    Recipes.addBlockDelegate(new RobotAssembler(blockSimple), "robotAssembler", "oc:robotAssembler")
   }
 }

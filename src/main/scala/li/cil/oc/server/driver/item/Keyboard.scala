@@ -10,6 +10,5 @@ object Keyboard extends Item {
 
   override def createEnvironment(stack: ItemStack, container: component.Container) = new component.Keyboard(container)
 
-  // Only allow programmatic 'installation' of the keyboard as an item.
-  override def slot(stack: ItemStack) = Slot.None
+  override def slot(stack: ItemStack) = Slot.Upgrade
 }

@@ -6,7 +6,7 @@ import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
-import li.cil.oc.common.container.ComponentSlot
+import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -69,7 +69,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     super.drawSlotInventory(slot)
     GL11.glDisable(GL11.GL_BLEND)
     if (!slot.getHasStack) slot match {
-      case component: ComponentSlot if component.tierIcon != null =>
+      case component: StaticComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
         GL11.glDisable(GL11.GL_DEPTH_TEST)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)

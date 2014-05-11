@@ -11,4 +11,6 @@ object UpgradeAngel extends Item {
   override def createEnvironment(stack: ItemStack, container: component.Container) = new component.UpgradeAngel()
 
   override def slot(stack: ItemStack) = Slot.Upgrade
+
+  override def tier(stack: ItemStack) = 1
 }

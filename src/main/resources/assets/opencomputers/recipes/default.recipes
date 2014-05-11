@@ -336,6 +336,11 @@ robot {
           [dispenser, "oc:case1", "oc:ram1"]
           ["oc:capacitor", minecartHopper, "oc:capacitor"]]
 }
+robotAssembler {
+  input: [[ingotIron, workbench, ingotIron]
+          [craftingPiston, "oc:circuitChip2", craftingPiston]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
+}
 switch {
   input: [[ingotIron, "oc:cable", ingotIron]
           ["oc:cable", "oc:lanCard", "oc:cable"]

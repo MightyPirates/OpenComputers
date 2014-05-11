@@ -15,4 +15,6 @@ object UpgradeNavigation extends Item {
   }
 
   override def slot(stack: ItemStack) = Slot.Upgrade
+
+  override def tier(stack: ItemStack) = 2
 }
