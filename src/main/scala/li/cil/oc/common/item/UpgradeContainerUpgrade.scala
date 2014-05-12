@@ -14,7 +14,7 @@ class UpgradeContainerUpgrade(val parent: Delegator, val tier: Int) extends Dele
   override def rarity = Rarity.byTier(server.driver.item.UpgradeContainerUpgrade.tier(createItemStack()))
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    tooltip.addAll(Tooltip.get(baseName, tier + 1))
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 

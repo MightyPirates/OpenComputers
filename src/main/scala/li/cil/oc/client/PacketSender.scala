@@ -97,6 +97,11 @@ object PacketSender {
   }
 
   def sendRobotAssemblerStart(t: RobotAssembler) {
+    val pb = new PacketBuilder(PacketType.RobotAssemblerStart)
+
+    pb.writeTileEntity(t)
+
+    pb.sendToServer()
   }
 
   def sendRobotStateRequest(dimension: Int, x: Int, y: Int, z: Int) {

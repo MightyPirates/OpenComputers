@@ -10,7 +10,7 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import li.cil.oc.common.InventorySlots.{Tier, InventorySlot}
 
-abstract class Player(protected val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
+abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
   protected val playerInventorySizeX = InventoryPlayer.getHotbarSize
 
@@ -100,12 +100,12 @@ abstract class Player(protected val playerInventory: InventoryPlayer, val otherI
 
   def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = Tier.Any) {
     val index = getInventory.size
-    addSlotToContainer(new StaticComponentSlot(otherInventory, index, x, y, slot, tier))
+    addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }
 
   def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], tierGetter: () => Int) {
     val index = getInventory.size
-    addSlotToContainer(new DynamicComponentSlot(otherInventory, index, x, y,info, tierGetter))
+    addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, tierGetter))
   }
 
   /** Render player inventory at the specified coordinates. */

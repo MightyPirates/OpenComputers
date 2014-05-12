@@ -19,13 +19,14 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   protected override def actionPerformed(button: GuiButton) {
-    if (button.id == 0 && !assembler.isAssembling) {
+    if (button.id == 0 && !assembler.isAssembling && assembler.complexity < assembler.maxComplexity) {
       ClientPacketSender.sendRobotAssemblerStart(assembler)
     }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
-    runButton.toggled = assembler.isAssembling
+    runButton.enabled = assembler.complexity < assembler.maxComplexity && !assembler.isAssembling
+    runButton.toggled = !runButton.enabled
     super.drawScreen(mouseX, mouseY, dt)
   }
 

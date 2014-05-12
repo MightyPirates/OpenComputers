@@ -75,15 +75,15 @@ object InventorySlots {
 
     Array(
       InventorySlot(Slot.None, Tier.None),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
       InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.One),
       InventorySlot(Slot.Upgrade, Tier.One),
       InventorySlot(Slot.Upgrade, Tier.One),
+      InventorySlot(Slot.Upgrade, Tier.None),
+      InventorySlot(Slot.Upgrade, Tier.None),
+      InventorySlot(Slot.Upgrade, Tier.None),
       InventorySlot(Slot.UpgradeContainer, Tier.Three),
       InventorySlot(Slot.UpgradeContainer, Tier.Two),
       InventorySlot(Slot.UpgradeContainer, Tier.One),

@@ -27,6 +27,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
@@ -117,8 +118,13 @@ class PacketHandler extends CommonPacketHandler {
       case player: EntityPlayerMP => EventHandler.place(player)
       case _ => // Invalid packet.
     }
-
   }
+
+  def onRobotAssemblerStart(p: PacketParser) =
+    p.readTileEntity[RobotAssembler]() match {
+      case Some(assembler) => assembler.start()
+      case _ => // Invalid packet.
+    }
 
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {

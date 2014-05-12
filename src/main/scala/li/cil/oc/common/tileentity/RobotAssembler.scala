@@ -7,7 +7,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.util.ItemUtils
-import li.cil.oc.api.driver.UpgradeContainer
+import li.cil.oc.api.driver.{Slot, UpgradeContainer}
 
 class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable {
   val node = api.Network.newNode(this, Visibility.None).
@@ -25,6 +25,12 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
   def maxComplexity = {
     val caseTier = ItemUtils.caseTier(items(0).orNull)
     if (caseTier >= 0) Settings.robotComplexityByTier(caseTier) else 0
+  }
+
+  def start() {
+    if (complexity < maxComplexity) {
+
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -47,7 +53,7 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
       caseTier != Tier.None && {
         val info = InventorySlots.assembler(caseTier)(slot)
         Option(Driver.driverFor(stack)) match {
-          case Some(driver) => driver.slot(stack) == info.slot && driver.tier(stack) <= info.tier
+          case Some(driver) if info.slot != Slot.None && info.tier != Tier.None => driver.slot(stack) == info.slot && driver.tier(stack) <= info.tier
           case _ => false
         }
       }

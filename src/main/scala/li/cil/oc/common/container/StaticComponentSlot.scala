@@ -5,7 +5,7 @@ import li.cil.oc.client.gui.Icons
 import net.minecraft.inventory.{IInventory, Slot}
 import net.minecraft.item.ItemStack
 
-class StaticComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot, val tier: Int) extends Slot(inventory, index, x, y) with ComponentSlot {
+class StaticComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot, val tier: Int) extends Slot(inventory, index, x, y) with ComponentSlot {
   setBackgroundIcon(Icons.get(slot))
 
   val tierIcon = Icons.get(tier)
