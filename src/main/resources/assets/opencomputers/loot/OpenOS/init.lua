@@ -6,7 +6,7 @@ do
   -- Low level dofile implementation to read filesystem libraries.
   local rom = {}
   function rom.invoke(method, ...)
-    return component.invoke(computer.romAddress(), method, ...)
+    return component.invoke(computer.getBootAddress(), method, ...)
   end
   function rom.open(file) return rom.invoke("open", file) end
   function rom.read(handle) return rom.invoke("read", handle, math.huge) end
@@ -105,7 +105,7 @@ do
   -- Mount the ROM and temporary file systems to allow working on the file
   -- system module from this point on.
   local filesystem = require("filesystem")
-  filesystem.mount(computer.getBootAddress() or computer.romAddress(), "/")
+  filesystem.mount(computer.getBootAddress(), "/")
   if computer.tmpAddress() then
     filesystem.mount(computer.tmpAddress(), "/tmp")
   end

@@ -5,7 +5,6 @@ import li.cil.oc.api.machine.Architecture;
 import li.cil.oc.api.machine.Owner;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * This API is intended for people who would like to implement custom computer
@@ -37,29 +36,6 @@ public final class Machine {
     public static void add(Class<? extends Architecture> architecture) {
         if (instance != null)
             instance.add(architecture);
-    }
-
-    /**
-     * Adds a file system to use for the composite file system that is made
-     * available as the ROM to each machine of the specified architecture.
-     * <p/>
-     * File systems are merged in a overshadowing manner, i.e. if files or
-     * directories with the same path exist in multiple file systems, only the
-     * one that was last registered will be used. In other words, added file
-     * systems override previously existed file systems on a file-by-file
-     * level (where files can override folders and vice versa).
-     *
-     * @param architecture the the architecture for which to add to the ROM.
-     * @param resource     the file system factory to add to the ROM.
-     * @param name         a unique name for the file system. This is required
-     *                     to allow for deterministic loading/saving of the
-     *                     file system (open file handles). This value must be
-     *                     unique for each file system in the resource set.
-     * @throws java.lang.IllegalArgumentException if the name is not unique.
-     */
-    public static void addRomResource(Class<? extends Architecture> architecture, Callable<li.cil.oc.api.fs.FileSystem> resource, String name) {
-        if (instance != null)
-            instance.addRomResource(architecture, resource, name);
     }
 
     /**

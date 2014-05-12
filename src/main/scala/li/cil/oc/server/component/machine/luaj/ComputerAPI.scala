@@ -33,12 +33,6 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     computer.set("pushSignal", (args: Varargs) => LuaValue.valueOf(machine.signal(args.checkjstring(1), toSimpleJavaObjects(args, 2): _*)))
 
-    // And its ROM address.
-    computer.set("romAddress", (_: Varargs) => Option(machine.romAddress) match {
-      case Some(address) => LuaValue.valueOf(address)
-      case _ => LuaValue.NIL
-    })
-
     // And it's /tmp address...
     computer.set("tmpAddress", (_: Varargs) => {
       val address = machine.tmpAddress

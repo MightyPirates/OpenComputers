@@ -299,11 +299,11 @@ end
 
 function filesystem.list(path)
   local node, rest, vnode, vrest = findNode(path)
-  if not vnode.fs and vrest and not node.fs then
+  if not vnode.fs and vrest and not (node and node.fs) then
     return nil, "no such file or directory"
   end
   local result, reason
-  if node.fs then
+  if node and node.fs then
     result, reason = node.fs.list(rest or "")
   end
   result = result or {}

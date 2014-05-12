@@ -73,6 +73,10 @@ hdd3 {
           ["oc:materialCircuitBoardPrinted", "oc:materialDisk", craftingPiston]
           ["oc:circuitChip3", "oc:materialDisk", diamond]]
 }
+openOS {
+  type: shapeless
+  input: ["oc:floppy", book]
+}
 
 abstractBusCard {
   input: [[busCable, {item=naquadah, subID=8}, ""]

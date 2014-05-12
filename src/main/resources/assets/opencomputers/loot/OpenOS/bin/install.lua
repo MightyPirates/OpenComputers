@@ -40,11 +40,11 @@ until choice
 choice = candidates[choice]
 
 print("Installing OpenOS to device " .. choice.address)
-local rom = "/mnt/" .. computer.romAddress():sub(1, 3) .. "/"
+local boot = "/mnt/" .. computer.getBootAddress():sub(1, 3) .. "/"
 local mnt = "/mnt/" .. choice.address:sub(1, 3) .. "/"
 local function install(what, path)
   print("Installing " .. what .. "...")
-  local result, reason = os.execute("cp -vf " .. rom .. path .. " " .. mnt)
+  local result, reason = os.execute("cp -vf " .. boot .. path .. " " .. mnt)
   if not result then
     error(reason, 0)
   end

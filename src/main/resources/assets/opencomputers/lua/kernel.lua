@@ -416,7 +416,6 @@ sandbox.component = libcomponent
 local libcomputer = {
   isRobot = computer.isRobot,
   address = computer.address,
-  romAddress = computer.romAddress,
   tmpAddress = computer.tmpAddress,
   freeMemory = computer.freeMemory,
   totalMemory = computer.totalMemory,
@@ -518,10 +517,16 @@ local function bootstrap()
   end
   if not init then
     computer.setBootAddress()
-    init, reason = tryLoadFrom(computer.romAddress())
+    for address in libcomponent.list("filesystem") do
+      init, reason = tryLoadFrom(address)
+      if init then
+        computer.setBootAddress(address)
+        break
+      end
+    end
   end
   if not init then
-    error(reason)
+    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""))
   end
 
   return coroutine.create(init), {n=0}

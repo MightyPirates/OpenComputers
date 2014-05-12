@@ -4,9 +4,7 @@ import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
-import java.util.concurrent.Callable
 import li.cil.oc._
-import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
@@ -56,12 +54,6 @@ class Proxy {
       if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
-
-    api.Machine.addRomResource(api.Machine.LuaArchitecture,
-      new Callable[api.fs.FileSystem] {
-        def call = FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom")
-      },
-      Settings.resourceDomain + "/lua/rom")
   }
 
   def init(e: FMLInitializationEvent) {
@@ -106,10 +98,9 @@ class Proxy {
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }
 
+    Loot.init()
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
-
-    Loot.init()
 
     FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }

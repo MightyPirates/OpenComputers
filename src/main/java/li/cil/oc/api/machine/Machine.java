@@ -75,21 +75,6 @@ public interface Machine extends ManagedEnvironment, Context {
     void setCostPerTick(double value);
 
     /**
-     * The address of the file system that holds the machine's read only data
-     * (rom). This file system is populated based on the backing resource file
-     * systems specified for the machines architecture via
-     * {@link li.cil.oc.api.Machine#addRomResource(Class, java.util.concurrent.Callable, String)}.
-     * This may return <tt>null</tt> if the creation of the file system
-     * failed.
-     * <p/>
-     * Use this in a custom architecture to allow code do differentiate the
-     * tmpfs from other file systems, for example.
-     *
-     * @return the address of the rom component, or <tt>null</tt>.
-     */
-    String romAddress();
-
-    /**
      * The address of the file system that holds the machine's temporary files
      * (tmpfs). This may return <tt>null</tt> if either the creation of the file
      * system failed, or if the size of the tmpfs has been set to zero in the

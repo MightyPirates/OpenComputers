@@ -29,6 +29,7 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
 
   def start() {
     if (complexity < maxComplexity) {
+      // TODO validate all slots, just in case. never trust a client. never trust minecraft.
 
     }
   }

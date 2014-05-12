@@ -76,16 +76,6 @@ class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "pushSignal")
 
-    // And its ROM address.
-    lua.pushScalaFunction(lua => {
-      Option(machine.romAddress) match {
-        case None => lua.pushNil()
-        case Some(address) => lua.pushString(address)
-      }
-      1
-    })
-    lua.setField(-2, "romAddress")
-
     // And it's /tmp address...
     lua.pushScalaFunction(lua => {
       val address = machine.tmpAddress
