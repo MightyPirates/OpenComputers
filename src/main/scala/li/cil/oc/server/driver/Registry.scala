@@ -91,9 +91,11 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case (value: AnyRef) => convertRecursively(value)
     }
     case arg: Map[_, _] => arg.map {
+      case (key: AnyRef, null) =>convertRecursively(key) -> null
       case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
     }
     case arg: java.util.Map[_, _] => arg.map {
+      case (key: AnyRef, null) =>convertRecursively(key) -> null
       case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
     }
 
