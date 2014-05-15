@@ -42,7 +42,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
       val tooltip = new java.util.ArrayList[String]
       val which = if (computer.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()
   }

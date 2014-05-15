@@ -11,7 +11,6 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
@@ -20,7 +19,7 @@ import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
-class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with Buffer {
+class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with Buffer {
   xSize = 256
   ySize = 242
 
@@ -106,13 +105,13 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
         ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
         robot.globalBuffer.toInt,
         robot.globalBufferSize.toInt))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     if (powerButton.func_82252_a) {
       val tooltip = new java.util.ArrayList[String]
       val which = if (robot.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()
   }
