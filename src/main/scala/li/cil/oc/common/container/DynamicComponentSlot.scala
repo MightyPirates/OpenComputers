@@ -9,7 +9,7 @@ import net.minecraft.inventory.{Slot, IInventory}
 class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: Array[Array[InventorySlot]], val tierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
   override def tier = {
     val mainTier = tierGetter()
-    if (mainTier >= 0) info(mainTier)(slotNumber).tier
+    if (mainTier >= 0) info(mainTier)(getSlotIndex).tier
     else mainTier
   }
 
@@ -17,7 +17,7 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
 
   def slot = {
     val mainTier = tierGetter()
-    if (mainTier >= 0) info(tierGetter())(slotNumber).slot
+    if (mainTier >= 0) info(tierGetter())(getSlotIndex).slot
     else api.driver.Slot.None
   }
 

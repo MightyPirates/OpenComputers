@@ -16,6 +16,7 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
+import li.cil.oc.client.KeyBindings
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"
@@ -33,9 +34,11 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
     tooltip.addAll(Tooltip.get(unlocalizedName))
-    val info = new ItemUtils.RobotData(stack)
-    for (component <- info.containers ++ info.components) {
-      tooltip.add(component.getDisplayName)
+    if (KeyBindings.showExtendedTooltips) {
+      val info = new ItemUtils.RobotData(stack)
+      for (component <- info.containers ++ info.components) {
+        tooltip.add("- " + component.getDisplayName)
+      }
     }
   }
 

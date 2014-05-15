@@ -18,6 +18,7 @@ object PacketType extends Enumeration {
   RedstoneState,
   RobotAnimateSwing,
   RobotAnimateTurn,
+  RobotAssemblingState,
   RobotEquippedItemChange,
   RobotEquippedUpgradeChange,
   RobotMove,

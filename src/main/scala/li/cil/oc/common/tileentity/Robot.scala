@@ -50,6 +50,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var selectedSlot = actualSlot(0)
 
+  // Fixed number of containers (mostly due to GUI limitation, but also because
+  // I find three to be a large enough number for sufficient flexibility).
   override def containerCount = 3
 
   override def componentCount = info.components.length
@@ -303,7 +305,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (nbt.hasKey(Settings.namespace + "owner")) {
       owner = nbt.getString(Settings.namespace + "owner")
     }
-    selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
+    if (inventorySize > 0) {
+      selectedSlot = nbt.getInteger(Settings.namespace + "selectedSlot") max inventorySlots.min min inventorySlots.max
+    }
     animationTicksTotal = nbt.getInteger(Settings.namespace + "animationTicksTotal")
     animationTicksLeft = nbt.getInteger(Settings.namespace + "animationTicksLeft")
     if (animationTicksLeft > 0) {
@@ -509,7 +513,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   def containerSlotTier(slot: Int) = if (containerSlots contains slot) {
     val stack = info.containers(slot - 1)
     Option(Driver.driverFor(stack)) match {
-      case Some(driver: api.driver.UpgradeContainer) => driver.tier(stack)
+      case Some(driver: api.driver.UpgradeContainer) => driver.providedTier(stack)
       case _ => Tier.None
     }
   }
@@ -517,7 +521,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def isToolSlot(slot: Int) = slot == 0
 
-  def isInventorySlot(slot: Int) = !isToolSlot(slot) && !isComponentSlot(slot)
+  def isInventorySlot(slot: Int) = slot >= 0 && slot < getSizeInventory && !isToolSlot(slot) && !isComponentSlot(slot)
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
@@ -572,7 +576,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     }
     Array.copy(components, getSizeInventory - componentCount, components, realSize, componentCount)
     getSizeInventory = realSize + componentCount
-    if (world != null) {
+    if (world != null && isServer) {
       val p = player()
       for (stack <- removed) {
         p.inventory.addItemStackToInventory(stack)

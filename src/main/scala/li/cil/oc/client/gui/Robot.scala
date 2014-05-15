@@ -27,11 +27,16 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   protected var powerButton: ImageButton = _
 
+  protected var scrollButton: ImageButton = _
+
   protected def buffer = {
     robot.components.collect {
       case Some(component: api.component.TextBuffer) => component
     }.headOption.orNull
   }
+
+  // Scroll offset for robot inventory.
+  private var inventoryOffset = 0
 
   private val bufferWidth = 242.0
   private val bufferHeight = 128.0
@@ -60,13 +65,16 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     powerButton.toggled = robot.isRunning
+    scrollButton.enabled = robot.inventorySize > 16
     super.drawScreen(mouseX, mouseY, dt)
   }
 
   override def initGui() {
     super.initGui()
     powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
+    scrollButton = new ImageButton(1, guiLeft + 244, guiTop + 142, 6, 13, Textures.guiButtonScroll)
     add(buttonList, powerButton)
+    add(buttonList, scrollButton)
   }
 
   override def drawSlotInventory(slot: Slot) {
@@ -77,7 +85,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       case component: StaticComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
         GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_LIGHTING)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+        GL11.glEnable(GL11.GL_LIGHTING)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
       case _ =>
     }
@@ -129,7 +139,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     mc.renderEngine.bindTexture(Textures.guiRobot)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
-    drawSelection()
+    if (robot.inventorySize > 0) {
+      drawSelection()
+    }
   }
 
   protected override def keyTyped(char: Char, code: Int) {

@@ -1,13 +1,17 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api.network.Visibility
 import li.cil.oc.{Settings, api}
-import net.minecraft.item.ItemStack
 import li.cil.oc.api.Driver
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.common.InventorySlots
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.api.driver.{Slot, UpgradeContainer}
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.InventorySlots
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 
 class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable {
   val node = api.Network.newNode(this, Visibility.None).
@@ -16,7 +20,11 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
 
   def isAssembling = requiredEnergy > 0
 
+  def progress = ((1 - requiredEnergy / totalRequiredEnergy) * 100).toInt
+
   var robot: Option[ItemStack] = None
+
+  var totalRequiredEnergy = 0.0
 
   var requiredEnergy = 0.0
 
@@ -35,6 +43,7 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
     if (!isAssembling && robot.isEmpty && complexity <= maxComplexity) {
       // TODO validate all slots, just in case. never trust a client. never trust minecraft.
       val data = new ItemUtils.RobotData()
+      data.name = ItemUtils.RobotData.randomName
       data.energy = 50000
       data.containers = items.take(4).drop(1).collect {
         case Some(item) => item
@@ -45,7 +54,9 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
       val stack = api.Items.get("robot").createItemStack(1)
       data.save(stack)
       robot = Some(stack)
-      requiredEnergy = Settings.get.robotBaseCost + complexity * Settings.get.robotComplexityCost
+      totalRequiredEnergy = math.max(1, Settings.get.robotBaseCost + complexity * Settings.get.robotComplexityCost)
+      requiredEnergy = totalRequiredEnergy
+      ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
       for (slot <- 0 until getSizeInventory) items(slot) = None
       onInventoryChanged()
@@ -64,8 +75,36 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
         setInventorySlotContents(0, robot.get)
         robot = None
         requiredEnergy = 0
+        ServerPacketSender.sendRobotAssembling(this, assembling = false)
       }
     }
+  }
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    if (nbt.hasKey(Settings.namespace + "robot")) {
+      robot = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "robot")))
+    }
+    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
+    requiredEnergy = nbt.getDouble(Settings.namespace + "remaining")
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    robot.foreach(stack => nbt.setNewCompoundTag(Settings.namespace + "robot", stack.writeToNBT))
+    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
+    nbt.setDouble(Settings.namespace + "remaining", requiredEnergy)
+  }
+
+  @SideOnly(Side.CLIENT) override
+  def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    requiredEnergy = nbt.getDouble("remaining")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setDouble("remaining", requiredEnergy)
   }
 
   // ----------------------------------------------------------------------- //

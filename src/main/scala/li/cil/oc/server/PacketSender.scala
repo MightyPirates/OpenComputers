@@ -142,6 +142,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendRobotAssembling(t: tileentity.RobotAssembler, assembling: Boolean) {
+    val pb = new PacketBuilder(PacketType.RobotAssemblingState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(assembling)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendRobotMove(t: tileentity.Robot, ox: Int, oy: Int, oz: Int, direction: ForgeDirection) {
     val pb = new PacketBuilder(PacketType.RobotMove)
 

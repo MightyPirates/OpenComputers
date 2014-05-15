@@ -1,12 +1,13 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api
+import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.client.gui.Icons
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
   addSlotToContainer(170 + 0 * slotSize, 218, api.driver.Slot.Tool)
@@ -20,9 +21,19 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
       val x = 170 + j * slotSize
       val index = inventorySlots.size
       addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, api.driver.Slot.None, Tier.Any) {
+        def isValid = robot.isInventorySlot(getSlotIndex)
+
+        @SideOnly(Side.CLIENT)
+        override def func_111238_b() = isValid && super.func_111238_b()
+
         override def getBackgroundIconIndex = {
-          if (!robot.isInventorySlot(this.slotNumber)) Icons.get(Tier.None)
-          super.getBackgroundIconIndex
+          if (isValid) super.getBackgroundIconIndex
+          else Icons.get(Tier.None)
+        }
+
+        override def getStack = {
+          if (isValid) super.getStack
+          else null
         }
       })
     }

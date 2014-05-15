@@ -15,6 +15,8 @@ object UpgradeContainerCard extends Item with UpgradeContainer {
 
   override def providedSlot(stack: ItemStack) = Slot.Card
 
+  override def providedTier(stack: ItemStack) = tier(stack)
+
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(container: item.UpgradeContainerCard) => container.tier

@@ -69,7 +69,7 @@ object InventorySlots {
       InventorySlot(Slot.Processor, Tier.One),
       InventorySlot(Slot.Memory, Tier.One),
       InventorySlot(Slot.Memory, Tier.One),
-      InventorySlot(Slot.Disk, Tier.One),
+      InventorySlot(Slot.Disk, Tier.Any),
       InventorySlot(Slot.HardDiskDrive, Tier.One),
       InventorySlot(Slot.None, Tier.None)
     ),
@@ -94,7 +94,7 @@ object InventorySlots {
       InventorySlot(Slot.Processor, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
       InventorySlot(Slot.Memory, Tier.Two),
-      InventorySlot(Slot.Disk, Tier.One),
+      InventorySlot(Slot.Disk, Tier.Any),
       InventorySlot(Slot.HardDiskDrive, Tier.Two),
       InventorySlot(Slot.None, Tier.None)
     ),
@@ -119,7 +119,7 @@ object InventorySlots {
       InventorySlot(Slot.Processor, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
       InventorySlot(Slot.Memory, Tier.Three),
-      InventorySlot(Slot.Disk, Tier.One),
+      InventorySlot(Slot.Disk, Tier.Any),
       InventorySlot(Slot.HardDiskDrive, Tier.Three),
       InventorySlot(Slot.HardDiskDrive, Tier.Two)
     )

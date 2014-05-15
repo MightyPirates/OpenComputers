@@ -21,7 +21,7 @@ trait ComponentSlot extends Slot {
   @SideOnly(Side.CLIENT)
   override def func_111238_b() = tier != Tier.None && super.func_111238_b()
 
-  override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(slotNumber, stack)
+  override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
 
   override def onPickupFromSlot(player: EntityPlayer, stack: ItemStack) {
     super.onPickupFromSlot(player, stack)

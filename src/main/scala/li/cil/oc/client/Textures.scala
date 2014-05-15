@@ -13,6 +13,7 @@ object Textures extends ResourceManagerReloadListener {
   val guiButtonPower = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_power.png")
   val guiButtonRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_range.png")
   val guiButtonRun = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_run.png")
+  val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")

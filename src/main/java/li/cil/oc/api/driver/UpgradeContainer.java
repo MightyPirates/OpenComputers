@@ -23,4 +23,15 @@ public interface UpgradeContainer extends Item {
      * @return the slot type provided by that dynamic slot upgrade.
      */
     Slot providedSlot(ItemStack stack);
+
+    /**
+     * The maximum item tier of the items that can be placed into the slot
+     * provided by the specified container.
+     * <p/>
+     * This will usually be equal to the container's tier.
+     *
+     * @param stack the item stack to the the supported tier for.
+     * @return the maximum tier supported by that dynamic slot upgrade.
+     */
+    int providedTier(ItemStack stack);
 }

@@ -38,6 +38,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
+      case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
       case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
       case PacketType.RobotEquippedUpgradeChange => onRobotEquippedUpgradeChange(p)
       case PacketType.RobotMove => onRobotMove(p)
@@ -194,6 +195,14 @@ class PacketHandler extends CommonPacketHandler {
   def onRobotAnimateTurn(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(t) => t.robot.setAnimateTurn(p.readByte(), p.readInt())
+      case _ => // Invalid packet.
+    }
+
+  def onRobotAssemblingState(p: PacketParser) =
+    p.readTileEntity[RobotAssembler]() match {
+      case Some(t) =>
+        if (p.readBoolean()) t.requiredEnergy = 9001
+        else t.requiredEnergy = 0
       case _ => // Invalid packet.
     }
 
