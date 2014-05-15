@@ -50,7 +50,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var selectedSlot = actualSlot(0)
 
-  override def containerCount = info.containers.length
+  override def containerCount = 3
 
   override def componentCount = info.components.length
 
@@ -69,7 +69,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     }
   }
 
-  def containerSlots = 1 to containerCount
+  def containerSlots = 1 to info.containers.length
 
   def componentSlots = getSizeInventory - componentCount until getSizeInventory
 
@@ -579,7 +579,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
         p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
       }
     } // else: save is screwed and we potentially lose items. Life is hard.
-    selectedSlot = math.max(1 + containerCount, math.min(realSize - 1, actualSlot(oldSelected)))
+    selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
   }
   finally {
     updatingInventorySize = false

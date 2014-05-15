@@ -25,6 +25,13 @@ trait Inventory extends IInventory {
   }
 
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
+    if (stack == null && items(slot).isEmpty) {
+      return
+    }
+    if (items(slot).exists(_ == stack)) {
+      return
+    }
+
     if (items(slot).isDefined) {
       onItemRemoved(slot, items(slot).get)
     }

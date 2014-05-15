@@ -36,19 +36,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   override def transferStackInSlot(player: EntityPlayer, index: Int): ItemStack = {
     val slot = Option(inventorySlots.get(index)).map(_.asInstanceOf[Slot]).orNull
     if (slot != null && slot.getHasStack) {
-      // Get search range and direction for checking for merge options.
-      val playerInventorySize = 4 * 9
-      val (begin, length, direction) =
-        if (index < otherInventory.getSizeInventory) {
-          // Merge the item into the player inventory.
-          (otherInventory.getSizeInventory, playerInventorySize, true)
-        }
-        else {
-          // Merge the item into the container inventory.
-          (0, otherInventory.getSizeInventory, false)
-        }
-
-      tryTransferStackInSlot(slot, begin, length, direction)
+      tryTransferStackInSlot(slot, slot.inventory == otherInventory)
       if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
         detectAndSendChanges()
       }
@@ -56,18 +44,18 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
     null
   }
 
-  protected def tryTransferStackInSlot(from: Slot, offset: Int, length: Int, intoPlayerInventory: Boolean) {
+  protected def tryTransferStackInSlot(from: Slot, intoPlayerInventory: Boolean) {
     val fromStack = from.getStack
     var somethingChanged = false
 
     val step = if (intoPlayerInventory) -1 else 1
     val (begin, end) =
-      if (intoPlayerInventory) (offset + length - 1, offset - 1)
-      else (offset, offset + length)
+      if (intoPlayerInventory) (inventorySlots.size - 1, 0)
+      else (0, inventorySlots.size - 1)
 
-    if (fromStack.isStackable) for (i <- begin until end by step if from.getHasStack && from.getStack.stackSize > 0) {
+    if (fromStack.isStackable) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
       val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
-      if (intoSlot.getHasStack) {
+      if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack
         val itemsAreEqual = fromStack.isItemEqual(intoStack) && ItemStack.areItemStackTagsEqual(fromStack, intoStack)
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
@@ -83,9 +71,9 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       }
     }
 
-    for (i <- begin until end by step if from.getHasStack && from.getStack.stackSize > 0) {
+    for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
       val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
-      if (!intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
+      if (intoSlot.inventory != from.inventory && !intoSlot.getHasStack && intoSlot.isItemValid(fromStack)) {
         val maxStackSize = math.min(fromStack.getMaxStackSize, intoSlot.getSlotStackLimit)
         val itemsMoved = math.min(maxStackSize, fromStack.stackSize)
         intoSlot.putStack(from.decrStackSize(itemsMoved))

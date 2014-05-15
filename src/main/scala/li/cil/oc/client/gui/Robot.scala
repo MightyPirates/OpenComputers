@@ -24,7 +24,6 @@ import org.lwjgl.opengl.GL11
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
   xSize = 256
   ySize = 242
-  val slots = inventorySlots.asInstanceOf[container.Robot]
 
   protected var powerButton: ImageButton = _
 

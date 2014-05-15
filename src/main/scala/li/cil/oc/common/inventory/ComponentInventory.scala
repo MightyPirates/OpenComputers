@@ -65,7 +65,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   def disconnectComponents() {
     components collect {
-      case Some(component) => component.node.remove()
+      case Some(component) if component.node != null => component.node.remove()
     }
   }
 
@@ -121,7 +121,9 @@ trait ComponentInventory extends Inventory with network.Environment {
         // being installed into a different computer, even!)
         components(slot) = None
         updatingComponents -= component
-        component.node.remove()
+        if (component.node != null) {
+          component.node.remove()
+        }
         Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
       }
       case _ => // Nothing to do.
