@@ -99,12 +99,12 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
   }
 
   def addSlotToContainer(x: Int, y: Int, slot: api.driver.Slot = api.driver.Slot.None, tier: Int = Tier.Any) {
-    val index = getInventory.size
+    val index = inventorySlots.size
     addSlotToContainer(new StaticComponentSlot(this, otherInventory, index, x, y, slot, tier))
   }
 
   def addSlotToContainer(x: Int, y: Int, info: Array[Array[InventorySlot]], tierGetter: () => Int) {
-    val index = getInventory.size
+    val index = inventorySlots.size
     addSlotToContainer(new DynamicComponentSlot(this, otherInventory, index, x, y, info, tierGetter))
   }
 

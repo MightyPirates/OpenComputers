@@ -111,6 +111,7 @@ class Settings(config: Config) {
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
+  val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
@@ -138,6 +139,8 @@ class Settings(config: Config) {
   val wirelessCostPerRange = config.getDouble("power.cost.wirelessCostPerRange") max 0
   val abstractBusPacketCost = config.getDouble("power.cost.abstractBusPacket") max 0
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
+  val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
+  val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem

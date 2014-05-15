@@ -34,27 +34,28 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   def connectComponents() {
-    for ((stack, slot) <- items.zipWithIndex collect {
-      case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
-    } if components(slot).isEmpty && isComponentSlot(slot)) {
-      components(slot) = Option(Driver.driverFor(stack)) match {
-        case Some(driver) =>
-        Option(driver.createEnvironment(stack, componentContainer)) match {
-          case Some(component) =>
-            try {
-              component.load(dataTag(driver, stack))
+    for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
+      val stack = getStackInSlot(slot)
+      if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
+        components(slot) = Option(Driver.driverFor(stack)) match {
+          case Some(driver) =>
+            Option(driver.createEnvironment(stack, componentContainer)) match {
+              case Some(component) =>
+                try {
+                  component.load(dataTag(driver, stack))
+                }
+                catch {
+                  case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+                }
+                if (component.canUpdate) {
+                  assert(!updatingComponents.contains(component))
+                  updatingComponents += component
+                }
+                Some(component)
+              case _ => None
             }
-            catch {
-              case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
-            }
-            if (component.canUpdate) {
-              assert(!updatingComponents.contains(component))
-              updatingComponents += component
-            }
-            Some(component)
           case _ => None
-          }
-        case _ => None
+        }
       }
     }
     components collect {
@@ -71,14 +72,15 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   override def save(nbt: NBTTagCompound) = {
-    items.zipWithIndex collect {
-      case (Some(stack), slot) => (stack, slot)
-    } foreach {
-      case (stack, slot) => components(slot) match {
-        case Some(component) =>
-          // We're guaranteed to have a driver for entries.
-          save(component, Driver.driverFor(stack), stack)
-        case _ => // Nothing special to save.
+    for (slot <- 0 until getSizeInventory) {
+      val stack = getStackInSlot(slot)
+      if (stack != null) {
+        components(slot) match {
+          case Some(component) =>
+            // We're guaranteed to have a driver for entries.
+            save(component, Driver.driverFor(stack), stack)
+          case _ => // Nothing special to save.
+        }
       }
     }
     super.save(nbt) // Save items after updating their tags.
@@ -126,10 +128,12 @@ trait ComponentInventory extends Inventory with network.Environment {
     }
   }
 
-  protected def isComponentSlot(slot: Int) = true
+  def isComponentSlot(slot: Int) = true
 
   protected def connectItemNode(node: Node) {
-    this.node.connect(node)
+    if (node != null) {
+      this.node.connect(node)
+    }
   }
 
   protected def dataTag(driver: ItemDriver, stack: ItemStack) =

@@ -3,7 +3,7 @@ local shell = require("shell")
 
 local args = shell.parse(...)
 if #args == 0 then
-  io.write("Usage: man topic\n")
+  io.write("Usage: man <topic>\n")
   io.write("Where `topic` will usually be the name of a program or library.")
   return
 end

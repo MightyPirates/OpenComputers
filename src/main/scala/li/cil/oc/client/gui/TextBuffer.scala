@@ -39,7 +39,7 @@ trait TextBuffer extends GuiScreen {
 
   override def onGuiClosed() = {
     super.onGuiClosed()
-    for ((code, char) <- pressedKeys) {
+    if (buffer != null) for ((code, char) <- pressedKeys) {
       buffer.keyUp(char, code, null)
     }
     Keyboard.enableRepeatEvents(false)
@@ -48,8 +48,14 @@ trait TextBuffer extends GuiScreen {
   protected def drawBufferLayer() {
     if (shouldRecompileDisplayLists) {
       shouldRecompileDisplayLists = false
-      currentWidth = buffer.getWidth
-      currentHeight = buffer.getHeight
+      if (buffer != null) {
+        currentWidth = buffer.getWidth
+        currentHeight = buffer.getHeight
+      }
+      else {
+        currentWidth = 0
+        currentHeight = 0
+      }
       scale = changeSize(currentWidth, currentHeight)
     }
     GL11.glPushMatrix()
@@ -66,7 +72,7 @@ trait TextBuffer extends GuiScreen {
     if (NEI.isInputFocused) return
 
     val code = Keyboard.getEventKey
-    if (code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
+    if (buffer != null && code != Keyboard.KEY_ESCAPE && code != Keyboard.KEY_F11) {
       if (Keyboard.getEventKeyState) {
         val char = Keyboard.getEventCharacter
         if (!pressedKeys.contains(code) || !ignoreRepeat(char, code)) {
@@ -87,7 +93,7 @@ trait TextBuffer extends GuiScreen {
 
   override protected def mouseClicked(x: Int, y: Int, button: Int) {
     super.mouseClicked(x, y, button)
-    if (button == 2) {
+    if (buffer != null && button == 2) {
       buffer.clipboard(GuiScreen.getClipboardString, null)
     }
   }

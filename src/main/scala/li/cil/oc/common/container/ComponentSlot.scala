@@ -7,6 +7,7 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import scala.collection.convert.WrapAsScala._
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 
 trait ComponentSlot extends Slot {
   def container: Player
@@ -17,7 +18,10 @@ trait ComponentSlot extends Slot {
 
   def tierIcon: Icon
 
+  @SideOnly(Side.CLIENT)
   override def func_111238_b() = tier != Tier.None && super.func_111238_b()
+
+  override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(slotNumber, stack)
 
   override def onPickupFromSlot(player: EntityPlayer, stack: ItemStack) {
     super.onPickupFromSlot(player, stack)

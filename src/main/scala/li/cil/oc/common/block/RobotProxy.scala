@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, Settings, OpenComputers}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
@@ -33,6 +33,10 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
     tooltip.addAll(Tooltip.get(unlocalizedName))
+    val info = new ItemUtils.RobotData(stack)
+    for (component <- info.containers ++ info.components) {
+      tooltip.add(component.getDisplayName)
+    }
   }
 
   @Optional.Method(modid = "Waila")
@@ -68,7 +72,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy => proxy.robot.createItemStack()
+      case proxy: tileentity.RobotProxy => proxy.robot.info.createItemStack()
       case _ => null
     }
 
@@ -152,7 +156,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }) match {
       case Some((robot, owner)) =>
         robot.owner = owner
-        robot.parseItemStack(stack)
+        robot.info.load(stack)
       case _ =>
     }
   }
@@ -163,7 +167,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
         val robot = proxy.robot
         if (robot.player == player) return false
         if (!world.isRemote) {
-          parent.dropBlockAsItem(world, x, y, z, robot.createItemStack())
+          parent.dropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
         if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, 0, 0, 1)

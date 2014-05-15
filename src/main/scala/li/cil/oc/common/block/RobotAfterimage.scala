@@ -32,7 +32,7 @@ class RobotAfterimage(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     findMovingRobot(world, x, y, z) match {
-      case Some(robot) => robot.createItemStack()
+      case Some(robot) => robot.info.createItemStack()
       case _ => null
     }
 

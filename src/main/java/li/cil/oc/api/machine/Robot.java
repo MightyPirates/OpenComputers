@@ -3,6 +3,7 @@ package li.cil.oc.api.machine;
 import li.cil.oc.api.Rotatable;
 import li.cil.oc.api.network.Environment;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -16,15 +17,16 @@ import net.minecraft.item.ItemStack;
  * inventory. The physical layout in the underlying 'real' inventory is as
  * follows:
  * <ul>
- * <li>Slot 0: Tool</li>
- * <li>Slot [1, dynamicComponentCapacity + 1): hot-swappable components.</li>
- * <li>Slot [dynamicComponentCapacity + 1, componentCapacity + 1): hard-wired components.</li>
- * <li>Slot [componentCapacity + 1, inventorySize): actual inventory.</li>
+ * <li>Tool</li>
+ * <li><tt>containerCount</tt> hot-swappable components.</li>
+ * <li><tt>inventorySize</tt> internal inventory slots.</li>
+ * <li><tt>componentCount</tt> hard-wired components.</li>
  * </ul>
- * Note that either of these intervals may be empty, depending on the parts
- * the robot is built from.
+ * Note that there may be no hot-swappable (or even built-in) components or
+ * no inventory, depending on the configuration of the robot. The hard-wired
+ * components cannot be changed (removed/replaced).
  */
-public interface Robot extends Rotatable {
+public interface Robot extends ISidedInventory, Rotatable {
     /**
      * Returns the fake player used to represent the robot as an entity for
      * certain actions that require one.
@@ -41,16 +43,15 @@ public interface Robot extends Rotatable {
     /**
      * The number of hot-swappable component slots in this robot.
      */
-    int dynamicComponentCapacity();
+    int containerCount();
 
     /**
-     * The <em>total</em> number of component slots in this robot, including
-     * hot-swappable component slots.
+     * The number of built-in components in this robot.
      */
-    int componentCapacity();
+    int componentCount();
 
     /**
-     * The <em>total</em> inventory space in this robot, including tool and
+     * The size of the internal inventory in this robot, excluding tool and
      * component slots.
      */
     int inventorySize();
@@ -59,9 +60,7 @@ public interface Robot extends Rotatable {
      * Get the item stack in the specified inventory slot.
      * <p/>
      * This operates on the underlying, real inventory, as described in the
-     * comment on top of this class. The starting index of the part of the
-     * inventory that is accessible to the robot for manipulation is at
-     * <tt>componentCapacity + 1</tt>.
+     * comment on top of this class.
      * <p/>
      * This will return <tt>null</tt> for empty slots.
      *

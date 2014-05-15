@@ -1,6 +1,7 @@
 package li.cil.oc.client.gui
 
 import java.util
+import li.cil.oc.api
 import li.cil.oc.Settings
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
@@ -23,19 +24,24 @@ import org.lwjgl.opengl.GL11
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends GuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
   xSize = 256
   ySize = 242
+  val slots = inventorySlots.asInstanceOf[container.Robot]
 
   protected var powerButton: ImageButton = _
 
-  protected val buffer = robot.buffer
+  protected def buffer = {
+    robot.components.collect {
+      case Some(component: api.component.TextBuffer) => component
+    }.headOption.orNull
+  }
 
   private val bufferWidth = 242.0
   private val bufferHeight = 128.0
   private val bufferMargin = BufferRenderer.innerMargin
 
-  private val inventoryX = 176
+  private val inventoryX = 168
   private val inventoryY = 140
 
-  private val powerX = 28
+  private val powerX = 26
   private val powerY = 142
 
   private val powerWidth = 140
@@ -60,7 +66,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 7, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
     add(buttonList, powerButton)
   }
 
@@ -79,21 +85,23 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   override def drawBuffer() {
-    GL11.glTranslatef(8, 8, 0)
-    RenderState.disableLighting()
-    RenderState.makeItBlend()
-    val scaleX = 48f / buffer.getWidth
-    val scaleY = 14f / buffer.getHeight
-    val scale = math.min(scaleX, scaleY)
-    if (scaleX > scale) {
-      GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
+    if (buffer != null) {
+      GL11.glTranslatef(8, 8, 0)
+      RenderState.disableLighting()
+      RenderState.makeItBlend()
+      val scaleX = 48f / buffer.getWidth
+      val scaleY = 14f / buffer.getHeight
+      val scale = math.min(scaleX, scaleY)
+      if (scaleX > scale) {
+        GL11.glTranslated(buffer.renderWidth * (scaleX - scale) / 2, 0, 0)
+      }
+      else if (scaleY > scale) {
+        GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
+      }
+      GL11.glScalef(scale, scale, scale)
+      GL11.glScaled(this.scale, this.scale, 1)
+      BufferRenderer.drawText(buffer)
     }
-    else if (scaleY > scale) {
-      GL11.glTranslated(0, buffer.renderHeight * (scaleY - scale) / 2, 0)
-    }
-    GL11.glScalef(scale, scale, scale)
-    GL11.glScaled(this.scale, this.scale, 1)
-    BufferRenderer.drawText(buffer)
   }
 
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {

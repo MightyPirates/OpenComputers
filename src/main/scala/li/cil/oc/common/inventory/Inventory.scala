@@ -24,7 +24,7 @@ trait Inventory extends IInventory {
     case _ => null
   }
 
-  override def setInventorySlotContents(slot: Int, stack: ItemStack) = {
+  override def setInventorySlotContents(slot: Int, stack: ItemStack) {
     if (items(slot).isDefined) {
       onItemRemoved(slot, items(slot).get)
     }

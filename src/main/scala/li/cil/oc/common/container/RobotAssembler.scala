@@ -11,14 +11,14 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
 
   def caseTier = ItemUtils.caseTier(inventorySlots.get(0).asInstanceOf[Slot].getStack)
 
-  // Components.
-  for (i <- 0 until 9) {
-    addSlotToContainer(34 + (i % 3) * slotSize, 12 + (i / 3) * slotSize, InventorySlots.assembler, () => caseTier)
-  }
-
   // Component containers.
   for (i <- 0 until 3) {
     addSlotToContainer(34 + i * slotSize, 70, InventorySlots.assembler, () => caseTier)
+  }
+
+  // Components.
+  for (i <- 0 until 9) {
+    addSlotToContainer(34 + (i % 3) * slotSize, 12 + (i / 3) * slotSize, InventorySlots.assembler, () => caseTier)
   }
 
   // Cards.
@@ -34,8 +34,8 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
     addSlotToContainer(126, 30 + i * slotSize, InventorySlots.assembler, () => caseTier)
   }
 
-  // HDDs.
-  for (i <- 0 until 2) {
+  // Floppy + HDDs.
+  for (i <- 0 until 3) {
     addSlotToContainer(148, 12 + i * slotSize, InventorySlots.assembler, () => caseTier)
   }
 

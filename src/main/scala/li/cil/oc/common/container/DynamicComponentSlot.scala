@@ -2,10 +2,9 @@ package li.cil.oc.common.container
 
 import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
-import li.cil.oc.common.InventorySlots.{Tier, InventorySlot}
+import li.cil.oc.common.InventorySlots.InventorySlot
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{Slot, IInventory}
-import net.minecraft.item.ItemStack
 
 class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: Array[Array[InventorySlot]], val tierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
   override def tier = {
@@ -30,17 +29,12 @@ class DynamicComponentSlot(val container: Player, inventory: IInventory, index: 
       case _ => 1
     }
 
-  override def isItemValid(stack: ItemStack) = {
-    inventory.isItemValidForSlot(index, stack)
-  }
-
   override protected def clearIfInvalid(player: EntityPlayer) {
     if (getHasStack && !isItemValid(getStack)) {
       val stack = getStack
       putStack(null)
-      if (!player.inventory.addItemStackToInventory(stack)) {
-        player.dropPlayerItem(stack)
-      }
+      player.inventory.addItemStackToInventory(stack)
+      player.dropPlayerItemWithRandomChoice(stack, false)
     }
   }
 }

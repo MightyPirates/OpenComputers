@@ -12,7 +12,7 @@ end
 local args, options = shell.parse(...)
 
 if #args < 1 then
-  io.write("Usage: wget [-fq] url <filename>\n")
+  io.write("Usage: wget [-fq] <url> [<filename>]\n")
   io.write(" -f: Force overwriting existing files.\n")
   io.write(" -q: Quit mode - no status messages.")
   return

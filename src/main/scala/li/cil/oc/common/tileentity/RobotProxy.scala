@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
   def this() = this(new Robot(false))
 
   override def isRemote = robot.isClient
@@ -29,15 +29,19 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
+  override def connectComponents() {}
+
+  override def disconnectComponents() {}
+
   override def isRunning = robot.isRunning
 
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
   override def player() = robot.player()
 
-  override def dynamicComponentCapacity = robot.dynamicComponentCapacity
+  override def containerCount = robot.containerCount
 
-  override def componentCapacity = robot.componentCapacity
+  override def componentCount = robot.componentCount
 
   override def inventorySize = robot.inventorySize
 
@@ -229,12 +233,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
   override def markAsChanged() = robot.markAsChanged()
 
   override def hasRedstoneCard = robot.hasRedstoneCard
-
-  // ----------------------------------------------------------------------- //
-
-  override lazy val buffer = robot.buffer
-
-  override def tier = robot.tier
 
   // ----------------------------------------------------------------------- //
 
