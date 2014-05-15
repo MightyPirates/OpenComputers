@@ -122,7 +122,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       val tooltip = new java.util.ArrayList[String]
       val which = if (rack.isRunning(i)) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
       tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 
     GL11.glPopAttrib()
