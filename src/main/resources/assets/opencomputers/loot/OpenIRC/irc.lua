@@ -17,7 +17,7 @@ local text = require("text")
 
 local args, options = shell.parse(...)
 if #args < 1 then
-  print("Usage: irc nickname [server:port]")
+  print("Usage: irc <nickname> [server:port]")
   return
 end
 
