@@ -12,7 +12,7 @@ local proxy, reason
 if options.a then
   proxy, reason = fs.proxy(args[1])
 else
-  proxy, reaons = fs.get(args[1])
+  proxy, reason = fs.get(args[1])
 end
 if not proxy then
   io.stderr:write(reason)

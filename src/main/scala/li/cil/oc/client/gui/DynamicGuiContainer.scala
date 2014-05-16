@@ -3,7 +3,6 @@ package li.cil.oc.client.gui
 import li.cil.oc.client.Textures
 import li.cil.oc.common.container.ComponentSlot
 import li.cil.oc.util.RenderState
-import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.inventory.{Container, Slot}
@@ -11,7 +10,7 @@ import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 import li.cil.oc.common.InventorySlots.Tier
 
-abstract class DynamicGuiContainer(container: Container) extends GuiContainer(container) {
+abstract class DynamicGuiContainer(container: Container) extends CustomGuiContainer(container) {
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     fontRenderer.drawString(
       StatCollector.translateToLocal("container.inventory"),
