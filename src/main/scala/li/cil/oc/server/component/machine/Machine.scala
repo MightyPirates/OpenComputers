@@ -193,6 +193,10 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
     case Machine.State.Stopped | Machine.State.Stopping => false
     case _ => signals.synchronized {
       if (signals.size >= 256) false
+      else if (args == null) {
+        signals.enqueue(new Machine.Signal(name, Array.empty))
+        true
+      }
       else {
         signals.enqueue(new Machine.Signal(name, args.map {
           case null | Unit | None => null
