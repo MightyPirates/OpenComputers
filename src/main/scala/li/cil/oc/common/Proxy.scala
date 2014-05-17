@@ -92,15 +92,16 @@ class Proxy {
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
+    Loot.init()
+    Recipes.init()
+    GameRegistry.registerCraftingHandler(CraftingHandler)
+
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     if (Mods.UniversalElectricity.isAvailable) {
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }
-
-    Loot.init()
-    Recipes.init()
-    GameRegistry.registerCraftingHandler(CraftingHandler)
+    MinecraftForge.EVENT_BUS.register(Loot)
 
     FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }

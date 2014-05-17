@@ -47,7 +47,10 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
 
   def start() {
     if (!isAssembling && robot.isEmpty && complexity <= maxComplexity) {
-      // TODO validate all slots, just in case. never trust a client. never trust minecraft.
+      for (slot <- 0 until getSizeInventory) {
+        val stack = getStackInSlot(slot)
+        if (stack != null && !isItemValidForSlot(slot, stack)) return
+      }
       val data = new ItemUtils.RobotData()
       data.name = ItemUtils.RobotData.randomName
       data.energy = 50000

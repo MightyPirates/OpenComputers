@@ -1,13 +1,15 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
-import li.cil.oc.common.item
+import li.cil.oc.common.{Loot, item}
 import li.cil.oc.util.mods.Mods
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import scala.collection.mutable
 import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 import net.minecraft.block.Block
 import li.cil.oc.common.recipe.Recipes
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.creativetab.CreativeTabs
 
 object Items extends ItemAPI {
   private val descriptors = mutable.Map.empty[String, ItemInfo]
@@ -69,7 +71,8 @@ object Items extends ItemAPI {
     instance
   }
 
-  private def getBlockOrItem(stack: ItemStack): Any = if (stack == null) null else {
+  private def getBlockOrItem(stack: ItemStack): Any = if (stack == null) null
+  else {
     multi.subItem(stack).getOrElse(
       Blocks.blockSimple.subBlock(stack).getOrElse(
         Blocks.blockSimpleWithRedstone.subBlock(stack).getOrElse(
@@ -93,7 +96,14 @@ object Items extends ItemAPI {
   var ironNugget: item.IronNugget = _
 
   def init() {
-    multi = new item.Delegator(Settings.get.itemId)
+    multi = new item.Delegator(Settings.get.itemId) {
+      override def getSubItems(itemId: Int, tab: CreativeTabs, list: java.util.List[_]) {
+        // Workaround for MC's untyped lists...
+        def add[T](list: java.util.List[T], value: Any) = list.add(value.asInstanceOf[T])
+        super.getSubItems(itemId, tab, list)
+        Loot.worldDisks.values.foreach(entry => add(list, entry._1))
+      }
+    }
 
     GameRegistry.registerItem(multi, Settings.namespace + "item")
 
@@ -184,5 +194,23 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeContainerCard(multi, 0), "cardContainer1", "oc:cardContainer1")
     Recipes.addItem(new item.UpgradeContainerCard(multi, 1), "cardContainer2", "oc:cardContainer2")
     Recipes.addItem(new item.UpgradeContainerCard(multi, 2), "cardContainer3", "oc:cardContainer3")
+
+    // Special case loot disk because this one's craftable and having it have
+    // the same item damage would confuse NEI and the item costs computation.
+    Recipes.addItem(new item.FloppyDisk(multi) {
+      override def createItemStack(amount: Int) = {
+        val data = new NBTTagCompound()
+        data.setString(Settings.namespace + "fs.label", "openos")
+
+        val nbt = new NBTTagCompound("tag")
+        nbt.setTag(Settings.namespace + "data", data)
+        nbt.setString(Settings.namespace + "lootPath", "OpenOS")
+
+        val stack = super.createItemStack(amount)
+        stack.setTagCompound(nbt)
+
+        stack
+      }
+    }, "openOS")
   }
 }
