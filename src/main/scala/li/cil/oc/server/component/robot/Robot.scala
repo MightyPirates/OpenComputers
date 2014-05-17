@@ -18,6 +18,7 @@ import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.api.event.RobotPlaceInAirEvent
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
@@ -44,7 +45,11 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def player = robot.player()
 
-  def hasAngelUpgrade = (robot.containerSlots ++ robot.componentSlots).exists(slot => api.Items.get(robot.getStackInSlot(slot)) == api.Items.get("angelUpgrade"))
+  def canPlaceInAir = {
+    val event = new RobotPlaceInAirEvent(robot)
+    MinecraftForge.EVENT_BUS.post(event)
+    event.isAllowed
+  }
 
   @Callback
   def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
@@ -238,7 +243,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == EnumMovingObjectType.TILE =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if hasAngelUpgrade && player.closestEntity[Entity]().isEmpty =>
+        case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
           player.placeBlock(robot.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
         case _ => false
@@ -451,7 +456,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
-          (if (hasAngelUpgrade) {
+          (if (canPlaceInAir) {
             val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
             if (player.placeBlock(0, bx, by, bz, facing.ordinal, hx, hy, hz))
               ActivationType.ItemPlaced

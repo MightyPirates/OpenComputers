@@ -19,7 +19,7 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.common.event.{ExperienceUpgradeHandler, UniversalElectricityToolHandler, RobotCommonHandler}
+import li.cil.oc.common.event.{AngelUpgradeHandler, ExperienceUpgradeHandler, UniversalElectricityToolHandler, RobotCommonHandler}
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -96,6 +96,7 @@ class Proxy {
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
 
+    MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     if (Mods.UniversalElectricity.isAvailable) {

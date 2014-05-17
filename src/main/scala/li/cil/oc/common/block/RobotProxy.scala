@@ -160,6 +160,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       case Some((robot, owner)) =>
         robot.owner = owner
         robot.info.load(stack)
+        robot.updateInventorySize()
+        robot.updateMaxComponentCount()
       case _ =>
     }
   }

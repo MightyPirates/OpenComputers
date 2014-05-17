@@ -300,6 +300,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
     updateInventorySize()
     updateMaxComponentCount()
+    computer.architecture.recomputeMemory()
 
     bot.load(nbt.getCompoundTag(Settings.namespace + "robot"))
     if (nbt.hasKey(Settings.namespace + "owner")) {
@@ -405,6 +406,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     super.onConnect(node)
     if (node == this.node) {
       node.connect(bot.node)
+
       // There's a chance the server sends a robot tile entity to its clients
       // before the tile entity's first update was called, in which case the
       // component list isn't initialized (e.g. when a client triggers a chunk
@@ -563,7 +565,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   private var updatingInventorySize = false
 
-  private def updateInventorySize() = this.synchronized(if (!updatingInventorySize) try {
+  def updateInventorySize() = this.synchronized(if (!updatingInventorySize) try {
     updatingInventorySize = true
     inventorySize = computeInventorySize()
     val realSize = 1 + containerCount + inventorySize
@@ -589,7 +591,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     updatingInventorySize = false
   })
 
-  private def updateMaxComponentCount() {
+  def updateMaxComponentCount() {
     maxComponents = computeMaxComponents()
   }
 

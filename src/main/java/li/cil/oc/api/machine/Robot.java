@@ -42,6 +42,10 @@ public interface Robot extends ISidedInventory, Rotatable {
 
     /**
      * The number of hot-swappable component slots in this robot.
+     * <p/>
+     * <em>Note</em>: this will always be three, regardless of the number of
+     * installed containers. For unused slots the inventory will simply be
+     * empty at that slot.
      */
     int containerCount();
 
