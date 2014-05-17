@@ -107,12 +107,12 @@ object InventorySlots {
       InventorySlot(Slot.Upgrade, Tier.Three),
       InventorySlot(Slot.Upgrade, Tier.Three),
       InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
-      InventorySlot(Slot.Upgrade, Tier.Three),
       InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.Two),
       InventorySlot(Slot.Upgrade, Tier.Two),
+      InventorySlot(Slot.Upgrade, Tier.One),
+      InventorySlot(Slot.Upgrade, Tier.One),
+      InventorySlot(Slot.Upgrade, Tier.One),
       InventorySlot(Slot.Card, Tier.Three),
       InventorySlot(Slot.Card, Tier.Two),
       InventorySlot(Slot.Card, Tier.Two),
@@ -173,11 +173,11 @@ object InventorySlots {
   )
 
   object Tier {
-    val None = -2
-    val Any = -1
+    val None = -1
     val One = 0
     val Two = 1
     val Three = 2
+    val Any = Int.MaxValue
   }
 
   case class InventorySlot(slot: Slot, tier: Int)

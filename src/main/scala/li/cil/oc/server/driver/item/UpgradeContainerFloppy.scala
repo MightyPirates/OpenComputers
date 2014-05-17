@@ -14,5 +14,5 @@ object UpgradeContainerFloppy extends Item with UpgradeContainer {
 
   override def providedSlot(stack: ItemStack) = Slot.Disk
 
-  override def providedTier(stack: ItemStack) = -1 // Any
+  override def providedTier(stack: ItemStack) = Int.MaxValue // Any
 }
