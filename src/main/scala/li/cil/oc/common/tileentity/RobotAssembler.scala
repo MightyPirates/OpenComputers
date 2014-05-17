@@ -74,6 +74,8 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
     super.updateEntity()
     if (robot.isDefined && world.getWorldTime % Settings.get.tickFrequency == 0) {

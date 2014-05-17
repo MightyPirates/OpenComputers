@@ -19,6 +19,7 @@ import scala.collection.mutable
 
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
+  val oreDictEntries = mutable.LinkedHashMap.empty[String, ItemStack]
 
   def addBlock[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
     Items.registerBlock(delegate, name)
@@ -41,8 +42,8 @@ object Recipes {
   }
 
   private def register(name: String, item: ItemStack) {
-    if (name != null && !OreDictionary.getOres(name).contains(item)) {
-      OreDictionary.registerOre(name, item)
+    if (name != null) {
+      oreDictEntries += name -> item
     }
   }
 
@@ -93,6 +94,14 @@ object Recipes {
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
     }
+    list.clear()
+
+    for ((name, stack) <- oreDictEntries) {
+      if (!OreDictionary.getOres(name).contains(stack)) {
+        OreDictionary.registerOre(name, stack)
+      }
+    }
+    oreDictEntries.clear()
   }
 
   private def addRecipe(output: ItemStack, list: Config, name: String) = try {

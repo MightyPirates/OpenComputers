@@ -150,6 +150,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = true
+
   override def updateEntity() {
     super.updateEntity()
     if (shouldCheckForMultiBlock) {
