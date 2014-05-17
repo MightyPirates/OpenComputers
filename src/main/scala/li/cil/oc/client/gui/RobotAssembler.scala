@@ -50,13 +50,13 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
       if (!inventorySlots.getSlot(0).getHasStack) {
-        val message =
-          if (api.Items.get(inventorySlots.getSlot(0).getStack) == api.Items.get("robot"))
-            "gui.RobotAssembler.CollectRobot"
-          else
-            "gui.RobotAssembler.InsertCase"
         fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + message),
+          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.InsertCase"),
+          30, 94, 0x404040)
+      }
+      else if (api.Items.get(inventorySlots.getSlot(0).getStack) == api.Items.get("robot")) {
+        fontRenderer.drawString(
+          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.CollectRobot"),
           30, 94, 0x404040)
       }
       else {

@@ -51,6 +51,12 @@ object Textures extends ResourceManagerReloadListener {
     val icons = Array.fill[Icon](6)(null)
   }
 
+  object RobotAssembler {
+    var iconSideAssembling: Icon = _
+    var iconSideOn: Icon = _
+    var iconTopOn: Icon = _
+  }
+
   object Switch {
     var iconSideActivity: Icon = _
   }

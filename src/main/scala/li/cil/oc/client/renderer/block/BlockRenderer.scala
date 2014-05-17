@@ -10,6 +10,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
 import li.cil.oc.client.Textures
+import li.cil.oc.util.RenderState
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1
@@ -27,6 +28,11 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
+      case Some(assembler: RobotAssembler) =>
+        GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
+        Tessellator.instance.startDrawingQuads()
+        renderAssembler(block, metadata, renderer)
+        Tessellator.instance.draw()
       case Some(hologram: Hologram) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
@@ -133,11 +139,81 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         renderer.renderAllFaces = previousRenderAllFaces
         true
+      case assembler: tileentity.RobotAssembler =>
+        renderAssembler(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
+        true
       case hologram: tileentity.Hologram =>
         renderHologram(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
         true
       case _ => renderer.renderStandardBlock(block, x, y, z)
     }
+
+  def renderAssembler(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
+    val previousRenderAllFaces = renderer.renderAllFaces
+    renderer.renderAllFaces = true
+
+    // Bottom.
+    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
+    renderer.renderStandardBlock(block, x, y, z)
+    // Middle.
+    renderer.setRenderBounds(2 / 16f, 7 / 16f, 2 / 16f, 14 / 16f, 9 / 16f, 14 / 16f)
+    renderer.renderStandardBlock(block, x, y, z)
+    // Top.
+    renderer.setRenderBounds(0, 9 / 16f, 0, 1, 1, 1)
+    renderer.renderStandardBlock(block, x, y, z)
+
+    renderer.renderAllFaces = previousRenderAllFaces
+  }
+
+  def renderAssembler(block: Block, metadata: Int, renderer: RenderBlocks) {
+    // Bottom.
+    renderer.setRenderBounds(0, 0, 0, 1, 7 / 16f, 1)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceYNeg(block, metadata, renderer)
+    renderFaceXPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    // Middle.
+    val previousRenderAllFaces = renderer.renderAllFaces
+    renderer.renderAllFaces = true
+    renderer.setRenderBounds(2 / 16f, 7 / 16f, 2 / 16f, 14 / 16f, 9 / 16f, 14 / 16f)
+    renderFaceXPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+    renderer.renderAllFaces = previousRenderAllFaces
+
+    // Top.
+    renderer.setRenderBounds(0, 9 / 16f, 0, 1, 1, 1)
+    renderFaceYPos(block, metadata, renderer)
+    renderFaceYNeg(block, metadata, renderer)
+    renderFaceXPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+    renderFaceZPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    GL11.glPushAttrib(0xFFFFFF)
+    RenderState.makeItBlend()
+    RenderState.disableLighting()
+
+    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconTopOn)
+    renderer.setRenderBounds(0, 0, 0, 1, 1.05, 1)
+    renderFaceYPos(block, metadata, renderer)
+
+    renderer.setOverrideBlockTexture(Textures.RobotAssembler.iconSideOn)
+    renderer.setRenderBounds(-0.005, 0, 0, 1.005, 1, 1)
+    renderFaceXPos(block, metadata, renderer)
+    renderFaceXNeg(block, metadata, renderer)
+    renderer.setRenderBounds(0, 0, -0.005, 1, 1, 1.005)
+    renderFaceZPos(block, metadata, renderer)
+    renderFaceZNeg(block, metadata, renderer)
+
+    renderer.clearOverrideBlockTexture()
+    RenderState.enableLighting()
+    GL11.glPopAttrib()
+  }
 
   def renderHologram(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
     // Center.

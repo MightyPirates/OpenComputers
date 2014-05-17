@@ -97,6 +97,6 @@ object Blocks {
     // v1.3.0
     Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
     Recipes.addBlockDelegate(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
-    Recipes.addBlockDelegate(new RobotAssembler(blockSimple), "robotAssembler", "oc:robotAssembler")
+    Recipes.addBlockDelegate(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
   }
 }

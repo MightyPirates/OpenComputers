@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.{Settings, api}
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Slot, UpgradeContainer}
-import li.cil.oc.api.network.Visibility
+import li.cil.oc.api.network.{SidedEnvironment, Visibility}
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
@@ -12,11 +12,17 @@ import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import net.minecraftforge.common.ForgeDirection
 
-class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable {
+class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
+
+  @SideOnly(Side.CLIENT)
+  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
+
+  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
 
   def isAssembling = requiredEnergy > 0
 

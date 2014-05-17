@@ -45,7 +45,7 @@ class Proxy {
       ComputerCraft16.init()
     }
 
-    api.CreativeTab.Instance = CreativeTab
+    api.CreativeTab.instance = CreativeTab
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
     api.Items.instance = Items
