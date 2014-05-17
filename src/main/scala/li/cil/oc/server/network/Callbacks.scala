@@ -4,7 +4,7 @@ import java.lang.reflect.{InvocationTargetException, Method, Modifier}
 import li.cil.oc.api.driver.MethodWhitelist
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{Environment, Context, ManagedPeripheral}
+import li.cil.oc.api.network.{Context, ManagedPeripheral}
 import li.cil.oc.OpenComputers
 import li.cil.oc.server.driver.CompoundBlockEnvironment
 import scala.collection.{immutable, mutable}

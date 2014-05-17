@@ -20,22 +20,22 @@ import scala.collection.mutable
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
 
-  def addBlockDelegate[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
-    Items.register(delegate, name)
+  def addBlock[T <: common.block.Delegate](delegate: T, name: String, oreDict: String = null) = {
+    Items.registerBlock(delegate, name)
     list += delegate.createItemStack() -> name
     register(oreDict, delegate.createItemStack())
     delegate
   }
 
-  def addItemDelegate[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
-    Items.register(delegate, name)
+  def addItem[T <: common.item.Delegate](delegate: T, name: String, oreDict: String = null) = {
+    Items.registerItem(delegate, name)
     list += delegate.createItemStack() -> name
     register(oreDict, delegate.createItemStack())
     delegate
   }
 
   def addItem(instance: Item, name: String) = {
-    Items.register(instance, name)
+    Items.registerItem(instance, name)
     list += new ItemStack(instance) -> name
     instance
   }

@@ -302,11 +302,6 @@ redstone {
           [blockRedstone, "oc:redstoneCard", blockRedstone]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
-robot {
-  input: [["oc:screen1", "oc:graphicsCard1", "oc:diskDrive"]
-          [dispenser, "oc:case1", "oc:ram1"]
-          ["oc:capacitor", minecartHopper, "oc:capacitor"]]
-}
 switch {
   input: [[ingotIron, "oc:cable", ingotIron]
           ["oc:cable", "oc:lanCard", "oc:cable"]

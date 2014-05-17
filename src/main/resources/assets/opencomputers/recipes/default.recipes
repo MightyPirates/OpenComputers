@@ -370,11 +370,6 @@ redstone {
           [blockRedstone, "oc:redstoneCard", blockRedstone]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
-robot {
-  input: [["oc:screen1", "oc:graphicsCard1", "oc:diskDrive"]
-          [dispenser, "oc:case1", "oc:ram1"]
-          ["oc:capacitor", minecartHopper, "oc:capacitor"]]
-}
 robotAssembler {
   input: [[ingotIron, workbench, ingotIron]
           [craftingPiston, "oc:circuitChip2", craftingPiston]

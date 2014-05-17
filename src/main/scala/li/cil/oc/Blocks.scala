@@ -3,8 +3,6 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
 import li.cil.oc.common.recipe.Recipes
 
 object Blocks {
@@ -13,24 +11,14 @@ object Blocks {
   var blockSpecial: SpecialDelegator = _
   var blockSpecialWithRedstone: SpecialDelegator = _
 
-  var cable: Cable = _
   var robotProxy: RobotProxy = _
   var robotAfterimage: RobotAfterimage = _
-  var screen1, screen2, screen3: Screen = _
 
   def init() {
     blockSimple = new SimpleDelegator(Settings.get.blockId1)
     blockSimpleWithRedstone = new SimpleRedstoneDelegator(Settings.get.blockId2)
     blockSpecial = new SpecialDelegator(Settings.get.blockId3)
-    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Settings.get.blockId4) {
-      override def subBlockItemStacks() = super.subBlockItemStacks() ++ Iterable({
-        val stack = new ItemStack(this, 1, robotProxy.blockId)
-        stack.setTagCompound(new NBTTagCompound("tag"))
-        stack.getTagCompound.setDouble(Settings.namespace + "xp", Settings.get.baseXpToLevel + math.pow(30.0001 * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth))
-        stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", (Settings.get.bufferRobot + Settings.get.bufferPerLevel * 30).toInt)
-        stack
-      })
-    }
+    blockSpecialWithRedstone = new SpecialRedstoneDelegator(Settings.get.blockId4)
 
     GameRegistry.registerBlock(blockSimple, classOf[Item], Settings.namespace + "simple")
     GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Settings.namespace + "simple_redstone")
@@ -59,44 +47,40 @@ object Blocks {
     // IMPORTANT: the multi block must come first, since the sub blocks will
     // try to register with it. Also, the order the sub blocks are created in
     // must not be changed since that order determines their actual IDs.
-    Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter", "oc:adapter")
-    cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable", "oc:cable")
-    Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
-    Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
-    Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
-    Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
-    Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
-    Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
-    Recipes.addBlockDelegate(new Keyboard(blockSpecial), "keyboard", "oc:keyboard")
-    Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
-    Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
-    Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
+    Recipes.addBlock(new Adapter(blockSimple), "adapter", "oc:adapter")
+    Recipes.addBlock(new Cable(blockSpecial), "cable", "oc:cable")
+    Recipes.addBlock(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
+    Recipes.addBlock(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
+    Recipes.addBlock(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
+    Recipes.addBlock(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
+    Recipes.addBlock(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
+    Recipes.addBlock(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
+    Recipes.addBlock(new Keyboard(blockSpecial), "keyboard", "oc:keyboard")
+    Recipes.addBlock(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
+    Recipes.addBlock(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
+    Recipes.addBlock(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
     robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot", "oc:robot")
-    Recipes.addBlockDelegate(new Switch(blockSimple), "switch", "oc:switch")
-    screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
-    screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
-    screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
-
-    // For automatic conversion from old format (when screens did not take
-    // redstone inputs) to keep save format compatible.
-    blockSimple.subBlocks += screen1
-    blockSimple.subBlocks += screen2
-    blockSimple.subBlocks += screen3
+    robotProxy = Items.registerBlock(new RobotProxy(blockSpecialWithRedstone), "robot")
+    Recipes.addBlock(new Switch(blockSimple), "switch", "oc:switch")
+    // Copied to simple block for automatic conversion from old format (when
+    // screens did not take redstone inputs) to keep save format compatible.
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
 
     // v1.2.0
-    Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
+    Recipes.addBlock(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
 
     // v1.2.2
-    Recipes.addBlockDelegate(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
-    Recipes.addBlockDelegate(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
+    Recipes.addBlock(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
+    Recipes.addBlock(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
     new Case.TierCreative(blockSimpleWithRedstone)
 
     // v1.3.0
-    Recipes.addBlockDelegate(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
-    Recipes.addBlockDelegate(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
-    Recipes.addBlockDelegate(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
+    Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
+    Recipes.addBlock(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
+    Recipes.addBlock(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
   }
 }

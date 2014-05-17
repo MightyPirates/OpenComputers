@@ -48,7 +48,7 @@ object ItemCosts {
 
   def hasCosts(stack: ItemStack) = {
     val ingredients = computeIngredients(stack)
-    ingredients.size > 0 && (ingredients.size > 1 || !ItemStack.areItemStacksEqual(ingredients.head._1, stack))
+    ingredients.size > 0 && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
   }
 
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {

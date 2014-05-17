@@ -286,11 +286,6 @@ redstone {
           [{block=BlockMetaID_Machine, subID=69}, craftingRawMachineTier02, "oc:redstoneCard"]
           ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", "oc:circuitChip2"]]
 }
-robot {
-  input: [["oc:screen1", "oc:graphicsCard1", "oc:diskDrive"]
-          [{block=BlockMetaID_Machine, subID=46}, craftingRawMachineTier02, "oc:ram1"]
-          [{item=Electric, subID=7}, craftingToolWrench, {item=Electric, subID=7}]]
-}
 switch {
   input: [["", "oc:lanCard", ""]
           ["oc:cable", craftingRawMachineTier02, "oc:cable"]

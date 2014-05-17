@@ -46,7 +46,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   private val signals = mutable.Queue.empty[Machine.Signal]
 
-  private val callCounts = mutable.Map.empty[String, mutable.Map[String, Int]]
+  private val callCounts = mutable.Map.empty[Any, mutable.Map[String, Int]]
 
   // ----------------------------------------------------------------------- //
 
@@ -240,9 +240,14 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
   override def invoke(value: Value, method: String, args: Array[AnyRef]): Array[AnyRef] = Callbacks(value).get(method) match {
     case Some(callback) =>
       val direct = callback.direct
-      if (direct && architecture.isInitialized) {
+      if (direct && architecture.isInitialized) callCounts.synchronized {
         val limit = callback.limit
-        // TODO callcount limit
+        val counts = callCounts.getOrElseUpdate(value, mutable.Map.empty[String, Int])
+        val count = counts.getOrElseUpdate(method, 0)
+        if (count >= limit) {
+          throw new LimitReachedException()
+        }
+        counts(method) += 1
       }
       Registry.convert(callback(value, this, new ArgumentsImpl(Seq(args: _*))))
     case _ => throw new NoSuchMethodException()

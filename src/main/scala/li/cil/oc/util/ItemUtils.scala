@@ -69,7 +69,7 @@ object ItemUtils {
           api.Items.get("keyboard").createItemStack(1),
           api.Items.get("inventoryUpgrade").createItemStack(1),
           api.Items.get("experienceUpgrade").createItemStack(1),
-          api.Items.get("gpu1").createItemStack(1),
+          api.Items.get("graphicsCard1").createItemStack(1),
           api.Items.get("cpu1").createItemStack(1),
           api.Items.get("ram2").createItemStack(1)
         )

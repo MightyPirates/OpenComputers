@@ -34,15 +34,8 @@ class Proxy {
     registerExclusive("nuggetIron", Items.ironNugget.createItemStack())
 
     if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
-      Recipes.addItemDelegate(Items.ironNugget, "nuggetIron")
+      Recipes.addItem(Items.ironNugget, "nuggetIron")
       Recipes.addItem(Item.ingotIron, "ingotIron")
-    }
-
-    if (Mods.ForgeMultipart.isAvailable) {
-      MultiPart.init()
-    }
-    if (Mods.ComputerCraft16.isAvailable) {
-      ComputerCraft16.init()
     }
 
     api.CreativeTab.instance = CreativeTab
@@ -54,6 +47,13 @@ class Proxy {
       if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
+
+    if (Mods.ForgeMultipart.isAvailable) {
+      MultiPart.init()
+    }
+    if (Mods.ComputerCraft16.isAvailable) {
+      ComputerCraft16.init()
+    }
   }
 
   def init(e: FMLInitializationEvent) {
