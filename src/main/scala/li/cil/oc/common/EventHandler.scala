@@ -1,5 +1,6 @@
 package li.cil.oc.common
 
+import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
@@ -29,13 +30,11 @@ object EventHandler {
       pending += (() => Network.joinOrCreateNetwork(tileEntity))
     }
 
-  /* TODO FMP
   @Optional.Method(modid = "ForgeMultipart")
   def schedule(part: TMultiPart) =
-    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pendingAdds.synchronized {
-      pendingAdds += (() => Network.joinOrCreateNetwork(part.tile))
+    if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
+      pending += (() => Network.joinOrCreateNetwork(part.tile))
     }
-  */
 
   @Optional.Method(modid = "IC2")
   def scheduleIC2Add(tileEntity: power.IndustrialCraft2) = pending.synchronized {

@@ -7,6 +7,7 @@ import java.util.concurrent.Callable
 import li.cil.oc._
 import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.server
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
@@ -23,11 +24,9 @@ class Proxy {
     Blocks.init()
     Items.init()
 
-    /* TODO FMP
     if (Mods.ForgeMultipart.isAvailable) {
       MultiPart.init()
     }
-    */
     if (Mods.ComputerCraft.isAvailable) {
       ComputerCraft.init()
     }

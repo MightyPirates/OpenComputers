@@ -4,6 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
 import li.cil.oc.api.machine.Machine
 import li.cil.oc.common.PacketType
+import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer, TileEntity}
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
@@ -170,9 +171,7 @@ object PacketHandler extends CommonPacketHandler {
 
   def onMultiPartPlace(p: PacketParser) {
     p.player match {
-      /* TODO FMP
       case player: EntityPlayerMP => EventHandler.place(player)
-      */
       case _ => // Invalid packet.
     }
 

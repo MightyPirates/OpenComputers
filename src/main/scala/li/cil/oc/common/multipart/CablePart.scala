@@ -1,14 +1,13 @@
 package li.cil.oc.common.multipart
 
-/* TODO FMP
 import codechicken.lib.vec.{Vector3, Cuboid6}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.client.renderer.tileentity.CableRenderer
+import li.cil.oc.common
 import li.cil.oc.common.block.Cable
-import li.cil.oc.server.TickHandler
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Blocks, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
@@ -44,7 +43,7 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def onWorldJoin() {
     super.onWorldJoin()
-    TickHandler.schedule(this)
+    common.EventHandler.schedule(this)
   }
 
   override def onWorldSeparate() {
@@ -79,4 +78,3 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def onConnect(node: Node) {}
 }
-*/

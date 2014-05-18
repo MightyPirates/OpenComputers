@@ -1,9 +1,13 @@
 package li.cil.oc.server.network
 
+import codechicken.lib.vec.Cuboid6
+import codechicken.multipart.{TileMultipart, JNormalOcclusion, NormalOcclusionTest, TFacePart}
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, WirelessEndpoint, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.common.block.Cable
+import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.util.mods.Mods
@@ -402,18 +406,15 @@ object Network extends api.detail.NetworkAPI {
 
   private def getMultiPartNode(tileEntity: TileEntity) =
     tileEntity match {
-      /* TODO FMP
       case host: TileMultipart => host.partList.find(_.isInstanceOf[CablePart]) match {
         case Some(part: CablePart) => Some(part.node)
         case _ => None
       }
-      */
       case _ => None
     }
 
   private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
-      /* TODO FMP
       case host: TileMultipart =>
         host.partList.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
@@ -424,7 +425,6 @@ object Network extends api.detail.NetworkAPI {
           case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
           case _ => true
         }
-      */
       case _ => true
     }
 

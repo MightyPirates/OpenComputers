@@ -1,8 +1,11 @@
 package li.cil.oc.common.block
 
+import codechicken.multipart.{TileMultipart, JNormalOcclusion, NormalOcclusionTest, TFacePart}
+import codechicken.lib.vec.Cuboid6
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
 import li.cil.oc.api.network.{SidedEnvironment, Environment}
+import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
 import li.cil.oc.util.mods.Mods
@@ -120,15 +123,12 @@ object Cable {
 
   private def hasMultiPartNode(tileEntity: TileEntity) =
     tileEntity match {
-      /* TODO FMP
       case host: TileMultipart => host.partList.exists(_.isInstanceOf[CablePart])
-      */
       case _ => false
     }
 
   private def canConnectFromSide(tileEntity: TileEntity, side: ForgeDirection) =
     tileEntity match {
-      /* TODO FMP
       case host: TileMultipart =>
         host.partList.forall {
           case part: JNormalOcclusion if !part.isInstanceOf[CablePart] =>
@@ -139,7 +139,6 @@ object Cable {
           case part: TFacePart => !part.solid(side.ordinal) || (part.getSlotMask & codechicken.multipart.PartMap.face(side.ordinal).mask) == 0
           case _ => true
         }
-      */
       case _ => true
     }
 

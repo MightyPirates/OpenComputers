@@ -1,24 +1,23 @@
 package li.cil.oc.common.multipart
 
-/* TODO FMP
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
 import codechicken.lib.vec.{Vector3, BlockCoord}
 import codechicken.multipart.TileMultipart
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Blocks
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.block.Delegator
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.network.packet.Packet15Place
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
 
 object EventHandler {
-  @ForgeSubscribe
+  @SubscribeEvent
   def playerInteract(event: PlayerInteractEvent) {
     val player = event.entityPlayer
     if (event.action == Action.RIGHT_CLICK_BLOCK && player.getEntityWorld.isRemote) {
@@ -43,10 +42,10 @@ object EventHandler {
     if (world.isRemote && !player.isSneaking) {
       // Attempt to use block activated like normal and tell the server the right stuff
       val f = new Vector3(hit.hitVec).add(-hit.blockX, -hit.blockY, -hit.blockZ)
-      val block = Block.blocksList(world.getBlockId(hit.blockX, hit.blockY, hit.blockZ))
+      val block = world.getBlock(hit.blockX, hit.blockY, hit.blockZ)
       if (block != null && block.onBlockActivated(world, hit.blockX, hit.blockY, hit.blockZ, player, hit.sideHit, f.x.toFloat, f.y.toFloat, f.z.toFloat)) {
         player.swingItem()
-        PacketCustom.sendToServer(new Packet15Place(
+        PacketCustom.sendToServer(new C08PacketPlayerBlockPlacement(
           hit.blockX, hit.blockY, hit.blockZ, hit.sideHit,
           player.inventory.getCurrentItem,
           f.x.toFloat, f.y.toFloat, f.z.toFloat))
@@ -76,7 +75,7 @@ object EventHandler {
     else {
       TileMultipart.addPart(world, pos, part)
       world.playSoundEffect(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5,
-        part.delegate.parent.stepSound.getPlaceSound,
+        part.delegate.parent.stepSound.func_150496_b,
         (part.delegate.parent.stepSound.getVolume + 1.0F) / 2.0F,
         part.delegate.parent.stepSound.getPitch * 0.8F)
       if (!player.capabilities.isCreativeMode) {
@@ -91,4 +90,3 @@ object EventHandler {
     true
   }
 }
-*/

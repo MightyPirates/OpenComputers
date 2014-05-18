@@ -1,6 +1,5 @@
 package li.cil.oc.common.multipart
 
-/* TODO FMP
 import codechicken.multipart.{TIconHitEffects, TMultiPart}
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.block.Delegate
@@ -21,4 +20,3 @@ abstract class DelegatePart extends TMultiPart with TIconHitEffects {
   @SideOnly(Side.CLIENT)
   override def getBrokenIcon(side: Int) = delegate.icon(ForgeDirection.getOrientation(side)).orNull
 }
-*/
