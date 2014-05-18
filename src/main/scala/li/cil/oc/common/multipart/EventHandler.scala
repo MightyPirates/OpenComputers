@@ -8,7 +8,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Blocks
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.block.Delegator
-import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.MovingObjectPosition
