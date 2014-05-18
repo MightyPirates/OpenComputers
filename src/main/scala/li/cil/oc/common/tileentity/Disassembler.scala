@@ -1,0 +1,137 @@
+package li.cil.oc.common.tileentity
+
+import cpw.mods.fml.relauncher.{SideOnly, Side}
+import li.cil.oc.api
+import li.cil.oc.Settings
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.{ItemUtils, InventoryUtils}
+import net.minecraft.item.ItemStack
+import net.minecraft.item.crafting.{ShapelessRecipes, ShapedRecipes, IRecipe, CraftingManager}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
+
+class Disassembler extends traits.Environment with traits.Inventory {
+  val node = api.Network.newNode(this, Visibility.None).
+    withConnector().
+    create()
+
+  var isActive = true
+
+  val queue = mutable.ArrayBuffer.empty[ItemStack]
+
+  var buffer = 0.0
+
+  // ----------------------------------------------------------------------- //
+
+  override def canUpdate = isServer
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+      if (queue.isEmpty) {
+        val stack = getStackInSlot(0)
+        if (stack != null) {
+          setInventorySlotContents(0, null)
+          disassemble(stack)
+        }
+      }
+      else {
+        if (buffer < Settings.get.disassemblerItemCost) {
+          val want = Settings.get.disassemblerTickAmount
+          val have = want - node.changeBuffer(-want)
+          buffer += have
+        }
+        if (buffer >= Settings.get.disassemblerItemCost) {
+          buffer -= Settings.get.disassemblerItemCost
+          val stack = queue.remove(0)
+          for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
+            InventoryUtils.tryDropIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
+          }
+          if (stack.stackSize > 0) {
+            spawnStackInWorld(stack, ForgeDirection.UP)
+          }
+        }
+      }
+    }
+  }
+
+  def disassemble(stack: ItemStack) {
+    // Validate the item, never trust Minecraft / other Mods on anything!
+    if (isItemValidForSlot(0, stack)) {
+      if (api.Items.get(stack) == api.Items.get("robot")) {
+        val info = new ItemUtils.RobotData(stack)
+        queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
+        queue ++= info.containers
+        queue ++= info.components
+        node.changeBuffer(info.energy)
+      }
+      else if (api.Items.get(stack) == api.Items.get("server")) {
+
+      }
+      else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) {
+
+      }
+      else {
+        queue ++= getIngredients(stack)
+      }
+    }
+  }
+
+  private def getIngredients(stack: ItemStack): Iterable[ItemStack] = {
+    CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
+      find(recipe => recipe.getRecipeOutput.isItemEqual(stack)) match {
+      case Some(recipe: ShapedRecipes) => recipe.recipeItems
+      case Some(recipe: ShapelessRecipes) => recipe.recipeItems.toArray(new Array[ItemStack](recipe.recipeItems.size))
+      case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
+      case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
+      case _ => Iterable.empty
+    }
+  }
+
+  private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
+    case stack: ItemStack => stack
+    case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(world.rand.nextInt(list.size))
+  }.toArray
+
+  // ----------------------------------------------------------------------- //
+
+  override def readFromNBT(nbt: NBTTagCompound) {
+    super.readFromNBT(nbt)
+    queue.clear()
+    queue ++= nbt.getTagList(Settings.namespace + "queue").map(ItemStack.loadItemStackFromNBT)
+    buffer = nbt.getDouble(Settings.namespace + "buffer")
+  }
+
+  override def writeToNBT(nbt: NBTTagCompound) {
+    super.writeToNBT(nbt)
+    nbt.setNewTagList(Settings.namespace + "queue", queue)
+    nbt.setDouble(Settings.namespace + "buffer", buffer)
+  }
+
+  @SideOnly(Side.CLIENT)
+  override def readFromNBTForClient(nbt: NBTTagCompound) {
+    super.readFromNBTForClient(nbt)
+    isActive = nbt.getBoolean("isActive")
+  }
+
+  override def writeToNBTForClient(nbt: NBTTagCompound) {
+    super.writeToNBTForClient(nbt)
+    nbt.setBoolean("isActive", queue.size > 0)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  override def getSizeInventory = 1
+
+  override def getInventoryStackLimit = 1
+
+  override def getInvName = Settings.namespace + "container.Disassembler"
+
+  override def isItemValidForSlot(i: Int, stack: ItemStack) =
+    api.Items.get(stack) == api.Items.get("robot") ||
+      ((Settings.get.disassembleAllTheThings || api.Items.get(stack) != null) && !getIngredients(stack).isEmpty)
+}

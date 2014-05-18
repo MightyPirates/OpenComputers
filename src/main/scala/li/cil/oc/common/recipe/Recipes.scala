@@ -48,6 +48,13 @@ object Recipes {
   }
 
   def init() {
+    for ((name, stack) <- oreDictEntries) {
+      if (!OreDictionary.getOres(name).contains(stack)) {
+        OreDictionary.registerOre(name, stack)
+      }
+    }
+    oreDictEntries.clear()
+
     try {
       val defaultRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "default.recipes")
       val hardmodeRecipes = new File(Loader.instance.getConfigDir + File.separator + "opencomputers" + File.separator + "hardmode.recipes")
@@ -95,13 +102,6 @@ object Recipes {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
     }
     list.clear()
-
-    for ((name, stack) <- oreDictEntries) {
-      if (!OreDictionary.getOres(name).contains(stack)) {
-        OreDictionary.registerOre(name, stack)
-      }
-    }
-    oreDictEntries.clear()
   }
 
   private def addRecipe(output: ItemStack, list: Config, name: String) = try {

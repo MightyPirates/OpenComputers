@@ -82,5 +82,6 @@ object Blocks {
     Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
     Recipes.addBlock(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
     Recipes.addBlock(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
+    Recipes.addBlock(new Disassembler(blockSimple), "disassembler", "oc:disassembler")
   }
 }

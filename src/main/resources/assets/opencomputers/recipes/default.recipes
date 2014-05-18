@@ -326,6 +326,11 @@ case3 {
           [fenceIron, chest, fenceIron]
           [diamond, "oc:materialCircuitBoardPrinted", diamond]]
 }
+disassembler {
+  input: [["oc:materialCU", thinGlass, "oc:analyzer"]
+          [craftingPiston, "", obsidian]
+          [ingotIron, bucketLava, ingotIron]]
+}
 diskDrive {
   input: [[ingotIron, "oc:circuitChip1", ingotIron]
           [craftingPiston, stickWood, ""]

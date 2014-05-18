@@ -38,6 +38,11 @@ object Textures extends ResourceManagerReloadListener {
     var iconSideCharging: Icon = _
   }
 
+  object Disassembler {
+    var iconSideOn: Icon = _
+    var iconTopOn: Icon = _
+  }
+
   object Geolyzer {
     var iconTopOn: Icon = _
   }

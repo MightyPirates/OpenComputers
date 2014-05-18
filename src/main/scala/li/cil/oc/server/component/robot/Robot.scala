@@ -19,6 +19,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.api.event.RobotPlaceInAirEvent
+import li.cil.oc.util.InventoryUtils
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
@@ -158,63 +159,19 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
     val count = checkOptionalItemCount(args, 1)
-    val dropped = robot.decrStackSize(selectedSlot, count)
-    if (dropped != null && dropped.stackSize > 0) {
-      def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
-        var success = false
-        val maxStackSize = math.min(inventory.getInventoryStackLimit, dropped.getMaxStackSize)
-        val shouldTryMerge = !dropped.isItemStackDamageable && dropped.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
-        if (shouldTryMerge) {
-          for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && filter(slot)) {
-            val existing = inventory.getStackInSlot(slot)
-            val shouldMerge = existing != null && existing.stackSize < maxStackSize &&
-              existing.isItemEqual(dropped) && ItemStack.areItemStackTagsEqual(existing, dropped)
-            if (shouldMerge) {
-              val space = maxStackSize - existing.stackSize
-              val amount = math.min(space, dropped.stackSize)
-              assert(amount > 0)
-              success = true
-              existing.stackSize += amount
-              dropped.stackSize -= amount
-            }
-          }
-        }
-
-        def canDropIntoSlot(slot: Int) = filter(slot) && inventory.isItemValidForSlot(slot, dropped) && inventory.getStackInSlot(slot) == null
-        for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && canDropIntoSlot(slot)) {
-          val amount = math.min(maxStackSize, dropped.stackSize)
-          inventory.setInventorySlotContents(slot, dropped.splitStack(amount))
-          success = true
-        }
-        if (success) {
-          inventory.onInventoryChanged()
-        }
-        player.inventory.addItemStackToInventory(dropped)
-        success
+    val stack = robot.decrStackSize(selectedSlot, count)
+    if (stack != null && stack.stackSize > 0) {
+      val player = robot.player(facing)
+      if (!InventoryUtils.tryDropIntoInventoryAt(stack, world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ, facing.getOpposite)) {
+        // No inventory to drop into, drop into the world.
+        player.dropPlayerItemWithRandomChoice(stack, inPlace = false)
       }
+      // Put back whatever remained of the stack.
+      player.inventory.addItemStackToInventory(stack)
 
-      world.getBlockTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-        case chest: TileEntityChest =>
-          val inventory = Block.chest.getInventory(world, chest.xCoord, chest.yCoord, chest.zCoord)
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped)))
-        case inventory: ISidedInventory =>
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped) && inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal())))
-        case inventory: IInventory =>
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped)))
-        case _ =>
-          val player = robot.player(facing)
-          for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
-            if (tryDropIntoInventory(entity, slot => entity.isItemValidForSlot(slot, dropped))) {
-              return result(true)
-            }
-          }
-          player.dropPlayerItemWithRandomChoice(dropped, inPlace = false)
-          context.pause(Settings.get.dropDelay)
-          result(true)
-      }
+      context.pause(Settings.get.dropDelay)
+
+      result(true)
     }
     else result(false)
   }

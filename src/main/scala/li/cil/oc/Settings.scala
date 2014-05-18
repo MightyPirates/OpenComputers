@@ -112,6 +112,7 @@ class Settings(config: Config) {
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
   val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
+  val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
@@ -141,6 +142,7 @@ class Settings(config: Config) {
   val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -189,6 +191,8 @@ class Settings(config: Config) {
   val lootProbability = config.getInt("misc.lootProbability")
   val debugPersistence = true
   val geolyzerRange = config.getInt("misc.geolyzerRange")
+  val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
+  val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
 }
 
 object Settings {
