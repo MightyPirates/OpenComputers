@@ -3,21 +3,33 @@ package li.cil.oc.client.renderer
 import li.cil.oc.client.Textures
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.texture.TextureManager
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
+  val (chars, fontWidth, fontHeight) = try {
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "/textures/font/chars.txt")).getInputStream)("UTF-8").getLines
+    val chars = lines.next()
+    val (w, h) = if (lines.hasNext) {
+      val size = lines.next().split(" ", 2)
+      (size(0).toInt, size(1).toInt)
+    } else (5, 9)
+    (chars, w, h)
+  }
+  catch {
+    case t: Throwable =>
+      OpenComputers.log.warning("Failed reading font metdata, using defaults.")
+      ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
+  }
 
   private var instance: Option[Renderer] = None
 
   def init(textureManager: TextureManager) = this.synchronized(
     instance = instance.orElse(Some(new Renderer(textureManager))))
-
-  val fontWidth = 5
-  val fontHeight = 9
 
   def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = this.synchronized(instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")
