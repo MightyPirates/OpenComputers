@@ -7,7 +7,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ItemUtils, InventoryUtils}
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.item.crafting.{ShapelessRecipes, ShapedRecipes, IRecipe, CraftingManager}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
@@ -101,8 +101,12 @@ class Disassembler extends traits.Environment with traits.Inventory {
   }
 
   private def enqueueNavigationUpgrade(stack: ItemStack) {
+    val info = new ItemUtils.NavigationUpgradeData(stack)
     val parts = getIngredients(stack)
-    
+    queue ++= parts.map {
+      case part if part.getItem == Item.map => info.map
+      case part => part
+    }
   }
 
   private def getIngredients(stack: ItemStack): Iterable[ItemStack] = {
@@ -143,7 +147,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
     case stack: ItemStack => stack
     case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(world.rand.nextInt(list.size))
   }
-  
+
   private def drop(stack: ItemStack) {
     if (stack != null) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {

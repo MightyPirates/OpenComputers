@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{ItemMap, Item, ItemStack}
 import li.cil.oc.{OpenComputers, Blocks, Settings, api}
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.util.ExtendedNBT._
@@ -9,6 +9,7 @@ import com.google.common.base.Strings
 import scala.io.Source
 import java.util.logging.Level
 import li.cil.oc.api.Persistable
+import net.minecraft.world.World
 
 object ItemUtils {
   def caseTier(stack: ItemStack) = {
@@ -119,4 +120,43 @@ object ItemUtils {
 
     def randomName = names((math.random * names.length).toInt)
   }
+
+  class NavigationUpgradeData extends ItemData {
+    def this(stack: ItemStack) = {
+      this()
+      load(stack)
+    }
+
+    var map = new ItemStack(Item.map)
+
+    def mapData(world: World) = try map.getItem.asInstanceOf[ItemMap].getMapData(map, world) catch {
+      case _: Throwable => throw new Exception("invalid map")
+    }
+
+    override def load(stack: ItemStack) {
+      if (stack.hasTagCompound) {
+        load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+      }
+    }
+
+    override def save(stack: ItemStack) {
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound("tag"))
+      }
+      save(stack.getCompoundTag(Settings.namespace + "data"))
+    }
+
+    override def load(nbt: NBTTagCompound) {
+      if (nbt.hasKey(Settings.namespace + "map")) {
+        map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
+      }
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      if (map != null) {
+        nbt.setNewCompoundTag(Settings.namespace + "map", map.writeToNBT)
+      }
+    }
+  }
+
 }
