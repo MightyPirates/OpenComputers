@@ -1,8 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.api
-import li.cil.oc.Settings
+import li.cil.oc.{OpenComputers, api, Settings}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
@@ -15,6 +14,7 @@ import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import li.cil.oc.common.inventory.ServerInventory
+import java.util.logging.Level
 
 class Disassembler extends traits.Environment with traits.Inventory {
   val node = api.Network.newNode(this, Visibility.None).
@@ -109,22 +109,24 @@ class Disassembler extends traits.Environment with traits.Inventory {
     }
   }
 
-  private def getIngredients(stack: ItemStack): Iterable[ItemStack] = {
+  private def getIngredients(stack: ItemStack): Iterable[ItemStack] = try {
     val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
     val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
     val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
-    val ingredients = recipe match {
+    val ingredients = (recipe match {
       case Some(recipe: ShapedRecipes) => recipe.recipeItems.toIterable
       case Some(recipe: ShapelessRecipes) => recipe.recipeItems.map(_.asInstanceOf[ItemStack])
       case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case _ => Iterable.empty
-    }
+    }).toArray
     // Avoid positive feedback loops.
-    if (ingredients.exists(_.isItemEqual(stack))) return Iterable.empty
+    if (ingredients.exists(ingredient => ingredient != null && ingredient.isItemEqual(stack))) {
+      return Iterable.empty
+    }
     // Merge equal items for size division by output size.
     val merged = mutable.ArrayBuffer.empty[ItemStack]
-    for (ingredient <- ingredients) {
+    for (ingredient <- ingredients if ingredient != null) {
       merged.find(_.isItemEqual(ingredient)) match {
         case Some(entry) => entry.stackSize += ingredient.stackSize
         case _ => merged += ingredient.copy()
@@ -141,6 +143,11 @@ class Disassembler extends traits.Environment with traits.Inventory {
       }
     }
     distinct
+  }
+  catch {
+    case t: Throwable =>
+      OpenComputers.log.log(Level.WARNING, "Whoops, something went wrong when trying to figure out an item's parts.", t)
+      Iterable.empty
   }
 
   private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
