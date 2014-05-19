@@ -6,7 +6,7 @@ import li.cil.oc.api.network.Visibility
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ItemUtils, InventoryUtils}
-import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.item.{ItemBucket, Item, ItemStack}
 import net.minecraft.item.crafting.{ShapelessRecipes, ShapedRecipes, IRecipe, CraftingManager}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
@@ -119,14 +119,18 @@ class Disassembler extends traits.Environment with traits.Inventory {
       case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case _ => Iterable.empty
-    }).toArray
+    }).filter(ingredient => ingredient != null &&
+      // Strip out buckets, because those are returned when crafting, and
+      // we have no way of returning the fluid only (and I can't be arsed
+      // to make it output fluids into fluiducts or such, sorry).
+      !ingredient.getItem.isInstanceOf[ItemBucket]).toArray
     // Avoid positive feedback loops.
-    if (ingredients.exists(ingredient => ingredient != null && ingredient.isItemEqual(stack))) {
+    if (ingredients.exists(ingredient => ingredient.isItemEqual(stack))) {
       return Iterable.empty
     }
     // Merge equal items for size division by output size.
     val merged = mutable.ArrayBuffer.empty[ItemStack]
-    for (ingredient <- ingredients if ingredient != null) {
+    for (ingredient <- ingredients) {
       merged.find(_.isItemEqual(ingredient)) match {
         case Some(entry) => entry.stackSize += ingredient.stackSize
         case _ => merged += ingredient.copy()
