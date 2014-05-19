@@ -4,6 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Node;
+import li.cil.oc.api.network.SimpleComponentWithVisibility;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.common.asm.SimpleComponentTickHandler;
 import net.minecraft.nbt.NBTTagCompound;
@@ -31,8 +32,15 @@ public final class StaticSimpleEnvironment {
         }
         if (!nodes.containsKey(self)) {
             final String name = self.getComponentName();
+            final Visibility visibility;
+            if (self instanceof SimpleComponentWithVisibility) {
+                visibility = ((SimpleComponentWithVisibility) self).getComponentVisibility();
+            }
+            else {
+                visibility = Visibility.Neighbors;
+            }
             nodes.put(self, Network.
-                    newNode(self, Visibility.Network).
+                    newNode(self, visibility).
                     withComponent(name).
                     create());
         }
