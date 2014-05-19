@@ -11,6 +11,8 @@ abstract class GuiHandler extends IGuiHandler {
     world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new container.Case(player.inventory, computer)
+      case disassembler: tileentity.Disassembler if id == GuiType.Disassembler.id =>
+        new container.Disassembler(player.inventory, disassembler)
       case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
         new container.DiskDrive(player.inventory, drive)
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>

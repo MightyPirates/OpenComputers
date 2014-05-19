@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.{ItemUtils, InventoryUtils}
 import net.minecraft.item.ItemStack
@@ -13,13 +14,14 @@ import net.minecraftforge.common.ForgeDirection
 import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
+import li.cil.oc.common.inventory.ServerInventory
 
 class Disassembler extends traits.Environment with traits.Inventory {
   val node = api.Network.newNode(this, Visibility.None).
     withConnector().
     create()
 
-  var isActive = true
+  var isActive = false
 
   val queue = mutable.ArrayBuffer.empty[ItemStack]
 
@@ -33,10 +35,17 @@ class Disassembler extends traits.Environment with traits.Inventory {
     super.updateEntity()
     if (world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
-        val stack = getStackInSlot(0)
+        val stack = decrStackSize(0, 1)
         if (stack != null) {
-          setInventorySlotContents(0, null)
           disassemble(stack)
+          if (!isActive && !queue.isEmpty) {
+            isActive = true
+            ServerPacketSender.sendDisassemblerActive(this, isActive)
+          }
+        }
+        else if (isActive) {
+          isActive = false
+          ServerPacketSender.sendDisassemblerActive(this, isActive)
         }
       }
       else {
@@ -48,11 +57,8 @@ class Disassembler extends traits.Environment with traits.Inventory {
         if (buffer >= Settings.get.disassemblerItemCost) {
           buffer -= Settings.get.disassemblerItemCost
           val stack = queue.remove(0)
-          for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
-            InventoryUtils.tryDropIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
-          }
-          if (stack.stackSize > 0) {
-            spawnStackInWorld(stack, ForgeDirection.UP)
+          if (world.rand.nextDouble > Settings.get.disassemblerBreakChance) {
+            drop(stack)
           }
         }
       }
@@ -62,40 +68,92 @@ class Disassembler extends traits.Environment with traits.Inventory {
   def disassemble(stack: ItemStack) {
     // Validate the item, never trust Minecraft / other Mods on anything!
     if (isItemValidForSlot(0, stack)) {
-      if (api.Items.get(stack) == api.Items.get("robot")) {
-        val info = new ItemUtils.RobotData(stack)
-        queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
-        queue ++= info.containers
-        queue ++= info.components
-        node.changeBuffer(info.energy)
-      }
-      else if (api.Items.get(stack) == api.Items.get("server")) {
-
-      }
+      if (api.Items.get(stack) == api.Items.get("robot")) enqueueRobot(stack)
+      else if (api.Items.get(stack) == api.Items.get("server1")) enqueueServer(stack, 0)
+      else if (api.Items.get(stack) == api.Items.get("server2")) enqueueServer(stack, 1)
+      else if (api.Items.get(stack) == api.Items.get("server3")) enqueueServer(stack, 2)
       else if (api.Items.get(stack) == api.Items.get("navigationUpgrade")) {
-
+        enqueueNavigationUpgrade(stack)
       }
-      else {
-        queue ++= getIngredients(stack)
-      }
+      else queue ++= getIngredients(stack)
     }
   }
 
+  private def enqueueRobot(robot: ItemStack) {
+    val info = new ItemUtils.RobotData(robot)
+    queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
+    queue ++= info.containers
+    queue ++= info.components
+    node.changeBuffer(info.energy)
+  }
+
+  private def enqueueServer(server: ItemStack, serverTier: Int) {
+    val info = new ServerInventory {
+      override def tier = serverTier
+
+      override def container = server
+    }
+    for (slot <- 0 until info.getSizeInventory) {
+      val stack = info.getStackInSlot(slot)
+      drop(stack)
+    }
+    queue ++= getIngredients(server)
+  }
+
+  private def enqueueNavigationUpgrade(stack: ItemStack) {
+    val parts = getIngredients(stack)
+    
+  }
+
   private def getIngredients(stack: ItemStack): Iterable[ItemStack] = {
-    CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe]).
-      find(recipe => recipe.getRecipeOutput.isItemEqual(stack)) match {
-      case Some(recipe: ShapedRecipes) => recipe.recipeItems
-      case Some(recipe: ShapelessRecipes) => recipe.recipeItems.toArray(new Array[ItemStack](recipe.recipeItems.size))
+    val recipes = CraftingManager.getInstance.getRecipeList.map(_.asInstanceOf[IRecipe])
+    val recipe = recipes.find(recipe => recipe.getRecipeOutput != null && recipe.getRecipeOutput.isItemEqual(stack))
+    val count = recipe.fold(0)(_.getRecipeOutput.stackSize)
+    val ingredients = recipe match {
+      case Some(recipe: ShapedRecipes) => recipe.recipeItems.toIterable
+      case Some(recipe: ShapelessRecipes) => recipe.recipeItems.map(_.asInstanceOf[ItemStack])
       case Some(recipe: ShapedOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case Some(recipe: ShapelessOreRecipe) => resolveOreDictEntries(recipe.getInput)
       case _ => Iterable.empty
     }
+    // Avoid positive feedback loops.
+    if (ingredients.exists(_.isItemEqual(stack))) return Iterable.empty
+    // Merge equal items for size division by output size.
+    val merged = mutable.ArrayBuffer.empty[ItemStack]
+    for (ingredient <- ingredients) {
+      merged.find(_.isItemEqual(ingredient)) match {
+        case Some(entry) => entry.stackSize += ingredient.stackSize
+        case _ => merged += ingredient.copy()
+      }
+    }
+    merged.foreach(_.stackSize /= count)
+    // Split items up again to 'disassemble them individually'.
+    val distinct = mutable.ArrayBuffer.empty[ItemStack]
+    for (ingredient <- merged) {
+      val size = ingredient.stackSize
+      ingredient.stackSize = 1
+      for (i <- 0 until size) {
+        distinct += ingredient.copy()
+      }
+    }
+    distinct
   }
 
   private def resolveOreDictEntries[T](entries: Iterable[T]) = entries.collect {
     case stack: ItemStack => stack
     case list: java.util.ArrayList[ItemStack]@unchecked if !list.isEmpty => list.get(world.rand.nextInt(list.size))
-  }.toArray
+  }
+  
+  private def drop(stack: ItemStack) {
+    if (stack != null) {
+      for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
+        InventoryUtils.tryDropIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
+      }
+      if (stack.stackSize > 0) {
+        spawnStackInWorld(stack, ForgeDirection.UP)
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -104,6 +162,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
     queue.clear()
     queue ++= nbt.getTagList(Settings.namespace + "queue").map(ItemStack.loadItemStackFromNBT)
     buffer = nbt.getDouble(Settings.namespace + "buffer")
+    isActive = !queue.isEmpty
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
@@ -120,14 +179,14 @@ class Disassembler extends traits.Environment with traits.Inventory {
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
-    nbt.setBoolean("isActive", queue.size > 0)
+    nbt.setBoolean("isActive", isActive)
   }
 
   // ----------------------------------------------------------------------- //
 
   override def getSizeInventory = 1
 
-  override def getInventoryStackLimit = 1
+  override def getInventoryStackLimit = 64
 
   override def getInvName = Settings.namespace + "container.Disassembler"
 

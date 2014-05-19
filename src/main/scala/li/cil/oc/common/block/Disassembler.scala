@@ -1,15 +1,12 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import java.util
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{Settings, OpenComputers}
-import mcp.mobius.waila.api.IWailaConfigHandler
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.util.Icon
 import net.minecraftforge.common.ForgeDirection
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.world.World
@@ -23,7 +20,7 @@ class Disassembler(val parent: SimpleDelegator) extends SimpleDelegate {
   // ----------------------------------------------------------------------- //
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    tooltip.addAll(Tooltip.get(unlocalizedName, (Settings.get.disassemblerBreakChance * 100).toInt.toString))
   }
 
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal))

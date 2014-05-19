@@ -66,6 +66,15 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendDisassemblerActive(t: tileentity.Disassembler, active: Boolean) {
+    val pb = new PacketBuilder(PacketType.DisassemblerActiveChange)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(active)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramClear(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramClear)
 

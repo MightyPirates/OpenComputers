@@ -31,6 +31,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
+    GameRegistry.registerTileEntity(classOf[tileentity.Disassembler], Settings.namespace + "disassembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")

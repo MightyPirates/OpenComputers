@@ -11,6 +11,7 @@ oc:tile.Case1.name=Computergehäuse (Stufe 2)
 oc:tile.Case2.name=Computergehäuse (Stufe 3)
 oc:tile.Case3.name=Computergehäuse (Kreativ)
 oc:tile.Charger.name=Ladestation
+oc:tile.Disassembler.name=Recycler
 oc:tile.DiskDrive.name=Diskettenlaufwerk
 oc:tile.Keyboard.name=Tastatur
 oc:tile.Hologram0.name=Hologrammprojektor (Stufe 1)
@@ -134,6 +135,7 @@ oc:gui.Terminal.OutOfRange=Kein Signal.
 
 # Containers
 oc:container.Case=Computer
+oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk
 oc:container.Rack=Serverschrank
 oc:container.Server=Server
@@ -157,6 +159,7 @@ oc:tooltip.CircuitBoard=Mühsam ernährt sich das Eichhörnchen. Wenn es groß w
 oc:tooltip.ControlUnit=Klingt wichtig, ist es auch. Man baut daraus immerhin CPUs. Wie könnte es da nicht wichtig sein.
 oc:tooltip.CPU=Kernstück eines jeden Computers. Die Taktrate hat einen leichten Schatten, aber was kann man von einer Taschensonnenuhr schon erwarten?[nl] Unterstützte Komponenten: §f%s§7.
 oc:tooltip.CuttingWire=Wird gebraucht, um Tonblöcke in Leiterplattenform zu bekommen. Vermutlich das ineffizienteste Werkzeug in der Geschichte der Menschheit, da es nach einer Verwendung kaputt geht.
+oc:tooltip.Disassembler=Zerlegt Gegenstände in ihre Einzelteile. §lWarnung§7: zurückgewonnene Gegenstände haben eine %s%%-ige Chance beim Extrahieren kaputt zu gehen!
 oc:tooltip.Disk=Sehr einfaches Speichermedium, das verwendet werden kann, um Disketten und Festplatten bauen.
 oc:tooltip.DiskDrive.CC=ComputerCraft-Disketten werden §aunterstützt§7.
 oc:tooltip.DiskDrive=Erlaubt es, Disketten zu lesen und zu beschreiben.

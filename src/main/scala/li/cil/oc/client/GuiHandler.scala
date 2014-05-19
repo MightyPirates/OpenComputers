@@ -13,6 +13,8 @@ object GuiHandler extends CommonGuiHandler {
     world.getBlockTileEntity(x, y, z) match {
       case computer: tileentity.Case if id == GuiType.Case.id =>
         new gui.Case(player.inventory, computer)
+      case disassembler: tileentity.Disassembler if id == GuiType.Disassembler.id =>
+        new gui.Disassembler(player.inventory, disassembler)
       case drive: tileentity.DiskDrive if id == GuiType.DiskDrive.id =>
         new gui.DiskDrive(player.inventory, drive)
       case proxy: tileentity.RobotProxy if id == GuiType.Robot.id =>

@@ -154,7 +154,8 @@ signUpgrade {
 }
 solarGeneratorUpgrade {
   input: [[glass, glass, glass]
-          ["oc:circuitChip3", "oc:generatorUpgrade", "oc:circuitChip3"]]
+          ["oc:circuitChip3", blockLapis, "oc:circuitChip3"]
+          [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 cardContainer1 {
   input: [[ingotIron, "oc:materialTransistor", ingotIron]

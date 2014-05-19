@@ -19,7 +19,28 @@ object ItemUtils {
     else Tier.None
   }
 
-  class RobotData extends Persistable {
+  abstract class ItemData extends Persistable {
+    def load(stack: ItemStack) {
+      if (stack.hasTagCompound) {
+        load(stack.getTagCompound)
+      }
+    }
+
+    def save(stack: ItemStack) {
+      if (!stack.hasTagCompound) {
+        stack.setTagCompound(new NBTTagCompound("tag"))
+      }
+      save(stack.getTagCompound)
+    }
+
+    def createItemStack() = {
+      val stack = Blocks.robotProxy.createItemStack()
+      save(stack)
+      stack
+    }
+  }
+
+  class RobotData extends ItemData {
     def this(stack: ItemStack) = {
       this()
       load(stack)
@@ -34,19 +55,6 @@ object ItemUtils {
     var components = Array.empty[ItemStack]
 
     var containers = Array.empty[ItemStack]
-
-    def load(stack: ItemStack) {
-      if (stack.hasTagCompound) {
-        load(stack.getTagCompound)
-      }
-    }
-
-    def save(stack: ItemStack) {
-      if (!stack.hasTagCompound) {
-        stack.setTagCompound(new NBTTagCompound("tag"))
-      }
-      save(stack.getTagCompound)
-    }
 
     override def load(nbt: NBTTagCompound) {
       if (nbt.hasKey("display") && nbt.getCompoundTag("display").hasKey("Name")) {
@@ -95,12 +103,6 @@ object ItemUtils {
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
     }
-
-    def createItemStack() = {
-      val stack = Blocks.robotProxy.createItemStack()
-      save(stack)
-      stack
-    }
   }
 
   object RobotData {
@@ -117,5 +119,4 @@ object ItemUtils {
 
     def randomName = names((math.random * names.length).toInt)
   }
-
 }
