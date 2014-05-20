@@ -12,7 +12,7 @@ import scala.io.Source
 
 object MonospaceFontRenderer {
   val (chars, fontWidth, fontHeight) = try {
-    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "/textures/font/chars.txt")).getInputStream)("UTF-8").getLines
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "/textures/font/chars.txt")).getInputStream)("UTF-8").getLines()
     val chars = lines.next()
     val (w, h) = if (lines.hasNext) {
       val size = lines.next().split(" ", 2)

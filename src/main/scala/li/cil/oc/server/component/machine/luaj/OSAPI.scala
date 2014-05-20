@@ -74,9 +74,10 @@ class OSAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
         val mon = getField("month", -1)
         val year = getField("year", -1)
 
-        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
-        if (time == null) LuaValue.NIL
-        else LuaValue.valueOf(time: Int)
+        GameTimeFormatter.mktime(year, mon, mday, hour, min, sec) match {
+          case Some(time) => LuaValue.valueOf(time)
+          case _ => LuaValue.NIL
+        }
       }
     })
 

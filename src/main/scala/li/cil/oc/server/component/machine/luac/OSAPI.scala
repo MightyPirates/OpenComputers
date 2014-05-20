@@ -94,9 +94,10 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         val mon = getField("month", -1)
         val year = getField("year", -1)
 
-        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
-        if (time == null) lua.pushNil()
-        else lua.pushNumber(time: Int)
+        GameTimeFormatter.mktime(year, mon, mday, hour, min, sec) match {
+          case Some(time) =>lua.pushNumber(time)
+          case _ => lua.pushNil()
+        }
       }
       1
     })
