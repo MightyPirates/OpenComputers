@@ -6,12 +6,13 @@ import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.event._
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.server.component.{Keyboard, machine}
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.server.{TickHandler, driver, fs, network}
+import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ComputerCraft16}
 import net.minecraftforge.common.MinecraftForge
@@ -19,7 +20,6 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.common.event.{AngelUpgradeHandler, ExperienceUpgradeHandler, UniversalElectricityToolHandler, RobotCommonHandler}
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -100,6 +100,7 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
     if (Mods.UniversalElectricity.isAvailable) {
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }

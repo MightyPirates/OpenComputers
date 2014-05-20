@@ -38,9 +38,7 @@ class InternetCard extends ManagedComponent {
 
   @Callback(doc = """function(url:string[, postData:string]):boolean -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
   def request(context: Context, args: Arguments): Array[AnyRef] = {
-    if (owner.isEmpty || context.node.address != owner.get.node.address) {
-      throw new IllegalArgumentException("can only be used by the owning computer")
-    }
+    checkOwner(context)
     val address = args.checkString(0)
     if (!Settings.get.httpEnabled) {
       return result(Unit, "http requests are unavailable")
@@ -60,6 +58,7 @@ class InternetCard extends ManagedComponent {
 
   @Callback(doc = """function(address:string[, port:number]):number -- Opens a new TCP connection. Returns the handle of the connection.""")
   def connect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
     val address = args.checkString(0)
     val port = if (args.count > 1) args.checkInteger(1) else -1
     if (!Settings.get.tcpEnabled) {
@@ -80,6 +79,7 @@ class InternetCard extends ManagedComponent {
 
   @Callback(direct = true, doc = """function(handle:number) -- Closes an open socket stream.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
     val handle = args.checkInteger(0)
     connections.remove(handle) match {
       case Some(socket) => socket.close()
@@ -90,6 +90,7 @@ class InternetCard extends ManagedComponent {
 
   @Callback(doc = """function(handle:number, data:string):number -- Tries to write data to the socket stream. Returns the number of bytes written.""")
   def write(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     connections.get(handle) match {
@@ -102,6 +103,7 @@ class InternetCard extends ManagedComponent {
 
   @Callback(doc = """function(handle:number, n:number):string -- Tries to read data from the socket stream. Returns the read byte array.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     connections.get(handle) match {
@@ -114,6 +116,12 @@ class InternetCard extends ManagedComponent {
         }
         else result(Array.empty[Byte])
       case _ => throw new IOException("bad connection descriptor")
+    }
+  }
+
+  private def checkOwner(context: Context) {
+    if (owner.isEmpty || context.node != owner.get.node) {
+      throw new IllegalArgumentException("can only be used by the owning computer")
     }
   }
 

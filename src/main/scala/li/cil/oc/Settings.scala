@@ -29,7 +29,6 @@ class Settings(config: Config) {
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
-  val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -204,6 +203,7 @@ object Settings {
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
   val hologramMaxScaleByTier = Array(3, 4)
   val robotComplexityByTier = Array(12, 24, 32)
+  var rTreeDebugRenderer = false
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.

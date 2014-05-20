@@ -66,13 +66,6 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with Wirele
 
   // ----------------------------------------------------------------------- //
 
-  override val canUpdate = true
-
-  override def update() {
-    super.update()
-    api.Network.updateWirelessNetwork(this)
-  }
-
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {
