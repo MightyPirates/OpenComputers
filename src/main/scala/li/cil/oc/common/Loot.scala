@@ -80,7 +80,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("lootDisk").createI
       if (splitAt >= 0) {
         val (name, count) = value.splitAt(splitAt)
         try {
-          acc += key -> (createLootDisk(name, key), count.toInt)
+          acc += key -> (createLootDisk(name, key), count.substring(1).toInt)
         }
         catch {
           case _: Throwable => OpenComputers.log.warning("Bad loot descriptor: " + value)
