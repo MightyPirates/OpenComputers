@@ -212,5 +212,7 @@ object Items extends ItemAPI {
         stack
       }
     }, "openOS")
+
+    Recipes.addItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
   }
 }

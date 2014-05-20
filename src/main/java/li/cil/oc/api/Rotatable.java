@@ -30,4 +30,30 @@ public interface Rotatable {
      * @return the current facing.
      */
     ForgeDirection facing();
+
+    /**
+     * Converts a facing relative to the block's <em>local</em> coordinate
+     * system to a <tt>global orientation</tt>, using south as the standard
+     * orientation.
+     * <p/>
+     * For example, if the block is facing east, calling this with south will
+     * return east, calling it with west will return south and so on.
+     *
+     * @param value the value to translate.
+     * @return the translated orientation.
+     */
+    ForgeDirection toGlobal(ForgeDirection value);
+
+    /**
+     * Converts a <tt>global</tt> orientation to a facing relative to the
+     * block's <em>local</em> coordinate system, using south as the standard
+     * orientation.
+     * <p/>
+     * For example, if the block is facing east, calling this with south will
+     * return east, calling it with west will return north and so on.
+     *
+     * @param value the value to translate.
+     * @return the translated orientation.
+     */
+    ForgeDirection toLocal(ForgeDirection value);
 }

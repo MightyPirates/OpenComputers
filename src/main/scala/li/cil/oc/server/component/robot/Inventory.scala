@@ -115,7 +115,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def readFromNBT(nbt: NBTTagList) {}
 
-  override def getSizeInventory = robot.getSizeInventory
+  override def getSizeInventory = 1 + robot.containerCount + robot.inventorySize
 
   override def getStackInSlot(slot: Int) = robot.getStackInSlot(slot)
 

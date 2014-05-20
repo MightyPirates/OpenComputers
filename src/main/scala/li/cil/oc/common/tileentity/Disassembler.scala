@@ -162,7 +162,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
   private def drop(stack: ItemStack) {
     if (stack != null) {
       for (side <- ForgeDirection.VALID_DIRECTIONS if stack.stackSize > 0) {
-        InventoryUtils.tryDropIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
+        InventoryUtils.insertIntoInventoryAt(stack, world, x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite)
       }
       if (stack.stackSize > 0) {
         spawnStackInWorld(stack, ForgeDirection.UP)

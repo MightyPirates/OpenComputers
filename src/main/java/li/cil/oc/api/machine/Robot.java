@@ -89,6 +89,10 @@ public interface Robot extends ISidedInventory, Rotatable {
 
     /**
      * Gets the index of the currently selected slot in the robot's inventory.
+     * <p/>
+     * This is the index in the underlying, <em>real</em> inventory. To get
+     * the 'local' index, i.e. the way the robot itself addresses it, add
+     * one for the tool and <tt>containerCount</tt> to this value.
      *
      * @return the index of the currently selected slot.
      */
