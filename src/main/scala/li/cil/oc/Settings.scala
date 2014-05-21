@@ -142,6 +142,7 @@ class Settings(config: Config) {
   val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
   val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
   val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
+  val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem

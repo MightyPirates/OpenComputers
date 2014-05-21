@@ -122,6 +122,11 @@ angelUpgrade {
           ["oc:circuitChip1", pistonStickyBase, "oc:circuitChip1"]
           [ingotIron, enderPearl, ingotIron]]
 }
+chunkloaderUpgrade {
+  input: [[ingotGold, glass, ingotGold]
+          ["oc:circuitChip3", eyeOfEnder, "oc:circuitChip3"]
+          [obsidian, "oc:materialCircuitBoardPrinted", obsidian]]
+}
 craftingUpgrade {
   input: [[ingotIron, "", ingotIron]
           ["oc:circuitChip1", workbench, "oc:circuitChip1"]

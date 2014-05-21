@@ -8,15 +8,15 @@ import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntity
 
-object UpgradeInventoryController extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("inventoryControllerUpgrade"))
+object UpgradeChunkloader extends Item {
+  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("chunkloaderUpgrade"))
 
   override def createEnvironment(stack: ItemStack, container: component.Container) = container.tileEntity match {
-    case Some(robot: TileEntity with Robot) => new component.UpgradeInventoryController(robot)
+    case Some(tileEntity: TileEntity with Robot) => new component.UpgradeChunkloader(tileEntity)
     case _ => null
   }
 
   override def slot(stack: ItemStack) = Slot.Upgrade
 
-  override def tier(stack: ItemStack) = Tier.Two
+  override def tier(stack: ItemStack) = Tier.Three
 }

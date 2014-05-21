@@ -15,7 +15,7 @@ import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ComputerCraft16}
-import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.block.Block
 import net.minecraftforge.oredict.OreDictionary
@@ -69,6 +69,7 @@ class Proxy {
     api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
+    api.Driver.add(driver.item.UpgradeChunkloader)
     api.Driver.add(driver.item.UpgradeContainerCard)
     api.Driver.add(driver.item.UpgradeContainerFloppy)
     api.Driver.add(driver.item.UpgradeContainerUpgrade)
@@ -96,6 +97,8 @@ class Proxy {
     Loot.init()
     Recipes.init()
     GameRegistry.registerCraftingHandler(CraftingHandler)
+
+    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
     MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)

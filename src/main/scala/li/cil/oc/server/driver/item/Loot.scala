@@ -15,8 +15,6 @@ object Loot extends Item {
 
   override def slot(stack: ItemStack) = Slot.Disk
 
-  override def tier(stack: ItemStack) = 0
-
   private def createEnvironment(stack: ItemStack, capacity: Int, container: component.Container) = {
     if (stack.hasTagCompound) {
       val lootPath = "loot/" + stack.getTagCompound.getString(Settings.namespace + "lootPath")

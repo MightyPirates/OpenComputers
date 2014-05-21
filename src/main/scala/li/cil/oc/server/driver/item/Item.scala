@@ -1,18 +1,19 @@
 package li.cil.oc.server.driver.item
 
+import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.driver
-import li.cil.oc.Settings
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import li.cil.oc.api.network.ManagedEnvironment
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.server.component.Container
 import li.cil.oc.server.component.Container.{EntityContainer, TileEntityContainer}
 import net.minecraft.entity.Entity
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.tileentity.TileEntity
 
 trait Item extends driver.Item {
-  override def tier(stack: ItemStack) = 0
+  override def tier(stack: ItemStack) = Tier.One
 
   override def dataTag(stack: ItemStack) = Item.dataTag(stack)
 

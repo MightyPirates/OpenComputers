@@ -10,6 +10,7 @@ import net.minecraft.block.Block
 import li.cil.oc.common.recipe.Recipes
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.creativetab.CreativeTabs
+import li.cil.oc.common.InventorySlots.Tier
 
 object Items extends ItemAPI {
   private val descriptors = mutable.Map.empty[String, ItemInfo]
@@ -109,18 +110,18 @@ object Items extends ItemAPI {
 
     Recipes.addItem(new item.Analyzer(multi), "analyzer", "oc:analyzer")
 
-    Recipes.addItem(new item.Memory(multi, 0), "ram1", "oc:ram1")
-    Recipes.addItem(new item.Memory(multi, 2), "ram3", "oc:ram3")
-    Recipes.addItem(new item.Memory(multi, 3), "ram4", "oc:ram4")
+    Recipes.addItem(new item.Memory(multi, Tier.One), "ram1", "oc:ram1")
+    Recipes.addItem(new item.Memory(multi, Tier.Three), "ram3", "oc:ram3")
+    Recipes.addItem(new item.Memory(multi, Tier.Four), "ram4", "oc:ram4")
 
     Recipes.addItem(new item.FloppyDisk(multi), "floppy", "oc:floppy")
-    Recipes.addItem(new item.HardDiskDrive(multi, 0), "hdd1", "oc:hdd1")
-    Recipes.addItem(new item.HardDiskDrive(multi, 1), "hdd2", "oc:hdd2")
-    Recipes.addItem(new item.HardDiskDrive(multi, 2), "hdd3", "oc:hdd3")
+    Recipes.addItem(new item.HardDiskDrive(multi, Tier.One), "hdd1", "oc:hdd1")
+    Recipes.addItem(new item.HardDiskDrive(multi, Tier.Two), "hdd2", "oc:hdd2")
+    Recipes.addItem(new item.HardDiskDrive(multi, Tier.Three), "hdd3", "oc:hdd3")
 
-    Recipes.addItem(new item.GraphicsCard(multi, 0), "graphicsCard1", "oc:graphicsCard1")
-    Recipes.addItem(new item.GraphicsCard(multi, 1), "graphicsCard2", "oc:graphicsCard2")
-    Recipes.addItem(new item.GraphicsCard(multi, 2), "graphicsCard3", "oc:graphicsCard3")
+    Recipes.addItem(new item.GraphicsCard(multi, Tier.One), "graphicsCard1", "oc:graphicsCard1")
+    Recipes.addItem(new item.GraphicsCard(multi, Tier.Two), "graphicsCard2", "oc:graphicsCard2")
+    Recipes.addItem(new item.GraphicsCard(multi, Tier.Three), "graphicsCard3", "oc:graphicsCard3")
     Recipes.addItem(new item.NetworkCard(multi), "lanCard", "oc:lanCard")
     Recipes.addItem(new item.RedstoneCard(multi), "redstoneCard", "oc:redstoneCard")
     Recipes.addItem(new item.WirelessNetworkCard(multi), "wlanCard", "oc:wlanCard")
@@ -139,12 +140,12 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.NumPad(multi), "numPad", "oc:materialNumPad")
 
     Recipes.addItem(new item.Transistor(multi), "transistor", "oc:materialTransistor")
-    Recipes.addItem(new item.Microchip(multi, 0), "chip1", "oc:circuitChip1")
-    Recipes.addItem(new item.Microchip(multi, 1), "chip2", "oc:circuitChip2")
-    Recipes.addItem(new item.Microchip(multi, 2), "chip3", "oc:circuitChip3")
+    Recipes.addItem(new item.Microchip(multi, Tier.One), "chip1", "oc:circuitChip1")
+    Recipes.addItem(new item.Microchip(multi, Tier.Two), "chip2", "oc:circuitChip2")
+    Recipes.addItem(new item.Microchip(multi, Tier.Three), "chip3", "oc:circuitChip3")
     Recipes.addItem(new item.ALU(multi), "alu", "oc:materialALU")
     Recipes.addItem(new item.ControlUnit(multi), "cu", "oc:materialCU")
-    Recipes.addItem(new item.CPU(multi, 0), "cpu1", "oc:cpu1")
+    Recipes.addItem(new item.CPU(multi, Tier.One), "cpu1", "oc:cpu1")
 
     Recipes.addItem(new item.RawCircuitBoard(multi), "rawCircuitBoard", "oc:materialCircuitBoardRaw")
     Recipes.addItem(new item.CircuitBoard(multi), "circuitBoard", "oc:materialCircuitBoard")
@@ -162,17 +163,17 @@ object Items extends ItemAPI {
       Recipes.addItem(abstractBus, "abstractBusCard", "oc:abstractBusCard")
     }
 
-    Recipes.addItem(new item.Memory(multi, 4), "ram5", "oc:ram5")
-    Recipes.addItem(new item.Memory(multi, 5), "ram6", "oc:ram6")
+    Recipes.addItem(new item.Memory(multi, Tier.Five), "ram5", "oc:ram5")
+    Recipes.addItem(new item.Memory(multi, Tier.Six), "ram6", "oc:ram6")
 
     // v1.2.0
-    Recipes.addItem(new item.Server(multi, 2), "server3", "oc:server3")
+    Recipes.addItem(new item.Server(multi, Tier.Three), "server3", "oc:server3")
     Recipes.addItem(new item.Terminal(multi), "terminal", "oc:terminal")
-    Recipes.addItem(new item.CPU(multi, 1), "cpu2", "oc:cpu2")
-    Recipes.addItem(new item.CPU(multi, 2), "cpu3", "oc:cpu3")
+    Recipes.addItem(new item.CPU(multi, Tier.Two), "cpu2", "oc:cpu2")
+    Recipes.addItem(new item.CPU(multi, Tier.Three), "cpu3", "oc:cpu3")
     Recipes.addItem(new item.InternetCard(multi), "internetCard", "oc:internetCard")
-    Recipes.addItem(new item.Server(multi, 0), "server1", "oc:server1")
-    Recipes.addItem(new item.Server(multi, 1), "server2", "oc:server2")
+    Recipes.addItem(new item.Server(multi, Tier.One), "server1", "oc:server1")
+    Recipes.addItem(new item.Server(multi, Tier.Two), "server2", "oc:server2")
 
     // v1.2.3
     registerItem(new item.FloppyDisk(multi) {
@@ -182,18 +183,18 @@ object Items extends ItemAPI {
     // v1.2.6
     Recipes.addItem(new item.Interweb(multi), "interweb", "oc:materialInterweb")
     Recipes.addItem(new item.UpgradeAngel(multi), "angelUpgrade", "oc:angelUpgrade")
-    Recipes.addItem(new item.Memory(multi, 1), "ram2", "oc:ram2")
+    Recipes.addItem(new item.Memory(multi, Tier.Two), "ram2", "oc:ram2")
 
     // v1.3.0
     Recipes.addItem(new item.LinkedCard(multi), "linkedCard", "oc:linkedCard")
     Recipes.addItem(new item.UpgradeExperience(multi), "experienceUpgrade", "oc:experienceUpgrade")
     Recipes.addItem(new item.UpgradeInventory(multi), "inventoryUpgrade", "oc:inventoryUpgrade")
-    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, 0), "upgradeContainer1", "oc:upgradeContainer1")
-    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, 1), "upgradeContainer2", "oc:upgradeContainer2")
-    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, 2), "upgradeContainer3", "oc:upgradeContainer3")
-    Recipes.addItem(new item.UpgradeContainerCard(multi, 0), "cardContainer1", "oc:cardContainer1")
-    Recipes.addItem(new item.UpgradeContainerCard(multi, 1), "cardContainer2", "oc:cardContainer2")
-    Recipes.addItem(new item.UpgradeContainerCard(multi, 2), "cardContainer3", "oc:cardContainer3")
+    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, Tier.One), "upgradeContainer1", "oc:upgradeContainer1")
+    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, Tier.Two), "upgradeContainer2", "oc:upgradeContainer2")
+    Recipes.addItem(new item.UpgradeContainerUpgrade(multi, Tier.Three), "upgradeContainer3", "oc:upgradeContainer3")
+    Recipes.addItem(new item.UpgradeContainerCard(multi, Tier.One), "cardContainer1", "oc:cardContainer1")
+    Recipes.addItem(new item.UpgradeContainerCard(multi, Tier.Two), "cardContainer2", "oc:cardContainer2")
+    Recipes.addItem(new item.UpgradeContainerCard(multi, Tier.Three), "cardContainer3", "oc:cardContainer3")
 
     // Special case loot disk because this one's craftable and having it have
     // the same item damage would confuse NEI and the item costs computation.
@@ -214,5 +215,6 @@ object Items extends ItemAPI {
     }, "openOS")
 
     Recipes.addItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
+    Recipes.addItem(new item.UpgradeChunkloader(multi), "chunkloaderUpgrade", "oc:chunkloaderUpgrade")
   }
 }
