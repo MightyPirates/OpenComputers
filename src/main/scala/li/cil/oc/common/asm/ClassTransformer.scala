@@ -7,7 +7,7 @@ import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
 import net.minecraft.launchwrapper.{LaunchClassLoader, IClassTransformer}
 import org.objectweb.asm.tree._
-import org.objectweb.asm.{ClassWriter, ClassReader}
+import org.objectweb.asm.{Opcodes, ClassWriter, ClassReader}
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 
@@ -64,12 +64,13 @@ class ClassTransformer extends IClassTransformer {
           }
         }
       }
+      transformedClass
     }
     catch {
       case t: Throwable =>
         log.log(Level.WARNING, "Something went wrong!", t)
+        basicClass
     }
-    transformedClass
   }
 
   private def classExists(name: String) = {
@@ -96,7 +97,6 @@ class ClassTransformer extends IClassTransformer {
 
   def injectEnvironmentImplementation(classNode: ClassNode, basicClass: Array[Byte]): Array[Byte] = {
     log.fine(s"Injecting methods from Environment interface into ${classNode.name}.")
-    // TODO find actual implementations, i.e. descend into sub-classes until in a leaf, and transform those?
     if (!isTileEntity(classNode)) {
       throw new InjectionFailedException("Found SimpleComponent on something that isn't a tile entity, ignoring.")
     }
@@ -107,7 +107,7 @@ class ClassTransformer extends IClassTransformer {
       def filter(method: MethodNode) = method.name == methodName && method.desc == signature
       if (classNode.methods.exists(filter)) {
         if (required) {
-          throw new InjectionFailedException(s"Could not inject method $methodName$signature because it was already present!")
+          throw new InjectionFailedException(s"Could not inject method '$methodName$signature' because it was already present!")
         }
       }
       else template.methods.find(filter) match {
@@ -131,22 +131,38 @@ class ClassTransformer extends IClassTransformer {
         areSamePlain || areSameDeObf
       }
       if (classNode.methods.exists(method => method.name == methodName + SimpleComponentImpl.PostFix && mapper.mapMethodDesc(method.desc) == desc)) {
-        throw new InjectionFailedException(s"Delegator method name ${methodName + SimpleComponentImpl.PostFix} is already in use.")
+        throw new InjectionFailedException(s"Delegator method name '${methodName + SimpleComponentImpl.PostFix}' is already in use.")
       }
       classNode.methods.find(filter) match {
         case Some(method) =>
-          log.fine(s"Found original implementation of $methodName, wrapping.")
+          log.fine(s"Found original implementation of '$methodName', wrapping.")
           method.name = methodName + SimpleComponentImpl.PostFix
         case _ =>
-          log.fine(s"No original implementation of $methodName, will inject override.")
+          log.fine(s"No original implementation of '$methodName', will inject override.")
+          def ensureNonFinalIn(name: String) {
+            if (name != null) {
+              val node = classNodeFor(name)
+              if (node != null) {
+                node.methods.find(filter) match {
+                  case Some(method) =>
+                    if ((method.access & Opcodes.ACC_FINAL) != 0) {
+                      throw new InjectionFailedException(s"Method '$methodName' is final in superclass ${node.name.replace('/', '.')}.")
+                    }
+                  case _ =>
+                }
+                ensureNonFinalIn(node.superName)
+              }
+            }
+          }
+          ensureNonFinalIn(classNode.superName)
           template.methods.find(_.name == methodName + SimpleComponentImpl.PostFix) match {
             case Some(method) => classNode.methods.add(method)
-            case _ => throw new AssertionError(s"Couldn't find ${methodName + SimpleComponentImpl.PostFix} in template implementation.")
+            case _ => throw new AssertionError(s"Couldn't find '${methodName + SimpleComponentImpl.PostFix}' in template implementation.")
           }
       }
       template.methods.find(filter) match {
         case Some(method) => classNode.methods.add(method)
-        case _ => throw new AssertionError(s"Couldn't find $methodName in template implementation.")
+        case _ => throw new AssertionError(s"Couldn't find '$methodName' in template implementation.")
       }
     }
     replace("validate", "func_70312_q", "()V")
