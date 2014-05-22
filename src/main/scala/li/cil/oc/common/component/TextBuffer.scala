@@ -72,15 +72,24 @@ class TextBuffer(val owner: component.Container) extends ManagedComponent with a
         // origin.
         val w = getWidth
         val h = getHeight
-        relativeLitArea = data.buffer.foldLeft(0) {
-          (acc, line) => acc + line.count(' ' !=)
+        relativeLitArea = (data.buffer, data.color).zipped.foldLeft(0) {
+          case (acc, (line, colors)) => acc + (line, colors).zipped.foldLeft(0) {
+            case (acc2, (char, color)) =>
+              val bg = PackedColor.unpackBackground(color, data.format)
+              val fg = PackedColor.unpackForeground(color, data.format)
+              acc2 + (if (char == ' ') if (bg == 0) 0 else 1
+              else if (char == 0x2588) if (fg == 0) 0 else 1
+              else if (fg == 0 && bg == 0) 0 else 1)
+          }
         } / (w * h).toDouble
       }
-      val hadPower = hasPower
-      val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
-      hasPower = node.tryChangeBuffer(-neededPower)
-      if (hasPower != hadPower) {
-        ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, owner)
+      if (node != null) {
+        val hadPower = hasPower
+        val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
+        hasPower = node.tryChangeBuffer(-neededPower)
+        if (hasPower != hadPower) {
+          ServerPacketSender.sendTextBufferPowerChange(node.address, isDisplaying && hasPower, owner)
+        }
       }
     }
   }
@@ -263,7 +272,11 @@ class TextBuffer(val owner: component.Container) extends ManagedComponent with a
   }
 
   @SideOnly(Side.CLIENT)
-  override def renderText() = proxy.render()
+  override def renderText() = {
+    if (relativeLitArea != 0) {
+      proxy.render()
+    }
+  }
 
   @SideOnly(Side.CLIENT)
   override def renderWidth = MonospaceFontRenderer.fontWidth * data.width

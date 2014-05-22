@@ -27,10 +27,9 @@ class Keyboard(isRemote: Boolean) extends traits.Environment with traits.Rotatab
   // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side == facing.getOpposite
+  override def canConnect(side: ForgeDirection) = hasNodeOnSide(side)
 
-  override def sidedNode(side: ForgeDirection) =
-    if (hasNodeOnSide(side)) node else null
+  override def sidedNode(side: ForgeDirection) = if (hasNodeOnSide(side)) node else null
 
   // Override automatic analyzer implementation for sided environments.
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = Array(node)
