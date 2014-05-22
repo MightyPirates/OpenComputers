@@ -20,7 +20,7 @@ class ClassTransformer extends IClassTransformer {
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     var transformedClass = basicClass
     try {
-      if (name == "li.cil.oc.common.tileentity.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
+      if (name == "li.cil.oc.common.tileentity.traits.Computer" || name == "li.cil.oc.common.tileentity.Rack") {
         transformedClass = ensureStargateTechCompatibility(transformedClass)
       }
       if (transformedClass != null
@@ -52,15 +52,17 @@ class ClassTransformer extends IClassTransformer {
           classNode.methods.removeAll(incompleteMethods)
           transformedClass = writeClass(classNode)
         }
-        val classNode = newClassNode(transformedClass)
-        if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent")) {
-          try {
-            transformedClass = injectEnvironmentImplementation(classNode, transformedClass)
-            log.info(s"Successfully injected component logic into class $name.")
-          }
-          catch {
-            case e: Throwable =>
-              log.log(Level.WARNING, s"Failed injecting component logic into class $name.", e)
+        {
+          val classNode = newClassNode(transformedClass)
+          if (classNode.interfaces.contains("li/cil/oc/api/network/SimpleComponent")) {
+            try {
+              transformedClass = injectEnvironmentImplementation(classNode)
+              log.info(s"Successfully injected component logic into class $name.")
+            }
+            catch {
+              case e: Throwable =>
+                log.log(Level.WARNING, s"Failed injecting component logic into class $name.", e)
+            }
           }
         }
       }
@@ -95,7 +97,7 @@ class ClassTransformer extends IClassTransformer {
     else basicClass
   }
 
-  def injectEnvironmentImplementation(classNode: ClassNode, basicClass: Array[Byte]): Array[Byte] = {
+  def injectEnvironmentImplementation(classNode: ClassNode): Array[Byte] = {
     log.fine(s"Injecting methods from Environment interface into ${classNode.name}.")
     if (!isTileEntity(classNode)) {
       throw new InjectionFailedException("Found SimpleComponent on something that isn't a tile entity, ignoring.")

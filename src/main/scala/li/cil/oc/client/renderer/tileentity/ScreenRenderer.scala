@@ -72,7 +72,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
 
-    if (screen.hasPower) {
+    if (screen.hasPower && screen.relativeLitArea != 0) {
       MonospaceFontRenderer.init(this.field_147501_a.field_147553_e)
       compileOrDraw(cache.get(screen, this))
     }
