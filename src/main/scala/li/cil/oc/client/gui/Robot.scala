@@ -17,7 +17,7 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.util.StatCollector
-import org.lwjgl.input.Keyboard
+import org.lwjgl.input.{Mouse, Keyboard}
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
@@ -36,13 +36,24 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   // Scroll offset for robot inventory.
   private var inventoryOffset = 0
+  private var isDragging = false
+
+  private def canScroll = robot.inventorySize > 16
+  private def maxOffset = robot.inventorySize / 4 - 4
+
+  private val slotSize = 18
 
   private val bufferWidth = 242.0
   private val bufferHeight = 128.0
   private val bufferMargin = BufferRenderer.innerMargin
 
-  private val inventoryX = 168
-  private val inventoryY = 140
+  private val inventoryX = 169
+  private val inventoryY = 141
+
+  private val scrollX = inventoryX + slotSize * 4 + 2
+  private val scrollY = inventoryY
+  private val scrollWidth = 8
+  private val scrollHeight = 94
 
   private val powerX = 26
   private val powerY = 142
@@ -64,14 +75,18 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
     powerButton.toggled = robot.isRunning
-    scrollButton.enabled = robot.inventorySize > 16
+    scrollButton.enabled = canScroll
+    scrollButton.hoverOverride = isDragging
+    if (robot.inventorySize < 16 + inventoryOffset * 4) {
+      scrollTo(0)
+    }
     super.drawScreen(mouseX, mouseY, dt)
   }
 
   override def initGui() {
     super.initGui()
     powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
-    scrollButton = new ImageButton(1, guiLeft + 244, guiTop + 142, 6, 13, Textures.guiButtonScroll)
+    scrollButton = new ImageButton(1, guiLeft + scrollX + 1, guiTop + scrollY + 1, 6, 13, Textures.guiButtonScroll)
     add(buttonList, powerButton)
     add(buttonList, scrollButton)
   }
@@ -149,6 +164,80 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
+  override protected def mouseClicked(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseClicked(mouseX, mouseY, button)
+    if (canScroll && button == 0 && isCoordinateOverScrollBar(mouseX - guiLeft, mouseY - guiTop)) {
+      isDragging = true
+      scrollMouse(mouseY)
+    }
+  }
+
+  override def mouseMovedOrUp(mouseX: Int, mouseY: Int, button: Int) {
+    super.mouseMovedOrUp(mouseX, mouseY, button)
+    if (button == 0) {
+      isDragging = false
+    }
+  }
+
+  override def mouseClickMove(mouseX: Int, mouseY: Int, lastButtonClicked: Int, timeSinceMouseClick: Long) {
+    super.mouseClickMove(mouseX, mouseY, lastButtonClicked, timeSinceMouseClick)
+    if (isDragging) {
+      scrollMouse(mouseY)
+    }
+  }
+
+  private def scrollMouse(mouseY: Int) {
+    scrollTo(math.round((mouseY - guiTop - scrollY + 1 - 6.5) * maxOffset / (scrollHeight - 13.0)).toInt)
+  }
+
+  override def handleMouseInput() {
+    super.handleMouseInput()
+    if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
+      val mouseX = Mouse.getEventX * width / mc.displayWidth - guiLeft
+      val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1 - guiTop
+      if (isCoordinateOverInventory(mouseX, mouseY) || isCoordinateOverScrollBar(mouseX, mouseY)) {
+        if (math.signum(Mouse.getEventDWheel) < 0) scrollDown()
+        else scrollUp()
+      }
+    }
+  }
+
+  private def isCoordinateOverInventory(x: Int, y: Int) =
+    x >= inventoryX && x < inventoryX + slotSize * 4 &&
+      y >= inventoryY && y < inventoryY + slotSize * 4
+
+  private def isCoordinateOverScrollBar(x: Int, y: Int) =
+    x > scrollX && x < scrollX + scrollWidth &&
+      y >= scrollY && y < scrollY + scrollHeight
+
+  private def scrollUp() = scrollTo(inventoryOffset - 1)
+
+  private def scrollDown() = scrollTo(inventoryOffset + 1)
+
+  private def scrollTo(row: Int) {
+    inventoryOffset = math.max(0, math.min(maxOffset, row))
+    for (index <- 4 until 68) {
+      val slot = inventorySlots.getSlot(index)
+      val displayIndex = index - inventoryOffset * 4 - 4
+      if (displayIndex >= 0 && displayIndex < 16) {
+        slot.xDisplayPosition = 1 + inventoryX + (displayIndex % 4) * slotSize
+        slot.yDisplayPosition = 1 + inventoryY + (displayIndex / 4) * slotSize
+      }
+      else {
+        // Hide the rest!
+        slot.xDisplayPosition = -10000
+        slot.yDisplayPosition = -10000
+      }
+    }
+    val yMin = guiTop + scrollY + 1
+    if (maxOffset > 0) {
+      scrollButton.yPosition = yMin + (scrollHeight - 15) * inventoryOffset / maxOffset
+    }
+    else {
+      scrollButton.yPosition = yMin
+    }
+  }
+
   override protected def changeSize(w: Double, h: Double) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
@@ -158,21 +247,23 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   private def drawSelection() {
-    RenderState.makeItBlend()
-    Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
-    val now = System.currentTimeMillis() / 1000.0
-    val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
-    val slot = robot.selectedSlot - robot.actualSlot(0)
-    val x = guiLeft + inventoryX + (slot % 4) * (selectionSize - 2)
-    val y = guiTop + inventoryY + (slot / 4) * (selectionSize - 2)
+    val slot = robot.selectedSlot - robot.actualSlot(0) - inventoryOffset * 4
+    if (slot >= 0 && slot < 16) {
+      RenderState.makeItBlend()
+      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
+      val now = System.currentTimeMillis() / 1000.0
+      val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
+      val x = guiLeft + inventoryX - 1 + (slot % 4) * (selectionSize - 2)
+      val y = guiTop + inventoryY - 1 + (slot / 4) * (selectionSize - 2)
 
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(x, y, zLevel, 0, offsetV)
-    t.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
-    t.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
-    t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
-    t.draw()
+      val t = Tessellator.instance
+      t.startDrawingQuads()
+      t.addVertexWithUV(x, y, zLevel, 0, offsetV)
+      t.addVertexWithUV(x, y + selectionSize, zLevel, 0, offsetV + selectionStepV)
+      t.addVertexWithUV(x + selectionSize, y + selectionSize, zLevel, 1, offsetV + selectionStepV)
+      t.addVertexWithUV(x + selectionSize, y, zLevel, 1, offsetV)
+      t.draw()
+    }
   }
 
   private def drawPowerLevel() {

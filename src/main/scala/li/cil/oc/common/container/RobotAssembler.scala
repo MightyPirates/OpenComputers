@@ -5,8 +5,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.common.{InventorySlots, tileentity}
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.{ICrafting, Slot}
-import scala.collection.convert.WrapAsScala._
+import net.minecraft.inventory.Slot
 import li.cil.oc.api
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.client.gui.Icons
@@ -82,13 +81,6 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
         assemblyProgress = assembler.progress
         sendProgressBarUpdate(1, assemblyProgress)
       }
-    }
-  }
-
-  private def sendProgressBarUpdate(id: Int, value: Int) {
-    for (entry <- crafters) entry match {
-      case player: ICrafting => player.sendProgressBarUpdate(this, id, value)
-      case _ =>
     }
   }
 }

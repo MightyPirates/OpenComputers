@@ -3,7 +3,7 @@ package li.cil.oc.common.container
 import li.cil.oc.api
 import li.cil.oc.common.InventorySlots.Tier
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.Slot
+import net.minecraft.inventory.{IInventory, Slot}
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Icon
 import scala.collection.convert.WrapAsScala._
@@ -17,6 +17,25 @@ trait ComponentSlot extends Slot {
   def tier: Int
 
   def tierIcon: Icon
+
+  // ----------------------------------------------------------------------- //
+
+  var slotIndex = super.getSlotIndex
+
+  override def getStack = inventory.getStackInSlot(slotIndex)
+
+  override def putStack(stack: ItemStack) {
+    inventory.setInventorySlotContents(slotIndex, stack)
+    onSlotChanged()
+  }
+
+  override def decrStackSize(amount: Int) = inventory.decrStackSize(slotIndex, amount)
+
+  override def isSlotInInventory(inventory: IInventory, slot: Int) = inventory == this.inventory && slot == slotIndex
+
+  override def getSlotIndex = slotIndex
+
+  // ----------------------------------------------------------------------- //
 
   @SideOnly(Side.CLIENT)
   override def func_111238_b() = tier != Tier.None && super.func_111238_b()

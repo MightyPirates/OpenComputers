@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
 
 object Loot extends Item {
-  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("lootDisk"))
+  override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("lootDisk"), api.Items.get("openOS"))
 
   override def createEnvironment(stack: ItemStack, container: component.Container) =
     createEnvironment(stack, 0, container)

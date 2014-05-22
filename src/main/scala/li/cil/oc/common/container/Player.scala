@@ -2,13 +2,12 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
+import li.cil.oc.common.InventorySlots.{Tier, InventorySlot}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.Container
-import net.minecraft.inventory.IInventory
-import net.minecraft.inventory.Slot
+import net.minecraft.inventory.{ICrafting, Container, IInventory, Slot}
 import net.minecraft.item.ItemStack
-import li.cil.oc.common.InventorySlots.{Tier, InventorySlot}
+import scala.collection.convert.WrapAsScala._
 
 abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
   /** Number of player inventory slots to display horizontally. */
@@ -115,6 +114,13 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       val x = left + index * slotSize
       val y = top + slotSize * (playerInventorySizeY - 1) + quickBarSpacing
       addSlotToContainer(new Slot(playerInventory, index, x, y))
+    }
+  }
+
+  protected def sendProgressBarUpdate(id: Int, value: Int) {
+    for (entry <- crafters) entry match {
+      case player: ICrafting => player.sendProgressBarUpdate(this, id, value)
+      case _ =>
     }
   }
 }

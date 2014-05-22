@@ -374,6 +374,8 @@ class TextBuffer(val owner: component.Container) extends ManagedComponent with a
 object TextBuffer {
 
   abstract class Proxy {
+    def owner: TextBuffer
+
     var dirty = false
 
     var nodeAddress = ""
@@ -382,17 +384,25 @@ object TextBuffer {
 
     def onScreenColorChange()
 
-    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int)
+    def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+      owner.relativeLitArea = -1
+    }
 
     def onScreenDepthChange(depth: ColorDepth)
 
-    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char)
+    def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+      owner.relativeLitArea = -1
+    }
 
     def onScreenPaletteChange(index: Int)
 
-    def onScreenResolutionChange(w: Int, h: Int)
+    def onScreenResolutionChange(w: Int, h: Int) {
+      owner.relativeLitArea = -1
+    }
 
-    def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean)
+    def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
+      owner.relativeLitArea = -1
+    }
 
     def keyDown(character: Char, code: Int, player: EntityPlayer)
 
@@ -412,19 +422,37 @@ object TextBuffer {
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = TextBufferRenderCache.render(owner)
 
-    override def onScreenColorChange() = dirty = true
+    override def onScreenColorChange() {
+      dirty = true
+    }
 
-    override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) = dirty = true
+    override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
+      super.onScreenCopy(col, row, w, h, tx, ty)
+      dirty = true
+    }
 
-    override def onScreenDepthChange(depth: ColorDepth) = dirty = true
+    override def onScreenDepthChange(depth: ColorDepth) {
+      dirty = true
+    }
 
-    override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) = dirty = true
+    override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
+      super.onScreenFill(col, row, w, h, c)
+      dirty = true
+    }
 
-    override def onScreenPaletteChange(index: Int) = dirty = true
+    override def onScreenPaletteChange(index: Int) {
+      dirty = true
+    }
 
-    override def onScreenResolutionChange(w: Int, h: Int) = dirty = true
+    override def onScreenResolutionChange(w: Int, h: Int) {
+      super.onScreenResolutionChange(w, h)
+      dirty = true
+    }
 
-    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) = dirty = true
+    override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
+      super.onScreenSet(col, row, s, vertical)
+      dirty = true
+    }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) =
       ClientPacketSender.sendKeyDown(nodeAddress, character, code)
@@ -448,76 +476,76 @@ object TextBuffer {
       ClientPacketSender.sendMouseScroll(nodeAddress, x, y, delta)
   }
 
-  class ServerProxy(val buffer: TextBuffer) extends Proxy {
+  class ServerProxy(val owner: TextBuffer) extends Proxy {
     override def onScreenColorChange() {
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferColorChange(buffer.node.address, buffer.data.foreground, buffer.data.background, buffer.owner)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferColorChange(owner.node.address, owner.data.foreground, owner.data.background, owner.owner)
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-      buffer.relativeLitArea = -1
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferCopy(buffer.node.address, col, row, w, h, tx, ty, buffer.owner)
+      super.onScreenCopy(col, row, w, h, tx, ty)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferCopy(owner.node.address, col, row, w, h, tx, ty, owner.owner)
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferDepthChange(buffer.node.address, depth, buffer.owner)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferDepthChange(owner.node.address, depth, owner.owner)
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-      buffer.relativeLitArea = -1
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferFill(buffer.node.address, col, row, w, h, c, buffer.owner)
+      super.onScreenFill(col, row, w, h, c)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferFill(owner.node.address, col, row, w, h, c, owner.owner)
     }
 
     override def onScreenPaletteChange(index: Int) {
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferPaletteChange(buffer.node.address, index, buffer.getPaletteColor(index), buffer.owner)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferPaletteChange(owner.node.address, index, owner.getPaletteColor(index), owner.owner)
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
-      buffer.relativeLitArea = -1
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferResolutionChange(buffer.node.address, w, h, buffer.owner)
+      super.onScreenResolutionChange(w, h)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferResolutionChange(owner.node.address, w, h, owner.owner)
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
-      buffer.relativeLitArea = -1
-      buffer.owner.markChanged()
-      ServerPacketSender.sendTextBufferSet(buffer.node.address, col, row, s, vertical, buffer.owner)
+      super.onScreenSet(col, row, s, vertical)
+      owner.owner.markChanged()
+      ServerPacketSender.sendTextBufferSet(owner.node.address, col, row, s, vertical, owner.owner)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
-      buffer.node.sendToVisible("keyboard.keyDown", player, Char.box(character), Int.box(code))
+      owner.node.sendToVisible("keyboard.keyDown", player, Char.box(character), Int.box(code))
     }
 
     override def keyUp(character: Char, code: Int, player: EntityPlayer) {
-      buffer.node.sendToVisible("keyboard.keyUp", player, Char.box(character), Int.box(code))
+      owner.node.sendToVisible("keyboard.keyUp", player, Char.box(character), Int.box(code))
     }
 
     override def clipboard(value: String, player: EntityPlayer) {
-      buffer.node.sendToVisible("keyboard.clipboard", player, value)
+      owner.node.sendToVisible("keyboard.clipboard", player, value)
     }
 
     override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) buffer.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else buffer.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button))
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      else owner.node.sendToReachable("computer.checked_signal", player, "touch", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseDrag(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) buffer.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else buffer.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button))
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      else owner.node.sendToReachable("computer.checked_signal", player, "drag", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseUp(x: Int, y: Int, button: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) buffer.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-      else buffer.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button))
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
+      else owner.node.sendToReachable("computer.checked_signal", player, "drop", Int.box(x), Int.box(y), Int.box(button))
     }
 
     override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
-      if (Settings.get.inputUsername) buffer.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getCommandSenderName)
-      else buffer.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
+      if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getCommandSenderName)
+      else owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
     }
   }
 
