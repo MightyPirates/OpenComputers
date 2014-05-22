@@ -7,7 +7,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.component
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.Settings
-import li.cil.oc.util.Color
+import li.cil.oc.util.{PackedColor, Color}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -206,22 +206,31 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer && isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (isOn && isOrigin && world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (relativeLitArea < 0) {
         // The relative lit area is the number of pixels that are not blank
         // versus the number of pixels in the *current* resolution. This is
         // scaled to multi-block screens, since we only compute this for the
         // origin.
         val (w, h) = buffer.resolution
-        relativeLitArea = width * height * buffer.lines.foldLeft(0) {
-          (acc, line) => acc + line.count(' ' !=)
+        relativeLitArea = width * height * (buffer.lines, buffer.color).zipped.foldLeft(0) {
+          case (acc, (line, colors)) => acc + (line, colors).zipped.foldLeft(0) {
+            case (acc2, (char, color)) =>
+              val bg = PackedColor.unpackBackground(color, buffer.depth)
+              val fg = PackedColor.unpackForeground(color, buffer.depth)
+              acc2 + (if (char == ' ') if (bg == 0) 0 else 1
+              else if (char == 0x2588) if (fg == 0) 0 else 1
+              else if (fg == 0 && bg == 0) 0 else 1)
+          }
         } / (w * h).toDouble
       }
-      val hadPower = hasPower
-      val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
-      hasPower = buffer.node.tryChangeBuffer(-neededPower)
-      if (hasPower != hadPower) {
-        ServerPacketSender.sendScreenPowerChange(this, isOn && hasPower)
+      if (isServer) {
+        val hadPower = hasPower
+        val neededPower = relativeLitArea * fullyLitCost * Settings.get.tickFrequency
+        hasPower = buffer.node.tryChangeBuffer(-neededPower)
+        if (hasPower != hadPower) {
+          ServerPacketSender.sendScreenPowerChange(this, isOn && hasPower)
+        }
       }
     }
     if (shouldCheckForMultiBlock) {
