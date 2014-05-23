@@ -29,6 +29,7 @@ object Mods {
   val RedLogic = new SimpleMod("RedLogic")
   val StargateTech2 = new SimpleMod("StargateTech2@[0.6.0,)")
   val ThermalExpansion = new SimpleMod("ThermalExpansion")
+  val TinkersConstruct = new SimpleMod("TConstruct")
   val UniversalElectricity = new SimpleMod("UniversalElectricity@[3.1,)")
 
   trait Mod {

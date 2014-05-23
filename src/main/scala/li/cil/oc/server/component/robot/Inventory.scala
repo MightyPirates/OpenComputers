@@ -37,7 +37,14 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def func_70439_a(item: Item, itemDamage: Int) {}
 
-  override def decrementAnimations() {}
+  override def decrementAnimations() {
+    for (slot <- 0 until getSizeInventory) {
+      Option(getStackInSlot(slot)) match {
+        case Some(stack) => stack.updateAnimation(player.world, player, slot, slot == 0)
+        case _ =>
+      }
+    }
+  }
 
   override def consumeInventoryItem(itemId: Int): Boolean = {
     for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.itemID == itemId && stack.stackSize > 0) {

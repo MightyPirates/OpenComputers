@@ -11,15 +11,20 @@ import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler, CommandHandler}
 
-@Mod(modid = OpenComputers.ModID, modLanguage = "scala",
-  /* certificateFingerprint = OpenComputers.Fingerprint, */ useMetadata = true)
+@Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
+  version = OpenComputers.Version, /* certificateFingerprint = OpenComputers.Fingerprint, */
+  modLanguage = "scala", useMetadata = true)
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),
   serverPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ServerPacketHandler]))
 object OpenComputers {
-  final val ModID = "OpenComputers"
+  final val ID = "OpenComputers"
+
+  final val Name = "OpenComputers"
+
+  final val Version = "@VERSION@"
 
   final val Fingerprint = "@FINGERPRINT@"
 

@@ -11,7 +11,11 @@ object UniversalElectricityToolHandler {
       val damage = UniversalElectricity.getEnergyInItem(e.toolBeforeUse) - UniversalElectricity.getEnergyInItem(e.toolAfterUse)
       if (damage > 0) {
         val actualDamage = damage * e.getDamageRate
-        val repairedDamage = if (e.robot.player.getRNG.nextDouble() > 0.5) damage - math.floor(actualDamage).toLong else damage - math.ceil(actualDamage).toLong
+        val repairedDamage =
+          if (e.robot.player.getRNG.nextDouble() > 0.5)
+            damage - math.floor(actualDamage).toLong
+          else
+            damage - math.ceil(actualDamage).toLong
         UniversalElectricity.chargeItem(e.toolAfterUse, repairedDamage)
       }
     }

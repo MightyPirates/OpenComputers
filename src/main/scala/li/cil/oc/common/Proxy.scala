@@ -104,6 +104,9 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+    if (Mods.TinkersConstruct.isAvailable) {
+      MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
+    }
     if (Mods.UniversalElectricity.isAvailable) {
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }

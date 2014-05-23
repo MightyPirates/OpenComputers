@@ -269,6 +269,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
+    player().inventory.decrementAnimations()
   }
 
   override protected def initialize() {
