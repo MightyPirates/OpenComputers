@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.api.{Driver, driver}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
-import li.cil.oc.Settings
+import li.cil.oc.{common, Settings}
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -77,6 +77,20 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskInsert(this)
+    }
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskEject(this)
+    }
+  }
 
   override def onInventoryChanged() {
     super.onInventoryChanged()

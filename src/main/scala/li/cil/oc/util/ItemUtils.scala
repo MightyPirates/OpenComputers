@@ -5,13 +5,12 @@ import java.util.logging.Level
 import li.cil.oc.{OpenComputers, Blocks, Settings, api}
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.server.driver.item.UpgradeExperience
+import li.cil.oc.server
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.{ItemMap, Item, ItemStack}
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 import net.minecraft.world.World
 import scala.io.Source
-import scala.collection.convert.WrapAsScala._
 
 object ItemUtils {
   def caseTier(stack: ItemStack) = {
@@ -25,7 +24,9 @@ object ItemUtils {
   abstract class ItemData extends Persistable {
     def load(stack: ItemStack) {
       if (stack.hasTagCompound) {
-        load(stack.getTagCompound)
+        // Because ItemStack's load function doesn't copy the compound tag,
+        // but keeps it as is, leading to oh so fun bugs!
+        load(stack.getTagCompound.copy().asInstanceOf[NBTTagCompound])
       }
     }
 
@@ -34,12 +35,6 @@ object ItemUtils {
         stack.setTagCompound(new NBTTagCompound("tag"))
       }
       save(stack.getTagCompound)
-    }
-
-    def createItemStack() = {
-      val stack = Blocks.robotProxy.createItemStack()
-      save(stack)
-      stack
     }
   }
 
@@ -81,7 +76,7 @@ object ItemUtils {
         // Old robot, upgrade to new modular model.
         tier = 0
         val experienceUpgrade = api.Items.get("experienceUpgrade").createItemStack(1)
-        UpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
+        server.driver.item.UpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
         components = Array(
           api.Items.get("screen1").createItemStack(1),
           api.Items.get("keyboard").createItemStack(1),
@@ -115,13 +110,19 @@ object ItemUtils {
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
     }
 
+    def createItemStack() = {
+      val stack = Blocks.robotProxy.createItemStack()
+      save(stack)
+      stack
+    }
+
     def copyItemStack() = {
-      val stack = super.createItemStack()
+      val stack = createItemStack()
       // Forget all node addresses and so on. This is used when 'picking' a
       // robot in creative mode.
       val newInfo = new RobotData(stack)
       newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
-        case Some(driver) =>
+        case Some(driver) if driver == server.driver.item.Screen =>
           val nbt = driver.dataTag(cs)
           nbt.getTags.toArray.foreach {
             case tag: NBTBase => nbt.removeTag(tag.getName)
@@ -150,7 +151,7 @@ object ItemUtils {
         Array.empty[String]
     }
 
-    def randomName = names((math.random * names.length).toInt)
+    def randomName = if (names.length > 0) names((math.random * names.length).toInt) else "Robot"
   }
 
   class NavigationUpgradeData extends ItemData {

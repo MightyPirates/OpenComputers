@@ -52,7 +52,7 @@ object FileSystem extends Item {
     }
     else java.util.UUID.randomUUID().toString
 
-  private class ItemLabel(val stack: ItemStack) extends Label {
+  class ItemLabel(val stack: ItemStack) extends Label {
     var label: Option[String] = None
 
     override def getLabel = label.orNull

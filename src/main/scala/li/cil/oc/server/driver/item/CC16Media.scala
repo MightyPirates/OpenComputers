@@ -33,7 +33,7 @@ object CC16Media extends Item {
     }
     else java.util.UUID.randomUUID().toString
 
-  private class ComputerCraftLabel(val stack: ItemStack) extends Label {
+  class ComputerCraftLabel(val stack: ItemStack) extends Label {
     val media = stack.getItem.asInstanceOf[IMedia]
 
     override def getLabel = media.getLabel(stack)
