@@ -1,12 +1,12 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
+import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
 import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
-import net.minecraft.world.World
 
 class Adapter extends traits.Environment with Analyzable {
   val node = api.Network.newNode(this, Visibility.Network).create()
@@ -97,7 +97,6 @@ class Adapter extends traits.Environment with Analyzable {
     super.onConnect(node)
     if (node == this.node) {
       neighborChanged()
-      Adapter.promoteNeighbors(world, x, y, z)
     }
   }
 
@@ -105,7 +104,6 @@ class Adapter extends traits.Environment with Analyzable {
     super.onDisconnect(node)
     if (node == this.node) {
       updatingBlocks.clear()
-      Adapter.demoteNeighbors(world, x, y, z)
     }
   }
 
@@ -150,45 +148,4 @@ class Adapter extends traits.Environment with Analyzable {
 
   private class BlockData(val name: String, val data: NBTTagCompound)
 
-}
-
-object Adapter {
-  val simpleComponents = mutable.WeakHashMap.empty[SimpleComponentWithVisibility, Int]
-
-  def promoteNeighbors(world: World, x: Int, y: Int, z: Int) {
-    simpleComponents.synchronized {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-          case component: Environment with SimpleComponentWithVisibility =>
-            component.node match {
-              case node: Component if node.visibility == Visibility.Neighbors || node.visibility == Visibility.Network =>
-                simpleComponents.update(component, simpleComponents.getOrElseUpdate(component, 0) + 1)
-                node.setVisibility(Visibility.Network)
-              case _ =>
-            }
-          case _ =>
-        }
-      }
-    }
-  }
-
-  def demoteNeighbors(world: World, x: Int, y: Int, z: Int) {
-    simpleComponents.synchronized {
-      for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
-          case component: Environment with SimpleComponentWithVisibility =>
-            component.node match {
-              case node: Component if node.visibility == Visibility.Network =>
-                simpleComponents.update(component, simpleComponents.getOrElseUpdate(component, 1) - 1)
-                if (simpleComponents(component) <= 0) {
-                  simpleComponents.remove(component)
-                  node.setVisibility(Visibility.Neighbors)
-                }
-              case _ =>
-            }
-          case _ =>
-        }
-      }
-    }
-  }
 }
