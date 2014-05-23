@@ -56,7 +56,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   addPlayerInventorySlots(8, 110)
 
   var isAssembling = false
-  var assemblyProgress = 0
+  var assemblyProgress = 0.0
   var assemblyRemainingTime = 0
 
   @SideOnly(Side.CLIENT)
@@ -67,7 +67,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     }
 
     if (id == 1) {
-      assemblyProgress = value
+      assemblyProgress = value / 5.0
     }
 
     if (id == 2) {
@@ -83,10 +83,10 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
       val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount * Settings.get.tickFrequency / 20).toInt
-      if (assemblyProgress != assembler.progress || assemblyRemainingTime != timeRemaining) {
+      if (assembler.progress - assemblyProgress > 0.2 || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
         assemblyRemainingTime = timeRemaining
-        sendProgressBarUpdate(1, assemblyProgress)
+        sendProgressBarUpdate(1, (assemblyProgress * 5).toInt)
         sendProgressBarUpdate(2, timeRemaining)
       }
     }

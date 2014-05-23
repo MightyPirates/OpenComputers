@@ -73,7 +73,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     else if (isPointInRegion(progressX, progressY, progressWidth, progressHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
-      tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Progress", assemblerContainer.assemblyProgress.toString, timeRemaining))
+      tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Progress", assemblerContainer.assemblyProgress.toInt.toString, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()

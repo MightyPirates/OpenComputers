@@ -46,7 +46,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   val actualInventorySize = 83
 
-  var inventorySize = 0
+  var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
 
@@ -641,7 +641,18 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (i, Some(driver)) if containerSlots contains i => driver.slot(stack) == containerSlotType(i) && driver.tier(stack) <= containerSlotTier(i)
+    case (i, Some(driver)) if containerSlots contains i =>
+      // Yay special cases! Dynamic screens kind of work, but are pretty derpy
+      // because the item gets send around on changes, including the screen
+      // state, which leads to weird effects. Also, it's really illogical that
+      // a screen (and keyboard) could be attached to the robot on the fly.
+      // Since these are very special (as they have special behavior in the
+      // GUI) I feel it's OK to handle it like this, instead of some extra API
+      // logic making the differentiation of assembler and containers generic.
+      driver != server.driver.item.Screen &&
+        driver != server.driver.item.Keyboard &&
+        driver.slot(stack) == containerSlotType(i) &&
+        driver.tier(stack) <= containerSlotTier(i)
     case (i, _) if isInventorySlot(i) => true // Normal inventory.
     case _ => false // Invalid slot.
   }

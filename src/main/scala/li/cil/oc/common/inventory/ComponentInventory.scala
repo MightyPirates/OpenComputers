@@ -72,6 +72,11 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   override def save(nbt: NBTTagCompound) = {
+    saveComponents()
+    super.save(nbt) // Save items after updating their tags.
+  }
+
+  def saveComponents() {
     for (slot <- 0 until getSizeInventory) {
       val stack = getStackInSlot(slot)
       if (stack != null) {
@@ -83,7 +88,6 @@ trait ComponentInventory extends Inventory with network.Environment {
         }
       }
     }
-    super.save(nbt) // Save items after updating their tags.
   }
 
   // ----------------------------------------------------------------------- //

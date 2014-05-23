@@ -2,7 +2,9 @@ package li.cil.oc.common.block
 
 import java.util
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemBlock, ItemStack}
@@ -38,7 +40,12 @@ class Item(id: Int) extends ItemBlock(id) {
   override def isBookEnchantable(a: ItemStack, b: ItemStack) = false
 
   override def placeBlockAt(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, metadata: Int) = {
-    if (super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
+    // When placing robots in creative mode, we have to copy the stack
+    // manually before it's placed to ensure different component addresses
+    // in the different robots, to avoid interference of screens e.g.
+    val needsCopying = player.capabilities.isCreativeMode && api.Items.get(stack) == api.Items.get("robot")
+    val stackToUse = if (needsCopying) new ItemUtils.RobotData(stack).copyItemStack() else stack
+    if (super.placeBlockAt(stackToUse, player, world, x, y, z, side, hitX, hitY, hitZ, metadata)) {
       // If it's a rotatable block try to make it face the player.
       world.getBlockTileEntity(x, y, z) match {
         case keyboard: tileentity.Keyboard =>

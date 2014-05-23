@@ -26,7 +26,7 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
 
   def isAssembling = requiredEnergy > 0
 
-  def progress = ((1 - requiredEnergy / totalRequiredEnergy) * 100).toInt
+  def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
   var robot: Option[ItemStack] = None
 

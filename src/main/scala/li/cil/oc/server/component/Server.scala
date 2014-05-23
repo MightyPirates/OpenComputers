@@ -89,9 +89,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
 
   def save(nbt: NBTTagCompound) {
     nbt.setNewCompoundTag("machine", machine.save)
-    // Dummy tag compound, we just want to flush the components to the actual
-    // tag compound, which is the one of the stack representing us.
-    inventory.save(new NBTTagCompound())
+    inventory.saveComponents()
     inventory.onInventoryChanged()
   }
 
