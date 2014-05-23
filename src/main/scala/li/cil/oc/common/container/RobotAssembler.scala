@@ -6,11 +6,11 @@ import li.cil.oc.common.{InventorySlots, tileentity}
 import li.cil.oc.util.ItemUtils
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.client.gui.Icons
 
-class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.RobotAssembler) extends Player(playerInventory, assembler) {
+class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends Player(playerInventory, assembler) {
   // Computer case.
   {
     val index = inventorySlots.size
@@ -57,6 +57,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
 
   var isAssembling = false
   var assemblyProgress = 0
+  var assemblyRemainingTime = 0
 
   @SideOnly(Side.CLIENT)
   override def updateProgressBar(id: Int, value: Int) {
@@ -68,6 +69,10 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
     if (id == 1) {
       assemblyProgress = value
     }
+
+    if (id == 2) {
+      assemblyRemainingTime = value
+    }
   }
 
   override def detectAndSendChanges() {
@@ -77,9 +82,12 @@ class RobotAssembler(playerInventory: InventoryPlayer, assembler: tileentity.Rob
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
-      if (assemblyProgress != assembler.progress) {
+      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount * Settings.get.tickFrequency / 20).toInt
+      if (assemblyProgress != assembler.progress || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
+        assemblyRemainingTime = timeRemaining
         sendProgressBarUpdate(1, assemblyProgress)
+        sendProgressBarUpdate(2, timeRemaining)
       }
     }
   }

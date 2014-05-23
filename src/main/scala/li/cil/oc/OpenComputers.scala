@@ -11,20 +11,26 @@ import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.{PacketHandler => ServerPacketHandler, CommandHandler}
 
-@Mod(modid = "OpenComputers", modLanguage = "scala",
-  /* certificateFingerprint = "@FINGERPRINT@", */ useMetadata = true)
+@Mod(modid = OpenComputers.ModID, modLanguage = "scala",
+  /* certificateFingerprint = OpenComputers.Fingerprint, */ useMetadata = true)
 @NetworkMod(clientSideRequired = true, serverSideRequired = false,
   clientPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ClientPacketHandler]),
   serverPacketHandlerSpec = new SidedPacketHandler(
     channels = Array("OpenComp"), packetHandler = classOf[ServerPacketHandler]))
 object OpenComputers {
+  final val ModID = "OpenComputers"
+
+  final val Fingerprint = "@FINGERPRINT@"
+
   val log = Logger.getLogger("OpenComputers")
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
+
+  scala.collection.mutable.Map.empty[String, Int].keySet
 
 //  @EventHandler
 //  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)

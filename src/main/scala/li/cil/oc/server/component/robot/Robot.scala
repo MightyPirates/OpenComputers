@@ -57,7 +57,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   // ----------------------------------------------------------------------- //
 
   @Callback
-  def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = result(robot.inventorySize)
+  def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(robot.inventorySize)
 
   @Callback
   def select(context: Context, args: Arguments): Array[AnyRef] = {

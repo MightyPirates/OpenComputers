@@ -125,6 +125,7 @@ oc:gui.Robot.TurnOn=Turn on
 oc:gui.RobotAssembler.CollectRobot=Collect robot
 oc:gui.RobotAssembler.Complexity=Complexity: %s/%s
 oc:gui.RobotAssembler.InsertCase=Insert a Computer Case
+oc:gui.RobotAssembler.Progress=Progress: %s (%s)
 oc:gui.RobotAssembler.Run=Assemble
 oc:gui.ServerRack.None=None
 oc:gui.ServerRack.Back=Back

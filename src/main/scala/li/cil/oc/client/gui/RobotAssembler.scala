@@ -64,13 +64,25 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
           StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Complexity", Int.box(assembler.complexity), Int.box(assembler.maxComplexity)),
           30, 94, if (assembler.complexity <= assembler.maxComplexity) 0x404040 else 0x804040)
       }
+      if (runButton.func_82252_a) {
+        val tooltip = new java.util.ArrayList[String]
+        tooltip.add(StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Run"))
+        drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      }
     }
-    if (runButton.func_82252_a && !assemblerContainer.isAssembling) {
+    else if (isPointInRegion(progressX, progressY, progressWidth, progressHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      tooltip.add(StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Run"))
-      drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
+      val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
+      tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Progress", assemblerContainer.assemblyProgress.toString, timeRemaining))
+      copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()
+  }
+
+  private def formatTime(seconds: Int) = {
+    // Assembly times should not / rarely exceed one hour, so this is good enough.
+    if (seconds < 60) "0:%02d".format(seconds)
+    else "%d:%02d".format(seconds / 60, seconds % 60)
   }
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
