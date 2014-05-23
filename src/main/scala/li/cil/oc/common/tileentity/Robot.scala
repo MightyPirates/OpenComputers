@@ -568,25 +568,31 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def updateInventorySize() = this.synchronized(if (!updatingInventorySize) try {
     updatingInventorySize = true
-    inventorySize = computeInventorySize()
-    val realSize = 1 + containerCount + inventorySize
-    val oldSelected = selectedSlot - actualSlot(0)
-    val removed = mutable.ArrayBuffer.empty[ItemStack]
-    for (slot <- realSize until getSizeInventory - componentCount) {
-      val stack = getStackInSlot(slot)
-      setInventorySlotContents(slot, null)
-      if (stack != null) removed += stack
-    }
-    Array.copy(components, getSizeInventory - componentCount, components, realSize, componentCount)
-    getSizeInventory = realSize + componentCount
-    if (world != null && isServer) {
-      val p = player()
-      for (stack <- removed) {
-        p.inventory.addItemStackToInventory(stack)
-        p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+    val newInventorySize = computeInventorySize()
+    if (newInventorySize != inventorySize) {
+      inventorySize = newInventorySize
+      val realSize = 1 + containerCount + inventorySize
+      val oldSelected = selectedSlot - actualSlot(0)
+      val removed = mutable.ArrayBuffer.empty[ItemStack]
+      for (slot <- realSize until getSizeInventory - componentCount) {
+        val stack = getStackInSlot(slot)
+        setInventorySlotContents(slot, null)
+        if (stack != null) removed += stack
       }
-    } // else: save is screwed and we potentially lose items. Life is hard.
-    selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
+      Array.copy(components, getSizeInventory - componentCount, components, realSize, componentCount)
+      for (slot <- getSizeInventory - componentCount until getSizeInventory if slot < realSize || slot >= realSize + componentCount) {
+        components(slot) = None
+      }
+      getSizeInventory = realSize + componentCount
+      if (world != null && isServer) {
+        val p = player()
+        for (stack <- removed) {
+          p.inventory.addItemStackToInventory(stack)
+          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+        }
+      } // else: save is screwed and we potentially lose items. Life is hard.
+      selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
+    }
   }
   finally {
     updatingInventorySize = false
