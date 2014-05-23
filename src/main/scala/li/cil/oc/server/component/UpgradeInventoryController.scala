@@ -38,7 +38,7 @@ class UpgradeInventoryController(val owner: TileEntity with Robot) extends Manag
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
             // Cannot drop into that inventory.
-            return result(false, "inventory full")
+            return result(false, "inventory full/invalid slot")
           }
           else if (stack.stackSize == 0) {
             // Dropped whole stack.

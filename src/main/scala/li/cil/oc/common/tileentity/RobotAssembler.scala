@@ -53,7 +53,8 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
       }
       val data = new ItemUtils.RobotData()
       data.name = ItemUtils.RobotData.randomName
-      data.energy = 50000
+      data.robotEnergy = 50000
+      data.totalEnergy = data.robotEnergy
       data.containers = items.take(4).drop(1).collect {
         case Some(item) => item
       }

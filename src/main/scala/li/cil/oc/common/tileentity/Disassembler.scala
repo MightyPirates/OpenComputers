@@ -84,7 +84,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
     queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
     queue ++= info.containers
     queue ++= info.components
-    node.changeBuffer(info.energy)
+    node.changeBuffer(info.robotEnergy)
   }
 
   private def enqueueServer(server: ItemStack, serverTier: Int) {

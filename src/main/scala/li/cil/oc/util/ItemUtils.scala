@@ -1,15 +1,17 @@
 package li.cil.oc.util
 
-import net.minecraft.item.{ItemMap, Item, ItemStack}
-import li.cil.oc.{OpenComputers, Blocks, Settings, api}
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.nbt.NBTTagCompound
 import com.google.common.base.Strings
-import scala.io.Source
 import java.util.logging.Level
+import li.cil.oc.{OpenComputers, Blocks, Settings, api}
 import li.cil.oc.api.Persistable
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.server.driver.item.UpgradeExperience
+import li.cil.oc.util.ExtendedNBT._
+import net.minecraft.item.{ItemMap, Item, ItemStack}
+import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 import net.minecraft.world.World
+import scala.io.Source
+import scala.collection.convert.WrapAsScala._
 
 object ItemUtils {
   def caseTier(stack: ItemStack) = {
@@ -49,7 +51,11 @@ object ItemUtils {
 
     var name = ""
 
-    var energy = 0
+    // Overall energy including components.
+    var totalEnergy = 0
+
+    // Energy purely stored in robot component - this is what we have to restore manually.
+    var robotEnergy = 0
 
     var tier = 0
 
@@ -64,7 +70,8 @@ object ItemUtils {
       if (Strings.isNullOrEmpty(name)) {
         name = RobotData.randomName
       }
-      energy = nbt.getInteger(Settings.namespace + "storedEnergy")
+      totalEnergy = nbt.getInteger(Settings.namespace + "storedEnergy")
+      robotEnergy = nbt.getInteger(Settings.namespace + "robotEnergy")
       if (nbt.hasKey(Settings.namespace + "components")) {
         tier = nbt.getInteger(Settings.namespace + "tier")
         components = nbt.getTagList(Settings.namespace + "components").map(ItemStack.loadItemStackFromNBT).toArray
@@ -73,11 +80,14 @@ object ItemUtils {
       else {
         // Old robot, upgrade to new modular model.
         tier = 0
+        val experienceUpgrade = api.Items.get("experienceUpgrade").createItemStack(1)
+        UpgradeExperience.dataTag(experienceUpgrade).setDouble(Settings.namespace + "xp", nbt.getDouble(Settings.namespace + "xp"))
         components = Array(
           api.Items.get("screen1").createItemStack(1),
           api.Items.get("keyboard").createItemStack(1),
           api.Items.get("inventoryUpgrade").createItemStack(1),
-          api.Items.get("experienceUpgrade").createItemStack(1),
+          experienceUpgrade,
+          api.Items.get("openOS").createItemStack(1),
           api.Items.get("graphicsCard1").createItemStack(1),
           api.Items.get("cpu1").createItemStack(1),
           api.Items.get("ram2").createItemStack(1)
@@ -87,8 +97,7 @@ object ItemUtils {
           api.Items.get("upgradeContainer3").createItemStack(1),
           api.Items.get("diskDrive").createItemStack(1)
         )
-        // TODO migration: xp to xp upgrade
-        //        experience = nbt.getDouble(Settings.namespace + "xp")
+        robotEnergy = totalEnergy
       }
     }
 
@@ -99,10 +108,33 @@ object ItemUtils {
         }
         nbt.getCompoundTag("display").setString("Name", name)
       }
-      nbt.setInteger(Settings.namespace + "storedEnergy", energy)
+      nbt.setInteger(Settings.namespace + "storedEnergy", totalEnergy)
+      nbt.setInteger(Settings.namespace + "robotEnergy", robotEnergy)
       nbt.setInteger(Settings.namespace + "tier", tier)
       nbt.setNewTagList(Settings.namespace + "components", components.toIterable)
       nbt.setNewTagList(Settings.namespace + "containers", containers.toIterable)
+    }
+
+    def copyItemStack() = {
+      val stack = super.createItemStack()
+      // Forget all node addresses and so on. This is used when 'picking' a
+      // robot in creative mode.
+      val newInfo = new RobotData(stack)
+      newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
+        case Some(driver) =>
+          val nbt = driver.dataTag(cs)
+          nbt.getTags.toArray.foreach {
+            case tag: NBTBase => nbt.removeTag(tag.getName)
+            case _ =>
+          }
+        case _ =>
+      })
+      // Don't show energy info (because it's unreliable) but fill up the
+      // internal buffer. This is for creative use only, anyway.
+      newInfo.totalEnergy = 0
+      newInfo.robotEnergy = 50000
+      newInfo.save(stack)
+      stack
     }
   }
 

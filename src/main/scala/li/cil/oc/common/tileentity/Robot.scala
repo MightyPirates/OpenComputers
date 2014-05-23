@@ -264,6 +264,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       globalBuffer = bot.node.globalBuffer
       globalBufferSize = bot.node.globalBufferSize
+      info.totalEnergy = globalBuffer.toInt
+      info.robotEnergy = bot.node.localBuffer.toInt
       updatePowerInformation()
     }
     else if (isRunning && isAnimatingMove) {
@@ -319,9 +321,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       swingingTool = nbt.getBoolean(Settings.namespace + "swingingTool")
       turnAxis = nbt.getByte(Settings.namespace + "turnAxis")
     }
-
-    // TODO migration: xp to xp upgrade
-    // xp = nbt.getDouble(Settings.namespace + "xp") max 0
   }
 
   // Side check for Waila (and other mods that may call this client side).
@@ -407,6 +406,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     super.onConnect(node)
     if (node == this.node) {
       node.connect(bot.node)
+      node.asInstanceOf[Connector].setLocalBufferSize(0)
 
       // There's a chance the server sends a robot tile entity to its clients
       // before the tile entity's first update was called, in which case the

@@ -58,10 +58,11 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       }
       if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
         val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
-        tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+        if (energy > 0) {
+          tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+        }
       }
     }
-
   }
 
   @SideOnly(Side.CLIENT)
@@ -75,7 +76,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getBlockTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy => proxy.robot.info.createItemStack()
+      case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
       case _ => null
     }
 
@@ -160,6 +161,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       case Some((robot, owner)) =>
         robot.owner = owner
         robot.info.load(stack)
+        robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
         robot.updateInventorySize()
         robot.updateMaxComponentCount()
       case _ =>

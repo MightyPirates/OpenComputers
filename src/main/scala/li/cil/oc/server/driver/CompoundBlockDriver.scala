@@ -35,11 +35,6 @@ class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
       case named: NamedBlock => return named.preferredName
       case _ =>
     }
-    // TODO Deprecated, remove in 1.3.
-    for (block <- blocks) block match {
-      case named: NamedBlock => return named.preferredName
-      case _ =>
-    }
     try world.getBlockTileEntity(x, y, z) match {
       case inventory: IInventory if !Strings.isNullOrEmpty(inventory.getInvName) => return inventory.getInvName.stripPrefix("container.")
     } catch {
