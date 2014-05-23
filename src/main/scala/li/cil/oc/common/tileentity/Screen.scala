@@ -93,9 +93,9 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
     // Make it a relative position in the displayed buffer.
-    val bw = buffer.getWidth
-    val bh = buffer.getHeight
-    val (bpw, bph) = (buffer.renderWidth / iw.toDouble, buffer.renderHeight / ih.toDouble)
+    val bw = origin.buffer.getWidth
+    val bh = origin.buffer.getHeight
+    val (bpw, bph) = (origin.buffer.renderWidth / iw.toDouble, origin.buffer.renderHeight / ih.toDouble)
     val (brx, bry) = if (bpw > bph) {
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
@@ -118,7 +118,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
     // Convert to absolute coordinates and send the packet to the server.
     if (world.isRemote) {
-      buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
+      origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
     }
     true
   }
