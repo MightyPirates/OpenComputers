@@ -106,11 +106,10 @@ trait Connector extends network.Connector with Node {
   // ----------------------------------------------------------------------- //
 
   override def onDisconnect(node: ImmutableNode) {
-    if (node == this) this.synchronized {
-      setLocalBufferSize(0)
-      distributor = None
-    }
     super.onDisconnect(node)
+    if (node == this) {
+      this.synchronized(distributor = None)
+    }
   }
 
   // ----------------------------------------------------------------------- //

@@ -216,5 +216,6 @@ object Items extends ItemAPI {
 
     Recipes.addItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
     Recipes.addItem(new item.UpgradeChunkloader(multi), "chunkloaderUpgrade", "oc:chunkloaderUpgrade")
+    Recipes.addItem(new item.UpgradeCapacitor(multi), "capacitorUpgrade", "oc:capacitorUpgrade")
   }
 }

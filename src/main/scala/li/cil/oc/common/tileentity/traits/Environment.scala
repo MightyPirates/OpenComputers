@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity.traits
 
 import li.cil.oc.api.network
-import li.cil.oc.api.network.SidedEnvironment
+import li.cil.oc.api.network.{Connector, SidedEnvironment}
 import li.cil.oc.server.TickHandler
 import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
@@ -52,7 +52,12 @@ trait Environment extends TileEntity with network.Environment {
 
   override def onConnect(node: network.Node) {}
 
-  override def onDisconnect(node: network.Node) {}
+  override def onDisconnect(node: network.Node) {
+    if (node == this.node) node match {
+      case connector: Connector => connector.setLocalBufferSize(0)
+      case _ =>
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

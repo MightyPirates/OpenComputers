@@ -118,6 +118,18 @@ class Delegator(id: Int) extends Item(id) {
     }
   }
 
+  override def getDisplayDamage(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.damage(stack)
+      case _ => super.getDisplayDamage(stack)
+    }
+
+  override def getMaxDamage(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.maxDamage(stack)
+      case _ => super.getMaxDamage(stack)
+    }
+
   @SideOnly(Side.CLIENT)
   override def getIcon(stack: ItemStack, pass: Int) =
     subItem(stack) match {

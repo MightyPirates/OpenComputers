@@ -69,6 +69,12 @@ trait Delegate {
     }
   }
 
+  def isDamageable = false
+
+  def damage(stack: ItemStack) = 0
+
+  def maxDamage(stack: ItemStack) = 0
+
   @SideOnly(Side.CLIENT)
   def icon: Option[Icon] = _icon
 

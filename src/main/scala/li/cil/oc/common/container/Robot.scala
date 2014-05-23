@@ -30,11 +30,17 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   private var lastSentBuffer = -1
 
+  private var lastSentBufferSize = -1
+
   @SideOnly(Side.CLIENT)
   override def updateProgressBar(id: Int, value: Int) {
     super.updateProgressBar(id, value)
     if (id == 0) {
       robot.globalBuffer = value
+    }
+
+    if (id == 1) {
+      robot.globalBufferSize = value
     }
   }
 
@@ -45,6 +51,12 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
       if (currentBuffer != lastSentBuffer) {
         lastSentBuffer = currentBuffer
         sendProgressBarUpdate(0, lastSentBuffer)
+      }
+
+      val currentBufferSize = robot.globalBufferSize.toInt
+      if (currentBufferSize != lastSentBufferSize) {
+        lastSentBufferSize = currentBufferSize
+        sendProgressBarUpdate(1, lastSentBufferSize)
       }
     }
   }
