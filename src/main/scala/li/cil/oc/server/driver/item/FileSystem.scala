@@ -40,7 +40,7 @@ object FileSystem extends Item {
     val address = addressFromTag(dataTag(stack))
     val fs = oc.api.FileSystem.fromSaveDirectory(address, capacity, Settings.get.bufferChanges)
     val environment = oc.api.FileSystem.asManagedEnvironment(fs, new ItemLabel(stack), container.tileEntity.orNull)
-    if (environment != null) {
+    if (environment != null && environment.node != null) {
       environment.node.asInstanceOf[oc.server.network.Node].address = address
     }
     environment

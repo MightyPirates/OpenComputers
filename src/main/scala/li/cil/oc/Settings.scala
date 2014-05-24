@@ -8,6 +8,8 @@ import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
+import java.net.{Inet4Address, InetAddress}
+import com.google.common.net.InetAddresses
 
 class Settings(config: Config) {
   val itemId = config.getInt("ids.item")
@@ -165,11 +167,12 @@ class Settings(config: Config) {
   // internet
   val httpEnabled = config.getBoolean("internet.enableHttp")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
-  val httpHostBlacklist = Array(config.getStringList("internet.blacklist"): _*)
-  val httpHostWhitelist = Array(config.getStringList("internet.whitelist"): _*)
-  val httpThreads = config.getInt("internet.requestThreads") max 1
+  val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
+  val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
   val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
+  val httpMaxDownloadSize = config.getInt("internet.requestMaxDownloadSize") max 0
   val maxConnections = config.getInt("internet.maxTcpConnections") max 0
+  val internetThreads = config.getInt("internet.threads") max 1
 
   // ----------------------------------------------------------------------- //
   // misc
@@ -272,5 +275,32 @@ object Settings {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Failed saving config.", e)
     }
+  }
+
+  val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
+
+  class AddressValidator(val value: String) {
+    val validator = try cidrPattern.findFirstIn(value) match {
+      case Some(cidrPattern(address, prefix)) =>
+        val addr = InetAddresses.coerceToInteger(InetAddresses.forString(address))
+        val mask = 0xFFFFFFFF << (32 - prefix.toInt)
+        val min = addr & mask
+        val max = min | ~mask
+        (inetAddress: InetAddress, host: String) => inetAddress match {
+          case v4: Inet4Address =>
+            val numeric = InetAddresses.coerceToInteger(v4)
+            min <= numeric && numeric <= max
+          case _ => true // Can't check IPv6 addresses so we pass them.
+        }
+      case _ =>
+        val address = InetAddress.getByName(value)
+        (inetAddress: InetAddress, host: String) => host == value || inetAddress == address
+    } catch {
+      case t: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Invalid entry in internet blacklist / whitelist: " + value, t)
+        (inetAddress: InetAddress, host: String) => true
+    }
+
+    def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
 }

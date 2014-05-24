@@ -4,7 +4,7 @@ import java.io.{IOException, OutputStreamWriter, BufferedWriter, FileNotFoundExc
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.regex.Matcher
+import java.util.concurrent.{ExecutionException, Callable}
 import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.api
 import li.cil.oc.api.Network
@@ -27,7 +27,7 @@ class InternetCard extends ManagedComponent {
 
   protected var owner: Option[Context] = None
 
-  protected val connections = mutable.Map.empty[Int, SocketChannel]
+  protected val connections = mutable.Map.empty[Int, InternetCard.Socket]
 
   protected var request: Option[InternetCard.Request] = None
 
@@ -67,13 +67,11 @@ class InternetCard extends ManagedComponent {
     if (connections.size >= Settings.get.maxConnections) {
       throw new IOException("too many open connections")
     }
-    val url = checkUri(address)
-    val socketAddress = new InetSocketAddress(url.getHost, if (url.getPort != -1) url.getPort else port)
-    val channel = SocketChannel.open()
-    channel.configureBlocking(false)
-    channel.connect(socketAddress)
-    val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(connections.contains).next()
-    connections += handle -> channel
+    val uri = checkUri(address)
+    val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).
+      filterNot(connections.contains).
+      next()
+    connections += handle -> new InternetCard.Socket(uri, port)
     result(handle)
   }
 
@@ -94,9 +92,7 @@ class InternetCard extends ManagedComponent {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     connections.get(handle) match {
-      case Some(socket) =>
-        if (socket.finishConnect()) result(socket.write(ByteBuffer.wrap(value)))
-        else result(0)
+      case Some(socket) => result(socket.write(value))
       case _ => throw new IOException("bad connection descriptor")
     }
   }
@@ -107,14 +103,7 @@ class InternetCard extends ManagedComponent {
     val handle = args.checkInteger(0)
     val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
     connections.get(handle) match {
-      case Some(socket) =>
-        if (socket.finishConnect()) {
-          val buffer = ByteBuffer.allocate(n)
-          val read = socket.read(buffer)
-          if (read == -1) null
-          else result(buffer.array.view(0, read).toArray)
-        }
-        else result(Array.empty[Byte])
+      case Some(socket) => result(socket.read(n))
       case _ => throw new IOException("bad connection descriptor")
     }
   }
@@ -179,7 +168,6 @@ class InternetCard extends ManagedComponent {
     try {
       val parsed = new URI(address)
       if (parsed.getHost != null && parsed.getPort != -1) {
-        checkLists(Matcher.quoteReplacement(parsed.getHost))
         return parsed
       }
     }
@@ -189,7 +177,6 @@ class InternetCard extends ManagedComponent {
 
     val simple = new URI("oc://" + address)
     if (simple.getHost != null && simple.getPort != -1) {
-      checkLists(Matcher.quoteReplacement(simple.getHost))
       return simple
     }
 
@@ -205,22 +192,72 @@ class InternetCard extends ManagedComponent {
     if (!protocol.matches("^https?$")) {
       throw new FileNotFoundException("unsupported protocol")
     }
-    checkLists(Matcher.quoteReplacement(url.getHost))
     url
-  }
-
-  private def checkLists(host: String) {
-    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(host.matches)) {
-      throw new FileNotFoundException("domain is not whitelisted")
-    }
-    if (Settings.get.httpHostBlacklist.exists(host.matches)) {
-      throw new FileNotFoundException("domain is blacklisted")
-    }
   }
 }
 
 object InternetCard {
-  private val threadPool = ThreadPoolFactory.create("HTTP", Settings.get.httpThreads)
+  private val threadPool = ThreadPoolFactory.create("Internet", Settings.get.internetThreads)
+
+  def checkLists(inetAddress: InetAddress, host: String) {
+    if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
+      throw new FileNotFoundException("address is not whitelisted")
+    }
+    if (Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
+      throw new FileNotFoundException("address is blacklisted")
+    }
+  }
+
+  class Socket(val uri: URI, val port: Int) {
+    val address = threadPool.submit(new Callable[InetAddress] {
+      override def call() = {
+        val resolved = InetAddress.getByName(uri.getHost)
+        checkLists(resolved, uri.getHost)
+        resolved
+      }
+    })
+    val channel = SocketChannel.open()
+    channel.configureBlocking(false)
+    var isConnecting = false
+
+    def close() {
+      channel.close()
+    }
+
+    def read(n: Int) = {
+      if (checkConnected()) {
+        val buffer = ByteBuffer.allocate(n)
+        val read = channel.read(buffer)
+        if (read == -1) null
+        else buffer.array.view(0, read).toArray
+      }
+      else Array.empty[Byte]
+    }
+
+    def write(value: Array[Byte]) = {
+      if (checkConnected()) channel.write(ByteBuffer.wrap(value))
+      else 0
+    }
+
+    def checkConnected() = {
+      if (isConnecting) channel.finishConnect()
+      else if (address.isCancelled) {
+        // I don't think this can ever happen, Justin Case.
+        close()
+        throw new IOException("bad connection descriptor")
+      }
+      else if (address.isDone) try {
+        val socketAddress = new InetSocketAddress(address.get, if (uri.getPort != -1) uri.getPort else port)
+        channel.connect(socketAddress)
+        isConnecting = true
+        false
+      }
+      catch {
+        case e: ExecutionException => throw e.getCause
+      }
+      else false
+    }
+  }
 
   class Request(val owner: Option[InternetCard] = None) extends AbstractValue {
     private var url: URL = null
@@ -270,6 +307,7 @@ object InternetCard {
     protected def scheduleRequest() {
       InternetCard.threadPool.submit(new Runnable {
         override def run() = try {
+          checkLists(InetAddress.getByName(url.getHost), url.getHost)
           val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
           url.openConnection(proxy) match {
             case http: HttpURLConnection => try {
@@ -297,7 +335,7 @@ object InternetCard {
                 if (count > 0) {
                   data ++= buffer.take(count)
                 }
-              } while (count != -1)
+              } while (count != -1 && data.length < Settings.get.httpMaxDownloadSize)
               input.close()
               this.synchronized {
                 Request.this.data = Some(data.toArray)

@@ -3,6 +3,7 @@ local process = {}
 -------------------------------------------------------------------------------
 
 local running = setmetatable({}, {__mode="k"})
+local coroutine_create = coroutine.create
 
 local function findProcess(co)
   co = co or coroutine.running()
@@ -33,7 +34,7 @@ function process.load(path, env, init, name)
     return nil, reason
   end
 
-  local thread = coroutine.create(function(...)
+  local thread = coroutine_create(function(...)
     if init then
       init()
     end
@@ -62,7 +63,6 @@ function process.running(level)
 end
 
 function process.install(path, name)
-  local coroutine_create = coroutine.create
   _G.coroutine.create = function(f)
     local co = coroutine_create(f)
     table.insert(findProcess().instances, co)
