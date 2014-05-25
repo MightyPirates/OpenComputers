@@ -19,6 +19,14 @@ public abstract class DriverPeripheral<TPeripheral> implements li.cil.oc.api.dri
             }
         }
     }
+    private boolean isBlacklisted(Object o){
+
+        for(Class<?> clazz:blacklist){
+            if(clazz.isInstance(o))
+                return true;
+        }
+        return false;
+    }
 
     protected abstract TPeripheral findPeripheral(World world, int x, int y, int z);
 
@@ -31,7 +39,7 @@ public abstract class DriverPeripheral<TPeripheral> implements li.cil.oc.api.dri
                 && !li.cil.oc.api.network.Environment.class.isAssignableFrom(tileEntity.getClass())
                 // The black list is used to avoid peripherals that are known
                 // to be incompatible with OpenComputers when used directly.
-                && !blacklist.contains(tileEntity.getClass())
+                && !isBlacklisted(tileEntity)
                 // Actual check if it's a peripheral.
                 && findPeripheral(world, x, y, z) != null;
     }

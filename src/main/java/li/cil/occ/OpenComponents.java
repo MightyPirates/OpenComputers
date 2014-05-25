@@ -26,7 +26,11 @@ public class OpenComponents {
     public static final Logger Log = Logger.getLogger("OpenComponents");
 
     public static String[] peripheralBlacklist = new String[]{
-            "JAKJ.RedstoneInMotion.CarriageControllerEntity"
+            "JAKJ.RedstoneInMotion.CarriageControllerEntity",
+            "appeng.api.me.tiles.ICellProvider",
+            "appeng.api.me.tiles.ICellProvider",
+            "appeng.me.tile.TileController"
+
     };
 
     @Mod.EventHandler
