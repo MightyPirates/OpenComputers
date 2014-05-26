@@ -43,7 +43,7 @@ function text.wrap(value, width, maxWidth)
   checkArg(1, value, "string")
   checkArg(2, width, "number")
   checkArg(3, maxWidth, "number")
-  local line, nl = value:match("([^\r\n]*)([\r\n]?)") -- read until newline
+  local line, nl = value:match("([^\r\n]*)(\r?\n?)") -- read until newline
   if unicode.len(line) > width then -- do we even need to wrap?
     local partial = unicode.sub(line, 1, width)
     local wrapped = partial:match("(.*[^a-zA-Z0-9._])")
