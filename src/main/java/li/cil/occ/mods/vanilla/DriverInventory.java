@@ -1,11 +1,14 @@
 package li.cil.occ.mods.vanilla;
 
+import com.google.common.base.Preconditions;
+
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
+import li.cil.occ.util.InventoryDescriptionUtils;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -116,7 +119,22 @@ public final class DriverInventory extends DriverTileEntity {
             // Fail.
             return new Object[]{false};
         }
-
+//new
+        @Callback
+    	public Object[] getStackInSlot(final Context context, final Arguments args) {
+    		Preconditions.checkElementIndex(checkSlot(args,0), tileEntity.getSizeInventory(), "slot id");
+    		return new Object[]{InventoryDescriptionUtils.itemstackToMap(tileEntity.getStackInSlot(checkSlot(args,0)))};
+    	}
+        
+    	@Callback
+    	public Object[] getAllStacks(final Context context, final Arguments args) {
+    		ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
+    		for (int i = 0; i < tileEntity.getSizeInventory(); i++) {
+    			allStacks[i] = tileEntity.getStackInSlot(i);
+    		}
+    		return new Object[]{InventoryDescriptionUtils.invToMap(tileEntity)};
+    	}
+        
         private int checkSlot(final Arguments args, final int number) {
             final int slot = args.checkInteger(number) - 1;
             if (slot < 0 || slot >= tileEntity.getSizeInventory()) {

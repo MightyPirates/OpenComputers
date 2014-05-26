@@ -8,6 +8,7 @@ import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
+import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
@@ -30,7 +31,6 @@ public class OpenComponents {
             "appeng.api.me.tiles.ICellProvider",
             "appeng.api.me.tiles.ICellProvider",
             "appeng.me.tile.TileController"
-
     };
 
     @Mod.EventHandler
@@ -56,6 +56,7 @@ public class OpenComponents {
         Registry.add(new ModRedstoneInMotion());
         Registry.add(new ModThermalExpansion());
         Registry.add(new ModTMechworks());
+        Registry.add(new ModForestry());
         Registry.add(new ModVanilla());
 
         // Register the general IPeripheral driver last, if at all, to avoid it
