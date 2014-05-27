@@ -7,6 +7,8 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 import net.minecraft.util.StatCollector
 import net.minecraft.client.Minecraft
+import li.cil.oc.api.component.TextBuffer
+import li.cil.oc.common.item.Tablet
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =
@@ -34,6 +36,17 @@ object GuiHandler extends CommonGuiHandler {
 
             override def isUseableByPlayer(player: EntityPlayer) = player == player
           })
+        case Some(tablet: item.Tablet) if id == GuiType.Tablet.id =>
+          val stack = player.getCurrentEquippedItem
+          if (stack.hasTagCompound) {
+            Tablet.get(stack, player).components.collect {
+              case Some(buffer: TextBuffer) => buffer
+            }.headOption match {
+              case Some(buffer: TextBuffer) => return new gui.Screen(buffer, true, () => true)
+              case _ =>
+            }
+          }
+          null
         case Some(terminal: item.Terminal) if id == GuiType.Terminal.id =>
           val stack = player.getCurrentEquippedItem
           if (stack.hasTagCompound) {
