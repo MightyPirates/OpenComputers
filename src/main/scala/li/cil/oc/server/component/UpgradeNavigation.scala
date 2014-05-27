@@ -1,13 +1,13 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.{Rotatable, Network}
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import li.cil.oc.util.ItemUtils.NavigationUpgradeData
+import net.minecraft.nbt.NBTTagCompound
 
-class UpgradeNavigation(val owner: TileEntity) extends ManagedComponent {
+class UpgradeNavigation(val owner: Container with Rotatable) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("navigation", Visibility.Neighbors).
     create()
@@ -18,31 +18,23 @@ class UpgradeNavigation(val owner: TileEntity) extends ManagedComponent {
 
   @Callback(doc = """function():number, number, number -- Get the current relative position of the robot.""")
   def getPosition(context: Context, args: Arguments): Array[AnyRef] = {
-    val info = data.mapData(owner.getWorldObj)
+    val info = data.mapData(owner.world)
     val size = 128 * (1 << info.scale)
-    val x = owner.xCoord
-    val y = owner.yCoord
-    val z = owner.zCoord
-    val relativeX = x - info.xCenter
-    val relativeZ = z - info.zCenter
+    val relativeX = owner.xPosition - info.xCenter
+    val relativeZ = owner.zPosition - info.zCenter
 
     if (math.abs(relativeX) <= size / 2 && math.abs(relativeZ) <= size / 2)
-      result(relativeX, y, relativeZ)
+      result(relativeX, owner.yPosition, relativeZ)
     else
       result(Unit, "out of range")
   }
 
   @Callback(doc = """function():number -- Get the current orientation of the robot.""")
-  def getFacing(context: Context, args: Arguments): Array[AnyRef] = {
-    owner match {
-      case rotatable: Rotatable => result(rotatable.facing.ordinal)
-      case _ => throw new Exception("illegal state")
-    }
-  }
+  def getFacing(context: Context, args: Arguments): Array[AnyRef] = result(owner.facing.ordinal)
 
   @Callback(doc = """function():number -- Get the operational range of the navigation upgrade.""")
   def getRange(context: Context, args: Arguments): Array[AnyRef] = {
-    val info = data.mapData(owner.getWorldObj)
+    val info = data.mapData(owner.world)
     val size = 128 * (1 << info.scale)
     result(size / 2)
   }

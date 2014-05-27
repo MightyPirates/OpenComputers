@@ -11,6 +11,7 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{StatCollector, Icon}
 import net.minecraft.world.World
 import org.lwjgl.input
+import net.minecraft.entity.Entity
 
 trait Delegate {
   val parent: Delegator
@@ -42,6 +43,8 @@ trait Delegate {
     }
     stack
   }
+
+  def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) {}
 
   // ----------------------------------------------------------------------- //
 

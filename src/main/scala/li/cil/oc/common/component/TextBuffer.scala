@@ -4,11 +4,12 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.{api, Settings}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender, ComponentTracker => ClientComponentTracker}
 import li.cil.oc.client.renderer.{MonospaceFontRenderer, TextBufferRenderCache}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.{PacketSender => ServerPacketSender, ComponentTracker => ServerComponentTracker, component}
+import li.cil.oc.server.{PacketSender => ServerPacketSender, ComponentTracker => ServerComponentTracker}
 import li.cil.oc.util
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.PackedColor
@@ -16,7 +17,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 
-class TextBuffer(val owner: component.Container) extends ManagedComponent with api.component.TextBuffer {
+class TextBuffer(val owner: Container) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("screen").
     withConnector().

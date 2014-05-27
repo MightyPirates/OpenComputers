@@ -1,10 +1,10 @@
 package li.cil.oc.api.detail;
 
 import cpw.mods.fml.common.Optional;
+import li.cil.oc.api.driver.Container;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
-import net.minecraft.tileentity.TileEntity;
 
 public interface FileSystemAPI {
     /**
@@ -126,20 +126,20 @@ public interface FileSystemAPI {
      * @param container  the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, TileEntity container);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, Label label, Container container);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
      * but creates a read-only label initialized to the specified value.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the read-only label of the file system.
      * @return the network node wrapping the file system.
      */
-    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, TileEntity container);
+    ManagedEnvironment asManagedEnvironment(FileSystem fileSystem, String label, Container container);
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
      * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.

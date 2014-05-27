@@ -47,39 +47,21 @@ public interface Item {
      * there's a built-in driver for that. You may still opt to not implement
      * this - i.e. it is safe to return <tt>null</tt> here.
      * <p/>
-     * Keep in mind that the tile entity's location may change if the owner is
+     * Keep in mind that the container's location may change if the owner is
      * a robot. This is important if you cache the location somewhere. For
-     * example, the wireless network card checks in it's update whether its
-     * owner's position has changed to update the index structure used for
+     * example, the wireless network card checks in a robot movement event
+     * handler for position changes to update the index structure used for
      * receiver look-up.
      * <p/>
      * This is expected to return a <em>new instance</em> each time it is
-     * called. The created instance's life cycle is managed by the computer or
-     * other container that caused its creation.
+     * called. The created instance's life cycle is managed by the container
+     * that caused its creation.
      *
      * @param stack     the item stack for which to get the environment.
-     * @param container the tile entity the environment will be managed by.
+     * @param container the container the environment will be managed by.
      * @return the environment for that item.
      */
-    ManagedEnvironment createEnvironment(ItemStack stack, TileEntity container);
-
-    /**
-     * Create a new managed environment interfacing the specified item.
-     * <p/>
-     * This is the same as {@link #createEnvironment(net.minecraft.item.ItemStack, net.minecraft.tileentity.TileEntity)},
-     * except that it allows specifying entities, such as players, as the
-     * container of the environment, specifying information such as the
-     * position in the world that way.
-     * <p/>
-     * Not all components will support both types of environment. If you only
-     * intend your component to be used from within computers, for example,
-     * it is safe to simply return <tt>null</tt> here.
-     *
-     * @param stack     the item stack for which to get the environment.
-     * @param container the entity the environment will be managed by.
-     * @return the environment for that item.
-     */
-    ManagedEnvironment createEnvironment(ItemStack stack, Entity container);
+    ManagedEnvironment createEnvironment(ItemStack stack, Container container);
 
     /**
      * The slot type of the specified item this driver supports.

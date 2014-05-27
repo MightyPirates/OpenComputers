@@ -2,13 +2,13 @@ package li.cil.oc.server.component
 
 import java.io._
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.{api, Settings}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import scala.language.implicitConversions
 
-class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with WirelessEndpoint {
+class WirelessNetworkCard(val owner: Container) extends NetworkCard with WirelessEndpoint {
   override val node = Network.newNode(this, Visibility.Network).
     withComponent("modem", Visibility.Neighbors).
     withConnector().
@@ -18,13 +18,13 @@ class WirelessNetworkCard(val owner: TileEntity) extends NetworkCard with Wirele
 
   // ----------------------------------------------------------------------- //
 
-  override def x = owner.xCoord
+  override def x = owner.xPosition.toInt
 
-  override def y = owner.yCoord
+  override def y = owner.yPosition.toInt
 
-  override def z = owner.zCoord
+  override def z = owner.zPosition.toInt
 
-  override def world = owner.getWorldObj
+  override def world = owner.world
 
   // ----------------------------------------------------------------------- //
 

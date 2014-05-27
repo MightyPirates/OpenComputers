@@ -2,9 +2,9 @@ package li.cil.oc.api;
 
 import cpw.mods.fml.common.Optional;
 import li.cil.oc.api.detail.FileSystemAPI;
+import li.cil.oc.api.driver.Container;
 import li.cil.oc.api.fs.Label;
 import li.cil.oc.api.network.ManagedEnvironment;
-import net.minecraft.tileentity.TileEntity;
 
 /**
  * This class provides factory methods for creating file systems that are
@@ -183,28 +183,28 @@ public final class FileSystem {
      * @param container  the tile entity containing the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final TileEntity container) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final Label label, final Container container) {
         if (instance != null)
             return instance.asManagedEnvironment(fileSystem, label, container);
         return null;
     }
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
      * but creates a read-only label initialized to the specified value.
      *
      * @param fileSystem the file system to wrap.
      * @param label      the read-only label of the file system.
      * @return the network node wrapping the file system.
      */
-    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final TileEntity container) {
+    public static ManagedEnvironment asManagedEnvironment(final li.cil.oc.api.fs.FileSystem fileSystem, final String label, final Container container) {
         if (instance != null)
             return instance.asManagedEnvironment(fileSystem, label, container);
         return null;
     }
 
     /**
-     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, TileEntity)},
+     * Like {@link #asManagedEnvironment(li.cil.oc.api.fs.FileSystem, Label, Container)},
      * but does not provide a container.
      *
      * @param fileSystem the file system to wrap.

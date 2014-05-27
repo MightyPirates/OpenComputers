@@ -3,6 +3,7 @@ package li.cil.oc.server.fs
 import cpw.mods.fml.common.Optional
 import java.io
 import java.net.URL
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
 import li.cil.oc.{Settings, api}
@@ -77,10 +78,10 @@ object FileSystem extends api.detail.FileSystemAPI {
   @Optional.Method(modid = "ComputerCraft")
   def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IWritableMount) = new CC16WritableFileSystem(mount)
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: net.minecraft.tileentity.TileEntity) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: Container) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: net.minecraft.tileentity.TileEntity) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: Container) =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), container)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =

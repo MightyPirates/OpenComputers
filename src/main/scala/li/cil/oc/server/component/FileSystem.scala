@@ -3,6 +3,7 @@ package li.cil.oc.server.component
 import java.io.{FileNotFoundException, IOException}
 import li.cil.oc.Settings
 import li.cil.oc.api
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
@@ -12,12 +13,11 @@ import li.cil.oc.server.driver.item.{CC16Media, CC15Media}
 import li.cil.oc.server.driver.item.FileSystem.ItemLabel
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
-import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
-import net.minecraft.tileentity.TileEntity
-import scala.collection.mutable
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[TileEntity] = None) extends ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().
@@ -319,25 +319,25 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: O
   private def isHardDisk(stack: ItemStack) = hdds contains api.Items.get(stack)
 
   private def makeSomeNoise() {
-    container.foreach(t =>
+    container.foreach(c =>
       // Well, this is hacky as shit, but who cares.
       label match {
         case item: ItemLabel =>
           if (isFloppy(item.stack)) {
-            Sound.playDiskActivity(t, isFloppy = true)
+            Sound.playDiskActivity(c, isFloppy = true)
           }
           else if (isHardDisk(item.stack)) {
-            Sound.playDiskActivity(t, isFloppy = false)
+            Sound.playDiskActivity(c, isFloppy = false)
           }
         case _ =>
           if (Mods.ComputerCraft15.isAvailable) {
             if (label.isInstanceOf[CC15Media.ComputerCraftLabel]) {
-              Sound.playDiskActivity(t, isFloppy = true)
+              Sound.playDiskActivity(c, isFloppy = true)
             }
           }
           if (Mods.ComputerCraft16.isAvailable) {
             if (label.isInstanceOf[CC16Media.ComputerCraftLabel]) {
-              Sound.playDiskActivity(t, isFloppy = true)
+              Sound.playDiskActivity(c, isFloppy = true)
             }
           }
       })

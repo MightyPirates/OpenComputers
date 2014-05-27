@@ -2,13 +2,13 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.component.ManagedComponent
-import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraft.world.biome.BiomeGenDesert
 
-class UpgradeSolarGenerator(val owner: TileEntity) extends ManagedComponent {
+class UpgradeSolarGenerator(val owner: Container) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withConnector().
     create()
@@ -27,11 +27,7 @@ class UpgradeSolarGenerator(val owner: TileEntity) extends ManagedComponent {
     ticksUntilCheck -= 1
     if (ticksUntilCheck <= 0) {
       ticksUntilCheck = 100
-      val world = owner.getWorldObj
-      val x = owner.xCoord
-      val y = owner.yCoord
-      val z = owner.zCoord
-      isSunShining = isSunVisible(world, x, y + 1, z)
+      isSunShining = isSunVisible(owner.world, owner.xPosition.toInt, owner.yPosition.toInt + 1, owner.zPosition.toInt)
     }
     if (isSunShining) {
       node.changeBuffer(Settings.get.solarGeneratorEfficiency)

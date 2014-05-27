@@ -2,21 +2,20 @@ package li.cil.oc.server.driver.item
 
 import dan200.computer.api.IMedia
 import li.cil.oc
-import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.api.fs.Label
 import li.cil.oc.util.mods.{ComputerCraft15, Mods}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import li.cil.oc.server.component
 
 object CC15Media extends Item {
   override def slot(stack: ItemStack) = Slot.Disk
 
-  override def createEnvironment(stack: ItemStack, container: component.Container) =
+  override def createEnvironment(stack: ItemStack, container: Container) =
     if (Mods.ComputerCraft15.isAvailable && ComputerCraft15.isDisk(stack) && container != null) {
       val address = addressFromTag(dataTag(stack))
       val mount = ComputerCraft15.createDiskMount(stack, container.world)
-      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container.tileEntity.orNull)) match {
+      Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container)) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
           environment

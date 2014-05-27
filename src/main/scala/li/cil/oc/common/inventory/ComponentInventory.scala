@@ -3,7 +3,7 @@ package li.cil.oc.common.inventory
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.driver.{Item => ItemDriver, Container}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node, ManagedEnvironment}
 import li.cil.oc.server.driver.item.Item
@@ -19,7 +19,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def componentContainer: TileEntity
+  def componentContainer: Container
 
   // ----------------------------------------------------------------------- //
 

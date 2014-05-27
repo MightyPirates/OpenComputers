@@ -1,31 +1,31 @@
 package li.cil.oc.common
 
 import li.cil.oc.Settings
-import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
+import li.cil.oc.api.driver.Container
 
 object Sound {
-  val lastPlayed = mutable.WeakHashMap.empty[TileEntity, Long]
+  val lastPlayed = mutable.WeakHashMap.empty[Container, Long]
 
-  def play(t: TileEntity, name: String) {
-    t.getWorldObj.playSoundEffect(t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, Settings.resourceDomain + ":" + name, 1, 1)
+  def play(container: Container, name: String) {
+    container.world.playSoundEffect(container.xPosition, container.yPosition, container.zPosition, Settings.resourceDomain + ":" + name, 1, 1)
   }
 
-  def playDiskInsert(t: TileEntity) {
-    play(t, "floppy_insert")
+  def playDiskInsert(container: Container) {
+    play(container, "floppy_insert")
   }
 
-  def playDiskEject(t: TileEntity) {
-    play(t, "floppy_eject")
+  def playDiskEject(container: Container) {
+    play(container, "floppy_eject")
   }
 
-  def playDiskActivity(t: TileEntity, isFloppy: Boolean) = this.synchronized {
-    lastPlayed.get(t) match {
+  def playDiskActivity(container: Container, isFloppy: Boolean) = this.synchronized {
+    lastPlayed.get(container) match {
       case Some(time) if time > System.currentTimeMillis() => // Cooldown.
       case _ =>
-        if (isFloppy) play(t, "floppy_access")
-        else play(t, "hdd_access")
-        lastPlayed += t -> (System.currentTimeMillis() + 500)
+        if (isFloppy) play(container, "floppy_access")
+        else play(container, "hdd_access")
+        lastPlayed += container -> (System.currentTimeMillis() + 500)
     }
   }
 }

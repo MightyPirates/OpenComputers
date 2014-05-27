@@ -1,9 +1,8 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.server.component
-import li.cil.oc.server.component.Container
 import net.minecraft.item.ItemStack
 
 object UpgradeCapacitor extends Item {

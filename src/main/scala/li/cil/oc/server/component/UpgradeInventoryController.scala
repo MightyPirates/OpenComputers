@@ -7,9 +7,9 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ExtendedArguments._
-import net.minecraft.tileentity.TileEntity
+import li.cil.oc.api.driver.Container
 
-class UpgradeInventoryController(val owner: TileEntity with Robot) extends ManagedComponent {
+class UpgradeInventoryController(val owner: Container with Robot) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("inventory_controller", Visibility.Neighbors).
     withConnector().
@@ -20,7 +20,7 @@ class UpgradeInventoryController(val owner: TileEntity with Robot) extends Manag
   @Callback(doc = """function():number -- Get the number of slots in the inventory on the specified side of the robot.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    InventoryUtils.inventoryAt(owner.getWorldObj, owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
       case Some(inventory) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
@@ -33,7 +33,7 @@ class UpgradeInventoryController(val owner: TileEntity with Robot) extends Manag
     val selectedSlot = owner.selectedSlot
     val stack = owner.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
-      InventoryUtils.inventoryAt(owner.getWorldObj, owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ) match {
+      InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
         case Some(inventory) =>
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
@@ -63,7 +63,7 @@ class UpgradeInventoryController(val owner: TileEntity with Robot) extends Manag
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(2)
 
-    InventoryUtils.inventoryAt(owner.getWorldObj, owner.xCoord + facing.offsetX, owner.yCoord + facing.offsetY, owner.zCoord + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
       case Some(inventory) =>
         val slot = args.checkSlot(inventory, 1)
         if (InventoryUtils.extractFromInventorySlot(owner.player.inventory.addItemStackToInventory, inventory, facing.getOpposite, slot, count)) {
@@ -87,8 +87,6 @@ class UpgradeInventoryController(val owner: TileEntity with Robot) extends Manag
     }
     else result(false)
   }
-
-  private def checkSlot(args: Arguments, n: Int) = args.checkSlot(owner, n)
 
   private def checkSideForAction(args: Arguments, n: Int) = owner.toGlobal(args.checkSideForAction(n))
 }

@@ -2,15 +2,14 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.{api, Settings, Items}
 import li.cil.oc.api.driver
-import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.common.item
-import li.cil.oc.server.component
 import net.minecraft.item.ItemStack
 
 object Processor extends Item with driver.Processor {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("cpu1"), api.Items.get("cpu2"), api.Items.get("cpu3"))
 
-  override def createEnvironment(stack: ItemStack, container: component.Container) = null
+  override def createEnvironment(stack: ItemStack, container: Container) = null
 
   override def slot(stack: ItemStack) = Slot.Processor
 
