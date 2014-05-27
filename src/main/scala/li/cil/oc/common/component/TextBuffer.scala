@@ -273,11 +273,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   }
 
   @SideOnly(Side.CLIENT)
-  override def renderText() = {
-    if (relativeLitArea != 0) {
-      proxy.render()
-    }
-  }
+  override def renderText() = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
   override def renderWidth = MonospaceFontRenderer.fontWidth * data.width
@@ -381,7 +377,7 @@ object TextBuffer {
 
     var nodeAddress = ""
 
-    def render() {}
+    def render() = false
 
     def onScreenColorChange()
 
@@ -421,7 +417,11 @@ object TextBuffer {
   }
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
-    override def render() = TextBufferRenderCache.render(owner)
+    override def render() = {
+      val wasDirty = dirty
+      TextBufferRenderCache.render(owner)
+      wasDirty
+    }
 
     override def onScreenColorChange() {
       dirty = true

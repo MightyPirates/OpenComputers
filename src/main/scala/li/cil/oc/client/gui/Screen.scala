@@ -99,7 +99,9 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
       GL11.glScaled(scale, scale, 1)
       RenderState.makeItBlend()
-      BufferRenderer.drawText(buffer)
+      if (BufferRenderer.drawText(buffer)) {
+        adjustToBufferChange()
+      }
     }
   }
 

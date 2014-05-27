@@ -23,7 +23,7 @@ trait TextBuffer extends GuiScreen {
 
   protected var scale = 0.0
 
-  def recompileDisplayLists() {
+  def adjustToBufferChange() {
     shouldRecompileDisplayLists = true
   }
 
@@ -34,7 +34,7 @@ trait TextBuffer extends GuiScreen {
     MonospaceFontRenderer.init(Minecraft.getMinecraft.renderEngine)
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
-    recompileDisplayLists()
+    adjustToBufferChange()
   }
 
   override def onGuiClosed() = {

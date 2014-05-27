@@ -66,6 +66,15 @@ class WirelessNetworkCard(val owner: Container) extends NetworkCard with Wireles
 
   // ----------------------------------------------------------------------- //
 
+  override val canUpdate = true
+
+  override def update() {
+    super.update()
+    if (world.getWorldTime % 20 == 0) {
+      api.Network.updateWirelessNetwork(this)
+    }
+  }
+
   override def onConnect(node: Node) {
     super.onConnect(node)
     if (node == this.node) {

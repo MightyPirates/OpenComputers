@@ -76,9 +76,11 @@ object BufferRenderer {
     if (textureManager.isDefined) {
       GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
       GL11.glDepthMask(false)
-      screen.renderText()
+      val changed = screen.renderText()
       GL11.glPopAttrib()
+      changed
     }
+    else false
 
   private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {
     val u1d = u1 / 16.0

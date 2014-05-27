@@ -347,9 +347,12 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
      * calling this. The text should be rendered on a black background.
      * <p/>
      * You can use this to either render the text in a GUI or in the world.
+     *
+     * @return <tt>true</tt> if the displayed content changed since the last
+     * call to this method.
      */
     @SideOnly(Side.CLIENT)
-    void renderText();
+    boolean renderText();
 
     /**
      * The natural width of the rendered text.

@@ -9,7 +9,6 @@ import li.cil.oc.api.network.{Node, ManagedEnvironment}
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
-import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

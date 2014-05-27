@@ -30,7 +30,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   protected def buffer = {
     robot.components.collect {
-      case Some(component: api.component.TextBuffer) => component
+      case Some(buffer: api.component.TextBuffer) => buffer
     }.headOption.orNull
   }
 
