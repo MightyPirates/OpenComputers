@@ -104,6 +104,9 @@ class ClassTransformer extends IClassTransformer {
     }
 
     val template = classNodeFor("li/cil/oc/common/asm/template/SimpleEnvironment")
+    if (template == null) {
+      throw new InjectionFailedException("Could not find SimpleComponent template!")
+    }
 
     def inject(methodName: String, signature: String, required: Boolean = false) {
       def filter(method: MethodNode) = method.name == methodName && method.desc == signature
@@ -198,8 +201,8 @@ class ClassTransformer extends IClassTransformer {
     else {
       val nameObfed = FMLDeobfuscatingRemapper.INSTANCE.unmap(name).replace('/', '.')
       val bytes = loader.getClassBytes(nameObfed)
-      if (bytes == null) throw new ClassNotFoundException(namePlain)
-      newClassNode(bytes)
+      if (bytes == null) null
+      else newClassNode(bytes)
     }
   }
 
