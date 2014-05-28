@@ -9,6 +9,7 @@ import li.cil.oc.server.component
 import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+import li.cil.oc.util.mods.{ComputerCraft15, ComputerCraft16, Mods}
 
 object FileSystem extends api.detail.FileSystemAPI {
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
@@ -66,17 +67,16 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computer.api.IMount) = new CC15FileSystem(mount)
-
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computer.api.IWritableMount) = new CC15WritableFileSystem(mount)
-
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IMount) = new CC16FileSystem(mount)
-
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IWritableMount) = new CC16WritableFileSystem(mount)
+  def fromComputerCraft(mount: AnyRef): api.fs.FileSystem = {
+    var result: Option[api.fs.FileSystem] = None
+    if (result.isEmpty && Mods.ComputerCraft16.isAvailable) {
+      result = ComputerCraft16.createFileSystem(mount)
+    }
+    if (result.isEmpty && Mods.ComputerCraft15.isAvailable) {
+      result = ComputerCraft15.createFileSystem(mount)
+    }
+    result.orNull
+  }
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: Container) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull

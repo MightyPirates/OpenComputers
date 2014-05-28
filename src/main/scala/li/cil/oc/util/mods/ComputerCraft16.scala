@@ -2,13 +2,14 @@ package li.cil.oc.util.mods
 
 import dan200.computercraft.api.ComputerCraftAPI
 import dan200.computercraft.api.filesystem.{IMount, IWritableMount}
+import dan200.computercraft.api.lua.ILuaContext
 import dan200.computercraft.api.media.IMedia
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral, IPeripheralProvider}
 import li.cil.oc
 import li.cil.oc.common.tileentity.{ComputerWrapper, Router}
+import li.cil.oc.server.fs.{CC16FileSystem, CC16WritableFileSystem}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
-import dan200.computercraft.api.lua.ILuaContext
 import scala.collection.mutable
 
 object ComputerCraft16 {
@@ -23,13 +24,13 @@ object ComputerCraft16 {
 
   def isDisk(stack: ItemStack) = stack.getItem.isInstanceOf[IMedia]
 
-  def createDiskMount(stack: ItemStack, world: World) = if (isDisk(stack)) {
-    stack.getItem.asInstanceOf[IMedia].createDataMount(stack, world) match {
-      case mount: IWritableMount => oc.api.FileSystem.fromComputerCraft(mount)
-      case mount: IMount => oc.api.FileSystem.fromComputerCraft(mount)
-      case _ => null
-    }
-  } else null
+  def createDiskMount(stack: ItemStack, world: World) =
+    if (isDisk(stack)) oc.api.FileSystem.fromComputerCraft(stack.getItem.asInstanceOf[IMedia].createDataMount(stack, world)) else null
+
+  def createFileSystem(mount: AnyRef) = Option(mount) collect {
+    case rw: IWritableMount => new CC16WritableFileSystem(rw)
+    case ro: IMount => new CC16FileSystem(ro)
+  }
 
   class RouterPeripheral(val router: Router) extends IPeripheral {
     override def getType = router.getType

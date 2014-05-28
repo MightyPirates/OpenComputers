@@ -12,7 +12,7 @@ trait Item extends driver.Item {
 
   override def dataTag(stack: ItemStack) = Item.dataTag(stack)
 
-  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.contains(api.Items.get(stack))
+  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.filter(_ != null).contains(api.Items.get(stack))
 }
 
 object Item {

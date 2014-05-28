@@ -57,7 +57,6 @@ class Proxy {
   }
 
   def init(e: FMLInitializationEvent) {
-    api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
@@ -85,6 +84,9 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    if (Mods.StargateTech2.isAvailable) {
+      api.Driver.add(driver.item.AbstractBusCard)
+    }
     if (Mods.ComputerCraft15.isAvailable) {
       api.Driver.add(driver.item.CC15Media)
     }

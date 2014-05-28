@@ -1,6 +1,5 @@
 package li.cil.oc.api.detail;
 
-import cpw.mods.fml.common.Optional;
 import li.cil.oc.api.driver.Container;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Label;
@@ -70,39 +69,17 @@ public interface FileSystemAPI {
 
     /**
      * Creates a new file system based on a read-only ComputerCraft mount.
+     * <p/>
+     * This supports read-only and writable mounts from either CC 1.5x or
+     * CC 1.6x. The argument is kept untyped to avoid having the OC API
+     * depend on the CC API.
+     * <p/>
+     * If the passed type is unsupported, this will return <tt>null</tt>.
      *
      * @param mount the mount to wrap with a file system.
      * @return a file system wrapping the specified mount.
      */
-    @Optional.Method(modid = "ComputerCraft")
-    FileSystem fromComputerCraft(dan200.computer.api.IMount mount);
-
-    /**
-     * Creates a new file system based on a read-write ComputerCraft mount.
-     *
-     * @param mount the mount to wrap with a file system.
-     * @return a file system wrapping the specified mount.
-     */
-    @Optional.Method(modid = "ComputerCraft")
-    FileSystem fromComputerCraft(dan200.computer.api.IWritableMount mount);
-
-    /**
-     * Creates a new file system based on a read-only ComputerCraft mount.
-     *
-     * @param mount the mount to wrap with a file system.
-     * @return a file system wrapping the specified mount.
-     */
-    @Optional.Method(modid = "ComputerCraft")
-    FileSystem fromComputerCraft(dan200.computercraft.api.filesystem.IMount mount);
-
-    /**
-     * Creates a new file system based on a read-write ComputerCraft mount.
-     *
-     * @param mount the mount to wrap with a file system.
-     * @return a file system wrapping the specified mount.
-     */
-    @Optional.Method(modid = "ComputerCraft")
-    FileSystem fromComputerCraft(dan200.computercraft.api.filesystem.IWritableMount mount);
+    FileSystem fromComputerCraft(Object mount);
 
     /**
      * Creates a network node that makes the specified file system available via
