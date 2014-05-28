@@ -27,6 +27,12 @@ end
 
 function component.isAvailable(componentType)
   checkArg(1, componentType, "string")
+  if not primaries[componentType] then
+    -- This is mostly to avoid out of memory errors preventing proxy
+    -- creation cause confusion by trying to create the proxy again,
+    -- causing the oom error to be thrown again.
+    component.setPrimary(componentType, component.list(componentType)())
+  end
   return primaries[componentType] ~= nil
 end
 
