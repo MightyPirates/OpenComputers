@@ -34,7 +34,6 @@ public class DriverBeeHouse extends DriverTileEntity{
 	}	
 	
 	public static final class Environment extends ManagedTileEntityEnvironment<IBeeHousing> {
-			ConverterIIndividual converterIIndividual = new ConverterIIndividual();
 	        public Environment(final IBeeHousing tileEntity) {
 	            super(tileEntity, "bee_housing");
 	        }
@@ -48,7 +47,7 @@ public class DriverBeeHouse extends DriverTileEntity{
 	        public Object[] getDrone(final Context context, final Arguments args) {
 	        	ItemStack drone = tileEntity.getDrone();
 	        	if (drone != null) {
-	        		return (Object[]) converterIIndividual.toLua(AlleleManager.alleleRegistry.getIndividual(drone));
+	        		return new Object[]{AlleleManager.alleleRegistry.getIndividual(drone)};
 	        	}
 	        	return null;
 	        }
@@ -57,7 +56,7 @@ public class DriverBeeHouse extends DriverTileEntity{
 	        public Object[] getQueen(final Context context, final Arguments args) {
 	        	ItemStack queen = tileEntity.getQueen();
 	        	if (queen != null) {
-	        		return (Object[]) converterIIndividual.toLua(AlleleManager.alleleRegistry.getIndividual(queen));
+	        		return new Object[]{AlleleManager.alleleRegistry.getIndividual(queen)};
 	        	}
 	        	return null;
 	        }
@@ -98,26 +97,25 @@ public class DriverBeeHouse extends DriverTileEntity{
 				.getSpeciesRoot("rootBees");
 	    	if (beeRoot == null)
 	    		return null;
-	    	List<Map<String, String>> result = Lists.newArrayList();
+	    	List<IAlleleSpecies> result = Lists.newArrayList();
 
 	    	for (IMutation mutation : beeRoot.getMutations(false)) {
 	    		IAllele[] template = mutation.getTemplate();
 	    		if (template != null && template.length > 0) {
 	    			IAllele allele = template[0];
 				if (allele instanceof IAlleleSpecies)
-					result.add(serializeSpecies((IAlleleSpecies) allele));
+					result.add((IAlleleSpecies) allele);
 	    		}
 	    	}
-	    	return new Object[]{result};
+	    	return new Object[]{result.toArray(new IAlleleSpecies[]{})};
 	    }
 
 	    @Callback
 		public Object[] getBeeParents(final Context context, final Arguments args) {
-	    	ISpeciesRoot beeRoot = AlleleManager.alleleRegistry
-				.getSpeciesRoot("rootBees");
+	    	ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
 	    	if (beeRoot == null)
 	    		return null;
-	    	List<Map<String, Object>> result = Lists.newArrayList();
+	    	List<IMutation> result = Lists.newArrayList();
 	    	String childType = args.checkString(0).toLowerCase();
 
 	    	for (IMutation mutation : beeRoot.getMutations(false)) {
@@ -133,36 +131,12 @@ public class DriverBeeHouse extends DriverTileEntity{
 	    		final String uid = species.getUID().toLowerCase();
 	    		final String localizedName = species.getName().toLowerCase();
 	    		if (localizedName.equals(childType) || uid.equals(childType)) {
-	    			Map<String, Object> parentMap = serializeMutation(mutation);
-					result.add(parentMap);
+					result.add(mutation);
 	    		}
 	    	}
-	    	return new Object[]{result};
+	    	return new Object[]{result.toArray(new IMutation[]{})};
 	    }
 
-	    private static Map<String, String> serializeSpecies(IAlleleSpecies species) {
-	    	Map<String, String> result = Maps.newHashMap();
-	    	result.put("name", species.getName());
-	    	result.put("uid", species.getUID());
-	    	return result;
-	    }
 
-	    private static Map<String, Object> serializeMutation(IMutation mutation) {
-	    	Map<String, Object> parentMap = Maps.newHashMap();
-
-	    	IAllele allele1 = mutation.getAllele0();
-	    	if (allele1 instanceof IAlleleSpecies)
-	    		parentMap
-					.put("allele1", serializeSpecies((IAlleleSpecies) allele1));
-
-	    	IAllele allele2 = mutation.getAllele1();
-	    	if (allele2 instanceof IAlleleSpecies)
-	    		parentMap
-					.put("allele2", serializeSpecies((IAlleleSpecies) allele2));
-
-	    	parentMap.put("chance", mutation.getBaseChance());
-	    	parentMap.put("specialConditions", mutation.getSpecialConditions());
-	    	return parentMap;
-	    }
 	}
 }

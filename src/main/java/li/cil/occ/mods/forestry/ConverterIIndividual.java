@@ -2,6 +2,8 @@ package li.cil.occ.mods.forestry;
 
 import java.util.Map;
 
+import li.cil.oc.api.driver.Converter;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -41,7 +43,7 @@ import forestry.api.lepidopterology.IButterflyGenome;
  * https://github.com/OpenMods/OpenPeripheral
  * 
  */
-public class ConverterIIndividual {
+public class ConverterIIndividual implements Converter{
 
 	private abstract static class GenomeAccess {
 		public IAllele getAllele(IGenome genome, int chromosome) {
@@ -220,56 +222,53 @@ public class ConverterIIndividual {
 			result.put("girth", convertAllele(access, IAlleleInteger.class, EnumTreeChromosome.GIRTH));
 		}
 	}
-
-	public Object toLua(Object obj) {
-		if (obj instanceof IIndividual) {
-			Map<String, Object> map = Maps.newHashMap();
-			IIndividual individual = (IIndividual)obj;
-			map.put("displayName", individual.getDisplayName());
-			map.put("ident", individual.getIdent());
+	
+	@Override
+	public void convert(Object value, Map<Object, Object> output) {
+		if (value instanceof IIndividual) {
+			IIndividual individual = (IIndividual)value;
+			output.put("displayName", individual.getDisplayName());
+			output.put("ident", individual.getIdent());
 
 			final boolean isAnalyzed = individual.isAnalyzed();
-			map.put("isAnalyzed", isAnalyzed);
-			map.put("isSecret", individual.isSecret());
+			output.put("isAnalyzed", isAnalyzed);
+			output.put("isSecret", individual.isSecret());
 			GenomeReader<?, ?> genomeReader = null;
 
 			if (individual instanceof IIndividualLiving) {
 				IIndividualLiving living = (IIndividualLiving)individual;
-				map.put("health", living.getHealth());
-				map.put("maxHealth", living.getMaxHealth());
+				output.put("health", living.getHealth());
+				output.put("maxHealth", living.getMaxHealth());
 			}
 
 			if (individual instanceof IBee) {
 				IBee bee = (IBee)individual;
-				map.put("type", "bee");
-				map.put("canSpawn", bee.canSpawn());
-				map.put("generation", bee.getGeneration());
-				map.put("hasEffect", bee.hasEffect());
-				map.put("isAlive", bee.isAlive());
-				map.put("isIrregularMating", bee.isIrregularMating());
-				map.put("isNatural", bee.isNatural());
+				output.put("type", "bee");
+				output.put("canSpawn", bee.canSpawn());
+				output.put("generation", bee.getGeneration());
+				output.put("hasEffect", bee.hasEffect());
+				output.put("isAlive", bee.isAlive());
+				output.put("isIrregularMating", bee.isIrregularMating());
+				output.put("isNatural", bee.isNatural());
 
 				if (isAnalyzed) genomeReader = new BeeGenomeReader(bee.getGenome());
 			} else if (individual instanceof IButterfly) {
 				IButterfly butterfly = (IButterfly)individual;
-				map.put("type", "butterfly");
-				map.put("size", butterfly.getSize());
+				output.put("type", "butterfly");
+				output.put("size", butterfly.getSize());
 				if (isAnalyzed) genomeReader = new ButterflyGenomeReader(butterfly.getGenome());
 			} else if (individual instanceof ITree) {
 				ITree tree = (ITree)individual;
-				map.put("type", "tree");
-				map.put("plantType", tree.getPlantTypes().toString());
+				output.put("type", "tree");
+				output.put("plantType", tree.getPlantTypes().toString());
 				if (isAnalyzed) genomeReader = new TreeGenomeReader(tree.getGenome());
 			}
 
 			if (genomeReader != null) {
-				map.put("active", genomeReader.getActiveInfo());
-				map.put("inactive", genomeReader.getInactiveInfo());
+				output.put("active", genomeReader.getActiveInfo());
+				output.put("inactive", genomeReader.getInactiveInfo());
 			}
-
-			return new Object[]{map};
-		}
-		return null;
+		}	
 	}
 
 }
