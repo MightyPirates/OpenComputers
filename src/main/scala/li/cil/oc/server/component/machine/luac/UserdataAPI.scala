@@ -28,16 +28,23 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "save")
 
     lua.pushScalaFunction(lua => {
-      val className = lua.toString(1)
-      val clazz = Class.forName(className)
-      val persistable = clazz.newInstance.asInstanceOf[Persistable]
-      val data = lua.toByteArray(2)
-      val bais = new ByteArrayInputStream(data)
-      val dis = new DataInputStream(bais)
-      val nbt = CompressedStreamTools.read(dis)
-      persistable.load(nbt)
-      lua.pushJavaObjectRaw(persistable)
-      1
+      try {
+        val className = lua.toString(1)
+        val clazz = Class.forName(className)
+        val persistable = clazz.newInstance.asInstanceOf[Persistable]
+        val data = lua.toByteArray(2)
+        val bais = new ByteArrayInputStream(data)
+        val dis = new DataInputStream(bais)
+        val nbt = CompressedStreamTools.read(dis)
+        persistable.load(nbt)
+        lua.pushJavaObjectRaw(persistable)
+        1
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Error in userdata load function.", t)
+          throw t
+      }
     })
     lua.setField(-2, "load")
 

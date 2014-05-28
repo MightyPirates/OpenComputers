@@ -5,7 +5,6 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
 import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.common.tileentity
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector

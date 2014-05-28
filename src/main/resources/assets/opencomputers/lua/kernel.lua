@@ -240,10 +240,30 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
-local wrapUserdata
+-- JNLua derps when the metatable of userdata is changed, so we have to
+-- wrap and isolate it, to make sure it can't be touched by user code.
+-- These functions provide the logic for wrapping and unwrapping (when
+-- pushed to user code and when pushed back to the host, respectively).
+local wrapUserdata, wrapSingleUserdata, unwrapUserdata
+local wrappedUserdata = setmetatable({}, {
+  -- Weak keys, clean up once a proxy is no longer referenced anywhere.
+  __mode="k",
+  -- We need custom persist logic here to avoid ERIS trying to save the
+  -- userdata referenced in this table directly. It will be repopulated
+  -- in the load methods of the persisted userdata wrappers (see below).
+  __persist = function()
+    return function() return {} end
+  end
+})
+
+local function processArguments(...)
+  local args = table.pack(...)
+  unwrapUserdata(args)
+  return table.unpack(args)
+end
 
 local function processResult(result)
-  wrapUserdata(result)
+  wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
     error(result[2], 0)
   else -- success or already processed error.
@@ -261,6 +281,7 @@ local function invoke(target, direct, ...)
   end
   if not result then
     local args = table.pack(...) -- for access in closure
+    unwrapUserdata(args)
     result = select(1, coroutine.yield(function()
       return table.pack(target.invoke(table.unpack(args, 1, args.n)))
     end))
@@ -268,78 +289,108 @@ local function invoke(target, direct, ...)
   return processResult(result)
 end
 
-function wrapUserdata(values)
-  -- JNLua derps when the metatable of userdata is changed, so we have to
-  -- wrap and isolate it, to make sure it can't be touched by user code.
-  -- This sadly means we need a separate metatable for each userdata value,
-  -- which means higher memory consumption.
-  local function wrap(data)
-    local proxy = {type = "userdata"}
-    local methods, reason = spcall(userdata.methods, data)
-    if not methods then
-      return nil, reason
+-- Metatable for additional functionality on userdata.
+local userdataWrapper = {
+  __index = function(self, ...)
+    return processResult(table.pack(userdata.apply(wrappedUserdata[self], processArguments(...))))
+  end,
+  __newindex = function(self, ...)
+    return processResult(table.pack(userdata.unapply(wrappedUserdata[self], processArguments(...))))
+  end,
+  __call = function(self, ...)
+    return processResult(table.pack(userdata.call(wrappedUserdata[self], processArguments(...))))
+  end,
+  __gc = function(self)
+    userdata.dispose(wrappedUserdata[self])
+  end,
+  -- This is the persistence protocol for userdata. Userdata is considered
+  -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
+  -- of the actual class when saving, so we can create a new instance via
+  -- reflection when loading again (and then immediately wrap it again).
+  -- Collect wrapped callback methods.
+  __persist = function(self)
+    local className, nbt = userdata.save(wrappedUserdata[self])
+    -- The returned closure is what actually gets persisted, including the
+    -- upvalues, that being the classname and a byte array representing the
+    -- nbt data of the userdata value.
+    return function()
+      return wrapSingleUserdata(userdata.load(className, nbt))
     end
-    do
-      local userdataCallback = {
-        __call = function(self, ...)
-          local methods, reason = spcall(userdata.methods, data)
-          if not methods then
-            return nil, reason
-          end
-          for name, direct in pairs(methods) do
-            if name == self.name then
-              return invoke(userdata, direct, data, name, ...)
-            end
-          end
-          error("no such method", 1)
-        end,
-        __tostring = function(self)
-          return userdata.doc(data, self.name) or "function"
-        end
-      }
-      for method in pairs(methods) do
-        proxy[method] = setmetatable({name=method}, userdataCallback)
+  end,
+  -- Do not allow changing the metatable to avoid the gc callback being
+  -- unset, leading to potential resource leakage on the host side.
+  __metatable = "userdata",
+  __tostring = "userdata"
+}
+
+local userdataCallback = {
+  __call = function(self, ...)
+    local methods = spcall(userdata.methods, wrappedUserdata[self.proxy])
+    for name, direct in pairs(methods) do
+      if name == self.name then
+        return invoke(userdata, direct, wrappedUserdata[self.proxy], name, ...)
       end
     end
-    -- Metatable for additional functionality on userdata.
-    return setmetatable(proxy, {
-      __index = function(_, ...)
-        return processResult(table.pack(userdata.apply(data, ...)))
-      end,
-      __newindex = function(_, ...)
-        return processResult(table.pack(userdata.unapply(data, ...)))
-      end,
-      __call = function(_, ...)
-        return processResult(table.pack(userdata.call(data, ...)))
-      end,
-      __gc = function()
-        userdata.dispose(data)
-      end,
-      -- This is the persistence protocol for userdata. Userdata is considered
-      -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
-      -- of the actual class when saving, so we can create a new instance via
-      -- reflection when loading again (and then immediately wrap it again).
-      -- Collect wrapped callback methods.
-      __persist = function()
-        local className, nbt = userdata.save(data)
-        -- The returned closure is what actually gets persisted, including the
-        -- upvalues, that being the classname and a byte array representing the
-        -- nbt data of the userdata value.
-        return function()
-          return wrap(userdata.load(className, nbt))
-        end
-      end,
-      -- Do not allow changing the metatable to avoid the gc callback being
-      -- unset, leading to potential resource leakage on the host side.
-      __metatable = "userdata",
-      __tostring = "userdata"
-    })
+    error("no such method", 1)
+  end,
+  __tostring = function(self)
+    return userdata.doc(wrappedUserdata[self.proxy], self.name) or "function"
   end
-  for i = 1, values.n do
-    if type(values[i]) == "userdata" then
-      values[i] = wrap(values[i])
+}
+
+function wrapSingleUserdata(data)
+  -- Reuse proxies for lower memory consumption and more logical behavior
+  -- without the need of metamethods like __eq, as well as proper reference
+  -- behavior after saving and loading again.
+  for k, v in pairs(wrappedUserdata) do
+    if v == data then
+      return k
     end
   end
+  local proxy = {type = "userdata"}
+  local methods = spcall(userdata.methods, data)
+  for method in pairs(methods) do
+    proxy[method] = setmetatable({name=method, proxy=proxy}, userdataCallback)
+  end
+  wrappedUserdata[proxy] = data
+  return setmetatable(proxy, userdataWrapper)
+end
+
+function wrapUserdata(values)
+  local processed = {}
+  local function wrapRecursively(value)
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = wrapRecursively(v)
+        end
+      end
+    elseif type(value) == "userdata" then
+      return wrapSingleUserdata(value)
+    end
+    return value
+  end
+  wrapRecursively(values)
+end
+
+function unwrapUserdata(values)
+  local processed = {}
+  local function unwrapRecursively(value)
+    if wrappedUserdata[value] then
+      return wrappedUserdata[value]
+    end
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = unwrapRecursively(v)
+        end
+      end
+    end
+    return value
+  end
+  unwrapRecursively(values)
 end
 
 -------------------------------------------------------------------------------
@@ -551,6 +602,7 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
+      unwrapUserdata(result[2])
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
       wrapUserdata(args)
     end

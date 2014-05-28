@@ -390,7 +390,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
     }
 
