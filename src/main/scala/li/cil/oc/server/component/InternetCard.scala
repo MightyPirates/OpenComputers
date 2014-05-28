@@ -75,6 +75,16 @@ class InternetCard extends ManagedComponent {
     result(handle)
   }
 
+  @Callback(doc = """function(handle:number):boolean -- Ensures a socket is connected. Errors if the connection failed.""")
+  def finishConnect(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    checkOwner(context)
+    val handle = args.checkInteger(0)
+    connections.get(handle) match {
+      case Some(socket) => result(socket.checkConnected())
+      case _ => throw new IOException("bad connection descriptor")
+    }
+  }
+
   @Callback(direct = true, doc = """function(handle:number) -- Closes an open socket stream.""")
   def close(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)

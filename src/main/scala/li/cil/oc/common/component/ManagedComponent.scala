@@ -26,8 +26,10 @@ abstract class ManagedComponent extends ManagedEnvironment {
     // the address is embedded in the saved data that gets sent to the client,
     // so that that address can be used to associate components on server and
     // client (for example keyboard and screen/text buffer).
-    if (node == null) api.Network.joinNewNetwork(node)
-    if (node != null) nbt.setNewCompoundTag("node", node.save)
+    if (node != null) {
+      if (node.network == null) api.Network.joinNewNetwork(node)
+      nbt.setNewCompoundTag("node", node.save)
+    }
   }
 
   final protected def result(args: Any*): Array[AnyRef] = {
