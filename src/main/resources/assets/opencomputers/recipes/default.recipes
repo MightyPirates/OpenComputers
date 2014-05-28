@@ -205,9 +205,9 @@ cpu1 {
           [nuggetGold, "oc:craftingALU", nuggetGold]]
 }
 cpu2 {
-  input: [[emerald, redstone, emerald]
+  input: [[diamond, redstone, diamond]
           ["oc:circuitTier3", "oc:craftingCU", "oc:circuitTier3"]
-          [emerald, "oc:craftingALU", emerald]]
+          [diamond, "oc:craftingALU", diamond]]
 }
 cu {
   input: [[nuggetGold, redstone, nuggetGold]
