@@ -35,8 +35,6 @@ object OpenComputers {
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
 
-  scala.collection.mutable.Map.empty[String, Int].keySet
-
 //  @EventHandler
 //  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 

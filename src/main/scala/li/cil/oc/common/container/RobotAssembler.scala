@@ -82,8 +82,8 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
-      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount * Settings.get.tickFrequency / 20).toInt
-      if (assembler.progress - assemblyProgress > 0.2 || assemblyRemainingTime != timeRemaining) {
+      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+      if (math.abs(assembler.progress - assemblyProgress) > 0.2 || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
         assemblyRemainingTime = timeRemaining
         sendProgressBarUpdate(1, (assemblyProgress * 5).toInt)

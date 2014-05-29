@@ -9,9 +9,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 
-class Charger extends traits.Environment with traits.RedstoneAware with traits.Rotatable with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
 
   val robots = Array.fill(6)(None: Option[RobotProxy])
@@ -21,6 +21,11 @@ class Charger extends traits.Environment with traits.RedstoneAware with traits.R
   var invertSignal = false
 
   // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = side != facing
+
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(

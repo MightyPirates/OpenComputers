@@ -14,25 +14,36 @@ import net.minecraft.nbt.NBTTagCompound
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraftforge.common.ForgeDirection
 
-class RobotAssembler extends traits.Environment with traits.Inventory with traits.Rotatable with SidedEnvironment {
+class RobotAssembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {
   val node = api.Network.newNode(this, Visibility.None).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
-
-  @SideOnly(Side.CLIENT)
-  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
-
-  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
-
-  def isAssembling = requiredEnergy > 0
-
-  def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
 
   var robot: Option[ItemStack] = None
 
   var totalRequiredEnergy = 0.0
 
   var requiredEnergy = 0.0
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def canConnect(side: ForgeDirection) = side != ForgeDirection.UP
+
+  override def sidedNode(side: ForgeDirection) = if (side != ForgeDirection.UP) node else null
+
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = canConnect(side)
+
+  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
+
+  // ----------------------------------------------------------------------- //
+
+  def isAssembling = requiredEnergy > 0
+
+  def progress = (1 - requiredEnergy / totalRequiredEnergy) * 100
+
+  // ----------------------------------------------------------------------- //
 
   def complexity = items.drop(1).foldLeft(0)((acc, stack) => acc + (Option(api.Driver.driverFor(stack.orNull)) match {
     case Some(driver: UpgradeContainer) => (1 + driver.tier(stack.get)) * 2
@@ -81,14 +92,16 @@ class RobotAssembler extends traits.Environment with traits.Inventory with trait
     super.updateEntity()
     if (robot.isDefined && world.getWorldTime % Settings.get.tickFrequency == 0) {
       val want = math.max(1, math.min(requiredEnergy, Settings.get.assemblerTickAmount * Settings.get.tickFrequency))
-      val remainder = node.changeBuffer(-want)
-      requiredEnergy -= want - remainder
+      val success = node.tryChangeBuffer(-want)
+      if (success) {
+        requiredEnergy -= want
+      }
       if (requiredEnergy <= 0) {
         setInventorySlotContents(0, robot.get)
         robot = None
         requiredEnergy = 0
-        ServerPacketSender.sendRobotAssembling(this, assembling = false)
       }
+      ServerPacketSender.sendRobotAssembling(this, success && robot.isDefined)
     }
   }
 
