@@ -16,6 +16,7 @@ object Textures {
   val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
+  val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
   val guiRobotAssembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_assembler.png")
