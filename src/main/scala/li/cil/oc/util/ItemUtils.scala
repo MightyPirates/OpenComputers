@@ -130,7 +130,7 @@ object ItemUtils {
       newInfo.components.foreach(cs => Option(api.Driver.driverFor(cs)) match {
         case Some(driver) if driver == server.driver.item.Screen =>
           val nbt = driver.dataTag(cs)
-          for (tagName <- nbt.func_150296_c()) {
+          for (tagName <- nbt.func_150296_c().toArray) {
             nbt.removeTag(tagName.asInstanceOf[String])
           }
         case _ =>
