@@ -2,10 +2,10 @@ package li.cil.oc.server.component
 
 import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 
-class UpgradeExperience extends ManagedComponent {
+class UpgradeExperience extends component.ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("experience").
     withConnector(30 * Settings.get.bufferPerLevel).

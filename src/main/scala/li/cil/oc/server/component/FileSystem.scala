@@ -7,8 +7,7 @@ import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.Sound
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.{component, Sound}
 import li.cil.oc.server.driver.item.ComputerCraftMedia
 import li.cil.oc.server.driver.item.FileSystem.ItemLabel
 import li.cil.oc.util.ExtendedNBT._
@@ -18,7 +17,7 @@ import net.minecraft.nbt.{NBTTagIntArray, NBTTagList, NBTTagCompound}
 import scala.collection.mutable
 import net.minecraftforge.common.util.Constants.NBT
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().

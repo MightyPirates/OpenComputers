@@ -4,12 +4,12 @@ import li.cil.oc.Settings
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import li.cil.oc.util.InventoryUtils
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.api.driver.Container
 
-class UpgradeInventoryController(val owner: Container with Robot) extends ManagedComponent {
+class UpgradeInventoryController(val owner: Container with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("inventory_controller", Visibility.Neighbors).
     withConnector().

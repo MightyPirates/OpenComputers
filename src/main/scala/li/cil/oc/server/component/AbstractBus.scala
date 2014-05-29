@@ -3,13 +3,13 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
 
-class AbstractBus(val device: IBusDevice) extends ManagedComponent with IBusDriver {
+class AbstractBus(val device: IBusDevice) extends component.ManagedComponent with IBusDriver {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
     withConnector().

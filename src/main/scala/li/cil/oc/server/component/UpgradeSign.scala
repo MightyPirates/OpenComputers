@@ -3,10 +3,10 @@ package li.cil.oc.server.component
 import li.cil.oc.api.{Rotatable, Network}
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import net.minecraft.tileentity.TileEntitySign
 
-class UpgradeSign(val owner: Container with Rotatable) extends ManagedComponent {
+class UpgradeSign(val owner: Container with Rotatable) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("sign", Visibility.Neighbors).
     withConnector().

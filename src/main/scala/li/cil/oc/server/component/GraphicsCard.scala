@@ -4,13 +4,13 @@ import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector
 import li.cil.oc.api.component.TextBuffer
 
-abstract class GraphicsCard extends ManagedComponent {
+abstract class GraphicsCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
