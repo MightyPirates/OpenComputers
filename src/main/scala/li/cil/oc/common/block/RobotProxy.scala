@@ -27,6 +27,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     override protected def initialValue = None
   }
 
+  showInItemList = false
+
   // ----------------------------------------------------------------------- //
 
   override def rarity = EnumRarity.epic
