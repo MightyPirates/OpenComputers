@@ -94,7 +94,7 @@ trait Connector extends network.Connector with Node {
         }
         localBufferSize = math.max(size, 0)
         val surplus = math.max(localBuffer - localBufferSize, 0)
-        localBuffer = math.min(localBuffer, localBufferSize)
+        changeBuffer(-surplus)
         d.changeBuffer(surplus)
       }
       case _ =>
