@@ -10,14 +10,14 @@ import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.api.prefab.AbstractValue
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import scala.collection.mutable
 
-class InternetCard extends ManagedComponent {
+class InternetCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("internet", Visibility.Neighbors).
     create()

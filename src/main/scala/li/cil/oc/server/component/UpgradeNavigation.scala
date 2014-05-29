@@ -3,11 +3,11 @@ package li.cil.oc.server.component
 import li.cil.oc.api.{Rotatable, Network}
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import li.cil.oc.util.ItemUtils.NavigationUpgradeData
 import net.minecraft.nbt.NBTTagCompound
 
-class UpgradeNavigation(val owner: Container with Rotatable) extends ManagedComponent {
+class UpgradeNavigation(val owner: Container with Rotatable) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("navigation", Visibility.Neighbors).
     create()

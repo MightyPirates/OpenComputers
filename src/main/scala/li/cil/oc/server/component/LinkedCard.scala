@@ -3,12 +3,12 @@ package li.cil.oc.server.component
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import li.cil.oc.server.network.QuantumNetwork
 import scala.collection.convert.WrapAsScala._
 import net.minecraft.nbt.NBTTagCompound
 
-class LinkedCard extends ManagedComponent {
+class LinkedCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("tunnel", Visibility.Neighbors).
     withConnector().

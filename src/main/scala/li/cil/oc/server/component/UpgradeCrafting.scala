@@ -5,7 +5,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory
 import net.minecraft.item.ItemStack
@@ -14,7 +14,7 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import scala.collection.mutable
 
-class UpgradeCrafting(val owner: Container with Robot) extends ManagedComponent {
+class UpgradeCrafting(val owner: Container with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()

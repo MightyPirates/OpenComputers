@@ -7,7 +7,7 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network.{Node, Visibility, Message}
-import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.common.component
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.{Event, ForgeSubscribe}
@@ -16,7 +16,7 @@ import scala.collection.mutable
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-class Keyboard(val owner: Container) extends ManagedComponent with api.component.Keyboard {
+class Keyboard(val owner: Container) extends component.ManagedComponent with api.component.Keyboard {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
