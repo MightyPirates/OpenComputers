@@ -1,8 +1,8 @@
 package li.cil.oc.client
 
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer}
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, component}
+import li.cil.oc.common.tileentity.traits.Computer
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
@@ -22,41 +22,27 @@ object PacketSender {
     pb.sendToServer()
   }
 
-  def sendKeyDown(b: component.Buffer, char: Char, code: Int) {
+  def sendKeyDown(address: String, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyDown)
 
-    b.owner match {
-      case t: TextBuffer if t.hasKeyboard =>
-        pb.writeTileEntity(t)
-      case t: component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeChar(char)
     pb.writeInt(code)
 
     pb.sendToServer()
   }
 
-  def sendKeyUp(b: component.Buffer, char: Char, code: Int) {
+  def sendKeyUp(address: String, char: Char, code: Int) {
     val pb = new PacketBuilder(PacketType.KeyUp)
 
-    b.owner match {
-      case t: TextBuffer if t.hasKeyboard =>
-        pb.writeTileEntity(t)
-      case t: component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeChar(char)
     pb.writeInt(code)
 
     pb.sendToServer()
   }
 
-  def sendClipboard(b: component.Buffer, value: String) {
+  def sendClipboard(address: String, value: String) {
     if (value != null && !value.isEmpty) {
       if (System.currentTimeMillis() < clipboardCooldown) {
         val player = Minecraft.getMinecraft.thePlayer
@@ -67,14 +53,7 @@ object PacketSender {
         clipboardCooldown = System.currentTimeMillis() + value.length / 10
         val pb = new CompressedPacketBuilder(PacketType.Clipboard)
 
-        b.owner match {
-          case t: TextBuffer if t.hasKeyboard =>
-            pb.writeTileEntity(t)
-          case t: component.Terminal =>
-            pb.writeTileEntity(t.rack)
-            pb.writeInt(t.number)
-          case _ => return
-        }
+        pb.writeUTF(address)
         pb.writeUTF(value.substring(0, math.min(value.length, 64 * 1024)))
 
         pb.sendToServer()
@@ -82,56 +61,35 @@ object PacketSender {
     }
   }
 
-  def sendMouseClick(b: component.Buffer, x: Int, y: Int, drag: Boolean, button: Int) {
+  def sendMouseClick(address: String, x: Int, y: Int, drag: Boolean, button: Int) {
     val pb = new PacketBuilder(PacketType.MouseClickOrDrag)
 
-    b.owner match {
-      case t: TextBuffer if t.tier > 0 =>
-        pb.writeTileEntity(t)
-      case t: component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-      case _ => return
-    }
-    pb.writeInt(x)
-    pb.writeInt(y)
+    pb.writeUTF(address)
+    pb.writeShort(x)
+    pb.writeShort(y)
     pb.writeBoolean(drag)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()
   }
 
-  def sendMouseScroll(b: component.Buffer, x: Int, y: Int, scroll: Int) {
+  def sendMouseScroll(address: String, x: Int, y: Int, scroll: Int) {
     val pb = new PacketBuilder(PacketType.MouseScroll)
 
-    b.owner match {
-      case t: TextBuffer if t.tier > 0 =>
-        pb.writeTileEntity(t)
-      case t: component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-      case _ => return
-    }
-    pb.writeInt(x)
-    pb.writeInt(y)
+    pb.writeUTF(address)
+    pb.writeShort(x)
+    pb.writeShort(y)
     pb.writeByte(scroll)
 
     pb.sendToServer()
   }
 
-  def sendMouseUp(b: component.Buffer, x: Int, y: Int, button: Int) {
+  def sendMouseUp(address: String, x: Int, y: Int, button: Int) {
     val pb = new PacketBuilder(PacketType.MouseUp)
 
-    b.owner match {
-      case t: TextBuffer if t.tier > 0 =>
-        pb.writeTileEntity(t)
-      case t: component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-      case _ => return
-    }
-    pb.writeInt(x)
-    pb.writeInt(y)
+    pb.writeUTF(address)
+    pb.writeShort(x)
+    pb.writeShort(y)
     pb.writeByte(button.toByte)
 
     pb.sendToServer()
@@ -139,6 +97,14 @@ object PacketSender {
 
   def sendMultiPlace() {
     val pb = new PacketBuilder(PacketType.MultiPartPlace)
+    pb.sendToServer()
+  }
+
+  def sendRobotAssemblerStart(t: RobotAssembler) {
+    val pb = new PacketBuilder(PacketType.RobotAssemblerStart)
+
+    pb.writeTileEntity(t)
+
     pb.sendToServer()
   }
 

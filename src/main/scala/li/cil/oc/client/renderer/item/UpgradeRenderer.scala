@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer.item
 
-import li.cil.oc.Items
+import li.cil.oc.api
 import li.cil.oc.client.Textures
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.client.Minecraft
@@ -12,12 +12,10 @@ import net.minecraftforge.client.IItemRenderer.{ItemRendererHelper, ItemRenderTy
 import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer extends IItemRenderer {
-  override def handleRenderType(item: ItemStack, renderType: ItemRenderType) = {
-    Items.multi.subItem(item) match {
-      case Some(subItem) if subItem == Items.upgradeGenerator || subItem == Items.upgradeCrafting => renderType == ItemRenderType.EQUIPPED
-      case _ => false
+  override def handleRenderType(stack: ItemStack, renderType: ItemRenderType) = renderType == ItemRenderType.EQUIPPED && {
+    val descriptor = api.Items.get(stack)
+    descriptor == api.Items.get("craftingUpgrade") || descriptor == api.Items.get("generatorUpgrade")
     }
-  }
 
   override def shouldUseRenderHelper(renderType: ItemRenderType, stack: ItemStack, helper: ItemRendererHelper) =
   // Note: it's easier to revert changes introduced by this "helper" than by
@@ -25,17 +23,17 @@ object UpgradeRenderer extends IItemRenderer {
     helper == ItemRendererHelper.EQUIPPED_BLOCK
 
   override def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
+    val descriptor = api.Items.get(stack)
     val tm = Minecraft.getMinecraft.getTextureManager
     val t = Tessellator.instance
 
     // Revert offset introduced by the render "helper".
     GL11.glTranslatef(0.5f, 0.5f, 0.5f)
 
-    Items.multi.subItem(stack) match {
-      case Some(subItem) if subItem == Items.upgradeCrafting =>
+    if (descriptor == api.Items.get("craftingUpgrade")) {
         // TODO display list?
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
-        tm.bindTexture(Textures.upgradeCrafting)
+      tm.bindTexture(Textures.upgradeCrafting)
 
         // Front.
         t.startDrawingQuads()
@@ -72,11 +70,12 @@ object UpgradeRenderer extends IItemRenderer {
         t.addVertexWithUV(b.minX, b.minY, b.minZ, 0.5, 1)
         t.setNormal(-1, 0, 0)
         t.draw()
-      case Some(subItem) if subItem == Items.upgradeGenerator =>
+    }
+    else if (descriptor == api.Items.get("generatorUpgrade")) {
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
         val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
-        tm.bindTexture(Textures.upgradeGenerator)
+      tm.bindTexture(Textures.upgradeGenerator)
 
         // Back.
         t.startDrawingQuads()
@@ -113,7 +112,6 @@ object UpgradeRenderer extends IItemRenderer {
         t.addVertexWithUV(b.minX, b.maxY, b.minZ, 0, 0.5)
         t.setNormal(-1, 0, 0)
         t.draw()
-      case _ =>
     }
   }
 }

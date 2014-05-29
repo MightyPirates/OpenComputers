@@ -5,7 +5,7 @@ import codechicken.lib.raytracer.RayTracer
 import codechicken.lib.vec.{Vector3, BlockCoord}
 import codechicken.multipart.TileMultipart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.Blocks
+import li.cil.oc.api.Items
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.block.Delegator
 import net.minecraft.entity.player.EntityPlayer
@@ -30,7 +30,7 @@ object EventHandler {
     val world = player.getEntityWorld
     val hit = RayTracer.reTrace(world, player)
     if (hit != null) Delegator.subBlock(player.getHeldItem) match {
-      case Some(subBlock) if subBlock == Blocks.cable => placeDelegatePart(player, hit, new CablePart())
+      case Some(subBlock) if subBlock == Delegator.subBlock(Items.get("cable").createItemStack(1)).get => placeDelegatePart(player, hit, new CablePart())
       case _ => false
     }
     else false

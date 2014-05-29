@@ -1,6 +1,7 @@
 package li.cil.oc.util
 
 import com.naef.jnlua.{LuaType, JavaFunction, LuaState}
+import li.cil.oc.api.machine.Value
 import li.cil.oc.OpenComputers
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
@@ -36,6 +37,7 @@ object ExtendedLuaState {
         case value: java.lang.String => lua.pushString(value)
         case value: Array[Byte] => lua.pushByteArray(value)
         case value: Array[_] => pushList(value.zipWithIndex.iterator)
+        case value: Value => lua.pushJavaObjectRaw(value)
         case value: Product => pushList(value.productIterator.zipWithIndex)
         case value: Seq[_] => pushList(value.zipWithIndex.iterator)
         case value: java.util.Map[_, _] => pushTable(value.toMap)
@@ -77,6 +79,7 @@ object ExtendedLuaState {
       case LuaType.NUMBER => Double.box(lua.toNumber(index))
       case LuaType.STRING => lua.toByteArray(index)
       case LuaType.TABLE => lua.toJavaObject(index, classOf[java.util.Map[_, _]])
+      case LuaType.USERDATA => lua.toJavaObjectRaw(index)
       case _ => null
     }
 

@@ -5,6 +5,7 @@ import li.cil.oc.api.driver.Slot
 import net.minecraft.util.IIcon
 import net.minecraftforge.client.event.TextureStitchEvent
 import scala.collection.mutable
+import li.cil.oc.common.InventorySlots.Tier
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 
 object Icons {
@@ -23,10 +24,12 @@ object Icons {
       bySlotType += Slot.Processor -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_cpu")
       bySlotType += Slot.Tool -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tool")
       bySlotType += Slot.Upgrade -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_upgrade")
+      bySlotType += Slot.UpgradeContainer -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_upgrade_dynamic")
 
-      byTier += 0 -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier0")
-      byTier += 1 -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier1")
-      byTier += 2 -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier2")
+      byTier += Tier.None -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_na")
+      byTier += Tier.One -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier0")
+      byTier += Tier.Two -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier1")
+      byTier += Tier.Three -> iconRegister.registerIcon(Settings.resourceDomain + ":icon_tier2")
     }
   }
 

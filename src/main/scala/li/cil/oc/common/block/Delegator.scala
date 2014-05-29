@@ -332,13 +332,15 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
       case _ =>
     }
-    if (KeyBindings.showMaterialCosts) {
-      ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
-    }
-    else {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "tooltip.MaterialCosts",
-        input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+    if (ItemCosts.hasCosts(stack)) {
+      if (KeyBindings.showMaterialCosts) {
+        ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
+      }
+      else {
+        tooltip.add(StatCollector.translateToLocalFormatted(
+          Settings.namespace + "tooltip.MaterialCosts",
+          input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+      }
     }
   }
 

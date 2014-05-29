@@ -1,11 +1,12 @@
 package li.cil.oc.server.fs
 
-import cpw.mods.fml.common.Optional
 import java.io
 import java.net.URL
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
-import li.cil.oc.{Settings, api}
+import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
 
@@ -65,16 +66,17 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   def fromMemory(capacity: Long): api.fs.FileSystem = new RamFileSystem(capacity)
 
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IMount) = new ComputerCraftFileSystem(mount)
+  def fromComputerCraft(mount: AnyRef): api.fs.FileSystem = {
+    if (Mods.ComputerCraft.isAvailable) {
+      ComputerCraft.createFileSystem(mount).orNull
+    }
+    else null
+  }
 
-  @Optional.Method(modid = "ComputerCraft")
-  def fromComputerCraft(mount: dan200.computercraft.api.filesystem.IWritableMount) = new ComputerCraftWritableFileSystem(mount)
-
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: net.minecraft.tileentity.TileEntity) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label, container: Container) =
     Option(fileSystem).flatMap(fs => Some(new component.FileSystem(fs, label, Option(container)))).orNull
 
-  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: net.minecraft.tileentity.TileEntity) =
+  def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: String, container: Container) =
     asManagedEnvironment(fileSystem, new ReadOnlyLabel(label), container)
 
   def asManagedEnvironment(fileSystem: api.fs.FileSystem, label: Label) =

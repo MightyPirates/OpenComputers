@@ -75,21 +75,6 @@ public interface Machine extends ManagedEnvironment, Context {
     void setCostPerTick(double value);
 
     /**
-     * The address of the file system that holds the machine's read only data
-     * (rom). This file system is populated based on the backing resource file
-     * systems specified for the machines architecture via
-     * {@link li.cil.oc.api.Machine#addRomResource(Class, java.util.concurrent.Callable, String)}.
-     * This may return <tt>null</tt> if the creation of the file system
-     * failed.
-     * <p/>
-     * Use this in a custom architecture to allow code do differentiate the
-     * tmpfs from other file systems, for example.
-     *
-     * @return the address of the rom component, or <tt>null</tt>.
-     */
-    String romAddress();
-
-    /**
      * The address of the file system that holds the machine's temporary files
      * (tmpfs). This may return <tt>null</tt> if either the creation of the file
      * system failed, or if the size of the tmpfs has been set to zero in the
@@ -196,6 +181,39 @@ public interface Machine extends ManagedEnvironment, Context {
      * @return the docstring for that method.
      */
     String documentation(String address, String method);
+
+    /**
+     * Makes the machine call a value callback.
+     * <p/>
+     * This is intended to be used from architectures, but may be useful in
+     * other scenarios, too. It will make the machine call the method with the
+     * specified name on the specified value.
+     * <p/>
+     * This will will ensure that the direct call limit for individual
+     * callbacks is respected.
+     *
+     * @param value  the value to call the method on.
+     * @param method the name of the method to call.
+     * @param args   the list of arguments to pass to the callback.
+     * @return a list of results returned by the callback, or <tt>null</tt>.
+     * @throws LimitReachedException    when the called method supports direct
+     *                                  calling, but the number of calls in this
+     *                                  tick has exceeded the allowed limit.
+     * @throws IllegalArgumentException if there is no such component.
+     * @throws Exception                if the callback throws an exception.
+     */
+    Object[] invoke(Value value, String method, Object[] args) throws Exception;
+
+    /**
+     * Retrieves the docstring for the specified method of the specified
+     * value. This is the string set in a method's {@link Callback}
+     * annotation.
+     *
+     * @param value  the value.
+     * @param method the name of the method.
+     * @return the docstring for that method.
+     */
+    String documentation(Value value, String method);
 
     /**
      * The list of users registered on this machine.

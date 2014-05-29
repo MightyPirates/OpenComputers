@@ -1,16 +1,18 @@
 package li.cil.oc.server.component
 
+import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.Network
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{OpenComputers, api, Settings}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.{TileEntity, TileEntityFurnace}
+import net.minecraft.tileentity.TileEntityFurnace
+import li.cil.oc.api.driver.Container
 
-class UpgradeGenerator(val owner: TileEntity with Robot) extends ManagedComponent {
+class UpgradeGenerator(val owner: Container with Robot) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("generator", Visibility.Neighbors).
     withConnector().
@@ -118,11 +120,8 @@ class UpgradeGenerator(val owner: TileEntity with Robot) extends ManagedComponen
     if (node == this.node) {
       inventory match {
         case Some(stack) =>
-          val world = owner.getWorldObj
-          val x = owner.xCoord
-          val y = owner.yCoord
-          val z = owner.zCoord
-          val entity = new EntityItem(world, x + 0.5, y + 0.5, z + 0.5, stack.copy())
+          val world = owner.world
+          val entity = new EntityItem(world, owner.xPosition, owner.yPosition, owner.zPosition, stack.copy())
           entity.motionY = 0.04
           entity.delayBeforeCanPickup = 5
           world.spawnEntityInWorld(entity)

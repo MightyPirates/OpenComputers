@@ -4,20 +4,28 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent.{PlayerLoggedOutEvent, PlayerChangedDimensionEvent, PlayerRespawnEvent}
 import li.cil.oc.Settings
+import li.cil.oc.api
 import li.cil.oc.api.Network
+import li.cil.oc.api.component.Keyboard.UsabilityChecker
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network.{Node, Visibility, Message}
+import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.entity.player.EntityPlayer
 import scala.collection.mutable
 
 // TODO key up when screen is disconnected from which the key down came
 // TODO key up after load for anything that was pressed
 
-abstract class Keyboard extends ManagedComponent {
+class Keyboard(val owner: Container) extends ManagedComponent with api.component.Keyboard {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("keyboard").
     create()
 
   val pressedKeys = mutable.Map.empty[EntityPlayer, mutable.Map[Integer, Character]]
+
+  var usableOverride: Option[api.component.Keyboard.UsabilityChecker] = None
+
+  override def setUsableOverride(callback: UsabilityChecker) = usableOverride = Option(callback)
 
   // ----------------------------------------------------------------------- //
 
@@ -106,7 +114,10 @@ abstract class Keyboard extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  def isUseableByPlayer(p: EntityPlayer): Boolean
+  def isUseableByPlayer(p: EntityPlayer) = usableOverride match {
+    case Some(callback) => callback.isUsableByPlayer(this, p)
+    case _ => p.getDistanceSq(owner.xPosition, owner.yPosition, owner.zPosition) <= 64
+  }
 
   protected def signal(args: AnyRef*) =
     node.sendToReachable("computer.checked_signal", args: _*)

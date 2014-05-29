@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer.gui
 
 import li.cil.oc.client.Textures
-import li.cil.oc.client.renderer.MonospaceFontRenderer
-import li.cil.oc.util.{RenderState, PackedColor}
+import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.{Tessellator, GLAllocation}
 import org.lwjgl.opengl.GL11
+import li.cil.oc.api.component.TextBuffer
 
 object BufferRenderer {
   val margin = 7
@@ -68,30 +68,20 @@ object BufferRenderer {
       GL11.glEndList()
     }
 
-  def compileText(scale: Double, lines: Array[Array[Char]], colors: Array[Array[Short]], depth: PackedColor.Depth.Value) =
-    if (textureManager.isDefined) {
-      GL11.glNewList(displayLists + 1, GL11.GL_COMPILE)
-      GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
-      GL11.glDepthMask(false)
-
-      GL11.glScaled(scale, scale, 1)
-      lines.zip(colors).zipWithIndex.foreach {
-        case ((line, color), i) => MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, depth)
-      }
-
-      GL11.glPopAttrib()
-      GL11.glEndList()
-    }
-
   def drawBackground() =
     if (textureManager.isDefined) {
       GL11.glCallList(displayLists)
     }
 
-  def drawText() =
+  def drawText(screen: TextBuffer) =
     if (textureManager.isDefined) {
-      GL11.glCallList(displayLists + 1)
+      GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT)
+      GL11.glDepthMask(false)
+      val changed = screen.renderText()
+      GL11.glPopAttrib()
+      changed
     }
+    else false
 
   private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {
     val u1d = u1 / 16.0

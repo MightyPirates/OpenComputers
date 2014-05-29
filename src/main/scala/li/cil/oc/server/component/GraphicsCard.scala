@@ -1,13 +1,14 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.Network
-import li.cil.oc.api.network._
-import li.cil.oc.common.component.Buffer
-import li.cil.oc.common.tileentity
 import li.cil.oc.Settings
+import li.cil.oc.api.Network
+import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector
+import li.cil.oc.api.component.TextBuffer
 
 abstract class GraphicsCard extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
@@ -15,15 +16,15 @@ abstract class GraphicsCard extends ManagedComponent {
     withConnector().
     create()
 
-  val maxResolution: (Int, Int)
+  protected val maxResolution: (Int, Int)
 
-  val maxDepth: PackedColor.Depth.Value
+  protected val maxDepth: ColorDepth
 
   private var screenAddress: Option[String] = None
 
-  private var screenInstance: Option[Buffer] = None
+  private var screenInstance: Option[TextBuffer] = None
 
-  private def screen(f: (Buffer) => Array[AnyRef]) = screenInstance match {
+  private def screen(f: (TextBuffer) => Array[AnyRef]) = screenInstance match {
     case Some(screen) => screen.synchronized(f(screen))
     case _ => Array(Unit, "no screen")
   }
@@ -36,8 +37,8 @@ abstract class GraphicsCard extends ManagedComponent {
     super.update()
     if (node.network != null && screenInstance.isEmpty && screenAddress.isDefined) {
       Option(node.network.node(screenAddress.get)) match {
-        case Some(node: Node) if node.host.isInstanceOf[Buffer] =>
-          screenInstance = Some(node.host.asInstanceOf[Buffer])
+        case Some(node: Node) if node.host.isInstanceOf[TextBuffer] =>
+          screenInstance = Some(node.host.asInstanceOf[TextBuffer])
         case _ =>
           // This could theoretically happen after loading an old address, but
           // if the screen either disappeared between saving and now or changed
@@ -54,16 +55,17 @@ abstract class GraphicsCard extends ManagedComponent {
     val address = args.checkString(0)
     node.network.node(address) match {
       case null => result(Unit, "invalid address")
-      case node: Node if node.host.isInstanceOf[Buffer] =>
+      case node: Node if node.host.isInstanceOf[TextBuffer] =>
         screenAddress = Option(address)
-        screenInstance = Some(node.host.asInstanceOf[Buffer])
+        screenInstance = Some(node.host.asInstanceOf[TextBuffer])
         screen(s => {
           val (gmw, gmh) = maxResolution
-          val (smw, smh) = s.maxResolution
-          s.resolution = (math.min(gmw, smw), math.min(gmh, smh))
-          s.depth = PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id))
-          s.foreground = 0xFFFFFF
-          s.background = 0x000000
+          val smw = s.getMaximumWidth
+          val smh = s.getMaximumHeight
+          s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
+          s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+          s.setForegroundColor(0xFFFFFF)
+          s.setBackgroundColor(0x000000)
           result(true)
         })
       case _ => result(Unit, "not a screen")
@@ -72,51 +74,76 @@ abstract class GraphicsCard extends ManagedComponent {
 
   @Callback(direct = true)
   def getBackground(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(s.background))
+    screen(s => result(s.getBackgroundColor, s.isBackgroundFromPalette))
 
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
-    screen(s => result(s.background = color))
+    screen(s => {
+      val oldColor = s.getBackgroundColor
+      val oldIsPalette = s.isBackgroundFromPalette
+      s.setBackgroundColor(color, args.count > 1 && args.checkBoolean(1))
+      result(oldColor, oldIsPalette)
+    })
   }
 
   @Callback(direct = true)
   def getForeground(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(s.foreground))
+    screen(s => result(s.getForegroundColor, s.isForegroundFromPalette))
 
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
-    screen(s => result(s.foreground = color))
+    screen(s => {
+      val oldColor = s.getForegroundColor
+      val oldIsPalette = s.isForegroundFromPalette
+      s.setForegroundColor(color, args.count > 1 && args.checkBoolean(1))
+      result(oldColor, oldIsPalette)
+    })
+  }
+
+  @Callback(direct = true)
+  def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    screen(s => result(s.getPaletteColor(index)))
+  }
+
+  @Callback
+  def setPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    val color = args.checkInteger(1)
+    context.pause(0.1)
+    screen(s => {
+      val oldColor = s.getPaletteColor(index)
+      s.setPaletteColor(index, color)
+      result(oldColor)
+    })
   }
 
   @Callback(direct = true)
   def getDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth.bits(s.depth)))
+    screen(s => result(PackedColor.Depth.bits(s.getColorDepth)))
 
   @Callback
   def setDepth(context: Context, args: Arguments): Array[AnyRef] = {
     val depth = args.checkInteger(0)
-    screen(s => result(s.depth = depth match {
-      case 1 => PackedColor.Depth.OneBit
-      case 4 if maxDepth >= PackedColor.Depth.FourBit => PackedColor.Depth.FourBit
-      case 8 if maxDepth >= PackedColor.Depth.EightBit => PackedColor.Depth.EightBit
-      case _ => throw new IllegalArgumentException("unsupported depth")
-    }))
+    screen(s => {
+      val oldDepth = s.getColorDepth
+      depth match {
+        case 1 => s.setColorDepth(ColorDepth.OneBit)
+        case 4 if maxDepth.ordinal >= ColorDepth.FourBit.ordinal => s.setColorDepth(ColorDepth.FourBit)
+        case 8 if maxDepth.ordinal >= ColorDepth.EightBit.ordinal => s.setColorDepth(ColorDepth.EightBit)
+        case _ => throw new IllegalArgumentException("unsupported depth")
+      }
+      result(oldDepth)
+    })
   }
 
   @Callback(direct = true)
   def maxDepth(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => result(PackedColor.Depth(math.min(maxDepth.id, s.maxDepth.id)) match {
-      case PackedColor.Depth.OneBit => 1
-      case PackedColor.Depth.FourBit => 4
-      case PackedColor.Depth.EightBit => 8
-    }))
+    screen(s => result(PackedColor.Depth.bits(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))))
 
   @Callback(direct = true)
   def getResolution(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => {
-      val (w, h) = s.resolution
-      result(w, h)
-    })
+    screen(s => result(s.getWidth, s.getHeight))
 
   @Callback
   def setResolution(context: Context, args: Arguments): Array[AnyRef] = {
@@ -127,22 +154,16 @@ abstract class GraphicsCard extends ManagedComponent {
     // the minimum of screen and GPU resolution.
     if (w < 1 || h < 1 || w > mw || h > mw || h * w > mw * mh)
       throw new IllegalArgumentException("unsupported resolution")
-    screen(s => result(s.resolution = (w, h)))
+    screen(s => result(s.setResolution(w, h)))
   }
 
   @Callback(direct = true)
   def maxResolution(context: Context, args: Arguments): Array[AnyRef] =
     screen(s => {
       val (gmw, gmh) = maxResolution
-      val (smw, smh) = s.maxResolution
+      val smw = s.getMaximumWidth
+      val smh = s.getMaximumHeight
       result(math.min(gmw, smw), math.min(gmh, smh))
-    })
-
-  @Callback
-  def getSize(context: Context, args: Arguments): Array[AnyRef] =
-    screen(s => s.owner match {
-      case screen: tileentity.Screen => result(screen.width, screen.height)
-      case _ => result(1, 1)
     })
 
   @Callback(direct = true)
@@ -150,12 +171,7 @@ abstract class GraphicsCard extends ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     screen(s => {
-      val char = s.get(x, y)
-      val color = s.color(y)(x)
-      val depth = s.depth
-      val foreground = PackedColor.unpackForeground(color, depth)
-      val background = PackedColor.unpackBackground(color, depth)
-      result(char, foreground, background)
+      result(s.get(x, y), s.getForegroundColor(x, y), s.getBackgroundColor(x, y), s.isForegroundFromPalette(x, y), s.isBackgroundFromPalette(x, y))
     })
   }
 
@@ -163,10 +179,11 @@ abstract class GraphicsCard extends ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     val value = args.checkString(2)
+    val vertical = args.count > 3 && args.checkBoolean(3)
 
     screen(s => {
       if (consumePower(value.length, Settings.get.gpuSetCost)) {
-        s.set(x, y, value)
+        s.set(x, y, value, vertical)
         result(true)
       }
       else result(Unit, "not enough energy")
@@ -218,15 +235,14 @@ abstract class GraphicsCard extends ManagedComponent {
     if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
       screenInstance match {
         case Some(buffer) => buffer.synchronized {
-          val (w, h) = buffer.resolution
-          buffer.foreground = 0xFFFFFF
+          val w = buffer.getWidth
+          val h = buffer.getHeight
+          buffer.setForegroundColor(0xFFFFFF)
           message.source.host match {
             case machine: machine.Machine if machine.lastError != null =>
-              if (buffer.depth > PackedColor.Depth.OneBit) buffer.background = 0x0000FF
-              else buffer.background = 0x000000
-              if (buffer.buffer.fill(0, 0, w, h, ' ')) {
-                buffer.owner.onScreenFill(0, 0, w, h, ' ')
-              }
+              if (buffer.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) buffer.setBackgroundColor(0x0000FF)
+              else buffer.setBackgroundColor(0x000000)
+              buffer.fill(0, 0, w, h, ' ')
               try {
                 val message = "Unrecoverable error:\n" + StatCollector.translateToLocal(machine.lastError) + "\n"
                 val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
@@ -234,18 +250,15 @@ abstract class GraphicsCard extends ManagedComponent {
                 for ((line, idx) <- lines.zipWithIndex) {
                   val col = (w - line.length) / 2
                   val row = (h - lines.length) / 2 + idx
-                  buffer.buffer.set(col, row, line)
-                  buffer.owner.onScreenSet(col, row, line)
+                  buffer.set(col, row, line, false)
                 }
               }
               catch {
                 case t: Throwable => t.printStackTrace()
               }
             case _ =>
-              buffer.background = 0x000000
-              if (buffer.buffer.fill(0, 0, w, h, ' ')) {
-                buffer.owner.onScreenFill(0, 0, w, h, ' ')
-              }
+              buffer.setBackgroundColor(0x000000)
+              buffer.fill(0, 0, w, h, ' ')
           }
         }
         case _ =>
@@ -299,8 +312,8 @@ object GraphicsCard {
   // the save file - a Bad Thing (TM).
 
   class Tier1 extends GraphicsCard {
-    val maxDepth = Settings.screenDepthsByTier(0)
-    val maxResolution = Settings.screenResolutionsByTier(0)
+    protected val maxDepth = Settings.screenDepthsByTier(0)
+    protected val maxResolution = Settings.screenResolutionsByTier(0)
 
     @Callback(direct = true, limit = 1)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
@@ -319,8 +332,8 @@ object GraphicsCard {
   }
 
   class Tier2 extends GraphicsCard {
-    val maxDepth = Settings.screenDepthsByTier(1)
-    val maxResolution = Settings.screenResolutionsByTier(1)
+    protected val maxDepth = Settings.screenDepthsByTier(1)
+    protected val maxResolution = Settings.screenResolutionsByTier(1)
 
     @Callback(direct = true, limit = 2)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)
@@ -339,8 +352,8 @@ object GraphicsCard {
   }
 
   class Tier3 extends GraphicsCard {
-    val maxDepth = Settings.screenDepthsByTier(2)
-    val maxResolution = Settings.screenResolutionsByTier(2)
+    protected val maxDepth = Settings.screenDepthsByTier(2)
+    protected val maxResolution = Settings.screenResolutionsByTier(2)
 
     @Callback(direct = true, limit = 4)
     override def copy(context: Context, args: Arguments) = super.copy(context, args)

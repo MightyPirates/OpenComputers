@@ -15,12 +15,12 @@ import net.minecraft.util.{IIcon, AxisAlignedBB}
 import net.minecraft.world.{World, IBlockAccess}
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
-  val unlocalizedName = "Hologram"
+abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
+  val unlocalizedName = "Hologram" + tier
 
-  private val icons = Array.fill[IIcon](6)(null)
+  def tier: Int
 
-  override def rarity = EnumRarity.rare
+  override def rarity = Array(EnumRarity.uncommon, EnumRarity.rare).apply(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -35,6 +35,8 @@ class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
     }
   }
 
+  private val icons = Array.fill[IIcon](6)(null)
+
   override def icon(side: ForgeDirection) = Some(icons(side.ordinal()))
 
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 15
@@ -47,15 +49,15 @@ class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   }
 
   override def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 3 / 16f, 1)
+    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1)
 
   override def itemBounds() {
-    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 3 / 16f, 1))
+    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1))
   }
 
   override def registerIcons(iconRegister: IIconRegister) = {
     icons(ForgeDirection.DOWN.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":generic_top")
-    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":hologram_top")
+    icons(ForgeDirection.UP.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":hologram_top" + tier)
 
     icons(ForgeDirection.NORTH.ordinal) = iconRegister.registerIcon(Settings.resourceDomain + ":hologram_side")
     icons(ForgeDirection.SOUTH.ordinal) = icons(ForgeDirection.NORTH.ordinal)
@@ -67,5 +69,15 @@ class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
 
   override def hasTileEntity = true
 
-  override def createTileEntity(world: World) = Some(new tileentity.Hologram())
+  override def createTileEntity(world: World) = Some(new tileentity.Hologram(tier))
+}
+
+object Hologram {
+  class Tier1(parent: SpecialDelegator) extends Hologram(parent) {
+    def tier = 0
+  }
+
+  class Tier2(parent: SpecialDelegator) extends Hologram(parent) {
+    def tier = 1
+  }
 }

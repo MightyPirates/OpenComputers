@@ -1,10 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network.{Node, Visibility}
-import li.cil.oc.common.EventHandler
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
-import scala.collection.convert.WrapAsScala._
 
 class Capacitor extends traits.Environment {
   // Start with maximum theoretical capacity, gets reduced after validation.
@@ -17,34 +15,14 @@ class Capacitor extends traits.Environment {
 
   override def canUpdate = false
 
-  override def validate() {
-    super.validate()
-    EventHandler.schedule(this)
-  }
-
-  override def invalidate() {
-    super.invalidate()
+  override protected def dispose() {
+    super.dispose()
     if (isServer) {
       indirectNeighbors.map(coordinate => {
         val (nx, ny, nz) = coordinate
         world.getTileEntity(nx, ny, nz)
       }).collect {
         case capacitor: Capacitor => capacitor.recomputeCapacity()
-      }
-    }
-  }
-
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    if (isServer) {
-      // Avoid triggering a chunk load...
-      // TODO I'm pretty sure this actually isn't necessary.
-      val in = indirectNeighbors
-      world.loadedTileEntityList.collect {
-        case capacitor: Capacitor if in.exists(coordinate => {
-          val (nx, ny, nz) = coordinate
-          nx == capacitor.x && ny == capacitor.y && nz == capacitor.z
-        }) => capacitor.recomputeCapacity()
       }
     }
   }

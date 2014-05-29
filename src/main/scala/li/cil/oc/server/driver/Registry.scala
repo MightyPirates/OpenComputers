@@ -3,6 +3,7 @@ package li.cil.oc.server.driver
 import java.util
 import java.util.logging.Level
 import li.cil.oc.api.driver.Converter
+import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
@@ -48,20 +49,15 @@ private[oc] object Registry extends api.detail.DriverAPI {
     if (!converters.contains(converter)) converters += converter
   }
 
-  // TODO Move this into the API?
-  def blockDriverFor(world: World, x: Int, y: Int, z: Int) =
+  def driverFor(world: World, x: Int, y: Int, z: Int) =
     blocks.filter(_.worksWith(world, x, y, z)) match {
-      case drivers if !drivers.isEmpty => Some(new CompoundBlockDriver(drivers: _*))
-      case _ => None
+      case drivers if !drivers.isEmpty => new CompoundBlockDriver(drivers: _*)
+      case _ => null
     }
 
-  // TODO Move this into the API?
-  def itemDriverFor(stack: ItemStack) =
-    if (stack != null) items.find(_.worksWith(stack)) match {
-      case None => None
-      case Some(driver) => Some(driver)
-    }
-    else None
+  def driverFor(stack: ItemStack) =
+    if (stack != null) items.find(_.worksWith(stack)).orNull
+    else null
 
   def convert(value: Array[AnyRef]) = if (value != null) value.map(convertRecursively) else null
 
@@ -86,6 +82,8 @@ private[oc] object Registry extends api.detail.DriverAPI {
     case arg: Array[Float] => arg
     case arg: Array[Double] => arg
     case arg: Array[String] => arg
+
+    case arg: Value => arg
 
     case arg: Array[_] => arg.map {
       case (value: AnyRef) => convertRecursively(value)

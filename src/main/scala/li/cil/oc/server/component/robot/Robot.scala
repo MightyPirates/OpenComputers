@@ -1,18 +1,14 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.{Items, api, OpenComputers, Settings}
+import li.cil.oc.{api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
+import net.minecraft.entity.item.{EntityMinecart, EntityItem}
 import net.minecraft.entity.{EntityLivingBase, Entity}
-import net.minecraft.init.Blocks
-import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.{ItemStack, ItemBlock}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraftforge.common.MinecraftForge
@@ -20,11 +16,15 @@ import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.common.component.ManagedComponent
+import li.cil.oc.api.event.RobotPlaceInAirEvent
+import li.cil.oc.util.InventoryUtils
+import li.cil.oc.util.ExtendedArguments._
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).
     withComponent("robot").
-    withConnector(Settings.get.bufferRobot + 30 * Settings.get.bufferPerLevel).
+    withConnector(Settings.get.bufferRobot).
     create()
 
   def actualSlot(n: Int) = robot.actualSlot(n)
@@ -46,21 +46,19 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   def player = robot.player()
 
-  def saveUpgrade() = robot.saveUpgrade()
-
-  def hasAngelUpgrade = Items.multi.subItem(robot.getStackInSlot(3)).orNull == Items.upgradeAngel
-
-  @Callback(direct = true)
-  def level(context: Context, args: Arguments): Array[AnyRef] = {
-    val xpNeeded = robot.xpForNextLevel - robot.xpForLevel(robot.level)
-    val xpProgress = math.max(0, robot.xp - robot.xpForLevel(robot.level))
-    result(robot.level + xpProgress / xpNeeded)
+  def canPlaceInAir = {
+    val event = new RobotPlaceInAirEvent(robot)
+    MinecraftForge.EVENT_BUS.post(event)
+    event.isAllowed
   }
 
   @Callback
   def name(context: Context, args: Arguments): Array[AnyRef] = result(robot.name)
 
   // ----------------------------------------------------------------------- //
+
+  @Callback
+  def inventorySize(context: Context, args: Arguments): Array[AnyRef] = result(robot.inventorySize)
 
   @Callback
   def select(context: Context, args: Arguments): Array[AnyRef] = {
@@ -109,7 +107,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   @Callback
   def transferTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
-    val count = checkOptionalItemCount(args, 1)
+    val count = args.optionalItemCount(1)
     if (slot == selectedSlot || count == 0) {
       result(true)
     }
@@ -163,64 +161,32 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   @Callback
   def drop(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = checkOptionalItemCount(args, 1)
-    val dropped = robot.decrStackSize(selectedSlot, count)
-    if (dropped != null && dropped.stackSize > 0) {
-      def tryDropIntoInventory(inventory: IInventory, filter: (Int) => Boolean) = {
-        var success = false
-        val maxStackSize = math.min(inventory.getInventoryStackLimit, dropped.getMaxStackSize)
-        val shouldTryMerge = !dropped.isItemStackDamageable && dropped.getMaxStackSize > 1 && inventory.getInventoryStackLimit > 1
-        if (shouldTryMerge) {
-          for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && filter(slot)) {
-            val existing = inventory.getStackInSlot(slot)
-            val shouldMerge = existing != null && existing.stackSize < maxStackSize &&
-              existing.isItemEqual(dropped) && ItemStack.areItemStackTagsEqual(existing, dropped)
-            if (shouldMerge) {
-              val space = maxStackSize - existing.stackSize
-              val amount = math.min(space, dropped.stackSize)
-              assert(amount > 0)
-              success = true
-              existing.stackSize += amount
-              dropped.stackSize -= amount
-            }
+    val count = args.optionalItemCount(1)
+    val stack = robot.getStackInSlot(selectedSlot)
+    if (stack != null && stack.stackSize > 0) {
+      val player = robot.player(facing)
+      InventoryUtils.inventoryAt(world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
+        case Some(inventory) =>
+          if (!InventoryUtils.insertIntoInventory(stack, inventory, facing.getOpposite, count)) {
+            // Cannot drop into that inventory.
+            return result(false, "inventory full")
           }
-        }
-
-        def canDropIntoSlot(slot: Int) = filter(slot) && inventory.isItemValidForSlot(slot, dropped) && inventory.getStackInSlot(slot) == null
-        for (slot <- 0 until inventory.getSizeInventory if dropped.stackSize > 0 && canDropIntoSlot(slot)) {
-          val amount = math.min(maxStackSize, dropped.stackSize)
-          inventory.setInventorySlotContents(slot, dropped.splitStack(amount))
-          success = true
-        }
-        if (success) {
-          inventory.markDirty()
-        }
-        player.inventory.addItemStackToInventory(dropped)
-        success
-      }
-
-      world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-        case chest: TileEntityChest =>
-          val inventory = Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord)
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped)))
-        case inventory: ISidedInventory =>
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped) && inventory.canInsertItem(slot, dropped, facing.getOpposite.ordinal())))
-        case inventory: IInventory =>
-          result(tryDropIntoInventory(inventory,
-            slot => inventory.isItemValidForSlot(slot, dropped)))
+          else if (stack.stackSize == 0) {
+            // Dropped whole stack.
+            robot.setInventorySlotContents(selectedSlot, null)
+          }
+          else {
+            // Dropped partial stack.
+            robot.markDirty()
+          }
         case _ =>
-          val player = robot.player(facing)
-          for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
-            if (tryDropIntoInventory(entity, slot => entity.isItemValidForSlot(slot, dropped))) {
-              return result(true)
-            }
-          }
-          player.dropPlayerItemWithRandomChoice(dropped, inPlace = false)
-          context.pause(Settings.get.dropDelay)
-          result(true)
+          // No inventory to drop into, drop into the world.
+          player.dropPlayerItemWithRandomChoice(robot.decrStackSize(selectedSlot, count), inPlace = false)
       }
+
+      context.pause(Settings.get.dropDelay)
+
+      result(true)
     }
     else result(false)
   }
@@ -249,7 +215,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         case Some(hit) if hit.typeOfHit == MovingObjectType.BLOCK =>
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           player.placeBlock(robot.selectedSlot, bx, by, bz, hit.sideHit, hx, hy, hz)
-        case None if hasAngelUpgrade && player.closestEntity[Entity]().isEmpty =>
+        case None if canPlaceInAir && player.closestEntity[Entity]().isEmpty =>
           val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
           player.placeBlock(robot.selectedSlot, bx, by, bz, facing.ordinal, hx, hy, hz)
         case _ => false
@@ -268,55 +234,23 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   @Callback
   def suck(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    val count = checkOptionalItemCount(args, 1)
+    val count = args.optionalItemCount(1)
 
-    def trySuckFromInventory(inventory: IInventory, filter: (Int) => Boolean) = {
-      var success = false
-      for (slot <- 0 until inventory.getSizeInventory if !success && filter(slot)) {
-        val stack = inventory.getStackInSlot(slot)
-        if (stack != null) {
-          val maxStackSize = math.min(robot.getInventoryStackLimit, stack.getMaxStackSize)
-          val amount = math.min(maxStackSize, math.min(stack.stackSize, count))
-          val sucked = stack.splitStack(amount)
-          success = player.inventory.addItemStackToInventory(sucked)
-          stack.stackSize += sucked.stackSize
-          if (stack.stackSize == 0) {
-            inventory.setInventorySlotContents(slot, null)
-          }
-        }
-      }
-      if (success) {
-        inventory.markDirty()
-      }
-      success
+    if (InventoryUtils.extractFromInventoryAt(player.inventory.addItemStackToInventory, world, x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ, facing.getOpposite, count)) {
+      context.pause(Settings.get.suckDelay)
+      result(true)
     }
-
-    world.getTileEntity(x + facing.offsetX, y + facing.offsetY, z + facing.offsetZ) match {
-      case chest: TileEntityChest if chest.isUseableByPlayer(player) =>
-        val inventory = Blocks.chest.func_149951_m(world, chest.xCoord, chest.yCoord, chest.zCoord)
-        result(trySuckFromInventory(inventory, slot => true))
-      case inventory: ISidedInventory if inventory.isUseableByPlayer(player) =>
-        result(trySuckFromInventory(inventory,
-          slot => inventory.canExtractItem(slot, inventory.getStackInSlot(slot), facing.getOpposite.ordinal())))
-      case inventory: IInventory if inventory.isUseableByPlayer(player) =>
-        result(trySuckFromInventory(inventory, slot => true))
-      case _ =>
-        val player = robot.player(facing)
-        for (entity <- player.entitiesOnSide[EntityMinecartContainer](facing) if entity.isUseableByPlayer(player)) {
-          if (trySuckFromInventory(entity, slot => true)) {
-            return result(true)
-          }
+    else {
+      for (entity <- player.entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
+        val stack = entity.getEntityItem
+        val size = stack.stackSize
+        entity.onCollideWithPlayer(player)
+        if (stack.stackSize < size || entity.isDead) {
+          context.pause(Settings.get.suckDelay)
+          return result(true)
         }
-        for (entity <- player.entitiesOnSide[EntityItem](facing) if !entity.isDead && entity.delayBeforeCanPickup <= 0) {
-          val stack = entity.getEntityItem
-          val size = stack.stackSize
-          entity.onCollideWithPlayer(player)
-          if (stack.stackSize < size || entity.isDead) {
-            context.pause(Settings.get.suckDelay)
-            return result(true)
-          }
-        }
-        result(false)
+      }
+      result(false)
     }
   }
 
@@ -466,7 +400,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
           val (bx, by, bz, hx, hy, hz) = clickParamsFromHit(hit)
           activationResult(player.activateBlockOrUseItem(bx, by, bz, hit.sideHit, hx, hy, hz, duration))
         case _ =>
-          (if (hasAngelUpgrade) {
+          (if (canPlaceInAir) {
             val (bx, by, bz, hx, hy, hz) = clickParamsForPlace(facing)
             if (player.placeBlock(0, bx, by, bz, facing.ordinal, hx, hy, hz))
               ActivationType.ItemPlaced
@@ -510,7 +444,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   @Callback
   def move(context: Context, args: Arguments): Array[AnyRef] = {
-    val direction = checkSideForMovement(args, 0)
+    val direction = robot.toGlobal(args.checkSideForMovement(0))
     if (robot.isAnimatingMove) {
       // This shouldn't really happen due to delays being enforced, but just to
       // be on the safe side...
@@ -527,7 +461,6 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         }
         else if (robot.move(direction)) {
           context.pause(Settings.get.moveDelay)
-          robot.addXp(Settings.get.robotExhaustionXpRate * 0.01)
           result(true)
         }
         else {
@@ -677,33 +610,9 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
 
   // ----------------------------------------------------------------------- //
 
-  private def checkOptionalItemCount(args: Arguments, n: Int) =
-    if (args.count > n && args.checkAny(n) != null) {
-      math.max(args.checkInteger(n), math.min(0, robot.getInventoryStackLimit))
-    }
-    else robot.getInventoryStackLimit
+  private def checkSlot(args: Arguments, n: Int) = args.checkSlot(robot, n)
 
-  private def checkSlot(args: Arguments, n: Int) = {
-    val slot = args.checkInteger(n) - 1
-    if (slot < 0 || slot > 15) {
-      throw new IllegalArgumentException("invalid slot")
-    }
-    actualSlot(slot)
-  }
+  private def checkSideForAction(args: Arguments, n: Int) = robot.toGlobal(args.checkSideForAction(n))
 
-  private def checkSideForAction(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.UP, ForgeDirection.DOWN)
-
-  private def checkSideForMovement(args: Arguments, n: Int) = checkSide(args, n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN)
-
-  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = checkSide(args, n, ForgeDirection.VALID_DIRECTIONS.filter(_ != robot.toLocal(facing).getOpposite): _*)
-
-  private def checkSide(args: Arguments, n: Int, allowed: ForgeDirection*) = {
-    val side = args.checkInteger(n)
-    if (side < 0 || side > 5) {
-      throw new IllegalArgumentException("invalid side")
-    }
-    val direction = ForgeDirection.getOrientation(side)
-    if (allowed.isEmpty || (allowed contains direction)) robot.toGlobal(direction)
-    else throw new IllegalArgumentException("unsupported side")
-  }
+  private def checkSideForFace(args: Arguments, n: Int, facing: ForgeDirection) = robot.toGlobal(args.checkSideForFace(n, robot.toLocal(facing)))
 }

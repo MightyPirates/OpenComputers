@@ -2,6 +2,7 @@ package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import net.minecraftforge.common.util.ForgeDirection
 

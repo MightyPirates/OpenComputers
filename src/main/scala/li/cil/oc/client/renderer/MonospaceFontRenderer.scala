@@ -3,25 +3,37 @@ package li.cil.oc.client.renderer
 import li.cil.oc.client.Textures
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.texture.TextureManager
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import scala.io.Source
 
 object MonospaceFontRenderer {
-  private val chars = Source.fromInputStream(MonospaceFontRenderer.getClass.getResourceAsStream("/assets/" + Settings.resourceDomain + "/textures/font/chars.txt"))("UTF-8").mkString
+  val (chars, fontWidth, fontHeight) = try {
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "/textures/font/chars.txt")).getInputStream)("UTF-8").getLines()
+    val chars = lines.next()
+    val (w, h) = if (lines.hasNext) {
+      val size = lines.next().split(" ", 2)
+      (size(0).toInt, size(1).toInt)
+    } else (5, 9)
+    (chars, w, h)
+  }
+  catch {
+    case t: Throwable =>
+      OpenComputers.log.warning("Failed reading font metdata, using defaults.")
+      ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
+  }
 
   private var instance: Option[Renderer] = None
 
   def init(textureManager: TextureManager) = this.synchronized(
     instance = instance.orElse(Some(new Renderer(textureManager))))
 
-  val fontWidth = 5
-  val fontHeight = 9
-
-  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = this.synchronized(instance match {
+  def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = this.synchronized(instance match {
     case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")
-    case Some(renderer) => renderer.drawString(x, y, value, color, depth)
+    case Some(renderer) => renderer.drawString(x, y, value, color, format)
   })
 
   private class Renderer(private val textureManager: TextureManager) {
@@ -71,7 +83,7 @@ object MonospaceFontRenderer {
       GL11.glEndList()
     }
 
-    def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], depth: PackedColor.Depth.Value) = {
+    def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
       if (Settings.get.textAntiAlias)
@@ -90,7 +102,7 @@ object MonospaceFontRenderer {
       var cbg = 0x000000
       var offset = 0
       var width = 0
-      for (col <- color.map(PackedColor.unpackBackground(_, depth))) {
+      for (col <- color.map(PackedColor.unpackBackground(_, format))) {
         if (col != cbg) {
           draw(cbg, offset, width)
           cbg = col
@@ -108,7 +120,7 @@ object MonospaceFontRenderer {
       // Foreground second. We only have to flush when the color changes, so
       // unless every char has a different color this should be quite efficient.
       var cfg = -1
-      for ((ch, col) <- value.zip(color.map(PackedColor.unpackForeground(_, depth)))) {
+      for ((ch, col) <- value.zip(color.map(PackedColor.unpackForeground(_, format)))) {
         val index = 1 + (chars.indexOf(ch) match {
           case -1 => chars.indexOf('?')
           case i => i

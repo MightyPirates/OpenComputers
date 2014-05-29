@@ -6,7 +6,7 @@ import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.component.robot
 import li.cil.oc.server.PacketSender
-import li.cil.oc.util.Tooltip
+import li.cil.oc.util.{ItemUtils, Tooltip}
 import li.cil.oc.{Blocks, Settings, OpenComputers}
 import net.minecraft.client.renderer.texture.IIconRegister
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
@@ -16,6 +16,7 @@ import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.{IIcon, MovingObjectPosition, AxisAlignedBB, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.client.KeyBindings
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"
@@ -33,6 +34,12 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     addLines(stack, tooltip)
     tooltip.addAll(Tooltip.get(unlocalizedName))
+    if (KeyBindings.showExtendedTooltips) {
+      val info = new ItemUtils.RobotData(stack)
+      for (component <- info.containers ++ info.components) {
+        tooltip.add("- " + component.getDisplayName)
+      }
+    }
   }
 
   @Optional.Method(modid = "Waila")
@@ -51,10 +58,11 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       }
       if (stack.getTagCompound.hasKey(Settings.namespace + "storedEnergy")) {
         val energy = stack.getTagCompound.getInteger(Settings.namespace + "storedEnergy")
-        tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+        if (energy > 0) {
+          tooltip.addAll(Tooltip.get(unlocalizedName + "_StoredEnergy", energy))
+        }
       }
     }
-
   }
 
   @SideOnly(Side.CLIENT)
@@ -68,7 +76,7 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
 
   override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) =
     world.getTileEntity(x, y, z) match {
-      case proxy: tileentity.RobotProxy => proxy.robot.createItemStack()
+      case proxy: tileentity.RobotProxy => proxy.robot.info.copyItemStack()
       case _ => null
     }
 
@@ -152,7 +160,10 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     }) match {
       case Some((robot, owner)) =>
         robot.owner = owner
-        robot.parseItemStack(stack)
+        robot.info.load(stack)
+        robot.bot.node.changeBuffer(robot.info.robotEnergy - robot.bot.node.localBuffer)
+        robot.updateInventorySize()
+        robot.updateMaxComponentCount()
       case _ =>
     }
   }
@@ -162,8 +173,9 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
         if (robot.player == player) return false
-        if (!world.isRemote && (!player.capabilities.isCreativeMode || proxy.globalBuffer > 1 || proxy.robot.xp > 0)) {
-          parent.internalDropBlockAsItem(world, x, y, z, robot.createItemStack())
+        if (!world.isRemote) {
+          robot.saveComponents()
+          parent.internalDropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }
         if (Blocks.blockSpecial.subBlock(world, robot.moveFromX, robot.moveFromY, robot.moveFromZ).exists(_ == Blocks.robotAfterimage)) {
           world.setBlock(robot.moveFromX, robot.moveFromY, robot.moveFromZ, net.minecraft.init.Blocks.air, 0, 1)

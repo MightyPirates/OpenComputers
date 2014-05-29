@@ -17,13 +17,12 @@ import net.minecraft.util.IIcon
 import net.minecraft.util.StatCollector
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.client.Textures
 
 class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Charger"
 
   private val icons = Array.fill[IIcon](6)(null)
-  var iconFrontCharging: IIcon = _
-  var iconSideCharging: IIcon = _
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))
@@ -54,8 +53,8 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
 
-    iconFrontCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_front_on")
-    iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_side_on")
+    Textures.Charger.iconFrontCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_front_on")
+    Textures.Charger.iconSideCharging = iconRegister.registerIcon(Settings.resourceDomain + ":charger_side_on")
   }
 
   override def createTileEntity(world: World) = Some(new tileentity.Charger())

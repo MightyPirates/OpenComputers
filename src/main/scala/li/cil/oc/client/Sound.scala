@@ -1,17 +1,15 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
+import java.util.logging.Level
 import java.util.{TimerTask, Timer, UUID}
 import li.cil.oc.{OpenComputers, Settings}
-import li.cil.oc.common.tileentity
 import net.minecraft.client.Minecraft
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.client.event.sound.SoundLoadEvent
-import net.minecraftforge.event.world.{WorldEvent, ChunkEvent}
+import net.minecraftforge.event.world.WorldEvent
 import paulscode.sound.{SoundSystem, SoundSystemConfig}
-import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import java.util.logging.Level
 import net.minecraft.client.audio.{SoundPoolEntry, SoundManager, SoundCategory}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.ReflectionHelper
@@ -94,29 +92,11 @@ object Sound {
   }
 
   @SubscribeEvent
-  def onChunkUnload(event: ChunkEvent.Unload) {
-    cleanup(event.getChunk.chunkTileEntityMap.values)
-  }
-
-  @SubscribeEvent
   def onWorldUnload(event: WorldEvent.Unload) {
-    cleanup(event.world.loadedTileEntityList)
-  }
-
-  private def cleanup[_](list: Iterable[_]) {
     commandQueue.synchronized(commandQueue.clear())
     sources.synchronized {
-      list.foreach {
-        case robot: tileentity.RobotProxy => stahp(robot.robot)
-        case tileEntity: TileEntity => stahp(tileEntity)
-        case _ =>
-      }
+      sources.foreach(_._2.stop())
     }
-  }
-
-  private def stahp(tileEntity: TileEntity) = sources.remove(tileEntity) match {
-    case Some(sound) => sound.stop()
-    case _ =>
   }
 
   private abstract class Command(val when: Long, val tileEntity: TileEntity) extends Ordered[Command] {
@@ -186,8 +166,13 @@ object Sound {
     }
 
     def stop() {
-      soundSystem.stop(source)
-      soundSystem.removeSource(source)
+      if (soundSystem != null) try {
+        soundSystem.stop(source)
+        soundSystem.removeSource(source)
+      }
+      catch {
+        case _: Throwable =>
+      }
     }
   }
 

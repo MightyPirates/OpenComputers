@@ -102,12 +102,12 @@ object GameTimeFormatter {
     result.toString()
   }
 
-  def mktime(year: Int, mon: Int, mday: Int, hour: Int, min: Int, sec: Int): Integer = {
-    if (year < 1970 || mon < 1 || mon > 12) return null
+  def mktime(year: Int, mon: Int, mday: Int, hour: Int, min: Int, sec: Int): Option[Int] = {
+    if (year < 1970 || mon < 1 || mon > 12) return None
     val monthLengths = monthLengthsForYear(year)
     val days = ((year - 1970) * 365.2425).ceil.toInt + (0 until mon - 1).foldLeft(0)((d, m) => d + monthLengths(m)) + mday - 1
     val secs = sec + (min + (hour - 1 + days * 24) * 60) * 60
-    if (secs < 0) null
-    else secs
+    if (secs < 0) None
+    else Option(secs)
   }
 }

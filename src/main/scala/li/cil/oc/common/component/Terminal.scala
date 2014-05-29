@@ -1,36 +1,47 @@
 package li.cil.oc.common.component
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network.{Node, Visibility}
+import li.cil.oc.api
+import li.cil.oc.api.component.Keyboard.UsabilityChecker
+import li.cil.oc.api.network.{Component, Node, Visibility}
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.component
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.PackedColor.Depth
-import li.cil.oc.{Items, Settings, common}
+import li.cil.oc.{Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
 import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
-class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner {
-  val buffer = new common.component.Buffer(this)
-  val keyboard = if (buffer.node != null) {
-    buffer.node.setVisibility(Visibility.Neighbors)
-    new component.Keyboard {
-      node.setVisibility(Visibility.Neighbors)
+class Terminal(val rack: tileentity.Rack, val number: Int) {
+  val buffer = {
+    val screenItem = api.Items.get("screen1").createItemStack(1)
+    val buffer = api.Driver.driverFor(screenItem).createEnvironment(screenItem, rack).asInstanceOf[api.component.TextBuffer]
+    val (maxWidth, maxHeight) = Settings.screenResolutionsByTier(1)
+    buffer.setMaximumResolution(maxWidth, maxHeight)
+    buffer.setMaximumColorDepth(Settings.screenDepthsByTier(1))
+    buffer
+  }
 
-      override def isUseableByPlayer(p: EntityPlayer) = {
-        val stack = p.getCurrentEquippedItem
+  val keyboard = {
+    val keyboardItem = api.Items.get("keyboard").createItemStack(1)
+    val keyboard = api.Driver.driverFor(keyboardItem).createEnvironment(keyboardItem, rack).asInstanceOf[api.component.Keyboard]
+    keyboard.setUsableOverride(new UsabilityChecker {
+      override def isUsableByPlayer(keyboard: api.component.Keyboard, player: EntityPlayer) = {
+        val stack = player.getCurrentEquippedItem
         Items.multi.subItem(stack) match {
           case Some(t: item.Terminal) if stack.hasTagCompound => keys.contains(stack.getTagCompound.getString(Settings.namespace + "key"))
           case _ => false
         }
       }
+    })
+    keyboard
     }
+
+  if (buffer.node != null) {
+    buffer.node.asInstanceOf[Component].setVisibility(Visibility.Neighbors)
+    keyboard.node.asInstanceOf[Component].setVisibility(Visibility.Neighbors)
   }
-  else null
 
   val keys = mutable.ListBuffer.empty[String]
 
@@ -43,8 +54,6 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
       buffer.node.connect(keyboard.node)
     }
   }
-
-  override def tier = 1
 
   // ----------------------------------------------------------------------- //
 
@@ -66,62 +75,12 @@ class Terminal(val rack: tileentity.Rack, val number: Int) extends Buffer.Owner 
 
   @SideOnly(Side.CLIENT)
   def readFromNBTForClient(nbt: NBTTagCompound) {
-    buffer.buffer.load(nbt)
+    buffer.load(nbt)
     nbt.getTagList("keys", NBT.TAG_STRING).foreach((list, index) => keys += list.getStringTagAt(index))
   }
 
   def writeToNBTForClient(nbt: NBTTagCompound) {
-    buffer.buffer.save(nbt)
+    buffer.save(nbt)
     nbt.setNewTagList("keys", keys)
-  }
-
-  // ----------------------------------------------------------------------- //
-
-  override def onScreenColorChange(foreground: Int, background: Int) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenColorChange(buffer, foreground, background)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenCopy(buffer, col, row, w, h, tx, ty)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  override def onScreenDepthChange(depth: Depth.Value) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenDepthChange(buffer, depth)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenFill(buffer, col, row, w, h, c)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  override def onScreenResolutionChange(w: Int, h: Int) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenResolutionChange(buffer, w, h)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
-  }
-
-  override def onScreenSet(col: Int, row: Int, s: String) {
-    if (isServer) {
-      rack.markAsChanged()
-      ServerPacketSender.sendScreenSet(buffer, col, row, s)
-    }
-    else currentGui.foreach(_.recompileDisplayLists())
   }
 }

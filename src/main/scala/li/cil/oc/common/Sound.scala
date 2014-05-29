@@ -1,37 +1,31 @@
 package li.cil.oc.common
 
-import li.cil.oc.common.tileentity.traits
 import li.cil.oc.Settings
-import net.minecraft.tileentity.TileEntity
 import scala.collection.mutable
+import li.cil.oc.api.driver.Container
 
 object Sound {
-  val lastPlayed = mutable.WeakHashMap.empty[TileEntity, Long]
+  val lastPlayed = mutable.WeakHashMap.empty[Container, Long]
 
-  def play(t: traits.TileEntity, name: String) {
-    t.world.playSoundEffect(t.x + 0.5, t.y + 0.5, t.z + 0.5, Settings.resourceDomain + ":" + name, 1, 1)
+  def play(container: Container, name: String) {
+    container.world.playSoundEffect(container.xPosition, container.yPosition, container.zPosition, Settings.resourceDomain + ":" + name, 1, 1)
   }
 
-  def playDiskInsert(t: traits.TileEntity) {
-    play(t, "floppy_insert")
+  def playDiskInsert(container: Container) {
+    play(container, "floppy_insert")
   }
 
-  def playDiskEject(t: traits.TileEntity) {
-    play(t, "floppy_eject")
+  def playDiskEject(container: Container) {
+    play(container, "floppy_eject")
   }
 
-  def playDiskActivity(t: TileEntity) = this.synchronized {
-    lastPlayed.get(t) match {
+  def playDiskActivity(container: Container, isFloppy: Boolean) = this.synchronized {
+    lastPlayed.get(container) match {
       case Some(time) if time > System.currentTimeMillis() => // Cooldown.
       case _ =>
-        t match {
-          case robot: tileentity.Robot => play(robot, "floppy_access")
-          case computer: tileentity.traits.Computer => play(computer, "hdd_access")
-          case rack: tileentity.Rack => play(rack, "hdd_access")
-          case drive: tileentity.DiskDrive => play(drive, "floppy_access")
-          case _ => // Huh?
-        }
-        lastPlayed += t -> (System.currentTimeMillis() + 500)
+        if (isFloppy) play(container, "floppy_access")
+        else play(container, "hdd_access")
+        lastPlayed += container -> (System.currentTimeMillis() + 500)
     }
   }
 }

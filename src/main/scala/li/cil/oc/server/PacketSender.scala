@@ -1,6 +1,7 @@
 package li.cil.oc.server
 
-import li.cil.oc.common
+import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.api.driver.Container
 import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
@@ -65,10 +66,29 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendDisassemblerActive(t: tileentity.Disassembler, active: Boolean) {
+    val pb = new PacketBuilder(PacketType.DisassemblerActiveChange)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(active)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
   def sendHologramClear(t: tileentity.Hologram) {
     val pb = new PacketBuilder(PacketType.HologramClear)
 
     pb.writeTileEntity(t)
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendHologramColor(t: tileentity.Hologram, index: Int, value: Int) {
+    val pb = new PacketBuilder(PacketType.HologramColor)
+
+    pb.writeTileEntity(t)
+    pb.writeInt(index)
+    pb.writeInt(value)
 
     pb.sendToNearbyPlayers(t)
   }
@@ -102,6 +122,7 @@ object PacketSender {
     for (x <- t.dirtyFromX until t.dirtyUntilX) {
       for (z <- t.dirtyFromZ until t.dirtyUntilZ) {
         pb.writeInt(t.volume(x + z * t.width))
+        pb.writeInt(t.volume(x + z * t.width + t.width * t.width))
       }
     }
 
@@ -126,6 +147,15 @@ object PacketSender {
     for (d <- ForgeDirection.VALID_DIRECTIONS) {
       pb.writeByte(t.output(d))
     }
+
+    pb.sendToNearbyPlayers(t)
+  }
+
+  def sendRobotAssembling(t: tileentity.RobotAssembler, assembling: Boolean) {
+    val pb = new PacketBuilder(PacketType.RobotAssemblingState)
+
+    pb.writeTileEntity(t)
+    pb.writeBoolean(assembling)
 
     pb.sendToNearbyPlayers(t)
   }
@@ -189,15 +219,6 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 16)
   }
 
-  def sendRobotXp(t: tileentity.Robot) {
-    val pb = new PacketBuilder(PacketType.RobotXp)
-
-    pb.writeTileEntity(t)
-    pb.writeDouble(t.xp)
-
-    pb.sendToNearbyPlayers(t)
-  }
-
   def sendRotatableState(t: Rotatable) {
     val pb = new PacketBuilder(PacketType.RotatableState)
 
@@ -216,38 +237,22 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendScreenColorChange(b: common.component.Buffer, foreground: Int, background: Int) {
-    val pb = new PacketBuilder(PacketType.ScreenColorChange)
+  def sendTextBufferColorChange(address: String, foreground: PackedColor.Color, background: PackedColor.Color, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferColorChange)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
-    pb.writeInt(foreground)
-    pb.writeInt(background)
+    pb.writeUTF(address)
+    pb.writeInt(foreground.value)
+    pb.writeBoolean(foreground.isPalette)
+    pb.writeInt(background.value)
+    pb.writeBoolean(background.isPalette)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenCopy(b: common.component.Buffer, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
-    val pb = new PacketBuilder(PacketType.ScreenCopy)
+  def sendTextBufferCopy(address: String, col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferCopy)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
@@ -255,95 +260,70 @@ object PacketSender {
     pb.writeInt(tx)
     pb.writeInt(ty)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenDepthChange(b: common.component.Buffer, value: PackedColor.Depth.Value) {
-    val pb = new PacketBuilder(PacketType.ScreenDepthChange)
+  def sendTextBufferDepthChange(address: String, value: ColorDepth, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferDepthChange)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
-    pb.writeInt(value.id)
+    pb.writeUTF(address)
+    pb.writeInt(value.ordinal)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenFill(b: common.component.Buffer, col: Int, row: Int, w: Int, h: Int, c: Char) {
-    val pb = new PacketBuilder(PacketType.ScreenFill)
+  def sendTextBufferFill(address: String, col: Int, row: Int, w: Int, h: Int, c: Char, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferFill)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeInt(w)
     pb.writeInt(h)
     pb.writeChar(c)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenPowerChange(t: TextBuffer, hasPower: Boolean) {
-    val pb = new PacketBuilder(PacketType.ScreenPowerChange)
+  def sendTextBufferPaletteChange(address: String, index: Int, color: Int, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferPaletteChange)
 
-    pb.writeTileEntity(t)
+    pb.writeUTF(address)
+    pb.writeInt(index)
+    pb.writeInt(color)
+
+    pb.sendToNearbyPlayers(container)
+  }
+
+  def sendTextBufferPowerChange(address: String, hasPower: Boolean, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferPowerChange)
+
+    pb.writeUTF(address)
     pb.writeBoolean(hasPower)
 
-    pb.sendToNearbyPlayers(t, 64)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenResolutionChange(b: common.component.Buffer, w: Int, h: Int) {
-    val pb = new PacketBuilder(PacketType.ScreenResolutionChange)
+  def sendTextBufferResolutionChange(address: String, w: Int, h: Int, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferResolutionChange)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeInt(w)
     pb.writeInt(h)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
-  def sendScreenSet(b: common.component.Buffer, col: Int, row: Int, s: String) {
-    val pb = new PacketBuilder(PacketType.ScreenSet)
+  def sendTextBufferSet(address: String, col: Int, row: Int, s: String, vertical: Boolean, container: Container) {
+    val pb = new PacketBuilder(PacketType.TextBufferSet)
 
-    val t = b.owner match {
-      case t: TextBuffer =>
-        pb.writeTileEntity(t)
-        t
-      case t: common.component.Terminal =>
-        pb.writeTileEntity(t.rack)
-        pb.writeInt(t.number)
-        t.rack
-      case _ => return
-    }
+    pb.writeUTF(address)
     pb.writeInt(col)
     pb.writeInt(row)
     pb.writeUTF(s)
+    pb.writeBoolean(vertical)
 
-    pb.sendToNearbyPlayers(t)
+    pb.sendToNearbyPlayers(container)
   }
 
   def sendServerPresence(t: tileentity.Rack) {

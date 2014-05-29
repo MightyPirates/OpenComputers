@@ -3,11 +3,13 @@ package li.cil.oc
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import java.io._
 import java.util.logging.Level
-import li.cil.oc.util.PackedColor
+import li.cil.oc.api.component.TextBuffer.ColorDepth
+import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
-import li.cil.oc.util.mods.Mods
+import java.net.{Inet4Address, InetAddress}
+import com.google.common.net.InetAddresses
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -20,7 +22,6 @@ class Settings(config: Config) {
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
-  val rTreeDebugRenderer = false // *Not* to be configurable via config file.
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -29,17 +30,11 @@ class Settings(config: Config) {
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
   val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
-    case Array(tier1, tier2, tier3) =>
-      // For compatibility with older config files.
-      Array(tier1: Int, (tier1: Int) * 3 / 2, tier2: Int, tier3: Int, tier3 * 2: Int, tier3 * 4: Int)
-    case Array(tier1, tier3, tier4, tier5, tier6) =>
-      // For compatibility with older config files.
-      Array(tier1: Int, (tier1: Int) * 3 / 2, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
     case _ =>
       OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
-      Array(64, 96, 128, 256, 512, 1024)
+      Array(192, 256, 384, 512, 768, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
   val cpuComponentSupport = Array(config.getIntList("computer.cpuComponentCount"): _*) match {
@@ -108,6 +103,8 @@ class Settings(config: Config) {
   val chargeRate = config.getDouble("power.chargerChargeRate")
   val generatorEfficiency = config.getDouble("power.generatorEfficiency")
   val solarGeneratorEfficiency = config.getDouble("power.solarGeneratorEfficiency")
+  val assemblerTickAmount = config.getDouble("power.assemblerTickAmount") max 1
+  val disassemblerTickAmount = config.getDouble("power.disassemblerTickAmount") max 1
 
   // power.buffer
   val bufferCapacitor = config.getDouble("power.buffer.capacitor") max 0
@@ -116,6 +113,7 @@ class Settings(config: Config) {
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
   val bufferConverter = config.getDouble("power.buffer.converter") max 0
   val bufferDistributor = config.getDouble("power.buffer.distributor") max 0
+  val bufferCapacitorUpgrade = config.getDouble("power.buffer.capacitorUpgrade") max 0
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -132,8 +130,13 @@ class Settings(config: Config) {
   val robotTurnCost = config.getDouble("power.cost.robotTurn") max 0
   val robotMoveCost = config.getDouble("power.cost.robotMove") max 0
   val robotExhaustionCost = config.getDouble("power.cost.robotExhaustion") max 0
-  val wirelessCostPerRange = config.getDouble("power.cost.wirelessStrength") max 0
+  val wirelessCostPerRange = config.getDouble("power.cost.wirelessCostPerRange") max 0
   val abstractBusPacketCost = config.getDouble("power.cost.abstractBusPacket") max 0
+  val geolyzerScanCost = config.getDouble("power.cost.geolyzerScan") max 0
+  val robotBaseCost = config.getDouble("power.cost.robotAssemblyBase") max 0
+  val robotComplexityCost = config.getDouble("power.cost.robotAssemblyComplexity") max 0
+  val disassemblerItemCost = config.getDouble("power.cost.disassemblerPerItem") max 0
+  val chunkloaderCost = config.getDouble("power.cost.chunkloaderCost") max 0
 
   // ----------------------------------------------------------------------- //
   // filesystem
@@ -155,11 +158,12 @@ class Settings(config: Config) {
   // internet
   val httpEnabled = config.getBoolean("internet.enableHttp")
   val tcpEnabled = config.getBoolean("internet.enableTcp")
-  val httpHostBlacklist = Array(config.getStringList("internet.blacklist"): _*)
-  val httpHostWhitelist = Array(config.getStringList("internet.whitelist"): _*)
-  val httpThreads = config.getInt("internet.requestThreads") max 1
+  val httpHostBlacklist = Array(config.getStringList("internet.blacklist").map(new Settings.AddressValidator(_)): _*)
+  val httpHostWhitelist = Array(config.getStringList("internet.whitelist").map(new Settings.AddressValidator(_)): _*)
   val httpTimeout = (config.getInt("internet.requestTimeout") max 0) * 1000
+  val httpMaxDownloadSize = config.getInt("internet.requestMaxDownloadSize") max 0
   val maxConnections = config.getInt("internet.maxTcpConnections") max 0
+  val internetThreads = config.getInt("internet.threads") max 1
 
   // ----------------------------------------------------------------------- //
   // misc
@@ -180,6 +184,10 @@ class Settings(config: Config) {
   val updateCheck = config.getBoolean("misc.updateCheck")
   val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
+  val debugPersistence = true
+  val geolyzerRange = config.getInt("misc.geolyzerRange")
+  val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
+  val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
 }
 
 object Settings {
@@ -188,7 +196,10 @@ object Settings {
   val savePath = "opencomputers/"
   val scriptPath = "/assets/" + resourceDomain + "/lua/"
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
-  val screenDepthsByTier = Array(PackedColor.Depth.OneBit, PackedColor.Depth.FourBit, PackedColor.Depth.EightBit)
+  val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
+  val hologramMaxScaleByTier = Array(3, 4)
+  val robotComplexityByTier = Array(12, 24, 32)
+  var rTreeDebugRenderer = false
 
   // Power conversion values. These are the same values used by Universal
   // Electricity to provide global power support.
@@ -255,5 +266,32 @@ object Settings {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Failed saving config.", e)
     }
+  }
+
+  val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
+
+  class AddressValidator(val value: String) {
+    val validator = try cidrPattern.findFirstIn(value) match {
+      case Some(cidrPattern(address, prefix)) =>
+        val addr = InetAddresses.coerceToInteger(InetAddresses.forString(address))
+        val mask = 0xFFFFFFFF << (32 - prefix.toInt)
+        val min = addr & mask
+        val max = min | ~mask
+        (inetAddress: InetAddress, host: String) => inetAddress match {
+          case v4: Inet4Address =>
+            val numeric = InetAddresses.coerceToInteger(v4)
+            min <= numeric && numeric <= max
+          case _ => true // Can't check IPv6 addresses so we pass them.
+        }
+      case _ =>
+        val address = InetAddress.getByName(value)
+        (inetAddress: InetAddress, host: String) => host == value || inetAddress == address
+    } catch {
+      case t: Throwable =>
+        OpenComputers.log.log(Level.WARNING, "Invalid entry in internet blacklist / whitelist: " + value, t)
+        (inetAddress: InetAddress, host: String) => true
+    }
+
+    def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
 }

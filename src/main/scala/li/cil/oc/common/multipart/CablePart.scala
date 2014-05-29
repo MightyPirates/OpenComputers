@@ -3,13 +3,13 @@ package li.cil.oc.common.multipart
 import codechicken.lib.vec.{Vector3, Cuboid6}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network
+import li.cil.oc.api.{Items, network}
 import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common
-import li.cil.oc.common.block.Cable
+import li.cil.oc.common.block.{Delegator, Cable}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Blocks, Settings, api}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
@@ -19,7 +19,7 @@ import scala.collection.convert.WrapAsScala._
 class CablePart(val original: Option[Node] = None) extends DelegatePart with TCuboidPart with TNormalOcclusion with network.Environment {
   val node = api.Network.newNode(this, Visibility.None).create()
 
-  override def delegate = Blocks.cable
+  override def delegate = Delegator.subBlock(Items.get("cable").createItemStack(1)).get
 
   def getType = Settings.namespace + "cable"
 

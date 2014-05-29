@@ -10,7 +10,7 @@ import li.cil.oc.client.renderer.item.UpgradeRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
-import li.cil.oc.{Items, Settings, OpenComputers}
+import li.cil.oc.{Items, OpenComputers}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 
@@ -33,9 +33,12 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Cable], CableRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Case], CaseRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Charger], ChargerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Disassembler], DisassemblerRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Geolyzer], GeolyzerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Hologram], HologramRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.PowerDistributor], PowerDistributorRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Rack], RackRenderer)
+    ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotAssembler], RobotAssemblerRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Router], RouterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.WirelessRouter], RouterRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
@@ -55,8 +58,6 @@ private[oc] class Proxy extends CommonProxy {
 
     FMLCommonHandler.instance().bus().register(HologramRenderer)
     FMLCommonHandler.instance().bus().register(ScreenRenderer)
-    if (Settings.get.rTreeDebugRenderer) {
-      MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
-    }
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
   }
 }

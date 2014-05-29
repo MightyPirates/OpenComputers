@@ -14,29 +14,6 @@ end
 
 -------------------------------------------------------------------------------
 
-local function invoke(direct, ...)
-  local result
-  if direct then
-    result = table.pack(component.invoke(...))
-    if result.n == 0 then -- limit for direct calls reached
-      result = nil
-    end
-  end
-  if not result then
-    local args = table.pack(...) -- for access in closure
-    result = select(1, coroutine.yield(function()
-      return table.pack(component.invoke(table.unpack(args, 1, args.n)))
-    end))
-  end
-  if not result[1] then -- error that should be re-thrown.
-    error(result[2], 0)
-  else -- success or already processed error.
-    return table.unpack(result, 2, result.n)
-  end
-end
-
--------------------------------------------------------------------------------
-
 local function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
@@ -55,20 +32,14 @@ end
 
 -------------------------------------------------------------------------------
 
-local running = setmetatable({}, {__mode="k"})
-
-local function findProcess(co)
-  co = co or coroutine.running()
-  for _, process in pairs(running) do
-    for _, instance in pairs(process.instances) do
-      if instance == co then
-        return process
-      end
-    end
+local function spcall(...)
+  local result = table.pack(pcall(...))
+  if not result[1] then
+    error(tostring(result[2]), 0)
+  else
+    return table.unpack(result, 2, result.n)
   end
 end
-
--------------------------------------------------------------------------------
 
 --[[ This is the global environment we make available to userland programs. ]]
 -- You'll notice that we do a lot of wrapping of native functions and adding
@@ -87,10 +58,9 @@ sandbox = {
   end,
   ipairs = ipairs,
   load = function(ld, source, mode, env)
-    if not allowBytecode() then
+    if not system.allowBytecode() then
       mode = "t"
     end
-    env = env or select(2, libprocess.running())
     return load(ld, source, mode, env or sandbox)
   end,
   loadfile = nil, -- in boot/*_base.lua
@@ -119,11 +89,7 @@ sandbox = {
   end,
 
   coroutine = {
-    create = function(f)
-      local co = coroutine.create(f)
-      table.insert(findProcess().instances, co)
-      return co
-    end,
+    create = coroutine.create,
     resume = function(co, ...) -- custom resume part for bubbling sysyields
       checkArg(1, co, "thread")
       local args = table.pack(...)
@@ -213,20 +179,11 @@ sandbox = {
     pi = math.pi,
     pow = math.pow,
     rad = math.rad,
-    random = function(low, high)
-      if low then
-        checkArg(1, low, "number")
-        if high then
-          checkArg(1, high, "number")
-          return math.random(low, high)
-        end
-        return math.random(low)
-      end
-      return math.random()
+    random = function(...)
+      return spcall(math.random, ...)
     end,
     randomseed = function(seed)
-      checkArg(1, seed, "number")
-      math.randomseed(seed)
+      spcall(math.randomseed, seed)
     end,
     sin = math.sin,
     sinh = math.sinh,
@@ -255,9 +212,7 @@ sandbox = {
   os = {
     clock = os.clock,
     date = function(format, time)
-      checkArg(1, format, "string", "nil")
-      checkArg(2, time, "number", "nil")
-      return os.date(format, time)
+      return spcall(os.date, format, time)
     end,
     difftime = function(t2, t1)
       return t2 - t1
@@ -277,7 +232,7 @@ sandbox = {
     traceback = debug.traceback
   },
 
-  _OSVERSION = "OpenOS 1.1",
+  _OSVERSION = "OpenOS 1.2",
   checkArg = checkArg
 }
 sandbox._G = sandbox
@@ -285,14 +240,169 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
+-- JNLua derps when the metatable of userdata is changed, so we have to
+-- wrap and isolate it, to make sure it can't be touched by user code.
+-- These functions provide the logic for wrapping and unwrapping (when
+-- pushed to user code and when pushed back to the host, respectively).
+local wrapUserdata, wrapSingleUserdata, unwrapUserdata
+local wrappedUserdata = setmetatable({}, {
+  -- Weak keys, clean up once a proxy is no longer referenced anywhere.
+  __mode="k",
+  -- We need custom persist logic here to avoid ERIS trying to save the
+  -- userdata referenced in this table directly. It will be repopulated
+  -- in the load methods of the persisted userdata wrappers (see below).
+  __persist = function()
+    return function() return {} end
+  end
+})
+
+local function processArguments(...)
+  local args = table.pack(...)
+  unwrapUserdata(args)
+  return table.unpack(args)
+end
+
+local function processResult(result)
+  wrapUserdata(result) -- needed for metamethods.
+  if not result[1] then -- error that should be re-thrown.
+    error(result[2], 0)
+  else -- success or already processed error.
+    return table.unpack(result, 2, result.n)
+  end
+end
+
+local function invoke(target, direct, ...)
+  local result
+  if direct then
+    result = table.pack(target.invoke(...))
+    if result.n == 0 then -- limit for direct calls reached
+      result = nil
+    end
+  end
+  if not result then
+    local args = table.pack(...) -- for access in closure
+    unwrapUserdata(args)
+    result = select(1, coroutine.yield(function()
+      return table.pack(target.invoke(table.unpack(args, 1, args.n)))
+    end))
+  end
+  return processResult(result)
+end
+
+-- Metatable for additional functionality on userdata.
+local userdataWrapper = {
+  __index = function(self, ...)
+    return processResult(table.pack(userdata.apply(wrappedUserdata[self], processArguments(...))))
+  end,
+  __newindex = function(self, ...)
+    return processResult(table.pack(userdata.unapply(wrappedUserdata[self], processArguments(...))))
+  end,
+  __call = function(self, ...)
+    return processResult(table.pack(userdata.call(wrappedUserdata[self], processArguments(...))))
+  end,
+  __gc = function(self)
+    userdata.dispose(wrappedUserdata[self])
+  end,
+  -- This is the persistence protocol for userdata. Userdata is considered
+  -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
+  -- of the actual class when saving, so we can create a new instance via
+  -- reflection when loading again (and then immediately wrap it again).
+  -- Collect wrapped callback methods.
+  __persist = function(self)
+    local className, nbt = userdata.save(wrappedUserdata[self])
+    -- The returned closure is what actually gets persisted, including the
+    -- upvalues, that being the classname and a byte array representing the
+    -- nbt data of the userdata value.
+    return function()
+      return wrapSingleUserdata(userdata.load(className, nbt))
+    end
+  end,
+  -- Do not allow changing the metatable to avoid the gc callback being
+  -- unset, leading to potential resource leakage on the host side.
+  __metatable = "userdata",
+  __tostring = "userdata"
+}
+
+local userdataCallback = {
+  __call = function(self, ...)
+    local methods = spcall(userdata.methods, wrappedUserdata[self.proxy])
+    for name, direct in pairs(methods) do
+      if name == self.name then
+        return invoke(userdata, direct, wrappedUserdata[self.proxy], name, ...)
+      end
+    end
+    error("no such method", 1)
+  end,
+  __tostring = function(self)
+    return userdata.doc(wrappedUserdata[self.proxy], self.name) or "function"
+  end
+}
+
+function wrapSingleUserdata(data)
+  -- Reuse proxies for lower memory consumption and more logical behavior
+  -- without the need of metamethods like __eq, as well as proper reference
+  -- behavior after saving and loading again.
+  for k, v in pairs(wrappedUserdata) do
+    if v == data then
+      return k
+    end
+  end
+  local proxy = {type = "userdata"}
+  local methods = spcall(userdata.methods, data)
+  for method in pairs(methods) do
+    proxy[method] = setmetatable({name=method, proxy=proxy}, userdataCallback)
+  end
+  wrappedUserdata[proxy] = data
+  return setmetatable(proxy, userdataWrapper)
+end
+
+function wrapUserdata(values)
+  local processed = {}
+  local function wrapRecursively(value)
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = wrapRecursively(v)
+        end
+      end
+    elseif type(value) == "userdata" then
+      return wrapSingleUserdata(value)
+    end
+    return value
+  end
+  wrapRecursively(values)
+end
+
+function unwrapUserdata(values)
+  local processed = {}
+  local function unwrapRecursively(value)
+    if wrappedUserdata[value] then
+      return wrappedUserdata[value]
+    end
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = unwrapRecursively(v)
+        end
+      end
+    end
+    return value
+  end
+  unwrapRecursively(values)
+end
+
+-------------------------------------------------------------------------------
+
 local libcomponent
 
-local callback = {
-  __call = function(method, ...)
-    return libcomponent.invoke(method.address, method.name, ...)
+local componentCallback = {
+  __call = function(self, ...)
+    return libcomponent.invoke(self.address, self.name, ...)
   end,
-  __tostring = function(method)
-    return libcomponent.doc(method.address, method.name) or "function"
+  __tostring = function(self)
+    return libcomponent.doc(self.address, self.name) or "function"
   end
 }
 
@@ -300,7 +410,7 @@ libcomponent = {
   doc = function(address, method)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
-    local result, reason = component.doc(address, method)
+    local result, reason = spcall(component.doc, address, method)
     if not result and reason then
       error(reason, 2)
     end
@@ -309,20 +419,20 @@ libcomponent = {
   invoke = function(address, method, ...)
     checkArg(1, address, "string")
     checkArg(2, method, "string")
-    local methods, reason = component.methods(address)
+    local methods, reason = spcall(component.methods, address)
     if not methods then
       return nil, reason
     end
     for name, direct in pairs(methods) do
       if name == method then
-        return invoke(direct, address, method, ...)
+        return invoke(component, direct, address, method, ...)
       end
     end
     error("no such method", 1)
   end,
   list = function(filter)
     checkArg(1, filter, "string", "nil")
-    local list = component.list(filter)
+    local list = spcall(component.list, filter)
     local key = nil
     return function()
       key = next(list, key)
@@ -333,17 +443,17 @@ libcomponent = {
   end,
   proxy = function(address)
     checkArg(1, address, "string")
-    local type, reason = component.type(address)
+    local type, reason = spcall(component.type, address)
     if not type then
       return nil, reason
     end
     local proxy = {address = address, type = type}
-    local methods, reason = component.methods(address)
+    local methods, reason = spcall(component.methods, address)
     if not methods then
       return nil, reason
     end
     for method in pairs(methods) do
-      proxy[method] = setmetatable({address=address,name=method}, callback)
+      proxy[method] = setmetatable({address=address,name=method}, componentCallback)
     end
     return proxy
   end,
@@ -352,11 +462,11 @@ libcomponent = {
     return component.type(address)
   end
 }
+sandbox.component = libcomponent
 
 local libcomputer = {
   isRobot = computer.isRobot,
   address = computer.address,
-  romAddress = computer.romAddress,
   tmpAddress = computer.tmpAddress,
   freeMemory = computer.freeMemory,
   totalMemory = computer.totalMemory,
@@ -364,26 +474,24 @@ local libcomputer = {
   energy = computer.energy,
   maxEnergy = computer.maxEnergy,
 
+  getBootAddress = computer.getBootAddress,
+  setBootAddress = function(address)
+    return spcall(computer.setBootAddress, address)
+  end,
+
   users = computer.users,
   addUser = function(name)
-    checkArg(1, name, "string")
-    return computer.addUser(name)
+    return spcall(computer.addUser, name)
   end,
   removeUser = function(name)
-    checkArg(1, name, "string")
-    return computer.removeUser(name)
+    return spcall(computer.removeUser, name)
   end,
 
   shutdown = function(reboot)
     coroutine.yield(reboot ~= nil and reboot ~= false)
   end,
   pushSignal = function(name, ...)
-    checkArg(1, name, "string")
-    local args = table.pack(...)
-    for i = 1, args.n do
-      checkArg(i + 1, args[i], "nil", "boolean", "string", "number")
-    end
-    return computer.pushSignal(name, ...)
+    return spcall(computer.pushSignal, name, ...)
   end,
   pullSignal = function(timeout)
     local deadline = computer.uptime() +
@@ -400,188 +508,92 @@ local libcomputer = {
     libcomponent.invoke(computer.address(), "beep", ...)
   end
 }
-
-libprocess = {
-  load = function(path, env, init, name)
-    checkArg(1, path, "string")
-    checkArg(2, env, "table", "nil")
-    checkArg(3, init, "function", "nil")
-    checkArg(4, name, "string", "nil")
-
-    local process = findProcess()
-    if process then
-      env = env or process.env
-    end
-    env = setmetatable({}, {__index=env or sandbox})
-    local code, reason = sandbox.loadfile(path, "t", env)
-    if not code then
-      return nil, reason
-    end
-
-    local thread = coroutine.create(function(...)
-      if init then
-        init()
-      end
-      return code(...)
-    end)
-    running[thread] = {
-      path = path,
-      command = name,
-      env = env,
-      parent = process,
-      instances = setmetatable({thread}, {__mode="v"})
-    }
-    return thread
-  end,
-  running = function(level)
-    level = level or 1
-    local process = findProcess()
-    while level > 1 and process do
-      process = process.parent
-      level = level - 1
-    end
-    if process then
-      return process.path, process.env, process.command
-    end
-  end
-}
+sandbox.computer = libcomputer
 
 local libunicode = {
   char = function(...)
-    local args = table.pack(...)
-    for i = 1, args.n do
-      checkArg(i, args[i], "number")
-    end
-    return unicode.char(...)
+    return spcall(unicode.char, ...)
   end,
   len = function(s)
-    checkArg(1, s, "string")
-    return unicode.len(s)
+    return spcall(unicode.len, s)
   end,
   lower = function(s)
-    checkArg(1, s, "string")
-    return unicode.lower(s)
+    return spcall(unicode.lower, s)
   end,
   reverse = function(s)
-    checkArg(1, s, "string")
-    return unicode.reverse(s)
+    return spcall(unicode.reverse, s)
   end,
   sub = function(s, i, j)
-    checkArg(1, s, "string")
-    checkArg(2, i, "number")
-    checkArg(3, j, "number", "nil")
     if j then
-      return unicode.sub(s, i, j)
+      return spcall(unicode.sub, s, i, j)
     end
-    return unicode.sub(s, i)
+    return spcall(unicode.sub, s, i)
   end,
   upper = function(s)
-    checkArg(1, s, "string")
-    return unicode.upper(s)
+    return spcall(unicode.upper, s)
   end
 }
+sandbox.unicode = libunicode
 
 -------------------------------------------------------------------------------
 
 local function bootstrap()
-  -- Minimalistic hard-coded pure async proxy for our ROM.
-  local rom = {}
-  function rom.invoke(method, ...)
-    return invoke(true, computer.romAddress(), method, ...)
-  end
-  function rom.open(file) return rom.invoke("open", file) end
-  function rom.read(handle) return rom.invoke("read", handle, math.huge) end
-  function rom.close(handle) return rom.invoke("close", handle) end
-  function rom.inits(file) return ipairs(rom.invoke("list", "boot")) end
-  function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
-
-  -- Custom low-level loadfile/dofile implementation reading from our ROM.
-  local function loadfile(file)
-    local handle, reason = rom.open(file)
+  local function tryLoadFrom(address)
+    function boot_invoke(method, ...)
+      local result = table.pack(pcall(invoke, component, true, address, method, ...))
+      if not result[1] then
+        return nil, result[2]
+      else
+        return table.unpack(result, 2, result.n)
+      end
+    end
+    local handle, reason = boot_invoke("open", "/init.lua")
     if not handle then
-      error(reason)
+      return nil, reason
     end
     local buffer = ""
     repeat
-      local data, reason = rom.read(handle)
+      local data, reason = boot_invoke("read", handle, math.huge)
       if not data and reason then
-        error(reason)
+        return nil, reason
       end
       buffer = buffer .. (data or "")
     until not data
-    rom.close(handle)
-    return load(buffer, "=" .. file, "t", sandbox)
+    boot_invoke("close", handle)
+    return load(buffer, "=init", "t", sandbox)
   end
-  local function dofile(file)
-    local program, reason = loadfile(file)
-    if program then
-      local result = table.pack(pcall(program))
-      if result[1] then
-        return table.unpack(result, 2, result.n)
-      else
-        error(result[2])
+  local init, reason
+  if computer.getBootAddress() then
+    init, reason = tryLoadFrom(computer.getBootAddress())
+  end
+  if not init then
+    computer.setBootAddress()
+    for address in libcomponent.list("filesystem") do
+      init, reason = tryLoadFrom(address)
+      if init then
+        computer.setBootAddress(address)
+        break
       end
-    else
-      error(reason)
     end
   end
-
-  -- Load file system related libraries we need to load other stuff moree
-  -- comfortably. This is basically wrapper stuff for the file streams
-  -- provided by the filesystem components.
-  local package = dofile("/lib/package.lua")
-
-  -- Initialize the package module with some of our own APIs.
-  package.preload["buffer"] = loadfile("/lib/buffer.lua")
-  package.preload["component"] = function() return libcomponent end
-  package.preload["computer"] = function() return libcomputer end
-  package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
-  package.preload["io"] = loadfile("/lib/io.lua")
-  package.preload["process"] = function() return libprocess end
-  package.preload["unicode"] = function() return libunicode end
-
-  -- Inject the package and io modules into the global namespace, as in Lua.
-  sandbox.package = package
-  sandbox.io = sandbox.require("io")
-
-  -- Mount the ROM and temporary file systems to allow working on the file
-  -- system module from this point on.
-  sandbox.require("filesystem").mount(computer.romAddress(), "/")
-  if computer.tmpAddress() then
-    sandbox.require("filesystem").mount(computer.tmpAddress(), "/tmp")
+  if not init then
+    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""))
   end
 
-  -- Run library startup scripts. These mostly initialize event handlers.
-  local scripts = {}
-  for _, file in rom.inits() do
-    local path = "boot/" .. file
-    if not rom.isDirectory(path) then
-      table.insert(scripts, path)
-    end
-  end
-  table.sort(scripts)
-  for i = 1, #scripts do
-    dofile(scripts[i])
-  end
-
-  return coroutine.create(function() dofile("/init.lua") end), {n=0}
+  return coroutine.create(init), {n=0}
 end
 
+-------------------------------------------------------------------------------
+
 local function main()
-  -- Make all calls in the bootstrapper direct to speed up booting.
-  local realInvoke = invoke
-  invoke = function(_, ...) return realInvoke(true, ...) end
-
-  local co, args = bootstrap()
-
-  -- Step out of the fast lane, all the basic stuff should now be loaded.
-  invoke = realInvoke
-
   -- Yield once to get a memory baseline.
   coroutine.yield()
 
+  -- After memory footprint to avoid init.lua bumping the baseline.
+  local co, args = bootstrap()
+
   while true do
-    deadline = computer.realTime() + timeout -- timeout global is set by host
+    deadline = computer.realTime() + system.timeout()
     hitDeadline = false
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
@@ -590,7 +602,9 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
+      unwrapUserdata(result[2])
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
+      wrapUserdata(args)
     end
   end
 end

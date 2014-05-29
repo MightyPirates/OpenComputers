@@ -21,7 +21,8 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
-  val unlocalizedName = "Screen" + tier
+  val baseName = "Screen"
+  val unlocalizedName = baseName + tier
 
   def tier: Int
 
@@ -33,7 +34,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)
     val depth = PackedColor.Depth.bits(Settings.screenDepthsByTier(tier))
-    tooltip.addAll(Tooltip.get("Screen", w, h, depth))
+    tooltip.addAll(Tooltip.get(baseName, w, h, depth))
   }
 
   @Optional.Method(modid = "Waila")
@@ -307,9 +308,9 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) =
-    if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
-      world.getTileEntity(x, y, z) match {
-        case screen: tileentity.Screen if screen.hasKeyboard =>
+    if (BuildCraft.holdsApplicableWrench(player, x, y, z)) false
+    else world.getTileEntity(x, y, z) match {
+      case screen: tileentity.Screen if screen.hasKeyboard && !player.isSneaking =>
           // Yep, this GUI is actually purely client side. We could skip this
           // if, but it is clearer this way (to trigger it from the server we
           // would have to give screens a "container", which we do not want).
@@ -321,8 +322,6 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
           screen.click(player, hitX, hitY, hitZ)
         case _ => false
       }
-    }
-    else false
 
   override def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {

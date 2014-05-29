@@ -14,4 +14,6 @@ class PowerConverter extends traits.PowerAcceptor with traits.Environment with t
   override protected def hasConnector(side: ForgeDirection) = true
 
   override protected def connector(side: ForgeDirection) = Option(node)
+
+  override def canUpdate = isServer
 }

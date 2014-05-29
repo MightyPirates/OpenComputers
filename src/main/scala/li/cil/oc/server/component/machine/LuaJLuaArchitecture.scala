@@ -1,20 +1,19 @@
 package li.cil.oc.server.component.machine
 
-import java.io.{IOException, FileNotFoundException}
 import java.util.logging.Level
-import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
-import li.cil.oc.api.network.ComponentConnector
-import li.cil.oc.util.ScalaClosure._
-import li.cil.oc.util.{ScalaClosure, GameTimeFormatter}
-import li.cil.oc.{api, OpenComputers, server, Settings}
+import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
+import li.cil.oc.server.component.machine.luaj._
+import li.cil.oc.util.ScalaClosure
+import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
-import scala.Some
-import scala.collection.convert.WrapAsScala._
+import li.cil.oc.util.ScalaClosure._
+import java.io.{IOException, FileNotFoundException}
+import com.google.common.base.Strings
 
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
-  private var lua: Globals = _
+  private[machine] var lua: Globals = _
 
   private var thread: LuaThread = _
 
@@ -24,13 +23,64 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   private var doneWithInitRun = false
 
-  private var memory = 0
+  private[machine] var memory = 0
 
-  // ----------------------------------------------------------------------- //
+  private val apis = Array(
+    new ComponentAPI(this),
+    new ComputerAPI(this),
+    new OSAPI(this),
+    new SystemAPI(this),
+    new UserdataAPI(this))
 
-  private def node = machine.node.asInstanceOf[ComponentConnector]
+  private[machine] def invoke(f: () => Array[AnyRef]): Varargs = try {
+    f() match {
+      case results: Array[_] =>
+        LuaValue.varargsOf(Array(LuaValue.TRUE) ++ results.map(toLuaValue))
+      case _ =>
+        LuaValue.TRUE
+    }
+  }
+  catch {
+    case e: Throwable =>
+      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+      }
+      e match {
+        case _: LimitReachedException =>
+          LuaValue.NONE
+        case e: IllegalArgumentException if e.getMessage != null =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(e.getMessage))
+        case e: Throwable if e.getMessage != null =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf(e.getMessage))
+        case _: IndexOutOfBoundsException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("index out of bounds"))
+        case _: IllegalArgumentException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("bad argument"))
+        case _: NoSuchMethodException =>
+          LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("no such method"))
+        case _: FileNotFoundException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("file not found"))
+        case _: SecurityException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("access denied"))
+        case _: IOException =>
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("i/o error"))
+        case e: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("unknown error"))
+      }
+  }
 
-  private def components = machine.components
+  private[machine] def documentation(f: () => String): Varargs = try {
+    val doc = f()
+    if (Strings.isNullOrEmpty(doc)) LuaValue.NIL
+    else LuaValue.valueOf(doc)
+  }
+  catch {
+    case e: NoSuchMethodException =>
+      LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such method"))
+    case t: Throwable =>
+      LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf(if (t.getMessage != null) t.getMessage else t.toString))
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -141,265 +191,11 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     lua.set("io", LuaValue.NIL)
     lua.set("luajava", LuaValue.NIL)
 
-    // Prepare table for os stuff.
-    val os = LuaValue.tableOf()
-    lua.set("os", os)
-
     // Remove some other functions we don't need and are dangerous.
     lua.set("dofile", LuaValue.NIL)
     lua.set("loadfile", LuaValue.NIL)
 
-    // Provide some better Unicode support.
-    val unicode = LuaValue.tableOf()
-
-    unicode.set("lower", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).toLowerCase))
-
-    unicode.set("upper", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).toUpperCase))
-
-    unicode.set("char", (args: Varargs) => LuaValue.valueOf(String.valueOf((1 to args.narg).map(args.checkint).map(_.toChar).toArray)))
-
-    unicode.set("len", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).length))
-
-    unicode.set("reverse", (args: Varargs) => LuaValue.valueOf(args.checkjstring(1).reverse))
-
-    unicode.set("sub", (args: Varargs) => {
-      val string = args.checkjstring(1)
-      val start = math.max(0, args.checkint(2) match {
-        case i if i < 0 => string.length + i
-        case i => i - 1
-      })
-      val end =
-        if (args.narg > 2) math.min(string.length, args.checkint(3) match {
-          case i if i < 0 => string.length + i + 1
-          case i => i
-        })
-        else string.length
-      if (end <= start) LuaValue.valueOf("")
-      else LuaValue.valueOf(string.substring(start, end))
-    })
-
-    lua.set("unicode", unicode)
-
-    os.set("clock", (_: Varargs) => LuaValue.valueOf(machine.cpuTime()))
-
-    // Date formatting function.
-    os.set("date", (args: Varargs) => {
-      val format =
-        if (args.narg > 0 && args.isstring(1)) args.tojstring(1)
-        else "%d/%m/%y %H:%M:%S"
-      val time =
-        if (args.narg > 1 && args.isnumber(2)) args.todouble(2) * 1000 / 60 / 60
-        else machine.worldTime + 5000
-
-      val dt = GameTimeFormatter.parse(time)
-      def fmt(format: String) = {
-        if (format == "*t") {
-          val table = LuaValue.tableOf(0, 8)
-          table.set("year", LuaValue.valueOf(dt.year))
-          table.set("month", LuaValue.valueOf(dt.month))
-          table.set("day", LuaValue.valueOf(dt.day))
-          table.set("hour", LuaValue.valueOf(dt.hour))
-          table.set("min", LuaValue.valueOf(dt.minute))
-          table.set("sec", LuaValue.valueOf(dt.second))
-          table.set("wday", LuaValue.valueOf(dt.weekDay))
-          table.set("yday", LuaValue.valueOf(dt.yearDay))
-          table
-        }
-        else {
-          LuaValue.valueOf(GameTimeFormatter.format(format, dt))
-        }
-      }
-
-      // Just ignore the allowed leading '!', Minecraft has no time zones...
-      if (format.startsWith("!"))
-        fmt(format.substring(1))
-      else
-        fmt(format)
-    })
-
-    // Return ingame time for os.time().
-    os.set("time", (args: Varargs) => {
-      if (args.isnoneornil(1)) {
-        // Game time is in ticks, so that each day has 24000 ticks, meaning
-        // one hour is game time divided by one thousand. Also, Minecraft
-        // starts days at 6 o'clock, versus the 1 o'clock of timestamps so we
-        // add those five hours. Thus:
-        // timestamp = (time + 5000) * 60[kh] * 60[km] / 1000[s]
-        LuaValue.valueOf((machine.worldTime + 5000) * 60 * 60 / 1000)
-      }
-      else {
-        val table = args.checktable(1)
-
-        def getField(key: String, d: Int) = {
-          val res = table.get(key)
-          if (!res.isint())
-            if (d < 0) throw new Exception("field '" + key + "' missing in date table")
-            else d
-          else res.toint()
-        }
-
-        val sec = getField("sec", 0)
-        val min = getField("min", 0)
-        val hour = getField("hour", 12)
-        val mday = getField("day", -1)
-        val mon = getField("month", -1)
-        val year = getField("year", -1)
-
-        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
-        if (time == null) LuaValue.NIL
-        else LuaValue.valueOf(time: Int)
-      }
-    })
-
-    // Computer API, stuff that kinda belongs to os, but we don't want to
-    // clutter it.
-    val computer = LuaValue.tableOf()
-
-    // Allow getting the real world time for timeouts.
-    computer.set("realTime", (_: Varargs) => LuaValue.valueOf(System.currentTimeMillis() / 1000.0))
-
-    // The time the computer has been running, as opposed to the CPU time.
-    // World time is in ticks, and each second has 20 ticks. Since we
-    // want uptime() to return real seconds, though, we'll divide it
-    // accordingly.
-    computer.set("uptime", (_: Varargs) => LuaValue.valueOf(machine.upTime()))
-
-    // Allow the computer to figure out its own id in the component network.
-    computer.set("address", (_: Varargs) => Option(node.address) match {
-      case Some(address) => LuaValue.valueOf(address)
-      case _ => LuaValue.NIL
-    })
-
-    // Are we a robot? (No this is not a CAPTCHA.)
-    // TODO deprecate this
-    computer.set("isRobot", (_: Varargs) => LuaValue.valueOf(machine.components.containsValue("robot")))
-
-    computer.set("freeMemory", (_: Varargs) => LuaValue.valueOf(memory / 2))
-
-    computer.set("totalMemory", (_: Varargs) => LuaValue.valueOf(memory))
-
-    computer.set("pushSignal", (args: Varargs) => LuaValue.valueOf(machine.signal(args.checkjstring(1), toSimpleJavaObjects(args, 2): _*)))
-
-    // And its ROM address.
-    computer.set("romAddress", (_: Varargs) => Option(machine.romAddress) match {
-      case Some(address) => LuaValue.valueOf(address)
-      case _ => LuaValue.NIL
-    })
-
-    // And it's /tmp address...
-    computer.set("tmpAddress", (_: Varargs) => {
-      val address = machine.tmpAddress
-      if (address == null) LuaValue.NIL
-      else LuaValue.valueOf(address)
-    })
-
-    // User management.
-    computer.set("users", (_: Varargs) => LuaValue.varargsOf(machine.users.map(LuaValue.valueOf)))
-
-    computer.set("addUser", (args: Varargs) => {
-      machine.addUser(args.checkjstring(1))
-      LuaValue.TRUE
-    })
-
-    computer.set("removeUser", (args: Varargs) => LuaValue.valueOf(machine.removeUser(args.checkjstring(1))))
-
-    computer.set("energy", (_: Varargs) =>
-      if (Settings.get.ignorePower)
-        LuaValue.valueOf(Double.PositiveInfinity)
-      else
-        LuaValue.valueOf(node.globalBuffer))
-
-    computer.set("maxEnergy", (_: Varargs) => LuaValue.valueOf(node.globalBufferSize))
-
-    // Set the computer table.
-    lua.set("computer", computer)
-
-    // Whether bytecode may be loaded directly.
-    lua.set("allowBytecode", (_: Varargs) => LuaValue.valueOf(Settings.get.allowBytecode))
-
-    // How long programs may run without yielding before we stop them.
-    lua.set("timeout", LuaValue.valueOf(Settings.get.timeout))
-
-    // Component interaction stuff.
-    val component = LuaValue.tableOf()
-
-    component.set("list", (args: Varargs) => components.synchronized {
-      val filter = if (args.isstring(1)) Option(args.tojstring(1)) else None
-      val table = LuaValue.tableOf(0, components.size)
-      for ((address, name) <- components) {
-        if (filter.isEmpty || name.contains(filter.get)) {
-          table.set(address, name)
-        }
-      }
-      table
-    })
-
-    component.set("type", (args: Varargs) => components.synchronized {
-      components.get(args.checkjstring(1)) match {
-        case name: String =>
-          LuaValue.valueOf(name)
-        case _ =>
-          LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
-      }
-    })
-
-    component.set("methods", (args: Varargs) => {
-      Option(node.network.node(args.checkjstring(1))) match {
-        case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-          val table = LuaValue.tableOf()
-          for (method <- component.methods()) {
-            table.set(method, LuaValue.valueOf(component.isDirect(method)))
-          }
-          table
-        case _ =>
-          LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf("no such component"))
-      }
-    })
-
-    component.set("invoke", (args: Varargs) => {
-      val address = args.checkjstring(1)
-      val method = args.checkjstring(2)
-      val params = toSimpleJavaObjects(args, 3)
-      try {
-        machine.invoke(address, method, params.toArray) match {
-          case results: Array[_] =>
-            LuaValue.varargsOf(Array(LuaValue.TRUE) ++ results.map(toLuaValue))
-          case _ =>
-            LuaValue.TRUE
-        }
-      }
-      catch {
-        case e: Throwable =>
-          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-            OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
-          }
-          e match {
-            case _: LimitReachedException =>
-              LuaValue.NONE
-            case e: IllegalArgumentException if e.getMessage != null =>
-              LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf(e.getMessage))
-            case e: Throwable if e.getMessage != null =>
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf(e.getMessage))
-            case _: IndexOutOfBoundsException =>
-              LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("index out of bounds"))
-            case _: IllegalArgumentException =>
-              LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("bad argument"))
-            case _: NoSuchMethodException =>
-              LuaValue.varargsOf(LuaValue.FALSE, LuaValue.valueOf("no such method"))
-            case _: FileNotFoundException =>
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("file not found"))
-            case _: SecurityException =>
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("access denied"))
-            case _: IOException =>
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("i/o error"))
-            case e: Throwable =>
-              OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
-              LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("unknown error"))
-          }
-      }
-    })
-
-    lua.set("component", component)
+    apis.foreach(_.initialize())
 
     recomputeMemory()
 

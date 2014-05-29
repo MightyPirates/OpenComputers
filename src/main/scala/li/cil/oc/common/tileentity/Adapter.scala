@@ -1,7 +1,6 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
-import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
@@ -26,6 +25,8 @@ class Adapter extends traits.Environment with Analyzable {
 
   // ----------------------------------------------------------------------- //
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
     super.updateEntity()
     if (updatingBlocks.nonEmpty) {
@@ -46,7 +47,7 @@ class Adapter extends traits.Environment with Analyzable {
         // but the only 'downside' is that it can't be used to manipulate
         // inventories, which I actually consider a plus :P
         case _ =>
-          driver.Registry.blockDriverFor(world, x, y, z) match {
+          Option(api.Driver.driverFor(world, x, y, z)) match {
             case Some(newDriver) => blocks(d.ordinal()) match {
               case Some((oldEnvironment, driver)) =>
                 if (newDriver != driver) {
@@ -99,14 +100,14 @@ class Adapter extends traits.Environment with Analyzable {
     }
   }
 
-  // ----------------------------------------------------------------------- //
-
   override def onDisconnect(node: Node) {
     super.onDisconnect(node)
     if (node == this.node) {
       updatingBlocks.clear()
     }
   }
+
+  // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)

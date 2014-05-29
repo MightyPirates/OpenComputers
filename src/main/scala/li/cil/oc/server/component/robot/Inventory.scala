@@ -39,7 +39,14 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def func_70439_a(item: Item, itemDamage: Int) {}
 
-  override def decrementAnimations() {}
+  override def decrementAnimations() {
+    for (slot <- 0 until getSizeInventory) {
+      Option(getStackInSlot(slot)) match {
+        case Some(stack) => stack.updateAnimation(player.world, player, slot, slot == 0)
+        case _ =>
+      }
+    }
+  }
 
   override def consumeInventoryItem(item: Item): Boolean = {
     for ((slot, stack) <- inventorySlots.map(slot => (slot, getStackInSlot(slot))) if stack != null && stack.getItem == item && stack.stackSize > 0) {
@@ -119,7 +126,7 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
 
   override def readFromNBT(nbt: NBTTagList) {}
 
-  override def getSizeInventory = robot.getSizeInventory
+  override def getSizeInventory = 1 + robot.containerCount + robot.inventorySize
 
   override def getStackInSlot(slot: Int) = robot.getStackInSlot(slot)
 

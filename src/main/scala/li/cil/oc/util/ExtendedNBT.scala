@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import net.minecraft.nbt._
 import scala.language.implicitConversions
+import net.minecraft.item.ItemStack
 
 object ExtendedNBT {
 
@@ -23,6 +24,12 @@ object ExtendedNBT {
 
   implicit def toNbt(value: String) = new NBTTagString(value)
 
+  implicit def toNbt(value: ItemStack) = {
+    val nbt = new NBTTagCompound()
+    value.writeToNBT(nbt)
+    nbt
+  }
+
   implicit def byteIterableToNbt(value: Iterable[Byte]) = value.map(toNbt)
 
   implicit def shortIterableToNbt(value: Iterable[Short]) = value.map(toNbt)
@@ -40,6 +47,8 @@ object ExtendedNBT {
   implicit def byteArrayIterableToNbt(value: Iterable[Array[Byte]]) = value.map(toNbt)
 
   implicit def stringIterableToNbt(value: Iterable[String]) = value.map(toNbt)
+
+  implicit def itemStackIterableToNbt(value: Iterable[ItemStack]) = value.map(toNbt)
 
   implicit def extendNBTTagCompound(nbt: NBTTagCompound) = new ExtendedNBTTagCompound(nbt)
 

@@ -1,6 +1,5 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Blocks
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -8,6 +7,7 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
+import li.cil.oc.client.Textures
 
 object RouterRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
@@ -30,7 +30,7 @@ object RouterRenderer extends TileEntitySpecialRenderer {
       val t = Tessellator.instance
       t.startDrawingQuads()
 
-      val sideActivity = Blocks.router.iconSideActivity
+      val sideActivity = Textures.Switch.iconSideActivity
       t.addVertexWithUV(1, 1, 0, sideActivity.getMinU, sideActivity.getMaxV)
       t.addVertexWithUV(0, 1, 0, sideActivity.getMaxU, sideActivity.getMaxV)
       t.addVertexWithUV(0, 0, 0, sideActivity.getMaxU, sideActivity.getMinV)

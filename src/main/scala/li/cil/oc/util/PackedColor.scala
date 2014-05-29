@@ -1,83 +1,159 @@
 package li.cil.oc.util
 
+import li.cil.oc.api.Persistable
+import net.minecraft.nbt.NBTTagCompound
+import li.cil.oc.api.component.TextBuffer.ColorDepth
+
 object PackedColor {
 
-  object Depth extends Enumeration {
-    val OneBit, FourBit, EightBit = Value
+  object Depth {
+    def bits(depth: ColorDepth) = depth match {
+      case ColorDepth.OneBit => 1
+      case ColorDepth.FourBit => 4
+      case ColorDepth.EightBit => 8
+    }
 
-    def bits(depth: Depth.Value) = depth match {
-      case OneBit => 1
-      case FourBit => 4
-      case EightBit => 8
+    def format(depth: ColorDepth) = depth match {
+      case ColorDepth.OneBit => SingleBitFormat
+      case ColorDepth.FourBit => new MutablePaletteFormat
+      case ColorDepth.EightBit => new HybridFormat
     }
   }
 
-  private val rMask32 = 0xFF0000
-  private val gMask32 = 0x00FF00
-  private val bMask32 = 0x0000FF
   private val rShift32 = 16
   private val gShift32 = 8
   private val bShift32 = 0
 
-  private abstract class ColorFormat {
+  private def extract(value: Int) = {
+    val r = (value >>> rShift32) & 0xFF
+    val g = (value >>> gShift32) & 0xFF
+    val b = (value >>> bShift32) & 0xFF
+    (r, g, b)
+  }
+
+  trait ColorFormat extends Persistable {
+    def depth: ColorDepth
+
     def inflate(value: Int): Int
 
-    def deflate(value: Int): Int
+    def deflate(value: Color): Byte
+
+    override def load(nbt: NBTTagCompound) {}
+
+    override def save(nbt: NBTTagCompound) {}
   }
 
-  private class SingleBitFormat extends ColorFormat {
-    def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
+  object SingleBitFormat extends ColorFormat {
+    override def depth = ColorDepth.OneBit
 
-    def deflate(value: Int) = if (value == 0) 0 else 1
+    override def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
+
+    override def deflate(value: Color) = (if (value.value == 0) 0 else 1).toByte
   }
 
-  private class MultiBitFormat(rBits: Int, gBits: Int, bBits: Int) extends ColorFormat {
-    def mask(nBits: Int) = 0xFFFFFFFF >>> (32 - nBits)
+  abstract class PaletteFormat extends ColorFormat {
+    override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))
 
-    private val bShift = 0
-    private val gShift = bBits
-    private val rShift = gShift + gBits
+    override def deflate(value: Color) =
+      if (value.isPalette) (math.max(0, value.value) % palette.length).toByte
+      else palette.map(delta(value.value, _)).zipWithIndex.minBy(_._1)._2.toByte
 
-    private val bMask = mask(bBits) << bShift
-    private val gMask = mask(gBits) << gShift
-    private val rMask = mask(rBits) << rShift
+    def isFromPalette(value: Int): Boolean
 
-    private val bScale = 255.0 / ((1 << bBits) - 1)
-    private val gScale = 255.0 / ((1 << gBits) - 1)
-    private val rScale = 255.0 / ((1 << rBits) - 1)
+    protected def palette: Array[Int]
 
-    def inflate(value: Int) = {
-      val r = ((((value & rMask) >>> rShift) * rScale + 0.5).toInt << rShift32) & rMask32
-      val g = ((((value & gMask) >>> gShift) * gScale + 0.5).toInt << gShift32) & gMask32
-      val b = ((((value & bMask) >>> bShift) * bScale + 0.5).toInt << bShift32) & bMask32
-      r | g | b
-    }
-
-    def deflate(value: Int) = {
-      val r = ((((value & rMask32) >>> rShift32) / rScale + 0.5).toInt << rShift) & rMask
-      val g = ((((value & gMask32) >>> gShift32) / gScale + 0.5).toInt << gShift) & gMask
-      val b = ((((value & bMask32) >>> bShift32) / bScale + 0.5).toInt << bShift) & bMask
-      r | g | b
+    protected def delta(colorA: Int, colorB: Int) = {
+      val (rA, gA, bA) = extract(colorA)
+      val (rB, gB, bB) = extract(colorB)
+      val dr = rA - rB
+      val dg = gA - gB
+      val db = bA - bB
+      0.2126 * dr * dr + 0.7152 * dg * dg + 0.0722 * db * db
     }
   }
 
-  private val formats = Map(
-    Depth.OneBit -> new SingleBitFormat(),
-    Depth.FourBit -> new MultiBitFormat(1, 2, 1),
-    Depth.EightBit -> new MultiBitFormat(3, 3, 2))
+  class MutablePaletteFormat extends PaletteFormat {
+    override def depth = ColorDepth.FourBit
+
+    def apply(index: Int) = palette(index)
+
+    def update(index: Int, value: Int) = palette(index) = value
+
+    override def isFromPalette(value: Int) = true
+
+    protected val palette = Array(
+      0xFFFFFF, 0xFFCC33, 0xCC66CC, 0x6699FF,
+      0xFFFF33, 0x33CC33, 0xFF6699, 0x333333,
+      0xCCCCCC, 0x336699, 0x9933CC, 0x333399,
+      0x663300, 0x336600, 0xFF3333, 0x000000)
+
+    override def load(nbt: NBTTagCompound) {
+      val loaded = nbt.getIntArray("palette")
+      Array.copy(loaded, 0, palette, 0, math.min(loaded.length, palette.length))
+    }
+
+    override def save(nbt: NBTTagCompound) {
+      nbt.setIntArray("palette", palette)
+    }
+  }
+
+  class HybridFormat extends MutablePaletteFormat {
+    private val reds = 6
+    private val greens = 8
+    private val blues = 5
+
+    // Initialize palette to grayscale, excluding black and white, because
+    // those are already contained in the normal color cube.
+    for (i <- 0 until palette.length) {
+      val shade = 0xFF * (i + 1) / (palette.length + 1)
+      this(i) = (shade << rShift32) | (shade << gShift32) | (shade << bShift32)
+    }
+
+    override def depth = ColorDepth.EightBit
+
+    override def inflate(value: Int) =
+      if (isFromPalette(value)) super.inflate(value)
+      else {
+        val index = value - palette.length
+        val idxB = index % blues
+        val idxG = (index / blues) % greens
+        val idxR = (index / blues / greens) % reds
+        val r = (idxR * 0xFF / (reds - 1.0) + 0.5).toInt
+        val g = (idxG * 0xFF / (greens - 1.0) + 0.5).toInt
+        val b = (idxB * 0xFF / (blues - 1.0) + 0.5).toInt
+        (r << rShift32) | (g << gShift32) | (b << bShift32)
+      }
+
+    override def deflate(value: Color) =
+      if (value.isPalette) super.deflate(value)
+      else {
+        val (r, g, b) = extract(value.value)
+        val idxR = (r * (reds - 1.0) / 0xFF + 0.5).toInt
+        val idxG = (g * (greens - 1.0) / 0xFF + 0.5).toInt
+        val idxB = (b * (blues - 1.0) / 0xFF + 0.5).toInt
+        (palette.length + idxR * greens * blues + idxG * blues + idxB).toByte
+      }
+
+    override def isFromPalette(value: Int) = value < palette.length
+  }
+
+  case class Color(value: Int, isPalette: Boolean = false)
 
   // Colors are packed: 0xFFBB (F = foreground, B = background)
   private val fgShift = 8
   private val bgMask = 0x000000FF
 
-  def pack(foreground: Int, background: Int, depth: Depth.Value) = {
-    val format = formats(depth)
+  def pack(foreground: Color, background: Color, format: ColorFormat) = {
     ((format.deflate(foreground) << fgShift) | format.deflate(background)).toShort
   }
 
-  def unpackForeground(color: Short, depth: Depth.Value) =
-    formats(depth).inflate((color & 0xFFFF) >>> fgShift)
+  def extractForeground(color: Short) = (color & 0xFFFF) >>> fgShift
 
-  def unpackBackground(color: Short, depth: Depth.Value) =
-    formats(depth).inflate(color & bgMask)
+  def extractBackground(color: Short) = color & bgMask
+
+  def unpackForeground(color: Short, format: ColorFormat) =
+    format.inflate(extractForeground(color))
+
+  def unpackBackground(color: Short, format: ColorFormat) =
+    format.inflate(extractBackground(color))
 }

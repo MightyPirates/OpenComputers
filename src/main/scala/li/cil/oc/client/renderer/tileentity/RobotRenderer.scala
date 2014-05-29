@@ -2,6 +2,7 @@ package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
 import java.util.logging.Level
+import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
@@ -11,18 +12,21 @@ import net.minecraft.client.renderer.entity.{RendererLivingEntity, RenderManager
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.{RenderBlocks, Tessellator, GLAllocation}
 import net.minecraft.init.Items
-import net.minecraft.item.{ItemBlock, Item}
+import net.minecraft.item.ItemBlock
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.MinecraftForgeClient
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.{GL12, GL11}
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
+
+  private val mountPoints = Array.fill(7)(new RobotRenderEvent.MountPoint())
 
   private val gap = 1.0f / 28.0f
   private val gt = 0.5f + gap
@@ -105,7 +109,64 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
   compileList()
 
-  def renderChassis(isRunning: Boolean = false, level: Int = 0, offset: Double = 0) {
+  def resetMountPoints() {
+    // Back.
+    mountPoints(0).offset.xCoord = 0
+    mountPoints(0).offset.yCoord = 0.33
+    mountPoints(0).offset.zCoord = -0.33
+    mountPoints(0).normal.xCoord = 0
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = -1
+
+    mountPoints(0).offset.xCoord = 0
+    mountPoints(0).offset.yCoord = -0.33
+    mountPoints(0).offset.zCoord = -0.33
+    mountPoints(0).normal.xCoord = 0
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = -1
+
+    // Front.
+    mountPoints(0).offset.xCoord = 0
+    mountPoints(0).offset.yCoord = -0.33
+    mountPoints(0).offset.zCoord = 0.33
+    mountPoints(0).normal.xCoord = 0
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = 1
+
+    // Left.
+    mountPoints(0).offset.xCoord = -0.33
+    mountPoints(0).offset.yCoord = 0.33
+    mountPoints(0).offset.zCoord = 0
+    mountPoints(0).normal.xCoord = -1
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = 0
+
+    mountPoints(0).offset.xCoord = -0.33
+    mountPoints(0).offset.yCoord = -0.33
+    mountPoints(0).offset.zCoord = 0
+    mountPoints(0).normal.xCoord = -1
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = 0
+
+    // Right.
+    mountPoints(0).offset.xCoord = 0.33
+    mountPoints(0).offset.yCoord = 0.33
+    mountPoints(0).offset.zCoord = 0
+    mountPoints(0).normal.xCoord = 1
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = 0
+
+    mountPoints(0).offset.xCoord = 0.33
+    mountPoints(0).offset.yCoord = -0.33
+    mountPoints(0).offset.zCoord = 0
+    mountPoints(0).normal.xCoord = 1
+    mountPoints(0).normal.yCoord = 0
+    mountPoints(0).normal.zCoord = 0
+  }
+
+  def renderChassis(robot: tileentity.Robot = null, offset: Double = 0) {
+    val isRunning = if (robot == null) false else robot.isRunning
+
     val size = 0.3f
     val l = 0.5f - size
     val h = 0.5f + size
@@ -119,57 +180,53 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
-    bindTexture(Textures.blockRobot)
-    if (level > 19) {
-      GL11.glColor3f(0.4f, 1, 1)
-    }
-    else if (level > 9) {
-      GL11.glColor3f(1, 1, 0.4f)
-    }
-    else {
-      GL11.glColor3f(0.5f, 0.5f, 0.5f)
-    }
-    if (!isRunning) {
-      GL11.glTranslatef(0, -2 * gap, 0)
-    }
-    GL11.glCallList(displayList)
-    if (!isRunning) {
-      GL11.glTranslatef(0, 2 * gap, 0)
-    }
-    GL11.glCallList(displayList + 1)
-    GL11.glColor3f(1, 1, 1)
+    resetMountPoints()
+    val event = new RobotRenderEvent(robot, mountPoints)
+    MinecraftForge.EVENT_BUS.post(event)
+    if (!event.isCanceled) {
+      bindTexture(Textures.blockRobot)
+      if (!isRunning) {
+        GL11.glTranslatef(0, -2 * gap, 0)
+      }
+      GL11.glCallList(displayList)
+      if (!isRunning) {
+        GL11.glTranslatef(0, 2 * gap, 0)
+      }
+      GL11.glCallList(displayList + 1)
+      GL11.glColor3f(1, 1, 1)
 
-    if (MinecraftForgeClient.getRenderPass == 0) {
-      RenderState.disableLighting()
-    }
+      if (isRunning) {
+        if (MinecraftForgeClient.getRenderPass == 0) {
+          RenderState.disableLighting()
+        }
 
-    if (isRunning) {
-      val t = Tessellator.instance
-      t.startDrawingQuads()
-      t.addVertexWithUV(l, gt, l, u0, v0)
-      t.addVertexWithUV(l, gb, l, u0, v1)
-      t.addVertexWithUV(l, gb, h, u1, v1)
-      t.addVertexWithUV(l, gt, h, u1, v0)
+        val t = Tessellator.instance
+        t.startDrawingQuads()
+        t.addVertexWithUV(l, gt, l, u0, v0)
+        t.addVertexWithUV(l, gb, l, u0, v1)
+        t.addVertexWithUV(l, gb, h, u1, v1)
+        t.addVertexWithUV(l, gt, h, u1, v0)
 
-      t.addVertexWithUV(l, gt, h, u0, v0)
-      t.addVertexWithUV(l, gb, h, u0, v1)
-      t.addVertexWithUV(h, gb, h, u1, v1)
-      t.addVertexWithUV(h, gt, h, u1, v0)
+        t.addVertexWithUV(l, gt, h, u0, v0)
+        t.addVertexWithUV(l, gb, h, u0, v1)
+        t.addVertexWithUV(h, gb, h, u1, v1)
+        t.addVertexWithUV(h, gt, h, u1, v0)
 
-      t.addVertexWithUV(h, gt, h, u0, v0)
-      t.addVertexWithUV(h, gb, h, u0, v1)
-      t.addVertexWithUV(h, gb, l, u1, v1)
-      t.addVertexWithUV(h, gt, l, u1, v0)
+        t.addVertexWithUV(h, gt, h, u0, v0)
+        t.addVertexWithUV(h, gb, h, u0, v1)
+        t.addVertexWithUV(h, gb, l, u1, v1)
+        t.addVertexWithUV(h, gt, l, u1, v0)
 
-      t.addVertexWithUV(h, gt, l, u0, v0)
-      t.addVertexWithUV(h, gb, l, u0, v1)
-      t.addVertexWithUV(l, gb, l, u1, v1)
-      t.addVertexWithUV(l, gt, l, u1, v0)
-      t.draw()
-    }
+        t.addVertexWithUV(h, gt, l, u0, v0)
+        t.addVertexWithUV(h, gb, l, u0, v1)
+        t.addVertexWithUV(l, gb, l, u1, v1)
+        t.addVertexWithUV(l, gt, l, u1, v0)
+        t.draw()
 
-    if (MinecraftForgeClient.getRenderPass == 0) {
-      RenderState.enableLighting()
+        if (MinecraftForgeClient.getRenderPass == 0) {
+          RenderState.enableLighting()
+        }
+      }
     }
   }
 
@@ -225,7 +282,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
     if (MinecraftForgeClient.getRenderPass == 0) {
       val offset = timeJitter + worldTime / 20.0
-      renderChassis(robot.isRunning, robot.level, offset)
+      renderChassis(robot, offset)
     }
 
     robot.equippedItem match {

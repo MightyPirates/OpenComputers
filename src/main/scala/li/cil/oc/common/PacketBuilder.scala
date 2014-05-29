@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.api.driver.Container
 
 // Necessary to keep track of the GZIP stream.
 abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {
@@ -38,6 +39,8 @@ abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) ext
   def sendToAllPlayers() = OpenComputers.channel.sendToAll(packet)
 
   def sendToNearbyPlayers(t: TileEntity, range: Double = 1024): Unit = sendToNearbyPlayers(t.getWorldObj, t.xCoord + 0.5, t.yCoord + 0.5, t.zCoord + 0.5, range)
+
+  def sendToNearbyPlayers(c: Container): Unit = sendToNearbyPlayers(c.world, c.xPosition, c.yPosition, c.zPosition, 1024)
 
   def sendToNearbyPlayers(world: World, x: Double, y: Double, z: Double, range: Double) {
     val dimension = world.provider.dimensionId

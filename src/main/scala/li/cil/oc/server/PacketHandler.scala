@@ -2,15 +2,17 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
+import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.tileentity.traits.{Computer, TextBuffer, TileEntity}
+import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.Settings
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EntityPlayerMP
+import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.DimensionManager
@@ -34,6 +36,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
       case PacketType.ServerSide => onServerSide(p)
@@ -72,100 +75,51 @@ object PacketHandler extends CommonPacketHandler {
     }
   }
 
-  def onKeyDown(p: PacketParser) =
-    p.readTileEntity[TileEntity]() match {
-      case Some(t: Screen) =>
-        val char = Char.box(p.readChar())
-        val code = Int.box(p.readInt())
-        t.screens.foreach(_.node.sendToNeighbors("keyboard.keyDown", p.player, char, code))
-      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyDown", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
-      case _ => // Invalid packet.
-    }
-
-  def onKeyUp(p: PacketParser) =
-    p.readTileEntity[TileEntity]() match {
-      case Some(t: Screen) =>
-        val char = Char.box(p.readChar())
-        val code = Int.box(p.readInt())
-        t.screens.foreach(_.node.sendToNeighbors("keyboard.keyUp", p.player, char, code))
-      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.keyUp", p.player, Char.box(p.readChar()), Int.box(p.readInt()))
-      case _ => // Invalid packet.
-    }
-
-  def onClipboard(p: PacketParser) =
-    p.readTileEntity[TileEntity]() match {
-      case Some(t: Screen) =>
-        val value = p.readUTF()
-        t.screens.foreach(_.node.sendToNeighbors("keyboard.clipboard", p.player, value))
-      case Some(t: TextBuffer) => t.buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer.node.sendToNeighbors("keyboard.clipboard", p.player, p.readUTF())
-      case _ => // Invalid packet.
-    }
-
-  def onMouseClick(p: PacketParser) {
-    p.player match {
-      case player: EntityPlayerMP =>
-        val node = p.readTileEntity[TileEntity]() match {
-          case Some(t: Screen) => t.origin.node
-          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
-          case _ => return // Invalid packet.
-        }
-        val x = p.readInt()
-        val y = p.readInt()
-        val what = if (p.readBoolean()) "drag" else "touch"
-        val button = p.readByte()
-        if (Settings.get.inputUsername) {
-          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-        }
-        else {
-          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button))
-        }
-      case _ => // Invalid packet.
+  def onKeyDown(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) => buffer.keyDown(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
     }
   }
 
-  def onMouseScroll(p: PacketParser) {
-    p.player match {
-      case player: EntityPlayerMP =>
-        val node = p.readTileEntity[TileEntity]() match {
-          case Some(t: Screen) => t.origin.node
-          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
-          case _ => return // Invalid packet.
-        }
-        val x = p.readInt()
-        val y = p.readInt()
-        val scroll = p.readByte()
-        if (Settings.get.inputUsername) {
-          node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll), player.getCommandSenderName)
-        }
-        else {
-          node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(scroll))
-        }
-      case _ => // Invalid packet.
+  def onKeyUp(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) => buffer.keyUp(p.readChar(), p.readInt(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
+    }
+  }
+
+  def onClipboard(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) => buffer.clipboard(p.readUTF(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
+    }
+  }
+
+  def onMouseClick(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) =>
+        val x = p.readShort()
+        val y = p.readShort()
+        val dragging = p.readBoolean()
+        val button = p.readByte()
+        if (dragging) buffer.mouseDrag(x, y, button, p.player.asInstanceOf[EntityPlayer])
+        else buffer.mouseDown(x, y, button, p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
     }
   }
 
   def onMouseUp(p: PacketParser) {
-    p.player match {
-      case player: EntityPlayerMP =>
-        val node = p.readTileEntity[TileEntity]() match {
-          case Some(t: Screen) => t.origin.node
-          case Some(t: Rack) => t.terminals(p.readInt()).buffer.node
-          case _ => return // Invalid packet.
-        }
-        val x = p.readInt()
-        val y = p.readInt()
-        val what = "drop"
-        val button = p.readByte()
-        if (Settings.get.inputUsername) {
-          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button), player.getCommandSenderName)
-        }
-        else {
-          node.sendToReachable("computer.checked_signal", player, what, Int.box(x), Int.box(y), Int.box(button))
-        }
-      case _ => // Invalid packet.
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) => buffer.mouseUp(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
+    }
+  }
+
+  def onMouseScroll(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: api.component.TextBuffer) => buffer.mouseScroll(p.readShort(), p.readShort(), p.readByte(), p.player.asInstanceOf[EntityPlayer])
+      case _ => // Invalid Packet
     }
   }
 
@@ -174,8 +128,13 @@ object PacketHandler extends CommonPacketHandler {
       case player: EntityPlayerMP => EventHandler.place(player)
       case _ => // Invalid packet.
     }
-
   }
+
+  def onRobotAssemblerStart(p: PacketParser) =
+    p.readTileEntity[RobotAssembler]() match {
+      case Some(assembler) => assembler.start()
+      case _ => // Invalid packet.
+    }
 
   def onRobotStateRequest(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {

@@ -1,11 +1,10 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.api.driver
+import li.cil.oc.api.{Driver, driver}
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
-import li.cil.oc.server.driver.Registry
-import li.cil.oc.Settings
+import li.cil.oc.{common, Settings}
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -29,7 +28,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
 
   def recomputeMaxComponents() {
     maxComponents = items.foldLeft(0)((sum, stack) => sum + (stack match {
-      case Some(item) => Registry.itemDriverFor(item) match {
+      case Some(item) => Option(Driver.driverFor(item)) match {
         case Some(driver: driver.Processor) => driver.supportedComponents(item)
         case _ => 0
       }
@@ -38,7 +37,7 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
   }
 
   override def installedMemory = items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
+    case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -46,15 +45,17 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
   }))
 
   def hasCPU = items.exists {
-    case Some(stack) => Registry.itemDriverFor(stack) match {
+    case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver) => driver.slot(stack) == Slot.Processor
       case _ => false
     }
     case _ => false
   }
 
+  override def canUpdate = isServer
+
   override def updateEntity() {
-    if (tier == 3 && isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
+    if (isServer && tier == 3 && world.getWorldTime % Settings.get.tickFrequency == 0) {
       // Creative case, make it generate power.
       node.asInstanceOf[Connector].changeBuffer(Double.PositiveInfinity)
     }
@@ -76,6 +77,20 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskInsert(this)
+    }
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskEject(this)
+    }
+  }
 
   override def markDirty() {
     super.markDirty()
@@ -100,10 +115,8 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
     }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
-    Registry.itemDriverFor(stack) match {
-      case Some(driver) =>
-        val provided = InventorySlots.computer(tier)(slot)
-        driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
-      case _ => false // Invalid item.
-    }
+    Option(Driver.driverFor(stack)).fold(false)(driver => {
+      val provided = InventorySlots.computer(tier)(slot)
+      driver.slot(stack) == provided.slot && driver.tier(stack) <= provided.tier
+    })
 }

@@ -1,19 +1,20 @@
 package li.cil.oc.server.component
 
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.{Container, InventoryCrafting}
+import net.minecraft.inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
-import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
 import scala.collection.mutable
 import cpw.mods.fml.common.FMLCommonHandler
 
-class UpgradeCrafting(val owner: TileEntity with Robot) extends ManagedComponent {
+class UpgradeCrafting(val owner: Container with Robot) extends ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("crafting").
     create()
@@ -24,7 +25,7 @@ class UpgradeCrafting(val owner: TileEntity with Robot) extends ManagedComponent
     result(CraftingInventory.craft(count))
   }
 
-  private object CraftingInventory extends InventoryCrafting(new Container {
+  private object CraftingInventory extends inventory.InventoryCrafting(new inventory.Container {
     override def canInteractWith(player: EntityPlayer) = true
   }, 3, 3) {
     var amountPossible = 0
@@ -32,7 +33,7 @@ class UpgradeCrafting(val owner: TileEntity with Robot) extends ManagedComponent
     def craft(wantedCount: Int): Boolean = {
       load()
       val manager = CraftingManager.getInstance
-      val result = manager.findMatchingRecipe(CraftingInventory, owner.getWorldObj)
+      val result = manager.findMatchingRecipe(CraftingInventory, owner.world)
       if (result == null) return false
       val targetStackSize = if (result.isStackable) math.min(wantedCount, result.getMaxStackSize) else result.stackSize
       val timesCrafted = math.min(targetStackSize / result.stackSize, amountPossible)

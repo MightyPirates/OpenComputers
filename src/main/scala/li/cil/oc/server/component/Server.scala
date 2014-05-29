@@ -4,12 +4,11 @@ import li.cil.oc.Items
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Message, Node}
-import li.cil.oc.api.{Machine, driver}
+import li.cil.oc.api.{Driver, Machine, driver}
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.item
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -25,8 +24,6 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   }
 
   // ----------------------------------------------------------------------- //
-
-  override def address = machine.node.address
 
   override def node = machine.node
 
@@ -47,7 +44,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   // ----------------------------------------------------------------------- //
 
   override def installedMemory = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
+    case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Memory) => driver.amount(item)
       case _ => 0
     }
@@ -55,7 +52,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   }))
 
   lazy val maxComponents = inventory.items.foldLeft(0)((sum, stack) => sum + (stack match {
-    case Some(item) => Registry.itemDriverFor(item) match {
+    case Some(item) => Option(Driver.driverFor(item)) match {
       case Some(driver: driver.Processor) => driver.supportedComponents(item)
       case _ => 0
     }
@@ -63,7 +60,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
   }))
 
   def hasCPU = inventory.items.exists {
-    case Some(stack) => Registry.itemDriverFor(stack) match {
+    case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver) => driver.slot(stack) == Slot.Processor
       case _ => false
     }
@@ -92,9 +89,7 @@ class Server(val rack: tileentity.Rack, val number: Int) extends Owner {
 
   def save(nbt: NBTTagCompound) {
     nbt.setNewCompoundTag("machine", machine.save)
-    // Dummy tag compound, we just want to flush the components to the actual
-    // tag compound, which is the one of the stack representing us.
-    inventory.save(new NBTTagCompound())
+    inventory.saveComponents()
     inventory.markDirty()
   }
 

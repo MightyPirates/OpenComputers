@@ -9,7 +9,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.util.ForgeDirection
 
-class Hologram extends traits.Environment with SidedEnvironment with Analyzable {
+class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment with Analyzable {
+  def this() = this(0)
+
   val node = api.Network.newNode(this, Visibility.Network).
     withComponent("hologram").
     withConnector().
@@ -19,7 +21,9 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   val height = 2 * 16 // 32 bit in an int
 
-  val volume = new Array[Int](width * width)
+  // Layout is: first half is lower bit, second half is higher bit for the
+  // voxels in the cube. This is to retain compatibility with pre 1.3 saves.
+  val volume = new Array[Int](width * width * 2)
 
   // Render scale.
   var scale = 1.0
@@ -41,7 +45,26 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   var hasPower = true
 
-  def setDirty(x: Int, z: Int) {
+  val colorsByTier = Array(Array(0x00FF00), Array(0xFF0000, 0x00FF00, 0x0000FF))
+  def colors = colorsByTier(tier)
+
+  def getColor(x: Int, y: Int, z: Int) = {
+    val lbit = (volume(x + z * width) >>> y) & 1
+    val hbit = (volume(x + z * width + width * width) >>> y) & 1
+    lbit | (hbit << 1)
+  }
+
+  def setColor(x: Int, y: Int, z: Int, value: Int) {
+    if ((value & 3) != getColor(x, y, z)) {
+      val lbit = value & 1
+      val hbit = (value >>> 1) & 1
+      volume(x + z * width) = (volume(x + z * width) & ~(1 << y)) | (lbit << y)
+      volume(x + z * width + width * width) = (volume(x + z * width + width * width) & ~(1 << y)) | (hbit << y)
+      setDirty(x, z)
+    }
+  }
+
+  private def setDirty(x: Int, z: Int) {
     dirty = true
     dirtyFromX = math.min(dirtyFromX, x)
     dirtyUntilX = math.max(dirtyUntilX, x + 1)
@@ -50,7 +73,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
     litRatio = -1
   }
 
-  def resetDirtyFlag() {
+  private def resetDirtyFlag() {
     dirty = false
     dirtyFromX = Int.MaxValue
     dirtyUntilX = -1
@@ -80,35 +103,40 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
     null
   }
 
-  @Callback(direct = true, doc = """function(x:number, z:number):number -- Returns the bit mask representing the specified column.""")
+  @Callback(direct = true, doc = """function(x:number, y:number, z:number):number -- Returns the value for the specified voxel.""")
   def get(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    val (x, z) = checkCoordinates(args)
-    result(volume(x + z * width))
+    val (x, y, z) = checkCoordinates(args)
+    result(getColor(x, y, z))
   }
 
-  @Callback(direct = true, limit = 256, doc = """function(x:number, z:number, value:number) -- Set the bit mask for the specified column.""")
+  @Callback(direct = true, limit = 256, doc = """function(x:number, y:number, z:number, value:number or boolean) -- Set the value for the specified voxel.""")
   def set(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    val (x, z) = checkCoordinates(args)
-    val value = args.checkDouble(2).longValue.intValue
-    volume(x + z * width) = value
-    setDirty(x, z)
+    val (x, y, z) = checkCoordinates(args)
+    val value = checkColor(args, 3)
+    setColor(x, y, z, value)
     null
   }
 
-  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number) -- Fills a column to the specified height.""")
+  @Callback(direct = true, limit = 128, doc = """function(x:number, z:number, height:number, value:number or boolean) -- Fills a column to the specified height.""")
   def fill(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    val (x, z) = checkCoordinates(args)
+    val (x, _, z) = checkCoordinates(args, 0, -1, 1)
     val height = math.min(32, math.max(0, args.checkInteger(2)))
-    // Bit shifts in the JVM only use the lowest five bits... so we have to
-    // manually check the height, to avoid the shift being a no-op.
-    volume(x + z * width) = if (height > 0) 0xFFFFFFFF >>> (32 - height) else 0
+    val value = checkColor(args, 3)
+
+    val lbit = value & 1
+    val hbit = (value >>> 1) & 1
+    if (lbit == 0 || height == 0) volume(x + z * width) = 0
+    else volume(x + z * width) = 0xFFFFFFFF >>> (32 - height)
+    if (hbit == 0 || height == 0) volume(x + z * width + width * width) = 0
+    else volume(x + z * width + width * width) = 0xFFFFFFFF >>> (32 - height)
+
     setDirty(x, z)
     null
   }
 
   @Callback(doc = """function(x:number, z:number, sx:number, sz:number, tx:number, tz:number) -- Copies an area of columns by the specified translation.""")
   def copy(computer: Context, args: Arguments): Array[AnyRef] = this.synchronized {
-    val (x, z) = checkCoordinates(args)
+    val (x, _, z) = checkCoordinates(args, 0, -1, 1)
     val w = args.checkInteger(2)
     val h = args.checkInteger(3)
     val tx = args.checkInteger(4)
@@ -137,6 +165,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
             nx - tx match {
               case ox if ox >= 0 && ox < width =>
                 volume(nz * width + nx) = volume(oz * width + ox)
+                volume(nz * width + nx + width * width) = volume(oz * width + ox + width * width)
               case _ => /* Got no source column. */
             }
           }
@@ -165,20 +194,52 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   @Callback(doc = """function(value:number) -- Set the render scale. A larger scale consumes more energy.""")
   def setScale(computer: Context, args: Arguments): Array[AnyRef] = {
-    scale = math.max(0.333333, math.min(3, args.checkDouble(0)))
+    scale = math.max(0.333333, math.min(Settings.hologramMaxScaleByTier(tier), args.checkDouble(0)))
     ServerPacketSender.sendHologramScale(this)
     null
   }
 
-  private def checkCoordinates(args: Arguments) = {
-    val x = args.checkInteger(0) - 1
-    if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException()
-    val z = args.checkInteger(1) - 1
-    if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException()
-    (x, z)
+  @Callback(doc = """function(index:number):number -- Get the color defined for the specified value.""")
+  def getPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
+    result(colors(index))
+  }
+
+  @Callback(doc = """function(index:number, value:number):number -- Set the color defined for the specified value.""")
+  def setPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
+    val index = args.checkInteger(0)
+    if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
+    val value = args.checkInteger(1)
+    val oldValue = colors(index)
+    colors(index) = value & 0xFFFFFF
+    ServerPacketSender.sendHologramColor(this, index, value)
+    result(oldValue)
+  }
+
+  private def checkCoordinates(args: Arguments, idxX: Int = 0, idxY: Int = 1, idxZ: Int = 2) = {
+    val x = if (idxX >= 0) args.checkInteger(idxX) - 1 else 0
+    if (x < 0 || x >= width) throw new ArrayIndexOutOfBoundsException("x")
+    val y = if (idxY >= 0) args.checkInteger(idxY) - 1 else 0
+    if (y < 0 || y >= height) throw new ArrayIndexOutOfBoundsException("y")
+    val z = if (idxZ >= 0) args.checkInteger(idxZ) - 1 else 0
+    if (z < 0 || z >= width) throw new ArrayIndexOutOfBoundsException("z")
+    (x, y, z)
+  }
+
+  private def checkColor(args: Arguments, index: Int) = {
+    val value =
+      if (args.isBoolean(index))
+        if (args.checkBoolean(index)) 1 else 0
+      else
+        args.checkInteger(index)
+    if (value < 0 || value > colors.length) throw new IllegalArgumentException("invalid value")
+    value
   }
 
   // ----------------------------------------------------------------------- //
+
+  override def canUpdate = isServer
 
   override def updateEntity() {
     super.updateEntity()
@@ -218,14 +279,18 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {
+    tier = nbt.getByte(Settings.namespace + "tier") max 0 min 1
     super.readFromNBT(nbt)
     nbt.getIntArray(Settings.namespace + "volume").copyToArray(volume)
+    nbt.getIntArray(Settings.namespace + "colors").copyToArray(colors)
     scale = nbt.getDouble(Settings.namespace + "scale")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) = this.synchronized {
+    nbt.setByte(Settings.namespace + "tier", tier.toByte)
     super.writeToNBT(nbt)
     nbt.setIntArray(Settings.namespace + "volume", volume)
+    nbt.setIntArray(Settings.namespace + "colors", colors)
     nbt.setDouble(Settings.namespace + "scale", scale)
   }
 
@@ -233,6 +298,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     nbt.getIntArray("volume").copyToArray(volume)
+    nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
     dirty = true
@@ -241,6 +307,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setIntArray("volume", volume)
+    nbt.setIntArray("colors", colors)
     nbt.setDouble("scale", scale)
     nbt.setBoolean("hasPower", hasPower)
   }

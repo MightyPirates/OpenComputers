@@ -2,9 +2,10 @@ package li.cil.oc.common.block
 
 import cpw.mods.fml.common.Optional
 import java.util
+import li.cil.oc.api
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{Blocks, Settings}
+import li.cil.oc.Settings
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
@@ -23,7 +24,7 @@ class KeyboardDeprecated(val parent: SpecialDelegator) extends SpecialDelegate {
   showInItemList = false
 
   // Phase over to new, proper keyboard.
-  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) = new ItemStack(Blocks.keyboard)
+  override def pick(target: MovingObjectPosition, world: World, x: Int, y: Int, z: Int) = api.Items.get("keyboard").createItemStack(1)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     tooltip.addAll(Tooltip.get(unlocalizedName))

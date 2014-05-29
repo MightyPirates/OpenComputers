@@ -3,14 +3,24 @@ package li.cil.oc
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.SidedProxy
-import cpw.mods.fml.common.event.{FMLFingerprintViolationEvent, FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
+import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
 import java.util.logging.Logger
 import li.cil.oc.common.Proxy
+import li.cil.oc.server.CommandHandler
 
-@Mod(modid = "OpenComputers", modLanguage = "scala",
-  certificateFingerprint = "@FINGERPRINT@", useMetadata = true)
+@Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
+  version = OpenComputers.Version, certificateFingerprint = OpenComputers.Fingerprint,
+  modLanguage = "scala", useMetadata = true)
 object OpenComputers {
+  final val ID = "OpenComputers"
+
+  final val Name = "OpenComputers"
+
+  final val Version = "@VERSION@"
+
+  final val Fingerprint = "@FINGERPRINT@"
+
   val log = Logger.getLogger("OpenComputers")
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
@@ -31,4 +41,7 @@ object OpenComputers {
 
   @EventHandler
   def postInit(e: FMLPostInitializationEvent) = proxy.postInit(e)
+
+  @EventHandler
+  def serverStart(e: FMLServerStartingEvent) = CommandHandler.register(e)
 }

@@ -3,9 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.oredict.OreDictionary
+import li.cil.oc.common.recipe.Recipes
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -13,74 +11,14 @@ object Blocks {
   var blockSpecial: SpecialDelegator = _
   var blockSpecialWithRedstone: SpecialDelegator = _
 
-  var adapter: Adapter = _
-  var cable: Cable = _
-  var capacitor: Capacitor = _
-  var charger: Charger = _
-  var case1, case2, case3, case4: Case = _
-  var diskDrive: DiskDrive = _
-  var keyboard: Keyboard = _
-  var keyboardDeprecated: KeyboardDeprecated = _
-  var hologram: Hologram = _
-  var powerConverter: PowerConverter = _
-  var powerDistributor: PowerDistributor = _
-  var redstone: Redstone = _
   var robotProxy: RobotProxy = _
   var robotAfterimage: RobotAfterimage = _
-  var router: Router = _
-  var screen1, screen2, screen3: Screen = _
-  var serverRack: Rack = _
-  var wirelessRouter: WirelessRouter = _
 
   def init() {
     blockSimple = new SimpleDelegator()
     blockSimpleWithRedstone = new SimpleRedstoneDelegator()
     blockSpecial = new SpecialDelegator()
-    blockSpecialWithRedstone = new SpecialRedstoneDelegator() {
-      override def subBlockItemStacks() = super.subBlockItemStacks() ++ Iterable({
-        val stack = new ItemStack(this, 1, robotProxy.blockId)
-        stack.setTagCompound(new NBTTagCompound())
-        stack.getTagCompound.setDouble(Settings.namespace + "xp", Settings.get.baseXpToLevel + math.pow(30.0001 * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth))
-        stack.getTagCompound.setInteger(Settings.namespace + "storedEnergy", (Settings.get.bufferRobot + Settings.get.bufferPerLevel * 30).toInt)
-        stack
-      })
-    }
-
-    // IMPORTANT: the multi block must come first, since the sub blocks will
-    // try to register with it. Also, the order the sub blocks are created in
-    // must not be changed since that order determines their actual IDs.
-    adapter = Recipes.addBlockDelegate(new Adapter(blockSimple), "adapter")
-    cable = Recipes.addBlockDelegate(new Cable(blockSpecial), "cable")
-    capacitor = Recipes.addBlockDelegate(new Capacitor(blockSimple), "capacitor")
-    case1 = Recipes.addBlockDelegate(new Case.Tier1(blockSimpleWithRedstone), "case1")
-    case2 = Recipes.addBlockDelegate(new Case.Tier2(blockSimpleWithRedstone), "case2")
-    case3 = Recipes.addBlockDelegate(new Case.Tier3(blockSimpleWithRedstone), "case3")
-    charger = Recipes.addBlockDelegate(new Charger(blockSimpleWithRedstone), "charger")
-    diskDrive = Recipes.addBlockDelegate(new DiskDrive(blockSimple), "diskDrive")
-    keyboardDeprecated = new KeyboardDeprecated(blockSpecial)
-    powerDistributor = Recipes.addBlockDelegate(new PowerDistributor(blockSimple), "powerDistributor")
-    powerConverter = Recipes.addBlockDelegate(new PowerConverter(blockSimple), "powerConverter")
-    redstone = Recipes.addBlockDelegate(new Redstone(blockSimpleWithRedstone), "redstone")
-    robotAfterimage = new RobotAfterimage(blockSpecial)
-    robotProxy = Recipes.addBlockDelegate(new RobotProxy(blockSpecialWithRedstone), "robot")
-    router = Recipes.addBlockDelegate(new Router(blockSimple), "router")
-    screen1 = Recipes.addBlockDelegate(new Screen.Tier1(blockSimpleWithRedstone), "screen1")
-    screen2 = Recipes.addBlockDelegate(new Screen.Tier2(blockSimpleWithRedstone), "screen2")
-    screen3 = Recipes.addBlockDelegate(new Screen.Tier3(blockSimpleWithRedstone), "screen3")
-
-    // For automatic conversion from old format (when screens did not take
-    // redstone inputs) to keep save format compatible.
-    blockSimple.subBlocks += screen1
-    blockSimple.subBlocks += screen2
-    blockSimple.subBlocks += screen3
-
-    // v1.2.0
-    serverRack = Recipes.addBlockDelegate(new Rack(blockSpecialWithRedstone), "rack")
-
-    // v2.0.0
-    keyboard = Recipes.addBlock(new Keyboard(), "keyboard")
-
-    GameRegistry.registerBlock(keyboard, classOf[Item], Settings.namespace + "keyboard")
+    blockSpecialWithRedstone = new SpecialRedstoneDelegator()
 
     GameRegistry.registerBlock(blockSimple, classOf[Item], Settings.namespace + "simple")
     GameRegistry.registerBlock(blockSimpleWithRedstone, classOf[Item], Settings.namespace + "simple_redstone")
@@ -93,66 +31,62 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Case], Settings.namespace + "case")
     GameRegistry.registerTileEntity(classOf[tileentity.Charger], Settings.namespace + "charger")
     GameRegistry.registerTileEntity(classOf[tileentity.DiskDrive], Settings.namespace + "disk_drive")
+    GameRegistry.registerTileEntity(classOf[tileentity.Disassembler], Settings.namespace + "disassembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
+    GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
     GameRegistry.registerTileEntity(classOf[tileentity.RobotProxy], Settings.namespace + "robot")
+    GameRegistry.registerTileEntity(classOf[tileentity.RobotAssembler], Settings.namespace + "robotAssembler")
     GameRegistry.registerTileEntity(classOf[tileentity.Router], Settings.namespace + "router")
     GameRegistry.registerTileEntity(classOf[tileentity.Screen], Settings.namespace + "screen")
     GameRegistry.registerTileEntity(classOf[tileentity.Rack], Settings.namespace + "serverRack")
     GameRegistry.registerTileEntity(classOf[tileentity.WirelessRouter], Settings.namespace + "wireless_router")
 
+    // IMPORTANT: the multi block must come first, since the sub blocks will
+    // try to register with it. Also, the order the sub blocks are created in
+    // must not be changed since that order determines their actual IDs.
+    Recipes.addBlock(new Adapter(blockSimple), "adapter", "oc:adapter")
+    Recipes.addBlock(new Cable(blockSpecial), "cable", "oc:cable")
+    Recipes.addBlock(new Capacitor(blockSimple), "capacitor", "oc:capacitor")
+    Recipes.addBlock(new Case.Tier1(blockSimpleWithRedstone), "case1", "oc:case1")
+    Recipes.addBlock(new Case.Tier2(blockSimpleWithRedstone), "case2", "oc:case2")
+    Recipes.addBlock(new Case.Tier3(blockSimpleWithRedstone), "case3", "oc:case3")
+    Recipes.addBlock(new Charger(blockSimpleWithRedstone), "charger", "oc:charger")
+    Recipes.addBlock(new DiskDrive(blockSimple), "diskDrive", "oc:diskDrive")
+    new KeyboardDeprecated(blockSpecial)
+    Recipes.addBlock(new PowerDistributor(blockSimple), "powerDistributor", "oc:powerDistributor")
+    Recipes.addBlock(new PowerConverter(blockSimple), "powerConverter", "oc:powerConverter")
+    Recipes.addBlock(new Redstone(blockSimpleWithRedstone), "redstone", "oc:redstone")
+    robotAfterimage = new RobotAfterimage(blockSpecial)
+    robotProxy = Items.registerBlock(new RobotProxy(blockSpecialWithRedstone), "robot")
+    Recipes.addBlock(new Switch(blockSimple), "switch", "oc:switch")
+
+    // Copied to simple block for automatic conversion from old format (when
+    // screens did not take redstone inputs) to keep save format compatible.
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier1(blockSimpleWithRedstone), "screen1", "oc:screen1")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier2(blockSimpleWithRedstone), "screen2", "oc:screen2")
+    blockSimple.subBlocks += Recipes.addBlock(new Screen.Tier3(blockSimpleWithRedstone), "screen3", "oc:screen3")
+
+    // v1.2.0
+    Recipes.addBlock(new Rack(blockSpecialWithRedstone), "rack", "oc:rack")
+
+    // MC 1.7
+    Recipes.addNewBlock(new Keyboard(), "keyboard", "oc:keyboard")
+
     // v1.2.2
-    hologram = Recipes.addBlockDelegate(new Hologram(blockSpecial), "hologram")
-    wirelessRouter = Recipes.addBlockDelegate(new WirelessRouter(blockSimple), "wirelessRouter")
+    Recipes.addBlock(new Hologram.Tier1(blockSpecial), "hologram1", "oc:hologram1")
+    Recipes.addBlock(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
-    case4 = new Case.TierCreative(blockSimpleWithRedstone)
+    new Case.TierCreative(blockSimpleWithRedstone)
 
-    // Initialize API.
-    api.Blocks.AccessPoint = wirelessRouter.createItemStack()
-    api.Blocks.Adapter = adapter.createItemStack()
-    api.Blocks.Cable = cable.createItemStack()
-    api.Blocks.Capacitor = capacitor.createItemStack()
-    api.Blocks.Charger = charger.createItemStack()
-    api.Blocks.CaseTier1 = case1.createItemStack()
-    api.Blocks.CaseTier2 = case2.createItemStack()
-    api.Blocks.CaseTier3 = case3.createItemStack()
-    api.Blocks.DiskDrive = diskDrive.createItemStack()
-    api.Blocks.Keyboard = new ItemStack(keyboard)
-    api.Blocks.HologramProjector = hologram.createItemStack()
-    api.Blocks.PowerConverter = powerConverter.createItemStack()
-    api.Blocks.PowerDistributor = powerDistributor.createItemStack()
-    api.Blocks.RedstoneIO = redstone.createItemStack()
-    api.Blocks.Robot = robotProxy.createItemStack()
-    api.Blocks.Switch = router.createItemStack()
-    api.Blocks.ScreenTier1 = screen1.createItemStack()
-    api.Blocks.ScreenTier2 = screen2.createItemStack()
-    api.Blocks.ScreenTier3 = screen3.createItemStack()
-    api.Blocks.ServerRack = serverRack.createItemStack()
-
-    // ----------------------------------------------------------------------- //
-
-    register("oc:craftingCable", cable.createItemStack())
-    register("oc:craftingCapacitor", capacitor.createItemStack())
-    register("oc:craftingCaseTier1", case1.createItemStack())
-    register("oc:craftingCaseTier2", case2.createItemStack())
-    register("oc:craftingCaseTier3", case3.createItemStack())
-    register("oc:craftingDiskDrive", diskDrive.createItemStack())
-    register("oc:craftingKeyboard", new ItemStack(keyboard))
-    register("oc:craftingPowerDistributor", powerDistributor.createItemStack())
-    register("oc:craftingRouter", router.createItemStack())
-    register("oc:craftingScreenTier1", screen1.createItemStack())
-    register("oc:craftingScreenTier2", screen2.createItemStack())
-    register("oc:craftingScreenTier3", screen3.createItemStack())
-    register("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch, 1, 0))
-  }
-
-  private def register(name: String, item: ItemStack) {
-    if (!OreDictionary.getOres(name).contains(item)) {
-      OreDictionary.registerOre(name, item)
-    }
+    // v1.3.0
+    Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
+    Recipes.addBlock(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
+    Recipes.addBlock(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
+    Recipes.addBlock(new Disassembler(blockSimple), "disassembler", "oc:disassembler")
   }
 }

@@ -1,10 +1,10 @@
 package li.cil.oc.common.tileentity
 
+import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
 import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Sound
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -22,18 +22,13 @@ class DiskDrive extends traits.Environment with traits.ComponentInventory with t
 
   override def canUpdate = false
 
-  override def validate() = {
-    super.validate()
-    EventHandler.schedule(this)
-  }
-
   // ----------------------------------------------------------------------- //
 
   override def getInventoryName = Settings.namespace + "container.DiskDrive"
 
   override def getSizeInventory = 1
 
-  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Registry.itemDriverFor(stack)) match {
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, Some(driver)) => driver.slot(stack) == Slot.Disk
     case _ => false
   }

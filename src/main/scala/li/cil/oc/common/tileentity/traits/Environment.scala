@@ -1,45 +1,43 @@
 package li.cil.oc.common.tileentity.traits
 
-import li.cil.oc.api.network.SidedEnvironment
-import li.cil.oc.api.{Network, network}
+import li.cil.oc.api.driver
+import li.cil.oc.api.network
+import li.cil.oc.api.network.{Connector, SidedEnvironment}
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 import scala.math.ScalaNumber
 
-trait Environment extends TileEntity with network.Environment {
-  protected var addedToNetwork = false
+trait Environment extends TileEntity with network.Environment with driver.Container {
+  override def xPosition = x + 0.5
+
+  override def yPosition = y + 0.5
+
+  override def zPosition = z + 0.5
+
+  override def markChanged() = markDirty()
 
   // ----------------------------------------------------------------------- //
 
-  override def updateEntity() {
-    super.updateEntity()
-    if (!addedToNetwork) {
-      addedToNetwork = true
-      Network.joinOrCreateNetwork(this)
+  override protected def initialize() {
+    super.initialize()
+    if (isServer) {
+      EventHandler.schedule(this)
     }
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
-    Option(node).foreach(_.remove)
-    this match {
-      case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
+  override protected def dispose() {
+    super.dispose()
+    if (isServer) {
+      Option(node).foreach(_.remove)
+      this match {
+        case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
+          Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
+        }
+        case _ =>
       }
-      case _ =>
-    }
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    Option(node).foreach(_.remove)
-    this match {
-      case sidedEnvironment: SidedEnvironment => for (side <- ForgeDirection.VALID_DIRECTIONS) {
-        Option(sidedEnvironment.sidedNode(side)).foreach(_.remove())
-      }
-      case _ =>
     }
   }
 
@@ -65,7 +63,12 @@ trait Environment extends TileEntity with network.Environment {
 
   override def onConnect(node: network.Node) {}
 
-  override def onDisconnect(node: network.Node) {}
+  override def onDisconnect(node: network.Node) {
+    if (node == this.node) node match {
+      case connector: Connector => connector.setLocalBufferSize(0)
+      case _ =>
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

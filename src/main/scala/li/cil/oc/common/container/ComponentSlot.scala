@@ -1,22 +1,45 @@
 package li.cil.oc.common.container
 
 import li.cil.oc.api
-import li.cil.oc.client.gui.Icons
-import net.minecraft.inventory.{IInventory, Slot}
+import li.cil.oc.common.InventorySlots.Tier
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemStack
+import net.minecraft.util.IIcon
+import scala.collection.convert.WrapAsScala._
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 
-class ComponentSlot(inventory: IInventory, index: Int, x: Int, y: Int, val slot: api.driver.Slot = api.driver.Slot.None, val tier: Int = -1) extends Slot(inventory, index, x, y) {
-  setBackgroundIcon(Icons.get(slot))
+trait ComponentSlot extends Slot {
+  def container: Player
 
-  val tierIcon = Icons.get(tier)
+  def slot: api.driver.Slot
 
-  override def getSlotStackLimit =
-    slot match {
-      case api.driver.Slot.Tool | api.driver.Slot.None => super.getSlotStackLimit
-      case _ => 1
+  def tier: Int
+
+  def tierIcon: IIcon
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override def func_111238_b() = tier != Tier.None && super.func_111238_b()
+
+  override def isItemValid(stack: ItemStack) = inventory.isItemValidForSlot(getSlotIndex, stack)
+
+  override def onPickupFromSlot(player: EntityPlayer, stack: ItemStack) {
+    super.onPickupFromSlot(player, stack)
+    for (slot <- container.inventorySlots) slot match {
+      case dynamic: ComponentSlot => dynamic.clearIfInvalid(player)
+      case _ =>
     }
-
-  override def isItemValid(stack: ItemStack) = {
-    inventory.isItemValidForSlot(index, stack)
   }
+
+  override def onSlotChanged() {
+    super.onSlotChanged()
+    for (slot <- container.inventorySlots) slot match {
+      case dynamic: ComponentSlot => dynamic.clearIfInvalid(container.playerInventory.player)
+      case _ =>
+    }
+  }
+
+  protected def clearIfInvalid(player: EntityPlayer) {}
 }

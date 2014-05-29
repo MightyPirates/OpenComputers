@@ -2,20 +2,19 @@ package li.cil.oc.server.driver.item
 
 import dan200.computercraft.api.media.IMedia
 import li.cil.oc
-import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.api.fs.Label
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 
 object ComputerCraftMedia extends Item {
   override def slot(stack: ItemStack) = Slot.Disk
 
-  override def createEnvironment(stack: ItemStack, container: TileEntity) =
+  override def createEnvironment(stack: ItemStack, container: Container) =
     if (Mods.ComputerCraft.isAvailable && ComputerCraft.isDisk(stack) && container != null) {
       val address = addressFromTag(dataTag(stack))
-      val mount = ComputerCraft.createDiskMount(stack, container.getWorldObj)
+      val mount = ComputerCraft.createDiskMount(stack, container.world)
       Option(oc.api.FileSystem.asManagedEnvironment(mount, new ComputerCraftLabel(stack), container)) match {
         case Some(environment) =>
           environment.node.asInstanceOf[oc.server.network.Node].address = address
@@ -33,7 +32,7 @@ object ComputerCraftMedia extends Item {
     }
     else java.util.UUID.randomUUID().toString
 
-  private class ComputerCraftLabel(val stack: ItemStack) extends Label {
+  class ComputerCraftLabel(val stack: ItemStack) extends Label {
     val media = stack.getItem.asInstanceOf[IMedia]
 
     override def getLabel = media.getLabel(stack)

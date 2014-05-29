@@ -31,8 +31,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   override def node = if (isServer) computer.node else null
 
-  override lazy val isClient = computer == null
-
   private var _isRunning = false
 
   private var hasChanged = false
@@ -43,8 +41,6 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
 
   // Note: we implement IContext in the TE to allow external components to cast
   // their owner to it (to allow interacting with their owning computer).
-
-  override def address = computer.address
 
   override def canInteract(player: String) =
     if (isServer) computer.canInteract(player)
@@ -113,34 +109,24 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
       // the network. We skip the update this round to allow other tile entities
       // to join the network, too, avoiding issues of missing nodes (e.g. in the
       // GPU which would otherwise loose track of its screen).
-      if (addedToNetwork) {
-        computer.update()
+      computer.update()
 
-        if (hasChanged) {
-          hasChanged = false
-          world.markTileEntityChunkModified(x, y, z, this)
-        }
-
-        if (_isRunning != computer.isRunning) {
-          _isRunning = computer.isRunning
-          isOutputEnabled = hasRedstoneCard
-          isAbstractBusAvailable = hasAbstractBusCard
-          ServerPacketSender.sendComputerState(this)
-        }
-
-        updateComponents()
+      if (hasChanged) {
+        hasChanged = false
+        world.markTileEntityChunkModified(x, y, z, this)
       }
+
+      if (_isRunning != computer.isRunning) {
+        _isRunning = computer.isRunning
+        isOutputEnabled = hasRedstoneCard
+        isAbstractBusAvailable = hasAbstractBusCard
+        ServerPacketSender.sendComputerState(this)
+      }
+
+      updateComponents()
     }
 
     super.updateEntity()
-  }
-
-  // Note: chunk unload is handled by sound via event handler.
-  override def invalidate() {
-    super.invalidate()
-    if (isClient) {
-      Sound.stopLoop(this)
-    }
   }
 
   // ----------------------------------------------------------------------- //

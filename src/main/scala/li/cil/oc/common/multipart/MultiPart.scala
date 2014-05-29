@@ -4,9 +4,10 @@ import codechicken.lib.vec.BlockCoord
 import codechicken.multipart.MultiPartRegistry.{IPartConverter, IPartFactory}
 import codechicken.multipart.{TMultiPart, MultiPartRegistry}
 import li.cil.oc.common.tileentity.Cable
-import li.cil.oc.{Settings, Blocks}
+import li.cil.oc.Settings
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.api.Items
 import java.util
 
 object MultiPart extends IPartFactory with IPartConverter {
@@ -22,7 +23,7 @@ object MultiPart extends IPartFactory with IPartConverter {
     null
   }
 
-  override def blockTypes = util.Arrays.asList(Blocks.cable.parent)
+  override def blockTypes = util.Arrays.asList(Items.get("cable").block)
 
   override def convert(world: World, pos: BlockCoord) = {
     world.getTileEntity(pos.x, pos.y, pos.z) match {

@@ -18,6 +18,8 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
 
   val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
 
+  override def canUpdate = isServer
+
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "ComputerCraft")

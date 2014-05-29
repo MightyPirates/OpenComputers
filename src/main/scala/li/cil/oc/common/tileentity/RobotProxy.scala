@@ -3,9 +3,7 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.client.gui
 import mods.immibis.redlogic.api.wiring.IWire
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
@@ -14,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.ForgeDirection
 
-class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
+class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInformation with api.machine.Robot with ISidedInventory {
   def this() = this(new Robot(false))
 
   override def isRemote = robot.isClient
@@ -31,16 +29,25 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
 
   // ----------------------------------------------------------------------- //
 
-  // Note: we implement IRobotContext in the TE to allow external components
-  //to cast their owner to it (to allow interacting with their owning robot).
+  override def connectComponents() {}
+
+  override def disconnectComponents() {}
 
   override def isRunning = robot.isRunning
 
   override def setRunning(value: Boolean) = robot.setRunning(value)
 
-  override def selectedSlot() = robot.selectedSlot
-
   override def player() = robot.player()
+
+  override def containerCount = robot.containerCount
+
+  override def componentCount = robot.componentCount
+
+  override def inventorySize = robot.inventorySize
+
+  override def getComponentInSlot(index: Int) = robot.getComponentInSlot(index)
+
+  override def selectedSlot() = robot.selectedSlot
 
   override def saveUpgrade() = robot.saveUpgrade()
 
@@ -62,16 +69,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
 
   override def updateEntity() {
     robot.updateEntity()
-    if (!addedToNetwork) {
-      addedToNetwork = true
-      // Use the same address we use internally on the outside.
-      if (isServer) {
-        val nbt = new NBTTagCompound()
-        nbt.setString("address", robot.node.address)
-        node.load(nbt)
-      }
-      Network.joinOrCreateNetwork(this)
-    }
   }
 
   override def validate() {
@@ -85,17 +82,16 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
     if (firstProxy) {
       robot.validate()
     }
-  }
-
-  override def invalidate() {
-    super.invalidate()
-    if (robot.proxy == this) {
-      robot.invalidate()
+    if (isServer) {
+      // Use the same address we use internally on the outside.
+      val nbt = new NBTTagCompound()
+      nbt.setString("address", robot.node.address)
+      node.load(nbt)
     }
   }
 
-  override def onChunkUnload() {
-    super.onChunkUnload()
+  override protected def dispose() {
+    super.dispose()
     if (robot.proxy == this) {
       robot.onChunkUnload()
     }
@@ -127,10 +123,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
   override def shouldRenderInPass(pass: Int) = robot.shouldRenderInPass(pass)
 
   override def markDirty() = robot.markDirty()
-
-  override lazy val isClient = robot.isClient
-
-  override lazy val isServer = robot.isServer
 
   // ----------------------------------------------------------------------- //
 
@@ -241,20 +233,6 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.TextBuffe
   override def markAsChanged() = robot.markAsChanged()
 
   override def hasRedstoneCard = robot.hasRedstoneCard
-
-  // ----------------------------------------------------------------------- //
-
-  override lazy val buffer = robot.buffer
-
-  override def bufferIsDirty = robot.bufferIsDirty
-
-  override def bufferIsDirty_=(value: Boolean) = robot.bufferIsDirty = value
-
-  override def currentGui = robot.currentGui
-
-  override def currentGui_=(value: Option[gui.Buffer]) = robot.currentGui = value
-
-  override def tier = robot.tier
 
   // ----------------------------------------------------------------------- //
 

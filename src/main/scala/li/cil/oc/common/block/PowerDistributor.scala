@@ -10,13 +10,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
+import li.cil.oc.client.Textures
 
 class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "PowerDistributor"
 
   private val icons = Array.fill[IIcon](6)(null)
-  var iconSideOn: IIcon = _
-  var iconTopOn: IIcon = _
 
   // ----------------------------------------------------------------------- //
 
@@ -35,8 +34,8 @@ class PowerDistributor(val parent: SimpleDelegator) extends SimpleDelegate {
     icons(ForgeDirection.WEST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
     icons(ForgeDirection.EAST.ordinal) = icons(ForgeDirection.NORTH.ordinal)
 
-    iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_side_on")
-    iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_top_on")
+    Textures.PowerDistributor.iconSideOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_side_on")
+    Textures.PowerDistributor.iconTopOn = iconRegister.registerIcon(Settings.resourceDomain + ":power_distributor_top_on")
   }
 
   override def luminance(world: IBlockAccess, x: Int, y: Int, z: Int) = 5

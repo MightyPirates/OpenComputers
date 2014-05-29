@@ -12,6 +12,7 @@ import net.minecraft.util.{WeightedRandomChestContent, IIcon}
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
 import scala.collection.mutable
+import net.minecraft.entity.Entity
 
 class Delegator extends Item {
   setHasSubtypes(true)
@@ -119,6 +120,25 @@ class Delegator extends Item {
       case _ => // Nothing to add.
     }
   }
+
+  override def getDisplayDamage(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.damage(stack)
+      case _ => super.getDisplayDamage(stack)
+    }
+
+  override def getMaxDamage(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.maxDamage(stack)
+      case _ => super.getMaxDamage(stack)
+    }
+
+
+  override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
+    subItem(stack) match {
+      case Some(subItem) => subItem.update(stack, world, player, slot, selected)
+      case _ => super.onUpdate(stack, world, player, slot, selected)
+    }
 
   @SideOnly(Side.CLIENT)
   override def getIcon(stack: ItemStack, pass: Int) =

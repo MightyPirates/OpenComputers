@@ -2,14 +2,13 @@ package li.cil.oc.common.inventory
 
 import java.util.logging.Level
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.driver.{Item => ItemDriver}
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.{Item => ItemDriver, Container}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node, ManagedEnvironment}
-import li.cil.oc.server.driver.Registry
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.tileentity.TileEntity
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -19,7 +18,7 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   // ----------------------------------------------------------------------- //
 
-  def componentContainer: TileEntity
+  def componentContainer: Container
 
   // ----------------------------------------------------------------------- //
 
@@ -34,26 +33,28 @@ trait ComponentInventory extends Inventory with network.Environment {
   // ----------------------------------------------------------------------- //
 
   def connectComponents() {
-    for ((stack, slot) <- items.zipWithIndex collect {
-      case (Some(stack), slot) if slot >= 0 && slot < components.length => (stack, slot)
-    } if components(slot).isEmpty && isComponentSlot(slot)) {
-      components(slot) = Registry.itemDriverFor(stack) match {
-        case Some(driver) =>
-          Option(driver.createEnvironment(stack, componentContainer)) match {
-            case Some(component) =>
-              try {
-                component.load(dataTag(driver, stack))
-              } catch {
-                case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
-              }
-              if (component.canUpdate) {
-                assert(!updatingComponents.contains(component))
-                updatingComponents += component
-              }
-              Some(component)
-            case _ => None
-          }
-        case _ => None
+    for (slot <- 0 until getSizeInventory if slot >= 0 && slot < components.length) {
+      val stack = getStackInSlot(slot)
+      if (stack != null && components(slot).isEmpty && isComponentSlot(slot)) {
+        components(slot) = Option(Driver.driverFor(stack)) match {
+          case Some(driver) =>
+            Option(driver.createEnvironment(stack, componentContainer)) match {
+              case Some(component) =>
+                try {
+                  component.load(dataTag(driver, stack))
+                }
+                catch {
+                  case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+                }
+                if (component.canUpdate) {
+                  assert(!updatingComponents.contains(component))
+                  updatingComponents += component
+                }
+                Some(component)
+              case _ => None
+            }
+          case _ => None
+        }
       }
     }
     components collect {
@@ -63,24 +64,29 @@ trait ComponentInventory extends Inventory with network.Environment {
 
   def disconnectComponents() {
     components collect {
-      case Some(component) => component.node.remove()
+      case Some(component) if component.node != null => component.node.remove()
     }
   }
 
   // ----------------------------------------------------------------------- //
 
   override def save(nbt: NBTTagCompound) = {
-    items.zipWithIndex collect {
-      case (Some(stack), slot) => (stack, slot)
-    } foreach {
-      case (stack, slot) => components(slot) match {
-        case Some(component) =>
-          // We're guaranteed to have a driver for entries.
-          save(component, Registry.itemDriverFor(stack).get, stack)
-        case _ => // Nothing special to save.
+    saveComponents()
+    super.save(nbt) // Save items after updating their tags.
+  }
+
+  def saveComponents() {
+    for (slot <- 0 until getSizeInventory) {
+      val stack = getStackInSlot(slot)
+      if (stack != null) {
+        components(slot) match {
+          case Some(component) =>
+            // We're guaranteed to have a driver for entries.
+            save(component, Driver.driverFor(stack), stack)
+          case _ => // Nothing special to save.
+        }
       }
     }
-    super.save(nbt) // Save items after updating their tags.
   }
 
   // ----------------------------------------------------------------------- //
@@ -88,8 +94,8 @@ trait ComponentInventory extends Inventory with network.Environment {
   override def getInventoryStackLimit = 1
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) = if (isComponentSlot(slot)) {
-    Registry.itemDriverFor(stack) match {
-      case Some(driver) => Option(driver.createEnvironment(stack, componentContainer)) match {
+    Option(Driver.driverFor(stack)).foreach(driver =>
+      Option(driver.createEnvironment(stack, componentContainer)) match {
         case Some(component) => this.synchronized {
           components(slot) = Some(component)
           try {
@@ -105,9 +111,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           save(component, driver, stack)
         }
         case _ => // No environment (e.g. RAM).
-      }
-      case _ => // No driver.
-    }
+      })
   }
 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
@@ -120,17 +124,21 @@ trait ComponentInventory extends Inventory with network.Environment {
         // being installed into a different computer, even!)
         components(slot) = None
         updatingComponents -= component
-        component.node.remove()
-        Registry.itemDriverFor(stack).foreach(driver => save(component, driver, stack))
+        if (component.node != null) {
+          component.node.remove()
+        }
+        Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
       }
       case _ => // Nothing to do.
     }
   }
 
-  protected def isComponentSlot(slot: Int) = true
+  def isComponentSlot(slot: Int) = true
 
   protected def connectItemNode(node: Node) {
-    this.node.connect(node)
+    if (node != null) {
+      this.node.connect(node)
+    }
   }
 
   protected def dataTag(driver: ItemDriver, stack: ItemStack) =

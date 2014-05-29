@@ -3,19 +3,21 @@ package li.cil.oc.common
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.FMLCommonHandler
-import java.util.concurrent.Callable
 import li.cil.oc._
-import li.cil.oc.api.FileSystem
 import li.cil.oc.common.asm.SimpleComponentTickHandler
+import li.cil.oc.common.event._
 import li.cil.oc.common.multipart.MultiPart
-import li.cil.oc.server
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.server.{driver, fs, network}
+import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{Mods, ComputerCraft}
-import net.minecraftforge.common.MinecraftForge
+import li.cil.oc.util.mods.{ComputerCraft, Mods}
+import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
+import net.minecraft.item.ItemStack
+import net.minecraftforge.oredict.OreDictionary
+import scala.collection.convert.WrapAsScala._
 
 class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
@@ -24,47 +26,65 @@ class Proxy {
     Blocks.init()
     Items.init()
 
-    if (Mods.ForgeMultipart.isAvailable) {
-      MultiPart.init()
-    }
-    if (Mods.ComputerCraft.isAvailable) {
-      ComputerCraft.init()
+    registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
+    registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
+    registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
+    registerExclusive("nuggetIron", Items.ironNugget.createItemStack())
+
+    if (OreDictionary.getOres("nuggetIron").exists(Items.ironNugget.createItemStack().isItemEqual)) {
+      Recipes.addItem(Items.ironNugget, "nuggetIron")
+      Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
 
-    api.CreativeTab.Instance = CreativeTab
+    api.CreativeTab.instance = CreativeTab
     api.Driver.instance = driver.Registry
     api.FileSystem.instance = fs.FileSystem
+    api.Items.instance = Items
     api.Machine.instance = machine.Machine
     api.Machine.LuaArchitecture =
       if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
 
-    api.Machine.addRomResource(api.Machine.LuaArchitecture,
-      new Callable[api.fs.FileSystem] {
-        def call = FileSystem.fromClass(OpenComputers.getClass, Settings.resourceDomain, "lua/rom")
-      },
-      Settings.resourceDomain + "/lua/rom")
+    if (Mods.ForgeMultipart.isAvailable) {
+      MultiPart.init()
+    }
+    if (Mods.ComputerCraft.isAvailable) {
+      ComputerCraft.init()
+    }
   }
 
   def init(e: FMLInitializationEvent) {
-    api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
+    api.Driver.add(driver.item.LinkedCard)
     api.Driver.add(driver.item.Loot)
     api.Driver.add(driver.item.Memory)
     api.Driver.add(driver.item.NetworkCard)
+    api.Driver.add(driver.item.Keyboard)
     api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
+    api.Driver.add(driver.item.Screen)
+    api.Driver.add(driver.item.UpgradeCapacitor)
+    api.Driver.add(driver.item.UpgradeChunkloader)
+    api.Driver.add(driver.item.UpgradeContainerCard)
+    api.Driver.add(driver.item.UpgradeContainerFloppy)
+    api.Driver.add(driver.item.UpgradeContainerUpgrade)
     api.Driver.add(driver.item.UpgradeCrafting)
+    api.Driver.add(driver.item.UpgradeExperience)
     api.Driver.add(driver.item.UpgradeGenerator)
+    api.Driver.add(driver.item.UpgradeInventory)
+    api.Driver.add(driver.item.UpgradeInventoryController)
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
     api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
+    if (Mods.StargateTech2.isAvailable) {
+      api.Driver.add(driver.item.AbstractBusCard)
+    }
     if (Mods.ComputerCraft.isAvailable) {
       api.Driver.add(driver.item.ComputerCraftMedia)
     }
@@ -72,12 +92,26 @@ class Proxy {
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
+    Loot.init()
     Recipes.init()
 
+    ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
     OpenComputers.channel.register(server.PacketHandler)
 
     Loot.init()
+
+    MinecraftForge.EVENT_BUS.register(AngelUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(RobotCommonHandler)
+    MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
+    if (Mods.TinkersConstruct.isAvailable) {
+      MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
+    }
+    if (Mods.UniversalElectricity.isAvailable) {
+      MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
+    }
+    MinecraftForge.EVENT_BUS.register(Loot)
 
     FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }
@@ -90,5 +124,13 @@ class Proxy {
     FMLCommonHandler.instance().bus().register(SimpleComponentTickHandler.Instance)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
+  }
+
+  private def registerExclusive(name: String, items: ItemStack*) {
+    if (OreDictionary.getOres(name).isEmpty) {
+      for (item <- items) {
+        OreDictionary.registerOre(name, item)
+      }
+    }
   }
 }

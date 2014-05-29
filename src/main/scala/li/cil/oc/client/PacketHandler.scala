@@ -2,11 +2,12 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
+import li.cil.oc.api.component
+import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.util.{Audio, PackedColor}
+import li.cil.oc.util.Audio
 import li.cil.oc.Settings
 import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
@@ -35,7 +36,9 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.ColorChange => onColorChange(p)
       case PacketType.ComputerState => onComputerState(p)
       case PacketType.ComputerUserList => onComputerUserList(p)
+      case PacketType.DisassemblerActiveChange => onDisassemblerActiveChange(p)
       case PacketType.HologramClear => onHologramClear(p)
+      case PacketType.HologramColor => onHologramColor(p)
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
@@ -43,20 +46,21 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
+      case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
       case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
       case PacketType.RobotEquippedUpgradeChange => onRobotEquippedUpgradeChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
-      case PacketType.RobotXp => onRobotXp(p)
       case PacketType.RotatableState => onRotatableState(p)
       case PacketType.RouterActivity => onRouterActivity(p)
-      case PacketType.ScreenColorChange => onScreenColorChange(p)
-      case PacketType.ScreenCopy => onScreenCopy(p)
-      case PacketType.ScreenDepthChange => onScreenDepthChange(p)
-      case PacketType.ScreenFill => onScreenFill(p)
-      case PacketType.ScreenPowerChange => onScreenPowerChange(p)
-      case PacketType.ScreenResolutionChange => onScreenResolutionChange(p)
-      case PacketType.ScreenSet => onScreenSet(p)
+      case PacketType.TextBufferColorChange => onTextBufferColorChange(p)
+      case PacketType.TextBufferCopy => onTextBufferCopy(p)
+      case PacketType.TextBufferDepthChange => onTextBufferDepthChange(p)
+      case PacketType.TextBufferFill => onTextBufferFill(p)
+      case PacketType.TextBufferPaletteChange => onTextBufferPaletteChange(p)
+      case PacketType.TextBufferPowerChange => onTextBufferPowerChange(p)
+      case PacketType.TextBufferResolutionChange => onTextBufferResolutionChange(p)
+      case PacketType.TextBufferSet => onTextBufferSet(p)
       case PacketType.ServerPresence => onServerPresence(p)
       case PacketType.Sound => onSound(p)
       case _ => // Invalid packet.
@@ -123,10 +127,26 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onDisassemblerActiveChange(p: PacketParser) =
+    p.readTileEntity[Disassembler]() match {
+      case Some(t) => t.isActive = p.readBoolean()
+      case _ => // Invalid packet.
+    }
+
   def onHologramClear(p: PacketParser) =
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         for (i <- 0 until t.volume.length) t.volume(i) = 0
+        t.dirty = true
+      case _ => // Invalid packet.
+    }
+
+  def onHologramColor(p: PacketParser) =
+    p.readTileEntity[Hologram]() match {
+      case Some(t) =>
+        val index = p.readInt()
+        val value = p.readInt()
+        t.colors(index) = value & 0xFFFFFF
         t.dirty = true
       case _ => // Invalid packet.
     }
@@ -155,6 +175,7 @@ object PacketHandler extends CommonPacketHandler {
         for (x <- fromX until untilX) {
           for (z <- fromZ until untilZ) {
             t.volume(x + z * t.width) = p.readInt()
+            t.volume(x + z * t.width + t.width * t.width) = p.readInt()
           }
         }
         t.dirty = true
@@ -191,6 +212,14 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
+  def onRobotAssemblingState(p: PacketParser) =
+    p.readTileEntity[RobotAssembler]() match {
+      case Some(t) =>
+        if (p.readBoolean()) t.requiredEnergy = 9001
+        else t.requiredEnergy = 0
+      case _ => // Invalid packet.
+    }
+
   def onRobotEquippedItemChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
       case Some(t) => t.robot.equippedItem = Option(p.readItemStack())
@@ -223,14 +252,6 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotXp(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) =>
-        t.robot.xp = p.readDouble()
-        t.robot.updateXpInfo()
-      case _ => // Invalid packet.
-    }
-
   def onRotatableState(p: PacketParser) =
     p.readTileEntity[Rotatable]() match {
       case Some(t) =>
@@ -245,22 +266,22 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onScreenColorChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferColorChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        val foreground = p.readInt()
+        val foregroundIsPalette = p.readBoolean()
+        buffer.setForegroundColor(foreground, foregroundIsPalette)
+        val background = p.readInt()
+        val backgroundIsPalette = p.readBoolean()
+        buffer.setBackgroundColor(background, backgroundIsPalette)
+      case _ => // Invalid packet.
     }
-    buffer.foreground = p.readInt()
-    buffer.background = p.readInt()
   }
 
-  def onScreenCopy(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
-    }
+  def onTextBufferCopy(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
@@ -268,58 +289,68 @@ object PacketHandler extends CommonPacketHandler {
     val tx = p.readInt()
     val ty = p.readInt()
     buffer.copy(col, row, w, h, tx, ty)
+      case _ => // Invalid packet.
+  }
   }
 
-  def onScreenDepthChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
+  def onTextBufferDepthChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        buffer.setColorDepth(component.TextBuffer.ColorDepth.values.apply(p.readInt()))
+      case _ => // Invalid packet.
     }
-    buffer.depth = PackedColor.Depth(p.readInt())
   }
 
-  def onScreenFill(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
-    }
+  def onTextBufferFill(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
     val col = p.readInt()
     val row = p.readInt()
     val w = p.readInt()
     val h = p.readInt()
     val c = p.readChar()
     buffer.fill(col, row, w, h, c)
+      case _ => // Invalid packet.
+  }
   }
 
-  def onScreenPowerChange(p: PacketParser) =
-    p.readTileEntity[Screen]() match {
-      case Some(t) => t.hasPower = p.readBoolean()
+  def onTextBufferPaletteChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        val index = p.readInt()
+        val color = p.readInt()
+        buffer.setPaletteColor(index, color)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onTextBufferPowerChange(p: PacketParser) =
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
+        buffer.setRenderingEnabled(p.readBoolean())
       case _ => // Invalid packet.
     }
 
-  def onScreenResolutionChange(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
-    }
+  def onTextBufferResolutionChange(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
     val w = p.readInt()
     val h = p.readInt()
-    buffer.resolution = (w, h)
+        buffer.setResolution(w, h)
+      case _ => // Invalid packet.
+  }
   }
 
-  def onScreenSet(p: PacketParser) {
-    val buffer = p.readTileEntity[TileEntity]() match {
-      case Some(t: TextBuffer) => t.buffer
-      case Some(t: Rack) => t.terminals(p.readInt()).buffer
-      case _ => return // Invalid packet.
-    }
+  def onTextBufferSet(p: PacketParser) {
+    ComponentTracker.get(p.readUTF()) match {
+      case Some(buffer: component.TextBuffer) =>
     val col = p.readInt()
     val row = p.readInt()
     val s = p.readUTF()
-    buffer.set(col, row, s)
+        val vertical = p.readBoolean()
+        buffer.set(col, row, s, vertical)
+      case _ => // Invalid packet.
+  }
   }
 
   def onServerPresence(p: PacketParser) =

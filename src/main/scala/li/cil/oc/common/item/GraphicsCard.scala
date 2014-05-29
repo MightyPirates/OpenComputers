@@ -2,16 +2,16 @@ package li.cil.oc.common.item
 
 import java.util
 import li.cil.oc.Settings
-import li.cil.oc.util.{Tooltip, PackedColor}
+import li.cil.oc.util.{Rarity, Tooltip, PackedColor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.item.ItemStack
 
 class GraphicsCard(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "GraphicsCard"
   val unlocalizedName = baseName + tier
 
-  override def rarity = Array(EnumRarity.common, EnumRarity.uncommon, EnumRarity.rare).apply(tier)
+  override def rarity = Rarity.byTier(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     val (w, h) = Settings.screenResolutionsByTier(tier)

@@ -1,38 +1,25 @@
 package li.cil.oc.client.renderer.tileentity
 
-import com.google.common.cache.{CacheBuilder, RemovalNotification, RemovalListener}
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
-import java.util.concurrent.{TimeUnit, Callable}
 import li.cil.oc.Settings
 import li.cil.oc.client.Textures
-import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.common.block
 import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.BuildCraft
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{Tessellator, GLAllocation}
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
 
-object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] {
+object ScreenRenderer extends TileEntitySpecialRenderer {
   private val maxRenderDistanceSq = Settings.get.maxScreenTextRenderDistance * Settings.get.maxScreenTextRenderDistance
 
   private val fadeDistanceSq = Settings.get.screenTextFadeStartDistance * Settings.get.screenTextFadeStartDistance
 
   private val fadeRatio = 1.0 / (maxRenderDistanceSq - fadeDistanceSq)
 
-  /** We cache the display lists for the screens we render for performance. */
-  val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(2, TimeUnit.SECONDS).
-    removalListener(this).
-    asInstanceOf[CacheBuilder[Screen, Int]].
-    build[Screen, Int]()
-
-  /** Used to pass the current screen along to call(). */
   private var screen: Screen = null
 
   // ----------------------------------------------------------------------- //
@@ -72,9 +59,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
 
-    if (screen.hasPower && screen.relativeLitArea != 0) {
-      MonospaceFontRenderer.init(this.field_147501_a.field_147553_e)
-      compileOrDraw(cache.get(screen, this))
+    if (screen.buffer.isRenderingEnabled) {
+      compileOrDraw()
     }
 
     GL11.glPopMatrix()
@@ -129,17 +115,11 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
   }
 
-  private def compileOrDraw(list: Int) = if (screen.bufferIsDirty) {
+  private def compileOrDraw() {
     val sx = screen.width
     val sy = screen.height
     val tw = sx * 16f
     val th = sy * 16f
-
-    val doCompile = !RenderState.compilingDisplayList
-    if (doCompile) {
-      screen.bufferIsDirty = false
-      GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
-    }
 
     transform()
 
@@ -151,9 +131,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     val isy = sy - (4.5f / 16)
 
     // Scale based on actual buffer size.
-    val (resX, resY) = screen.buffer.resolution
-    val sizeX = resX * MonospaceFontRenderer.fontWidth
-    val sizeY = resY * MonospaceFontRenderer.fontHeight
+    val sizeX = screen.buffer.renderWidth
+    val sizeY = screen.buffer.renderHeight
     val scaleX = isx / sizeX
     val scaleY = isy / sizeY
     if (true) {
@@ -174,17 +153,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
-    for (((line, color), i) <- screen.buffer.lines.zip(screen.buffer.color).zipWithIndex) {
-      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, screen.buffer.depth)
+    // Render the actual text.
+    screen.buffer.renderText()
     }
-
-    if (doCompile) {
-      GL11.glEndList()
-    }
-
-    true
-  }
-  else GL11.glCallList(list)
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
@@ -230,21 +201,4 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
     }
     else 0)
   }
-
-  // ----------------------------------------------------------------------- //
-  // Cache
-  // ----------------------------------------------------------------------- //
-
-  def call = {
-    val list = GLAllocation.generateDisplayLists(1)
-    screen.bufferIsDirty = true // Force compilation.
-    list
-  }
-
-  def onRemoval(e: RemovalNotification[TileEntity, Int]) {
-    GLAllocation.deleteDisplayLists(e.getValue)
-  }
-
-  @SubscribeEvent
-  def onTick(e: ClientTickEvent) = cache.cleanUp()
 }

@@ -6,12 +6,16 @@ local robot = {}
 -------------------------------------------------------------------------------
 -- General
 
-function robot.level()
-  return component.robot.level()
-end
-
 function robot.name()
   return component.robot.name()
+end
+
+function robot.level()
+  if component.isAvailable("experience") then
+    return component.experience.level()
+  else
+    return 0
+  end
 end
 
 -------------------------------------------------------------------------------
@@ -31,6 +35,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Inventory
+
+function robot.inventorySize()
+  return component.robot.inventorySize()
+end
+
 
 function robot.select(slot)
   return component.robot.select(slot)

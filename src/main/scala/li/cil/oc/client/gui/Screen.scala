@@ -1,14 +1,13 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.client.PacketSender
+import li.cil.oc.api
 import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.common
 import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends Buffer {
+class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends TextBuffer {
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var didDrag = false
@@ -24,10 +23,11 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
       val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
       val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
-      val (bw, bh) = buffer.resolution
+      val bw = buffer.getWidth
+      val bh = buffer.getHeight
       if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
         val scroll = math.signum(Mouse.getEventDWheel)
-        PacketSender.sendMouseScroll(buffer, bx, by, scroll)
+        buffer.mouseScroll(bx, by, scroll, null)
       }
     }
   }
@@ -56,12 +56,13 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
       if (didDrag) {
         val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
         val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
-        val (bw, bh) = buffer.resolution
+        val bw = buffer.getWidth
+        val bh = buffer.getHeight
         if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
-          PacketSender.sendMouseUp(buffer, bx, by, button)
+          buffer.mouseUp(bx, by, button, null)
         }
         else {
-          PacketSender.sendMouseUp(buffer, -1, -1, button)
+          buffer.mouseUp(-1, -1, button, null)
         }
       }
       didDrag = false
@@ -73,10 +74,12 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
   private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
     val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
     val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
-    val (bw, bh) = buffer.resolution
+    val bw = buffer.getWidth
+    val bh = buffer.getHeight
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
       if (bx != mx || by != my) {
-        PacketSender.sendMouseClick(buffer, bx, by, mx > 0 && my > 0, button)
+        if (mx > 0 && my > 0) buffer.mouseDrag(bx, by, button, null)
+        else buffer.mouseDown(bx, by, button, null)
         didDrag = mx > 0 && my > 0
         mx = bx
         my = by
@@ -94,14 +97,17 @@ class Screen(val buffer: common.component.Buffer, val hasMouse: Boolean, val has
     BufferRenderer.drawBackground()
     if (hasPower()) {
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
+      GL11.glScaled(scale, scale, 1)
       RenderState.makeItBlend()
-      BufferRenderer.drawText()
+      if (BufferRenderer.drawText(buffer)) {
+        adjustToBufferChange()
+      }
     }
   }
 
   override protected def changeSize(w: Double, h: Double) = {
-    val bw = w * MonospaceFontRenderer.fontWidth
-    val bh = h * MonospaceFontRenderer.fontHeight
+    val bw = buffer.renderWidth
+    val bh = buffer.renderHeight
     val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)
     val scaleY = math.min(height / (bh + bufferMargin * 2.0), 1)
     val scale = math.min(scaleX, scaleY)

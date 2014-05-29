@@ -1,32 +1,124 @@
 package li.cil.oc.server.component.machine
 
-import com.google.common.base.Strings
 import com.naef.jnlua._
-import java.io.{IOException, FileNotFoundException}
-import java.util.logging.Level
-import li.cil.oc.api.machine.{Architecture, LimitReachedException, ExecutionResult}
-import li.cil.oc.api.network.ComponentConnector
+import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
 import li.cil.oc.common.SaveHandler
+import li.cil.oc.server.component.machine.luac._
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.util.{GameTimeFormatter, LuaStateFactory}
-import li.cil.oc.{api, OpenComputers, server, Settings}
+import li.cil.oc.util.LuaStateFactory
+import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
-import scala.collection.convert.WrapAsScala._
-import scala.collection.mutable
+import java.util.logging.Level
+import java.io.{IOException, FileNotFoundException}
+import com.google.common.base.Strings
 
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
-  private var lua: LuaState = null
+  private[machine] var lua: LuaState = null
 
-  private var kernelMemory = 0
+  private[machine] var kernelMemory = 0
 
-  private val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
+  private[machine] val ramScale = if (LuaStateFactory.is64Bit) Settings.get.ramScaleFor64Bit else 1.0
 
-  // ----------------------------------------------------------------------- //
+  private[machine] var bootAddress = ""
 
-  private def node = machine.node.asInstanceOf[ComponentConnector]
+  private val persistence = new PersistenceAPI(this)
 
-  private def components = machine.components
+  private val apis = Array(
+    new ComponentAPI(this),
+    new ComputerAPI(this),
+    new OSAPI(this),
+    persistence,
+    new SystemAPI(this),
+    new UnicodeAPI(this),
+    new UserdataAPI(this))
+
+  private var lastCollection = 0L
+
+  private[machine] def invoke(f: () => Array[AnyRef]): Int = try {
+    f() match {
+      case results: Array[_] =>
+        lua.pushBoolean(true)
+        results.foreach(result => lua.pushValue(result))
+        1 + results.length
+      case _ =>
+        lua.pushBoolean(true)
+        1
+    }
+  }
+  catch {
+    case e: Throwable =>
+      if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
+        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+      }
+      e match {
+        case _: LimitReachedException =>
+          0
+        case e: IllegalArgumentException if e.getMessage != null =>
+          lua.pushBoolean(false)
+          lua.pushString(e.getMessage)
+          2
+        case e: Throwable if e.getMessage != null =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString(e.getMessage)
+          if (Settings.get.logLuaCallbackErrors) {
+            lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
+            4
+          }
+          else 3
+        case _: IndexOutOfBoundsException =>
+          lua.pushBoolean(false)
+          lua.pushString("index out of bounds")
+          2
+        case _: IllegalArgumentException =>
+          lua.pushBoolean(false)
+          lua.pushString("bad argument")
+          2
+        case _: NoSuchMethodException =>
+          lua.pushBoolean(false)
+          lua.pushString("no such method")
+          2
+        case _: FileNotFoundException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("file not found")
+          3
+        case _: SecurityException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("access denied")
+          3
+        case _: IOException =>
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("i/o error")
+          3
+        case e: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          lua.pushBoolean(true)
+          lua.pushNil()
+          lua.pushString("unknown error")
+          3
+      }
+  }
+
+  private[machine] def documentation(f: () => String): Int = try {
+    val doc = f()
+    if (Strings.isNullOrEmpty(doc)) lua.pushNil()
+    else lua.pushString(doc)
+    1
+  }
+  catch {
+    case e: NoSuchMethodException =>
+      lua.pushNil()
+      lua.pushString("no such method")
+      2
+    case t: Throwable =>
+      lua.pushNil()
+      lua.pushString(if (t.getMessage != null) t.getMessage else t.toString)
+      2
+  }
 
   // ----------------------------------------------------------------------- //
 
@@ -73,9 +165,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
 
-      if (Settings.get.activeGC) {
+      if (Settings.get.activeGC && (machine.worldTime - lastCollection) > 20) {
         // Help out the GC a little. The emergency GC has a few limitations
         // that will make it free less memory than doing a full step manually.
+        lastCollection = machine.worldTime
         lua.gc(LuaState.GcAction.COLLECT, 0)
       }
 
@@ -192,402 +285,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       case Some(value) => lua = value
     }
 
-    // Push a couple of functions that override original Lua API functions or
-    // that add new functionality to it.
-    lua.getGlobal("os")
-
-    // Custom os.clock() implementation returning the time the computer has
-    // been actively running, instead of the native library...
-    lua.pushScalaFunction(lua => {
-      lua.pushNumber(machine.cpuTime())
-      1
-    })
-    lua.setField(-2, "clock")
-
-    // Date formatting function.
-    lua.pushScalaFunction(lua => {
-      val format =
-        if (lua.getTop > 0 && lua.isString(1)) lua.toString(1)
-        else "%d/%m/%y %H:%M:%S"
-      val time =
-        if (lua.getTop > 1 && lua.isNumber(2)) lua.toNumber(2) * 1000 / 60 / 60
-        else machine.worldTime + 5000
-
-      val dt = GameTimeFormatter.parse(time)
-      def fmt(format: String) {
-        if (format == "*t") {
-          lua.newTable(0, 8)
-          lua.pushInteger(dt.year)
-          lua.setField(-2, "year")
-          lua.pushInteger(dt.month)
-          lua.setField(-2, "month")
-          lua.pushInteger(dt.day)
-          lua.setField(-2, "day")
-          lua.pushInteger(dt.hour)
-          lua.setField(-2, "hour")
-          lua.pushInteger(dt.minute)
-          lua.setField(-2, "min")
-          lua.pushInteger(dt.second)
-          lua.setField(-2, "sec")
-          lua.pushInteger(dt.weekDay)
-          lua.setField(-2, "wday")
-          lua.pushInteger(dt.yearDay)
-          lua.setField(-2, "yday")
-        }
-        else {
-          lua.pushString(GameTimeFormatter.format(format, dt))
-        }
-      }
-
-      // Just ignore the allowed leading '!', Minecraft has no time zones...
-      if (format.startsWith("!"))
-        fmt(format.substring(1))
-      else
-        fmt(format)
-      1
-    })
-    lua.setField(-2, "date")
-
-    // Return ingame time for os.time().
-    lua.pushScalaFunction(lua => {
-      if (lua.isNoneOrNil(1)) {
-        // Game time is in ticks, so that each day has 24000 ticks, meaning
-        // one hour is game time divided by one thousand. Also, Minecraft
-        // starts days at 6 o'clock, versus the 1 o'clock of timestamps so we
-        // add those five hours. Thus:
-        // timestamp = (time + 5000) * 60[kh] * 60[km] / 1000[s]
-        lua.pushNumber((machine.worldTime + 5000) * 60 * 60 / 1000)
-      }
-      else {
-        def getField(key: String, d: Int) = {
-          lua.getField(-1, key)
-          val res = lua.toIntegerX(-1)
-          lua.pop(1)
-          if (res == null)
-            if (d < 0) throw new Exception("field '" + key + "' missing in date table")
-            else d
-          else res: Int
-        }
-
-        lua.checkType(1, LuaType.TABLE)
-        lua.setTop(1)
-
-        val sec = getField("sec", 0)
-        val min = getField("min", 0)
-        val hour = getField("hour", 12)
-        val mday = getField("day", -1)
-        val mon = getField("month", -1)
-        val year = getField("year", -1)
-
-        val time = GameTimeFormatter.mktime(year, mon, mday, hour, min, sec)
-        if (time == null) lua.pushNil()
-        else lua.pushNumber(time: Int)
-      }
-      1
-    })
-    lua.setField(-2, "time")
-
-    // Pop the os table.
-    lua.pop(1)
-
-    // Computer API, stuff that kinda belongs to os, but we don't want to
-    // clutter it.
-    lua.newTable()
-
-    // Allow getting the real world time for timeouts.
-    lua.pushScalaFunction(lua => {
-      lua.pushNumber(System.currentTimeMillis() / 1000.0)
-      1
-    })
-    lua.setField(-2, "realTime")
-
-    // The time the computer has been running, as opposed to the CPU time.
-    lua.pushScalaFunction(lua => {
-      // World time is in ticks, and each second has 20 ticks. Since we
-      // want uptime() to return real seconds, though, we'll divide it
-      // accordingly.
-      lua.pushNumber(machine.upTime())
-      1
-    })
-    lua.setField(-2, "uptime")
-
-    // Allow the computer to figure out its own id in the component network.
-    lua.pushScalaFunction(lua => {
-      Option(node.address) match {
-        case None => lua.pushNil()
-        case Some(address) => lua.pushString(address)
-      }
-      1
-    })
-    lua.setField(-2, "address")
-
-    // Are we a robot? (No this is not a CAPTCHA.)
-    // TODO deprecate this
-    lua.pushScalaFunction(lua => {
-      lua.pushBoolean(machine.components.containsValue("robot"))
-      1
-    })
-    lua.setField(-2, "isRobot")
-
-    lua.pushScalaFunction(lua => {
-      // This is *very* unlikely, but still: avoid this getting larger than
-      // what we report as the total memory.
-      lua.pushInteger(((lua.getFreeMemory min (lua.getTotalMemory - kernelMemory)) / ramScale).toInt)
-      1
-    })
-    lua.setField(-2, "freeMemory")
-
-    // Allow the system to read how much memory it uses and has available.
-    lua.pushScalaFunction(lua => {
-      lua.pushInteger(((lua.getTotalMemory - kernelMemory) / ramScale).toInt)
-      1
-    })
-    lua.setField(-2, "totalMemory")
-
-    lua.pushScalaFunction(lua => {
-      lua.pushBoolean(machine.signal(lua.checkString(1), lua.toSimpleJavaObjects(2): _*))
-      1
-    })
-    lua.setField(-2, "pushSignal")
-
-    // And its ROM address.
-    lua.pushScalaFunction(lua => {
-      Option(machine.romAddress) match {
-        case None => lua.pushNil()
-        case Some(address) => lua.pushString(address)
-      }
-      1
-    })
-    lua.setField(-2, "romAddress")
-
-    // And it's /tmp address...
-    lua.pushScalaFunction(lua => {
-      val address = machine.tmpAddress
-      if (address == null) lua.pushNil()
-      else lua.pushString(address)
-      1
-    })
-    lua.setField(-2, "tmpAddress")
-
-    // User management.
-    lua.pushScalaFunction(lua => {
-      val users = machine.users
-      users.foreach(lua.pushString)
-      users.length
-    })
-    lua.setField(-2, "users")
-
-    lua.pushScalaFunction(lua => try {
-      machine.addUser(lua.checkString(1))
-      lua.pushBoolean(true)
-      1
-    } catch {
-      case e: Throwable =>
-        lua.pushNil()
-        lua.pushString(Option(e.getMessage).getOrElse(e.toString))
-        2
-    })
-    lua.setField(-2, "addUser")
-
-    lua.pushScalaFunction(lua => {
-      lua.pushBoolean(machine.removeUser(lua.checkString(1)))
-      1
-    })
-    lua.setField(-2, "removeUser")
-
-    lua.pushScalaFunction(lua => {
-      if (Settings.get.ignorePower)
-        lua.pushNumber(Double.PositiveInfinity)
-      else
-        lua.pushNumber(node.globalBuffer)
-      1
-    })
-    lua.setField(-2, "energy")
-
-    lua.pushScalaFunction(lua => {
-      lua.pushNumber(node.globalBufferSize)
-      1
-    })
-    lua.setField(-2, "maxEnergy")
-
-    // Set the computer table.
-    lua.setGlobal("computer")
-
-    // Until we get to ingame screens we log to Java's stdout.
-    lua.pushScalaFunction(lua => {
-      println((1 to lua.getTop).map(i => lua.`type`(i) match {
-        case LuaType.NIL => "nil"
-        case LuaType.BOOLEAN => lua.toBoolean(i)
-        case LuaType.NUMBER => lua.toNumber(i)
-        case LuaType.STRING => lua.toString(i)
-        case LuaType.TABLE => "table"
-        case LuaType.FUNCTION => "function"
-        case LuaType.THREAD => "thread"
-        case LuaType.LIGHTUSERDATA | LuaType.USERDATA => "userdata"
-      }).mkString("  "))
-      0
-    })
-    lua.setGlobal("print")
-
-    // Whether bytecode may be loaded directly.
-    lua.pushScalaFunction(lua => {
-      lua.pushBoolean(Settings.get.allowBytecode)
-      1
-    })
-    lua.setGlobal("allowBytecode")
-
-    // How long programs may run without yielding before we stop them.
-    lua.pushNumber(Settings.get.timeout)
-    lua.setGlobal("timeout")
-
-    // Component interaction stuff.
-    lua.newTable()
-
-    lua.pushScalaFunction(lua => components.synchronized {
-      val filter = if (lua.isString(1)) Option(lua.toString(1)) else None
-      lua.newTable(0, components.size)
-      for ((address, name) <- components) {
-        if (filter.isEmpty || name.contains(filter.get)) {
-          lua.pushString(address)
-          lua.pushString(name)
-          lua.rawSet(-3)
-        }
-      }
-      1
-    })
-    lua.setField(-2, "list")
-
-    lua.pushScalaFunction(lua => components.synchronized {
-      components.get(lua.checkString(1)) match {
-        case name: String =>
-          lua.pushString(name)
-          1
-        case _ =>
-          lua.pushNil()
-          lua.pushString("no such component")
-          2
-      }
-    })
-    lua.setField(-2, "type")
-
-    lua.pushScalaFunction(lua => {
-      Option(node.network.node(lua.checkString(1))) match {
-        case Some(component: server.network.Component) if component.canBeSeenFrom(node) || component == node =>
-          lua.newTable()
-          for (method <- component.methods()) {
-            lua.pushString(method)
-            lua.pushBoolean(component.isDirect(method))
-            lua.rawSet(-3)
-          }
-          1
-        case _ =>
-          lua.pushNil()
-          lua.pushString("no such component")
-          2
-      }
-    })
-    lua.setField(-2, "methods")
-
-    lua.pushScalaFunction(lua => {
-      val address = lua.checkString(1)
-      val method = lua.checkString(2)
-      val args = lua.toSimpleJavaObjects(3)
-      try {
-        machine.invoke(address, method, args.toArray) match {
-          case results: Array[_] =>
-            lua.pushBoolean(true)
-            results.foreach(result => lua.pushValue(result))
-            1 + results.length
-          case _ =>
-            lua.pushBoolean(true)
-            1
-        }
-      }
-      catch {
-        case e: Throwable =>
-          if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-            OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
-          }
-          e match {
-            case _: LimitReachedException =>
-              0
-            case e: IllegalArgumentException if e.getMessage != null =>
-              lua.pushBoolean(false)
-              lua.pushString(e.getMessage)
-              2
-            case e: Throwable if e.getMessage != null =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString(e.getMessage)
-              if (Settings.get.logLuaCallbackErrors) {
-                lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
-                4
-              }
-              else 3
-            case _: IndexOutOfBoundsException =>
-              lua.pushBoolean(false)
-              lua.pushString("index out of bounds")
-              2
-            case _: IllegalArgumentException =>
-              lua.pushBoolean(false)
-              lua.pushString("bad argument")
-              2
-            case _: NoSuchMethodException =>
-              lua.pushBoolean(false)
-              lua.pushString("no such method")
-              2
-            case _: FileNotFoundException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("file not found")
-              3
-            case _: SecurityException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("access denied")
-              3
-            case _: IOException =>
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("i/o error")
-              3
-            case e: Throwable =>
-              OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
-              lua.pushBoolean(true)
-              lua.pushNil()
-              lua.pushString("unknown error")
-              3
-          }
-      }
-    })
-    lua.setField(-2, "invoke")
-
-    lua.pushScalaFunction(lua => {
-      val address = lua.checkString(1)
-      val method = lua.checkString(2)
-      try {
-        val doc = machine.documentation(address, method)
-        if (Strings.isNullOrEmpty(doc))
-          lua.pushNil()
-        else
-          lua.pushString(doc)
-        1
-      } catch {
-        case e: NoSuchMethodException =>
-          lua.pushNil()
-          lua.pushString("no such method")
-          2
-        case t: Throwable =>
-          lua.pushNil()
-          lua.pushString(if (t.getMessage != null) t.getMessage else t.toString)
-          2
-      }
-    })
-    lua.setField(-2, "doc")
-
-    lua.setGlobal("component")
-
-    initPerms()
+    apis.foreach(_.initialize())
 
     lua.load(classOf[Machine].getResourceAsStream(Settings.scriptPath + "kernel.lua"), "=kernel", "t")
     lua.newThread() // Left as the first value on the stack.
@@ -635,8 +333,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           new ChunkCoordIntPair(machine.owner.x >> 4, machine.owner.z >> 4)
       val kernel =
         if (nbt.hasKey("kernel")) nbt.getByteArray("kernel")
-        else SaveHandler.load(dimension, chunk, node.address + "_kernel")
-      unpersist(kernel)
+        else SaveHandler.load(dimension, chunk, machine.node.address + "_kernel")
+      persistence.unpersist(kernel)
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
         // the save was corrupt (maybe someone modified the Lua files).
@@ -645,8 +343,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         val stack =
           if (nbt.hasKey("stack")) nbt.getByteArray("stack")
-          else SaveHandler.load(dimension, chunk, node.address + "_stack")
-        unpersist(stack)
+          else SaveHandler.load(dimension, chunk, machine.node.address + "_stack")
+        persistence.unpersist(stack)
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
           // could for the same reasons.
@@ -681,130 +379,22 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       nbt.setInteger("dimension", dimension)
       nbt.setInteger("chunkX", chunk.chunkXPos)
       nbt.setInteger("chunkZ", chunk.chunkZPos)
-      SaveHandler.scheduleSave(dimension, chunk, node.address + "_kernel", persist(1))
+      SaveHandler.scheduleSave(dimension, chunk, machine.node.address + "_kernel", persistence.persist(1))
       // While in a driver call we have one object on the global stack: either
       // the function to call the driver with, or the result of the call.
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         assert(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))
-        SaveHandler.scheduleSave(dimension, chunk, node.address + "_stack", persist(2))
+        SaveHandler.scheduleSave(dimension, chunk, machine.node.address + "_stack", persistence.persist(2))
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
     }
 
     // Limit memory again.
     recomputeMemory()
-  }
-
-  private def initPerms() {
-    // These tables must contain all java callbacks (i.e. C functions, since
-    // they are wrapped on the native side using a C function, of course).
-    // They are used when persisting/unpersisting the state so that the
-    // persistence library knows which values it doesn't have to serialize
-    // (since it cannot persist C functions).
-    lua.newTable() /* ... perms */
-    lua.newTable() /* ... uperms */
-
-    val perms = lua.getTop - 1
-    val uperms = lua.getTop
-
-    def flattenAndStore() {
-      /* ... k v */
-      // We only care for tables and functions, any value types are safe.
-      if (lua.isFunction(-1) || lua.isTable(-1)) {
-        lua.pushValue(-2) /* ... k v k */
-        lua.getTable(uperms) /* ... k v uperms[k] */
-        assert(lua.isNil(-1), "duplicate permanent value named " + lua.toString(-3))
-        lua.pop(1) /* ... k v */
-        // If we have aliases its enough to store the value once.
-        lua.pushValue(-1) /* ... k v v */
-        lua.getTable(perms) /* ... k v perms[v] */
-        val isNew = lua.isNil(-1)
-        lua.pop(1) /* ... k v */
-        if (isNew) {
-          lua.pushValue(-1) /* ... k v v */
-          lua.pushValue(-3) /* ... k v v k */
-          lua.rawSet(perms) /* ... k v ; perms[v] = k */
-          lua.pushValue(-2) /* ... k v k */
-          lua.pushValue(-2) /* ... k v k v */
-          lua.rawSet(uperms) /* ... k v ; uperms[k] = v */
-          // Recurse into tables.
-          if (lua.isTable(-1)) {
-            // Enforce a deterministic order when determining the keys, to ensure
-            // the keys are the same when unpersisting again.
-            val key = lua.toString(-2)
-            val childKeys = mutable.ArrayBuffer.empty[String]
-            lua.pushNil() /* ... k v nil */
-            while (lua.next(-2)) {
-              /* ... k v ck cv */
-              lua.pop(1) /* ... k v ck */
-              childKeys += lua.toString(-1)
-            }
-            /* ... k v */
-            childKeys.sortWith((a, b) => a.compareTo(b) < 0)
-            for (childKey <- childKeys) {
-              lua.pushString(key + "." + childKey) /* ... k v ck */
-              lua.getField(-2, childKey) /* ... k v ck cv */
-              flattenAndStore() /* ... k v */
-            }
-            /* ... k v */
-          }
-          /* ... k v */
-        }
-        /* ... k v */
-      }
-      lua.pop(2) /* ... */
-    }
-
-    // Mark everything that's globally reachable at this point as permanent.
-    lua.pushString("_G") /* ... perms uperms k */
-    lua.getGlobal("_G") /* ... perms uperms k v */
-
-    flattenAndStore() /* ... perms uperms */
-    lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
-    lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
-  }
-
-  private def persist(index: Int): Array[Byte] = {
-    lua.getGlobal("eris") /* ... eris */
-    lua.getField(-1, "persist") /* ... eris persist */
-    if (lua.isFunction(-1)) {
-      lua.getField(LuaState.REGISTRYINDEX, "perms") /* ... eris persist perms */
-      lua.pushValue(index) // ... eris persist perms obj
-      try {
-        lua.call(2, 1) // ... eris str?
-      } catch {
-        case e: Throwable =>
-          lua.pop(1)
-          throw e
-      }
-      if (lua.isString(-1)) {
-        // ... eris str
-        val result = lua.toByteArray(-1)
-        lua.pop(2) // ...
-        return result
-      } // ... eris :(
-    } // ... eris :(
-    lua.pop(2) // ...
-    Array[Byte]()
-  }
-
-  private def unpersist(value: Array[Byte]): Boolean = {
-    lua.getGlobal("eris") // ... eris
-    lua.getField(-1, "unpersist") // ... eris unpersist
-    if (lua.isFunction(-1)) {
-      lua.getField(LuaState.REGISTRYINDEX, "uperms") /* ... eris persist uperms */
-      lua.pushByteArray(value) // ... eris unpersist uperms str
-      lua.call(2, 1) // ... eris obj
-      lua.insert(-2) // ... obj eris
-      lua.pop(1)
-      return true
-    } // ... :(
-    lua.pop(1)
-    false
   }
 }

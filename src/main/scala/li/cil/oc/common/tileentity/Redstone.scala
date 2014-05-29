@@ -17,6 +17,8 @@ class Redstone extends Environment with BundledRedstoneAware {
     _isOutputEnabled = true
   }
 
+  override def canUpdate = isServer
+
   // ----------------------------------------------------------------------- //
 
   override def readFromNBT(nbt: NBTTagCompound) {

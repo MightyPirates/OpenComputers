@@ -9,13 +9,11 @@ import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import java.util.logging.Level
 import li.cil.oc.api.Network
 import li.cil.oc.common.tileentity.traits.power
-import li.cil.oc.server.driver.Registry
-import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ProjectRed}
-import li.cil.oc.{OpenComputers, UpdateCheck, Items, Settings}
+import li.cil.oc._
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.item.{ItemMap, ItemStack}
+import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
@@ -94,40 +92,23 @@ object EventHandler {
     }
   }
 
+  lazy val navigationUpgrade = api.Items.get("navigationUpgrade")
+
   @SubscribeEvent
   def onCrafting(e: ItemCraftedEvent) = {
-    if (e.crafting.isItemEqual(Items.upgradeNavigation.createItemStack())) {
-      Registry.itemDriverFor(e.crafting) match {
-        case Some(driver) =>
-          var oldMap = None: Option[ItemStack]
-          for (i <- 0 until e.craftMatrix.getSizeInventory) {
-            val stack = e.craftMatrix.getStackInSlot(i)
-            if (stack != null) {
-              if (stack.isItemEqual(Items.upgradeNavigation.createItemStack())) {
-                // Restore the map currently used in the upgrade.
-                val nbt = driver.dataTag(stack)
-                oldMap = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map")))
-              }
-              else if (stack.getItem == net.minecraft.init.Items.map) {
-                // Store information of the map used for crafting in the result.
-                val nbt = driver.dataTag(e.crafting)
-                val map = stack.getItem.asInstanceOf[ItemMap]
-                val info = map.getMapData(stack, e.player.getEntityWorld)
-                nbt.setInteger(Settings.namespace + "xCenter", info.xCenter)
-                nbt.setInteger(Settings.namespace + "zCenter", info.zCenter)
-                nbt.setInteger(Settings.namespace + "scale", 128 * (1 << info.scale))
-                nbt.setNewCompoundTag(Settings.namespace + "map", stack.writeToNBT)
-              }
-            }
-          }
-          if (oldMap.isDefined) {
-            val map = oldMap.get
+    if (api.Items.get(e.crafting) == navigationUpgrade) {
+      Option(api.Driver.driverFor(e.crafting)).foreach(driver =>
+        for (i <- 0 until e.craftMatrix.getSizeInventory) {
+          val stack = e.craftMatrix.getStackInSlot(i)
+          if (stack != null && api.Items.get(stack) == navigationUpgrade) {
+            // Restore the map currently used in the upgrade.
+            val nbt = driver.dataTag(stack)
+            val map = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(Settings.namespace + "map"))
             if (!e.player.inventory.addItemStackToInventory(map)) {
               e.player.dropPlayerItemWithRandomChoice(map, false)
             }
           }
-        case _ =>
-      }
+        })
     }
   }
 }

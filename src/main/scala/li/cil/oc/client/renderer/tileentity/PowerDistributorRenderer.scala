@@ -1,6 +1,5 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.Blocks
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
@@ -9,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
+import li.cil.oc.client.Textures
 
 object PowerDistributorRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
@@ -30,13 +30,13 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
       val t = Tessellator.instance
       t.startDrawingQuads()
 
-      val topOn = Blocks.powerDistributor.iconTopOn
+      val topOn = Textures.PowerDistributor.iconTopOn
       t.addVertexWithUV(0, 0, 1, topOn.getMinU, topOn.getMaxV)
       t.addVertexWithUV(1, 0, 1, topOn.getMaxU, topOn.getMaxV)
       t.addVertexWithUV(1, 0, 0, topOn.getMaxU, topOn.getMinV)
       t.addVertexWithUV(0, 0, 0, topOn.getMinU, topOn.getMinV)
 
-      val sideOn = Blocks.powerDistributor.iconSideOn
+      val sideOn = Textures.PowerDistributor.iconSideOn
       t.addVertexWithUV(1, 1, 0, sideOn.getMinU, sideOn.getMaxV)
       t.addVertexWithUV(0, 1, 0, sideOn.getMaxU, sideOn.getMaxV)
       t.addVertexWithUV(0, 0, 0, sideOn.getMaxU, sideOn.getMinV)
