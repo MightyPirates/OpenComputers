@@ -3,11 +3,12 @@ package li.cil.oc.server.driver
 import java.util
 import java.util.logging.Level
 import li.cil.oc.api.driver.Converter
-import li.cil.oc.{OpenComputers, api}
+import li.cil.oc.{ OpenComputers, api }
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ Map => MMap }
 
 /**
  * This class keeps track of registered drivers and provides installation logic
@@ -63,46 +64,64 @@ private[oc] object Registry extends api.detail.DriverAPI {
     }
     else None
 
-  def convert(value: Array[AnyRef]) = if (value != null) value.map(convertRecursively) else null
+  def convert(value: Array[AnyRef]) = if (value != null) value.map(convertRecursively(_, Nil, MMap())) else null
 
-  def convertRecursively(value: AnyRef): AnyRef = value match {
-    case null | Unit | None => null
-    case arg: java.lang.Boolean => arg
-    case arg: java.lang.Byte => arg
-    case arg: java.lang.Character => arg
-    case arg: java.lang.Short => arg
-    case arg: java.lang.Integer => arg
-    case arg: java.lang.Long => arg
-    case arg: java.lang.Float => arg
-    case arg: java.lang.Double => arg
-    case arg: java.lang.String => arg
+  def convertRecursively(value: AnyRef, chain: List[AnyRef], cache: MMap[AnyRef, AnyRef]): AnyRef = {
 
-    case arg: Array[Boolean] => arg
-    case arg: Array[Byte] => arg
-    case arg: Array[Character] => arg
-    case arg: Array[Short] => arg
-    case arg: Array[Integer] => arg
-    case arg: Array[Long] => arg
-    case arg: Array[Float] => arg
-    case arg: Array[Double] => arg
-    case arg: Array[String] => arg
-
-    case arg: Array[_] => arg.map {
-      case (value: AnyRef) => convertRecursively(value)
+    if (chain.contains(value)) {
+      OpenComputers.log.log(Level.WARNING, "Circular reference in converted value!! Aborting conversion.")
+      
+      throw new IllegalArgumentException("Circular reference in converted value!! Aborting conversion.")
     }
-    case arg: Map[_, _] => arg.collect {
-      case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
-    }
-    case arg: java.util.Map[_, _] => arg.collect {
-      case (key: AnyRef, value: AnyRef) => convertRecursively(key) -> convertRecursively(value)
+    
+    if (cache.contains(value)) cache.get(value).get
+
+    def convertFurther = convertRecursively(_: AnyRef, value :: chain, cache)
+    
+    val converted = value match {
+      case null | Unit | None => null
+      case arg: java.lang.Boolean => arg
+      case arg: java.lang.Byte => arg
+      case arg: java.lang.Character => arg
+      case arg: java.lang.Short => arg
+      case arg: java.lang.Integer => arg
+      case arg: java.lang.Long => arg
+      case arg: java.lang.Float => arg
+      case arg: java.lang.Double => arg
+      case arg: java.lang.String => arg
+
+      case arg: Array[Boolean] => arg
+      case arg: Array[Byte] => arg
+      case arg: Array[Character] => arg
+      case arg: Array[Short] => arg
+      case arg: Array[Integer] => arg
+      case arg: Array[Long] => arg
+      case arg: Array[Float] => arg
+      case arg: Array[Double] => arg
+      case arg: Array[String] => arg
+
+      case arg: Array[_] => arg.map {
+        case (value: AnyRef) => convertFurther(value)
+      }
+      case arg: Map[_, _] => arg.collect {
+        case (key: AnyRef, value: AnyRef) => convertFurther(key) -> convertFurther(value)
+      }
+      case arg: java.util.Map[_, _] => arg.collect {
+        case (key: AnyRef, value: AnyRef) => convertFurther(key) -> convertFurther(value)
+      }
+
+      case arg =>
+        val result = new util.HashMap[AnyRef, AnyRef]()
+        converters.foreach(converter => try converter.convert(arg, result) catch {
+          case t: Throwable => OpenComputers.log.log(Level.WARNING, "Type converter threw an exception.", t)
+        })
+        if (result.isEmpty) null
+        else convertFurther(result)
     }
 
-    case arg =>
-      val result = new util.HashMap[AnyRef, AnyRef]()
-      converters.foreach(converter => try converter.convert(arg, result) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Type converter threw an exception.", t)
-      })
-      if (result.isEmpty) null
-      else result
+    cache += value -> converted
+
+    converted
+
   }
 }
