@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer
 
+import java.util.logging.Level
 import li.cil.oc.client.Textures
 import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
@@ -12,7 +13,7 @@ import scala.io.Source
 
 object MonospaceFontRenderer {
   val (chars, fontWidth, fontHeight) = try {
-    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "/textures/font/chars.txt")).getInputStream)("UTF-8").getLines()
+    val lines = Source.fromInputStream(Minecraft.getMinecraft.getResourceManager.getResource(new ResourceLocation(Settings.resourceDomain, "textures/font/chars.txt")).getInputStream)("UTF-8").getLines()
     val chars = lines.next()
     val (w, h) = if (lines.hasNext) {
       val size = lines.next().split(" ", 2)
@@ -22,8 +23,8 @@ object MonospaceFontRenderer {
   }
   catch {
     case t: Throwable =>
-      OpenComputers.log.warning("Failed reading font metdata, using defaults.")
-      ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
+      OpenComputers.log.log(Level.WARNING, "Failed reading font metadata, using defaults.", t)
+      ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
   }
 
   private var instance: Option[Renderer] = None
