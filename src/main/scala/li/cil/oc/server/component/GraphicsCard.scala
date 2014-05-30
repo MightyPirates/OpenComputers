@@ -9,7 +9,6 @@ import li.cil.oc.common.component
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector
-import scala.collection.convert.WrapAsScala._
 
 abstract class GraphicsCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).

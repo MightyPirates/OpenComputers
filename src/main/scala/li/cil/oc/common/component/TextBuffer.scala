@@ -375,7 +375,14 @@ object TextBuffer {
 
     var dirty = false
 
+    var lastChange = 0L
+
     var nodeAddress = ""
+
+    def markDirty() {
+      dirty = true
+      lastChange = owner.owner.world.getWorldTime
+    }
 
     def render() = false
 
@@ -418,36 +425,35 @@ object TextBuffer {
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
-      val wasDirty = dirty
       TextBufferRenderCache.render(owner)
-      wasDirty
+      lastChange == owner.owner.world.getWorldTime
     }
 
     override def onScreenColorChange() {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onScreenCopy(col, row, w, h, tx, ty)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onScreenFill(col, row, w, h, c)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenPaletteChange(index: Int) {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
       super.onScreenResolutionChange(w, h)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
