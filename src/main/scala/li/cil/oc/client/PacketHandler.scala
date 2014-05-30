@@ -47,8 +47,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
-      case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
-      case PacketType.RobotEquippedUpgradeChange => onRobotEquippedUpgradeChange(p)
+      case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RotatableState => onRotatableState(p)
@@ -220,15 +219,16 @@ object PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotEquippedItemChange(p: PacketParser) =
+  def onRobotInventoryChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.equippedItem = Option(p.readItemStack())
-      case _ => // Invalid packet.
-    }
-
-  def onRobotEquippedUpgradeChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.equippedUpgrade = Option(p.readItemStack())
+      case Some(t) =>
+        val robot = t.robot
+        val slot = p.readInt()
+        val stack = p.readItemStack()
+        if (slot >= robot.getSizeInventory - robot.componentCount) {
+          robot.info.components(slot - (robot.getSizeInventory - robot.componentCount)) = stack
+        }
+        else t.robot.setInventorySlotContents(slot, stack)
       case _ => // Invalid packet.
     }
 

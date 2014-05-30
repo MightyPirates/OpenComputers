@@ -95,8 +95,8 @@ object ItemUtils {
         )
         containers = Array(
           api.Items.get("cardContainer2").createItemStack(1),
-          api.Items.get("upgradeContainer3").createItemStack(1),
-          api.Items.get("diskDrive").createItemStack(1)
+          api.Items.get("diskDrive").createItemStack(1),
+          api.Items.get("upgradeContainer3").createItemStack(1)
         )
         robotEnergy = totalEnergy
       }
