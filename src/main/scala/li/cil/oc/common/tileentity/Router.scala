@@ -10,7 +10,7 @@ import scala.collection.mutable
 import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
 import dan200.computercraft.api.lua.ILuaContext
 
-@Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
+@Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
 class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
   var lastMessage = 0L
 
