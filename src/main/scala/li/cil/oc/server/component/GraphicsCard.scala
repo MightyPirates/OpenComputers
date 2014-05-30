@@ -2,13 +2,14 @@ package li.cil.oc.server.component
 
 import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.PackedColor
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.StatCollector
-import li.cil.oc.api.component.TextBuffer
+import scala.collection.convert.WrapAsScala._
 
 abstract class GraphicsCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
@@ -233,36 +234,39 @@ abstract class GraphicsCard extends component.ManagedComponent {
   override def onMessage(message: Message) {
     super.onMessage(message)
     if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
-      screenInstance match {
-        case Some(buffer) => buffer.synchronized {
-          val w = buffer.getWidth
-          val h = buffer.getHeight
-          buffer.setForegroundColor(0xFFFFFF)
-          message.source.host match {
-            case machine: machine.Machine if machine.lastError != null =>
-              if (buffer.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) buffer.setBackgroundColor(0x0000FF)
-              else buffer.setBackgroundColor(0x000000)
-              buffer.fill(0, 0, w, h, ' ')
-              try {
-                val message = "Unrecoverable error:\n" + StatCollector.translateToLocal(machine.lastError) + "\n"
-                val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
-                val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
-                for ((line, idx) <- lines.zipWithIndex) {
-                  val col = (w - line.length) / 2
-                  val row = (h - lines.length) / 2 + idx
-                  buffer.set(col, row, line, false)
-                }
+      screen(s => {
+        val (gmw, gmh) = maxResolution
+        val smw = s.getMaximumWidth
+        val smh = s.getMaximumHeight
+        s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
+        s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+        s.setForegroundColor(0xFFFFFF)
+        val w = s.getWidth
+        val h = s.getHeight
+        message.source.host match {
+          case machine: machine.Machine if machine.lastError != null =>
+            if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
+            else s.setBackgroundColor(0x000000)
+            s.fill(0, 0, w, h, ' ')
+            try {
+              val message = "Unrecoverable error:\n" + StatCollector.translateToLocal(machine.lastError) + "\n"
+              val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
+              val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
+              for ((line, idx) <- lines.zipWithIndex) {
+                val col = (w - line.length) / 2
+                val row = (h - lines.length) / 2 + idx
+                s.set(col, row, line, false)
               }
-              catch {
-                case t: Throwable => t.printStackTrace()
-              }
-            case _ =>
-              buffer.setBackgroundColor(0x000000)
-              buffer.fill(0, 0, w, h, ' ')
-          }
+            }
+            catch {
+              case t: Throwable => t.printStackTrace()
+            }
+          case _ =>
+            s.setBackgroundColor(0x000000)
+            s.fill(0, 0, w, h, ' ')
         }
-        case _ =>
-      }
+        null // For screen()
+      })
     }
   }
 

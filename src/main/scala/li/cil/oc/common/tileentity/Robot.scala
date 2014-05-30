@@ -268,7 +268,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       info.totalEnergy = globalBuffer.toInt
       info.robotEnergy = bot.node.localBuffer.toInt
       updatePowerInformation()
-      }
+    }
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
@@ -294,10 +294,12 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override protected def dispose() {
     super.dispose()
-    Minecraft.getMinecraft.currentScreen match {
-      case robotGui: gui.Robot if robotGui.robot == this =>
-      Minecraft.getMinecraft.displayGuiScreen(null)
-      case _ =>
+    if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case robotGui: gui.Robot if robotGui.robot == this =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
     }
   }
 
@@ -403,8 +405,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       bot.node.remove()
       for (slot <- componentSlots) {
         Option(getComponentInSlot(slot)).foreach(_.node.remove())
+      }
     }
-  }
   }
 
   // ----------------------------------------------------------------------- //
@@ -536,7 +538,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver: api.driver.Processor) => driver.supportedComponents(stack)
       case _ => 0
-  }
+    }
     case _ => 0
   }))
 
@@ -597,15 +599,15 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   override def setInventorySlotContents(slot: Int, stack: ItemStack) {
     if (slot < getSizeInventory - componentCount) {
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
-      super.setInventorySlotContents(slot, stack.splitStack(1))
-      if (stack.stackSize > 0 && isServer) {
-        val p = player()
-        p.inventory.addItemStackToInventory(stack)
-        p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+        super.setInventorySlotContents(slot, stack.splitStack(1))
+        if (stack.stackSize > 0 && isServer) {
+          val p = player()
+          p.inventory.addItemStackToInventory(stack)
+          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+        }
       }
+      else super.setInventorySlotContents(slot, stack)
     }
-    else super.setInventorySlotContents(slot, stack)
-  }
   }
 
   override def isUseableByPlayer(player: EntityPlayer) =

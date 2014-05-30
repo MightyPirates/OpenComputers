@@ -63,6 +63,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
         if (stack != null && !isItemValidForSlot(slot, stack)) return
       }
       val data = new ItemUtils.RobotData()
+      data.tier = ItemUtils.caseTier(items(0).get)
       data.name = ItemUtils.RobotData.randomName
       data.robotEnergy = 50000
       data.totalEnergy = data.robotEnergy
