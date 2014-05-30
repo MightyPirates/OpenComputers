@@ -5,10 +5,13 @@ import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.occ.OpenComponents;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+
+import com.google.common.base.Preconditions;
 
 public final class DriverInventory extends DriverTileEntity {
     @Override
@@ -116,7 +119,30 @@ public final class DriverInventory extends DriverTileEntity {
             // Fail.
             return new Object[]{false};
         }
-
+//new
+        @Callback
+    	public Object[] getStackInSlot(final Context context, final Arguments args) {
+        	if(OpenComponents.instance.advancedInventoryOptions){
+        		Preconditions.checkElementIndex(checkSlot(args,0), tileEntity.getSizeInventory(), "slot id");
+        		return new Object[]{tileEntity.getStackInSlot(checkSlot(args,0))};
+        	}else{
+        		return new Object[]{"This option is off in the config file"};
+        	}
+    	}
+        
+    	@Callback
+    	public Object[] getAllStacks(final Context context, final Arguments args) {
+    		if(OpenComponents.instance.advancedInventoryOptions){
+    			ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
+    			for (int i = 0; i < tileEntity.getSizeInventory(); i++) {
+    				allStacks[i] = tileEntity.getStackInSlot(i);
+    			}
+    			return new Object[]{allStacks};
+    		}else{
+        		return new Object[]{"This option is off in the config file"};
+        	}
+    	}
+        
         private int checkSlot(final Arguments args, final int number) {
             final int slot = args.checkInteger(number) - 1;
             if (slot < 0 || slot >= tileEntity.getSizeInventory()) {

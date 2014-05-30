@@ -8,6 +8,7 @@ import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
 import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.enderstorage.ModEnderStorage;
+import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
@@ -30,8 +31,9 @@ public class OpenComponents {
             "appeng.api.me.tiles.ICellProvider",
             "appeng.api.me.tiles.ICellProvider",
             "appeng.me.tile.TileController"
-
     };
+    
+    public static Boolean advancedInventoryOptions =false; 
 
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
@@ -42,7 +44,7 @@ public class OpenComponents {
                 "accessible via the Adapter block. Add blocks here that can\n" +
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
-
+        advancedInventoryOptions = config.get("Inventory", "advancedInventoryOptions", false).getBoolean(false);
         config.save();
     }
 
@@ -51,6 +53,7 @@ public class OpenComponents {
         Registry.add(new ModAppEng());
         Registry.add(new ModBuildCraft());
         Registry.add(new ModEnderStorage());
+        Registry.add(new ModForestry());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModRailcraft());
         Registry.add(new ModRedstoneInMotion());
