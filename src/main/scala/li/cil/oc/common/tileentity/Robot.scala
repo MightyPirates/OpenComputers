@@ -292,10 +292,12 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override protected def dispose() {
     super.dispose()
-    Minecraft.getMinecraft.currentScreen match {
-      case robotGui: gui.Robot if robotGui.robot == this =>
-        Minecraft.getMinecraft.displayGuiScreen(null)
-      case _ =>
+    if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case robotGui: gui.Robot if robotGui.robot == this =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
     }
   }
 
