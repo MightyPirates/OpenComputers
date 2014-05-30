@@ -193,7 +193,7 @@ class Settings(config: Config) {
   val updateCheck = config.getBoolean("misc.updateCheck")
   val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
-  val debugPersistence = true
+  val debugPersistence = config.getBoolean("misc.verbosePersistenceErrors")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
