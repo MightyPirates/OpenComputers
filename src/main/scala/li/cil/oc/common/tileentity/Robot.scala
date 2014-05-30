@@ -50,6 +50,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var selectedSlot = actualSlot(0)
 
+  // For client.
+  var renderingErrored = false
+
   // Fixed number of containers (mostly due to GUI limitation, but also because
   // I find three to be a large enough number for sufficient flexibility).
   override def containerCount = 3
@@ -60,15 +63,15 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def player() = player(facing, facing)
 
-  override def saveUpgrade() = this.synchronized {
-    components(3) match {
-      case Some(environment) =>
-        val stack = getStackInSlot(3)
+  override def synchronizeSlot(slot: Int) = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
+    val stack = getStackInSlot(slot)
+    components(slot) match {
+      case Some(component) =>
         // We're guaranteed to have a driver for entries.
-        environment.save(dataTag(Driver.driverFor(stack), stack))
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
+        save(component, Driver.driverFor(stack), stack)
       case _ =>
     }
+    ServerPacketSender.sendRobotInventory(this, slot, stack)
   }
 
   def containerSlots = 1 to info.containers.length
@@ -86,10 +89,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   var maxComponents = 0
 
   var owner = "OpenComputers"
-
-  var equippedItem: Option[ItemStack] = None
-
-  var equippedUpgrade: Option[ItemStack] = None
 
   var animationTicksLeft = 0
 
@@ -350,17 +349,12 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
+    load(nbt)
     info.load(nbt)
 
     updateInventorySize()
 
     selectedSlot = nbt.getInteger("selectedSlot")
-    if (nbt.hasKey("equipped")) {
-      equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
-    }
-    if (nbt.hasKey("upgrade")) {
-      equippedUpgrade = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("upgrade")))
-    }
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     moveFromX = nbt.getInteger("moveFromX")
@@ -375,24 +369,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
     super.writeToNBTForClient(nbt)
+    save(nbt)
     info.save(nbt)
+
     nbt.setInteger("selectedSlot", selectedSlot)
-    if (getStackInSlot(0) != null) {
-      nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
-    }
-    if (getStackInSlot(3) != null) {
-      // Force saving to item's NBT if necessary before sending, to make sure
-      // we transfer the component's current state (e.g. running or not for
-      // generator upgrades).
-      components(3) match {
-        case Some(environment) =>
-          val stack = getStackInSlot(3)
-          // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Driver.driverFor(stack), stack))
-        case _ => // See onConnect()
-      }
-      nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
-    }
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)
@@ -411,17 +391,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (node == this.node) {
       node.connect(bot.node)
       node.asInstanceOf[Connector].setLocalBufferSize(0)
-
-      // There's a chance the server sends a robot tile entity to its clients
-      // before the tile entity's first update was called, in which case the
-      // component list isn't initialized (e.g. when a client triggers a chunk
-      // load, most noticeable in single player). In that case the current
-      // equipment will be initialized incorrectly. So we have to send it
-      // again when the first update is run. One of the two (this and the info
-      // sent in writeToNBTForClient) may be superfluous, but the packet is
-      // quite small compared to what else is sent on a chunk load, so we don't
-      // really worry about it and just send it.
-      saveUpgrade()
     }
   }
 
@@ -442,10 +411,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       if (isToolSlot(slot)) {
         player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(slot))
+        ServerPacketSender.sendRobotInventory(this, slot, stack)
       }
       if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
+        ServerPacketSender.sendRobotInventory(this, slot, stack)
       }
       if (isFloppySlot(slot)) {
         common.Sound.playDiskInsert(this)
@@ -464,10 +433,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       if (isToolSlot(slot)) {
         player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, null)
+        ServerPacketSender.sendRobotInventory(this, slot, null)
       }
       if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, null)
+        ServerPacketSender.sendRobotInventory(this, slot, null)
       }
       if (isFloppySlot(slot)) {
         common.Sound.playDiskEject(this)
@@ -482,6 +451,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     super.onInventoryChanged()
     updateInventorySize()
     updateMaxComponentCount()
+    renderingErrored = false
   }
 
   override protected def connectItemNode(node: Node) {

@@ -192,19 +192,11 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendRobotEquippedItemChange(t: tileentity.Robot, stack: ItemStack) {
-    val pb = new PacketBuilder(PacketType.RobotEquippedItemChange)
+  def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
+    val pb = new PacketBuilder(PacketType.RobotInventoryChange)
 
     pb.writeTileEntity(t.proxy)
-    pb.writeItemStack(stack)
-
-    pb.sendToNearbyPlayers(t)
-  }
-
-  def sendRobotEquippedUpgradeChange(t: tileentity.Robot, stack: ItemStack) {
-    val pb = new PacketBuilder(PacketType.RobotEquippedUpgradeChange)
-
-    pb.writeTileEntity(t.proxy)
+    pb.writeInt(slot)
     pb.writeItemStack(stack)
 
     pb.sendToNearbyPlayers(t)

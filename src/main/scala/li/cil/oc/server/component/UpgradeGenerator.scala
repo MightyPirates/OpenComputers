@@ -25,6 +25,8 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
 
   var remainingTicks = 0
 
+  def slot = (0 until owner.getSizeInventory).indexWhere(owner.getComponentInSlot(_) == this)
+
   // ----------------------------------------------------------------------- //
 
   @Callback(doc = """function([count:number]):boolean -- Tries to insert fuel from the selected slot into the generator's queue.""")
@@ -104,7 +106,7 @@ class UpgradeGenerator(val owner: Container with Robot) extends component.Manage
     }
   }
 
-  private def updateClient() = owner.saveUpgrade()
+  private def updateClient() = owner.synchronizeSlot(slot)
 
   // ----------------------------------------------------------------------- //
 

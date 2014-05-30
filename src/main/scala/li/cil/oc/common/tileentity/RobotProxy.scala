@@ -49,7 +49,7 @@ class RobotProxy(val robot: Robot) extends traits.Computer with traits.PowerInfo
 
   override def selectedSlot() = robot.selectedSlot
 
-  override def saveUpgrade() = robot.saveUpgrade()
+  override def synchronizeSlot(slot: Int) = robot.synchronizeSlot(slot)
 
   // ----------------------------------------------------------------------- //
 

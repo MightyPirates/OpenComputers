@@ -1,14 +1,15 @@
 package li.cil.oc.api.event;
 
 import li.cil.oc.api.machine.Robot;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.event.Cancelable;
+import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 
 /**
  * Fired directly before the robot's chassis is rendered.
  * <p/>
  * If this event is canceled, the chassis will <em>not</em> be rendered.
- * Component items' item renderes will still be invoked, at the possibly
+ * Component items' item renderers will still be invoked, at the possibly
  * modified mount points.
  * <p/>
  * <em>Important</em>: the robot instance may be null in this event, in
@@ -40,12 +41,21 @@ public class RobotRenderEvent extends RobotEvent {
     public static class MountPoint {
         /**
          * The position of the mount point, relative to the robot's center.
+         * For the purposes of this offset, the robot is always facing south,
+         * i.e. the positive Z axis is 'forward'.
+         * <p/>
+         * Note that the rotation is applied <em>before</em> the translation.
          */
-        public final Vec3 offset = Vec3.createVectorHelper(0, 0, 0);
+        public final Vector3f offset = new Vector3f(0, 0, 0);
 
         /**
-         * The vector the mount point is facing.
+         * The orientation of the mount point specified by the angle and the
+         * vector to rotate around. The rotation is applied in one
+         * GL11.glRotate() call. Note that the <tt>W</tt> component of the
+         * vector is the rotation.
+         * <p/>
+         * Note that the rotation is applied <em>before</em> the translation.
          */
-        public final Vec3 normal = Vec3.createVectorHelper(0, 0, 0);
+        public final Vector4f rotation = new Vector4f(0, 0, 0, 0);
     }
 }

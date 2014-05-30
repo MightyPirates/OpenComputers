@@ -33,6 +33,7 @@ object Textures extends ResourceManagerReloadListener {
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
+  val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_inventory_equipped.png")
 
   object Charger {
     var iconFrontCharging: Icon = _
