@@ -33,7 +33,7 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
     }
 
     @Override
-    protected IPeripheral findPeripheral(World world, int x, int y, int z) {
+    protected IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
         final TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
         if (tileEntity instanceof IPeripheral) {
             return (IPeripheral) tileEntity;

@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class DriverPeripheral<TPeripheral> implements li.cil.oc.api.driver.Block {
-    private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
+    protected static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
 
     static {
         for (String name : OpenComponents.peripheralBlacklist) {
@@ -19,10 +19,10 @@ public abstract class DriverPeripheral<TPeripheral> implements li.cil.oc.api.dri
             }
         }
     }
-    private boolean isBlacklisted(Object o){
 
-        for(Class<?> clazz:blacklist){
-            if(clazz.isInstance(o))
+    protected boolean isBlacklisted(final Object o) {
+        for (Class<?> clazz : blacklist) {
+            if (clazz.isInstance(o))
                 return true;
         }
         return false;

@@ -37,7 +37,7 @@ public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
     }
 
     @Override
-    protected IPeripheral findPeripheral(World world, int x, int y, int z) {
+    protected IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
         if (ComputerCraft_getPeripheralAt != null) {
             try {
                 return (IPeripheral) ComputerCraft_getPeripheralAt.invoke(null, world, x, y, z, -1);

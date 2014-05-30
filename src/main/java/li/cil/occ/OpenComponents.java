@@ -32,8 +32,8 @@ public class OpenComponents {
             "appeng.api.me.tiles.ICellProvider",
             "appeng.me.tile.TileController"
     };
-    
-    public static Boolean advancedInventoryOptions =false; 
+
+    public static Boolean allowItemStackInspection = false;
 
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
@@ -44,7 +44,7 @@ public class OpenComponents {
                 "accessible via the Adapter block. Add blocks here that can\n" +
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
-        advancedInventoryOptions = config.get("Inventory", "advancedInventoryOptions", false).getBoolean(false);
+        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).getBoolean(false);
         config.save();
     }
 
