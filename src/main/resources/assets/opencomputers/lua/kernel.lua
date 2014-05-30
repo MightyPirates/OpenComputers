@@ -538,28 +538,35 @@ sandbox.unicode = libunicode
 -------------------------------------------------------------------------------
 
 local function bootstrap()
-  local function tryLoadFrom(address)
-    function boot_invoke(method, ...)
-      local result = table.pack(pcall(invoke, component, true, address, method, ...))
-      if not result[1] then
-        return nil, result[2]
-      else
-        return table.unpack(result, 2, result.n)
-      end
+  function boot_invoke(address, method, ...)
+    local result = table.pack(pcall(invoke, component, true, address, method, ...))
+    if not result[1] then
+      return nil, result[2]
+    else
+      return table.unpack(result, 2, result.n)
     end
-    local handle, reason = boot_invoke("open", "/init.lua")
+  end
+  do
+    local screen = libcomponent.list("screen")()
+    local gpu = libcomponent.list("gpu")()
+    if gpu and screen then
+      boot_invoke(gpu, "bind", screen)
+    end
+  end
+  local function tryLoadFrom(address)
+    local handle, reason = boot_invoke(address, "open", "/init.lua")
     if not handle then
       return nil, reason
     end
     local buffer = ""
     repeat
-      local data, reason = boot_invoke("read", handle, math.huge)
+      local data, reason = boot_invoke(address, "read", handle, math.huge)
       if not data and reason then
         return nil, reason
       end
       buffer = buffer .. (data or "")
     until not data
-    boot_invoke("close", handle)
+    boot_invoke(address, "close", handle)
     return load(buffer, "=init", "t", sandbox)
   end
   local init, reason
