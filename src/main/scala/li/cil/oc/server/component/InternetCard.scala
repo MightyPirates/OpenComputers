@@ -269,14 +269,16 @@ object InternetCard {
     }
   }
 
-  class Request(val owner: Option[InternetCard] = None) extends AbstractValue {
+  class Request extends AbstractValue {
+    private var owner: Option[InternetCard] = None
     private var url: URL = null
     private var post: Option[String] = None
     private var data: Option[Array[Byte]] = None
     private var error: Option[String] = None
 
     def this(owner: InternetCard, url: URL, post: Option[String]) {
-      this(Option(owner))
+      this()
+      this.owner = Option(owner)
       this.url = url
       this.post = post
       scheduleRequest()
