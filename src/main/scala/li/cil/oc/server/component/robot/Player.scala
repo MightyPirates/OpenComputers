@@ -180,7 +180,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
       if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
-        tryUseItem(getCurrentEquippedItem, duration)
+        tryUseItem(stack, duration)
       }
       else false
     })
@@ -213,7 +213,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      if (stackChanged) {
+        robot.setInventorySlotContents(0, newStack)
+      }
+      stackChanged
     }
   }
 
@@ -357,13 +361,14 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
       f(stack)
     }
     finally {
-      if (stack != null) {
-        if (stack.stackSize <= 0) {
+      val newStack = inventory.getStackInSlot(slot)
+      if (newStack != null) {
+        if (newStack.stackSize <= 0) {
           inventory.setInventorySlotContents(slot, null)
         }
         if (repair) {
-          if (stack.stackSize > 0) tryRepair(stack, oldStack)
-          else ForgeEventFactory.onPlayerDestroyItem(this, stack)
+          if (newStack.stackSize > 0) tryRepair(newStack, oldStack)
+          else ForgeEventFactory.onPlayerDestroyItem(this, newStack)
         }
       }
       collectDroppedItems(itemsBefore)
@@ -371,10 +376,13 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   }
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
-    val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
-    MinecraftForge.EVENT_BUS.post(damageRate)
-    if (damageRate.getDamageRate < 1) {
-      MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
+    // Only if the underlying type didn't change.
+    if (stack.getItem == oldStack.getItem) {
+      val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
+      MinecraftForge.EVENT_BUS.post(damageRate)
+      if (damageRate.getDamageRate < 1) {
+        MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
+      }
     }
   }
 
