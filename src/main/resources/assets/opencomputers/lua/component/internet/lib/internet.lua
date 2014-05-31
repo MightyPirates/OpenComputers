@@ -31,11 +31,18 @@ function internet.request(url, data)
   end
 
   return function()
-    local data, reason = result.read()
-    if not data and reason then
-      error(reason, 2)
-    else
-      return data
+    while true do
+      local data, reason = result.read()
+      if not data then
+        if reason then
+          error(reason, 2)
+        else
+          return nil -- eof
+        end
+      elseif #data > 0 then
+        return data
+      end
+      -- else: no data, block
     end
   end
 end

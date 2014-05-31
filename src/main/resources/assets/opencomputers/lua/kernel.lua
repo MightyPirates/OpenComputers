@@ -244,17 +244,22 @@ sandbox._G = sandbox
 -- wrap and isolate it, to make sure it can't be touched by user code.
 -- These functions provide the logic for wrapping and unwrapping (when
 -- pushed to user code and when pushed back to the host, respectively).
-local wrapUserdata, wrapSingleUserdata, unwrapUserdata
-local wrappedUserdata = setmetatable({}, {
+local wrapUserdata, wrapSingleUserdata, unwrapUserdata, wrappedUserdataMeta
+wrappedUserdataMeta = {
   -- Weak keys, clean up once a proxy is no longer referenced anywhere.
   __mode="k",
   -- We need custom persist logic here to avoid ERIS trying to save the
   -- userdata referenced in this table directly. It will be repopulated
   -- in the load methods of the persisted userdata wrappers (see below).
   __persist = function()
-    return function() return {} end
+    return function()
+      -- When using special persistence we have to manually reassign the
+      -- metatable of the persisted value.
+      return setmetatable({}, wrappedUserdataMeta)
+    end
   end
-})
+}
+local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
 
 local function processArguments(...)
   local args = table.pack(...)
