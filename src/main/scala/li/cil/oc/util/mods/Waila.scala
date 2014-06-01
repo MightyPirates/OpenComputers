@@ -16,7 +16,7 @@ object Waila {
     registrar.registerSyncedNBTKey(Settings.namespace + "items", classOf[tileentity.DiskDrive])
     registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Hologram])
     registrar.registerSyncedNBTKey(Settings.namespace + "keyboard", classOf[tileentity.Keyboard])
-    registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Screen])
+    registrar.registerSyncedNBTKey("node", classOf[tileentity.Screen])
     registrar.registerSyncedNBTKey(Settings.namespace + "componentNodes", classOf[tileentity.WirelessRouter])
     registrar.registerSyncedNBTKey(Settings.namespace + "strength", classOf[tileentity.WirelessRouter])
   }

@@ -38,7 +38,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+    val node = accessor.getNBTData.getCompoundTag("node")
     if (node.hasKey("address")) {
       tooltip.add(StatCollector.translateToLocalFormatted(
         Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
