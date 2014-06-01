@@ -83,7 +83,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
-      lua.pushTable(Callbacks(value).map(entry => entry._1 -> entry._2.direct))
+      lua.pushValue(Callbacks(value).map(entry => entry._1 -> entry._2.direct))
       1
     })
     lua.setField(-2, "methods")
