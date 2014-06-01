@@ -48,10 +48,10 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   }
 
   override def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1)
+    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 0.5f, 1)
 
   override def itemBounds() {
-    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1))
+    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 0.5f, 1))
   }
 
   override def registerIcons(iconRegister: IconRegister) = {
