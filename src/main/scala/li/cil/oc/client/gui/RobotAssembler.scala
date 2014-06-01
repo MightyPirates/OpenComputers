@@ -3,6 +3,7 @@ package li.cil.oc.client.gui
 import java.util
 import li.cil.oc.api
 import li.cil.oc.Settings
+import li.cil.oc.api.driver.{Memory, Processor}
 import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
@@ -28,14 +29,36 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
+  private def hasCase = assembler.isItemValidForSlot(0, assembler.getStackInSlot(0))
+
+  private def hasCPU = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case processor: Processor => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasRAM = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case processor: Memory => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def isCapacityValid = assembler.complexity <= assembler.maxComplexity
+
+  private def canBuild = !assemblerContainer.isAssembling && hasCase && hasCPU && hasRAM && isCapacityValid
+
   protected override def actionPerformed(button: GuiButton) {
-    if (button.id == 0 && !assemblerContainer.isAssembling && assembler.complexity <= assembler.maxComplexity) {
+    if (button.id == 0 && canBuild) {
       ClientPacketSender.sendRobotAssemblerStart(assembler)
     }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
-    runButton.enabled = assembler.complexity <= assembler.maxComplexity && !assemblerContainer.isAssembling && assembler.isItemValidForSlot(0, assembler.getStackInSlot(0))
+    runButton.enabled = canBuild
     runButton.toggled = !runButton.enabled
     super.drawScreen(mouseX, mouseY, dt)
   }
@@ -49,20 +72,27 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
-      if (!inventorySlots.getSlot(0).getHasStack) {
+      def drawMessage(message: String) {
         fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.InsertCase"),
+          StatCollector.translateToLocal(Settings.namespace + message),
           30, 94, 0x404040)
       }
+      if (!inventorySlots.getSlot(0).getHasStack) {
+        drawMessage("gui.RobotAssembler.InsertCase")
+      }
       else if (api.Items.get(inventorySlots.getSlot(0).getStack) == api.Items.get("robot")) {
-        fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.CollectRobot"),
-          30, 94, 0x404040)
+        drawMessage("gui.RobotAssembler.CollectRobot")
+      }
+      else if (!hasCPU) {
+        drawMessage("gui.RobotAssembler.InsertCPU")
+      }
+      else if (!hasRAM) {
+        drawMessage("gui.RobotAssembler.InsertRAM")
       }
       else {
         fontRenderer.drawString(
           StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Complexity", Int.box(assembler.complexity), Int.box(assembler.maxComplexity)),
-          30, 94, if (assembler.complexity <= assembler.maxComplexity) 0x404040 else 0x804040)
+          30, 94, if (isCapacityValid) 0x404040 else 0x804040)
       }
       if (runButton.func_82252_a) {
         val tooltip = new java.util.ArrayList[String]
