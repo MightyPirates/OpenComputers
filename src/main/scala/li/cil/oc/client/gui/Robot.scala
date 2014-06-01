@@ -9,6 +9,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
@@ -21,11 +22,11 @@ import org.lwjgl.input.{Mouse, Keyboard}
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
-  protected val buffer = {
-    robot.components.collect {
-      case Some(buffer: api.component.TextBuffer) => buffer
-    }.headOption.orNull
-  }
+  override protected val buffer = robot.components.collect {
+    case Some(buffer: api.component.TextBuffer) => buffer
+  }.headOption.orNull
+
+  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).exists(_ == driver.item.Keyboard)
 
   private val withScreenHeight = 242
   private val noScreenHeight = 108
@@ -49,6 +50,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   private val slotSize = 18
 
+  override protected val bufferX = 8
+  override protected val bufferY = 8
   private val bufferWidth = 242.0
   private val bufferHeight = 128.0
   private val bufferMargin = BufferRenderer.innerMargin
@@ -115,7 +118,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawBuffer() {
     if (buffer != null) {
-      GL11.glTranslatef(8, 8, 0)
+      GL11.glTranslatef(bufferX, bufferY, 0)
       RenderState.disableLighting()
       RenderState.makeItBlend()
       val scaleX = 48f / buffer.getWidth

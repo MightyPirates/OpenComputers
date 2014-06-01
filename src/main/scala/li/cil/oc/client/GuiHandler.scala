@@ -24,7 +24,7 @@ object GuiHandler extends CommonGuiHandler {
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
-        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.buffer.isRenderingEnabled)
+        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {
@@ -49,7 +49,7 @@ object GuiHandler extends CommonGuiHandler {
                 case Some(term) =>
                   def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                   if (inRange) {
-                    if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => {
+                    if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
                       // Check if someone else bound a term to our server.
                       if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
                         Minecraft.getMinecraft.displayGuiScreen(null)
