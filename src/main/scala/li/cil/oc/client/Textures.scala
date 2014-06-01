@@ -19,6 +19,7 @@ object Textures extends ResourceManagerReloadListener {
   val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
+  val guiRobotNoScreen = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_noscreen.png")
   val guiRobotAssembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_assembler.png")
   val guiRobotSelection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
   val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
