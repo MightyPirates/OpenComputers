@@ -10,13 +10,21 @@ import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.IInventory
 
 class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends Player(playerInventory, robot) {
-  addSlotToContainer(170 + 0 * slotSize, 218, api.driver.Slot.Tool)
-  addSlotToContainer(170 + 1 * slotSize, 218, robot.containerSlotType(1), robot.containerSlotTier(1))
-  addSlotToContainer(170 + 2 * slotSize, 218, robot.containerSlotType(2), robot.containerSlotTier(2))
-  addSlotToContainer(170 + 3 * slotSize, 218, robot.containerSlotType(3), robot.containerSlotTier(3))
+  val hasScreen = robot.components.exists {
+    case Some(buffer: api.component.TextBuffer) => true
+    case _ => false
+  }
+  private val withScreenHeight = 242
+  private val noScreenHeight = 108
+  val deltaY = if (hasScreen) 0 else withScreenHeight - noScreenHeight
+
+  addSlotToContainer(170 + 0 * slotSize, 218 - deltaY, api.driver.Slot.Tool)
+  addSlotToContainer(170 + 1 * slotSize, 218 - deltaY, robot.containerSlotType(1), robot.containerSlotTier(1))
+  addSlotToContainer(170 + 2 * slotSize, 218 - deltaY, robot.containerSlotType(2), robot.containerSlotTier(2))
+  addSlotToContainer(170 + 3 * slotSize, 218 - deltaY, robot.containerSlotType(3), robot.containerSlotTier(3))
 
   for (i <- 0 to 3) {
-    val y = 142 + i * slotSize
+    val y = 142 + i * slotSize - deltaY
     for (j <- 0 to 3) {
       val x = 170 + j * slotSize
       addSlotToContainer(new InventorySlot(this, otherInventory, inventorySlots.size, x, y))
@@ -26,7 +34,7 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
     addSlotToContainer(new InventorySlot(this, otherInventory, inventorySlots.size, -10000, -10000))
   }
 
-  addPlayerInventorySlots(6, 160)
+  addPlayerInventorySlots(6, 160 - deltaY)
 
   private var lastSentBuffer = -1
 
@@ -80,4 +88,5 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
       else null
     }
   }
+
 }

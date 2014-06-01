@@ -9,6 +9,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.tileentity
+import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
@@ -21,34 +22,42 @@ import org.lwjgl.input.{Mouse, Keyboard}
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {
+  override protected val buffer = robot.components.collect {
+    case Some(buffer: api.component.TextBuffer) => buffer
+  }.headOption.orNull
+
+  override protected val hasKeyboard = robot.info.components.map(api.Driver.driverFor).exists(_ == driver.item.Keyboard)
+
+  private val withScreenHeight = 242
+  private val noScreenHeight = 108
+
+  private val deltaY = if (buffer != null) 0 else withScreenHeight - noScreenHeight
+
   xSize = 256
-  ySize = 242
+  ySize = 242 - deltaY
 
   protected var powerButton: ImageButton = _
 
   protected var scrollButton: ImageButton = _
-
-  protected def buffer = {
-    robot.components.collect {
-      case Some(buffer: api.component.TextBuffer) => buffer
-    }.headOption.orNull
-  }
 
   // Scroll offset for robot inventory.
   private var inventoryOffset = 0
   private var isDragging = false
 
   private def canScroll = robot.inventorySize > 16
+
   private def maxOffset = robot.inventorySize / 4 - 4
 
   private val slotSize = 18
 
+  override protected val bufferX = 8
+  override protected val bufferY = 8
   private val bufferWidth = 242.0
   private val bufferHeight = 128.0
   private val bufferMargin = BufferRenderer.innerMargin
 
   private val inventoryX = 169
-  private val inventoryY = 141
+  private val inventoryY = 141 - deltaY
 
   private val scrollX = inventoryX + slotSize * 4 + 2
   private val scrollY = inventoryY
@@ -56,7 +65,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   private val scrollHeight = 94
 
   private val powerX = 26
-  private val powerY = 142
+  private val powerY = 142 - deltaY
 
   private val powerWidth = 140
   private val powerHeight = 12
@@ -85,7 +94,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def initGui() {
     super.initGui()
-    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139, 18, 18, Textures.guiButtonPower, canToggle = true)
+    powerButton = new ImageButton(0, guiLeft + 5, guiTop + 139 - deltaY, 18, 18, Textures.guiButtonPower, canToggle = true)
     scrollButton = new ImageButton(1, guiLeft + scrollX + 1, guiTop + scrollY + 1, 6, 13, Textures.guiButtonScroll)
     add(buttonList, powerButton)
     add(buttonList, scrollButton)
@@ -93,7 +102,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawBuffer() {
     if (buffer != null) {
-      GL11.glTranslatef(8, 8, 0)
+      GL11.glTranslatef(bufferX, bufferY, 0)
       RenderState.disableLighting()
       RenderState.makeItBlend()
       val scaleX = 48f / buffer.getWidth
@@ -134,7 +143,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   override def drawGuiContainerBackgroundLayer(dt: Float, mouseX: Int, mouseY: Int) {
     GL11.glColor3f(1, 1, 1) // Required under Linux.
-    mc.renderEngine.bindTexture(Textures.guiRobot)
+    if (buffer != null) mc.renderEngine.bindTexture(Textures.guiRobot)
+    else mc.renderEngine.bindTexture(Textures.guiRobotNoScreen)
     drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize)
     drawPowerLevel()
     if (robot.inventorySize > 0) {
