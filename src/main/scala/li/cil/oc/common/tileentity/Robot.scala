@@ -504,7 +504,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def isToolSlot(slot: Int) = slot == 0
 
-  def isInventorySlot(slot: Int) = slot >= 0 && slot < getSizeInventory && !isToolSlot(slot) && !isComponentSlot(slot)
+  def isContainerSlot(slot: Int) = containerSlots contains slot
+
+  def isInventorySlot(slot: Int) = inventorySlots contains slot
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
@@ -621,7 +623,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (i, Some(driver)) if containerSlots contains i =>
+    case (i, Some(driver)) if isContainerSlot(i) =>
       // Yay special cases! Dynamic screens kind of work, but are pretty derpy
       // because the item gets send around on changes, including the screen
       // state, which leads to weird effects. Also, it's really illogical that
