@@ -1,0 +1,44 @@
+NAME
+  build - build a structure
+
+SYNOPSIS
+  build PLAN
+  build PLAN FROM TO
+
+DESCRIPTION
+  Makes the robot it is run on build a structure based on a schematic in a file.
+
+  The schematic file has to be of the following format:
+    - Each line represents a row to be built.
+    - Each character must be either a 0 for air, or a 1 for solid.
+    - A line starting with '#' declares the start of a new layer.
+
+  Structures are built bottom-up. Robots are facing 'north' when considering the contents of the schematic a top-down view. Robots must start facing a chest with building materials and with one stack of dirt in their first (top-left) inventory slot. A charger should also be placed next to the robot, to allow it to recharge when at the home position, since if it drops below a certain amount of energy it will remain there until charged again.
+
+  The example schematic on the disk containing this program can be used to build a small 'pyramid'. The robot will face the 'entrance' of this pyramid when starting. In other words it will build to its right:
+
+     C
+    ER X110011
+       X100001
+       X100001
+       X100001
+       X100001
+       X111111
+
+  Where C is the chest, E is the charger and R is the robot. X is a solid wall of the used building material. See the limitations section.
+
+  When starting the program the user is prompted for confirmation of the parameters. It will also inform the user of the number of required building blocks.
+
+  Robots will return for materials and power every so often. They should - in theory - never run out of energy while not at the docking station (where they start), and even if they do, they save their state and are capable of continuing where they stopped when resumed (just run `build used.plan` again).
+
+LIMITATIONS
+  This program was written before the Angel Upgrade was introduced, so the dirt is required to fill up air-blocks and is removed again in a second pass. This means a single row can contain at most 64 air blocks. Furthermore, to avoid unnecessary seeking in the schematics file, while moving back the robot tries to remove *every* block, meaning it must *not* have a tool equipped, and the building materials *must not* be removable without a tool - for example, it is impossible to build a 'dirt house' with this program.
+
+  Lastly, a solid wall of building material will be raised to guarantee a point of refernce to build on. Since the robot must not have a tool, it cannot remove that wall when done. It has to be removed by the player, or another program after the robot was equipped with an appropriate tool.
+
+EXAMPLES
+  build example
+    Builds the schematic defined in file `example` or `example.plan`.
+
+  build some.plan 0 2
+    Builds the vertical slabs 0 through 2 of the schematic defined in file `some.plan`.
