@@ -46,7 +46,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   // ----------------------------------------------------------------------- //
 
-  val actualInventorySize = 83
+  val actualInventorySize = 86
+
+  def maxInventorySize = actualInventorySize - 1 - containerCount - componentCount
 
   var inventorySize = -1
 
@@ -526,7 +528,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith))
 
-  private def computeInventorySize() = math.min(64, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
+  private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver: api.driver.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
