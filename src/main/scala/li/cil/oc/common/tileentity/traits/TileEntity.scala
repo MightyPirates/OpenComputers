@@ -26,6 +26,13 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   // ----------------------------------------------------------------------- //
 
+  override def updateEntity() {
+    super.updateEntity()
+    if (world.getWorldTime % 40 == 0 && block.getLightValue(world, x, y, z) > 0) {
+      world.markBlockForUpdate(x, y, z)
+    }
+  }
+
   override def validate() {
     super.validate()
     initialize()
