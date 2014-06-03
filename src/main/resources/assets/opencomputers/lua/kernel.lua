@@ -306,7 +306,9 @@ local userdataWrapper = {
     return processResult(table.pack(userdata.call(wrappedUserdata[self], processArguments(...))))
   end,
   __gc = function(self)
-    userdata.dispose(wrappedUserdata[self])
+    local data = wrappedUserdata[self]
+    wrappedUserdata[self] = nil
+    userdata.dispose(data)
   end,
   -- This is the persistence protocol for userdata. Userdata is considered
   -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
@@ -350,7 +352,7 @@ function wrapSingleUserdata(data)
   for k, v in pairs(wrappedUserdata) do
     -- We need a custom 'equals' check for userdata because metamethods on
     -- userdata introduced by JNLua tend to crash the game for some reason.
-    if userdata.equal(v, data) then
+    if v == data then
       return k
     end
   end
