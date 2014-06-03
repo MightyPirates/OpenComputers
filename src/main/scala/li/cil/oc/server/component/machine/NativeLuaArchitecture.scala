@@ -316,6 +316,8 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   private def state = machine.asInstanceOf[Machine].state
 
   override def load(nbt: NBTTagCompound) {
+    bootAddress = nbt.getString("bootAddress")
+
     // Unlimit memory use while unpersisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 
@@ -366,6 +368,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   }
 
   override def save(nbt: NBTTagCompound) {
+    if (bootAddress != null) {
+      nbt.setString("bootAddress", bootAddress)
+    }
+
     // Unlimit memory while persisting.
     lua.setTotalMemory(Integer.MAX_VALUE)
 

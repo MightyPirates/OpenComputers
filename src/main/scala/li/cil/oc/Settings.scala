@@ -59,6 +59,7 @@ class Settings(config: Config) {
   val allowBytecode = config.getBoolean("computer.allowBytecode")
   val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
+  val forceLuaJ = config.getBoolean("computer.forceLuaJ")
 
   // ----------------------------------------------------------------------- //
   // robot
