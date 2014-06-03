@@ -89,6 +89,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
       return false
     }
+    if (!world.isRemote) return true
+
     val (iw, ih) = (width - border * 2, height - border * 2)
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
@@ -100,7 +102,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
       if (bry <= 0 || bry >= 1) {
-        return false
+        return true
       }
       (rx, bry)
     }
@@ -108,7 +110,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       val rw = bpw.toDouble / bph.toDouble
       val brx = (rx - (1 - rw) * 0.5) / rw
       if (brx <= 0 || brx >= 1) {
-        return false
+        return true
       }
       (brx, ry)
     }
@@ -117,9 +119,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
 
     // Convert to absolute coordinates and send the packet to the server.
-    if (world.isRemote) {
-      origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
-    }
+    origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
+
     true
   }
 
