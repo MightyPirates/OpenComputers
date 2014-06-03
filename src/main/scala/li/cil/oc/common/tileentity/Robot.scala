@@ -204,7 +204,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
 
-  def animateSwing(duration: Double) = {
+  def animateSwing(duration: Double) = if (items(0).isDefined) {
     setAnimateSwing((duration * 20).toInt)
     ServerPacketSender.sendRobotAnimateSwing(this)
   }
