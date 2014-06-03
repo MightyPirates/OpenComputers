@@ -33,12 +33,12 @@ public class DriverBeeHouse extends DriverTileEntity {
             super(tileEntity, "bee_housing");
         }
 
-        @Callback
+        @Callback(doc = "function():boolean -- Can the bees breed?")
         public Object[] canBreed(final Context context, final Arguments args) {
             return new Object[]{tileEntity.canBreed()};
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get the drone")
         public Object[] getDrone(final Context context, final Arguments args) {
             ItemStack drone = tileEntity.getDrone();
             if (drone != null) {
@@ -47,7 +47,7 @@ public class DriverBeeHouse extends DriverTileEntity {
             return null;
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get the queen")
         public Object[] getQueen(final Context context, final Arguments args) {
             ItemStack queen = tileEntity.getQueen();
             if (queen != null) {
@@ -56,7 +56,7 @@ public class DriverBeeHouse extends DriverTileEntity {
             return null;
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get the full breeding list thingy.")
         public Object[] getBeeBreedingData(final Context context, final Arguments args) {
             ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
             if (beeRoot == null) {
@@ -86,7 +86,7 @@ public class DriverBeeHouse extends DriverTileEntity {
             return new Object[]{result};
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get all known bees mutations")
         public Object[] listAllSpecies(final Context context, final Arguments args) {
             ISpeciesRoot beeRoot = AlleleManager.alleleRegistry
                     .getSpeciesRoot("rootBees");
@@ -105,7 +105,7 @@ public class DriverBeeHouse extends DriverTileEntity {
             return new Object[]{result.toArray(new IAlleleSpecies[result.size()])};
         }
 
-        @Callback
+        @Callback(doc = "function():table -- Get the parents for a particular mutation")
         public Object[] getBeeParents(final Context context, final Arguments args) {
             ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
             if (beeRoot == null)
