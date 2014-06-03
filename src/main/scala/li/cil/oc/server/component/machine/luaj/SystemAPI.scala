@@ -13,7 +13,7 @@ class SystemAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     system.set("allowBytecode", (_: Varargs) => LuaValue.valueOf(Settings.get.allowBytecode))
 
     // How long programs may run without yielding before we stop them.
-    system.set("timeout", LuaValue.valueOf(Settings.get.timeout))
+    system.set("timeout", (_: Varargs) => LuaValue.valueOf(Settings.get.timeout))
 
     lua.set("system", system)
   }

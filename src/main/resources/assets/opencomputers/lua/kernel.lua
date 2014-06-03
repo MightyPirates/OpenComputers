@@ -348,7 +348,9 @@ function wrapSingleUserdata(data)
   -- without the need of metamethods like __eq, as well as proper reference
   -- behavior after saving and loading again.
   for k, v in pairs(wrappedUserdata) do
-    if v == data then
+    -- We need a custom 'equals' check for userdata because metamethods on
+    -- userdata introduced by JNLua tend to crash the game for some reason.
+    if userdata.equal(v, data) then
       return k
     end
   end

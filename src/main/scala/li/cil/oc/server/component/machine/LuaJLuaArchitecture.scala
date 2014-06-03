@@ -25,11 +25,14 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
 
   private[machine] var memory = 0
 
+  private[machine] var bootAddress = ""
+
   private val apis = Array(
     new ComponentAPI(this),
     new ComputerAPI(this),
     new OSAPI(this),
     new SystemAPI(this),
+    new UnicodeAPI(this),
     new UserdataAPI(this))
 
   private[machine] def invoke(f: () => Array[AnyRef]): Varargs = try {
@@ -158,16 +161,18 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
       // The kernel thread returned. If it threw we'd be in the catch below.
       else {
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
-        if (results.`type`(2) != LuaValue.TBOOLEAN || !(results.isstring(3) || results.isnil(3))) {
+        if (results.`type`(2) != LuaValue.TBOOLEAN || !(results.isstring(3) || results.isnoneornil(3))) {
           OpenComputers.log.warning("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
-        if (results.toboolean(1)) {
+        if (results.toboolean(2)) {
           OpenComputers.log.warning("Kernel stopped unexpectedly.")
           new ExecutionResult.Shutdown(false)
         }
         else {
-          val error = results.tojstring(3)
+          val error =
+            if (results.isuserdata(3)) results.touserdata(3).toString
+            else results.tojstring(3)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }
@@ -219,6 +224,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   // ----------------------------------------------------------------------- //
 
   override def load(nbt: NBTTagCompound) {
+    bootAddress = nbt.getString("bootAddress")
+
     if (machine.isRunning) {
       machine.stop()
       machine.start()
@@ -226,5 +233,8 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   }
 
   override def save(nbt: NBTTagCompound) {
+    if (bootAddress != null) {
+      nbt.setString("bootAddress", bootAddress)
+    }
   }
 }

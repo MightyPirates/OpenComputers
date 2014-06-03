@@ -42,7 +42,7 @@ class Proxy {
     api.Items.instance = Items
     api.Machine.instance = machine.Machine
     api.Machine.LuaArchitecture =
-      if (LuaStateFactory.isAvailable) classOf[NativeLuaArchitecture]
+      if (LuaStateFactory.isAvailable && !Settings.get.forceLuaJ) classOf[NativeLuaArchitecture]
       else classOf[LuaJLuaArchitecture]
     api.Network.instance = network.Network
 

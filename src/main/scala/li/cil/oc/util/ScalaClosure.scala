@@ -8,6 +8,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
+import li.cil.oc.api.machine.Value
 
 class ScalaClosure(val f: (Varargs) => Varargs) extends VarArgFunction {
   override def invoke(args: Varargs) = f(args)
@@ -41,6 +42,7 @@ object ScalaClosure {
       case value: java.lang.String => LuaValue.valueOf(value)
       case value: Array[Byte] => LuaValue.valueOf(value)
       case value: Array[_] => toLuaList(value)
+      case value: Value => LuaValue.userdataOf(value)
       case value: Product => toLuaList(value.productIterator.toIterable)
       case value: Seq[_] => toLuaList(value)
       case value: java.util.Map[_, _] => toLuaTable(value.toMap)

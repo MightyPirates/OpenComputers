@@ -27,6 +27,18 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       case _ => LuaValue.NIL
     })
 
+    // Get/set address of boot device.
+    computer.set("getBootAddress", (_: Varargs) => owner.bootAddress match {
+      case "" => LuaValue.NIL
+      case address => LuaValue.valueOf(address)
+    })
+
+    computer.set("setBootAddress", (args: Varargs) => {
+      if (args.isnoneornil(1)) owner.bootAddress = ""
+      else owner.bootAddress = args.checkjstring(1)
+      LuaValue.NIL
+    })
+
     computer.set("freeMemory", (_: Varargs) => LuaValue.valueOf(owner.memory / 2))
 
     computer.set("totalMemory", (_: Varargs) => LuaValue.valueOf(owner.memory))
