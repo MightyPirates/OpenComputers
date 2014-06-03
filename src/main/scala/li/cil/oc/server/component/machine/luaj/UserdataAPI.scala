@@ -59,6 +59,12 @@ class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       owner.documentation(() => machine.documentation(value, method))
     })
 
+    userdata.set("equal", (args: Varargs) => {
+      val value1 = args.checkuserdata(1, classOf[Value])
+      val value2 = args.checkuserdata(2, classOf[Value])
+      LuaValue.valueOf(value1.isInstanceOf[Value] && value2.isInstanceOf[Value] && value1 == value2)
+    })
+
     lua.set("userdata", userdata)
   }
 }

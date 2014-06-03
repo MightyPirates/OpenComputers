@@ -241,7 +241,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       else {
         assert(lua.isThread(1))
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
-        if (!lua.isBoolean(2) || !(lua.isString(3) || lua.isNil(3))) {
+        if (!lua.isBoolean(2) || !(lua.isString(3) || lua.isNoneOrNil(3))) {
           OpenComputers.log.warning("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
@@ -251,7 +251,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         }
         else {
           lua.setTotalMemory(Int.MaxValue)
-          val error = lua.toString(3)
+          val error =
+            if (lua.isJavaObjectRaw(3)) lua.toJavaObjectRaw(3).toString
+            else lua.toString(3)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }

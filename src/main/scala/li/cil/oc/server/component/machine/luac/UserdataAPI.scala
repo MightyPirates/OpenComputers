@@ -103,6 +103,14 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     })
     lua.setField(-2, "doc")
 
+    lua.pushScalaFunction(lua => {
+      val value1 = lua.toJavaObjectRaw(1)
+      val value2 = lua.toJavaObjectRaw(2)
+      lua.pushBoolean(value1.isInstanceOf[Value] && value2.isInstanceOf[Value] && value1 == value2)
+      1
+    })
+    lua.setField(-2, "equal")
+
     lua.setGlobal("userdata")
   }
 }

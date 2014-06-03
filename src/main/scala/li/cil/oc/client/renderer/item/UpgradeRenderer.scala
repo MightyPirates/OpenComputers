@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11
 
 object UpgradeRenderer extends IItemRenderer {
   val bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
-  
+
   override def handleRenderType(stack: ItemStack, renderType: ItemRenderType) = renderType == ItemRenderType.EQUIPPED && {
     val descriptor = api.Items.get(stack)
     descriptor == api.Items.get("craftingUpgrade") ||
