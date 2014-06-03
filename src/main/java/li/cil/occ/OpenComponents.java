@@ -12,6 +12,7 @@ import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.railcraft.ModRailcraft;
 import li.cil.occ.mods.redstoneinmotion.ModRedstoneInMotion;
+import li.cil.occ.mods.thaumcraft.ModThaumcraft;
 import li.cil.occ.mods.thermalexpansion.ModThermalExpansion;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
 import li.cil.occ.mods.vanilla.ModVanilla;
@@ -57,6 +58,7 @@ public class OpenComponents {
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModRailcraft());
         Registry.add(new ModRedstoneInMotion());
+        Registry.add(new ModThaumcraft());
         Registry.add(new ModThermalExpansion());
         Registry.add(new ModTMechworks());
         Registry.add(new ModVanilla());

@@ -105,7 +105,7 @@ public class DriverBeeHouse extends DriverTileEntity {
             return new Object[]{result.toArray(new IAlleleSpecies[result.size()])};
         }
 
-        @Callback(doc = "function():table -- Get the parents for a particular mutation")
+        @Callback(doc = "function(beeName:string):table -- Get the parents for a particular mutation")
         public Object[] getBeeParents(final Context context, final Arguments args) {
             ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
             if (beeRoot == null)
