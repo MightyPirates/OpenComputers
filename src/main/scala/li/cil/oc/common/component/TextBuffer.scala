@@ -10,6 +10,7 @@ import li.cil.oc.client.{PacketSender => ClientPacketSender, ComponentTracker =>
 import li.cil.oc.client.renderer.{MonospaceFontRenderer, TextBufferRenderCache}
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender, ComponentTracker => ServerComponentTracker}
+import li.cil.oc.server.component.Keyboard
 import li.cil.oc.util
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.PackedColor
@@ -117,6 +118,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   @Callback(doc = """function():number, number -- The aspect ratio of the screen. For multi-block screens this is the number of blocks, horizontal and vertical.""")
   def getAspectRatio(context: Context, args: Arguments): Array[AnyRef] = {
     result(aspectRatio._1, aspectRatio._2)
+  }
+
+  @Callback(doc = """function():table -- The list of keyboards attached to the screen.""")
+  def getKeyboards(context: Context, args: Arguments): Array[AnyRef] = {
+    context.pause(0.25)
+    Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
   }
 
   // ----------------------------------------------------------------------- //

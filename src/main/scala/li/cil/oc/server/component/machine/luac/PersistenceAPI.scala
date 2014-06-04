@@ -1,12 +1,17 @@
 package li.cil.oc.server.component.machine.luac
 
 import com.naef.jnlua.LuaState
+import java.util.UUID
+import li.cil.oc.Settings
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import scala.collection.mutable
-import li.cil.oc.Settings
 
 class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
+    // Will be replaced by old value in load.
+    lua.pushString("__persist" + UUID.randomUUID().toString.replaceAll("-", ""))
+    lua.setGlobal("persistKey")
+
     // These tables must contain all java callbacks (i.e. C functions, since
     // they are wrapped on the native side using a C function, of course).
     // They are used when persisting/unpersisting the state so that the
@@ -17,15 +22,6 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     val perms = lua.getTop - 1
     val uperms = lua.getTop
-
-    if (Settings.get.debugPersistence) {
-      lua.getGlobal("eris")
-      lua.getField(-1, "settings")
-      lua.pushString("path")
-      lua.pushBoolean(true)
-      lua.call(2, 0)
-      lua.pop(1)
-    }
 
     def flattenAndStore() {
       /* ... k v */
@@ -84,11 +80,30 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
   }
 
+  def configure() {
+    lua.getGlobal("eris")
+
+    lua.getField(-1, "settings")
+    lua.pushString("spkey")
+    lua.getGlobal("persistKey")
+    lua.call(2, 0)
+
+    if (Settings.get.debugPersistence) {
+      lua.getField(-1, "settings")
+      lua.pushString("path")
+      lua.pushBoolean(true)
+      lua.call(2, 0)
+    }
+
+    lua.pop(1)
+  }
+
   def persist(index: Int): Array[Byte] = {
-    lua.getGlobal("eris") /* ... eris */
-    lua.getField(-1, "persist") /* ... eris persist */
+    configure()
+    lua.getGlobal("eris") // ... eris
+    lua.getField(-1, "persist") // ... eris persist
     if (lua.isFunction(-1)) {
-      lua.getField(LuaState.REGISTRYINDEX, "perms") /* ... eris persist perms */
+      lua.getField(LuaState.REGISTRYINDEX, "perms") // ... eris persist perms
       lua.pushValue(index) // ... eris persist perms obj
       try {
         lua.call(2, 1) // ... eris str?
@@ -109,10 +124,11 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   }
 
   def unpersist(value: Array[Byte]): Boolean = {
+    configure()
     lua.getGlobal("eris") // ... eris
     lua.getField(-1, "unpersist") // ... eris unpersist
     if (lua.isFunction(-1)) {
-      lua.getField(LuaState.REGISTRYINDEX, "uperms") /* ... eris persist uperms */
+      lua.getField(LuaState.REGISTRYINDEX, "uperms") // ... eris persist uperms
       lua.pushByteArray(value) // ... eris unpersist uperms str
       lua.call(2, 1) // ... eris obj
       lua.insert(-2) // ... obj eris
