@@ -1,8 +1,5 @@
 package li.cil.occ.mods.vanilla;
 
-import java.util.ArrayList;
-
-import scala.actors.threadpool.Arrays;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
