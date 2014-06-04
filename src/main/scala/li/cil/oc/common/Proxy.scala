@@ -59,7 +59,7 @@ class Proxy {
       MultiPart.init()
     }
     if (Mods.ComputerCraft16.isAvailable) {
-      OpenComputers.log.info("Initializing OpenComputers support.")
+      OpenComputers.log.info("Initializing ComputerCraft support.")
       ComputerCraft16.init()
     }
   }
