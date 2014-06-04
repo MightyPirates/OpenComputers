@@ -85,6 +85,7 @@ class Proxy {
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     if (Mods.StargateTech2.isAvailable) {
+      api.Driver.add(driver.converter.BusPacketNetScanDevice)
       api.Driver.add(driver.item.AbstractBusCard)
     }
     if (Mods.ComputerCraft15.isAvailable) {
