@@ -50,4 +50,16 @@ public interface IBusDriver {
 	 * @return The address of this IBusDriver's IBusInterface.
 	 */
 	public short getInterfaceAddress();
+	
+	/**
+	 * @return this driver's short name.<br>
+	 * Should be readable and indicate what kind of device it is.<br>
+	 * <b>Example:</b> Shield Controller
+	 */
+	public String getShortName();
+	
+	/**
+	 * @return a short description of what this device is.
+	 */
+	public String getDescription();
 }

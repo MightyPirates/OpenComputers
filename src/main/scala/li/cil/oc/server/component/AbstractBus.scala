@@ -27,9 +27,13 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
 
   // ----------------------------------------------------------------------- //
 
+  override def getShortName = "Computer"
+
+  override def getDescription = "An OpenComputers computer or server."
+
   override def canHandlePacket(sender: Short, protocolID: Int, hasLIP: Boolean) = hasLIP
 
-  override def handlePacket(packet: BusPacket) {
+  override def handlePacket(packet: BusPacket[_]) {
     val lip = packet.getPlainText
     val data = Map(lip.getEntryList.map(key => (key, lip.get(key))): _*)
     val metadata = Map("mod" -> lip.getMetadata.modID, "device" -> lip.getMetadata.deviceName, "player" -> lip.getMetadata.playerName)
