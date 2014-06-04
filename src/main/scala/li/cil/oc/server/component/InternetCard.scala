@@ -213,7 +213,7 @@ object InternetCard {
     if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
       throw new FileNotFoundException("address is not whitelisted")
     }
-    if (Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
       throw new FileNotFoundException("address is blacklisted")
     }
   }
