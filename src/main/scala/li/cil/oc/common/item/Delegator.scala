@@ -3,7 +3,7 @@ package li.cil.oc.common.item
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
-import li.cil.oc.{Settings, CreativeTab}
+import li.cil.oc.{OpenComputers, Settings, CreativeTab}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -13,6 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
 import scala.collection.mutable
 import net.minecraft.entity.Entity
+import java.util.logging.Level
 
 class Delegator(id: Int) extends Item(id) {
   setHasSubtypes(true)
@@ -114,7 +115,9 @@ class Delegator(id: Int) extends Item(id) {
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     subItem(stack) match {
-      case Some(subItem) => subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
+      case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in item tooltip.", t)
+      }
       case _ => // Nothing to add.
     }
   }

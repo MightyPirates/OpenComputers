@@ -94,7 +94,7 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
       packet.finish()
       sendQueue = Some(packet)
       busInterface.sendAllPackets()
-      result(true)
+      result(packet.getResponses.toArray)
     }
     else result(Unit, "not enough energy")
   }
