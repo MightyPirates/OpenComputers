@@ -96,7 +96,7 @@ object MonospaceFontRenderer {
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
       GL11.glDepthMask(false)
-      GL11.glEnable(GL11.GL_TEXTURE_2D)
+      GL11.glDisable(GL11.GL_TEXTURE_2D)
 
       // Background first. We try to merge adjacent backgrounds of the same
       // color to reduce the number of quads we have to draw.
@@ -113,6 +113,7 @@ object MonospaceFontRenderer {
         width = width + 1
       }
       draw(cbg, offset, width)
+      GL11.glEnable(GL11.GL_TEXTURE_2D)
 
       if (Settings.get.textLinearFiltering) {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR)
@@ -145,11 +146,6 @@ object MonospaceFontRenderer {
       GL11.glPopMatrix()
     }
 
-    private val bgu1 = 254.0 / 256.0
-    private val bgu2 = 255.0 / 256.0
-    private val bgv1 = 255.0 / 256.0
-    private val bgv2 = 256.0 / 256.0
-
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {
       // IMPORTANT: we must not use the tessellator here. Doing so can cause
       // crashes on certain graphics cards with certain drivers (reported for
@@ -159,13 +155,9 @@ object MonospaceFontRenderer {
       // this stuff is eventually only rendered via display lists).
       GL11.glBegin(GL11.GL_QUADS)
       GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
-      GL11.glTexCoord2d(bgu1, bgv2)
       GL11.glVertex3d(charWidth * offset, charHeight, 0)
-      GL11.glTexCoord2d(bgu2, bgv2)
       GL11.glVertex3d(charWidth * (offset + width), charHeight, 0)
-      GL11.glTexCoord2d(bgu2, bgv1)
       GL11.glVertex3d(charWidth * (offset + width), 0, 0)
-      GL11.glTexCoord2d(bgu1, bgv1)
       GL11.glVertex3d(charWidth * offset, 0, 0)
       GL11.glEnd()
     }
