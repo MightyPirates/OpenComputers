@@ -77,7 +77,24 @@ sandbox = {
   rawlen = rawlen,
   rawset = rawset,
   select = select,
-  setmetatable = setmetatable,
+  setmetatable = function(t, mt)
+    local gc = rawget(mt, "__gc")
+    if type(gc) == "function" then
+      rawset(mt, "__gc", function(self)
+        local co = coroutine.create(gc)
+        debug.sethook(co, checkDeadline, "", hookInterval)
+        local result, reason = coroutine.resume(co, self)
+        debug.sethook(co)
+        checkDeadline()
+        if not result then
+          error(reason, 0)
+        end
+      end)
+    end
+    local result = setmetatable(t, mt)
+    rawset(mt, "__gc", gc)
+    return result
+  end,
   tonumber = tonumber,
   tostring = tostring,
   type = type,
@@ -245,6 +262,7 @@ sandbox._G = sandbox
 -- These functions provide the logic for wrapping and unwrapping (when
 -- pushed to user code and when pushed back to the host, respectively).
 local wrapUserdata, wrapSingleUserdata, unwrapUserdata, wrappedUserdataMeta
+--[[
 wrappedUserdataMeta = {
   -- Weak keys, clean up once a proxy is no longer referenced anywhere.
   __mode="k",
@@ -260,7 +278,7 @@ wrappedUserdataMeta = {
   end
 }
 local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
-
+]]
 local function processResult(result)
   wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
@@ -289,7 +307,7 @@ local function invoke(target, direct, ...)
   end
   return processResult(result)
 end
-
+--[[
 local function udinvoke(f, data, ...)
   local args = table.pack(...)
   unwrapUserdata(args)
@@ -406,6 +424,9 @@ function unwrapUserdata(values)
   end
   unwrapRecursively(values)
 end
+]]
+function wrapUserdata(...) return ... end
+function unwrapUserdata(...) return ... end
 
 -------------------------------------------------------------------------------
 
