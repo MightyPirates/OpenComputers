@@ -261,12 +261,6 @@ wrappedUserdataMeta = {
 }
 local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
 
-local function processArguments(...)
-  local args = table.pack(...)
-  unwrapUserdata(args)
-  return table.unpack(args)
-end
-
 local function processResult(result)
   wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
@@ -286,24 +280,33 @@ local function invoke(target, direct, ...)
   end
   if not result then
     local args = table.pack(...) -- for access in closure
-    unwrapUserdata(args)
     result = select(1, coroutine.yield(function()
-      return table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      unwrapUserdata(args)
+      local result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      wrapUserdata(result)
+      return result
     end))
   end
+  return processResult(result)
+end
+
+local function udinvoke(f, data, ...)
+  local args = table.pack(...)
+  unwrapUserdata(args)
+  local result = table.pack(f(data, table.unpack(args)))
   return processResult(result)
 end
 
 -- Metatable for additional functionality on userdata.
 local userdataWrapper = {
   __index = function(self, ...)
-    return processResult(table.pack(userdata.apply(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.apply, wrappedUserdata[self], ...)
   end,
   __newindex = function(self, ...)
-    return processResult(table.pack(userdata.unapply(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.unapply, wrappedUserdata[self], ...)
   end,
   __call = function(self, ...)
-    return processResult(table.pack(userdata.call(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.call, wrappedUserdata[self], ...)
   end,
   __gc = function(self)
     local data = wrappedUserdata[self]
@@ -316,7 +319,9 @@ local userdataWrapper = {
   -- reflection when loading again (and then immediately wrap it again).
   -- Collect wrapped callback methods.
   __persist = function(self)
+    print("start saving userdata " .. tostring(wrappedUserdata[self]))
     local className, nbt = userdata.save(wrappedUserdata[self])
+    print("done saving userdata")
     -- The returned closure is what actually gets persisted, including the
     -- upvalues, that being the classname and a byte array representing the
     -- nbt data of the userdata value.
@@ -618,9 +623,7 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
-      unwrapUserdata(result[2])
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
-      wrapUserdata(args)
     end
   end
 end
