@@ -9,7 +9,6 @@ import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.api
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.api.prefab.AbstractValue
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
@@ -27,9 +26,11 @@ class InternetCard extends component.ManagedComponent {
 
   protected var owner: Option[Context] = None
 
-  protected val connections = mutable.Map.empty[Int, InternetCard.Socket]
+  protected val connections = mutable.Map.empty[Int, InternetCard.Connection]
 
-  protected var request: Option[InternetCard.Request] = None
+  private def newHandle() = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).
+    filterNot(connections.contains).
+    next()
 
   // ----------------------------------------------------------------------- //
 
@@ -37,20 +38,19 @@ class InternetCard extends component.ManagedComponent {
   def isHttpEnabled(context: Context, args: Arguments): Array[AnyRef] = result(Settings.get.httpEnabled)
 
   @Callback(doc = """function(url:string[, postData:string]):boolean -- Starts an HTTP request. If this returns true, further results will be pushed using `http_response` signals.""")
-  def request(context: Context, args: Arguments): Array[AnyRef] = {
+  def request(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val address = args.checkString(0)
     if (!Settings.get.httpEnabled) {
       return result(Unit, "http requests are unavailable")
     }
-    val post = if (args.isString(1)) Option(args.checkString(1)) else None
-    this.synchronized {
-      if (request.isDefined) {
-        return result(Unit, "already busy with another request")
-      }
-      request = Some(new InternetCard.Request(this, checkAddress(address), post))
-      result(request.get)
+    if (connections.size >= Settings.get.maxConnections) {
+      throw new IOException("too many open connections")
     }
+    val post = if (args.isString(1)) Option(args.checkString(1)) else None
+    val handle = newHandle()
+    connections += handle -> new InternetCard.Request(checkAddress(address), post)
+    result(handle)
   }
 
   @Callback(direct = true, doc = """function():boolean -- Returns whether TCP connections can be made (config setting).""")
@@ -68,9 +68,7 @@ class InternetCard extends component.ManagedComponent {
       throw new IOException("too many open connections")
     }
     val uri = checkUri(address)
-    val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).
-      filterNot(connections.contains).
-      next()
+    val handle = newHandle()
     connections += handle -> new InternetCard.Socket(uri, port)
     result(handle)
   }
@@ -80,7 +78,7 @@ class InternetCard extends component.ManagedComponent {
     checkOwner(context)
     val handle = args.checkInteger(0)
     connections.get(handle) match {
-      case Some(socket) => result(socket.checkConnected())
+      case Some(connection) => result(connection.checkConnected())
       case _ => throw new IOException("bad connection descriptor")
     }
   }
@@ -102,18 +100,18 @@ class InternetCard extends component.ManagedComponent {
     val handle = args.checkInteger(0)
     val value = args.checkByteArray(1)
     connections.get(handle) match {
-      case Some(socket) => result(socket.write(value))
+      case Some(connection) => result(connection.write(value))
       case _ => throw new IOException("bad connection descriptor")
     }
   }
 
-  @Callback(doc = """function(handle:number, n:number):string -- Tries to read data from the socket stream. Returns the read byte array.""")
+  @Callback(doc = """function(handle:number[, n:number]):string -- Tries to read data from the socket stream. Returns the read byte array.""")
   def read(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     checkOwner(context)
     val handle = args.checkInteger(0)
-    val n = math.min(Settings.get.maxReadBuffer, math.max(0, args.checkInteger(1)))
+    val n = math.min(Settings.get.maxReadBuffer, math.max(0, if (args.count > 1) args.checkInteger(1) else Int.MaxValue))
     connections.get(handle) match {
-      case Some(socket) => result(socket.read(n))
+      case Some(connection) => result(connection.read(n))
       case _ => throw new IOException("bad connection descriptor")
     }
   }
@@ -138,11 +136,12 @@ class InternetCard extends component.ManagedComponent {
     super.onDisconnect(node)
     if (owner.isDefined && (node == this.node || node.host.isInstanceOf[Context] && (node.host.asInstanceOf[Context] == owner.get))) {
       owner = None
-      for ((_, socket) <- connections) {
-        socket.close()
+      this.synchronized {
+        for ((_, socket) <- connections) {
+          socket.close()
+        }
+        connections.clear()
       }
-      connections.clear()
-      request = None
       romInternet.foreach(_.node.remove())
     }
   }
@@ -151,10 +150,9 @@ class InternetCard extends component.ManagedComponent {
     super.onMessage(message)
     message.data match {
       case Array() if (message.name == "computer.stopped" || message.name == "computer.started") && owner.isDefined && message.source.address == owner.get.node.address =>
-        connections.values.foreach(_.close())
-        connections.clear()
         this.synchronized {
-          request = None
+          connections.values.foreach(_.close())
+          connections.clear()
         }
       case _ =>
     }
@@ -213,12 +211,22 @@ object InternetCard {
     if (Settings.get.httpHostWhitelist.length > 0 && !Settings.get.httpHostWhitelist.exists(_(inetAddress, host))) {
       throw new FileNotFoundException("address is not whitelisted")
     }
-    if (Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
+    if (Settings.get.httpHostBlacklist.length > 0 && Settings.get.httpHostBlacklist.exists(_(inetAddress, host))) {
       throw new FileNotFoundException("address is blacklisted")
     }
   }
 
-  class Socket(val uri: URI, val port: Int) {
+  trait Connection {
+    def close()
+
+    def read(n: Int): Array[Byte]
+
+    def write(value: Array[Byte]): Int
+
+    def checkConnected(): Boolean
+  }
+
+  class Socket(val uri: URI, val port: Int) extends Connection {
     val address = threadPool.submit(new Callable[InetAddress] {
       override def call() = {
         val resolved = InetAddress.getByName(uri.getHost)
@@ -269,115 +277,89 @@ object InternetCard {
     }
   }
 
-  class Request extends AbstractValue {
-    private var owner: Option[InternetCard] = None
-    private var url: URL = null
-    private var post: Option[String] = None
+  class Request(val url: URL, val post: Option[String]) extends Connection with Runnable {
     private var data: Option[Array[Byte]] = None
     private var error: Option[String] = None
 
-    def this(owner: InternetCard, url: URL, post: Option[String]) {
-      this()
-      this.owner = Option(owner)
-      this.url = url
-      this.post = post
-      scheduleRequest()
-    }
+    // Perform actual request in a separate thread.
+    InternetCard.threadPool.submit(this)
 
-    @Callback
-    def read(context: Context, args: Arguments): Array[AnyRef] = {
-      if (data.isDefined) {
+    override def close() {}
+
+    override def read(n: Int) = this.synchronized {
+      if (checkConnected()) {
         val buffer = data.get
-        if (buffer.length == 0) Array(Unit)
+        if (buffer.length == 0) null
         else {
-          val n = math.min(Settings.get.maxReadBuffer, if (args.count > 0) args.checkInteger(0) else Int.MaxValue)
           val count = math.min(n, buffer.length)
           val result = buffer.take(count)
-          data = Some(buffer.drop(count))
-          Array(result)
+          data = Option(buffer.drop(count))
+          result
         }
       }
-      else if (error.isDefined) Array(Unit, error.get)
-      else Array("")
+      else Array()
     }
 
-    override def load(nbt: NBTTagCompound) {
-      if (nbt.hasKey("url")) url = new URL(nbt.getString("url"))
-      if (nbt.hasKey("post")) post = Option(nbt.getString("post"))
-      if (nbt.hasKey("error")) error = Option(nbt.getString("error"))
-      if (nbt.hasKey("data")) data = Option(nbt.getByteArray("data"))
-      if (error.isEmpty && data.isEmpty) scheduleRequest()
+    override def write(value: Array[Byte]) = throw new IOException("unsupported operation")
+
+    override def checkConnected() = this.synchronized {
+      if (data.isDefined) true
+      else error match {
+        case Some(reason) => throw new IOException(reason)
+        case _ => false
+      }
     }
 
-    override def save(nbt: NBTTagCompound) {
-      if (url != null) nbt.setString("url", url.toString)
-      if (post.isDefined) nbt.setString("post", post.get)
-      if (error.isDefined) nbt.setString("error", error.get)
-      if (data.isDefined) nbt.setByteArray("data", data.get)
-    }
+    override def run() = try {
+      checkLists(InetAddress.getByName(url.getHost), url.getHost)
+      val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
+      url.openConnection(proxy) match {
+        case http: HttpURLConnection => try {
+          http.setDoInput(true)
+          if (post.isDefined) {
+            http.setRequestMethod("POST")
+            http.setDoOutput(true)
+            http.setReadTimeout(Settings.get.httpTimeout)
 
-    protected def scheduleRequest() {
-      InternetCard.threadPool.submit(new Runnable {
-        override def run() = try {
-          checkLists(InetAddress.getByName(url.getHost), url.getHost)
-          val proxy = Option(MinecraftServer.getServer.getServerProxy).getOrElse(java.net.Proxy.NO_PROXY)
-          url.openConnection(proxy) match {
-            case http: HttpURLConnection => try {
-              http.setDoInput(true)
-              if (post.isDefined) {
-                http.setRequestMethod("POST")
-                http.setDoOutput(true)
-                http.setReadTimeout(Settings.get.httpTimeout)
-
-                val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
-                out.write(post.get)
-                out.close()
-              }
-              else {
-                http.setRequestMethod("GET")
-                http.setDoOutput(false)
-              }
-
-              val input = http.getInputStream
-              val data = mutable.ArrayBuffer.empty[Byte]
-              val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
-              var count = 0
-              do {
-                count = input.read(buffer)
-                if (count > 0) {
-                  data ++= buffer.take(count)
-                }
-              } while (count != -1 && data.length < Settings.get.httpMaxDownloadSize)
-              input.close()
-              this.synchronized {
-                Request.this.data = Some(data.toArray)
-              }
-            }
-            finally {
-              http.disconnect()
-            }
-            case other => error = Some("connection failed")
+            val out = new BufferedWriter(new OutputStreamWriter(http.getOutputStream))
+            out.write(post.get)
+            out.close()
           }
-        }
-        catch {
-          case e: FileNotFoundException =>
-            error = Some("not found: " + Option(e.getMessage).getOrElse(e.toString))
-          case e: UnknownHostException =>
-            error = Some("unknown host: " + Option(e.getMessage).getOrElse(e.toString))
-          case _: SocketTimeoutException =>
-            error = Some("timeout")
-          case e: Throwable =>
-            error = Some(Option(e.getMessage).getOrElse(e.toString))
+          else {
+            http.setRequestMethod("GET")
+            http.setDoOutput(false)
+          }
+
+          val input = http.getInputStream
+          val data = mutable.ArrayBuffer.empty[Byte]
+          val buffer = Array.fill[Byte](Settings.get.maxNetworkPacketSize)(0)
+          var count = 0
+          do {
+            count = input.read(buffer)
+            if (count > 0) {
+              data ++= buffer.take(count)
+            }
+          } while (count != -1 && data.length < Settings.get.httpMaxDownloadSize)
+          input.close()
+          this.synchronized {
+            Request.this.data = Some(data.toArray)
+          }
         }
         finally {
-          owner match {
-            case Some(card) => card.synchronized {
-              card.request = None
-            }
-            case _ =>
-          }
+          http.disconnect()
         }
-      })
+        case other => this.synchronized(error = Some("connection failed"))
+      }
+    }
+    catch {
+      case e: FileNotFoundException =>
+        this.synchronized(error = Some("not found: " + Option(e.getMessage).getOrElse(e.toString)))
+      case e: UnknownHostException =>
+        this.synchronized(error = Some("unknown host: " + Option(e.getMessage).getOrElse(e.toString)))
+      case _: SocketTimeoutException =>
+        this.synchronized(error = Some("timeout"))
+      case e: Throwable =>
+        this.synchronized(error = Some(Option(e.getMessage).getOrElse(e.toString)))
     }
   }
 

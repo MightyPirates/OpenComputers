@@ -15,8 +15,7 @@ import java.util.Hashtable;
  * 
  * @author LordFokas
  */
-public final class BusPacketLIP extends BusPacket {
-	public static final int PROTOCOL_ID = BusProtocols.addProtocol(BusPacketLIP.class);
+public final class BusPacketLIP extends BusPacket<String> {
 	private boolean isEditable = true;
 	private LIPMetadata metadata = null;
 	private Hashtable<String, String> data = new Hashtable();

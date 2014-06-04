@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Settings, OpenComputers}
 import org.luaj.vm3.lib.VarArgFunction
 import org.luaj.vm3.{LuaValue, Varargs}
 import scala.collection.convert.WrapAsScala._
@@ -42,7 +42,7 @@ object ScalaClosure {
       case value: java.lang.String => LuaValue.valueOf(value)
       case value: Array[Byte] => LuaValue.valueOf(value)
       case value: Array[_] => toLuaList(value)
-      case value: Value => LuaValue.userdataOf(value)
+      case value: Value if Settings.get.allowUserdata => LuaValue.userdataOf(value)
       case value: Product => toLuaList(value.productIterator.toIterable)
       case value: Seq[_] => toLuaList(value)
       case value: java.util.Map[_, _] => toLuaTable(value.toMap)

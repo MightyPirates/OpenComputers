@@ -77,7 +77,24 @@ sandbox = {
   rawlen = rawlen,
   rawset = rawset,
   select = select,
-  setmetatable = setmetatable,
+  setmetatable = function(t, mt)
+    local gc = rawget(mt, "__gc")
+    if type(gc) == "function" then
+      rawset(mt, "__gc", function(self)
+        local co = coroutine.create(gc)
+        debug.sethook(co, checkDeadline, "", hookInterval)
+        local result, reason = coroutine.resume(co, self)
+        debug.sethook(co)
+        checkDeadline()
+        if not result then
+          error(reason, 0)
+        end
+      end)
+    end
+    local result = setmetatable(t, mt)
+    rawset(mt, "__gc", gc)
+    return result
+  end,
   tonumber = tonumber,
   tostring = tostring,
   type = type,
@@ -245,13 +262,14 @@ sandbox._G = sandbox
 -- These functions provide the logic for wrapping and unwrapping (when
 -- pushed to user code and when pushed back to the host, respectively).
 local wrapUserdata, wrapSingleUserdata, unwrapUserdata, wrappedUserdataMeta
+--[[
 wrappedUserdataMeta = {
   -- Weak keys, clean up once a proxy is no longer referenced anywhere.
   __mode="k",
   -- We need custom persist logic here to avoid ERIS trying to save the
   -- userdata referenced in this table directly. It will be repopulated
   -- in the load methods of the persisted userdata wrappers (see below).
-  __persist = function()
+  [persistKey] = function()
     return function()
       -- When using special persistence we have to manually reassign the
       -- metatable of the persisted value.
@@ -260,13 +278,7 @@ wrappedUserdataMeta = {
   end
 }
 local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
-
-local function processArguments(...)
-  local args = table.pack(...)
-  unwrapUserdata(args)
-  return table.unpack(args)
-end
-
+]]
 local function processResult(result)
   wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
@@ -286,24 +298,33 @@ local function invoke(target, direct, ...)
   end
   if not result then
     local args = table.pack(...) -- for access in closure
-    unwrapUserdata(args)
     result = select(1, coroutine.yield(function()
-      return table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      unwrapUserdata(args)
+      local result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      wrapUserdata(result)
+      return result
     end))
   end
+  return processResult(result)
+end
+--[[
+local function udinvoke(f, data, ...)
+  local args = table.pack(...)
+  unwrapUserdata(args)
+  local result = table.pack(f(data, table.unpack(args)))
   return processResult(result)
 end
 
 -- Metatable for additional functionality on userdata.
 local userdataWrapper = {
   __index = function(self, ...)
-    return processResult(table.pack(userdata.apply(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.apply, wrappedUserdata[self], ...)
   end,
   __newindex = function(self, ...)
-    return processResult(table.pack(userdata.unapply(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.unapply, wrappedUserdata[self], ...)
   end,
   __call = function(self, ...)
-    return processResult(table.pack(userdata.call(wrappedUserdata[self], processArguments(...))))
+    return udinvoke(userdata.call, wrappedUserdata[self], ...)
   end,
   __gc = function(self)
     local data = wrappedUserdata[self]
@@ -315,8 +336,10 @@ local userdataWrapper = {
   -- of the actual class when saving, so we can create a new instance via
   -- reflection when loading again (and then immediately wrap it again).
   -- Collect wrapped callback methods.
-  __persist = function(self)
+  [persistKey] = function(self)
+    print("start saving userdata " .. tostring(wrappedUserdata[self]))
     local className, nbt = userdata.save(wrappedUserdata[self])
+    print("done saving userdata")
     -- The returned closure is what actually gets persisted, including the
     -- upvalues, that being the classname and a byte array representing the
     -- nbt data of the userdata value.
@@ -401,6 +424,9 @@ function unwrapUserdata(values)
   end
   unwrapRecursively(values)
 end
+]]
+function wrapUserdata(...) return ... end
+function unwrapUserdata(...) return ... end
 
 -------------------------------------------------------------------------------
 
@@ -618,9 +644,7 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
-      unwrapUserdata(result[2])
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
-      wrapUserdata(args)
     end
   end
 end

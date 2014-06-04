@@ -23,9 +23,12 @@ class Proxy {
   def preInit(e: FMLPreInitializationEvent) {
     Settings.load(e.getSuggestedConfigurationFile)
 
+    OpenComputers.log.info("Initializing blocks and items.")
+
     Blocks.init()
     Items.init()
 
+    OpenComputers.log.info("Initializing additional OreDict entries.")
     registerExclusive("craftingPiston", new ItemStack(net.minecraft.init.Blocks.piston), new ItemStack(net.minecraft.init.Blocks.sticky_piston))
     registerExclusive("torchRedstoneActive", new ItemStack(net.minecraft.init.Blocks.redstone_torch))
     registerExclusive("nuggetGold", new ItemStack(net.minecraft.init.Items.gold_nugget))
@@ -35,6 +38,8 @@ class Proxy {
       Recipes.addItem(Items.ironNugget, "nuggetIron")
       Recipes.addItem(net.minecraft.init.Items.iron_ingot, "ingotIron")
     }
+
+    OpenComputers.log.info("Initializing OpenComputers API.")
 
     api.CreativeTab.instance = CreativeTab
     api.Driver.instance = driver.Registry
@@ -47,14 +52,17 @@ class Proxy {
     api.Network.instance = network.Network
 
     if (Mods.ForgeMultipart.isAvailable) {
+      OpenComputers.log.info("Initializing Forge MultiPart support.")
       MultiPart.init()
     }
     if (Mods.ComputerCraft.isAvailable) {
+      OpenComputers.log.info("Initializing ComputerCraft support.")
       ComputerCraft.init()
     }
   }
 
   def init(e: FMLInitializationEvent) {
+    OpenComputers.log.info("Initializing OpenComputers drivers.")
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
@@ -83,17 +91,25 @@ class Proxy {
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     if (Mods.StargateTech2.isAvailable) {
+      OpenComputers.log.info("Initializing StargateTech2 converter and driver.")
+      api.Driver.add(driver.converter.BusPacketNetScanDevice)
       api.Driver.add(driver.item.AbstractBusCard)
     }
     if (Mods.ComputerCraft.isAvailable) {
+      OpenComputers.log.info("Initializing ComputerCraft 1.6x floppy driver.")
       api.Driver.add(driver.item.ComputerCraftMedia)
     }
 
+    OpenComputers.log.info("Initializing vanilla converters.")
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
 
+    OpenComputers.log.info("Initializing loot disks.")
     Loot.init()
+
+    OpenComputers.log.info("Initializing recipes.")
     Recipes.init()
+    OpenComputers.log.info("Initializing event handlers.")
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
     OpenComputers.channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("OpenComputers")
@@ -106,13 +122,16 @@ class Proxy {
     MinecraftForge.EVENT_BUS.register(ExperienceUpgradeHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkCardHandler)
     if (Mods.TinkersConstruct.isAvailable) {
+      OpenComputers.log.info("Initializing Tinker's Construct tool support.")
       MinecraftForge.EVENT_BUS.register(TinkersConstructToolHandler)
     }
     if (Mods.UniversalElectricity.isAvailable) {
+      OpenComputers.log.info("Initializing electric tool support.")
       MinecraftForge.EVENT_BUS.register(UniversalElectricityToolHandler)
     }
     MinecraftForge.EVENT_BUS.register(Loot)
 
+    OpenComputers.log.info("Initializing Waila support.")
     FMLInterModComms.sendMessage("Waila", "register", "li.cil.oc.util.mods.Waila.init")
   }
 

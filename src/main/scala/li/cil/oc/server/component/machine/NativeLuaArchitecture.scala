@@ -33,8 +33,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     new UnicodeAPI(this),
     new UserdataAPI(this))
 
-  private var lastCollection = 0L
-
   private[machine] def invoke(f: () => Array[AnyRef]): Int = try {
     f() match {
       case results: Array[_] =>
@@ -164,13 +162,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     try {
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
-
-      if (Settings.get.activeGC && (machine.worldTime - lastCollection) > 20) {
-        // Help out the GC a little. The emergency GC has a few limitations
-        // that will make it free less memory than doing a full step manually.
-        lastCollection = machine.worldTime
-        lua.gc(LuaState.GcAction.COLLECT, 0)
-      }
 
       // Resume the Lua state and remember the number of results we get.
       val results = if (isSynchronizedReturn) {

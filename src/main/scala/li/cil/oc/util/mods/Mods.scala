@@ -19,7 +19,12 @@ object Mods {
   val PortalGun = new SimpleMod("PortalGun")
   val ProjectRed = new SimpleMod("ProjRed|Transmission")
   val RedLogic = new SimpleMod("RedLogic")
-  val StargateTech2 = new SimpleMod("StargateTech2@[0.6.0,)")
+  val StargateTech2 = new Mod {
+    val isAvailable = Loader.isModLoaded("StargateTech2") && {
+      val mod = Loader.instance.getIndexedModList.get("StargateTech2")
+      mod.getVersion.startsWith("0.7.")
+    }
+  }
   val ThermalExpansion = new SimpleMod("ThermalExpansion")
   val TinkersConstruct = new SimpleMod("TConstruct")
   val UniversalElectricity = new SimpleMod("UniversalElectricity@[3.1,)")

@@ -21,33 +21,30 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
 
   protected var address = 0
 
-  protected var sendQueue: Option[QueuedPacket] = None
+  protected var sendQueue: Option[BusPacket[_]] = None
 
   protected var owner: Option[Context] = None
 
   // ----------------------------------------------------------------------- //
 
+  override def getShortName = "Computer"
+
+  override def getDescription = "An OpenComputers computer or server."
+
   override def canHandlePacket(sender: Short, protocolID: Int, hasLIP: Boolean) = hasLIP
 
-  override def handlePacket(packet: BusPacket) {
+  override def handlePacket(packet: BusPacket[_]) {
     val lip = packet.getPlainText
     val data = Map(lip.getEntryList.map(key => (key, lip.get(key))): _*)
     val metadata = Map("mod" -> lip.getMetadata.modID, "device" -> lip.getMetadata.deviceName, "player" -> lip.getMetadata.playerName)
     owner.foreach(_.signal("bus_message", Int.box(packet.getProtocolID), Int.box(packet.getSender), Int.box(packet.getTarget), data, metadata))
   }
 
-  override def getNextPacketToSend = if (sendQueue.isDefined) {
-    val info = sendQueue.get
+  override def getNextPacketToSend = this.synchronized {
+    val packet = sendQueue.orNull
     sendQueue = None
-    val packet = new BusPacketLIP(info.sender, info.target)
-    for ((key, value) <- info.data) {
-      packet.set(key, value)
-    }
-    packet.setMetadata(new BusPacketLIP.LIPMetadata("OpenComputers", node.address, null))
-    packet.finish()
     packet
   }
-  else null
 
   override def isInterfaceEnabled = isEnabled
 
@@ -74,15 +71,44 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
   }
 
   @Callback(doc = """function(address:number, data:table):boolean -- Sends data across the abstract bus.""")
-  def send(context: Context, args: Arguments): Array[AnyRef] = {
+  def send(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)
     if (node.tryChangeBuffer(-Settings.get.abstractBusPacketCost)) {
-      sendQueue = Some(new QueuedPacket(address.toShort, target.toShort, Map(data.toSeq.map(entry => (entry._1.toString, entry._2.toString)): _*)))
+      val packet = new BusPacketLIP(address.toShort, target.toShort)
+      var size = 0
+      def checkSize(add: Int) {
+        size += add
+        if (size > Settings.get.maxNetworkPacketSize) {
+          throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
+        }
+      }
+      for ((key, value) <- data) {
+        val keyAsString = key.toString
+        checkSize(keyAsString.length)
+        val valueAsString = value.toString
+        checkSize(valueAsString.length)
+        packet.set(keyAsString, valueAsString)
+      }
+      packet.setMetadata(new BusPacketLIP.LIPMetadata("OpenComputers", node.address, null))
+      packet.finish()
+      sendQueue = Some(packet)
       busInterface.sendAllPackets()
-      result(true)
+      result(packet.getResponses.toArray)
     }
     else result(Unit, "not enough energy")
+  }
+
+  @Callback(doc = """function(mask:number):table -- Scans the network for other devices.""")
+  def scan(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
+    val mask = (args.checkInteger(0) & 0xFFFF).toShort
+    if (node.tryChangeBuffer(-Settings.get.abstractBusPacketCost)) {
+      val packet = new BusPacketNetScan(mask)
+      sendQueue = Some(packet)
+      busInterface.sendAllPackets()
+      Array(packet.getDevices.toArray)
+    }
+    else Array(Unit, "not enough energy")
   }
 
   @Callback(direct = true, doc = """function():number -- The maximum packet size that can be sent over the bus.""")
@@ -120,17 +146,4 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
     nbt.setBoolean("enabled", isEnabled)
     nbt.setInteger("address", address)
   }
-
-  protected class QueuedPacket(val sender: Short, val target: Short, val data: Map[String, String]) {
-    // Extra braces because we don't want/have to keep size as a field.
-    {
-      val size = data.foldLeft(0)((acc, arg) => {
-        acc + arg._1.length + arg._2.length
-      })
-      if (size > Settings.get.maxNetworkPacketSize) {
-        throw new IllegalArgumentException("packet too big (max " + Settings.get.maxNetworkPacketSize + ")")
-      }
-    }
-  }
-
 }
