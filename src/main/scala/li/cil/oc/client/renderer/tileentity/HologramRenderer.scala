@@ -232,11 +232,11 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL11.glCullFace(GL11.GL_BACK) // Because fragment processing started to slow things down
       bindTexture(Textures.blockHologram)
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
-      GL11.glEnable(GL11.GL_VERTEX_ARRAY)
-      GL11.glEnable(GL11.GL_TEXTURE_COORD_ARRAY)
+      GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY)
+      GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY)
       GL11.glInterleavedArrays(GL11.GL_T2F_V3F, 0, 0)
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, privateBuf)
-      GL11.glEnable(GL11.GL_COLOR_ARRAY)
+      GL11.glEnableClientState(GL11.GL_COLOR_ARRAY)
       GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, 0, 0)
       GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, privateBuf)
 
