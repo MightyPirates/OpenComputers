@@ -28,10 +28,11 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     new ComponentAPI(this),
     new ComputerAPI(this),
     new OSAPI(this),
-    persistence,
     new SystemAPI(this),
     new UnicodeAPI(this),
-    new UserdataAPI(this))
+    new UserdataAPI(this),
+    // Persistence has to go last to ensure all other APIs can go into the permanent value table.
+    persistence)
 
   private[machine] def invoke(f: () => Array[AnyRef]): Int = try {
     f() match {
