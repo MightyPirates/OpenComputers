@@ -34,6 +34,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Whether we need to send an update packet/recompile our display list.
   var dirty = false
 
+  // Store it here for convenience
+  var visibleQuads = 0
+
   // Interval of dirty columns.
   var dirtyFromX = Int.MaxValue
   var dirtyUntilX = -1

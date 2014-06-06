@@ -8,16 +8,15 @@ import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{GLAllocation, Tessellator}
 import net.minecraft.tileentity.TileEntity
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.{GL15, GL11}
 import scala.util.Random
-import org.lwjgl.input.Keyboard
+import org.lwjgl.BufferUtils
 
 object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   val random = new Random()
 
-  /** We cache the display lists for the projectors we render for performance. */
+  /** We cache the VBOs for the projectors we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(2, TimeUnit.SECONDS).
     removalListener(this).
@@ -46,135 +45,221 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL11.glTranslated(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }
 
+    // After the below scaling, hologram is drawn inside a [0..48]x[0..32]x[0..48] box
+    GL11.glScaled(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
+
     // We do two passes here to avoid weird transparency effects: in the first
     // pass we find the front-most fragment, in the second we actually draw it.
     // TODO proper transparency shader? depth peeling e.g.
+    // evg-zhabotinsky: I'd rather not do it. Anyway it won't work for multiple holograms.
+    //  Also I commented out the first pass to see what it will look like and I prefer it the way it is now.
     GL11.glColorMask(false, false, false, false)
     GL11.glDepthMask(true)
-    val list = cache.get(hologram, this)
-    compileOrDraw(list)
+    val privateBuf = cache.get(hologram, this)
+    compileOrDraw(privateBuf)
     GL11.glColorMask(true, true, true, true)
     GL11.glDepthFunc(GL11.GL_EQUAL)
-    compileOrDraw(list)
+    compileOrDraw(privateBuf)
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
   }
 
-  def compileOrDraw(list: Int) = if (hologram.dirty) {
-    val doCompile = !RenderState.compilingDisplayList
-    if (doCompile) {
-      hologram.dirty = false
-      GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
-    }
+  val compileOrDraw = {
+    // WARNING works only if all the holograms have the same dimensions (in voxels)
+    var commonBuffer = 0 // Common for all holograms (a-la static variable)
+    (privateBuf: Int) => {
+      // Save current state (don't forget to restore)
+      GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
-    def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
+      if (commonBuffer == 0) { // First run only
+        commonBuffer = GL15.glGenBuffers()
+        var tmpBuf = BufferUtils.createFloatBuffer(hologram.width * hologram.width * hologram.height * 24 * (3 + 2))
+        def newVert = (x: Int, y: Int, z: Int, u: Int, v: Int) => { // Dirty hack to avoid rewriting :)
+          tmpBuf.put(u)
+          tmpBuf.put(v)
+          tmpBuf.put(x)
+          tmpBuf.put(y)
+          tmpBuf.put(z)
+        }
+        for (x <- 0 until hologram.width) {
+          for (z <- 0 until hologram.width) {
+            for (y <- 0 until hologram.height) {
+              /*
+                    0---1
+                    | N |
+                0---3---2---1---0
+                | W | U | E | D |
+                5---6---7---4---5
+                    | S |
+                    5---4
+              */
 
-    def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
+              // South
+                newVert(x + 1, y + 1, z + 1, 0, 0) // 5
+                newVert(x + 0, y + 1, z + 1, 1, 0) // 4
+                newVert(x + 0, y + 0, z + 1, 1, 1) // 7
+                newVert(x + 1, y + 0, z + 1, 0, 1) // 6
+              // North
+                newVert(x + 1, y + 0, z + 0, 0, 0) // 3
+                newVert(x + 0, y + 0, z + 0, 1, 0) // 2
+                newVert(x + 0, y + 1, z + 0, 1, 1) // 1
+                newVert(x + 1, y + 1, z + 0, 0, 1) // 0
 
-    bindTexture(Textures.blockHologram)
-    val t = Tessellator.instance
-    t.startDrawingQuads()
+              // East
+                newVert(x + 1, y + 1, z + 1, 1, 0) // 5
+                newVert(x + 1, y + 0, z + 1, 1, 1) // 6
+                newVert(x + 1, y + 0, z + 0, 0, 1) // 3
+                newVert(x + 1, y + 1, z + 0, 0, 0) // 0
+              // West
+                newVert(x + 0, y + 0, z + 1, 1, 0) // 7
+                newVert(x + 0, y + 1, z + 1, 1, 1) // 4
+                newVert(x + 0, y + 1, z + 0, 0, 1) // 1
+                newVert(x + 0, y + 0, z + 0, 0, 0) // 2
 
-    // TODO merge quads for better rendering performance
-    val s = 1f / 16f * hologram.scale
-    for (hx <- 0 until hologram.width) {
-      val wx = hx * s
-      for (hz <- 0 until hologram.width) {
-        val wz = hz * s
-        for (hy <- 0 until hologram.height) {
-          val wy = hy * s
-
-          if (isSolid(hx, hy, hz)) {
-            t.setColorRGBA_I(hologram.colors(value(hx, hy, hz) - 1), 192)
-
-            /*
-                  0---1
-                  | N |
-              0---3---2---1---0
-              | W | U | E | D |
-              5---6---7---4---5
-                  | S |
-                  5---4
-             */
-
-            // South
-            if (!isSolid(hx, hy, hz + 1)) {
-              t.setNormal(0, 0, 1)
-              t.addVertexWithUV(wx + s, wy + s, wz + s, 0, 0) // 5
-              t.addVertexWithUV(wx + 0, wy + s, wz + s, 1, 0) // 4
-              t.addVertexWithUV(wx + 0, wy + 0, wz + s, 1, 1) // 7
-              t.addVertexWithUV(wx + s, wy + 0, wz + s, 0, 1) // 6
-            }
-            // North
-            if (!isSolid(hx, hy, hz - 1)) {
-              t.setNormal(0, 0, -1)
-              t.addVertexWithUV(wx + s, wy + 0, wz + 0, 0, 0) // 3
-              t.addVertexWithUV(wx + 0, wy + 0, wz + 0, 1, 0) // 2
-              t.addVertexWithUV(wx + 0, wy + s, wz + 0, 1, 1) // 1
-              t.addVertexWithUV(wx + s, wy + s, wz + 0, 0, 1) // 0
-            }
-
-            // East
-            if (!isSolid(hx + 1, hy, hz)) {
-              t.setNormal(1, 0, 0)
-              t.addVertexWithUV(wx + s, wy + s, wz + s, 1, 0) // 5
-              t.addVertexWithUV(wx + s, wy + 0, wz + s, 1, 1) // 6
-              t.addVertexWithUV(wx + s, wy + 0, wz + 0, 0, 1) // 3
-              t.addVertexWithUV(wx + s, wy + s, wz + 0, 0, 0) // 0
-            }
-            // West
-            if (!isSolid(hx - 1, hy, hz)) {
-              t.setNormal(-1, 0, 0)
-              t.addVertexWithUV(wx + 0, wy + 0, wz + s, 1, 0) // 7
-              t.addVertexWithUV(wx + 0, wy + s, wz + s, 1, 1) // 4
-              t.addVertexWithUV(wx + 0, wy + s, wz + 0, 0, 1) // 1
-              t.addVertexWithUV(wx + 0, wy + 0, wz + 0, 0, 0) // 2
-            }
-
-            // Up
-            if (!isSolid(hx, hy + 1, hz)) {
-              t.setNormal(0, 1, 0)
-              t.addVertexWithUV(wx + s, wy + s, wz + 0, 0, 0) // 0
-              t.addVertexWithUV(wx + 0, wy + s, wz + 0, 1, 0) // 1
-              t.addVertexWithUV(wx + 0, wy + s, wz + s, 1, 1) // 4
-              t.addVertexWithUV(wx + s, wy + s, wz + s, 0, 1) // 5
-            }
-            // Down
-            if (!isSolid(hx, hy - 1, hz)) {
-              t.setNormal(0, -1, 0)
-              t.addVertexWithUV(wx + s, wy + 0, wz + s, 0, 0) // 6
-              t.addVertexWithUV(wx + 0, wy + 0, wz + s, 1, 0) // 7
-              t.addVertexWithUV(wx + 0, wy + 0, wz + 0, 1, 1) // 2
-              t.addVertexWithUV(wx + s, wy + 0, wz + 0, 0, 1) // 3
+              // Up
+                newVert(x + 1, y + 1, z + 0, 0, 0) // 0
+                newVert(x + 0, y + 1, z + 0, 1, 0) // 1
+                newVert(x + 0, y + 1, z + 1, 1, 1) // 4
+                newVert(x + 1, y + 1, z + 1, 0, 1) // 5
+              // Down
+                newVert(x + 1, y + 0, z + 1, 0, 0) // 6
+                newVert(x + 0, y + 0, z + 1, 1, 0) // 7
+                newVert(x + 0, y + 0, z + 0, 1, 1) // 2
+                newVert(x + 1, y + 0, z + 0, 0, 1) // 3
             }
           }
         }
+        tmpBuf.rewind() // Important!
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, tmpBuf, GL15.GL_STATIC_DRAW)
       }
+
+      if (hologram.dirty) { // Refresh hologram
+        def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
+
+        def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
+
+        var tmpBuf = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 24 * 2)
+        // First copy color information
+        for (x <- 0 until hologram.width) {
+          for (z <- 0 until hologram.width) {
+            for (y <- 0 until hologram.height) {
+              val v: Int = if (isSolid(x, y, z)) (192 << 24) + hologram.colors(value(x, y, z) - 1) else 0
+              for (t <- 0 until 24) {
+                tmpBuf.put(v)
+              }
+            }
+          }
+        }
+        // Then identify which quads to render and prepare data for glDrawElements
+        hologram.visibleQuads = 0;
+        var c = 0
+        for (hx <- 0 until hologram.width) {
+          for (hz <- 0 until hologram.width) {
+            for (hy <- 0 until hologram.height) {
+              if (isSolid(hx, hy, hz)) {
+                // South
+                if (!isSolid(hx, hy, hz + 1)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+                // North
+                if (!isSolid(hx, hy, hz - 1)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+
+                // East
+                if (!isSolid(hx + 1, hy, hz)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+                // West
+                if (!isSolid(hx - 1, hy, hz)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+
+                // Up
+                if (!isSolid(hx, hy + 1, hz)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+                // Down
+                if (!isSolid(hx, hy - 1, hz)) {
+                  tmpBuf.put(c)
+                  tmpBuf.put(c + 1)
+                  tmpBuf.put(c + 2)
+                  tmpBuf.put(c + 3)
+                  hologram.visibleQuads += 1
+                }
+                c += 4
+              } else c += 24
+            }
+          }
+        }
+        tmpBuf.rewind() // Important!
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, privateBuf)
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, tmpBuf, GL15.GL_STATIC_DRAW)
+
+        hologram.dirty = false
+      }
+
+      GL11.glDisable(GL11.GL_LIGHTING) // Hologram that reflects light... It would be awesome! But...
+      GL11.glEnable(GL11.GL_CULL_FACE)
+      GL11.glCullFace(GL11.GL_BACK) // Because fragment processing started to slow things down
+      bindTexture(Textures.blockHologram)
+      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
+      GL11.glEnable(GL11.GL_VERTEX_ARRAY)
+      GL11.glEnable(GL11.GL_TEXTURE_COORD_ARRAY)
+      GL11.glInterleavedArrays(GL11.GL_T2F_V3F, 0, 0)
+      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, privateBuf)
+      GL11.glEnable(GL11.GL_COLOR_ARRAY)
+      GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, 0, 0)
+      GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, privateBuf)
+
+      GL11.glDrawElements(GL11.GL_QUADS, hologram.visibleQuads * 4, GL11.GL_UNSIGNED_INT, hologram.width * hologram.width * hologram.height * 24 * 4)
+
+      // Restore original state
+      GL11.glPopAttrib()
+      GL11.glPopClientAttrib()
     }
-
-    t.draw()
-
-    if (doCompile) {
-      GL11.glEndList()
-    }
-
-    true
   }
-  else GL11.glCallList(list)
 
   // ----------------------------------------------------------------------- //
   // Cache
   // ----------------------------------------------------------------------- //
 
   def call = {
-    val list = GLAllocation.generateDisplayLists(1)
+    val privateBuf = GL15.glGenBuffers()
     hologram.dirty = true // Force compilation.
-    list
+    privateBuf
   }
 
   def onRemoval(e: RemovalNotification[TileEntity, Int]) {
-    GLAllocation.deleteDisplayLists(e.getValue)
+    GL15.glDeleteBuffers(e.getValue)
   }
 
   // ----------------------------------------------------------------------- //

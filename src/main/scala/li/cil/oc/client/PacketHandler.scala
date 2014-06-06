@@ -153,7 +153,6 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         t.scale = p.readDouble()
-        t.dirty = true
       case _ => // Invalid packet.
     }
 
