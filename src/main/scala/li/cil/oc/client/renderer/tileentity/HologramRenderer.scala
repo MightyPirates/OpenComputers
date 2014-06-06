@@ -34,6 +34,11 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     RenderState.makeItBlend()
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 
+    val playerDistSq = x*x + y*y + z*z
+    val maxDistSq = hologram.getMaxRenderDistanceSquared
+    val fadeDistSq = hologram.getFadeStartDistanceSquared
+    RenderState.setBlendAlpha(0.75f * (if (playerDistSq > fadeDistSq) math.max(0, 1 - ((playerDistSq - fadeDistSq) / (maxDistSq - fadeDistSq)).toFloat) else 1))
+
     GL11.glPushMatrix()
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
     GL11.glScaled(1.001, 1.001, 1.001) // Avoid z-fighting with other blocks.
@@ -150,7 +155,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
           for (hz <- 0 until hologram.width) {
             for (hy <- 0 until hologram.height) {
               if (isSolid(hx, hy, hz)) {
-                val v: Int = (192 << 24) + hologram.colors(value(hx, hy, hz) - 1)
+                val v: Int = hologram.colors(value(hx, hy, hz) - 1)
                 // South
                 if (!isSolid(hx, hy, hz + 1)) {
                   tmpBuf.put(c)
@@ -252,7 +257,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
       GL11.glInterleavedArrays(GL11.GL_T2F_V3F, 0, 0)
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, privateBuf)
       GL11.glEnableClientState(GL11.GL_COLOR_ARRAY)
-      GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, 0, 0)
+      GL11.glColorPointer(3, GL11.GL_UNSIGNED_BYTE, 4, 0)
       GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, privateBuf)
 
       GL11.glDrawElements(GL11.GL_QUADS, hologram.visibleQuads * 4, GL11.GL_UNSIGNED_INT, hologram.width * hologram.width * hologram.height * 24 * 4)
