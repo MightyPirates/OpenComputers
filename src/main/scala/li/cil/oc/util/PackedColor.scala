@@ -36,6 +36,12 @@ object PackedColor {
 
     def inflate(value: Int): Int
 
+    def validate(value: Color) {
+      if (value.isPalette) {
+        throw new IllegalArgumentException("color palette not supported")
+      }
+    }
+
     def deflate(value: Color): Byte
 
     override def load(nbt: NBTTagCompound) {}
@@ -48,11 +54,19 @@ object PackedColor {
 
     override def inflate(value: Int) = if (value == 0) 0x000000 else 0xFFFFFF
 
-    override def deflate(value: Color) = (if (value.value == 0) 0 else 1).toByte
+    override def deflate(value: Color) = {
+      (if (value.value == 0) 0 else 1).toByte
+    }
   }
 
   abstract class PaletteFormat extends ColorFormat {
     override def inflate(value: Int) = palette(math.max(0, math.min(palette.length - 1, value)))
+
+    override def validate(value: Color) {
+      if (value.isPalette && (value.value < 0 || value.value >= palette.length)) {
+        throw new IllegalArgumentException("invalid palette index")
+      }
+    }
 
     override def deflate(value: Color) =
       if (value.isPalette) (math.max(0, value.value) % palette.length).toByte
