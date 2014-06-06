@@ -61,6 +61,10 @@ function robot.transferTo(slot, count)
   return component.robot.transferTo(slot, count)
 end
 
+function robot.itemID(slot)
+  return component.robot.itemID(slot)
+end
+
 -------------------------------------------------------------------------------
 -- Inventory + World
 
