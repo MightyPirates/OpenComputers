@@ -18,7 +18,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
   /** We cache the VBOs for the projectors we render for performance. */
   val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(2, TimeUnit.SECONDS).
+    expireAfterAccess(10, TimeUnit.SECONDS).
     removalListener(this).
     asInstanceOf[CacheBuilder[Hologram, Int]].
     build[Hologram, Int]()
@@ -142,30 +142,25 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
         def isSolid(hx: Int, hy: Int, hz: Int) = value(hx, hy, hz) != 0
 
         var tmpBuf = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 24 * 2)
-        // First copy color information
-        for (x <- 0 until hologram.width) {
-          for (z <- 0 until hologram.width) {
-            for (y <- 0 until hologram.height) {
-              val v: Int = if (isSolid(x, y, z)) (192 << 24) + hologram.colors(value(x, y, z) - 1) else 0
-              for (t <- 0 until 24) {
-                tmpBuf.put(v)
-              }
-            }
-          }
-        }
-        // Then identify which quads to render and prepare data for glDrawElements
+        // Copy color information, identify which quads to render and prepare data for glDrawElements
         hologram.visibleQuads = 0;
         var c = 0
+        tmpBuf.position(hologram.width * hologram.width * hologram.height * 24)
         for (hx <- 0 until hologram.width) {
           for (hz <- 0 until hologram.width) {
             for (hy <- 0 until hologram.height) {
               if (isSolid(hx, hy, hz)) {
+                val v: Int = (192 << 24) + hologram.colors(value(hx, hy, hz) - 1)
                 // South
                 if (!isSolid(hx, hy, hz + 1)) {
                   tmpBuf.put(c)
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4
@@ -175,6 +170,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4
@@ -185,6 +184,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4
@@ -194,6 +197,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4
@@ -204,6 +211,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4
@@ -213,6 +224,10 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
                   tmpBuf.put(c + 1)
                   tmpBuf.put(c + 2)
                   tmpBuf.put(c + 3)
+                  tmpBuf.put(c, v)
+                  tmpBuf.put(c + 1, v)
+                  tmpBuf.put(c + 2, v)
+                  tmpBuf.put(c + 3, v)
                   hologram.visibleQuads += 1
                 }
                 c += 4

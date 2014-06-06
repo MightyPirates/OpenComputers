@@ -306,7 +306,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
-    dirty = true
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
