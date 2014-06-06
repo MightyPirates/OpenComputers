@@ -158,7 +158,9 @@ object LuaStateFactory {
     if (!haveNativeLibrary) return None
 
     try {
-      val state = new jnlua.LuaState(Int.MaxValue)
+      val state =
+        if (Settings.get.limitMemory) new jnlua.LuaState(Int.MaxValue)
+        else new jnlua.LuaState()
       try {
         // Load all libraries.
         state.openLib(jnlua.LuaState.Library.BASE)

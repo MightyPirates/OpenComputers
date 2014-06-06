@@ -22,6 +22,7 @@ class Settings(config: Config) {
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
+  val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -47,10 +48,16 @@ class Settings(config: Config) {
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
   val allowBytecode = config.getBoolean("computer.allowBytecode")
-  val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
-  val forceLuaJ = config.getBoolean("computer.forceLuaJ")
-  val allowUserdata = false // unstable
+
+  // ----------------------------------------------------------------------- //
+  // computer.debug
+
+  val logLuaCallbackErrors = config.getBoolean("computer.debug.logCallbackErrors")
+  val forceLuaJ = config.getBoolean("computer.debug.forceLuaJ")
+  val allowUserdata = !config.getBoolean("computer.debug.disableUserdata")
+  val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
+  val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
 
   // ----------------------------------------------------------------------- //
   // robot

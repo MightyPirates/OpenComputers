@@ -103,7 +103,9 @@ abstract class GraphicsCard extends component.ManagedComponent {
   @Callback(direct = true)
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
-    screen(s => result(s.getPaletteColor(index)))
+    screen(s => try result(s.getPaletteColor(index)) catch {
+      case _: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("invalid palette index")
+    })
   }
 
   @Callback
@@ -111,10 +113,13 @@ abstract class GraphicsCard extends component.ManagedComponent {
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
     context.pause(0.1)
-    screen(s => {
+    screen(s => try {
       val oldColor = s.getPaletteColor(index)
       s.setPaletteColor(index, color)
       result(oldColor)
+    }
+    catch {
+      case _: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("invalid palette index")
     })
   }
 

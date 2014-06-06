@@ -9,7 +9,7 @@ import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
 
-class AbstractBus(val device: IBusDevice) extends component.ManagedComponent with IBusDriver {
+class AbstractBusCard(val device: IBusDevice) extends component.ManagedComponent with IBusDriver {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("abstract_bus").
     withConnector().
@@ -70,7 +70,7 @@ class AbstractBus(val device: IBusDevice) extends component.ManagedComponent wit
     result(address)
   }
 
-  @Callback(doc = """function(address:number, data:table):boolean -- Sends data across the abstract bus.""")
+  @Callback(doc = """function(address:number, data:table):table -- Sends data across the abstract bus.""")
   def send(context: Context, args: Arguments): Array[AnyRef] = this.synchronized {
     val target = args.checkInteger(0) & 0xFFFF
     val data = args.checkTable(1)

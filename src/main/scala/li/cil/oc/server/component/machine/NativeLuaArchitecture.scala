@@ -28,10 +28,11 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     new ComponentAPI(this),
     new ComputerAPI(this),
     new OSAPI(this),
-    persistence,
     new SystemAPI(this),
     new UnicodeAPI(this),
-    new UserdataAPI(this))
+    new UserdataAPI(this),
+    // Persistence has to go last to ensure all other APIs can go into the permanent value table.
+    persistence)
 
   private[machine] def invoke(f: () => Array[AnyRef]): Int = try {
     f() match {
@@ -125,7 +126,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   override def isInitialized = kernelMemory > 0
 
   override def recomputeMemory() = Option(lua) match {
-    case Some(l) =>
+    case Some(l) if Settings.get.limitMemory =>
       l.setTotalMemory(Int.MaxValue)
       l.gc(LuaState.GcAction.COLLECT, 0)
       if (kernelMemory > 0) {
@@ -241,7 +242,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           new ExecutionResult.Shutdown(false)
         }
         else {
-          lua.setTotalMemory(Int.MaxValue)
+          if (Settings.get.limitMemory) {
+            lua.setTotalMemory(Int.MaxValue)
+          }
           val error =
             if (lua.isJavaObjectRaw(3)) lua.toJavaObjectRaw(3).toString
             else lua.toString(3)
@@ -291,7 +294,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
 
   override def close() {
     if (lua != null) {
-      lua.setTotalMemory(Integer.MAX_VALUE)
+      if (Settings.get.limitMemory) {
+        lua.setTotalMemory(Integer.MAX_VALUE)
+      }
       lua.close()
     }
     lua = null
@@ -310,7 +315,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     bootAddress = nbt.getString("bootAddress")
 
     // Unlimit memory use while unpersisting.
-    lua.setTotalMemory(Integer.MAX_VALUE)
+    if (Settings.get.limitMemory) {
+      lua.setTotalMemory(Integer.MAX_VALUE)
+    }
 
     try {
       // Try unpersisting Lua, because that's what all of the rest depends
@@ -333,7 +340,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       if (!lua.isThread(1)) {
         // This shouldn't really happen, but there's a chance it does if
         // the save was corrupt (maybe someone modified the Lua files).
-        throw new IllegalArgumentException("Invalid kernel.")
+        throw new LuaRuntimeException("Invalid kernel.")
       }
       if (state.contains(Machine.State.SynchronizedCall) || state.contains(Machine.State.SynchronizedReturn)) {
         val stack =
@@ -343,15 +350,16 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         if (!(if (state.contains(Machine.State.SynchronizedCall)) lua.isFunction(2) else lua.isTable(2))) {
           // Same as with the above, should not really happen normally, but
           // could for the same reasons.
-          throw new IllegalArgumentException("Invalid stack.")
+          throw new LuaRuntimeException("Invalid stack.")
         }
       }
 
       kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         machine.stop()
+        machine.start()
     }
 
     // Limit memory again.
@@ -364,7 +372,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
 
     // Unlimit memory while persisting.
-    lua.setTotalMemory(Integer.MAX_VALUE)
+    if (Settings.get.limitMemory) {
+      lua.setTotalMemory(Integer.MAX_VALUE)
+    }
 
     try {
       // Try persisting Lua, because that's what all of the rest depends on.

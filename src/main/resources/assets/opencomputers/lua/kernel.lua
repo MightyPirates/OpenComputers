@@ -262,7 +262,7 @@ sandbox._G = sandbox
 -- These functions provide the logic for wrapping and unwrapping (when
 -- pushed to user code and when pushed back to the host, respectively).
 local wrapUserdata, wrapSingleUserdata, unwrapUserdata, wrappedUserdataMeta
---[[
+
 wrappedUserdataMeta = {
   -- Weak keys, clean up once a proxy is no longer referenced anywhere.
   __mode="k",
@@ -278,7 +278,7 @@ wrappedUserdataMeta = {
   end
 }
 local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
-]]
+
 local function processResult(result)
   wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
@@ -307,7 +307,7 @@ local function invoke(target, direct, ...)
   end
   return processResult(result)
 end
---[[
+
 local function udinvoke(f, data, ...)
   local args = table.pack(...)
   unwrapUserdata(args)
@@ -424,9 +424,6 @@ function unwrapUserdata(values)
   end
   unwrapRecursively(values)
 end
-]]
-function wrapUserdata(...) return ... end
-function unwrapUserdata(...) return ... end
 
 -------------------------------------------------------------------------------
 
