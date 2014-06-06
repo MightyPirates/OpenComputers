@@ -96,11 +96,25 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   @Callback
   def compareTo(context: Context, args: Arguments): Array[AnyRef] = {
     val slot = checkSlot(args, 0)
-    result((stackInSlot(selectedSlot), stackInSlot(slot)) match {
-      case (Some(stackA), Some(stackB)) => haveSameItemType(stackA, stackB)
-      case (None, None) => true
-      case _ => false
-    })
+    (stackInSlot(selectedSlot), stackInSlot(slot)) match {
+      case (Some(stackA: ItemStack), Some(stackB: ItemStack)) => (Option(stackA.getItem), Option(stackB.getItem)) match {
+		  case (Some(itemA), Some(itemB)) =>
+			val idA : Float = net.minecraft.item.Item.getIdFromItem(itemA).toFloat +
+				(if (!itemA.getHasSubtypes) 0.0f else (itemA.getMetadata(stackA.getItemDamage).toFloat/1000.0f))
+			val idB : Float = net.minecraft.item.Item.getIdFromItem(itemB).toFloat +
+				(if (!itemB.getHasSubtypes) 0.0f else (itemB.getMetadata(stackB.getItemDamage).toFloat/1000.0f))
+			//val idCmp = net.minecraft.item.Item.getIdFromItem(itemA) - net.minecraft.item.Item.getIdFromItem(itemB)
+			//val subTypeCmp = if (!itemA.getHasSubtypes) 0 else (itemA.getMetadata(stackA.getItemDamage) - itemB.getMetadata(stackB.getItemDamage)).toFloat/1000
+			//val relativeCmp = idCmp.toFloat + subTypeCmp.toFloat
+			//OpenComputers.log.info("compareTo("+slot+") success. idA="+idA+", idB="+idB)
+			return result(idA == idB, idA - idB)
+		  case (None, None) => return result(true)
+		  case (_, _) => return result(false)
+	  }
+      case (None, None) => return result(true)
+	  case (_, _) => return result(false)
+    }
+	return result(false)
   }
 
   @Callback
@@ -147,14 +161,16 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       case Some(stack) => Option(stack.getItem) match {
         case Some(item: ItemBlock) =>
           val (bx, by, bz) = (x + side.offsetX, y + side.offsetY, z + side.offsetZ)
-          val idMatches = item.getBlockID == world.getBlockId(bx, by, bz)
-          val subTypeMatches = !item.getHasSubtypes || item.getMetadata(stack.getItemDamage) == world.getBlockMetadata(bx, by, bz)
-          return result(idMatches && subTypeMatches)
+		  val itemID : Float = net.minecraft.block.Block.getIdFromBlock(item.field_150939_a).toFloat +
+			(if (!item.getHasSubtypes) 0.0f else (item.getMetadata(stack.getItemDamage).toFloat/1000.0f))
+		  val blockID : Float = net.minecraft.block.Block.getIdFromBlock(world.getBlock(bx, by, bz)).toFloat +
+			(world.getBlockMetadata(bx, by, bz).toFloat/1000.0f)
+          return result(itemID == blockID, itemID - blockID)
         case _ =>
       }
       case _ =>
     }
-    result(false)
+    return result(false)
   }
 
   @Callback
@@ -253,6 +269,26 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
     }
   }
 
+  @Callback
+  def itemID(context: Context, args: Arguments): Array[AnyRef] = {
+    val slot =
+      if (args.count > 0 && args.checkAny(0) != null) checkSlot(args, 0)
+      else selectedSlot
+	(stackInSlot(slot)) match {
+		case Some(stack: ItemStack) => Option(stack.getItem) match {
+			case Some(itm) =>
+				val id = net.minecraft.item.Item.getIdFromItem(itm)
+				val subType = if (itm.getHasSubtypes) itm.getMetadata(stack.getItemDamage) else false
+				val name = stack.getUnlocalizedName
+				//OpenComputers.log.info("itemID("+slot+") success. id="+id+", subType="+subType+", name="+name)
+				return result(id, subType, name)
+			case _ =>
+		}
+		case _ => 
+	}
+	return result(false, false, false)
+  }
+  
   // ----------------------------------------------------------------------- //
 
   @Callback
