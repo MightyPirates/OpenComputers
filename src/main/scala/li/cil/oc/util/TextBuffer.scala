@@ -27,15 +27,19 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
   def foreground = _foreground
 
   def foreground_=(value: PackedColor.Color) = {
+    format.validate(value)
     _foreground = value
     packed = PackedColor.pack(_foreground, _background, _format)
+    this
   }
 
   def background = _background
 
   def background_=(value: PackedColor.Color) = {
+    format.validate(value)
     _background = value
     packed = PackedColor.pack(_foreground, _background, _format)
+    this
   }
 
   def format = _format
