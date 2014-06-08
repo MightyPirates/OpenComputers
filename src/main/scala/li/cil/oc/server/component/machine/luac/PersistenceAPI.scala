@@ -12,72 +12,74 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushString("__persist" + UUID.randomUUID().toString.replaceAll("-", ""))
     lua.setGlobal("persistKey")
 
-    // These tables must contain all java callbacks (i.e. C functions, since
-    // they are wrapped on the native side using a C function, of course).
-    // They are used when persisting/unpersisting the state so that the
-    // persistence library knows which values it doesn't have to serialize
-    // (since it cannot persist C functions).
-    lua.newTable() /* ... perms */
-    lua.newTable() /* ... uperms */
+    if (Settings.get.allowPersistence) {
+      // These tables must contain all java callbacks (i.e. C functions, since
+      // they are wrapped on the native side using a C function, of course).
+      // They are used when persisting/unpersisting the state so that the
+      // persistence library knows which values it doesn't have to serialize
+      // (since it cannot persist C functions).
+      lua.newTable() /* ... perms */
+      lua.newTable() /* ... uperms */
 
-    val perms = lua.getTop - 1
-    val uperms = lua.getTop
+      val perms = lua.getTop - 1
+      val uperms = lua.getTop
 
-    def flattenAndStore() {
-      /* ... k v */
-      // We only care for tables and functions, any value types are safe.
-      if (lua.isFunction(-1) || lua.isTable(-1)) {
-        lua.pushValue(-2) /* ... k v k */
-        lua.getTable(uperms) /* ... k v uperms[k] */
-        assert(lua.isNil(-1), "duplicate permanent value named " + lua.toString(-3))
-        lua.pop(1) /* ... k v */
-        // If we have aliases its enough to store the value once.
-        lua.pushValue(-1) /* ... k v v */
-        lua.getTable(perms) /* ... k v perms[v] */
-        val isNew = lua.isNil(-1)
-        lua.pop(1) /* ... k v */
-        if (isNew) {
-          lua.pushValue(-1) /* ... k v v */
-          lua.pushValue(-3) /* ... k v v k */
-          lua.rawSet(perms) /* ... k v ; perms[v] = k */
+      def flattenAndStore() {
+        /* ... k v */
+        // We only care for tables and functions, any value types are safe.
+        if (lua.isFunction(-1) || lua.isTable(-1)) {
           lua.pushValue(-2) /* ... k v k */
-          lua.pushValue(-2) /* ... k v k v */
-          lua.rawSet(uperms) /* ... k v ; uperms[k] = v */
-          // Recurse into tables.
-          if (lua.isTable(-1)) {
-            // Enforce a deterministic order when determining the keys, to ensure
-            // the keys are the same when unpersisting again.
-            val key = lua.toString(-2)
-            val childKeys = mutable.ArrayBuffer.empty[String]
-            lua.pushNil() /* ... k v nil */
-            while (lua.next(-2)) {
-              /* ... k v ck cv */
-              lua.pop(1) /* ... k v ck */
-              childKeys += lua.toString(-1)
-            }
-            /* ... k v */
-            childKeys.sortWith((a, b) => a.compareTo(b) < 0)
-            for (childKey <- childKeys) {
-              lua.pushString(key + "." + childKey) /* ... k v ck */
-              lua.getField(-2, childKey) /* ... k v ck cv */
-              flattenAndStore() /* ... k v */
+          lua.getTable(uperms) /* ... k v uperms[k] */
+          assert(lua.isNil(-1), "duplicate permanent value named " + lua.toString(-3))
+          lua.pop(1) /* ... k v */
+          // If we have aliases its enough to store the value once.
+          lua.pushValue(-1) /* ... k v v */
+          lua.getTable(perms) /* ... k v perms[v] */
+          val isNew = lua.isNil(-1)
+          lua.pop(1) /* ... k v */
+          if (isNew) {
+            lua.pushValue(-1) /* ... k v v */
+            lua.pushValue(-3) /* ... k v v k */
+            lua.rawSet(perms) /* ... k v ; perms[v] = k */
+            lua.pushValue(-2) /* ... k v k */
+            lua.pushValue(-2) /* ... k v k v */
+            lua.rawSet(uperms) /* ... k v ; uperms[k] = v */
+            // Recurse into tables.
+            if (lua.isTable(-1)) {
+              // Enforce a deterministic order when determining the keys, to ensure
+              // the keys are the same when unpersisting again.
+              val key = lua.toString(-2)
+              val childKeys = mutable.ArrayBuffer.empty[String]
+              lua.pushNil() /* ... k v nil */
+              while (lua.next(-2)) {
+                /* ... k v ck cv */
+                lua.pop(1) /* ... k v ck */
+                childKeys += lua.toString(-1)
+              }
+              /* ... k v */
+              childKeys.sortWith((a, b) => a.compareTo(b) < 0)
+              for (childKey <- childKeys) {
+                lua.pushString(key + "." + childKey) /* ... k v ck */
+                lua.getField(-2, childKey) /* ... k v ck cv */
+                flattenAndStore() /* ... k v */
+              }
+              /* ... k v */
             }
             /* ... k v */
           }
           /* ... k v */
         }
-        /* ... k v */
+        lua.pop(2) /* ... */
       }
-      lua.pop(2) /* ... */
+
+      // Mark everything that's globally reachable at this point as permanent.
+      lua.pushString("_G") /* ... perms uperms k */
+      lua.getGlobal("_G") /* ... perms uperms k v */
+
+      flattenAndStore() /* ... perms uperms */
+      lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
+      lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
     }
-
-    // Mark everything that's globally reachable at this point as permanent.
-    lua.pushString("_G") /* ... perms uperms k */
-    lua.getGlobal("_G") /* ... perms uperms k v */
-
-    flattenAndStore() /* ... perms uperms */
-    lua.setField(LuaState.REGISTRYINDEX, "uperms") /* ... perms */
-    lua.setField(LuaState.REGISTRYINDEX, "perms") /* ... */
   }
 
   def configure() {
