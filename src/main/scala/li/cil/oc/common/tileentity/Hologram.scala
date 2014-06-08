@@ -48,7 +48,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   var hasPower = true
 
-  val colorsByTier = Array(Array(0x00FF00), Array(0xFF0000, 0x00FF00, 0x0000FF))
+  val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
   def colors = colorsByTier(tier)
 
   def getColor(x: Int, y: Int, z: Int) = {
@@ -206,7 +206,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   def getPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
-    result(colors(index))
+    var col = colors(index)
+    // Colors are stored as 0xAABBGGRR for rendering convenience, so convert them back here
+    result(((col & 0xFF) << 16) | (col & 0xFF00) | ((col >>> 16) & 0xFF))
   }
 
   @Callback(doc = """function(index:number, value:number):number -- Set the color defined for the specified value.""")
@@ -215,7 +217,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
     val value = args.checkInteger(1)
     val oldValue = colors(index)
-    colors(index) = value & 0xFFFFFF
+    // Change byte order here to allow passing stored color to OpenGL "as-is"
+    // (as whole Int, i.e. 0xAABBGGRR, alpha is unused but present for alignment)
+    colors(index) = ((value & 0xFF) << 16) | (value & 0xFF00) | ((value >>> 16) & 0xFF)
     ServerPacketSender.sendHologramColor(this, index, value)
     result(oldValue)
   }
