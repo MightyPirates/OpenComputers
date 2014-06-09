@@ -165,7 +165,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal))) {
         tryUseItem(stack, duration)
       }
       else false
