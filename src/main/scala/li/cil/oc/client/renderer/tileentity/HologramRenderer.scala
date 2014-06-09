@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.{GLAllocation, Tessellator}
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
 import scala.util.Random
-import org.lwjgl.input.Keyboard
+import li.cil.oc.Settings
 
 object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   val random = new Random()
@@ -41,7 +41,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     GL11.glTranslated(-1.5 * hologram.scale, 0, -1.5 * hologram.scale)
 
     // Do a bit of flickering, because that's what holograms do!
-    if (random.nextDouble() < 0.025) {
+    if (Settings.get.hologramFlickerFrequency > 0 && random.nextDouble() < Settings.get.hologramFlickerFrequency) {
       GL11.glScaled(1 + random.nextGaussian() * 0.01, 1 + random.nextGaussian() * 0.001, 1 + random.nextGaussian() * 0.01)
       GL11.glTranslated(random.nextGaussian() * 0.01, random.nextGaussian() * 0.01, random.nextGaussian() * 0.01)
     }
