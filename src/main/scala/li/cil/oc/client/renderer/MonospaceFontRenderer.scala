@@ -2,14 +2,20 @@ package li.cil.oc.client.renderer
 
 import java.util.logging.Level
 import li.cil.oc.client.Textures
-import li.cil.oc.util.{RenderState, PackedColor}
+import li.cil.oc.util.PackedColor
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
 import scala.io.Source
+
+// IMPORTANT: we must not use the tessellator here. Doing so can cause
+// crashes on certain graphics cards with certain drivers (reported for
+// ATI/AMD and Intel chip sets). These crashes have been reported to
+// happen I have no idea why, and can only guess that it's related to
+// using the VBO/ARB the tessellator uses inside a display list (since
+// this stuff is eventually only rendered via display lists).
 
 object MonospaceFontRenderer {
   val (chars, fontWidth, fontHeight) = try {
@@ -129,12 +135,6 @@ object MonospaceFontRenderer {
     }
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {
-      // IMPORTANT: we must not use the tessellator here. Doing so can cause
-      // crashes on certain graphics cards with certain drivers (reported for
-      // ATI/AMD and Intel chip sets). These crashes have been reported to
-      // happen I have no idea why, and can only guess that it's related to
-      // using the VBO/ARB the tessellator uses inside a display list (since
-      // this stuff is eventually only rendered via display lists).
       GL11.glColor3ub(((color >> 16) & 0xFF).toByte, ((color >> 8) & 0xFF).toByte, (color & 0xFF).toByte)
       GL11.glVertex3d(charWidth * offset, charHeight, 0)
       GL11.glVertex3d(charWidth * (offset + width), charHeight, 0)
