@@ -34,7 +34,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     fontRendererObj.drawString(
       StatCollector.translateToLocal(computer.getInventoryName),
       8, 6, 0x404040)

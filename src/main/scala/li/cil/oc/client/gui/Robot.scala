@@ -122,7 +122,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
 
   protected override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) {
     drawBufferLayer()
-    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val format = StatCollector.translateToLocal(Settings.namespace + "gui.Robot.Power") + ": %d%% (%d/%d)"

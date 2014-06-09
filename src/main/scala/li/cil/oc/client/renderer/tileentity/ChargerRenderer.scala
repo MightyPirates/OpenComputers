@@ -14,7 +14,7 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val charger = tileEntity.asInstanceOf[Charger]
     if (charger.chargeSpeed > 0) {
-      GL11.glPushAttrib(0xFFFFFF)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()

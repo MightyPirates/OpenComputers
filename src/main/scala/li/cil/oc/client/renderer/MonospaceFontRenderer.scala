@@ -2,7 +2,7 @@ package li.cil.oc.client.renderer
 
 import org.apache.logging.log4j.Level
 import li.cil.oc.client.Textures
-import li.cil.oc.util.PackedColor
+import li.cil.oc.util.{RenderState, PackedColor}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.TextureManager
@@ -30,7 +30,7 @@ object MonospaceFontRenderer {
   catch {
     case t: Throwable =>
       OpenComputers.log.log(Level.WARN, "Failed reading font metadata, using defaults.", t)
-      ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
+      ( """☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
   }
 
   private var instance: Option[Renderer] = None
@@ -57,16 +57,21 @@ object MonospaceFontRenderer {
     def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
+      RenderState.checkError(getClass.getName + ".drawString: entering (aka: wasntme).")
+
       if (Settings.get.textAntiAlias)
         textureManager.bindTexture(Textures.fontAntiAliased)
       else
         textureManager.bindTexture(Textures.fontAliased)
       GL11.glPushMatrix()
       GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
+
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
       GL11.glDepthMask(false)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
+
+      RenderState.checkError(getClass.getName + ".drawString: configure state.")
 
       GL11.glBegin(GL11.GL_QUADS)
       // Background first. We try to merge adjacent backgrounds of the same
@@ -85,6 +90,8 @@ object MonospaceFontRenderer {
       }
       draw(cbg, offset, width)
       GL11.glEnd()
+
+      RenderState.checkError(getClass.getName + ".drawString: background.")
 
       GL11.glEnable(GL11.GL_TEXTURE_2D)
 
@@ -111,7 +118,8 @@ object MonospaceFontRenderer {
             ((cfg & 0x0000FF) >> 0).toByte)
         }
         {
-          if (index != ' ') { // Don't render whitespace.
+          if (index != ' ') {
+            // Don't render whitespace.
             val x = (index - 1) % cols
             val y = (index - 1) / cols
             val u = x * uStep
@@ -130,8 +138,12 @@ object MonospaceFontRenderer {
       }
       GL11.glEnd()
 
+      RenderState.checkError(getClass.getName + ".drawString: foreground.")
+
       GL11.glPopAttrib()
       GL11.glPopMatrix()
+
+      RenderState.checkError(getClass.getName + ".drawString: leaving.")
     }
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {

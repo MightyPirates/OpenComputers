@@ -14,7 +14,7 @@ object RouterRenderer extends TileEntitySpecialRenderer {
     val router = tileEntity.asInstanceOf[tileentity.Router]
     val activity = math.max(0, 1 - (System.currentTimeMillis() - router.lastMessage) / 1000.0)
     if (activity > 0) {
-      GL11.glPushAttrib(0xFFFFFF)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
