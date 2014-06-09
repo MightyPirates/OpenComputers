@@ -57,7 +57,7 @@ object MonospaceFontRenderer {
     def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
-      RenderState.checkError(getClass.getName + ".drawString: entering (aka: wasntme).")
+      RenderState.checkError(getClass.getName + ".drawString: entering (aka: wasntme)")
 
       if (Settings.get.textAntiAlias)
         textureManager.bindTexture(Textures.fontAntiAliased)
@@ -71,7 +71,7 @@ object MonospaceFontRenderer {
       GL11.glDepthMask(false)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
-      RenderState.checkError(getClass.getName + ".drawString: configure state.")
+      RenderState.checkError(getClass.getName + ".drawString: configure state")
 
       GL11.glBegin(GL11.GL_QUADS)
       // Background first. We try to merge adjacent backgrounds of the same
@@ -91,7 +91,7 @@ object MonospaceFontRenderer {
       draw(cbg, offset, width)
       GL11.glEnd()
 
-      RenderState.checkError(getClass.getName + ".drawString: background.")
+      RenderState.checkError(getClass.getName + ".drawString: background")
 
       GL11.glEnable(GL11.GL_TEXTURE_2D)
 
@@ -138,12 +138,12 @@ object MonospaceFontRenderer {
       }
       GL11.glEnd()
 
-      RenderState.checkError(getClass.getName + ".drawString: foreground.")
+      RenderState.checkError(getClass.getName + ".drawString: foreground")
 
       GL11.glPopAttrib()
       GL11.glPopMatrix()
 
-      RenderState.checkError(getClass.getName + ".drawString: leaving.")
+      RenderState.checkError(getClass.getName + ".drawString: leaving")
     }
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {

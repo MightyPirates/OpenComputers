@@ -17,12 +17,12 @@ object BufferRenderer {
   private var displayLists = 0
 
   def init(tm: TextureManager) = this.synchronized(if (!textureManager.isDefined) {
-    RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme).")
+    RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme)")
 
     textureManager = Some(tm)
     displayLists = GLAllocation.generateDisplayLists(2)
 
-    RenderState.checkError(getClass.getName + ".displayLists: leaving.")
+    RenderState.checkError(getClass.getName + ".displayLists: leaving")
   })
 
   def compileBackground(bufferWidth: Int, bufferHeight: Int) =

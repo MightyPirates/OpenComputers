@@ -18,7 +18,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   override def shouldRender3DInInventory() = true
 
   override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
-    RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme).")
+    RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme)")
 
     GL11.glPushMatrix()
     Delegator.subBlock(block, metadata) match {
@@ -27,27 +27,27 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         GL11.glTranslatef(-0.5f, -0.3f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable.")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable")
       case Some(proxy@(_: RobotProxy | _: RobotAfterimage)) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot.")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot")
       case Some(assembler: RobotAssembler) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         renderAssembler(block, metadata, renderer)
         Tessellator.instance.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler.")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler")
       case Some(hologram: Hologram) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         renderHologram(block, metadata, renderer)
         Tessellator.instance.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram.")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram")
       case _ =>
         block match {
           case delegator: Delegator[_] =>
@@ -66,15 +66,15 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         renderFaceXPos(block, metadata, renderer)
         Tessellator.instance.draw()
 
-        RenderState.checkError(getClass.getName + ".renderInventoryBlock: standard block.")
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: standard block")
     }
     GL11.glPopMatrix()
 
-    RenderState.checkError(getClass.getName + ".renderInventoryBlock: leaving.")
+    RenderState.checkError(getClass.getName + ".renderInventoryBlock: leaving")
   }
 
   override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = {
-    RenderState.checkError(getClass.getName + ".renderWorldBlock: entering (aka: wasntme).")
+    RenderState.checkError(getClass.getName + ".renderWorldBlock: entering (aka: wasntme)")
 
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
@@ -103,7 +103,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         renderer.uvRotateBottom = 0
         renderer.flipTexture = false
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard.")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard")
 
         result
       case rack: tileentity.Rack =>
@@ -158,25 +158,25 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
 
         renderer.renderAllFaces = previousRenderAllFaces
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack.")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack")
 
         true
       case assembler: tileentity.RobotAssembler =>
         renderAssembler(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler.")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler")
 
         true
       case hologram: tileentity.Hologram =>
         renderHologram(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram.")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram")
 
         true
       case _ =>
         val result = renderer.renderStandardBlock(block, x, y, z)
 
-        RenderState.checkError(getClass.getName + ".renderWorldBlock: standard block.")
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: standard block")
 
         result
     }
