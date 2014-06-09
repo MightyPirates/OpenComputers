@@ -6,7 +6,7 @@ import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.client
 import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.client.renderer.item.{FloppyRenderer, UpgradeRenderer}
+import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
@@ -45,8 +45,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.multi, UpgradeRenderer)
-    MinecraftForgeClient.registerItemRenderer(Items.multi, FloppyRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.multi, ItemRenderer)
 
     OpenComputers.channel.register(client.PacketHandler)
 

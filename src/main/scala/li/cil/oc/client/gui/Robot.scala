@@ -162,6 +162,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   def drawSlotInventory(slot: Slot) {
+    GL11.glColor3f(1, 1, 1)
     if (!slot.getHasStack) slot match {
       case component: StaticComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)

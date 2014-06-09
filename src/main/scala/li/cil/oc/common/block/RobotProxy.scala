@@ -174,8 +174,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     world.getTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
-        if (robot.player == player) return false
         if (!world.isRemote) {
+          if (robot.player == player) return false
           robot.saveComponents()
           parent.internalDropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }

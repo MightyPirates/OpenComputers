@@ -49,11 +49,10 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   eyeHeight = 0f
   setSize(1, 1)
 
-  val robotInventory = new Inventory(this)
   if (Mods.BattleGear2.isAvailable) {
-    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robotInventory, "inventory", "field_71071_by")
+    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robot.inventory, "inventory", "field_71071_by")
   }
-  else inventory = robotInventory
+  else inventory = robot.inventory
 
   var facing, side = ForgeDirection.UNKNOWN
 
