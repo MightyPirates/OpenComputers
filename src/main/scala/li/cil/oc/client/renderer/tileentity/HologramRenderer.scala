@@ -80,10 +80,13 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
       if (commonBuffer == 0) { // First run only
         commonBuffer = GL15.glGenBuffers()
-        var tmpBuf = BufferUtils.createFloatBuffer(hologram.width * hologram.width * hologram.height * 24 * (3 + 2))
-        def newVert = (x: Int, y: Int, z: Int, u: Int, v: Int) => { // Dirty hack to avoid rewriting :)
+        var tmpBuf = BufferUtils.createFloatBuffer(hologram.width * hologram.width * hologram.height * 24 * (2 + 3 + 3))
+        def newVert = (x: Int, y: Int, z: Int, u: Int, v: Int, nx: Int, ny: Int, nz: Int) => {
           tmpBuf.put(u)
           tmpBuf.put(v)
+          tmpBuf.put(nx)
+          tmpBuf.put(ny)
+          tmpBuf.put(nz)
           tmpBuf.put(x)
           tmpBuf.put(y)
           tmpBuf.put(z)
@@ -102,37 +105,37 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
               */
 
               // South
-                newVert(x + 1, y + 1, z + 1, 0, 0) // 5
-                newVert(x + 0, y + 1, z + 1, 1, 0) // 4
-                newVert(x + 0, y + 0, z + 1, 1, 1) // 7
-                newVert(x + 1, y + 0, z + 1, 0, 1) // 6
+                newVert(x + 1, y + 1, z + 1, 0, 0, 0, 0, 1) // 5
+                newVert(x + 0, y + 1, z + 1, 1, 0, 0, 0, 1) // 4
+                newVert(x + 0, y + 0, z + 1, 1, 1, 0, 0, 1) // 7
+                newVert(x + 1, y + 0, z + 1, 0, 1, 0, 0, 1) // 6
               // North
-                newVert(x + 1, y + 0, z + 0, 0, 0) // 3
-                newVert(x + 0, y + 0, z + 0, 1, 0) // 2
-                newVert(x + 0, y + 1, z + 0, 1, 1) // 1
-                newVert(x + 1, y + 1, z + 0, 0, 1) // 0
+                newVert(x + 1, y + 0, z + 0, 0, 0, 0, 0, -1) // 3
+                newVert(x + 0, y + 0, z + 0, 1, 0, 0, 0, -1) // 2
+                newVert(x + 0, y + 1, z + 0, 1, 1, 0, 0, -1) // 1
+                newVert(x + 1, y + 1, z + 0, 0, 1, 0, 0, -1) // 0
 
               // East
-                newVert(x + 1, y + 1, z + 1, 1, 0) // 5
-                newVert(x + 1, y + 0, z + 1, 1, 1) // 6
-                newVert(x + 1, y + 0, z + 0, 0, 1) // 3
-                newVert(x + 1, y + 1, z + 0, 0, 0) // 0
+                newVert(x + 1, y + 1, z + 1, 1, 0, 1, 0, 0) // 5
+                newVert(x + 1, y + 0, z + 1, 1, 1, 1, 0, 0) // 6
+                newVert(x + 1, y + 0, z + 0, 0, 1, 1, 0, 0) // 3
+                newVert(x + 1, y + 1, z + 0, 0, 0, 1, 0, 0) // 0
               // West
-                newVert(x + 0, y + 0, z + 1, 1, 0) // 7
-                newVert(x + 0, y + 1, z + 1, 1, 1) // 4
-                newVert(x + 0, y + 1, z + 0, 0, 1) // 1
-                newVert(x + 0, y + 0, z + 0, 0, 0) // 2
+                newVert(x + 0, y + 0, z + 1, 1, 0, -1, 0, 0) // 7
+                newVert(x + 0, y + 1, z + 1, 1, 1, -1, 0, 0) // 4
+                newVert(x + 0, y + 1, z + 0, 0, 1, -1, 0, 0) // 1
+                newVert(x + 0, y + 0, z + 0, 0, 0, -1, 0, 0) // 2
 
               // Up
-                newVert(x + 1, y + 1, z + 0, 0, 0) // 0
-                newVert(x + 0, y + 1, z + 0, 1, 0) // 1
-                newVert(x + 0, y + 1, z + 1, 1, 1) // 4
-                newVert(x + 1, y + 1, z + 1, 0, 1) // 5
+                newVert(x + 1, y + 1, z + 0, 0, 0, 0, 1, 0) // 0
+                newVert(x + 0, y + 1, z + 0, 1, 0, 0, 1, 0) // 1
+                newVert(x + 0, y + 1, z + 1, 1, 1, 0, 1, 0) // 4
+                newVert(x + 1, y + 1, z + 1, 0, 1, 0, 1, 0) // 5
               // Down
-                newVert(x + 1, y + 0, z + 1, 0, 0) // 6
-                newVert(x + 0, y + 0, z + 1, 1, 0) // 7
-                newVert(x + 0, y + 0, z + 0, 1, 1) // 2
-                newVert(x + 1, y + 0, z + 0, 0, 1) // 3
+                newVert(x + 1, y + 0, z + 1, 0, 0, 0, -1, 0) // 6
+                newVert(x + 0, y + 0, z + 1, 1, 0, 0, -1, 0) // 7
+                newVert(x + 0, y + 0, z + 0, 1, 1, 0, -1, 0) // 2
+                newVert(x + 1, y + 0, z + 0, 0, 1, 0, -1, 0) // 3
             }
           }
         }
@@ -148,7 +151,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
         var tmpBuf = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 24 * 2)
         // Copy color information, identify which quads to render and prepare data for glDrawElements
-        hologram.visibleQuads = 0;
+        hologram.visibleQuads = 0
         var c = 0
         tmpBuf.position(hologram.width * hologram.width * hologram.height * 24)
         for (hx <- 0 until hologram.width) {
@@ -247,14 +250,15 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
         hologram.dirty = false
       }
 
-      GL11.glDisable(GL11.GL_LIGHTING) // Hologram that reflects light... It would be awesome! But...
+      GL11.glEnable(GL11.GL_NORMALIZE) // Normalize normals!!! (Yes, glScale scales them too!)
       GL11.glEnable(GL11.GL_CULL_FACE)
       GL11.glCullFace(GL11.GL_BACK) // Because fragment processing started to slow things down
       bindTexture(Textures.blockHologram)
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
       GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY)
       GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY)
-      GL11.glInterleavedArrays(GL11.GL_T2F_V3F, 0, 0)
+      GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY)
+      GL11.glInterleavedArrays(GL11.GL_T2F_N3F_V3F, 0, 0)
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, privateBuf)
       GL11.glEnableClientState(GL11.GL_COLOR_ARRAY)
       GL11.glColorPointer(3, GL11.GL_UNSIGNED_BYTE, 4, 0)
