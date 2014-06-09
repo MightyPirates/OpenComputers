@@ -18,26 +18,36 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
   override def shouldRender3DInInventory() = true
 
   override def renderInventoryBlock(block: Block, metadata: Int, modelID: Int, renderer: RenderBlocks) {
+    RenderState.checkError(getClass.getName + ".renderInventoryBlock: entering (aka: wasntme).")
+
     GL11.glPushMatrix()
     Delegator.subBlock(block, metadata) match {
       case Some(cable: Cable) =>
         GL11.glScalef(1.6f, 1.6f, 1.6f)
         GL11.glTranslatef(-0.5f, -0.3f, -0.5f)
         CableRenderer.renderCable(ForgeDirection.DOWN.flag)
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: cable.")
       case Some(proxy@(_: RobotProxy | _: RobotAfterimage)) =>
         GL11.glScalef(1.5f, 1.5f, 1.5f)
         GL11.glTranslatef(-0.5f, -0.45f, -0.5f)
         RobotRenderer.renderChassis()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: robot.")
       case Some(assembler: RobotAssembler) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         renderAssembler(block, metadata, renderer)
         Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: assembler.")
       case Some(hologram: Hologram) =>
         GL11.glTranslatef(-0.5f, -0.5f, -0.5f)
         Tessellator.instance.startDrawingQuads()
         renderHologram(block, metadata, renderer)
         Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: hologram.")
       case _ =>
         block match {
           case delegator: Delegator[_] =>
@@ -55,11 +65,17 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         renderFaceXNeg(block, metadata, renderer)
         renderFaceXPos(block, metadata, renderer)
         Tessellator.instance.draw()
+
+        RenderState.checkError(getClass.getName + ".renderInventoryBlock: standard block.")
     }
     GL11.glPopMatrix()
+
+    RenderState.checkError(getClass.getName + ".renderInventoryBlock: leaving.")
   }
 
-  override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) =
+  override def renderWorldBlock(world: IBlockAccess, x: Int, y: Int, z: Int, block: Block, modelId: Int, renderer: RenderBlocks) = {
+    RenderState.checkError(getClass.getName + ".renderWorldBlock: entering (aka: wasntme).")
+
     world.getBlockTileEntity(x, y, z) match {
       case keyboard: tileentity.Keyboard =>
         if (keyboard.facing == ForgeDirection.UP || keyboard.facing == ForgeDirection.DOWN) {
@@ -86,6 +102,9 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         renderer.uvRotateTop = 0
         renderer.uvRotateBottom = 0
         renderer.flipTexture = false
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: keyboard.")
+
         result
       case rack: tileentity.Rack =>
         val previousRenderAllFaces = renderer.renderAllFaces
@@ -138,15 +157,30 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         renderSide(ForgeDirection.SOUTH, 0, u2, 1, 1)
 
         renderer.renderAllFaces = previousRenderAllFaces
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: rack.")
+
         true
       case assembler: tileentity.RobotAssembler =>
         renderAssembler(assembler.block, assembler.getBlockMetadata, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: assembler.")
+
         true
       case hologram: tileentity.Hologram =>
         renderHologram(hologram.block, hologram.getBlockMetadata, x, y, z, renderer)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: hologram.")
+
         true
-      case _ => renderer.renderStandardBlock(block, x, y, z)
+      case _ =>
+        val result = renderer.renderStandardBlock(block, x, y, z)
+
+        RenderState.checkError(getClass.getName + ".renderWorldBlock: standard block.")
+
+        result
     }
+  }
 
   def renderAssembler(block: Block, metadata: Int, x: Int, y: Int, z: Int, renderer: RenderBlocks) {
     val previousRenderAllFaces = renderer.renderAllFaces

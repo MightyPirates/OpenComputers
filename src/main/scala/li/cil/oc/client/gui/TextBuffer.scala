@@ -67,10 +67,15 @@ trait TextBuffer extends GuiScreen {
       }
       scale = changeSize(currentWidth, currentHeight)
     }
+
+    RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme).")
+
     GL11.glPushMatrix()
     RenderState.disableLighting()
     drawBuffer()
     GL11.glPopMatrix()
+
+    RenderState.checkError(getClass.getName + ".drawBufferLayer: buffer layer.")
 
     if (System.currentTimeMillis() - showKeyboardMissing < 1000) {
       Minecraft.getMinecraft.getTextureManager.bindTexture(Textures.guiKeyboardMissing)
@@ -86,6 +91,8 @@ trait TextBuffer extends GuiScreen {
       t.draw()
       GL11.glEnable(GL11.GL_DEPTH_TEST)
     }
+
+    RenderState.checkError(getClass.getName + ".drawBufferLayer: leaving.")
   }
 
   protected def drawBuffer()

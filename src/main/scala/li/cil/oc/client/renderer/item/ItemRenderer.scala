@@ -14,6 +14,7 @@ import net.minecraftforge.client.IItemRenderer
 import net.minecraftforge.client.IItemRenderer.{ItemRendererHelper, ItemRenderType}
 import org.lwjgl.opengl.GL11
 import scala.collection.convert.WrapAsScala._
+import li.cil.oc.util.RenderState
 
 object ItemRenderer extends IItemRenderer {
   val renderItem = new RenderItem()
@@ -41,6 +42,8 @@ object ItemRenderer extends IItemRenderer {
     helper == ItemRendererHelper.EQUIPPED_BLOCK
 
   override def renderItem(renderType: ItemRenderType, stack: ItemStack, data: AnyRef*) {
+    RenderState.checkError(getClass.getName + ".renderItem: entering (aka: wasntme).")
+
     val mc = Minecraft.getMinecraft
     val tm = mc.getTextureManager
     val descriptor = api.Items.get(stack)
@@ -52,16 +55,22 @@ object ItemRenderer extends IItemRenderer {
       if (descriptor == api.Items.get("craftingUpgrade")) {
         tm.bindTexture(Textures.upgradeCrafting)
         drawSimpleBlock()
+
+        RenderState.checkError(getClass.getName + ".renderItem: crafting upgrade.")
       }
 
       else if (descriptor == api.Items.get("generatorUpgrade")) {
         tm.bindTexture(Textures.upgradeGenerator)
         drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0)
+
+        RenderState.checkError(getClass.getName + ".renderItem: generator upgrade.")
       }
 
       else if (descriptor == api.Items.get("inventoryUpgrade")) {
         tm.bindTexture(Textures.upgradeInventory)
         drawSimpleBlock()
+
+        RenderState.checkError(getClass.getName + ".renderItem: inventory upgrade.")
       }
     }
 
@@ -88,7 +97,11 @@ object ItemRenderer extends IItemRenderer {
         GL11.glPopMatrix()
         GL11.glPopAttrib()
       }
+
+      RenderState.checkError("ItemRenderer.renderItem: floppy.")
     }
+
+    RenderState.checkError("ItemRenderer.renderItem: leaving.")
   }
 
   private def drawSimpleBlock(frontOffset: Double = 0) {
