@@ -20,6 +20,7 @@ import net.minecraftforge.client.IItemRenderer.ItemRenderType._
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
 import org.lwjgl.opengl.{GL12, GL11}
+import net.minecraft.client.Minecraft
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
@@ -295,7 +296,6 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     if (!robot.renderingErrored) {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
-          val player = robot.player()
           val itemRenderer = RenderManager.instance.itemRenderer
 
           GL11.glPushMatrix()
@@ -360,7 +360,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
                 val g = ((tint >> 8) & 0xFF) / 255f
                 val b = ((tint >> 0) & 0xFF) / 255f
                 GL11.glColor4f(r, g, b, 1)
-                itemRenderer.renderItem(player, stack, pass)
+                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
               }
             }
             else {
@@ -369,7 +369,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
               val g = ((tint >> 8) & 0xFF) / 255f
               val b = ((tint >> 0) & 0xFF) / 255f
               GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(player, stack, 0)
+              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, 0)
             }
           }
           catch {
@@ -396,7 +396,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslatef(0.5f, 0.5f, 0.5f)
             GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
             GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
-            RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
+            RenderManager.instance.itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
             GL11.glPopMatrix()
           }
         }

@@ -22,6 +22,7 @@ import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
 import scala.collection.mutable
 import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.server.component.robot.Inventory
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -37,6 +38,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   val info = new ItemUtils.RobotData()
 
   val bot = if (isServer) new robot.Robot(this) else null
+
+  val inventory = new Inventory(this)
 
   if (isServer) {
     computer.setCostPerTick(Settings.get.robotCost)
@@ -272,7 +275,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
-    player().inventory.decrementAnimations()
+    inventory.decrementAnimations()
   }
 
   override protected def initialize() {
@@ -565,10 +568,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       }
       getSizeInventory = realSize + componentCount
       if (world != null && isServer) {
-        val p = player()
         for (stack <- removed) {
-          p.inventory.addItemStackToInventory(stack)
-          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+          inventory.addItemStackToInventory(stack)
+          spawnStackInWorld(stack, facing)
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
       selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
@@ -603,9 +605,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
-          val p = player()
-          p.inventory.addItemStackToInventory(stack)
-          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+          inventory.addItemStackToInventory(stack)
+          spawnStackInWorld(stack, facing)
         }
       }
       else super.setInventorySlotContents(slot, stack)

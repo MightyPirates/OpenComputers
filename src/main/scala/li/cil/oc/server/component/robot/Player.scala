@@ -13,6 +13,7 @@ import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.WorldServer
 import net.minecraft.util._
 import net.minecraftforge.common.{FakePlayer, MinecraftForge, ForgeHooks, ForgeDirection}
 import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
@@ -23,7 +24,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -32,11 +33,10 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world, Settin
   eyeHeight = 0f
   setSize(1, 1)
 
-  val robotInventory = new Inventory(this)
   if (Mods.BattleGear2.isAvailable) {
-    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robotInventory, "inventory", "field_71071_by")
+    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robot.inventory, "inventory", "field_71071_by")
   }
-  else inventory = robotInventory
+  else inventory = robot.inventory
 
   var facing, side = ForgeDirection.UNKNOWN
 

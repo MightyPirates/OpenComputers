@@ -202,7 +202,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         Iterable(facing) ++ ForgeDirection.VALID_DIRECTIONS.filter(side => side != facing && side != facing.getOpposite).toIterable
       }
     val sneaky = args.isBoolean(2) && args.checkBoolean(2)
-    val stack = player.robotInventory.selectedItemStack
+    val stack = robot.inventory.selectedItemStack
     if (stack == null || stack.stackSize == 0) {
       return result(Unit, "nothing selected")
     }

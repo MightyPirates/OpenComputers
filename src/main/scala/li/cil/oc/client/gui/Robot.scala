@@ -103,6 +103,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   override def drawSlotInventory(slot: Slot) {
     RenderState.makeItBlend()
     super.drawSlotInventory(slot)
+    GL11.glColor3f(1, 1, 1)
     GL11.glDisable(GL11.GL_BLEND)
     if (!slot.getHasStack) slot match {
       case component: StaticComponentSlot if component.tierIcon != null =>
