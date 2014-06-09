@@ -79,10 +79,16 @@ abstract class GraphicsCard extends component.ManagedComponent {
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => {
-      val oldColor = s.getBackgroundColor
-      val oldIsPalette = s.isBackgroundFromPalette
+      val oldValue = s.getBackgroundColor
+      val (oldColor, oldIndex) =
+        if (s.isBackroundFromPalette) {
+          (s.getPaletteColor(oldValue), oldValue)
+        }
+        else {
+          (oldValue, Unit)
+        }
       s.setBackgroundColor(color, args.count > 1 && args.checkBoolean(1))
-      result(oldColor, oldIsPalette)
+      result(oldColor, oldIndex)
     })
   }
 
@@ -93,10 +99,16 @@ abstract class GraphicsCard extends component.ManagedComponent {
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => {
-      val oldColor = s.getForegroundColor
-      val oldIsPalette = s.isForegroundFromPalette
+      val oldValue = s.getForegroundColor
+      val (oldColor, oldIndex) =
+        if (s.isForegroundFromPalette) {
+          (s.getPaletteColor(oldValue), oldValue)
+        }
+        else {
+          (oldValue, Unit)
+        }
       s.setForegroundColor(color, args.count > 1 && args.checkBoolean(1))
-      result(oldColor, oldIsPalette)
+      result(oldColor, oldIndex)
     })
   }
 
@@ -176,7 +188,25 @@ abstract class GraphicsCard extends component.ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     screen(s => {
-      result(s.get(x, y), s.getForegroundColor(x, y), s.getBackgroundColor(x, y), s.isForegroundFromPalette(x, y), s.isBackgroundFromPalette(x, y))
+      val fgValue = s.getForegroundColor(x, y)
+      val (fgColor, fgIndex) =
+        if (s.isForegroundFromPalette(x, y)) {
+          (s.getPaletteColor(fgValue), fgValue)
+        }
+        else {
+          (fgValue, Unit)
+        }
+
+      val bgValue = s.getBackgroundColor(x, y)
+      val (bgColor, bgIndex) =
+        if (s.isBackgroundFromPalette(x, y)) {
+          (s.getPaletteColor(bgValue), bgValue)
+        }
+        else {
+          (bgValue, Unit)
+        }
+
+      result(s.get(x, y), fgColor, bgColor, fgIndex, bgIndex)
     })
   }
 

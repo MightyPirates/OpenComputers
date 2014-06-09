@@ -2,6 +2,7 @@ local component = require("component")
 local computer = require("computer")
 local event = require("event")
 local unicode = require("unicode")
+local shell = require("shell")
 
 local candidates = {}
 for address in component.list("filesystem") do
@@ -39,12 +40,14 @@ repeat
 until choice
 choice = candidates[choice]
 
+local cp = loadfile(shell.resolve("cp",　"lua"))
+
 print("Installing OpenOS to device " .. choice.address)
 local boot = "/mnt/" .. computer.getBootAddress():sub(1, 3) .. "/"
 local mnt = "/mnt/" .. choice.address:sub(1, 3) .. "/"
 local function install(what, path)
   print("Installing " .. what .. "...")
-  local result, reason = os.execute("cp -vf " .. boot .. path .. " " .. mnt)
+  local result, reason = pcall(cp,　"-vf",　boot .. path,　mnt)
   if not result then
     error(reason, 0)
   end

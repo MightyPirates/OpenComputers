@@ -300,11 +300,13 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
     char get(int column, int row);
 
     /**
-     * Get the character in the text buffer at the specified location.
+     * Get the foreground color of the text buffer at the specified location.
+     * <p/>
+     * <em>Important</em>: this may be a palette index.
      *
      * @param column the horizontal index.
      * @param row    the vertical index.
-     * @return the foregound color at that index.
+     * @return the foreground color at that index.
      */
     int getForegroundColor(int column, int row);
 
@@ -320,6 +322,8 @@ public interface TextBuffer extends ManagedEnvironment, Persistable {
 
     /**
      * Get the background color of the text buffer at the specified location.
+     * <p/>
+     * <em>Important</em>: this may be a palette index.
      *
      * @param column the horizontal index.
      * @param row    the vertical index.

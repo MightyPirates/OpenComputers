@@ -264,20 +264,26 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   def get(col: Int, row: Int) = data.get(col, row)
 
   override def getForegroundColor(column: Int, row: Int) =
-    PackedColor.unpackForeground(data.color(row)(column), data.format)
+    if (isForegroundFromPalette(column, row)) {
+      PackedColor.extractForeground(data.color(row)(column))
+    }
+    else {
+      PackedColor.unpackForeground(data.color(row)(column), data.format)
+    }
 
-  override def isForegroundFromPalette(column: Int, row: Int) = data.format match {
-    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
-    case _ => false
-  }
+  override def isForegroundFromPalette(column: Int, row: Int) =
+    data.format.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
 
   override def getBackgroundColor(column: Int, row: Int) =
-    PackedColor.unpackBackground(data.color(row)(column), data.format)
+    if (isBackgroundFromPalette(column, row)) {
+      PackedColor.extractBackground(data.color(row)(column))
+    }
+    else {
+      PackedColor.unpackBackground(data.color(row)(column), data.format)
+    }
 
-  override def isBackgroundFromPalette(column: Int, row: Int) = data.format match {
-    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
-    case _ => false
-  }
+  override def isBackgroundFromPalette(column: Int, row: Int) =
+    data.format.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
 
   @SideOnly(Side.CLIENT)
   override def renderText() = relativeLitArea != 0 && proxy.render()
