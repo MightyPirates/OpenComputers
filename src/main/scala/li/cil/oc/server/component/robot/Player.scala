@@ -14,8 +14,7 @@ import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
-import net.minecraft.world.World
-import net.minecraftforge.common.{MinecraftForge, ForgeHooks, ForgeDirection}
+import net.minecraftforge.common.{FakePlayer, MinecraftForge, ForgeHooks, ForgeDirection}
 import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.world.BlockEvent
@@ -24,7 +23,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -46,6 +45,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   def world = robot.world
 
   override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
+
+  override def getDefaultEyeHeight = 0f
 
   // ----------------------------------------------------------------------- //
 
@@ -418,8 +419,6 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
   }
 
-  override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
-
   override def displayGUIMerchant(merchant: IMerchant, name: String) {
     merchant.setCustomer(null)
   }
@@ -428,8 +427,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def swingItem() {}
 
-  override def canAttackPlayer(player: EntityPlayer) =
-    Settings.get.canAttackPlayers && super.canAttackPlayer(player)
+  override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
 
   override def canEat(value: Boolean) = false
 
@@ -439,17 +437,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def attackEntityFrom(source: DamageSource, damage: Float) = false
 
-  override def isEntityInvulnerable = true
-
   override def heal(amount: Float) {}
 
   override def setHealth(value: Float) {}
 
   override def setDead() = isDead = true
-
-  override def onDeath(source: DamageSource) {}
-
-  override def onUpdate() {}
 
   override def onLivingUpdate() {}
 
@@ -463,11 +455,5 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def mountEntity(entity: Entity) {}
 
-  override def travelToDimension(dimension: Int) {}
-
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
-
-  override def canCommandSenderUseCommand(i: Int, s: String) = false
-
-  override def sendChatToPlayer(message: ChatMessageComponent) {}
 }
