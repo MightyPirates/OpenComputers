@@ -85,7 +85,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
     super.drawGuiContainerForegroundLayer(mouseX, mouseY)
-    GL11.glPushAttrib(0xFFFFFFFF) // Prevents NEI render glitch.
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Prevents NEI render glitch.
 
     fontRenderer.drawString(
       StatCollector.translateToLocal(rack.getInvName),

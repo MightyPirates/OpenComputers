@@ -70,7 +70,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   }
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
       def drawMessage(message: String) {
         fontRenderer.drawString(

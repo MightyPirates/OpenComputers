@@ -22,7 +22,7 @@ object WirelessNetworkDebugRenderer {
           val py = player.lastTickPosY + (player.posY - player.lastTickPosY) * e.partialTicks
           val pz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * e.partialTicks
 
-          GL11.glPushAttrib(0xFFFFFFFF)
+          GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
           GL11.glPushMatrix()
           GL11.glTranslated(-px, -py, -pz)
           RenderState.makeItBlend()

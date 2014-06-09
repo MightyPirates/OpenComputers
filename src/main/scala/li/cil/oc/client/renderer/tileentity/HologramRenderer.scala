@@ -31,7 +31,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
     hologram = te.asInstanceOf[Hologram]
     if (!hologram.hasPower) return
 
-    GL11.glPushAttrib(0xFFFFFFFF)
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     RenderState.makeItBlend()
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
 

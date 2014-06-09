@@ -13,7 +13,7 @@ object PowerDistributorRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
     val distributor = tileEntity.asInstanceOf[tileentity.PowerDistributor]
     if (distributor.globalBuffer > 0) {
-      GL11.glPushAttrib(0xFFFFFF)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()

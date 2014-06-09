@@ -70,6 +70,7 @@ object ItemRenderer extends IItemRenderer {
       val res = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight)
       val fontRenderer = renderItem.getFontRendererFromRenderManager
       if (fontRenderer != null && res.getScaleFactor > 1) {
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
         GL11.glPushMatrix()
         GL11.glTranslatef(4f + 2f / res.getScaleFactor, 9f + 2f / res.getScaleFactor, 0)
         GL11.glScalef(1f / res.getScaleFactor, 1f / res.getScaleFactor, 1f)
@@ -85,6 +86,7 @@ object ItemRenderer extends IItemRenderer {
           GL11.glTranslatef(0, fontRenderer.FONT_HEIGHT, 0)
         }
         GL11.glPopMatrix()
+        GL11.glPopAttrib()
       }
     }
   }

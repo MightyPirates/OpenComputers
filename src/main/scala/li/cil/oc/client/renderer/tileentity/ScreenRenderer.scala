@@ -44,7 +44,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       return
     }
 
-    GL11.glPushAttrib(0xFFFFFF)
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
     RenderState.disableLighting()
     RenderState.makeItBlend()

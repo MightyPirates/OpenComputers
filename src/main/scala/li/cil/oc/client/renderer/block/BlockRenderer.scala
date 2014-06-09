@@ -194,7 +194,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
     renderFaceZPos(block, metadata, renderer)
     renderFaceZNeg(block, metadata, renderer)
 
-    GL11.glPushAttrib(0xFFFFFF)
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
     RenderState.makeItBlend()
     RenderState.disableLighting()
 
