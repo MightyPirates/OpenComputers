@@ -44,6 +44,8 @@ object PackedColor {
 
     def deflate(value: Color): Byte
 
+    def isFromPalette(value: Int): Boolean = false
+
     override def load(nbt: NBTTagCompound) {}
 
     override def save(nbt: NBTTagCompound) {}
@@ -72,7 +74,7 @@ object PackedColor {
       if (value.isPalette) (math.max(0, value.value) % palette.length).toByte
       else palette.map(delta(value.value, _)).zipWithIndex.minBy(_._1)._2.toByte
 
-    def isFromPalette(value: Int): Boolean
+    override def isFromPalette(value: Int) = true
 
     protected def palette: Array[Int]
 
@@ -92,8 +94,6 @@ object PackedColor {
     def apply(index: Int) = palette(index)
 
     def update(index: Int, value: Int) = palette(index) = value
-
-    override def isFromPalette(value: Int) = true
 
     protected val palette = Array(
       0xFFFFFF, 0xFFCC33, 0xCC66CC, 0x6699FF,
@@ -138,17 +138,25 @@ object PackedColor {
         (r << rShift32) | (g << gShift32) | (b << bShift32)
       }
 
-    override def deflate(value: Color) =
-      if (value.isPalette) super.deflate(value)
+    override def deflate(value: Color) = {
+      val paletteIndex = super.deflate(value)
+      if (value.isPalette) paletteIndex
       else {
         val (r, g, b) = extract(value.value)
         val idxR = (r * (reds - 1.0) / 0xFF + 0.5).toInt
         val idxG = (g * (greens - 1.0) / 0xFF + 0.5).toInt
         val idxB = (b * (blues - 1.0) / 0xFF + 0.5).toInt
-        (palette.length + idxR * greens * blues + idxG * blues + idxB).toByte
+        val deflated = (palette.length + idxR * greens * blues + idxG * blues + idxB).toByte
+        if (delta(inflate(deflated & 0xFF), value.value) < delta(inflate(paletteIndex & 0xFF), value.value)) {
+          deflated
+        }
+        else {
+          paletteIndex
+        }
       }
+    }
 
-    override def isFromPalette(value: Int) = value < palette.length
+    override def isFromPalette(value: Int) = value >= 0 && value < palette.length
   }
 
   case class Color(value: Int, isPalette: Boolean = false)
