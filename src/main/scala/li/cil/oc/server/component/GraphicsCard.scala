@@ -81,7 +81,7 @@ abstract class GraphicsCard extends component.ManagedComponent {
     screen(s => {
       val oldValue = s.getBackgroundColor
       val (oldColor, oldIndex) =
-        if (s.isBackroundFromPalette) {
+        if (s.isBackgroundFromPalette) {
           (s.getPaletteColor(oldValue), oldValue)
         }
         else {
