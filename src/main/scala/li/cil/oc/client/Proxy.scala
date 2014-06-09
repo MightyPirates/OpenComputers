@@ -10,6 +10,7 @@ import li.cil.oc.client.renderer.item.{FloppyRenderer, UpgradeRenderer}
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.{TextBufferRenderCache, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
+import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.{Items, OpenComputers}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager
@@ -65,5 +66,6 @@ private[oc] class Proxy extends CommonProxy {
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
     TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
+    MinecraftForge.EVENT_BUS.register(TextBuffer)
   }
 }

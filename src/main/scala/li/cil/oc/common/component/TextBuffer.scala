@@ -17,6 +17,9 @@ import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.{WorldEvent, ChunkEvent}
 
 class TextBuffer(val owner: Container) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -344,7 +347,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     data.load(nbt.getCompoundTag("buffer"))
     if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
-      ClientComponentTracker.add(proxy.nodeAddress, this)
+      TextBuffer.registerClientBuffer(this)
     }
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {
@@ -382,6 +385,35 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 }
 
 object TextBuffer {
+  var clientBuffers = mutable.LinkedList.empty[TextBuffer]
+
+  @ForgeSubscribe
+  def onChunkUnload(e: ChunkEvent.Unload) {
+    val chunk = e.getChunk
+    clientBuffers = clientBuffers.filter(t => {
+      val keep = t.owner.world != e.world || !chunk.isAtLocation(t.owner.xPosition.toInt << 4, t.owner.zPosition.toInt << 4)
+      if (!keep) {
+        ClientComponentTracker.remove(t.proxy.nodeAddress)
+      }
+      keep
+    })
+  }
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    clientBuffers = clientBuffers.filter(t => {
+      val keep = t.owner.world != e.world
+      if (!keep) {
+        ClientComponentTracker.remove(t.proxy.nodeAddress)
+      }
+      keep
+    })
+  }
+
+  def registerClientBuffer(t: TextBuffer) {
+    ClientComponentTracker.add(t.proxy.nodeAddress, t)
+    clientBuffers ++= mutable.LinkedList(t)
+  }
 
   abstract class Proxy {
     def owner: TextBuffer
