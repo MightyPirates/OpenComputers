@@ -3,7 +3,7 @@ package li.cil.oc
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.versioning.ComparableVersion
 import java.net.{HttpURLConnection, URL}
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
 import scala.io.Source
@@ -58,13 +58,13 @@ object UpdateCheck {
                 }
               }
               OpenComputers.log.info("Running the latest version.")
-            case _ => OpenComputers.log.warning("Unexpected response from Github.")
+            case _ => OpenComputers.log.warn("Unexpected response from Github.")
           }
-        case _ => OpenComputers.log.warning("Failed to connect to Github.")
+        case _ => OpenComputers.log.warn("Failed to connect to Github.")
       }
     }
     catch {
-      case t: Throwable => OpenComputers.log.log(Level.WARNING, "Update check failed.", t)
+      case t: Throwable => OpenComputers.log.log(Level.WARN, "Update check failed.", t)
     }
     // Nothing to do, return dummy callback.
     p =>

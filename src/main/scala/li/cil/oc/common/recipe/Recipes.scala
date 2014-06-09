@@ -4,19 +4,20 @@ import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
 import java.io.{FileReader, File}
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc._
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
 import net.minecraft.item.{ItemStack, Item}
-import net.minecraftforge.oredict.OreDictionary
+import net.minecraftforge.oredict.{RecipeSorter, OreDictionary}
 import org.apache.commons.io.FileUtils
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.Some
 import li.cil.oc.common
 import li.cil.oc.api
+import net.minecraftforge.oredict.RecipeSorter.Category
 
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]
@@ -57,6 +58,9 @@ object Recipes {
   }
 
   def init() {
+    RecipeSorter.register(Settings.namespace + "extshaped", classOf[ExtendedShapedOreRecipe], Category.SHAPED, "after:forge:shapedore")
+    RecipeSorter.register(Settings.namespace + "extshapeless", classOf[ExtendedShapelessOreRecipe], Category.SHAPELESS, "after:forge:shapelessore")
+
     for ((name, stack) <- oreDictEntries) {
       if (!OreDictionary.getOres(name).contains(stack)) {
         OreDictionary.registerOre(name, stack)
@@ -108,7 +112,7 @@ object Recipes {
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(net.minecraft.init.Items.filled_map, 1, OreDictionary.WILDCARD_VALUE)))
     }
     catch {
-      case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
+      case e: Throwable => OpenComputers.log.log(Level.ERROR, "Error parsing recipes, you may not be able to craft any items from this mod!", e)
     }
     list.clear()
   }
@@ -124,13 +128,13 @@ object Recipes {
           case "furnace" => addFurnaceRecipe(output, recipe)
           case "assembly" => addAssemblyRecipe(output, recipe)
           case other =>
-            OpenComputers.log.warning("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
+            OpenComputers.log.warn("Failed adding recipe for '" + name + "', you will not be able to craft this item! The error was: Invalid recipe type '" + other + "'.")
             hide(output)
         }
       }
       catch {
         case e: RecipeException =>
-          OpenComputers.log.warning("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
+          OpenComputers.log.warn("Failed adding " + recipeType + " recipe for '" + name + "', you will not be able to craft this item! The error was: " + e.getMessage)
           hide(output)
       }
     }
@@ -141,7 +145,7 @@ object Recipes {
   }
   catch {
     case e: Throwable =>
-      OpenComputers.log.log(Level.SEVERE, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
+      OpenComputers.log.log(Level.ERROR, "Failed adding recipe for '" + name + "', you will not be able to craft this item!", e)
       hide(output)
   }
 

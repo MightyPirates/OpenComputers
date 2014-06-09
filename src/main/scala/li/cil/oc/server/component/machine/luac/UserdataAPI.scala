@@ -8,7 +8,7 @@ import li.cil.oc.server.network.{Callbacks, ArgumentsImpl}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import li.cil.oc.OpenComputers
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 
 class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {
@@ -42,7 +42,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       }
       catch {
         case t: Throwable =>
-          OpenComputers.log.log(Level.WARNING, "Error in userdata load function.", t)
+          OpenComputers.log.log(Level.WARN, "Error in userdata load function.", t)
           throw t
       }
     })
@@ -75,7 +75,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
       try value.dispose(machine) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in dispose method of userdata of type " + value.getClass.getName, t)
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in dispose method of userdata of type " + value.getClass.getName, t)
       }
       0
     })

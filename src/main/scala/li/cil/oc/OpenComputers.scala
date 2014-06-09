@@ -5,9 +5,9 @@ import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common.SidedProxy
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.FMLEventChannel
-import java.util.logging.Logger
 import li.cil.oc.common.Proxy
 import li.cil.oc.server.CommandHandler
+import org.apache.logging.log4j.LogManager
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version, certificateFingerprint = OpenComputers.Fingerprint,
@@ -21,7 +21,7 @@ object OpenComputers {
 
   final val Fingerprint = "@FINGERPRINT@"
 
-  val log = Logger.getLogger("OpenComputers")
+  val log = LogManager.getLogger("OpenComputers")
 
   @SidedProxy(clientSide = "li.cil.oc.client.Proxy", serverSide = "li.cil.oc.server.Proxy")
   var proxy: Proxy = null

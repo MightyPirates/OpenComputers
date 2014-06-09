@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
 import li.cil.oc.api.network.ManagedEnvironment
-import scala.collection.mutable
+import com.google.common.cache.CacheBuilder
 
 /**
  * Keeps track of loaded components by ID. Used to send messages between
@@ -9,15 +9,26 @@ import scala.collection.mutable
  * containers. For now this is only used for screens / text buffer components.
  */
 abstract class ComponentTracker {
-  private val components = mutable.WeakHashMap.empty[String, ManagedEnvironment]
+  private val components = com.google.common.cache.CacheBuilder.newBuilder().
+    weakValues().
+    asInstanceOf[CacheBuilder[String, ManagedEnvironment]].
+    build[String, ManagedEnvironment]()
 
   def add(address: String, component: ManagedEnvironment) {
-    components += address -> component
+    this.synchronized {
+      components.put(address, component)
+    }
   }
 
   def remove(address: String) {
-    components -= address
+    this.synchronized {
+      components.invalidate(address)
+      components.cleanUp()
+    }
   }
 
-  def get(address: String): Option[ManagedEnvironment] = components.get(address)
+  def get(address: String): Option[ManagedEnvironment] = this.synchronized {
+    components.cleanUp()
+    Option(components.getIfPresent(address))
+  }
 }

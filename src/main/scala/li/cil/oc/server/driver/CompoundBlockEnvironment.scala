@@ -1,6 +1,6 @@
 package li.cil.oc.server.driver
 
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
@@ -56,7 +56,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
         try {
           environment.load(nbt.getCompoundTag(name))
         } catch {
-          case e: Throwable => OpenComputers.log.log(Level.WARNING, "A block component of type '%s' (provided by driver '%s') threw an error while loading.".format(environment.getClass.getName, name), e)
+          case e: Throwable => OpenComputers.log.log(Level.WARN, "A block component of type '%s' (provided by driver '%s') threw an error while loading.".format(environment.getClass.getName, name), e)
         }
       }
     }
@@ -69,7 +69,7 @@ class CompoundBlockEnvironment(val name: String, val environments: (driver.Block
       try {
         nbt.setNewCompoundTag(name, environment.save)
       } catch {
-        case e: Throwable => OpenComputers.log.log(Level.WARNING, "A block component of type '%s' (provided by driver '%s') threw an error while saving.".format(environment.getClass.getName, name), e)
+        case e: Throwable => OpenComputers.log.log(Level.WARN, "A block component of type '%s' (provided by driver '%s') threw an error while saving.".format(environment.getClass.getName, name), e)
       }
     }
   }

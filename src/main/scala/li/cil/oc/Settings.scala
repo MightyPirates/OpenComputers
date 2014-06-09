@@ -2,7 +2,7 @@ package li.cil.oc
 
 import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import java.io._
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
@@ -23,6 +23,7 @@ class Settings(config: Config) {
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
+  val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
 
   // ----------------------------------------------------------------------- //
   // computer
@@ -33,7 +34,7 @@ class Settings(config: Config) {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
     case _ =>
-      OpenComputers.log.warning("Bad number of RAM sizes, ignoring.")
+      OpenComputers.log.warn("Bad number of RAM sizes, ignoring.")
       Array(192, 256, 384, 512, 768, 1024)
   }
   val ramScaleFor64Bit = config.getDouble("computer.ramScaleFor64Bit") max 1
@@ -41,7 +42,7 @@ class Settings(config: Config) {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
     case _ =>
-      OpenComputers.log.warning("Bad number of CPU component counts, ignoring.")
+      OpenComputers.log.warn("Bad number of CPU component counts, ignoring.")
       Array(8, 12, 16)
   }
   val canComputersBeOwned = config.getBoolean("computer.canComputersBeOwned")
@@ -154,7 +155,7 @@ class Settings(config: Config) {
     case Array(tier1, tier2, tier3) =>
       Array(tier1: Int, tier2: Int, tier3: Int)
     case _ =>
-      OpenComputers.log.warning("Bad number of HDD sizes, ignoring.")
+      OpenComputers.log.warn("Bad number of HDD sizes, ignoring.")
       Array(1024, 2048, 4096)
   }
   val floppySize = config.getInt("filesystem.floppySize") max 0
@@ -186,7 +187,7 @@ class Settings(config: Config) {
     case Array(tier1, tier2, tier3) =>
       Array(math.max(tier1, 1), math.max(tier2, 1), math.max(tier3, 1))
     case _ =>
-      OpenComputers.log.warning("Bad number of Remote Terminal counts, ignoring.")
+      OpenComputers.log.warn("Bad number of Remote Terminal counts, ignoring.")
       Array(2, 4, 8)
   }
   val updateCheck = config.getBoolean("misc.updateCheck")
@@ -251,7 +252,7 @@ object Settings {
       catch {
         case e: Throwable =>
           if (file.exists()) {
-            OpenComputers.log.log(Level.WARNING, "Failed loading config, using defaults.", e)
+            OpenComputers.log.log(Level.WARN, "Failed loading config, using defaults.", e)
           }
           settings = new Settings(defaults.getConfig("opencomputers"))
           defaults
@@ -272,7 +273,7 @@ object Settings {
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed saving config.", e)
+        OpenComputers.log.log(Level.WARN, "Failed saving config.", e)
     }
   }
 
@@ -296,7 +297,7 @@ object Settings {
         (inetAddress: InetAddress, host: String) => host == value || inetAddress == address
     } catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Invalid entry in internet blacklist / whitelist: " + value, t)
+        OpenComputers.log.log(Level.WARN, "Invalid entry in internet blacklist / whitelist: " + value, t)
         (inetAddress: InetAddress, host: String) => true
     }
 

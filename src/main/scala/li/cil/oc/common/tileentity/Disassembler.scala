@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{SideOnly, Side}
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.{OpenComputers, api, Settings}
 import li.cil.oc.api.network.Visibility
 import li.cil.oc.common.inventory.ServerInventory
@@ -161,7 +161,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
   }
   catch {
     case t: Throwable =>
-      OpenComputers.log.log(Level.WARNING, "Whoops, something went wrong when trying to figure out an item's parts.", t)
+      OpenComputers.log.log(Level.WARN, "Whoops, something went wrong when trying to figure out an item's parts.", t)
       Iterable.empty
   }
 

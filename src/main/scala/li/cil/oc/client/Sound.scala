@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.client.FMLClientHandler
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import java.util.{TimerTask, Timer, UUID}
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
@@ -55,7 +55,7 @@ object Sound {
       commandQueue.synchronized {
         while (!commandQueue.isEmpty && commandQueue.head.when < System.currentTimeMillis()) {
           try commandQueue.dequeue()() catch {
-            case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error processing sound command.", t)
+            case t: Throwable => OpenComputers.log.log(Level.WARN, "Error processing sound command.", t)
           }
         }
       }

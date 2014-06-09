@@ -1,6 +1,6 @@
 package li.cil.oc.server.network
 
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.nbt.NBTTagCompound
@@ -47,7 +47,7 @@ trait Node extends ImmutableNode {
     try {
       host.onConnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARNING, "A component of type '%s' threw an error while being connected to the component network.".format(host.getClass.getName), e)
+      case e: Throwable => OpenComputers.log.log(Level.WARN, "A component of type '%s' threw an error while being connected to the component network.".format(host.getClass.getName), e)
     }
   }
 
@@ -55,7 +55,7 @@ trait Node extends ImmutableNode {
     try {
       host.onDisconnect(node)
     } catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARNING, "A component of type '%s' threw an error while being disconnected from the component network.".format(host.getClass.getName), e)
+      case e: Throwable => OpenComputers.log.log(Level.WARN, "A component of type '%s' threw an error while being disconnected from the component network.".format(host.getClass.getName), e)
     }
   }
 

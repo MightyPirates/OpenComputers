@@ -1,6 +1,6 @@
 package li.cil.oc.common.inventory
 
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.OpenComputers
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Item => ItemDriver, Container}
@@ -44,7 +44,7 @@ trait ComponentInventory extends Inventory with network.Environment {
                   component.load(dataTag(driver, stack))
                 }
                 catch {
-                  case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+                  case e: Throwable => OpenComputers.log.log(Level.WARN, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
                 }
                 if (component.canUpdate) {
                   assert(!updatingComponents.contains(component))
@@ -101,7 +101,7 @@ trait ComponentInventory extends Inventory with network.Environment {
           try {
             component.load(dataTag(driver, stack))
           } catch {
-            case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
+            case e: Throwable => OpenComputers.log.log(Level.WARN, "An item component of type '%s' (provided by driver '%s') threw an error while loading.".format(component.getClass.getName, driver.getClass.getName), e)
           }
           connectItemNode(component.node)
           if (component.canUpdate) {
@@ -154,7 +154,7 @@ trait ComponentInventory extends Inventory with network.Environment {
       }
       component.save(tag)
     } catch {
-      case e: Throwable => OpenComputers.log.log(Level.WARNING, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
+      case e: Throwable => OpenComputers.log.log(Level.WARN, "An item component of type '%s' (provided by driver '%s') threw an error while saving.".format(component.getClass.getName, driver.getClass.getName), e)
     }
   }
 }

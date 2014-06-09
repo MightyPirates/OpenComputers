@@ -13,7 +13,7 @@ object RenderState {
   def checkError(where: String) {
     val error = GL11.glGetError
     if (error != 0) {
-      OpenComputers.log.warning("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
+      OpenComputers.log.warn("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
     }
   }
 

@@ -1,6 +1,6 @@
 package li.cil.oc.server.component.machine
 
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
 import li.cil.oc.server.component.machine.luaj._
 import li.cil.oc.util.ScalaClosure
@@ -46,7 +46,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
   catch {
     case e: Throwable =>
       if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+        OpenComputers.log.log(Level.WARN, "Exception in Lua callback.", e)
       }
       e match {
         case _: LimitReachedException =>
@@ -68,7 +68,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
         case _: IOException =>
           LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("i/o error"))
         case e: Throwable =>
-          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          OpenComputers.log.log(Level.WARN, "Unexpected error in Lua callback.", e)
           LuaValue.varargsOf(LuaValue.TRUE, LuaValue.NIL, LuaValue.valueOf("unknown error"))
       }
   }
@@ -162,11 +162,11 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
       else {
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
         if (results.`type`(2) != LuaValue.TBOOLEAN || !(results.isstring(3) || results.isnoneornil(3))) {
-          OpenComputers.log.warning("Kernel returned unexpected results.")
+          OpenComputers.log.warn("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
         if (results.toboolean(2)) {
-          OpenComputers.log.warning("Kernel stopped unexpectedly.")
+          OpenComputers.log.warn("Kernel stopped unexpectedly.")
           new ExecutionResult.Shutdown(false)
         }
         else {
@@ -180,10 +180,10 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     }
     catch {
       case e: LuaError =>
-        OpenComputers.log.log(Level.WARNING, "Kernel crashed. This is a bug!" + e)
+        OpenComputers.log.log(Level.WARN, "Kernel crashed. This is a bug!" + e)
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Unexpected error in kernel. This is a bug!", e)
+        OpenComputers.log.log(Level.WARN, "Unexpected error in kernel. This is a bug!", e)
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
     }
   }

@@ -49,7 +49,7 @@ object ScalaClosure {
       case value: Map[_, _] => toLuaTable(value)
       case value: mutable.Map[_, _] => toLuaTable(value.toMap)
       case _ =>
-        OpenComputers.log.warning("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
+        OpenComputers.log.warn("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
         LuaValue.NIL
     }
   }

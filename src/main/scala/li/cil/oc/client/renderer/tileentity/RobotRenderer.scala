@@ -1,7 +1,7 @@
 package li.cil.oc.client.renderer.tileentity
 
 import com.google.common.base.Strings
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
@@ -375,7 +375,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
           }
           catch {
             case e: Throwable =>
-              OpenComputers.log.log(Level.WARNING, "Failed rendering equipped item.", e)
+              OpenComputers.log.log(Level.WARN, "Failed rendering equipped item.", e)
               robot.renderingErrored = true
           }
           GL11.glEnable(GL11.GL_CULL_FACE)
@@ -403,7 +403,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         }
         catch {
           case e: Throwable =>
-            OpenComputers.log.log(Level.WARNING, "Failed rendering equipped upgrade.", e)
+            OpenComputers.log.log(Level.WARN, "Failed rendering equipped upgrade.", e)
             robot.renderingErrored = true
         }
       }

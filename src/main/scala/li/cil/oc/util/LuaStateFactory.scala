@@ -6,7 +6,7 @@ import com.naef.jnlua.NativeSupport.Loader
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.channels.Channels
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
@@ -54,7 +54,7 @@ object LuaStateFactory {
             case "amd64" | "x86_64" => "64"
             case "ppc" | "powerpc" => "ppc"
             case _ =>
-              OpenComputers.log.warning("Unsupported architecture, you won't be able to host games with working computers.")
+              OpenComputers.log.warn("Unsupported architecture, you won't be able to host games with working computers.")
               break()
           }
       }
@@ -66,7 +66,7 @@ object LuaStateFactory {
       case name if name.startsWith("windows") => ".dll"
       case name if name.contains("bsd") => ".bsd.so"
       case _ =>
-        OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
+        OpenComputers.log.warn("Unsupported operating system, you won't be able to host games with working computers.")
         break()
     }
     isWindows = extension == ".dll"
@@ -74,12 +74,12 @@ object LuaStateFactory {
 
     if (isWindows && !Settings.get.alwaysTryNative) {
       if (SystemUtils.IS_OS_WINDOWS_XP) {
-        OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting Windows XP in April 2014.")
+        OpenComputers.log.warn("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting Windows XP in April 2014.")
         break()
       }
 
       if (SystemUtils.IS_OS_WINDOWS_2003) {
-        OpenComputers.log.warning("Sorry, but Windows Server 2003 isn't supported. I'm afraid you'll have to use a newer Windows.")
+        OpenComputers.log.warn("Sorry, but Windows Server 2003 isn't supported. I'm afraid you'll have to use a newer Windows.")
         break()
       }
     }
@@ -93,7 +93,7 @@ object LuaStateFactory {
     val library = "native." + architecture + extension
     val libraryUrl = classOf[Machine].getResource(libPath + library)
     if (libraryUrl == null) {
-      OpenComputers.log.warning("Unsupported platform, you won't be able to host games with working computers.")
+      OpenComputers.log.warn("Unsupported platform, you won't be able to host games with working computers.")
       break()
     }
 
@@ -234,15 +234,15 @@ object LuaStateFactory {
       }
       catch {
         case t: Throwable =>
-          OpenComputers.log.log(Level.WARNING, "Failed creating Lua state.", t)
+          OpenComputers.log.log(Level.WARN, "Failed creating Lua state.", t)
           state.close()
       }
     }
     catch {
       case _: UnsatisfiedLinkError =>
-        OpenComputers.log.severe("Failed loading the native libraries.")
+        OpenComputers.log.error("Failed loading the native libraries.")
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed creating Lua state.", t)
+        OpenComputers.log.log(Level.WARN, "Failed creating Lua state.", t)
     }
     None
   }

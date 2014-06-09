@@ -59,7 +59,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
           parseLootDisks(list, worldDisks)
         }
         catch {
-          case t: Throwable => OpenComputers.log.warning("Failed opening loot descriptor file in saves folder.")
+          case t: Throwable => OpenComputers.log.warn("Failed opening loot descriptor file in saves folder.")
         }
       }
     }
@@ -83,7 +83,7 @@ object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createIte
           acc += key -> (createLootDisk(name, key), count.substring(1).toInt)
         }
         catch {
-          case _: Throwable => OpenComputers.log.warning("Bad loot descriptor: " + value)
+          case _: Throwable => OpenComputers.log.warn("Bad loot descriptor: " + value)
         }
       }
       else acc += key -> (createLootDisk(value, key), 1)

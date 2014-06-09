@@ -1,7 +1,7 @@
 package li.cil.oc.util
 
 import com.google.common.base.Strings
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.{OpenComputers, Blocks, Settings, api}
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.InventorySlots.Tier
@@ -11,7 +11,6 @@ import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
-import scala.collection.convert.WrapAsScala._
 import scala.io.Source
 
 object ItemUtils {
@@ -152,7 +151,7 @@ object ItemUtils {
     }
     catch {
       case t: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed loading robot name list.", t)
+        OpenComputers.log.log(Level.WARN, "Failed loading robot name list.", t)
         Array.empty[String]
     }
 

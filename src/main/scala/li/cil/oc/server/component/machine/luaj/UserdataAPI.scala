@@ -6,7 +6,7 @@ import li.cil.oc.util.ScalaClosure._
 import li.cil.oc.api.machine.Value
 import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.OpenComputers
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 
 class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
   override def initialize() {
@@ -36,7 +36,7 @@ class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     userdata.set("dispose", (args: Varargs) => {
       val value = args.checkuserdata(1, classOf[Value]).asInstanceOf[Value]
       try value.dispose(machine) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in dispose method of userdata of type " + value.getClass.getName, t)
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in dispose method of userdata of type " + value.getClass.getName, t)
       }
       LuaValue.NIL
     })

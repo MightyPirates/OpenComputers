@@ -43,13 +43,13 @@ object Callbacks {
           if (m.getParameterTypes.size != 2 ||
             (m.getParameterTypes()(0) != classOf[Context] && m.getParameterTypes()(0) != classOf[Robot]) ||
             m.getParameterTypes()(1) != classOf[network.Arguments]) {
-            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
+            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid argument types or count.".format(m.getDeclaringClass.getName, m.getName))
           }
           else if (m.getReturnType != classOf[Array[AnyRef]]) {
-            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
+            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: invalid return type.".format(m.getDeclaringClass.getName, m.getName))
           }
           else if (!Modifier.isPublic(m.getModifiers)) {
-            OpenComputers.log.severe("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
+            OpenComputers.log.error("Invalid use of Callback annotation on %s.%s: method must be public.".format(m.getDeclaringClass.getName, m.getName))
           }
           else {
             val a = m.getAnnotation[network.Callback](classOf[network.Callback])

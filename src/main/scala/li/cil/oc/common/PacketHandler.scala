@@ -2,7 +2,7 @@ package li.cil.oc.common
 
 import io.netty.buffer.{ByteBufInputStream, ByteBuf}
 import java.io.{InputStream, DataInputStream}
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import java.util.zip.GZIPInputStream
 import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.entity.player.EntityPlayer
@@ -25,7 +25,7 @@ abstract class PacketHandler {
       else dispatch(new PacketParser(new GZIPInputStream(stream), player))
     } catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Received a badly formatted packet.", e)
+        OpenComputers.log.log(Level.WARN, "Received a badly formatted packet.", e)
     }
   }
 

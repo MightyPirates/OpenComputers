@@ -49,7 +49,7 @@ object ExtendedLuaState {
           case value: Map[_, _] => pushTable(value, value, memo)
           case value: mutable.Map[_, _] => pushTable(value, value.toMap, memo)
           case _ =>
-            OpenComputers.log.warning("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
+            OpenComputers.log.warn("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
             lua.pushNil()
         }
       }

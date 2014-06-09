@@ -13,7 +13,7 @@ import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
 import scala.collection.mutable
 import net.minecraft.entity.Entity
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 
 class Delegator extends Item {
   setHasSubtypes(true)
@@ -118,7 +118,7 @@ class Delegator extends Item {
     super.addInformation(stack, player, tooltip, advanced)
     subItem(stack) match {
       case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in item tooltip.", t)
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in item tooltip.", t)
       }
       case _ => // Nothing to add.
     }

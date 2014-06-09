@@ -3,7 +3,7 @@ package li.cil.oc.server.component.robot
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.eventhandler.Event
 import cpw.mods.fml.common.ObfuscationReflectionHelper
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.mods.{Mods, TinkersConstruct, PortalGun}
@@ -17,11 +17,11 @@ import net.minecraft.init.{Items, Blocks}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.WorldServer
 import net.minecraft.util._
-import net.minecraft.world.World
 import net.minecraftforge.common.ForgeHooks
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.common.util.{FakePlayer, ForgeDirection}
 import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.ForgeEventFactory
@@ -40,7 +40,7 @@ object Player {
   }
 }
 
-class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Player.profileFor(robot)) {
+class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Player.profileFor(robot)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -62,6 +62,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   def world = robot.world
 
   override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
+
+  override def getDefaultEyeHeight = 0f
 
   // ----------------------------------------------------------------------- //
 
@@ -129,7 +131,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     val cancel = try MinecraftForge.EVENT_BUS.post(new EntityInteractEvent(this, entity)) catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
-          OpenComputers.log.log(Level.WARNING, "Some event handler screwed up!", t)
+          OpenComputers.log.log(Level.WARN, "Some event handler screwed up!", t)
         }
         false
     }
@@ -149,7 +151,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
         return ActivationType.None
       }
 
@@ -179,7 +181,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1, world))) {
         tryUseItem(stack, duration)
       }
       else false
@@ -223,7 +225,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     callUsingItemInSlot(slot, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
         return false
       }
 
@@ -233,7 +235,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side, world))) {
         return 0
       }
 
@@ -347,7 +349,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     catch {
       case t: Throwable =>
         if (!t.getStackTrace.exists(_.getClassName.startsWith("mods.battlegear2."))) {
-          OpenComputers.log.log(Level.WARNING, "Some event handler screwed up!", t)
+          OpenComputers.log.log(Level.WARN, "Some event handler screwed up!", t)
         }
         false
     }
@@ -431,8 +433,6 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
     MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
   }
 
-  override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
-
   override def displayGUIMerchant(merchant: IMerchant, name: String) {
     merchant.setCustomer(null)
   }
@@ -441,8 +441,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   override def swingItem() {}
 
-  override def canAttackPlayer(player: EntityPlayer) =
-    Settings.get.canAttackPlayers && super.canAttackPlayer(player)
+  override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
 
   override def canEat(value: Boolean) = false
 
@@ -452,17 +451,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   override def attackEntityFrom(source: DamageSource, damage: Float) = false
 
-  override def isEntityInvulnerable = true
-
   override def heal(amount: Float) {}
 
   override def setHealth(value: Float) {}
 
   override def setDead() = isDead = true
-
-  override def onDeath(source: DamageSource) {}
-
-  override def onUpdate() {}
 
   override def onLivingUpdate() {}
 
@@ -476,11 +469,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   override def mountEntity(entity: Entity) {}
 
-  override def travelToDimension(dimension: Int) {}
-
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
-
-  override def canCommandSenderUseCommand(i: Int, s: String) = false
 
   override def addChatMessage(message: IChatComponent) {}
 }

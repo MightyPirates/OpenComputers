@@ -9,7 +9,7 @@ import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.{api, OpenComputers, Settings}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import java.io.{IOException, FileNotFoundException}
 import com.google.common.base.Strings
 
@@ -48,7 +48,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   catch {
     case e: Throwable =>
       if (Settings.get.logLuaCallbackErrors && !e.isInstanceOf[LimitReachedException]) {
-        OpenComputers.log.log(Level.WARNING, "Exception in Lua callback.", e)
+        OpenComputers.log.log(Level.WARN, "Exception in Lua callback.", e)
       }
       e match {
         case _: LimitReachedException =>
@@ -94,7 +94,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           lua.pushString("i/o error")
           3
         case e: Throwable =>
-          OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
+          OpenComputers.log.log(Level.WARN, "Unexpected error in Lua callback.", e)
           lua.pushBoolean(true)
           lua.pushNil()
           lua.pushString("unknown error")
@@ -234,11 +234,11 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         assert(lua.isThread(1))
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
         if (!lua.isBoolean(2) || !(lua.isString(3) || lua.isNoneOrNil(3))) {
-          OpenComputers.log.warning("Kernel returned unexpected results.")
+          OpenComputers.log.warn("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
         if (lua.toBoolean(2)) {
-          OpenComputers.log.warning("Kernel stopped unexpectedly.")
+          OpenComputers.log.warn("Kernel stopped unexpectedly.")
           new ExecutionResult.Shutdown(false)
         }
         else {
@@ -255,7 +255,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
     }
     catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
+        OpenComputers.log.warn("Kernel crashed. This is a bug!\n" + e.toString + "\tat " + e.getLuaStackTrace.mkString("\n\tat "))
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: LuaGcMetamethodException =>
         if (e.getMessage != null) new ExecutionResult.Error("kernel panic:\n" + e.getMessage)
@@ -357,7 +357,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warn("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         machine.stop()
         machine.start()
     }
@@ -399,7 +399,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
     } catch {
       case e: LuaRuntimeException =>
-        OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
+        OpenComputers.log.warn("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
     }
 

@@ -4,7 +4,7 @@ import com.google.common.cache.CacheBuilder
 import java.io
 import java.io.ByteArrayInputStream
 import java.util.concurrent.Callable
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import java.util.zip.{ZipEntry, ZipFile}
 import li.cil.oc.OpenComputers
 import li.cil.oc.server.fs.ZipFileInputStreamFileSystem.{ArchiveFile, ArchiveDirectory}
@@ -125,7 +125,7 @@ object ZipFileInputStreamFileSystem {
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed creating ZIP file system.", e)
+        OpenComputers.log.log(Level.WARN, "Failed creating ZIP file system.", e)
         null
     }
   }

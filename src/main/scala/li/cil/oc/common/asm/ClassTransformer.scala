@@ -2,7 +2,7 @@ package li.cil.oc.common.asm
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions
-import java.util.logging.{Level, Logger}
+import org.apache.logging.log4j.{LogManager, Level}
 import li.cil.oc.common.asm.template.SimpleComponentImpl
 import li.cil.oc.util.mods.Mods
 import net.minecraft.launchwrapper.{LaunchClassLoader, IClassTransformer}
@@ -15,7 +15,7 @@ import scala.collection.convert.WrapAsScala._
 class ClassTransformer extends IClassTransformer {
   val loader = classOf[ClassTransformer].getClassLoader.asInstanceOf[LaunchClassLoader]
 
-  val log = Logger.getLogger("OpenComputers")
+  val log = LogManager.getLogger("OpenComputers")
 
   override def transform(name: String, transformedName: String, basicClass: Array[Byte]): Array[Byte] = {
     var transformedClass = basicClass
@@ -34,20 +34,20 @@ class ClassTransformer extends IClassTransformer {
           val classNode = newClassNode(transformedClass)
           val missingInterfaces = classNode.interfaces.filter(!classExists(_))
           for (interfaceName <- missingInterfaces) {
-            log.fine(s"Stripping interface $interfaceName from class $name because it is missing.")
+            log.trace(s"Stripping interface $interfaceName from class $name because it is missing.")
           }
           classNode.interfaces.removeAll(missingInterfaces)
 
           val missingClasses = classNode.innerClasses.filter(clazz => clazz.outerName != null && !classExists(clazz.outerName))
           for (innerClass <- missingClasses) {
-            log.fine(s"Stripping inner class ${innerClass.name} from class $name because its type ${innerClass.outerName} is missing.")
+            log.trace(s"Stripping inner class ${innerClass.name} from class $name because its type ${innerClass.outerName} is missing.")
           }
           classNode.innerClasses.removeAll(missingClasses)
 
           val incompleteMethods = classNode.methods.filter(method => missingFromSignature(method.desc).nonEmpty)
           for (method <- incompleteMethods) {
             val missing = missingFromSignature(method.desc).mkString(", ")
-            log.fine(s"Stripping method ${method.name} from class $name because the following types in its signature are missing: $missing")
+            log.trace(s"Stripping method ${method.name} from class $name because the following types in its signature are missing: $missing")
           }
           classNode.methods.removeAll(incompleteMethods)
           transformedClass = writeClass(classNode)
@@ -61,7 +61,7 @@ class ClassTransformer extends IClassTransformer {
             }
             catch {
               case e: Throwable =>
-                log.log(Level.WARNING, s"Failed injecting component logic into class $name.", e)
+                log.log(Level.WARN, s"Failed injecting component logic into class $name.", e)
             }
           }
         }
@@ -70,7 +70,7 @@ class ClassTransformer extends IClassTransformer {
     }
     catch {
       case t: Throwable =>
-        log.log(Level.WARNING, "Something went wrong!", t)
+        log.log(Level.WARN, "Something went wrong!", t)
         basicClass
     }
   }
@@ -98,7 +98,7 @@ class ClassTransformer extends IClassTransformer {
   }
 
   def injectEnvironmentImplementation(classNode: ClassNode): Array[Byte] = {
-    log.fine(s"Injecting methods from Environment interface into ${classNode.name}.")
+    log.trace(s"Injecting methods from Environment interface into ${classNode.name}.")
     if (!isTileEntity(classNode)) {
       throw new InjectionFailedException("Found SimpleComponent on something that isn't a tile entity, ignoring.")
     }
@@ -125,7 +125,7 @@ class ClassTransformer extends IClassTransformer {
     inject("onDisconnect", "(Lli/cil/oc/api/network/Node;)V")
     inject("onMessage", "(Lli/cil/oc/api/network/Message;)V")
 
-    log.fine("Injecting / wrapping overrides for required tile entity methods.")
+    log.trace("Injecting / wrapping overrides for required tile entity methods.")
     def replace(methodName: String, methodNameSrg: String, desc: String) {
       val mapper = FMLDeobfuscatingRemapper.INSTANCE
       def filter(method: MethodNode) = {
@@ -140,10 +140,10 @@ class ClassTransformer extends IClassTransformer {
       }
       classNode.methods.find(filter) match {
         case Some(method) =>
-          log.fine(s"Found original implementation of '$methodName', wrapping.")
+          log.trace(s"Found original implementation of '$methodName', wrapping.")
           method.name = methodName + SimpleComponentImpl.PostFix
         case _ =>
-          log.fine(s"No original implementation of '$methodName', will inject override.")
+          log.trace(s"No original implementation of '$methodName', will inject override.")
           def ensureNonFinalIn(name: String) {
             if (name != null) {
               val node = classNodeFor(name)
@@ -176,7 +176,7 @@ class ClassTransformer extends IClassTransformer {
     replace("readFromNBT", "func_145839_a", "(Lnet/minecraft/nbt/NBTTagCompound;)V")
     replace("writeToNBT", "func_145841_b", "(Lnet/minecraft/nbt/NBTTagCompound;)V")
 
-    log.fine("Injecting interface.")
+    log.trace("Injecting interface.")
     classNode.interfaces.add("li/cil/oc/common/asm/template/SimpleComponentImpl")
 
     writeClass(classNode, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES)
@@ -188,7 +188,7 @@ class ClassTransformer extends IClassTransformer {
   def isTileEntity(classNode: ClassNode): Boolean = {
     if (classNode == null) false
     else {
-      log.finer(s"Checking if class ${classNode.name} is a TileEntity...")
+      log.trace(s"Checking if class ${classNode.name} is a TileEntity...")
       classNode.name == tileEntityNamePlain || classNode.name == tileEntityNameObfed ||
         (classNode.superName != null && isTileEntity(classNodeFor(classNode.superName)))
     }

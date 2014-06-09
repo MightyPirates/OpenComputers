@@ -1,7 +1,7 @@
 package li.cil.oc.server.driver
 
 import java.util
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.driver.Converter
 import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
@@ -110,7 +110,7 @@ private[oc] object Registry extends api.detail.DriverAPI {
         memo += arg -> converted
         println("applying " + converters.size + " converters to " + arg.getClass.getName)
         converters.foreach(converter => try converter.convert(arg, converted) catch {
-          case t: Throwable => OpenComputers.log.log(Level.WARNING, "Type converter threw an exception.", t)
+          case t: Throwable => OpenComputers.log.log(Level.WARN, "Type converter threw an exception.", t)
         })
         if (converted.isEmpty) {
           memo += arg -> null

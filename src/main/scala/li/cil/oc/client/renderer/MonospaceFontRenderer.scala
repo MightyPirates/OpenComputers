@@ -1,6 +1,6 @@
 package li.cil.oc.client.renderer
 
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.client.Textures
 import li.cil.oc.util.PackedColor
 import li.cil.oc.{OpenComputers, Settings}
@@ -29,7 +29,7 @@ object MonospaceFontRenderer {
   }
   catch {
     case t: Throwable =>
-      OpenComputers.log.log(Level.WARNING, "Failed reading font metadata, using defaults.", t)
+      OpenComputers.log.log(Level.WARN, "Failed reading font metadata, using defaults.", t)
       ("""☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■""", 5, 9)
   }
 
@@ -39,7 +39,7 @@ object MonospaceFontRenderer {
     instance = instance.orElse(Some(new Renderer(textureManager))))
 
   def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = this.synchronized(instance match {
-    case None => OpenComputers.log.warning("Trying to render string with uninitialized MonospaceFontRenderer.")
+    case None => OpenComputers.log.warn("Trying to render string with uninitialized MonospaceFontRenderer.")
     case Some(renderer) => renderer.drawString(x, y, value, color, format)
   })
 

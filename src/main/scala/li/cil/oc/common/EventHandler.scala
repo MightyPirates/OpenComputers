@@ -6,7 +6,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.{Optional, FMLCommonHandler}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.Network
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.util.LuaStateFactory
@@ -58,7 +58,7 @@ object EventHandler {
       adds
     } foreach (callback => {
       try callback() catch {
-        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in scheduled tick action.", t)
+        case t: Throwable => OpenComputers.log.log(Level.WARN, "Error in scheduled tick action.", t)
       }
     })
   }

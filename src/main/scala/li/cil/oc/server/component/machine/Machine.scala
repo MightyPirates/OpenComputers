@@ -1,7 +1,7 @@
 package li.cil.oc.server.component.machine
 
 import java.lang.reflect.Constructor
-import java.util.logging.Level
+import org.apache.logging.log4j.Level
 import li.cil.oc.api.detail.MachineAPI
 import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
@@ -207,7 +207,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           case arg: Array[Byte] => arg
           case arg: Map[_, _] if arg.isEmpty || arg.head._1.isInstanceOf[String] && arg.head._2.isInstanceOf[String] => arg
           case arg =>
-            OpenComputers.log.warning("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
+            OpenComputers.log.warn("Trying to push signal with an unsupported argument of type " + arg.getClass.getName)
             null
         }.toArray[AnyRef]))
         true
@@ -434,7 +434,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
             crash(Settings.namespace + "gui.Error.OutOfMemory")
           case e: Throwable =>
-            OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
+            OpenComputers.log.log(Level.WARN, "Faulty architecture implementation for synchronized calls.", e)
             crash(Settings.namespace + "gui.Error.InternalError")
         }
 
@@ -540,10 +540,10 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     for ((address, name) <- _components) {
       if (node.network.node(address) == null) {
         if (name == "filesystem") {
-          OpenComputers.log.fine(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
-          OpenComputers.log.fine("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
+          OpenComputers.log.trace(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+          OpenComputers.log.trace("If this was a file system provided by a ComputerCraft peripheral, this is normal.")
         }
-        else OpenComputers.log.warning(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
+        else OpenComputers.log.warn(s"A component of type '$name' disappeared ($address)! This usually means that it didn't save its node.")
         signal("component_removed", address, name)
         invalid += address
       }
@@ -697,7 +697,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case ex: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Failed initializing computer.", ex)
+        OpenComputers.log.log(Level.WARN, "Failed initializing computer.", ex)
         close()
     }
     false
@@ -800,7 +800,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     }
     catch {
       case e: Throwable =>
-        OpenComputers.log.log(Level.WARNING, "Architecture's runThreaded threw an error. This should never happen!", e)
+        OpenComputers.log.log(Level.WARN, "Architecture's runThreaded threw an error. This should never happen!", e)
         crash(Settings.namespace + "gui.Error.InternalError")
     }
 
