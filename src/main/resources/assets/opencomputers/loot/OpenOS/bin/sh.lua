@@ -104,9 +104,9 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      local foreground, palette = component.gpu.setForeground(0xFF0000)
+      local foreground = component.gpu.setForeground(0xFF0000)
       term.write(expand(os.getenv("PS1") or "$ "))
-      component.gpu.setForeground(foreground, palette)
+      component.gpu.setForeground(foreground)
       local command = term.read(history)
       if not command then
         term.write("exit\n")
