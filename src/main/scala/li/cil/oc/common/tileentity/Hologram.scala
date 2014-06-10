@@ -34,6 +34,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Whether we need to send an update packet/recompile our display list.
   var dirty = false
 
+  // Store it here for convenience
+  var visibleQuads = 0
+
   // Interval of dirty columns.
   var dirtyFromX = Int.MaxValue
   var dirtyUntilX = -1
@@ -45,7 +48,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
 
   var hasPower = true
 
-  val colorsByTier = Array(Array(0x00FF00), Array(0xFF0000, 0x00FF00, 0x0000FF))
+  val colorsByTier = Array(Array(0x00FF00), Array(0x0000FF, 0x00FF00, 0xFF0000)) // 0xBBGGRR for rendering convenience
   def colors = colorsByTier(tier)
 
   def getColor(x: Int, y: Int, z: Int) = {
@@ -203,7 +206,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   def getPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
     if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
-    result(colors(index))
+    var col = colors(index)
+    // Colors are stored as 0xAABBGGRR for rendering convenience, so convert them back here
+    result(((col & 0xFF) << 16) | (col & 0xFF00) | ((col >>> 16) & 0xFF))
   }
 
   @Callback(doc = """function(index:number, value:number):number -- Set the color defined for the specified value.""")
@@ -212,7 +217,9 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
     val value = args.checkInteger(1)
     val oldValue = colors(index)
-    colors(index) = value & 0xFFFFFF
+    // Change byte order here to allow passing stored color to OpenGL "as-is"
+    // (as whole Int, i.e. 0xAABBGGRR, alpha is unused but present for alignment)
+    colors(index) = ((value & 0xFF) << 16) | (value & 0xFF00) | ((value >>> 16) & 0xFF)
     ServerPacketSender.sendHologramColor(this, index, value)
     result(oldValue)
   }
@@ -275,6 +282,7 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   override def shouldRenderInPass(pass: Int) = pass == 1
 
   override def getMaxRenderDistanceSquared = scale / Settings.hologramMaxScaleByTier.max * Settings.get.hologramRenderDistance * Settings.get.hologramRenderDistance
+  def getFadeStartDistanceSquared = scale / Settings.hologramMaxScaleByTier.max * Settings.get.hologramFadeStartDistance * Settings.get.hologramFadeStartDistance
 
   override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord + 0.5 - 1.5 * scale, yCoord, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + 2 * scale, zCoord + 0.5 + 1.5 * scale)
 
@@ -303,7 +311,6 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     nbt.getIntArray("colors").copyToArray(colors)
     scale = nbt.getDouble("scale")
     hasPower = nbt.getBoolean("hasPower")
-    dirty = true
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {

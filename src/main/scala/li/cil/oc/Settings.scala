@@ -31,6 +31,7 @@ class Settings(config: Config) {
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
+  val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
 
