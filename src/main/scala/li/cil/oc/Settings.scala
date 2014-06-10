@@ -122,7 +122,13 @@ class Settings(config: Config) {
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
   val bufferConverter = config.getDouble("power.buffer.converter") max 0
   val bufferDistributor = config.getDouble("power.buffer.distributor") max 0
-  val bufferCapacitorUpgrade = config.getDouble("power.buffer.capacitorUpgrade") max 0
+  val bufferCapacitorUpgrades = Array(config.getDoubleList("power.buffer.batteryUpgrades"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warn("Bad number of battery upgrade buffer sizes, ignoring.")
+      Array(10000.0, 15000.0, 20000.0)
+  }
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0

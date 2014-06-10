@@ -16,6 +16,8 @@ object WirelessNetworkDebugRenderer {
   @SubscribeEvent
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
     if (Settings.rTreeDebugRenderer) {
+      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
+
       val world = ObfuscationReflectionHelper.getPrivateValue(classOf[net.minecraft.client.renderer.RenderGlobal], e.context, "theWorld", "field_72769_h", "r").asInstanceOf[World]
       WirelessNetwork.dimensions.get(world.provider.dimensionId) match {
       case Some(tree) =>
@@ -92,6 +94,8 @@ object WirelessNetworkDebugRenderer {
         GL11.glPopAttrib()
       case _ =>
     }
+
+      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
   }
   }
 

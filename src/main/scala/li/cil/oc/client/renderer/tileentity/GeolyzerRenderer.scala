@@ -10,6 +10,8 @@ import li.cil.oc.client.Textures
 
 object GeolyzerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
     RenderState.disableLighting()
@@ -35,6 +37,8 @@ object GeolyzerRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
 }

@@ -1,19 +1,18 @@
 package li.cil.oc.common.item
 
 import java.util
-import li.cil.oc.{Settings, server}
-import li.cil.oc.util.{Tooltip, Rarity}
+import li.cil.oc.Settings
+import li.cil.oc.util.Tooltip
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.client.renderer.texture.IIconRegister
 
-class UpgradeCapacitor(val parent: Delegator) extends Delegate {
-  val unlocalizedName = "UpgradeCapacitor"
-
-  override def rarity = Rarity.byTier(server.driver.item.UpgradeCrafting.tier(createItemStack()))
+class UpgradeBattery(val parent: Delegator, val tier: Int) extends Delegate {
+  val baseName = "UpgradeBattery"
+  val unlocalizedName = baseName + tier
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
-    tooltip.addAll(Tooltip.get(unlocalizedName))
+    tooltip.addAll(Tooltip.get(baseName, Settings.get.bufferCapacitorUpgrades(tier).toInt))
     super.tooltipLines(stack, player, tooltip, advanced)
   }
 
@@ -23,7 +22,7 @@ class UpgradeCapacitor(val parent: Delegator) extends Delegate {
     val nbt = stack.getTagCompound
     if (nbt != null) {
       val stored = nbt.getCompoundTag(Settings.namespace + "data").getCompoundTag("node").getDouble("buffer")
-      ((1 - stored / Settings.get.bufferCapacitorUpgrade) * 100).toInt
+      ((1 - stored / Settings.get.bufferCapacitorUpgrades(tier)) * 100).toInt
     }
     else 100
   }
@@ -33,6 +32,6 @@ class UpgradeCapacitor(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IIconRegister) = {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_capacitor")
+    icon = iconRegister.registerIcon(Settings.resourceDomain + ":upgrade_battery" + tier)
   }
 }

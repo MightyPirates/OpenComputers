@@ -61,7 +61,7 @@ object ItemRenderer extends IItemRenderer {
 
       else if (descriptor == api.Items.get("generatorUpgrade")) {
         tm.bindTexture(Textures.upgradeGenerator)
-        drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0)
+        drawSimpleBlock(if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5f else 0)
 
         RenderState.checkError(getClass.getName + ".renderItem: generator upgrade")
       }
@@ -104,45 +104,64 @@ object ItemRenderer extends IItemRenderer {
     RenderState.checkError("ItemRenderer.renderItem: leaving")
   }
 
-  private def drawSimpleBlock(frontOffset: Double = 0) {
-    val t = Tessellator.instance
-    t.startDrawingQuads()
+  private def drawSimpleBlock(frontOffset: Float = 0) {
+    GL11.glBegin(GL11.GL_QUADS)
 
     // Front.
-    t.setNormal(0, 0, 1)
-    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, frontOffset, 0.5)
-    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, frontOffset + 0.5, 0.5)
-    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, frontOffset + 0.5, 0)
-    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, frontOffset, 0)
+    GL11.glNormal3f(0, 0, 1)
+    GL11.glTexCoord2f(frontOffset, 0.5f)
+    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
+    GL11.glTexCoord2f(frontOffset + 0.5f, 0.5f)
+    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
+    GL11.glTexCoord2f(frontOffset + 0.5f, 0)
+    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
+    GL11.glTexCoord2f(frontOffset, 0)
+    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
 
     // Top.
-    t.setNormal(0, 1, 0)
-    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, 1, 0.5)
-    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ, 1, 1)
-    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ, 0.5, 1)
-    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, 0.5, 0.5)
+    GL11.glNormal3f(0, 1, 0)
+    GL11.glTexCoord2f(1, 0.5f)
+    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
+    GL11.glTexCoord2f(1, 1)
+    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
+    GL11.glTexCoord2f(0.5f, 1)
+    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
 
     // Bottom.
-    t.setNormal(0, -1, 0)
-    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, 0.5, 0.5)
-    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ, 0.5, 1)
-    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ, 1, 1)
-    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, 1, 0.5)
+    GL11.glNormal3f(0, -1, 0)
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
+    GL11.glTexCoord2f(0.5f, 1)
+    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
+    GL11.glTexCoord2f(1, 1)
+    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
+    GL11.glTexCoord2f(1, 0.5f)
+    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
 
     // Left.
-    t.setNormal(1, 0, 0)
-    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.maxZ, 0, 0.5)
-    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.maxZ, 0, 1)
-    t.addVertexWithUV(bounds.maxX, bounds.minY, bounds.minZ, 0.5, 1)
-    t.addVertexWithUV(bounds.maxX, bounds.maxY, bounds.minZ, 0.5, 0.5)
+    GL11.glNormal3f(1, 0, 0)
+    GL11.glTexCoord2f(0, 0.5f)
+    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.maxZ)
+    GL11.glTexCoord2f(0, 1)
+    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.maxZ)
+    GL11.glTexCoord2f(0.5f, 1)
+    GL11.glVertex3d(bounds.maxX, bounds.minY, bounds.minZ)
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3d(bounds.maxX, bounds.maxY, bounds.minZ)
 
     // Right.
-    t.setNormal(-1, 0, 0)
-    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.maxZ, 0, 1)
-    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.maxZ, 0, 0.5)
-    t.addVertexWithUV(bounds.minX, bounds.maxY, bounds.minZ, 0.5, 0.5)
-    t.addVertexWithUV(bounds.minX, bounds.minY, bounds.minZ, 0.5, 1)
+    GL11.glNormal3f(-1, 0, 0)
+    GL11.glTexCoord2f(0, 1)
+    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.maxZ)
+    GL11.glTexCoord2f(0, 0.5f)
+    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.maxZ)
+    GL11.glTexCoord2f(0.5f, 0.5f)
+    GL11.glVertex3d(bounds.minX, bounds.maxY, bounds.minZ)
+    GL11.glTexCoord2f(0.5f, 1)
+    GL11.glVertex3d(bounds.minX, bounds.minY, bounds.minZ)
 
-    t.draw()
+    GL11.glEnd()
   }
 }

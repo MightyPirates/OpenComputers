@@ -28,6 +28,8 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
   private var hologram: Hologram = null
 
   override def renderTileEntityAt(te: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     hologram = te.asInstanceOf[Hologram]
     if (!hologram.hasPower) return
 
@@ -59,6 +61,8 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
   def compileOrDraw(list: Int) = if (hologram.dirty) {

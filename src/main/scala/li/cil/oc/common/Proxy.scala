@@ -74,7 +74,7 @@ class Proxy {
     api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
-    api.Driver.add(driver.item.UpgradeCapacitor)
+    api.Driver.add(driver.item.UpgradeBattery)
     api.Driver.add(driver.item.UpgradeChunkloader)
     api.Driver.add(driver.item.UpgradeContainerCard)
     api.Driver.add(driver.item.UpgradeContainerFloppy)

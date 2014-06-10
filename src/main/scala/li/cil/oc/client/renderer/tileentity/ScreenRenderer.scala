@@ -27,6 +27,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // ----------------------------------------------------------------------- //
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     screen = t.asInstanceOf[Screen]
     if (!screen.isOrigin) {
       return
@@ -65,6 +67,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
   private def transform() {

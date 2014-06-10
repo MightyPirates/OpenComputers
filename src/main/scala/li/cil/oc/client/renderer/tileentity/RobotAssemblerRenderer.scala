@@ -11,6 +11,8 @@ import li.cil.oc.client.Textures
 
 object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val assembler = tileEntity.asInstanceOf[RobotAssembler]
 
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -62,5 +64,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

@@ -241,6 +241,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   }
 
   override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f
@@ -453,5 +455,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     GL11.glPopMatrix()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }
