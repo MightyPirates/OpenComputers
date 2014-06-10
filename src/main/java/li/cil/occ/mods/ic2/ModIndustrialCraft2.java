@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModIndustrialCraft2 implements IMod {
+    public static final String MOD_ID = "IC2";
+
     @Override
     public String getModId() {
-        return "IC2";
+        return MOD_ID;
     }
 
     @Override

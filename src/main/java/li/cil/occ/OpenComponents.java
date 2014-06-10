@@ -6,7 +6,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import li.cil.occ.mods.Registry;
 import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
+import li.cil.occ.mods.forestry.ModForestry;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
+import li.cil.occ.mods.thaumcraft.ModThaumcraft;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
 import li.cil.occ.mods.vanilla.ModVanilla;
 import net.minecraftforge.common.config.Configuration;
@@ -20,13 +22,25 @@ public class OpenComponents {
 
     public static final Logger Log = Logger.getLogger("OpenComponents");
 
-    public static String[] peripheralBlacklist = new String[]{
-            "JAKJ.RedstoneInMotion.CarriageControllerEntity"
+    public static String[] modBlacklist = new String[]{
+            ModThaumcraft.MOD_ID
     };
+
+    public static String[] peripheralBlacklist = new String[]{
+    };
+
+    public static Boolean allowItemStackInspection = false;
 
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent e) {
         final Configuration config = new Configuration(e.getSuggestedConfigurationFile());
+
+        modBlacklist = config.get("mods", "blacklist", modBlacklist, "" +
+                "A list of mods (by mod id) for which support should NOT be\n" +
+                "enabled. Use this to disable support for mods you feel should\n" +
+                "not be controllable via computers (such as magic related mods," +
+                "which is why Thaumcraft is on this list by default.)").
+                getStringList();
 
         peripheralBlacklist = config.get("computercraft", "blacklist", peripheralBlacklist, "" +
                 "A list of tile entities by class name that should NOT be\n" +
@@ -34,13 +48,17 @@ public class OpenComponents {
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
 
+        allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).getBoolean(false);
+
         config.save();
     }
 
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
         Registry.add(new ModBuildCraft());
+        Registry.add(new ModForestry());
         Registry.add(new ModIndustrialCraft2());
+        Registry.add(new ModThaumcraft());
         Registry.add(new ModTMechworks());
         Registry.add(new ModAppEng());
         Registry.add(new ModVanilla());

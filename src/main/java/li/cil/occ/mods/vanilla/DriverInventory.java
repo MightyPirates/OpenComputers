@@ -5,6 +5,7 @@ import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverTileEntity;
+import li.cil.occ.OpenComponents;
 import li.cil.occ.mods.ManagedTileEntityEnvironment;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -115,6 +116,28 @@ public final class DriverInventory extends DriverTileEntity {
             }
             // Fail.
             return new Object[]{false};
+        }
+
+        @Callback
+        public Object[] getStackInSlot(final Context context, final Arguments args) {
+            if (OpenComponents.allowItemStackInspection) {
+                return new Object[]{tileEntity.getStackInSlot(checkSlot(args, 0))};
+            } else {
+                return new Object[]{null, "not enabled in config"};
+            }
+        }
+
+        @Callback
+        public Object[] getAllStacks(final Context context, final Arguments args) {
+            if (OpenComponents.allowItemStackInspection) {
+                ItemStack[] allStacks = new ItemStack[tileEntity.getSizeInventory()];
+                for (int i = 0; i < tileEntity.getSizeInventory(); i++) {
+                    allStacks[i] = tileEntity.getStackInSlot(i);
+                }
+                return new Object[]{allStacks};
+            } else {
+                return new Object[]{null, "not enabled in config"};
+            }
         }
 
         private int checkSlot(final Arguments args, final int number) {

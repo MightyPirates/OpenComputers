@@ -29,7 +29,7 @@ public final class DriverFluidHandler extends DriverTileEntity {
         @Callback
         public Object[] getTankInfo(final Context context, final Arguments args) {
             ForgeDirection side = args.count() > 0 ? ForgeDirection.getOrientation(args.checkInteger(0)) : ForgeDirection.UNKNOWN;
-            return new Object[]{tileEntity.getTankInfo(side)};
+            return tileEntity.getTankInfo(side);
             }
         }
 }

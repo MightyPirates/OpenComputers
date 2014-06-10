@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModVanilla implements IMod {
+    public static final String MOD_ID = "Minecraft";
+
     @Override
     public String getModId() {
-        return "Minecraft";
+        return MOD_ID;
     }
 
     @Override
