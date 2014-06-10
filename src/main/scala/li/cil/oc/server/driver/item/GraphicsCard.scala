@@ -9,13 +9,10 @@ object GraphicsCard extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, api.Items.get("graphicsCard1"), api.Items.get("graphicsCard2"), api.Items.get("graphicsCard3"))
 
   override def createEnvironment(stack: ItemStack, container: Container) =
-    Items.multi.subItem(stack) match {
-      case Some(gpu: common.item.GraphicsCard) => gpu.tier match {
-        case 0 => new component.GraphicsCard.Tier1()
-        case 1 => new component.GraphicsCard.Tier2()
-        case 2 => new component.GraphicsCard.Tier3()
-        case _ => null
-      }
+    tier(stack) match {
+      case 0 => new component.GraphicsCard.Tier1()
+      case 1 => new component.GraphicsCard.Tier2()
+      case 2 => new component.GraphicsCard.Tier3()
       case _ => null
     }
 

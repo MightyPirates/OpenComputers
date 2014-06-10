@@ -122,10 +122,20 @@ angelUpgrade {
           ["oc:circuitChip1", pistonStickyBase, "oc:circuitChip1"]
           [ingotIron, enderPearl, ingotIron]]
 }
-capacitorUpgrade {
-  input: [[ingotIron, "oc:capacitor", ingotIron]
-          ["oc:capacitor", ingotGold, "oc:capacitor"]
-          [ingotIron, "oc:capacitor", ingotIron]]
+batteryUpgrade1 {
+  input: [[ingotIron, nuggetGold, ingotIron]
+          [fenceIron, "oc:capacitor", fenceIron]
+          [ingotIron, nuggetGold, ingotIron]]
+}
+batteryUpgrade2 {
+  input: [[ingotGold, "oc:capacitor", ingotGold]
+          [fenceIron, nuggetGold, fenceIron]
+          [ingotGold, "oc:capacitor", ingotGold]]
+}
+batteryUpgrade3 {
+  input: [[diamond, "oc:capacitor", diamond]
+          [fenceIron, "oc:capacitor", fenceIron]
+          [diamond, "oc:capacitor", diamond]]
 }
 chunkloaderUpgrade {
   input: [[ingotGold, glass, ingotGold]

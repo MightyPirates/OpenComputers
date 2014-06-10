@@ -5,15 +5,12 @@ import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import li.cil.oc.util.Rarity
 
 class HardDiskDrive(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "HardDiskDrive"
   val unlocalizedName = baseName + tier
 
   val kiloBytes = Settings.get.hddSizes(tier)
-
-  override def rarity = Rarity.byTier(tier)
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound) {
