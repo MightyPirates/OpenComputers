@@ -110,7 +110,7 @@ public class ResearchPage {
 	public ResearchPage(CrucibleRecipe recipe) {
 		this.type = PageType.CRUCIBLE_CRAFTING;
 		this.recipe = recipe;
-		this.recipeOutput = recipe.recipeOutput;
+		this.recipeOutput = recipe.getRecipeOutput();
 	}
 	
 	/**
@@ -119,10 +119,10 @@ public class ResearchPage {
 	public ResearchPage(InfusionRecipe recipe) {
 		this.type = PageType.INFUSION_CRAFTING;
 		this.recipe = recipe;
-		if (recipe.recipeOutput instanceof ItemStack) {
-			this.recipeOutput = (ItemStack) recipe.recipeOutput;
+		if (recipe.getRecipeOutput() instanceof ItemStack) {
+			this.recipeOutput = (ItemStack) recipe.getRecipeOutput();
 		} else {
-			this.recipeOutput = recipe.recipeInput;
+			this.recipeOutput = recipe.getRecipeInput();
 		}
 	}
 	

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -25,20 +26,20 @@ public class WandTriggerRegistry {
 	 * A manager class needs to be created that implements IWandTriggerManager.
 	 * @param manager
 	 * @param event a logical number that you can use to differentiate different events or actions
-	 * @param blockid
+	 * @param block
 	 * @param meta send -1 as a wildcard value for all possible meta values
 	 */
-	public static void registerWandBlockTrigger(IWandTriggerManager manager, int event, int blockid, int meta) {
-		triggers.put(Arrays.asList(blockid,meta),
+	public static void registerWandBlockTrigger(IWandTriggerManager manager, int event, Block block, int meta) {
+		triggers.put(Arrays.asList(block,meta),
 				Arrays.asList(manager,event));
 		
 	}
 	
-	private static HashMap<List<Integer>,List> triggers = new  HashMap<List<Integer>,List>();
+	private static HashMap<List,List> triggers = new  HashMap<List,List>();
 	
-	public static boolean hasTrigger(int blockid, int meta) {
-		if (triggers.containsKey(Arrays.asList(blockid,meta)) ||
-			triggers.containsKey(Arrays.asList(blockid,-1))) return true;
+	public static boolean hasTrigger(Block block, int meta) {
+		if (triggers.containsKey(Arrays.asList(block,meta)) ||
+			triggers.containsKey(Arrays.asList(block,-1))) return true;
 		return false;
 	}
 	
@@ -52,15 +53,15 @@ public class WandTriggerRegistry {
 	 * @param y
 	 * @param z
 	 * @param side
-	 * @param blockid
+	 * @param block
 	 * @param meta
 	 * @return
 	 */
 	public static boolean performTrigger(World world, ItemStack wand, EntityPlayer player, 
-			int x, int y, int z, int side, int blockid, int meta) {
+			int x, int y, int z, int side, Block block, int meta) {
 				
-		List l = triggers.get(Arrays.asList(blockid,meta));
-		if (l==null) l = triggers.get(Arrays.asList(blockid,-1));
+		List l = triggers.get(Arrays.asList(block,meta));
+		if (l==null) l = triggers.get(Arrays.asList(block,-1));
 		if (l==null) return false;
 		
 		IWandTriggerManager manager = (IWandTriggerManager) l.get(0);

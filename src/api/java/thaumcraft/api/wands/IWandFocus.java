@@ -2,7 +2,7 @@ package thaumcraft.api.wands;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Icon;
+import net.minecraft.util.IIcon;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import thaumcraft.api.aspects.AspectList;
@@ -22,9 +22,9 @@ public interface IWandFocus  {
 	/**
 	 * @return An icon that will be drawn as a block inside the focus "block".
 	 */
-	Icon getFocusDepthLayerIcon();
+	IIcon getFocusDepthLayerIcon();
 	
-	public Icon getOrnament();
+	public IIcon getOrnament();
 	
 	public WandFocusAnimation getAnimation();
 	

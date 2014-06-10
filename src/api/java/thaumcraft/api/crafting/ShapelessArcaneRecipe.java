@@ -72,7 +72,7 @@ public class ShapelessArcaneRecipe implements IArcaneRecipe
     @Override
     public boolean matches(IInventory var1, World world, EntityPlayer player)
     {
-    	if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.username, research)) {
+    	if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.getCommandSenderName(), research)) {
     		return false;
     	}
     	
@@ -125,7 +125,7 @@ public class ShapelessArcaneRecipe implements IArcaneRecipe
 
     private boolean checkItemEquals(ItemStack target, ItemStack input)
     {
-        return (target.itemID == input.itemID &&
+        return (target.getItem() == input.getItem() &&
         		(!target.hasTagCompound() || ItemStack.areItemStackTagsEqual(target, input)) &&
         		(target.getItemDamage() == OreDictionary.WILDCARD_VALUE || target.getItemDamage() == input.getItemDamage()));
     }

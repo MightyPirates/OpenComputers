@@ -10,7 +10,9 @@ import thaumcraft.api.aspects.AspectList;
 
 public class CrucibleRecipe {
 
-	public ItemStack recipeOutput;
+	private ItemStack recipeOutput;
+	
+
 	public Object catalyst;
 	public AspectList aspects;
 	public String key;
@@ -63,6 +65,10 @@ public class CrucibleRecipe {
 		
 		itags = temptags;
 		return itags;
+	}
+	
+	public ItemStack getRecipeOutput() {
+		return recipeOutput;
 	}
 	
 }

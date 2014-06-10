@@ -1,5 +1,7 @@
 package thaumcraft.api.nodes;
 
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.aspects.IAspectContainer;
 
 public interface INode extends IAspectContainer {
@@ -9,6 +11,8 @@ public interface INode extends IAspectContainer {
 	 * @return
 	 */
 	public String getId();
+	
+	public AspectList getAspectsBase();
 	
 	/**
 	 * Return the type of node
@@ -33,17 +37,17 @@ public interface INode extends IAspectContainer {
 	 * @return
 	 */
 	public NodeModifier getNodeModifier();
-	
+		
 	/**
 	 * Return the maximum capacity of each aspect the node can hold
 	 * @return
 	 */
-	public int getNodeVisBase();
+	public int getNodeVisBase(Aspect aspect);
 
 	/**
 	 * Set the maximum capacity of each aspect the node can hold
 	 * @return
 	 */
-	public void setNodeVisBase(short nodeVisBase);
+	public void setNodeVisBase(Aspect aspect, short nodeVisBase);
 	
 }

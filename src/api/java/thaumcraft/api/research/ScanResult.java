@@ -4,8 +4,8 @@ import net.minecraft.entity.Entity;
 
 public class ScanResult {
 	public byte type = 0;   //1=blocks,2=entities,3=phenomena
-	public int blockId;
-	public int blockMeta;
+	public int id;
+	public int meta;
 	public Entity entity;
 	public String phenomena;
 
@@ -13,8 +13,8 @@ public class ScanResult {
 			String phenomena) {
 		super();
 		this.type = type;
-		this.blockId = blockId;
-		this.blockMeta = blockMeta;		
+		this.id = blockId;
+		this.meta = blockMeta;		
 		this.entity = entity;
 		this.phenomena = phenomena;
 	}
@@ -26,9 +26,9 @@ public class ScanResult {
 			if (type != sr.type)
 				return false;
 			if (type == 1
-					&& (blockId != sr.blockId || blockMeta != sr.blockMeta))
+					&& (id != sr.id || meta != sr.meta))
 				return false;
-			if (type == 2 && entity.entityId != sr.entity.entityId)
+			if (type == 2 && entity.getEntityId() != sr.entity.getEntityId())
 				return false;
 			if (type == 3 && !phenomena.equals(sr.phenomena))
 				return false;

@@ -11,13 +11,12 @@ import thaumcraft.api.aspects.AspectList;
 
 public class InfusionRecipe
 {
-	
-	public AspectList aspects;
-	public String research;
-	public ItemStack[] components;
-	public ItemStack recipeInput;
-	public Object recipeOutput;
-	public int instability;
+	protected AspectList aspects;
+	protected String research;
+	private ItemStack[] components;
+	private ItemStack recipeInput;
+	protected Object recipeOutput;
+	protected int instability;
 	
 	public InfusionRecipe(String research, Object output, int inst,
 			AspectList aspects2, ItemStack input, ItemStack[] recipe) {
@@ -34,25 +33,25 @@ public class InfusionRecipe
      * @param player 
      */
 	public boolean matches(ArrayList<ItemStack> input, ItemStack central, World world, EntityPlayer player) {
-		if (recipeInput==null) return false;
+		if (getRecipeInput()==null) return false;
 			
-		if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.username, research)) {
+		if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.getCommandSenderName(), research)) {
     		return false;
     	}
 		
 		ItemStack i2 = central.copy();
-		if (recipeInput.getItemDamage()==OreDictionary.WILDCARD_VALUE) {
+		if (getRecipeInput().getItemDamage()==OreDictionary.WILDCARD_VALUE) {
 			i2.setItemDamage(OreDictionary.WILDCARD_VALUE);
 		}
 		
-		if (!areItemStacksEqual(i2, recipeInput, true)) return false;
+		if (!areItemStacksEqual(i2, getRecipeInput(), true)) return false;
 		
 		ArrayList<ItemStack> ii = new ArrayList<ItemStack>();
 		for (ItemStack is:input) {
 			ii.add(is.copy());
 		}
 		
-		for (ItemStack comp:components) {
+		for (ItemStack comp:getComponents()) {
 			boolean b=false;
 			for (int a=0;a<ii.size();a++) {
 				 i2 = ii.get(a).copy();
@@ -67,11 +66,10 @@ public class InfusionRecipe
 			}
 			if (!b) return false;
 		}
-//		System.out.println(ii.size());
 		return ii.size()==0?true:false;
     }
 	
-	private boolean areItemStacksEqual(ItemStack stack0, ItemStack stack1, boolean fuzzy)
+	protected boolean areItemStacksEqual(ItemStack stack0, ItemStack stack1, boolean fuzzy)
     {
 		if (stack0==null && stack1!=null) return false;
 		if (stack0!=null && stack1==null) return false;
@@ -88,23 +86,43 @@ public class InfusionRecipe
 		}
 		else
 			t1=ItemStack.areItemStackTagsEqual(stack0, stack1);		
-        return stack0.itemID != stack1.itemID ? false : (stack0.getItemDamage() != stack1.getItemDamage() ? false : (stack0.stackSize > stack0.getMaxStackSize() ? false : t1));
+        return stack0.getItem() != stack1.getItem() ? false : (stack0.getItemDamage() != stack1.getItemDamage() ? false : (stack0.stackSize > stack0.getMaxStackSize() ? false : t1));
     }
 	
    
     public Object getRecipeOutput() {
-		return recipeOutput;
-    	
+		return getRecipeOutput(this.getRecipeInput());
     }
     
     public AspectList getAspects() {
-		return aspects;
-    	
+		return getAspects(this.getRecipeInput());
+    }
+
+    public int getInstability() {
+		return getInstability(this.getRecipeInput());
     }
     
     public String getResearch() {
 		return research;
-    	
     }
+    
+	public ItemStack getRecipeInput() {
+		return recipeInput;
+	}
 
+	public ItemStack[] getComponents() {
+		return components;
+	}
+	
+	public Object getRecipeOutput(ItemStack input) {
+		return recipeOutput;
+    }
+    
+    public AspectList getAspects(ItemStack input) {
+		return aspects;
+    }
+    
+    public int getInstability(ItemStack input) {
+		return instability;
+    }
 }

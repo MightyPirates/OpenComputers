@@ -6,7 +6,6 @@ import java.util.HashMap;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -141,7 +140,7 @@ public class ShapedArcaneRecipe implements IArcaneRecipe
     @Override
     public boolean matches(IInventory inv, World world, EntityPlayer player)
     {
-    	if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.username, research)) {
+    	if (research.length()>0 && !ThaumcraftApiHelper.isResearchComplete(player.getCommandSenderName(), research)) {
     		return false;
     	}
         for (int x = 0; x <= MAX_CRAFT_GRID_WIDTH - width; x++)
@@ -224,7 +223,7 @@ public class ShapedArcaneRecipe implements IArcaneRecipe
         {
             return false;
         }
-        return (target.itemID == input.itemID && 
+        return (target.getItem() == input.getItem() && 
         		(!target.hasTagCompound() || ItemStack.areItemStackTagsEqual(target, input)) &&
         		(target.getItemDamage() == OreDictionary.WILDCARD_VALUE|| target.getItemDamage() == input.getItemDamage()));
     }

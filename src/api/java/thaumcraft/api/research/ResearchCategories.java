@@ -2,12 +2,13 @@ package thaumcraft.api.research;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
-
-import cpw.mods.fml.common.FMLLog;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+
+import org.apache.logging.log4j.Level;
+
+import cpw.mods.fml.common.FMLLog;
 
 public class ResearchCategories {
 	
@@ -67,7 +68,7 @@ public class ResearchCategories {
 			if (!ri.isVirtual()) {
 				for (ResearchItem rr:rl.research.values()) {
 					if (rr.displayColumn == ri.displayColumn && rr.displayRow == ri.displayRow) {
-						FMLLog.log(Level.SEVERE, "[Thaumcraft] Research ["+ri.getName()+"] not added as it overlaps with existing research ["+rr.getName()+"]");
+						FMLLog.log(Level.FATAL, "[Thaumcraft] Research ["+ri.getName()+"] not added as it overlaps with existing research ["+rr.getName()+"]");
 						return;
 					}
 				}

@@ -15,12 +15,11 @@ public class AspectList implements Serializable {
 	
 	/**
 	 * this creates a new aspect list with preloaded values based off the aspects of the given item.
-	 * @param id the item/block id of an existing item
-	 * @param meta the damage value of an existing item
+	 * @param the itemstack of the given item
 	 */
-	public AspectList(int id, int meta) {
+	public AspectList(ItemStack stack) {
 		try {
-			AspectList temp = ThaumcraftApiHelper.getObjectAspects(new ItemStack(id,1,meta));
+			AspectList temp = ThaumcraftApiHelper.getObjectAspects(stack);
 			if (temp!=null)
 			for (Aspect tag:temp.getAspects()) {
 				add(tag,temp.getAmount(tag));
@@ -84,46 +83,54 @@ public class AspectList implements Serializable {
 	 * @return an array of all the aspects in this collection sorted by name
 	 */
 	public Aspect[] getAspectsSorted() {
-		Aspect[] out = aspects.keySet().toArray(new Aspect[1]);
-		boolean change=false;
-		do {
-			change=false;
-			for(int a=0;a<out.length-1;a++) {
-				Aspect e1 = out[a];
-				Aspect e2 = out[a+1];
-				if (e1!=null && e2!=null && e1.getTag().compareTo(e2.getTag())>0) {
-					out[a] = e2;
-					out[a+1] = e1;
-					change = true;
-					break;
+		try {
+			Aspect[] out = aspects.keySet().toArray(new Aspect[1]);
+			boolean change=false;
+			do {
+				change=false;
+				for(int a=0;a<out.length-1;a++) {
+					Aspect e1 = out[a];
+					Aspect e2 = out[a+1];
+					if (e1!=null && e2!=null && e1.getTag().compareTo(e2.getTag())>0) {
+						out[a] = e2;
+						out[a+1] = e1;
+						change = true;
+						break;
+					}
 				}
-			}
-		} while (change==true);
-		return out;
+			} while (change==true);
+			return out;
+		} catch (Exception e) {
+			return this.getAspects(); 
+		}
 	}
 	
 	/**
 	 * @return an array of all the aspects in this collection sorted by amount
 	 */
 	public Aspect[] getAspectsSortedAmount() {
-		Aspect[] out = aspects.keySet().toArray(new Aspect[1]);
-		boolean change=false;
-		do {
-			change=false;
-			for(int a=0;a<out.length-1;a++) {
-				int e1 = getAmount(out[a]); 
-				int e2 = getAmount(out[a+1]);
-				if (e1>0 && e2>0 && e2>e1) {
-					Aspect ea = out[a];
-					Aspect eb = out[a+1];
-					out[a] = eb;
-					out[a+1] = ea;
-					change = true;
-					break;
+		try {
+			Aspect[] out = aspects.keySet().toArray(new Aspect[1]);
+			boolean change=false;
+			do {
+				change=false;
+				for(int a=0;a<out.length-1;a++) {
+					int e1 = getAmount(out[a]); 
+					int e2 = getAmount(out[a+1]);
+					if (e1>0 && e2>0 && e2>e1) {
+						Aspect ea = out[a];
+						Aspect eb = out[a+1];
+						out[a] = eb;
+						out[a+1] = ea;
+						change = true;
+						break;
+					}
 				}
-			}
-		} while (change==true);
-		return out;
+			} while (change==true);
+			return out;
+		} catch (Exception e) {
+			return this.getAspects();
+		}
 	}
 	
 	/**
@@ -216,9 +223,9 @@ public class AspectList implements Serializable {
 	public void readFromNBT(NBTTagCompound nbttagcompound)
     {
         aspects.clear();
-        NBTTagList tlist = nbttagcompound.getTagList("Aspects");
+        NBTTagList tlist = nbttagcompound.getTagList("Aspects",(byte)10);
 		for (int j = 0; j < tlist.tagCount(); j++) {
-			NBTTagCompound rs = (NBTTagCompound) tlist.tagAt(j);
+			NBTTagCompound rs = (NBTTagCompound) tlist.getCompoundTagAt(j);
 			if (rs.hasKey("key")) {
 				add(	Aspect.getAspect(rs.getString("key")),
 						rs.getInteger("amount"));

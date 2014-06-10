@@ -1,6 +1,7 @@
 package thaumcraft.api.aspects;
 
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
+
 
 /**
  * @author Azanor
@@ -53,16 +54,16 @@ public interface IEssentiaTransport {
 	public int getSuctionAmount(ForgeDirection face);
 	
 	/**
-	 * remove the specified amount of vis from this transport tile
+	 * remove the specified amount of essentia from this transport tile
 	 * @return how much was actually taken
 	 */
-	public int takeVis(Aspect aspect, int amount);
+	public int takeEssentia(Aspect aspect, int amount, ForgeDirection face);
 	
 	/**
-	 * add the specified amount of vis to this transport tile
+	 * add the specified amount of essentia to this transport tile
 	 * @return how much was actually added
 	 */
-	public int addVis(Aspect aspect, int amount);
+	public int addEssentia(Aspect aspect, int amount, ForgeDirection face);
 	
 	/**
 	 * What type of essentia this contains
