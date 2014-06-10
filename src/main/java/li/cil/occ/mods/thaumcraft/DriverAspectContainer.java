@@ -15,7 +15,7 @@ import thaumcraft.api.aspects.IAspectContainer;
 public class DriverAspectContainer extends DriverTileEntity {
     @Override
     public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
-        return new Environment((IAspectContainer) world.getBlockTileEntity(x, y, z));
+        return new Environment((IAspectContainer) world.getTileEntity(x, y, z));
     }
 
     @Override

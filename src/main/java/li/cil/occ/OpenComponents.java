@@ -6,7 +6,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import li.cil.occ.mods.Registry;
 import li.cil.occ.mods.appeng.ModAppEng;
 import li.cil.occ.mods.buildcraft.ModBuildCraft;
-import li.cil.occ.mods.forestry.ModForestry;
+import li.cil.occ.mods.computercraft.ModComputerCraft;
 import li.cil.occ.mods.ic2.ModIndustrialCraft2;
 import li.cil.occ.mods.thaumcraft.ModThaumcraft;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
@@ -56,7 +56,6 @@ public class OpenComponents {
     @Mod.EventHandler
     public void init(final FMLInitializationEvent e) {
         Registry.add(new ModBuildCraft());
-        Registry.add(new ModForestry());
         Registry.add(new ModIndustrialCraft2());
         Registry.add(new ModThaumcraft());
         Registry.add(new ModTMechworks());
@@ -66,6 +65,6 @@ public class OpenComponents {
         // Register the general IPeripheral driver last, if at all, to avoid it
         // being used rather than other more concrete implementations, such as
         // is the case in the Redstone in Motion driver (replaces 'move').
-        //   Registry.add(new ModComputerCraft());
+        Registry.add(new ModComputerCraft());
     }
 }

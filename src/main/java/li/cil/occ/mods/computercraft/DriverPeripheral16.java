@@ -11,19 +11,27 @@ import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.*;
 import li.cil.occ.OpenComponents;
+import li.cil.occ.util.Reflection;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
-public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
+public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
+    private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
+
     private static final Method ComputerCraft_getPeripheralAt;
 
     static {
+        for (String name : OpenComponents.peripheralBlacklist) {
+            final Class<?> clazz = Reflection.getClass(name);
+            if (clazz != null) {
+                blacklist.add(clazz);
+            }
+        }
+
         Method getPeripheralAt = null;
         try {
             getPeripheralAt = Class.forName("dan200.computercraft.ComputerCraft").
@@ -36,8 +44,15 @@ public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
         ComputerCraft_getPeripheralAt = getPeripheralAt;
     }
 
-    @Override
-    protected IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
+    private boolean isBlacklisted(final Object o) {
+        for (Class<?> clazz : blacklist) {
+            if (clazz.isInstance(o))
+                return true;
+        }
+        return false;
+    }
+
+    private IPeripheral findPeripheral(final World world, final int x, final int y, final int z) {
         if (ComputerCraft_getPeripheralAt != null) {
             try {
                 return (IPeripheral) ComputerCraft_getPeripheralAt.invoke(null, world, x, y, z, -1);
@@ -46,6 +61,20 @@ public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean worksWith(final World world, final int x, final int y, final int z) {
+        final TileEntity tileEntity = world.getTileEntity(x, y, z);
+        return tileEntity != null
+                // This ensures we don't get duplicate components, in case the
+                // tile entity is natively compatible with OpenComputers.
+                && !li.cil.oc.api.network.Environment.class.isAssignableFrom(tileEntity.getClass())
+                // The black list is used to avoid peripherals that are known
+                // to be incompatible with OpenComputers when used directly.
+                && !isBlacklisted(tileEntity)
+                // Actual check if it's a peripheral.
+                && findPeripheral(world, x, y, z) != null;
     }
 
     @Override
@@ -127,7 +156,7 @@ public final class DriverPeripheral16 extends DriverPeripheral<IPeripheral> {
         private static class FakeComputerAccess implements IComputerAccess {
             protected final Environment owner;
             protected final Context context;
-            protected final Map<String, li.cil.oc.api.network.ManagedEnvironment> fileSystems = new HashMap<String, li.cil.oc.api.network.ManagedEnvironment>();
+            protected final Map<String, ManagedEnvironment> fileSystems = new HashMap<String, ManagedEnvironment>();
 
             public FakeComputerAccess(final Environment owner, final Context context) {
                 this.owner = owner;
