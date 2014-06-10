@@ -62,7 +62,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     }
 
     if (screen.buffer.isRenderingEnabled) {
-      compileOrDraw()
+      draw()
     }
 
     GL11.glPopMatrix()
@@ -119,7 +119,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  private def compileOrDraw() {
+  private def draw() {
     val sx = screen.width
     val sy = screen.height
     val tw = sx * 16f

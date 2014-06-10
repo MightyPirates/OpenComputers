@@ -20,7 +20,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
 
   /** We cache the VBOs for the projectors we render for performance. */
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(10, TimeUnit.SECONDS).
+    expireAfterAccess(5, TimeUnit.SECONDS).
     removalListener(this).
     asInstanceOf[CacheBuilder[Hologram, Int]].
     build[Hologram, Int]()
@@ -275,12 +275,23 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
         }
       }
 
-      // Important! OpenGL will start reading from the current buffer position.
-      dataBuffer.rewind()
-
-      // This buffer can be updated quite frequently, so dynamic seems sensible.
       GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
-      GL15.glBufferData(GL15.GL_ARRAY_BUFFER, dataBuffer, GL15.GL_DYNAMIC_DRAW)
+      if (hologram.visibleQuads > 0) {
+        // Flip the buffer to only fill in as much data as necessary.
+        dataBuffer.flip()
+
+        // This buffer can be updated quite frequently, so dynamic seems sensible.
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, dataBuffer, GL15.GL_DYNAMIC_DRAW)
+      }
+      else {
+        // Empty hologram.
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, 0L, GL15.GL_DYNAMIC_DRAW)
+      }
+
+      println("HOLOGRAM SIZE: " + GL15.glGetBufferParameteri(GL15.GL_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE) / 1024.0 / 1024.0)
+
+      // Reset for the next operation.
+      dataBuffer.clear()
 
       hologram.dirty = false
     }
