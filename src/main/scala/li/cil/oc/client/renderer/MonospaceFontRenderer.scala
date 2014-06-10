@@ -64,7 +64,7 @@ object MonospaceFontRenderer {
       else
         textureManager.bindTexture(Textures.fontAliased)
       GL11.glPushMatrix()
-      GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
@@ -110,31 +110,29 @@ object MonospaceFontRenderer {
           case i => i
         })
         if (col != cfg) {
-          // Color changed, force flush and adjust colors.
+          // Color changed.
           cfg = col
           GL11.glColor3ub(
             ((cfg & 0xFF0000) >> 16).toByte,
             ((cfg & 0x00FF00) >> 8).toByte,
             ((cfg & 0x0000FF) >> 0).toByte)
         }
-        {
-          if (index != ' ') {
-            // Don't render whitespace.
-            val x = (index - 1) % cols
-            val y = (index - 1) / cols
-            val u = x * uStep
-            val v = y * vStep
-            GL11.glTexCoord2d(u, v + vSize)
-            GL11.glVertex3d(posX - dw, charHeight * s, 0)
-            GL11.glTexCoord2d(u + uSize, v + vSize)
-            GL11.glVertex3d(posX + charWidth * s, charHeight * s, 0)
-            GL11.glTexCoord2d(u + uSize, v)
-            GL11.glVertex3d(posX + charWidth * s, -dh, 0)
-            GL11.glTexCoord2d(u, v)
-            GL11.glVertex3d(posX - dw, -dh, 0)
-          }
-          posX += charWidth
+        if (ch != ' ') {
+          // Don't render whitespace.
+          val x = (index - 1) % cols
+          val y = (index - 1) / cols
+          val u = x * uStep
+          val v = y * vStep
+          GL11.glTexCoord2d(u, v + vSize)
+          GL11.glVertex3d(posX - dw, charHeight * s, 0)
+          GL11.glTexCoord2d(u + uSize, v + vSize)
+          GL11.glVertex3d(posX + charWidth * s, charHeight * s, 0)
+          GL11.glTexCoord2d(u + uSize, v)
+          GL11.glVertex3d(posX + charWidth * s, -dh, 0)
+          GL11.glTexCoord2d(u, v)
+          GL11.glVertex3d(posX - dw, -dh, 0)
         }
+        posX += charWidth
       }
       GL11.glEnd()
 
