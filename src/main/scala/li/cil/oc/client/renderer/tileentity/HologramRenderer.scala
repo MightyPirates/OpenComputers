@@ -69,6 +69,24 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
     // After the below scaling, hologram is drawn inside a [0..48]x[0..32]x[0..48] box
     GL11.glScaled(hologram.scale / 16f, hologram.scale / 16f, hologram.scale / 16f)
 
+    bindTexture(Textures.blockHologram)
+
+    // Normalize normals (yes, glScale scales them too).
+    GL11.glEnable(GL11.GL_NORMALIZE)
+
+    val sx = (x + 0.5) * hologram.scale
+    val sy = -(y + 0.5) * hologram.scale
+    val sz = (z + 0.5) * hologram.scale
+    if (sx >= -1.5 && sx <= 1.5 && sz >= -1.5 && sz <= 1.5 && sy >= 0 && sy <= 2) {
+      // Camera is inside the hologram.
+      GL11.glDisable(GL11.GL_CULL_FACE)
+    }
+    else {
+      // Camera is outside the hologram.
+      GL11.glEnable(GL11.GL_CULL_FACE)
+      GL11.glCullFace(GL11.GL_BACK)
+    }
+
     // We do two passes here to avoid weird transparency effects: in the first
     // pass we find the front-most fragment, in the second we actually draw it.
     // When we don't do this the hologram will look different from different
@@ -256,17 +274,6 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
   }
 
   private def publish(glBuffer: Int) {
-    bindTexture(Textures.blockHologram)
-
-    // Normalize normals (yes, glScale scales them too).
-    GL11.glEnable(GL11.GL_NORMALIZE)
-    // evg-zhabotinsky: Because fragment processing started to slow things down
-    // TODO but holograms look terrible from the inside otherwise,
-    //      and I don't see a difference in FPS anyway? Maybe a
-    //      check for the camera position - if inside don't cull?
-    //    GL11.glEnable(GL11.GL_CULL_FACE)
-    //    GL11.glCullFace(GL11.GL_BACK)
-
     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, commonBuffer)
     GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY)
     GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY)
