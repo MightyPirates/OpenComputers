@@ -57,21 +57,21 @@ object MonospaceFontRenderer {
     def drawString(x: Int, y: Int, value: Array[Char], color: Array[Short], format: PackedColor.ColorFormat) = {
       if (color.length != value.length) throw new IllegalArgumentException("Color count must match char count.")
 
-      RenderState.checkError(getClass.getName + ".drawString: entering (aka: wasntme).")
+      RenderState.checkError(getClass.getName + ".drawString: entering (aka: wasntme)")
 
       if (Settings.get.textAntiAlias)
         textureManager.bindTexture(Textures.fontAntiAliased)
       else
         textureManager.bindTexture(Textures.fontAliased)
       GL11.glPushMatrix()
-      GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_TEXTURE_BIT)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       GL11.glTranslatef(x, y, 0)
       GL11.glScalef(0.5f, 0.5f, 1)
       GL11.glDepthMask(false)
       GL11.glDisable(GL11.GL_TEXTURE_2D)
 
-      RenderState.checkError(getClass.getName + ".drawString: configure state.")
+      RenderState.checkError(getClass.getName + ".drawString: configure state")
 
       GL11.glBegin(GL11.GL_QUADS)
       // Background first. We try to merge adjacent backgrounds of the same
@@ -91,7 +91,7 @@ object MonospaceFontRenderer {
       draw(cbg, offset, width)
       GL11.glEnd()
 
-      RenderState.checkError(getClass.getName + ".drawString: background.")
+      RenderState.checkError(getClass.getName + ".drawString: background")
 
       GL11.glEnable(GL11.GL_TEXTURE_2D)
 
@@ -110,40 +110,38 @@ object MonospaceFontRenderer {
           case i => i
         })
         if (col != cfg) {
-          // Color changed, force flush and adjust colors.
+          // Color changed.
           cfg = col
           GL11.glColor3ub(
             ((cfg & 0xFF0000) >> 16).toByte,
             ((cfg & 0x00FF00) >> 8).toByte,
             ((cfg & 0x0000FF) >> 0).toByte)
         }
-        {
-          if (index != ' ') {
-            // Don't render whitespace.
-            val x = (index - 1) % cols
-            val y = (index - 1) / cols
-            val u = x * uStep
-            val v = y * vStep
-            GL11.glTexCoord2d(u, v + vSize)
-            GL11.glVertex3d(posX - dw, charHeight * s, 0)
-            GL11.glTexCoord2d(u + uSize, v + vSize)
-            GL11.glVertex3d(posX + charWidth * s, charHeight * s, 0)
-            GL11.glTexCoord2d(u + uSize, v)
-            GL11.glVertex3d(posX + charWidth * s, -dh, 0)
-            GL11.glTexCoord2d(u, v)
-            GL11.glVertex3d(posX - dw, -dh, 0)
-          }
-          posX += charWidth
+        if (ch != ' ') {
+          // Don't render whitespace.
+          val x = (index - 1) % cols
+          val y = (index - 1) / cols
+          val u = x * uStep
+          val v = y * vStep
+          GL11.glTexCoord2d(u, v + vSize)
+          GL11.glVertex3d(posX - dw, charHeight * s, 0)
+          GL11.glTexCoord2d(u + uSize, v + vSize)
+          GL11.glVertex3d(posX + charWidth * s, charHeight * s, 0)
+          GL11.glTexCoord2d(u + uSize, v)
+          GL11.glVertex3d(posX + charWidth * s, -dh, 0)
+          GL11.glTexCoord2d(u, v)
+          GL11.glVertex3d(posX - dw, -dh, 0)
         }
+        posX += charWidth
       }
       GL11.glEnd()
 
-      RenderState.checkError(getClass.getName + ".drawString: foreground.")
+      RenderState.checkError(getClass.getName + ".drawString: foreground")
 
       GL11.glPopAttrib()
       GL11.glPopMatrix()
 
-      RenderState.checkError(getClass.getName + ".drawString: leaving.")
+      RenderState.checkError(getClass.getName + ".drawString: leaving")
     }
 
     private def draw(color: Int, offset: Int, width: Int) = if (color != 0 && width > 0) {

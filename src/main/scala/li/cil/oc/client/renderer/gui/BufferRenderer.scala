@@ -17,23 +17,27 @@ object BufferRenderer {
   private var displayLists = 0
 
   def init(tm: TextureManager) = this.synchronized(if (!textureManager.isDefined) {
-    RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme).")
+    RenderState.checkError(getClass.getName + ".displayLists: entering (aka: wasntme)")
 
     textureManager = Some(tm)
     displayLists = GLAllocation.generateDisplayLists(2)
 
-    RenderState.checkError(getClass.getName + ".displayLists: leaving.")
+    RenderState.checkError(getClass.getName + ".displayLists: leaving")
     Textures.init(tm)
   })
 
   def compileBackground(bufferWidth: Int, bufferHeight: Int) =
     if (textureManager.isDefined) {
+      RenderState.checkError(getClass.getName + ".compileBackground: entering (aka: wasntme)")
+
       val innerWidth = innerMargin * 2 + bufferWidth
       val innerHeight = innerMargin * 2 + bufferHeight
 
       GL11.glNewList(displayLists, GL11.GL_COMPILE)
 
       textureManager.get.bindTexture(Textures.guiBorders)
+
+      GL11.glBegin(GL11.GL_QUADS)
 
       // Top border (left corner, middle bar, right corner).
       drawBorder(
@@ -68,7 +72,11 @@ object BufferRenderer {
         margin + innerWidth, margin + innerHeight, margin, margin,
         8, 8, 15, 15)
 
+      GL11.glEnd()
+
       GL11.glEndList()
+
+      RenderState.checkError(getClass.getName + ".compileBackground: leaving")
     }
 
   def drawBackground() =
@@ -91,12 +99,13 @@ object BufferRenderer {
     val u2d = u2 / 16.0
     val v1d = v1 / 16.0
     val v2d = v2 / 16.0
-    val t = Tessellator.instance
-    t.startDrawingQuads()
-    t.addVertexWithUV(x, y + h, 0, u1d, v2d)
-    t.addVertexWithUV(x + w, y + h, 0, u2d, v2d)
-    t.addVertexWithUV(x + w, y, 0, u2d, v1d)
-    t.addVertexWithUV(x, y, 0, u1d, v1d)
-    t.draw()
+    GL11.glTexCoord2d(u1d, v2d)
+    GL11.glVertex3d(x, y + h, 0)
+    GL11.glTexCoord2d(u2d, v2d)
+    GL11.glVertex3d(x + w, y + h, 0)
+    GL11.glTexCoord2d(u2d, v1d)
+    GL11.glVertex3d(x + w, y, 0)
+    GL11.glTexCoord2d(u1d, v1d)
+    GL11.glVertex3d(x, y, 0)
   }
 }
