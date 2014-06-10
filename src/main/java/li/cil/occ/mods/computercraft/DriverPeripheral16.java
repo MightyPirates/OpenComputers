@@ -14,10 +14,10 @@ import li.cil.occ.OpenComponents;
 import li.cil.occ.util.Reflection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.Level;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Level;
 
 public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
@@ -38,7 +38,7 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
                     getMethod("getPeripheralAt", World.class, int.class, int.class, int.class, int.class);
         } catch (Exception e) {
             if (Loader.instance().getIndexedModList().get("ComputerCraft").getVersion().startsWith("1.6")) {
-                OpenComponents.Log.log(Level.WARNING, "Error getting access to ComputerCraft peripherals.", e);
+                OpenComponents.Log.log(Level.WARN, "Error getting access to ComputerCraft peripherals.", e);
             }
         }
         ComputerCraft_getPeripheralAt = getPeripheralAt;
@@ -57,7 +57,7 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
             try {
                 return (IPeripheral) ComputerCraft_getPeripheralAt.invoke(null, world, x, y, z, -1);
             } catch (Exception e) {
-                OpenComponents.Log.log(Level.WARNING, String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
+                OpenComponents.Log.log(Level.WARN, String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
             }
         }
         return null;

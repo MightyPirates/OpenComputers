@@ -2,11 +2,11 @@ package li.cil.occ.mods;
 
 import cpw.mods.fml.common.Loader;
 import li.cil.occ.OpenComponents;
+import org.apache.logging.log4j.Level;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 
 public final class Registry {
     private static final Set<IMod> handlers = new HashSet<IMod>();
@@ -22,7 +22,7 @@ public final class Registry {
             try {
                 mod.initialize();
             } catch (Throwable e) {
-                OpenComponents.Log.log(Level.WARNING, String.format("Error initializing handler for '%s'", mod.getModId()), e);
+                OpenComponents.Log.log(Level.WARN, String.format("Error initializing handler for '%s'", mod.getModId()), e);
             }
         }
     }

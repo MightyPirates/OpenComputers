@@ -12,15 +12,15 @@ import li.cil.occ.mods.thaumcraft.ModThaumcraft;
 import li.cil.occ.mods.tmechworks.ModTMechworks;
 import li.cil.occ.mods.vanilla.ModVanilla;
 import net.minecraftforge.common.config.Configuration;
-
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod(modid = "OpenComponents", useMetadata = true)
 public class OpenComponents {
     @Mod.Instance
     public static OpenComponents instance;
 
-    public static final Logger Log = Logger.getLogger("OpenComponents");
+    public static final Logger Log = LogManager.getLogger("OpenComponents");
 
     public static String[] modBlacklist = new String[]{
             ModThaumcraft.MOD_ID
