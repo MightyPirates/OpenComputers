@@ -11,6 +11,8 @@ import li.cil.oc.client.Textures
 
 object RouterRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val router = tileEntity.asInstanceOf[tileentity.Router]
     val activity = math.max(0, 1 - (System.currentTimeMillis() - router.lastMessage) / 1000.0)
     if (activity > 0) {
@@ -56,5 +58,7 @@ object RouterRenderer extends TileEntitySpecialRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
     }
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

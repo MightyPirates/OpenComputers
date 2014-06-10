@@ -14,6 +14,8 @@ object WirelessNetworkDebugRenderer {
   @ForgeSubscribe
   def onRenderWorldLastEvent(e: RenderWorldLastEvent) {
     if (Settings.rTreeDebugRenderer) {
+      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: entering (aka: wasntme)")
+
       WirelessNetwork.dimensions.get(e.context.theWorld.provider.dimensionId) match {
         case Some(tree) =>
           val mc = Minecraft.getMinecraft
@@ -89,6 +91,8 @@ object WirelessNetworkDebugRenderer {
           GL11.glPopAttrib()
         case _ =>
       }
+
+      RenderState.checkError(getClass.getName + ".onRenderWorldLastEvent: leaving")
     }
   }
 

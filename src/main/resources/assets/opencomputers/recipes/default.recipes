@@ -29,7 +29,7 @@ server3 {
 }
 
 ram1 {
-  input: [["oc:circuitChip1", "", "oc:circuitChip1"]
+  input: [["oc:circuitChip1", nuggetIron, "oc:circuitChip1"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram2 {
@@ -37,7 +37,7 @@ ram2 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram3 {
-  input: [["oc:circuitChip2", "", "oc:circuitChip2"]
+  input: [["oc:circuitChip2", nuggetIron, "oc:circuitChip2"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram4 {
@@ -45,7 +45,7 @@ ram4 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram5 {
-  input: [["oc:circuitChip3", "", "oc:circuitChip3"]
+  input: [["oc:circuitChip3", nuggetIron, "oc:circuitChip3"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram6 {

@@ -11,6 +11,8 @@ import org.lwjgl.opengl.GL11
 
 object CaseRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val computer = tileEntity.asInstanceOf[Case]
     if (computer.isRunning) {
       GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -44,5 +46,7 @@ object CaseRenderer extends TileEntitySpecialRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
     }
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }
