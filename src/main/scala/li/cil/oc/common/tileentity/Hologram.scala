@@ -34,7 +34,8 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
   // Whether we need to send an update packet/recompile our display list.
   var dirty = false
 
-  // Store it here for convenience
+  // Store it here for convenience, this is the number of visible voxel faces
+  // as determined in the last VBO index update. See HologramRenderer.
   var visibleQuads = 0
 
   // Interval of dirty columns.
