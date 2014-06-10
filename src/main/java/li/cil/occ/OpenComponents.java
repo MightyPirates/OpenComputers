@@ -27,6 +27,10 @@ public class OpenComponents {
 
     public static final Logger Log = Logger.getLogger("OpenComponents");
 
+    public static String[] modBlacklist = new String[]{
+            ModThaumcraft.MOD_ID
+    };
+
     public static String[] peripheralBlacklist = new String[]{
             "JAKJ.RedstoneInMotion.CarriageControllerEntity",
             "appeng.api.me.tiles.ICellProvider",
@@ -40,12 +44,21 @@ public class OpenComponents {
     public void preInit(final FMLPreInitializationEvent e) {
         final Configuration config = new Configuration(e.getSuggestedConfigurationFile());
 
+        modBlacklist = config.get("mods", "blacklist", modBlacklist, "" +
+                "A list of mods (by mod id) for which support should NOT be\n" +
+                "enabled. Use this to disable support for mods you feel should\n" +
+                "not be controllable via computers (such as magic related mods," +
+                "which is why Thaumcraft is on this list by default.)").
+                getStringList();
+
         peripheralBlacklist = config.get("computercraft", "blacklist", peripheralBlacklist, "" +
                 "A list of tile entities by class name that should NOT be\n" +
                 "accessible via the Adapter block. Add blocks here that can\n" +
                 "lead to crashes or deadlocks (and report them, please!)").
                 getStringList();
+
         allowItemStackInspection = config.get("vanilla", "allowItemStackInspection", false).getBoolean(false);
+
         config.save();
     }
 

@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public class ModForestry implements IMod {
+    public static final String MOD_ID = "Forestry";
+
     @Override
     public String getModId() {
-        return "Forestry";
+        return MOD_ID;
     }
 
     @Override

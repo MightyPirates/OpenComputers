@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public class ModThaumcraft implements IMod {
+    public static final String MOD_ID = "Thaumcraft";
+
     @Override
     public String getModId() {
-        return "Thaumcraft";
+        return MOD_ID;
     }
 
     @Override

@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModRedstoneInMotion implements IMod {
+    public static final String MOD_ID = "JAKJ_RedstoneInMotion";
+
     @Override
     public String getModId() {
-        return "JAKJ_RedstoneInMotion";
+        return MOD_ID;
     }
 
     @Override

@@ -5,9 +5,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModAppEng implements IMod {
+    public static final String MOD_ID = "AppliedEnergistics";
+
     @Override
     public String getModId() {
-        return "AppliedEnergistics";
+        return MOD_ID;
     }
 
     @Override

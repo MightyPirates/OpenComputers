@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModEnderStorage implements IMod {
+    public static final String MOD_ID = "EnderStorage";
+
     @Override
     public String getModId() {
-        return "EnderStorage";
+        return MOD_ID;
     }
 
     @Override

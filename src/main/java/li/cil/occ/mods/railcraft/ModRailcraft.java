@@ -4,9 +4,11 @@ import li.cil.oc.api.Driver;
 import li.cil.occ.mods.IMod;
 
 public final class ModRailcraft implements IMod {
+    public static final String MOD_ID = "Railcraft";
+
     @Override
     public String getModId() {
-        return "Railcraft";
+        return MOD_ID;
     }
 
     @Override
