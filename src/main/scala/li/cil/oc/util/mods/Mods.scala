@@ -12,7 +12,7 @@ object Mods {
     }
   }
   val ForgeMultipart = new SimpleMod("ForgeMultipart")
-  val GregTech = new SimpleMod("gregtech_addon")
+  val GregTech = new SimpleMod("gregtech")
   val IndustrialCraft2 = new SimpleMod("IC2")
   val MineFactoryReloaded = new SimpleMod("MineFactoryReloaded")
   val NotEnoughItems = new SimpleMod("NotEnoughItems")
