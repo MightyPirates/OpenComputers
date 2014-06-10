@@ -38,10 +38,10 @@ function internet.request(url, data)
     while true do
       local data, reason = inet.read(handle.value)
       if not data then
+        inet.close(handle.value)
         if reason then
           error(reason, 2)
         else
-          inet.close(handle.value)
           return nil -- eof
         end
       elseif #data > 0 then
