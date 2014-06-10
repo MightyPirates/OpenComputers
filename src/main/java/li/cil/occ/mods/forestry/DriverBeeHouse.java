@@ -40,7 +40,7 @@ public class DriverBeeHouse extends DriverTileEntity {
 
         @Callback(doc = "function():table -- Get the drone")
         public Object[] getDrone(final Context context, final Arguments args) {
-            ItemStack drone = tileEntity.getDrone();
+            final ItemStack drone = tileEntity.getDrone();
             if (drone != null) {
                 return new Object[]{AlleleManager.alleleRegistry.getIndividual(drone)};
             }
@@ -49,7 +49,7 @@ public class DriverBeeHouse extends DriverTileEntity {
 
         @Callback(doc = "function():table -- Get the queen")
         public Object[] getQueen(final Context context, final Arguments args) {
-            ItemStack queen = tileEntity.getQueen();
+            final ItemStack queen = tileEntity.getQueen();
             if (queen != null) {
                 return new Object[]{AlleleManager.alleleRegistry.getIndividual(queen)};
             }
@@ -58,25 +58,30 @@ public class DriverBeeHouse extends DriverTileEntity {
 
         @Callback(doc = "function():table -- Get the full breeding list thingy.")
         public Object[] getBeeBreedingData(final Context context, final Arguments args) {
-            ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
+            final ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
             if (beeRoot == null) {
                 return null;
             }
-            Map<Integer, Map<String, Object>> result = Maps.newHashMap();
+
+            final Map<Integer, Map<String, Object>> result = Maps.newHashMap();
             int j = 1;
             for (IMutation mutation : beeRoot.getMutations(false)) {
                 HashMap<String, Object> mutationMap = new HashMap<String, Object>();
+
                 IAllele allele1 = mutation.getAllele0();
                 if (allele1 != null) {
                     mutationMap.put("allele1", allele1.getName());
                 }
+
                 IAllele allele2 = mutation.getAllele1();
                 if (allele2 != null) {
                     mutationMap.put("allele2", allele2.getName());
                 }
+
                 mutationMap.put("chance", mutation.getBaseChance());
                 mutationMap.put("specialConditions", mutation
                         .getSpecialConditions().toArray());
+
                 IAllele[] template = mutation.getTemplate();
                 if (template != null && template.length > 0) {
                     mutationMap.put("result", template[0].getName());
@@ -88,41 +93,49 @@ public class DriverBeeHouse extends DriverTileEntity {
 
         @Callback(doc = "function():table -- Get all known bees mutations")
         public Object[] listAllSpecies(final Context context, final Arguments args) {
-            ISpeciesRoot beeRoot = AlleleManager.alleleRegistry
-                    .getSpeciesRoot("rootBees");
-            if (beeRoot == null)
+            final ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
+            if (beeRoot == null) {
                 return null;
-            List<IAlleleSpecies> result = Lists.newArrayList();
+            }
 
+            final List<IAlleleSpecies> result = Lists.newArrayList();
             for (IMutation mutation : beeRoot.getMutations(false)) {
-                IAllele[] template = mutation.getTemplate();
-                if (template != null && template.length > 0) {
-                    IAllele allele = template[0];
-                    if (allele instanceof IAlleleSpecies)
-                        result.add((IAlleleSpecies) allele);
+                final IAllele[] template = mutation.getTemplate();
+                if (template == null || template.length <= 0) {
+                    continue;
                 }
+
+                final IAllele allele = template[0];
+                if (!(allele instanceof IAlleleSpecies)) {
+                    continue;
+                }
+
+                result.add((IAlleleSpecies) allele);
             }
             return new Object[]{result.toArray(new IAlleleSpecies[result.size()])};
         }
 
         @Callback(doc = "function(beeName:string):table -- Get the parents for a particular mutation")
         public Object[] getBeeParents(final Context context, final Arguments args) {
-            ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
-            if (beeRoot == null)
+            final ISpeciesRoot beeRoot = AlleleManager.alleleRegistry.getSpeciesRoot("rootBees");
+            if (beeRoot == null) {
                 return null;
+            }
+
             List<IMutation> result = Lists.newArrayList();
-            String childType = args.checkString(0).toLowerCase();
-
+            final String childType = args.checkString(0).toLowerCase();
             for (IMutation mutation : beeRoot.getMutations(false)) {
-                IAllele[] template = mutation.getTemplate();
-                if (template == null || template.length < 1)
+                final IAllele[] template = mutation.getTemplate();
+                if (template == null || template.length < 1) {
                     continue;
+                }
 
-                IAllele allele = template[0];
-
-                if (!(allele instanceof IAlleleSpecies))
+                final IAllele allele = template[0];
+                if (!(allele instanceof IAlleleSpecies)) {
                     continue;
-                IAlleleSpecies species = (IAlleleSpecies) allele;
+                }
+
+                final IAlleleSpecies species = (IAlleleSpecies) allele;
                 final String uid = species.getUID().toLowerCase();
                 final String localizedName = species.getName().toLowerCase();
                 if (localizedName.equals(childType) || uid.equals(childType)) {

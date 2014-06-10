@@ -1,5 +1,6 @@
 package li.cil.occ.mods.thaumcraft;
 
+import com.google.common.base.Preconditions;
 import li.cil.oc.api.network.Arguments;
 import li.cil.oc.api.network.Callback;
 import li.cil.oc.api.network.Context;
@@ -11,37 +12,34 @@ import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.aspects.IAspectContainer;
 
-import com.google.common.base.Preconditions;
+public class DriverAspectContainer extends DriverTileEntity {
+    @Override
+    public ManagedEnvironment createEnvironment(final World world, final int x, final int y, final int z) {
+        return new Environment((IAspectContainer) world.getBlockTileEntity(x, y, z));
+    }
 
-public class DriverAspectContainer extends DriverTileEntity{
-	
-	@Override
-	public ManagedEnvironment createEnvironment(World world, int x, int y, int z) {
-		return new Environment((IAspectContainer) world.getBlockTileEntity(x, y, z));
-	}
-	
-	@Override
-	public Class<?> getTileEntityClass() {
-		return IAspectContainer.class;
-	}
-	
-	public static final class Environment extends ManagedTileEntityEnvironment<IAspectContainer> {
-		public Environment(IAspectContainer tileEntity) {
-			super(tileEntity, "aspect_container");
-			
-		}
+    @Override
+    public Class<?> getTileEntityClass() {
+        return IAspectContainer.class;
+    }
 
-		@Callback(doc="function():table -- Get the Aspects stored in the block")
-		public Object[] getAspects(final Context context, final Arguments args) {
-			return new Object[]{tileEntity};
-		}
+    public static final class Environment extends ManagedTileEntityEnvironment<IAspectContainer> {
+        public Environment(final IAspectContainer tileEntity) {
+            super(tileEntity, "aspect_container");
 
-		@Callback(doc="function(aspect:string):number -- Get amount of specific aspect stored in this block")
-		public Object[] getAspectCount(final Context context, final Arguments args) {
-			Aspect aspect = Aspect.getAspect(args.checkString(0).toLowerCase());
-			Preconditions.checkNotNull(aspect, "Invalid aspect name");
-			AspectList list = tileEntity.getAspects();
-			return new Object[]{list.getAmount(aspect)};
-		}
-	}
+        }
+
+        @Callback(doc = "function():table -- Get the Aspects stored in the block")
+        public Object[] getAspects(final Context context, final Arguments args) {
+            return new Object[]{tileEntity};
+        }
+
+        @Callback(doc = "function(aspect:string):number -- Get amount of specific aspect stored in this block")
+        public Object[] getAspectCount(final Context context, final Arguments args) {
+            final Aspect aspect = Aspect.getAspect(args.checkString(0).toLowerCase());
+            Preconditions.checkNotNull(aspect, "Invalid aspect name");
+            final AspectList list = tileEntity.getAspects();
+            return new Object[]{list.getAmount(aspect)};
+        }
+    }
 }
