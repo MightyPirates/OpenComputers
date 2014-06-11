@@ -31,35 +31,41 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
     compileOrDraw(cache.get(currentBuffer, this))
   }
 
-  private def compileOrDraw(list: Int) = if (currentBuffer.proxy.dirty) {
-    RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
+  private def compileOrDraw(list: Int) = {
+    if (currentBuffer.proxy.dirty) {
+      RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
 
-    val doCompile = !RenderState.compilingDisplayList
-    if (doCompile) {
-      currentBuffer.proxy.dirty = false
-      GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
+      val doCompile = !RenderState.compilingDisplayList
+      if (doCompile) {
+        currentBuffer.proxy.dirty = false
+        GL11.glNewList(list, GL11.GL_COMPILE_AND_EXECUTE)
 
-      RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
+        RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
+      }
+
+      for (((line, color), i) <- currentBuffer.data.buffer.zip(currentBuffer.data.color).zipWithIndex) {
+        MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, currentBuffer.data.format)
+      }
+
+      RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
+
+      if (doCompile) {
+        GL11.glEndList()
+
+        RenderState.checkError(getClass.getName + ".compileOrDraw: glEndList")
+
+      }
+
+      RenderState.checkError(getClass.getName + ".compileOrDraw: leaving")
+
+      true
     }
+    else {
+      GL11.glCallList(list)
 
-    for (((line, color), i) <- currentBuffer.data.buffer.zip(currentBuffer.data.color).zipWithIndex) {
-      MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, currentBuffer.data.format)
+      RenderState.checkError(getClass.getName + ".compileOrDraw: glCallList")
     }
-
-    RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
-
-    if (doCompile) {
-      GL11.glEndList()
-
-      RenderState.checkError(getClass.getName + ".compileOrDraw: glEndList")
-
-    }
-
-    RenderState.checkError(getClass.getName + ".compileOrDraw: leaving")
-
-    true
   }
-  else GL11.glCallList(list)
 
   // ----------------------------------------------------------------------- //
   // Cache
