@@ -3,6 +3,7 @@ package li.cil.oc.common.tileentity
 import com.google.common.base.Strings
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.common.Optional.Method
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
 import li.cil.oc.api.network.{Analyzable, Connector, Visibility, Node}
@@ -20,6 +21,7 @@ import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 import scala.collection.mutable
+import net.minecraftforge.event.world.WorldEvent
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
@@ -232,7 +234,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override protected def initialize() {
     super.initialize()
-    Rack.list += this
+    Rack.list += this -> Unit
   }
 
   override protected def dispose() {
@@ -387,5 +389,12 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 }
 
 object Rack {
-  val list = mutable.Set.empty[Rack]
+  val list = mutable.WeakHashMap.empty[Rack, Unit]
+
+  @SubscribeEvent
+  def onWorldUnload(e: WorldEvent.Unload) {
+    if (e.world.isRemote) {
+      list.clear()
+    }
+  }
 }

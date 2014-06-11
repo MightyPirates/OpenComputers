@@ -11,6 +11,7 @@ import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.{Items, OpenComputers}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
@@ -60,6 +61,7 @@ private[oc] class Proxy extends CommonProxy {
     FMLCommonHandler.instance().bus().register(HologramRenderer)
     FMLCommonHandler.instance().bus().register(ScreenRenderer)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
+    MinecraftForge.EVENT_BUS.register(Rack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
   }
 }

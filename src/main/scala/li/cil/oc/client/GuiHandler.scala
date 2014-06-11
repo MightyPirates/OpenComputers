@@ -40,7 +40,7 @@ object GuiHandler extends CommonGuiHandler {
             val address = stack.getTagCompound.getString(Settings.namespace + "server")
             val key = stack.getTagCompound.getString(Settings.namespace + "key")
             if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
-              tileentity.Rack.list.
+              tileentity.Rack.list.keys.
                 flatMap(_.terminals).
                 find(term => term.rack.isPresent(term.number) match {
                 case Some(value) => value == address
