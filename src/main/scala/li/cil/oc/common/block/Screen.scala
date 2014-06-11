@@ -311,17 +311,17 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
     if (BuildCraft.holdsApplicableWrench(player, x, y, z)) false
     else world.getTileEntity(x, y, z) match {
       case screen: tileentity.Screen if screen.hasKeyboard && !player.isSneaking =>
-          // Yep, this GUI is actually purely client side. We could skip this
-          // if, but it is clearer this way (to trigger it from the server we
-          // would have to give screens a "container", which we do not want).
-          if (world.isRemote) {
-            player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
-          }
-          true
-        case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
-          screen.click(player, hitX, hitY, hitZ)
-        case _ => false
-      }
+        // Yep, this GUI is actually purely client side. We could skip this
+        // if, but it is clearer this way (to trigger it from the server we
+        // would have to give screens a "container", which we do not want).
+        if (world.isRemote) {
+          player.openGui(OpenComputers, GuiType.Screen.id, world, x, y, z)
+        }
+        true
+      case screen: tileentity.Screen if screen.tier > 0 && side == screen.facing =>
+        screen.click(player, hitX, hitY, hitZ)
+      case _ => false
+    }
 
   override def walk(world: World, x: Int, y: Int, z: Int, entity: Entity) =
     if (!world.isRemote) world.getTileEntity(x, y, z) match {

@@ -280,8 +280,8 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
         // Flip the buffer to only fill in as much data as necessary.
         dataBuffer.flip()
 
-      // This buffer can be updated quite frequently, so dynamic seems sensible.
-      GL15.glBufferData(GL15.GL_ARRAY_BUFFER, dataBuffer, GL15.GL_DYNAMIC_DRAW)
+        // This buffer can be updated quite frequently, so dynamic seems sensible.
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, dataBuffer, GL15.GL_DYNAMIC_DRAW)
       }
       else {
         // Empty hologram.
