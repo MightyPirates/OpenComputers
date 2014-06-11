@@ -31,7 +31,8 @@ public class OpenComponents {
             "JAKJ.RedstoneInMotion.CarriageControllerEntity",
             "appeng.api.me.tiles.ICellProvider",
             "appeng.api.me.tiles.ICellProvider",
-            "appeng.me.tile.TileController"
+            "appeng.me.tile.TileController",
+            "mods.railcraft.common.blocks.hidden.TileHidden"
     };
 
     public static Boolean allowItemStackInspection = false;
