@@ -41,7 +41,7 @@ local function evaluate(value)
   return result
 end
 
-local function execute(command, ...)
+local function execute(env, command, ...)
   local parts, reason = text.tokenize(command)
   if not parts then
     return false, reason
@@ -119,7 +119,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       if command == "exit" then
         return
       elseif command ~= "" then
-        local result, reason = execute(command)
+        local result, reason = os.execute(command)
         if term.getCursor() > 1 then
           term.write("\n")
         end

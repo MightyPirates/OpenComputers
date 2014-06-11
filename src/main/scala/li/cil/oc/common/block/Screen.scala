@@ -329,7 +329,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
     }
 
   override def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) =
-    if (!world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
+    if (world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - x))
         val hitY = math.max(0, math.min(1, arrow.posY - y))
@@ -350,7 +350,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
           else ForgeDirection.SOUTH
         }
         if (side == screen.facing) {
-          screen.shot(arrow, hitX, hitY, hitZ)
+          screen.shot(arrow)
         }
       case _ =>
     }

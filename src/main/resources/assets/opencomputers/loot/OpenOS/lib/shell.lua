@@ -5,6 +5,23 @@ local unicode = require("unicode")
 local shell = {}
 local aliases = {}
 
+-- Cache loaded shells for command execution. This puts the requirement on
+-- shells that they do not keep a global state, since they may be called
+-- multiple times, but reduces memory usage a lot.
+local shells = setmetatable({}, {__mode="v"})
+
+local function getShell()
+  local shellName = shell.resolve(os.getenv("SHELL"), "lua")
+  if shells[shellName] then
+    return shells[shellName]
+  end
+  local sh, reason = loadfile(shellName, "t", env)
+  if sh then
+    shells[shellName] = sh
+  end
+  return sh, reason
+end
+
 local function findFile(name, ext)
   checkArg(1, name, "string")
   local function findIn(dir)
@@ -129,11 +146,11 @@ function shell.resolve(path, ext)
 end
 
 function shell.execute(command, env, ...)
-  local sh, reason = loadfile(shell.resolve(os.getenv("SHELL"), "lua"), "t", env)
+  local sh, reason = getShell()
   if not sh then
     return false, reason
   end
-  local result = table.pack(pcall(sh, command, ...))
+  local result = table.pack(pcall(sh, env, command, ...))
   if not result[1] and type(result[2]) == "table" and result[2].reason == "terminated" then
     if result[2].code then
       return true

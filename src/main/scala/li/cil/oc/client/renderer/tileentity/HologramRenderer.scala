@@ -288,8 +288,6 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] wit
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, 0L, GL15.GL_DYNAMIC_DRAW)
       }
 
-      println("HOLOGRAM SIZE: " + GL15.glGetBufferParameteri(GL15.GL_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE) / 1024.0 / 1024.0)
-
       // Reset for the next operation.
       dataBuffer.clear()
 
