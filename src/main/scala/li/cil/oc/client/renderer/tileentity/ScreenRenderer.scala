@@ -46,6 +46,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       return
     }
 
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
+
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
     RenderState.disableLighting()
@@ -55,11 +57,17 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: setup")
+
     drawOverlay()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: overlay")
 
     if (distance > fadeDistanceSq) {
       RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: fade")
 
     if (screen.buffer.isRenderingEnabled) {
       draw()
@@ -120,6 +128,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   }
 
   private def draw() {
+    RenderState.checkError(getClass.getName + ".draw: entering (aka: wasntme)")
+
     val sx = screen.width
     val sy = screen.height
     val tw = sx * 16f
@@ -157,8 +167,12 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
+    RenderState.checkError(getClass.getName + ".draw: setup")
+
     // Render the actual text.
     screen.buffer.renderText()
+
+    RenderState.checkError(getClass.getName + ".draw: text")
   }
 
   private def playerDistanceSq() = {
