@@ -15,15 +15,15 @@ import org.lwjgl.BufferUtils
 import li.cil.oc.Settings
 import java.nio.IntBuffer
 
-object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, IntBuffer)] with RemovalListener[TileEntity, (Int, IntBuffer)] {
+object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] {
   private val random = new Random()
 
   /** We cache the VBOs for the projectors we render for performance. */
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
-    expireAfterAccess(10, TimeUnit.SECONDS).
+    expireAfterAccess(5, TimeUnit.SECONDS).
     removalListener(this).
-    asInstanceOf[CacheBuilder[Hologram, (Int, IntBuffer)]].
-    build[Hologram, (Int, IntBuffer)]()
+    asInstanceOf[CacheBuilder[Hologram, Int]].
+    build[Hologram, Int]()
 
   /**
    * Common for all holograms. Holds the vertex positions, texture
@@ -33,8 +33,19 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
    * same dimensions (in voxels). If we ever need holograms of different
    * sizes we could probably just fake that by making the outer layers
    * immutable (i.e. always empty).
+   *
+   * NOTE: It already takes up 47.25 MiB of video memory and increasing
+   * hologram size to, for example, 64*64*64 will result in 168 MiB.
    */
   private var commonBuffer = 0
+
+  /**
+   * Also common for all holograms. Temporary buffer used to upload
+   * hologram data to GPU. First half stores colors for each vertex
+   * (0xAABBGGRR Int, alpha is used for alignment only) and second
+   * half stores (Int) indices of vertices that should be drawn.
+   */
+  private var dataBuffer: IntBuffer = null
 
   /** Used to pass the current screen along to call(). */
   private var hologram: Hologram = null
@@ -92,13 +103,13 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
     // When we don't do this the hologram will look different from different
     // angles (because some faces will shine through sometimes and sometimes
     // they won't), so a more... consistent look is desirable.
-    val (glBuffer, dataBuffer) = cache.get(hologram, this)
+    val glBuffer = cache.get(hologram, this)
     GL11.glColorMask(false, false, false, false)
     GL11.glDepthMask(true)
-    draw(glBuffer, dataBuffer)
+    draw(glBuffer)
     GL11.glColorMask(true, true, true, true)
     GL11.glDepthFunc(GL11.GL_EQUAL)
-    draw(glBuffer, dataBuffer)
+    draw(glBuffer)
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
@@ -107,15 +118,17 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
     RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
-  def draw(glBuffer: Int, dataBuffer: IntBuffer) {
+  def draw(glBuffer: Int) {
     initialize()
-    validate(glBuffer, dataBuffer)
+    validate(glBuffer)
     publish(glBuffer)
   }
 
   private def initialize() {
     // First run only, create structure information.
     if (commonBuffer == 0) {
+      dataBuffer = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 6 * 4 * 2)
+
       commonBuffer = GL15.glGenBuffers()
 
       val data = BufferUtils.createFloatBuffer(hologram.width * hologram.width * hologram.height * 24 * (2 + 3 + 3))
@@ -188,7 +201,7 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
     }
   }
 
-  private def validate(glBuffer: Int, dataBuffer: IntBuffer) {
+  private def validate(glBuffer: Int) {
     // Refresh indexes when the hologram's data changed.
     if (hologram.dirty) {
       def value(hx: Int, hy: Int, hz: Int) = if (hx >= 0 && hy >= 0 && hz >= 0 && hx < hologram.width && hy < hologram.height && hz < hologram.width) hologram.getColor(hx, hy, hz) else 0
@@ -262,12 +275,21 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
         }
       }
 
-      // Important! OpenGL will start reading from the current buffer position.
-      dataBuffer.rewind()
+      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+      if (hologram.visibleQuads > 0) {
+        // Flip the buffer to only fill in as much data as necessary.
+        dataBuffer.flip()
 
       // This buffer can be updated quite frequently, so dynamic seems sensible.
-      GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
       GL15.glBufferData(GL15.GL_ARRAY_BUFFER, dataBuffer, GL15.GL_DYNAMIC_DRAW)
+      }
+      else {
+        // Empty hologram.
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, 0L, GL15.GL_DYNAMIC_DRAW)
+      }
+
+      // Reset for the next operation.
+      dataBuffer.clear()
 
       hologram.dirty = false
     }
@@ -294,16 +316,15 @@ object HologramRenderer extends TileEntitySpecialRenderer with Callable[(Int, In
 
   def call = {
     val glBuffer = GL15.glGenBuffers()
-    val dataBuffer = BufferUtils.createIntBuffer(hologram.width * hologram.width * hologram.height * 6 * 4 * 2)
 
     // Force re-indexing.
     hologram.dirty = true
 
-    (glBuffer, dataBuffer)
+    glBuffer
   }
 
-  def onRemoval(e: RemovalNotification[TileEntity, (Int, IntBuffer)]) {
-    val (glBuffer, dataBuffer) = e.getValue
+  def onRemoval(e: RemovalNotification[TileEntity, Int]) {
+    val glBuffer = e.getValue
     GL15.glDeleteBuffers(glBuffer)
     dataBuffer.clear()
   }

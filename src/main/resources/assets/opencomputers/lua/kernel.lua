@@ -630,10 +630,20 @@ local function main()
 
   -- After memory footprint to avoid init.lua bumping the baseline.
   local co, args = bootstrap()
+  local forceGC = 10
 
   while true do
     deadline = computer.realTime() + system.timeout()
     hitDeadline = false
+
+    -- NOTE: since this is run in an executor thread and we enforce timeouts
+    -- in user-defined garbage collector callbacks this should be safe.
+    forceGC = forceGC - 1
+    if forceGC < 1 then
+      collectgarbage("collect")
+      forceGC = 10
+    end
+
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
