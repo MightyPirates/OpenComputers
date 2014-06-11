@@ -72,7 +72,7 @@ object BlockRenderer extends ISimpleBlockRenderingHandler {
         Tessellator.instance.draw()
 
         RenderState.checkError(getClass.getName + ".renderInventoryBlock: standard block")
-        }
+    }
     GL11.glPopMatrix()
 
     RenderState.checkError(getClass.getName + ".renderInventoryBlock: leaving")

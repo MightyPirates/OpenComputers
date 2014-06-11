@@ -73,6 +73,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
 }
 
 object Hologram {
+
   class Tier1(parent: SpecialDelegator) extends Hologram(parent) {
     def tier = 0
   }
@@ -80,4 +81,5 @@ object Hologram {
   class Tier2(parent: SpecialDelegator) extends Hologram(parent) {
     def tier = 1
   }
+
 }

@@ -3,7 +3,6 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
-import li.cil.oc.common.EventHandler
 import li.cil.oc.common.Sound
 import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer

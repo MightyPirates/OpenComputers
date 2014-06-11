@@ -9,7 +9,7 @@ import li.cil.oc.common.tileentity
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{Items, Settings}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import scala.collection.mutable
 
@@ -36,7 +36,7 @@ class Terminal(val rack: tileentity.Rack, val number: Int) {
       }
     })
     keyboard
-    }
+  }
 
   if (buffer.node != null) {
     buffer.node.asInstanceOf[Component].setVisibility(Visibility.Neighbors)

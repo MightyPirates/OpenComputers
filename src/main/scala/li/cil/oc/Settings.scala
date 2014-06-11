@@ -310,4 +310,5 @@ object Settings {
 
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
+
 }

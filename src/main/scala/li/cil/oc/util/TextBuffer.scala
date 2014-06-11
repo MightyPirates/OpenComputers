@@ -116,19 +116,19 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
       }
     }
     else {
-    if (row < 0 || row >= height) false
-    else {
-      var changed = false
-      val line = buffer(row)
-      val lineColor = color(row)
-      for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
-        val c = s(x - col)
-        changed = changed || (line(x) != c) || (lineColor(x) != packed)
-        line(x) = c
-        lineColor(x) = packed
+      if (row < 0 || row >= height) false
+      else {
+        var changed = false
+        val line = buffer(row)
+        val lineColor = color(row)
+        for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
+          val c = s(x - col)
+          changed = changed || (line(x) != c) || (lineColor(x) != packed)
+          line(x) = c
+          lineColor(x) = packed
+        }
+        changed
       }
-      changed
-    }
     }
 
   /** Fills an area of the buffer with the specified character. */

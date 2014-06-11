@@ -1,6 +1,5 @@
 package li.cil.oc.client.renderer.tileentity
 
-import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator

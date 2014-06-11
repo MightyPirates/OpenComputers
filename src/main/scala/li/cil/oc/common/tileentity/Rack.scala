@@ -11,7 +11,7 @@ import li.cil.oc.common
 import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
-import li.cil.oc.{api, Items, Settings}
+import li.cil.oc.{api, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagString, NBTTagCompound}

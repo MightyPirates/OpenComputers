@@ -8,7 +8,6 @@ import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.common.PacketType
 import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.tileentity.traits.TileEntity
 import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}

@@ -272,7 +272,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     val slot = robot.selectedSlot - robot.actualSlot(0) - inventoryOffset * 4
     if (slot >= 0 && slot < 16) {
       RenderState.makeItBlend()
-    Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
+      Minecraft.getMinecraft.renderEngine.bindTexture(Textures.guiRobotSelection)
       val now = System.currentTimeMillis() / 1000.0
       val offsetV = ((now - now.toInt) * selectionsStates).toInt * selectionStepV
       val x = guiLeft + inventoryX - 1 + (slot % 4) * (selectionSize - 2)

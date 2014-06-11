@@ -9,7 +9,6 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.util.Audio
 import li.cil.oc.Settings
-import li.cil.oc.util.PackedColor
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
@@ -281,15 +280,15 @@ object PacketHandler extends CommonPacketHandler {
   def onTextBufferCopy(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val tx = p.readInt()
-    val ty = p.readInt()
-    buffer.copy(col, row, w, h, tx, ty)
+        val col = p.readInt()
+        val row = p.readInt()
+        val w = p.readInt()
+        val h = p.readInt()
+        val tx = p.readInt()
+        val ty = p.readInt()
+        buffer.copy(col, row, w, h, tx, ty)
       case _ => // Invalid packet.
-  }
+    }
   }
 
   def onTextBufferDepthChange(p: PacketParser) {
@@ -303,14 +302,14 @@ object PacketHandler extends CommonPacketHandler {
   def onTextBufferFill(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
-    val col = p.readInt()
-    val row = p.readInt()
-    val w = p.readInt()
-    val h = p.readInt()
-    val c = p.readChar()
-    buffer.fill(col, row, w, h, c)
+        val col = p.readInt()
+        val row = p.readInt()
+        val w = p.readInt()
+        val h = p.readInt()
+        val c = p.readChar()
+        buffer.fill(col, row, w, h, c)
       case _ => // Invalid packet.
-  }
+    }
   }
 
   def onTextBufferPaletteChange(p: PacketParser) {
@@ -333,23 +332,23 @@ object PacketHandler extends CommonPacketHandler {
   def onTextBufferResolutionChange(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
-    val w = p.readInt()
-    val h = p.readInt()
+        val w = p.readInt()
+        val h = p.readInt()
         buffer.setResolution(w, h)
       case _ => // Invalid packet.
-  }
+    }
   }
 
   def onTextBufferSet(p: PacketParser) {
     ComponentTracker.get(p.readUTF()) match {
       case Some(buffer: component.TextBuffer) =>
-    val col = p.readInt()
-    val row = p.readInt()
-    val s = p.readUTF()
+        val col = p.readInt()
+        val row = p.readInt()
+        val s = p.readUTF()
         val vertical = p.readBoolean()
         buffer.set(col, row, s, vertical)
       case _ => // Invalid packet.
-  }
+    }
   }
 
   def onServerPresence(p: PacketParser) =

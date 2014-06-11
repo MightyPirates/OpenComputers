@@ -7,7 +7,6 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.entity.{RenderManager, RenderItem}
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.item.ItemStack
 import net.minecraft.util.{EnumChatFormatting, AxisAlignedBB}
 import net.minecraftforge.client.IItemRenderer

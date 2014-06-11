@@ -173,7 +173,7 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     screen.buffer.renderText()
 
     RenderState.checkError(getClass.getName + ".draw: text")
-    }
+  }
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer
