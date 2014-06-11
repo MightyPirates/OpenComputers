@@ -18,6 +18,8 @@ import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 import scala.collection.mutable
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.event.ForgeSubscribe
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")
@@ -230,7 +232,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override protected def initialize() {
     super.initialize()
-    Rack.list += this
+    Rack.list += this -> Unit
   }
 
   override protected def dispose() {
@@ -387,5 +389,12 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 }
 
 object Rack {
-  val list = mutable.Set.empty[Rack]
+  val list = mutable.WeakHashMap.empty[Rack, Unit]
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    if (e.world.isRemote) {
+      list.clear()
+    }
+  }
 }
