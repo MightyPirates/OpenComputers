@@ -16,6 +16,7 @@ import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import net.minecraftforge.common.util.Constants.NBT
+import li.cil.oc.common.InventorySlots.Tier
 
 class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
   val node = api.Network.newNode(this, Visibility.None).
@@ -92,7 +93,10 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
 
   private def enqueueRobot(robot: ItemStack) {
     val info = new ItemUtils.RobotData(robot)
-    queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
+    val itemName =
+      if (info.tier == Tier.Four) "caseCreative"
+      else "case" + (info.tier + 1)
+    queue += api.Items.get(itemName).createItemStack(1)
     queue ++= info.containers
     queue ++= info.components
     node.changeBuffer(info.robotEnergy)

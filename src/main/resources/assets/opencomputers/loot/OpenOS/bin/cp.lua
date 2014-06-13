@@ -3,21 +3,24 @@ local shell = require("shell")
 
 local args, options = shell.parse(...)
 if #args < 2 then
-  io.write("Usage: cp [-f] <from> <to>\n")
-  io.write(" -f: overwrite file if it already exists.")
+  io.write("Usage: cp [-frv] <from...> <to>\n")
+  io.write(" -f: overwrite file if it already exists.\n")
+  io.write(" -r: copy directories recursively.\n")
+  io.write(" -v: verbose output.")
   return
 end
 
-local from = shell.resolve(args[1])
-local to = shell.resolve(args[2])
-if fs.isDirectory(to) then
-  to = to .. "/" .. fs.name(from)
+local from = {}
+for i = 1, #args - 1 do
+  table.insert(from, shell.resolve(args[i]))
 end
+local to = shell.resolve(args[#args])
 
 local function status(from, to)
   if options.v then
     print(from .. " -> " .. to)
   end
+  os.sleep(0) -- allow interrupting
 end
 
 local result, reason
@@ -25,6 +28,13 @@ local result, reason
 local function recurse(fromPath, toPath)
   status(fromPath, toPath)
   if fs.isDirectory(fromPath) then
+    if not options.r then
+      io.write("omitting directory '" .. fromPath .. "'\n")
+      return true
+    end
+    if fs.canonical(fromPath) == fs.canonical(fs.path(toPath)) then
+      return nil, "cannot copy a directory, '" .. fromPath .. "', into itself, '" .. toPath .. "'\n"
+    end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
       if not options.f then
         return nil, "target file exists"
@@ -41,6 +51,9 @@ local function recurse(fromPath, toPath)
     return true
   else
     if fs.exists(toPath) then
+      if fs.canonical(fromPath) == fs.canonical(toPath) then
+        return nil, "'" .. fromPath .. "' and '" .. toPath .. "' are the same file"
+      end
       if fs.isDirectory(toPath) or not options.f then
         return nil, "target file exists"
       end
@@ -49,7 +62,13 @@ local function recurse(fromPath, toPath)
     return fs.copy(fromPath, toPath)
   end
 end
-result, reason = recurse(from, to)
-if not result then
-  error(reason)
+for _, fromPath in ipairs(from) do
+  local toPath = to
+  if fs.isDirectory(toPath) then
+    toPath = fs.concat(toPath, fs.name(fromPath))
+  end
+  result, reason = recurse(fromPath, toPath)
+  if not result then
+    error(reason, 0)
+  end
 end
