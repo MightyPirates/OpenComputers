@@ -50,7 +50,7 @@ trait Delegate {
   //  def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = true
 
   def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 1, 1)
+    AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1)
 
   def updateBounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
     parent.setBlockBounds(bounds(world, x, y, z))

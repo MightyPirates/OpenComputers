@@ -19,7 +19,7 @@ object ItemRenderer extends IItemRenderer {
   val renderItem = new RenderItem()
   renderItem.setRenderManager(RenderManager.instance)
 
-  val bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
+  def bounds = AxisAlignedBB.getBoundingBox(-0.1, -0.1, -0.1, 0.1, 0.1, 0.1)
 
   def isUpgrade(descriptor: ItemInfo) =
     descriptor == api.Items.get("craftingUpgrade") ||
