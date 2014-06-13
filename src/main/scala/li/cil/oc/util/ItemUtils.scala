@@ -19,6 +19,7 @@ object ItemUtils {
     if (descriptor == api.Items.get("case1")) Tier.One
     else if (descriptor == api.Items.get("case2")) Tier.Two
     else if (descriptor == api.Items.get("case3")) Tier.Three
+    else if (descriptor == api.Items.get("caseCreative")) Tier.Four
     else Tier.None
   }
 

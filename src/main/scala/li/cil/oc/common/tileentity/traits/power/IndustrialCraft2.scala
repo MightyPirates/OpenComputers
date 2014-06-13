@@ -33,7 +33,7 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "IC2")
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnect(direction)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = "IC2")
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =

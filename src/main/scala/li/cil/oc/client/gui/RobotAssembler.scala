@@ -3,15 +3,17 @@ package li.cil.oc.client.gui
 import java.util
 import li.cil.oc.api
 import li.cil.oc.Settings
-import li.cil.oc.api.driver.{Memory, Processor}
+import li.cil.oc.api.driver.{Slot, Inventory, Memory, Processor}
 import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
 import li.cil.oc.common.tileentity
 import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
-import net.minecraft.client.renderer.Tessellator
+import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
 
 class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends DynamicGuiContainer(new container.RobotAssembler(playerInventory, assembler)) {
   xSize = 176
@@ -27,13 +29,20 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   private val progressWidth = 140
   private val progressHeight = 12
 
+  val suggestedComponents = Array(
+    "Screen" -> (() => hasComponent("screen1")),
+    "Keyboard" -> (() => hasComponent("keyboard")),
+    "GraphicsCard" -> (() => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(hasComponent)),
+    "Inventory" -> (() => hasInventory),
+    "OS" -> (() => hasFileSystem))
+
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
   private def hasCase = assembler.isItemValidForSlot(0, assembler.getStackInSlot(0))
 
   private def hasCPU = assembler.items.exists {
     case Some(stack) => api.Driver.driverFor(stack) match {
-      case processor: Processor => true
+      case _: Processor => true
       case _ => false
     }
     case _ => false
@@ -41,7 +50,31 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
 
   private def hasRAM = assembler.items.exists {
     case Some(stack) => api.Driver.driverFor(stack) match {
-      case processor: Memory => true
+      case _: Memory => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasComponent(name: String) = assembler.items.exists {
+    case Some(stack) => Option(api.Items.get(stack)) match {
+      case Some(descriptor) => descriptor.name == name
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasInventory = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case _: Inventory => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasFileSystem = assembler.items.exists {
+    case Some(stack) => Option(api.Driver.driverFor(stack)) match {
+      case Some(driver) => driver.slot(stack) == Slot.Disk || driver.slot(stack) == Slot.HardDiskDrive
       case _ => false
     }
     case _ => false
@@ -97,6 +130,18 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
       if (runButton.func_146115_a) {
         val tooltip = new java.util.ArrayList[String]
         tooltip.add(StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Run"))
+        if (canBuild) {
+          var warnings = mutable.ArrayBuffer.empty[String]
+          for ((name, check) <- suggestedComponents) {
+            if (!check()) {
+              warnings += "§7- " + StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Warning." + name)
+            }
+          }
+          if (warnings.length > 0) {
+            tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Warnings"))
+            tooltip.addAll(warnings)
+          }
+        }
         drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
       }
     }

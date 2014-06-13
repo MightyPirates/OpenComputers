@@ -6,6 +6,17 @@ import net.minecraft.item.ItemStack;
 
 public interface ItemInfo {
     /**
+     * The name of this item descriptor.
+     * <p/>
+     * This is the name that yields this instance when passed to
+     * {@link li.cil.oc.api.Items#get(String)}. Useful for reverse-lookup when
+     * retrieving the descriptor via an item stack.
+     *
+     * @return the name of this item descriptor.
+     */
+    String name();
+
+    /**
      * Returns the block type of the represented item. In case the item is not
      * a block this will return <tt>null</tt>.
      * <p/>

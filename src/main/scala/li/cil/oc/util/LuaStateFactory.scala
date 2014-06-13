@@ -3,8 +3,7 @@ package li.cil.oc.util
 import com.naef.jnlua
 import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport.Loader
-import java.io.File
-import java.io.FileOutputStream
+import java.io.{FileInputStream, File, FileOutputStream}
 import java.nio.channels.Channels
 import org.apache.logging.log4j.Level
 import li.cil.oc.util.ExtendedLuaState._
@@ -106,6 +105,31 @@ object LuaStateFactory {
     }
     catch {
       case t: Throwable => // Ignore.
+    }
+    // If we can't delete the file, make sure it's the same we need, if it's
+    // not disable use of the natives.
+    if (file.exists()) {
+      val inCurrent = libraryUrl.openStream()
+      val inExisting = new FileInputStream(file)
+      var matching = true
+      var inCurrentByte = 0
+      var inExistingByte = 0
+      do {
+        inCurrentByte = inCurrent.read()
+        inExistingByte = inExisting.read()
+        if (inCurrentByte != inExistingByte) {
+          matching = false
+          inCurrentByte = -1
+          inExistingByte = -1
+        }
+      }
+      while (inCurrentByte != -1 && inExistingByte != -1)
+      inCurrent.close()
+      inExisting.close()
+      if (!matching) {
+        OpenComputers.log.severe("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
+        break()
+      }
     }
     // Copy the file contents to the temporary file.
     try {

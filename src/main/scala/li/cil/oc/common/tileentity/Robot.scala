@@ -267,7 +267,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       }
     }
     super.updateEntity()
-    if (isServer) {
+    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
+      if (info.tier == 3) {
+        bot.node.changeBuffer(Double.PositiveInfinity)
+      }
       globalBuffer = bot.node.globalBuffer
       globalBufferSize = bot.node.globalBufferSize
       info.totalEnergy = globalBuffer.toInt

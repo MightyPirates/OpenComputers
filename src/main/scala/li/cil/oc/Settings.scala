@@ -214,7 +214,7 @@ object Settings {
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
   val hologramMaxScaleByTier = Array(3, 4)
-  val robotComplexityByTier = Array(12, 24, 32)
+  val robotComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
 
   // Power conversion values. These are the same values used by Universal

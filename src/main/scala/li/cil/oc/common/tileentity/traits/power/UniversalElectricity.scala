@@ -9,7 +9,10 @@
 //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
 //  new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyContainer", modid = "UniversalElectricity")
 //))
-//trait UniversalElectricity extends Common /* with IEnergyInterface with IEnergyContainer */ {
+//trait UniversalElectricity extends Common with IEnergyInterface with IEnergyContainer {
+//  @Optional.Method(modid = "UniversalElectricity")
+//  override def canConnect(direction: ForgeDirection, source: AnyRef) = canConnectPower(direction)
+//
 //  @Optional.Method(modid = "UniversalElectricity")
 //  override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =
 //    (tryChangeBuffer(from, receive * Settings.ratioUE, doReceive) / Settings.ratioUE).toLong

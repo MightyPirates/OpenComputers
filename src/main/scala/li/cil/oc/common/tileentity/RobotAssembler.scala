@@ -76,7 +76,13 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
       val stack = api.Items.get("robot").createItemStack(1)
       data.save(stack)
       robot = Some(stack)
-      totalRequiredEnergy = math.max(1, Settings.get.robotBaseCost + complexity * Settings.get.robotComplexityCost)
+      if (data.tier == Tier.Four) {
+        // Creative tier, finish instantly.
+        totalRequiredEnergy = 0
+      }
+      else {
+        totalRequiredEnergy = math.max(1, Settings.get.robotBaseCost + complexity * Settings.get.robotComplexityCost)
+      }
       requiredEnergy = totalRequiredEnergy
       ServerPacketSender.sendRobotAssembling(this, assembling = true)
 
@@ -143,11 +149,7 @@ class RobotAssembler extends traits.Environment with traits.PowerAcceptor with t
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) =
     if (slot == 0) {
-      val descriptor = api.Items.get(stack)
-      !isAssembling &&
-        (descriptor == api.Items.get("case1") ||
-          descriptor == api.Items.get("case2") ||
-          descriptor == api.Items.get("case3"))
+      !isAssembling && ItemUtils.caseTier(stack) != Tier.None
     }
     else {
       val caseTier = ItemUtils.caseTier(items(0).orNull)

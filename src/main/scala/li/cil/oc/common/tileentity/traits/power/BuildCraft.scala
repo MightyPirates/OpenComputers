@@ -45,7 +45,7 @@ trait BuildCraft extends Common with IPowerReceptor {
 
   @Optional.Method(modid = "BuildCraftAPI|power")
   def getPowerReceiver(side: ForgeDirection) =
-    if (canConnect(side))
+    if (canConnectPower(side))
       getPowerProvider.getPowerReceiver
     else null
 
