@@ -88,6 +88,10 @@ function filesystem.setAutorunEnabled(value)
   isAutorunEnabled = value
 end
 
+function filesystem.segments(path)
+  return segments(path)
+end
+
 function filesystem.canonical(path)
   local result = table.concat(segments(path), "/")
   if unicode.sub(path, 1, 1) == "/" then
@@ -199,7 +203,12 @@ end
 
 function filesystem.path(path)
   local parts = segments(path)
-  return table.concat(parts, "/", 1, #parts - 1) .. "/"
+  local result = table.concat(parts, "/", 1, #parts - 1) .. "/"
+  if unicode.sub(path, 1, 1) == "/" then
+    return "/" .. result
+  else
+    return result
+  end
 end
 
 function filesystem.name(path)

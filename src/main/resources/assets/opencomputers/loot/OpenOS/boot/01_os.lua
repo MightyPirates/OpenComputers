@@ -7,6 +7,7 @@ local unicode = require("unicode")
 local env = {
   EDITOR="/bin/edit",
   HOME="/home",
+  IFS=" ",
   MANPATH="/usr/man:.",
   PAGER="/bin/more",
   PATH="/bin:/usr/bin:/home/bin:.",
