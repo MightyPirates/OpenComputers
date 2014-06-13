@@ -122,6 +122,31 @@ object InventorySlots {
       InventorySlot(Slot.Disk, Tier.Any),
       InventorySlot(Slot.HardDiskDrive, Tier.Three),
       InventorySlot(Slot.HardDiskDrive, Tier.Two)
+    ),
+
+    Array(
+      InventorySlot(Slot.None, Tier.None),
+      InventorySlot(Slot.UpgradeContainer, Tier.Three),
+      InventorySlot(Slot.UpgradeContainer, Tier.Three),
+      InventorySlot(Slot.UpgradeContainer, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Upgrade, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Card, Tier.Three),
+      InventorySlot(Slot.Processor, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.Memory, Tier.Three),
+      InventorySlot(Slot.Disk, Tier.Any),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three),
+      InventorySlot(Slot.HardDiskDrive, Tier.Three)
     )
   )
 

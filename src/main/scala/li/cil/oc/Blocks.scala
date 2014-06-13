@@ -77,7 +77,7 @@ object Blocks {
     Recipes.addBlock(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
-    new Case.TierCreative(blockSimpleWithRedstone)
+    Items.registerBlock(new Case.TierCreative(blockSimpleWithRedstone), "caseCreative")
 
     // v1.3.0
     Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")
