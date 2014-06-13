@@ -24,51 +24,59 @@ object Items extends ItemAPI {
     case _ => null
   }
 
-  def registerBlock[T <: common.block.Delegate](delegate: T, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerBlock[T <: common.block.Delegate](delegate: T, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = delegate.parent
 
       override def item = null
 
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
-    names += delegate -> name
+    names += delegate -> id
     delegate
   }
 
-  def registerBlock(instance: Block, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerBlock(instance: Block, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = instance
 
       override def item = null
 
       override def createItemStack(size: Int) = new ItemStack(instance, size)
     }
-    names += instance -> name
+    names += instance -> id
     instance
   }
 
-  def registerItem[T <: common.item.Delegate](delegate: T, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = null
 
       override def item = delegate.parent
 
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
-    names += delegate -> name
+    names += delegate -> id
     delegate
   }
 
-  def registerItem(instance: Item, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerItem(instance: Item, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = null
 
       override def item = instance
 
       override def createItemStack(size: Int) = new ItemStack(instance, size)
     }
-    names += instance -> name
+    names += instance -> id
     instance
   }
 
