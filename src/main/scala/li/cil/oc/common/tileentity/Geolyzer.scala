@@ -3,7 +3,8 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api
 import li.cil.oc.Settings
 import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
-import net.minecraft.block.Block
+import net.minecraft.block.{BlockFluid, Block}
+import net.minecraftforge.fluids.FluidRegistry
 
 class Geolyzer extends traits.Environment {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -13,10 +14,11 @@ class Geolyzer extends traits.Environment {
 
   override def canUpdate = false
 
-  @Callback(doc = """function() -- Analyzes the density of the column at the specified relative coordinates.""")
+  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean) -- Analyzes the density of the column at the specified relative coordinates.""")
   def scan(computer: Context, args: Arguments): Array[AnyRef] = {
     val rx = args.checkInteger(0)
     val rz = args.checkInteger(1)
+    val includeReplaceable = !(args.count > 2 && args.checkBoolean(2))
     if (math.abs(rx) > Settings.get.geolyzerRange || math.abs(rz) > Settings.get.geolyzerRange) {
       throw new IllegalArgumentException("location out of bounds")
     }
@@ -32,11 +34,14 @@ class Geolyzer extends traits.Environment {
       val blockId = world.getBlockId(bx, by, bz)
       if (blockId > 0 && !world.isAirBlock(bx, by, bz)) {
         val block = Block.blocksList(blockId)
-        if (block != null)
+        if (block != null && (includeReplaceable || isFluid(block) || !block.isBlockReplaceable(world, x, y, z))) {
           values(ry) = block.getBlockHardness(world, bx, by, bz)
+        }
       }
     }
 
     result(values)
   }
+
+  private def isFluid(block: Block) = FluidRegistry.lookupFluidForBlock(block) != null || block.isInstanceOf[BlockFluid]
 }
