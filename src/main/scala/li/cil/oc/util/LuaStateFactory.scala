@@ -127,7 +127,7 @@ object LuaStateFactory {
       inCurrent.close()
       inExisting.close()
       if (!matching) {
-        OpenComputers.log.severe("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
+        OpenComputers.log.error("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
         break()
       }
     }
