@@ -124,10 +124,12 @@ trait ComponentInventory extends Inventory with network.Environment {
         // being installed into a different computer, even!)
         components(slot) = None
         updatingComponents -= component
-        if (component.node != null) {
-          component.node.remove()
-        }
+        Option(component.node).foreach(_.remove())
         Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
+        // However, nodes then may add themselves to a network again, to
+        // ensure they have an address that gets sent to the client, used
+        // for associating some components with each other. So we do it again.
+        Option(component.node).foreach(_.remove())
       }
       case _ => // Nothing to do.
     }
