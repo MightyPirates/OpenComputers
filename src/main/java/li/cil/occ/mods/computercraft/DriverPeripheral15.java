@@ -155,7 +155,7 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
                 IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
                 
                 NBTTagCompound peripheralTag = new NBTTagCompound();
-                hosted.readFromNBT(peripheralTag);
+                hosted.writeToNBT(peripheralTag);
                 nbt.setCompoundTag("peripheral", peripheralTag);
             }
         }
