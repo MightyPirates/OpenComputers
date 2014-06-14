@@ -1,12 +1,14 @@
 package li.cil.occ.mods.computercraft;
 
 import com.google.common.collect.Iterables;
+
 import cpw.mods.fml.common.Loader;
 import dan200.computer.api.*;
 import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.*;
 import li.cil.occ.OpenComponents;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
@@ -117,6 +119,44 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
                     access.close();
                 }
                 accesses.clear();
+            }
+        }
+
+        @Override
+        public void update() {
+            if (peripheral instanceof IHostedPeripheral) {
+                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
+                
+                hosted.update();
+            }
+        }
+
+        @Override
+        public boolean canUpdate() {
+            return peripheral instanceof IHostedPeripheral;
+        }
+
+        @Override
+        public void load(NBTTagCompound nbt) {
+            super.load(nbt);
+            
+            if (peripheral instanceof IHostedPeripheral) {
+                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
+                
+                hosted.readFromNBT(nbt.getCompoundTag("peripheral"));
+            }
+        }
+
+        @Override
+        public void save(NBTTagCompound nbt) {
+            super.save(nbt);
+            
+            if (peripheral instanceof IHostedPeripheral) {
+                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
+                
+                NBTTagCompound peripheralTag = new NBTTagCompound();
+                hosted.readFromNBT(peripheralTag);
+                nbt.setCompoundTag("peripheral", peripheralTag);
             }
         }
 
