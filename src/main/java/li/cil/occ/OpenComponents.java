@@ -36,7 +36,8 @@ public class OpenComponents {
             "appeng.api.me.tiles.ICellProvider",
             "appeng.api.me.tiles.ICellProvider",
             "appeng.me.tile.TileController",
-            "mods.railcraft.common.blocks.hidden.TileHidden"
+            "mods.railcraft.common.blocks.hidden.TileHidden",
+            "net.minecraft.tileentity.TileEntityCommandBlock"
     };
 
     public static Boolean allowItemStackInspection = false;
