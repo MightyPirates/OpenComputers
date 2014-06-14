@@ -25,6 +25,7 @@ class Settings(config: Config) {
   val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
   val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
   val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
+  val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
 
   // ----------------------------------------------------------------------- //
   // computer
