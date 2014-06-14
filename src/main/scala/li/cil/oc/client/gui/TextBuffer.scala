@@ -26,15 +26,10 @@ trait TextBuffer extends GuiScreen {
 
   protected var currentWidth, currentHeight = -1
 
-  private var shouldRecompileDisplayLists = true
 
   private var showKeyboardMissing = 0L
 
   protected var scale = 0.0
-
-  def adjustToBufferChange() {
-    shouldRecompileDisplayLists = true
-  }
 
   override def doesGuiPauseGame = false
 
@@ -43,7 +38,6 @@ trait TextBuffer extends GuiScreen {
     MonospaceFontRenderer.init(Minecraft.getMinecraft.renderEngine)
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
-    adjustToBufferChange()
   }
 
   override def onGuiClosed() = {
@@ -55,18 +49,17 @@ trait TextBuffer extends GuiScreen {
   }
 
   protected def drawBufferLayer() {
-    if (shouldRecompileDisplayLists) {
-      shouldRecompileDisplayLists = false
-      if (buffer != null) {
-        currentWidth = buffer.getWidth
-        currentHeight = buffer.getHeight
-      }
-      else {
-        currentWidth = 0
-        currentHeight = 0
-      }
-      scale = changeSize(currentWidth, currentHeight)
+    val oldWidth = currentWidth
+    val oldHeight = currentHeight
+    if (buffer != null) {
+      currentWidth = buffer.getWidth
+      currentHeight = buffer.getHeight
     }
+    else {
+      currentWidth = 0
+      currentHeight = 0
+    }
+    scale = changeSize(currentWidth, currentHeight, oldWidth != currentWidth || oldHeight != currentHeight)
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
 
@@ -139,7 +132,7 @@ trait TextBuffer extends GuiScreen {
     }
   }
 
-  protected def changeSize(w: Double, h: Double): Double
+  protected def changeSize(w: Double, h: Double, recompile: Boolean): Double
 
   private def ignoreRepeat(char: Char, code: Int) = {
     code == Keyboard.KEY_LCONTROL ||

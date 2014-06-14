@@ -105,13 +105,11 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
       GL11.glScaled(scale, scale, 1)
       RenderState.makeItBlend()
-      if (BufferRenderer.drawText(buffer)) {
-        adjustToBufferChange()
-      }
+      BufferRenderer.drawText(buffer)
     }
   }
 
-  override protected def changeSize(w: Double, h: Double) = {
+  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
     val bw = buffer.renderWidth
     val bh = buffer.renderHeight
     val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)
@@ -121,7 +119,9 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     val innerHeight = (bh * scale).toInt
     x = (width - (innerWidth + bufferMargin * 2)) / 2
     y = (height - (innerHeight + bufferMargin * 2)) / 2
-    BufferRenderer.compileBackground(innerWidth, innerHeight)
+    if (recompile) {
+      BufferRenderer.compileBackground(innerWidth, innerHeight)
+    }
     scale
   }
 }
