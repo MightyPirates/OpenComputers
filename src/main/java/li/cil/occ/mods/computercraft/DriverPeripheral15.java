@@ -39,10 +39,7 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
             return (IPeripheral) tileEntity;
         } else if (ComputerCraft_getPeripheralFromTileEntity != null) {
             try {
-                final IPeripheralHandler handler = ((IPeripheralHandler) ComputerCraft_getPeripheralFromTileEntity.invoke(null, tileEntity));
-                if (handler != null) {
-                    return handler.getPeripheral(tileEntity);
-                }
+                return ((IPeripheral) ComputerCraft_getPeripheralFromTileEntity.invoke(null, tileEntity));
             } catch (Exception e) {
                 OpenComponents.Log.log(Level.WARNING, String.format("Error accessing ComputerCraft peripheral @ (%d, %d, %d).", x, y, z), e);
             }
