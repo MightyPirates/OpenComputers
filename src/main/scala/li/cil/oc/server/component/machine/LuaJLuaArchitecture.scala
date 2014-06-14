@@ -117,12 +117,12 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
           // calls when we actually need direct ones in the init phase.
           doneWithInitRun = true
           // We expect to get nothing here, if we do we had an error.
-          if (result.narg == 1) {
-            // Fake zero sleep to avoid stopping if there are no signals.
-            LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
+          if (result.narg != 1) {
+            result
           }
           else {
-            LuaValue.NONE
+            // Fake zero sleep to avoid stopping if there are no signals.
+            LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
           }
         }
         else machine.popSignal() match {
@@ -161,18 +161,18 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
       // The kernel thread returned. If it threw we'd be in the catch below.
       else {
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
-        if (results.`type`(2) != LuaValue.TBOOLEAN || !(results.isstring(3) || results.isnoneornil(3))) {
+        if (results.`type`(1) != LuaValue.TBOOLEAN || !(results.isstring(2) || results.isnoneornil(2))) {
           OpenComputers.log.warning("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
-        if (results.toboolean(2)) {
+        if (results.toboolean(1)) {
           OpenComputers.log.warning("Kernel stopped unexpectedly.")
           new ExecutionResult.Shutdown(false)
         }
         else {
           val error =
-            if (results.isuserdata(3)) results.touserdata(3).toString
-            else results.tojstring(3)
+            if (results.isuserdata(2)) results.touserdata(2).toString
+            else results.tojstring(2)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }
