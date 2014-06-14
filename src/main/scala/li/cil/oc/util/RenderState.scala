@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.OpenComputers
+import li.cil.oc.{Settings, OpenComputers}
 import net.minecraft.client.renderer.OpenGlHelper
 import org.lwjgl.opengl._
 import org.lwjgl.util.glu.GLU
@@ -12,7 +12,7 @@ object RenderState {
 
   def checkError(where: String) {
     val error = GL11.glGetError
-    if (error != 0) {
+    if (error != 0 && Settings.get.logOpenGLErrors) {
       OpenComputers.log.warning("GL ERROR @ " + where + ": " + GLU.gluErrorString(error))
     }
   }
