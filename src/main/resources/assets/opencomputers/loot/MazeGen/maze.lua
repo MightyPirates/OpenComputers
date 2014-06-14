@@ -27,13 +27,13 @@ autoRefuel   = input[5] or "false"
 
 if mazeWidth < 2 or mazeLength < 2 or cellHeight < 1 or cellDiameter < 1 or autoRefuel ~= "true" and autoRefuel ~= "false" then
     print("Error!(Note: Width and Length have to be > 1)")
-    print("Usage: MazeGen(int:MazeWidth int:MazeLength int:CellHeight int:CellDiameter bool:AutoRefuel)")
-	return
+    print("Usage: maze int:MazeWidth int:MazeLength int:CellHeight int:CellDiameter bool:AutoRefuel")
+    return
 end
 
 if component.isAvailable("generator") == false and autoRefuel == "true" then 
     print("Error! Missing Generator Upgrade")
-	return
+    return
 end
 
 term.clear() term.setCursor(1, 1)
@@ -54,7 +54,7 @@ function refuel()
 	
     for i = 1, 16 do
 	    robot.select(i)
-		if component.generator.insert(16) then break end
+	    if component.generator.insert(16) then break end
     end
 end
 
