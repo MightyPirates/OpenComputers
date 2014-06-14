@@ -260,7 +260,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
   }
 
-  override protected def changeSize(w: Double, h: Double) = {
+  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
     val bw = w * MonospaceFontRenderer.fontWidth
     val bh = h * MonospaceFontRenderer.fontHeight
     val scaleX = math.min(bufferWidth / (bw + bufferMargin * 2.0), 1)
