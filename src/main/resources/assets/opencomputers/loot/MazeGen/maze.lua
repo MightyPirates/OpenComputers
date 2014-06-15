@@ -23,26 +23,9 @@ cellHeight   = tonumber(input[3]) or 1
 cellDiameter = tonumber(input[4]) or 1
 autoRefuel   = input[5] or "false"
 
-if #input == 1 and input[1] == "help" then
-    print("The maze will always start at the bottom left")
-    print("corner. The first two parameters are maze width")
-    print("and maze length. The third, forth and fifth")
-    print("parameters, which are optional, are cell")
-    print("height, cell diameter and auto refuel.")
-    print("Keep in mind that increasing the cell diameter")
-    print("will increase the actual maze size in Minecraft")
-    print("blocks. For example:")
-    print("maze 10 10 1 3")
-    print("This will create a maze with 10x10 cells each")
-    print("cell with a diameter of 3 and height of 1 so")
-    print("it will have a size of 30x30 blocks.")
-    print("Auto refuel is by default set to false.")
-    return
-end
 
 if mazeWidth < 2 or mazeLength < 2 or cellHeight < 1 or cellDiameter < 1 or autoRefuel ~= "true" and autoRefuel ~= "false" then
-    print("Error!(Note: Type maze help for more info)")
-    print("Usage: maze int:MazeWidth int:MazeLength int:CellHeight int:CellDiameter bool:AutoRefuel")
+    print("Usage: maze <int:width> <int:length> <int:cellHeight> <int:cellDiameter> <bool:refuel>")
     return
 end
 
