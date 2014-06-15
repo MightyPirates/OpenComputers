@@ -438,6 +438,8 @@ local componentCallback = {
   end
 }
 
+local proxyCache = setmetatable({}, {__mode="v"})
+
 libcomponent = {
   doc = function(address, method)
     checkArg(1, address, "string")
@@ -479,6 +481,9 @@ libcomponent = {
     if not type then
       return nil, reason
     end
+    if proxyCache[address] then
+      return proxyCache[address]
+    end
     local proxy = {address = address, type = type}
     local methods, reason = spcall(component.methods, address)
     if not methods then
@@ -487,6 +492,7 @@ libcomponent = {
     for method in pairs(methods) do
       proxy[method] = setmetatable({address=address,name=method}, componentCallback)
     end
+    proxyCache[address] = proxy
     return proxy
   end,
   type = function(address)

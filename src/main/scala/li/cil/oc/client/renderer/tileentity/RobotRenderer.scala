@@ -297,7 +297,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       renderChassis(robot, offset)
     }
 
-    if (!robot.renderingErrored) {
+    if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
       Option(robot.getStackInSlot(0)) match {
         case Some(stack) =>
           val itemRenderer = RenderManager.instance.itemRenderer

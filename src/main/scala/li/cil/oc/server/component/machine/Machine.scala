@@ -24,6 +24,7 @@ import li.cil.oc.server.driver.Registry
 import net.minecraft.entity.player.EntityPlayer
 import li.cil.oc.common.component.ManagedComponent
 import net.minecraft.client.Minecraft
+import java.util.concurrent.TimeUnit
 
 class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
@@ -725,7 +726,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.submit(this)
+      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.
