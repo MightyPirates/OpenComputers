@@ -47,21 +47,23 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       t.addVertexWithUV(1, inverse, 0.005, frontIcon.getMaxU, frontIcon.getInterpolatedV(inverse * 16))
       t.addVertexWithUV(0, inverse, 0.005, frontIcon.getMinU, frontIcon.getInterpolatedV(inverse * 16))
 
-      val sideIcon = Textures.Charger.iconSideCharging
-      t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(-0.005, 0, -1, sideIcon.getMinU, sideIcon.getMinV)
+      if (charger.hasPower) {
+        val sideIcon = Textures.Charger.iconSideCharging
+        t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(-0.005, 0, -1, sideIcon.getMinU, sideIcon.getMinV)
 
-      t.addVertexWithUV(1, 1, -1.005, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(0, 1, -1.005, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(0, 0, -1.005, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(1, 0, -1.005, sideIcon.getMinU, sideIcon.getMinV)
+        t.addVertexWithUV(1, 1, -1.005, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(0, 1, -1.005, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(0, 0, -1.005, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(1, 0, -1.005, sideIcon.getMinU, sideIcon.getMinV)
 
-      t.addVertexWithUV(1.005, 1, 0, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(1.005, 1, -1, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(1.005, 0, -1, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(1.005, 0, 0, sideIcon.getMinU, sideIcon.getMinV)
+        t.addVertexWithUV(1.005, 1, 0, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(1.005, 1, -1, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(1.005, 0, -1, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(1.005, 0, 0, sideIcon.getMinU, sideIcon.getMinV)
+      }
 
       t.draw()
 

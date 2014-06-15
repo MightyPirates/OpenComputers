@@ -34,6 +34,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.chargeSpeed)
+    pb.writeBoolean(t.hasPower)
 
     pb.sendToNearbyPlayers(t)
   }

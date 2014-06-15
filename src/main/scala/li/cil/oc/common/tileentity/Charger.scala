@@ -18,6 +18,8 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
 
   var chargeSpeed = 0.0
 
+  var hasPower = false
+
   var invertSignal = false
 
   // ----------------------------------------------------------------------- //
@@ -42,11 +44,20 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
     super.updateEntity()
     if (isServer) {
       val charge = Settings.get.chargeRate * chargeSpeed
-      robots.collect {
+      val canCharge = charge > 0 && node.globalBuffer >= charge
+      if (hasPower && !canCharge) {
+        hasPower = false
+        ServerPacketSender.sendChargerState(this)
+      }
+      if (!hasPower && canCharge) {
+        hasPower = true
+        ServerPacketSender.sendChargerState(this)
+      }
+      if (canCharge) robots.collect {
         case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
     }
-    else if (chargeSpeed > 0 && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+    else if (chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
       ForgeDirection.VALID_DIRECTIONS.map(side => world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
@@ -71,12 +82,14 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed") max 0 min 1
+    hasPower = nbt.getBoolean("hasPower")
     invertSignal = nbt.getBoolean("invertSignal")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
+    nbt.setBoolean("hasPower", hasPower)
     nbt.setBoolean("invertSignal", invertSignal)
   }
 
@@ -84,11 +97,13 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed")
+    hasPower = nbt.getBoolean("hasPower")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
+    nbt.setBoolean("hasPower", hasPower)
   }
 
   // ----------------------------------------------------------------------- //
