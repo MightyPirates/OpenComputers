@@ -61,6 +61,7 @@ class Settings(config: Config) {
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
   val allowBytecode = config.getBoolean("computer.allowBytecode")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
+  val executionDelay = config.getInt("computer.executionDelay") max 0
 
   // ----------------------------------------------------------------------- //
   // computer.debug

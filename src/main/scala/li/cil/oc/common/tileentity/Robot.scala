@@ -275,7 +275,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       info.robotEnergy = bot.node.localBuffer.toInt
       updatePowerInformation()
     }
-    else if (isRunning && isAnimatingMove) {
+    else if (isClient && isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
     inventory.decrementAnimations()
