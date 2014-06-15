@@ -105,6 +105,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var turnAxis = 0
 
+  var appliedToolEnchantments = false
+
   private lazy val player_ = new robot.Player(this)
 
   // ----------------------------------------------------------------------- //
@@ -265,17 +267,26 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       }
     }
     super.updateEntity()
-    if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
-      if (info.tier == 3) {
-        bot.node.changeBuffer(Double.PositiveInfinity)
+    if (isServer) {
+      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+        if (info.tier == 3) {
+          bot.node.changeBuffer(Double.PositiveInfinity)
+        }
+        globalBuffer = bot.node.globalBuffer
+        globalBufferSize = bot.node.globalBufferSize
+        info.totalEnergy = globalBuffer.toInt
+        info.robotEnergy = bot.node.localBuffer.toInt
+        updatePowerInformation()
       }
-      globalBuffer = bot.node.globalBuffer
-      globalBufferSize = bot.node.globalBufferSize
-      info.totalEnergy = globalBuffer.toInt
-      info.robotEnergy = bot.node.localBuffer.toInt
-      updatePowerInformation()
+      if (!appliedToolEnchantments) {
+        appliedToolEnchantments = true
+        Option(getStackInSlot(0)) match {
+          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+          case _ =>
+        }
+      }
     }
-    else if (isClient && isRunning && isAnimatingMove) {
+    else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
     inventory.decrementAnimations()
@@ -283,11 +294,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override protected def initialize() {
     if (isServer) {
-      Option(getStackInSlot(0)) match {
-        case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-        case _ =>
-      }
-
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
       api.Network.joinNewNetwork(node)
