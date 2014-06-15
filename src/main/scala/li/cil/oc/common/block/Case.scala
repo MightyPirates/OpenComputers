@@ -95,6 +95,15 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
       }
       true
     }
+    else if (player.getCurrentEquippedItem == null) {
+      if (!world.isRemote) {
+        world.getBlockTileEntity(x, y, z) match {
+          case computer: tileentity.Case if !computer.isRunning => computer.start()
+          case _ =>
+        }
+      }
+      true
+    }
     else false
   }
 

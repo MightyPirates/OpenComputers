@@ -148,6 +148,15 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       }
       true
     }
+    else if (player.getCurrentEquippedItem == null) {
+      if (!world.isRemote) {
+        world.getBlockTileEntity(x, y, z) match {
+          case proxy: tileentity.RobotProxy if !proxy.isRunning => proxy.start()
+          case _ =>
+        }
+      }
+      true
+    }
     else false
   }
 
