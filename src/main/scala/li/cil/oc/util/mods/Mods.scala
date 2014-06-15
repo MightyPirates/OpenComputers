@@ -6,11 +6,7 @@ import cpw.mods.fml.common.{ModAPIManager, Loader}
 object Mods {
   val BattleGear2 = new SimpleMod("battlegear2")
   val BuildCraftPower = new SimpleMod("BuildCraftAPI|power")
-  val ComputerCraft = new Mod {
-    val isAvailable = try Class.forName("dan200.computercraft.api.ComputerCraftAPI") != null catch {
-      case _: Throwable => false
-    }
-  }
+  val ComputerCraft = new SimpleMod("ComputerCraft")
   val ForgeMultipart = new SimpleMod("ForgeMultipart")
   val GregTech = new SimpleMod("gregtech")
   val IndustrialCraft2 = new SimpleMod("IC2")
