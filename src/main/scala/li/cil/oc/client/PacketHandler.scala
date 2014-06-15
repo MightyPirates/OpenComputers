@@ -84,6 +84,7 @@ object PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Charger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
+        t.hasPower = p.readBoolean()
         t.world.markBlockForUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }
