@@ -20,6 +20,7 @@ import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.{WorldEvent, ChunkEvent}
+import com.google.common.base.Strings
 
 class TextBuffer(val owner: Container) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -342,13 +343,14 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    data.load(nbt.getCompoundTag("buffer"))
     if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
+      if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
       TextBuffer.registerClientBuffer(this)
     }
+    data.load(nbt.getCompoundTag("buffer"))
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {
       isDisplaying = nbt.getBoolean(Settings.namespace + "isOn")
@@ -371,7 +373,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     // execution and pausing them (which will make them resume in the next tick
     // when their update() runs).
     if (node.network != null) {
-      for (node <- node.reachableNodes) node.host match {
+      for (node <- node.network.nodes) node.host match {
         case host: tileentity.traits.Computer if !host.isPaused =>
           host.pause(0.1)
         case _ =>
