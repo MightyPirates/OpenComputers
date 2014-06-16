@@ -40,14 +40,19 @@ trait Hub extends traits.Environment with SidedEnvironment {
     else if (queue.nonEmpty) queue.synchronized {
       val (sourceSide, packet) = queue.dequeue()
       relayPacket(sourceSide, packet)
-      relayCooldown = relayDelay
+      if (queue.nonEmpty) {
+        relayCooldown = relayDelay
+      }
+      else {
+        relayCooldown = -1
+      }
     }
   }
 
   protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
-      if (relayCooldown <= 0) {
+      if (relayCooldown < 0) {
         relayCooldown = relayDelay
       }
       true
