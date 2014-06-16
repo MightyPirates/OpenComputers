@@ -27,6 +27,7 @@ public class OpenComponents {
     };
 
     public static String[] peripheralBlacklist = new String[]{
+            "net.minecraft.tileentity.TileEntityCommandBlock"
     };
 
     public static Boolean allowItemStackInspection = false;
