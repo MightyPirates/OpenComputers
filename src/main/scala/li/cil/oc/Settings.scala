@@ -1,15 +1,17 @@
 package li.cil.oc
 
-import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
+import com.google.common.net.InetAddresses
+import com.typesafe.config._
+import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
+import cpw.mods.fml.common.Loader
 import java.io._
+import java.net.{Inet4Address, InetAddress}
 import org.apache.logging.log4j.Level
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
-import java.net.{Inet4Address, InetAddress}
-import com.google.common.net.InetAddresses
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -254,7 +256,7 @@ object Settings {
     val config =
       try {
         val plain = Source.fromFile(file).mkString.replace("\r\n", "\n")
-        val config = ConfigFactory.parseString(plain).withFallback(defaults)
+        val config = patchConfig(ConfigFactory.parseString(plain), defaults).withFallback(defaults)
         settings = new Settings(config.getConfig("opencomputers"))
         config
       }
@@ -284,6 +286,38 @@ object Settings {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARN, "Failed saving config.", e)
     }
+  }
+
+  private val configPatches = Array(
+    // Upgrading to version 1.3, increased lower bounds for default RAM sizes
+    // and reworked the way black- and whitelisting works (IP based).
+    VersionRange.createFromVersionSpec("[0.0,1.3-alpha)") -> Array(
+      "computer.ramSizes",
+      "internet.blacklist",
+      "internet.whitelist"
+    )
+  )
+
+  // Checks the config version (i.e. the version of the mod the config was
+  // created by) against the current version to see if some hard changes
+  // were made. If so, the new default values are copied over.
+  private def patchConfig(config: Config, defaults: Config) = {
+    val mod = Loader.instance.activeModContainer
+    val prefix = "opencomputers."
+    val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
+    var patched = config
+    if (configVersion.compareTo(mod.getProcessedVersion) != 0) {
+      OpenComputers.log.info(s"Updating config from version '${configVersion.getVersionString}' to '${defaults.getString(prefix + "version")}'.")
+      patched = patched.withValue(prefix + "version", defaults.getValue(prefix + "version"))
+      for ((version, paths) <- configPatches if version.containsVersion(configVersion)) {
+        for (path <- paths) {
+          val fullPath = prefix + path
+          OpenComputers.log.info(s"Updating setting '$fullPath'. ")
+          patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+        }
+      }
+    }
+    patched
   }
 
   val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
