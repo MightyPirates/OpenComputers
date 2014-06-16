@@ -8,14 +8,15 @@ local term = require("term")
 local text = require("text")
 
 local function expand(value)
-  return value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
+  local result = value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
     function(match) return os.getenv(expand(match:sub(3, -2))) or match end)
+  return result
 end
 
 local function glob(value)
   if not value:find("*", 1, true) and not value:find("?", 1, true) then
     -- Nothing to do here.
-    return {value}
+    return {expand(value)}
   end
   local segments = fs.segments(value)
   local paths = {value:sub(1, 1) == "/" and "/" or shell.getWorkingDirectory()}
