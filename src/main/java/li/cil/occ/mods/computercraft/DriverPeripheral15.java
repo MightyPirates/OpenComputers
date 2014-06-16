@@ -1,7 +1,6 @@
 package li.cil.occ.mods.computercraft;
 
 import com.google.common.collect.Iterables;
-
 import cpw.mods.fml.common.Loader;
 import dan200.computer.api.*;
 import li.cil.oc.api.FileSystem;
@@ -125,9 +124,7 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
         @Override
         public void update() {
             if (peripheral instanceof IHostedPeripheral) {
-                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
-                
-                hosted.update();
+                ((IHostedPeripheral) peripheral).update();
             }
         }
 
@@ -137,25 +134,21 @@ public final class DriverPeripheral15 extends DriverPeripheral<IPeripheral> {
         }
 
         @Override
-        public void load(NBTTagCompound nbt) {
+        public void load(final NBTTagCompound nbt) {
             super.load(nbt);
-            
+
             if (peripheral instanceof IHostedPeripheral) {
-                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
-                
-                hosted.readFromNBT(nbt.getCompoundTag("peripheral"));
+                ((IHostedPeripheral) peripheral).readFromNBT(nbt.getCompoundTag("peripheral"));
             }
         }
 
         @Override
-        public void save(NBTTagCompound nbt) {
+        public void save(final NBTTagCompound nbt) {
             super.save(nbt);
-            
+
             if (peripheral instanceof IHostedPeripheral) {
-                IHostedPeripheral hosted = (IHostedPeripheral) peripheral;
-                
                 NBTTagCompound peripheralTag = new NBTTagCompound();
-                hosted.writeToNBT(peripheralTag);
+                ((IHostedPeripheral) peripheral).writeToNBT(peripheralTag);
                 nbt.setCompoundTag("peripheral", peripheralTag);
             }
         }
