@@ -7,14 +7,6 @@ local shell = require("shell")
 local term = require("term")
 local text = require("text")
 
-local function getHistSize()
-  if os.getenv("HISTSIZE") then
-    return os.getenv("HISTSIZE")
-  else
-    return 10
-  end
-end
-
 local function expand(value)
   local result = value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
     function(match) return os.getenv(expand(match:sub(3, -2))) or match end)
@@ -173,7 +165,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
         term.write("exit\n")
         return -- eof
       end
-      while #history > getHistSize() do
+      while #history > (tonumber(os.getenv("HISTSIZE")) or 10) do
         table.remove(history, 1)
       end
       command = text.trim(command)
