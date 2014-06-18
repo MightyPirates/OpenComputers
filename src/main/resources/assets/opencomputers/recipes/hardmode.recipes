@@ -66,14 +66,14 @@ hdd1 {
           ["oc:circuitChip1", "oc:materialDisk", ingotIron]]
 }
 hdd2 {
-  input: [[ingotGold, "oc:craftingHDDTier1", ingotGold]
+  input: [[ingotGold, "oc:hdd1", ingotGold]
           ["oc:circuitChip2", "oc:materialCircuitBoardPrinted", "oc:circuitChip2"]
-          [ingotGold, "oc:craftingHDDTier1", ingotGold]]
+          [ingotGold, "oc:hdd1", ingotGold]]
 }
 hdd3 {
-  input: [["oc:circuitChip3", "oc:craftingHDDTier2", "oc:circuitChip3"]
+  input: [["oc:circuitChip3", "oc:hdd2", "oc:circuitChip3"]
           ["oc:ram1", "oc:materialCircuitBoardPrinted", "oc:ram1"]
-          ["oc:circuitChip3", "oc:craftingHDDTier2", "oc:circuitChip3"]]
+          ["oc:circuitChip3", "oc:hdd2", "oc:circuitChip3"]]
 }
 
 abstractBusCard {
