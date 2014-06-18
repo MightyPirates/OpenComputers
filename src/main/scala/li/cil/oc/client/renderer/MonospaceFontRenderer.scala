@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer
 
 import li.cil.oc.client.TexturePreloader
-import li.cil.oc.util.{RenderState, PackedColor}
+import li.cil.oc.util.PackedColor
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL11
+
 import scala.io.Source
 
 object MonospaceFontRenderer {

@@ -2,17 +2,15 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Settings
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
+import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.{Audio, PackedColor}
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
-import li.cil.oc.common.tileentity.traits._
-import scala.Some
 
 class PacketHandler extends CommonPacketHandler {
   protected override def world(player: Player, dimension: Int) = {
@@ -76,6 +74,7 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Charger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
+        t.hasPower = p.readBoolean()
         t.world.markBlockForRenderUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }

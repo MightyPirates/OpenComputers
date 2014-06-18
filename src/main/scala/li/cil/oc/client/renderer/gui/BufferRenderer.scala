@@ -84,16 +84,22 @@ object BufferRenderer {
 
       GL11.glPopAttrib()
       GL11.glEndList()
+
+      RenderState.checkError(getClass.getName + ".compileText")
     }
 
   def drawBackground() =
     if (textureManager.isDefined) {
       GL11.glCallList(displayLists)
+
+      RenderState.checkError(getClass.getName + ".drawBackground")
     }
 
   def drawText() =
     if (textureManager.isDefined) {
       GL11.glCallList(displayLists + 1)
+
+      RenderState.checkError(getClass.getName + ".drawText")
     }
 
   private def drawBorder(x: Double, y: Double, w: Double, h: Double, u1: Int, v1: Int, u2: Int, v2: Int) = {
