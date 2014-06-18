@@ -165,7 +165,7 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
         term.write("exit\n")
         return -- eof
       end
-      while #history > 10 do
+      while #history > (tonumber(os.getenv("HISTSIZE")) or 10) do
         table.remove(history, 1)
       end
       command = text.trim(command)

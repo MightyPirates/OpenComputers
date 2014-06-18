@@ -6,6 +6,7 @@ local unicode = require("unicode")
 
 local env = {
   EDITOR="/bin/edit",
+  HISTSIZE="10",
   HOME="/home",
   IFS=" ",
   MANPATH="/usr/man:.",
@@ -14,7 +15,7 @@ local env = {
   PS1="$PWD# ",
   PWD="/",
   SHELL="/bin/sh",
-  TMP="/tmp", -- Depricated
+  TMP="/tmp", -- Deprecated
   TMPDIR="/tmp"
 }
 
@@ -71,12 +72,17 @@ function os.sleep(timeout)
 end
 
 function os.tmpname()
-  if fs.exists("tmp") then
+  local path = os.getenv("TMPDIR") or "/tmp"
+  if fs.exists(path) then
     for i = 1, 10 do
-      local name = "/tmp/" .. math.random(1, 0x7FFFFFFF)
+      local name = fs.concat(path, tostring(math.random(1, 0x7FFFFFFF)))
       if not fs.exists(name) then
         return name
       end
     end
   end
+end
+
+if computer.tmpAddress() then
+  fs.mount(computer.tmpAddress(), os.getenv("TMPDIR") or "/tmp")
 end

@@ -106,9 +106,6 @@ do
   -- system module from this point on.
   local filesystem = require("filesystem")
   filesystem.mount(computer.getBootAddress(), "/")
-  if computer.tmpAddress() then
-    filesystem.mount(computer.tmpAddress(), "/tmp")
-  end
 
   status("Running boot scripts...")
 
