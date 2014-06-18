@@ -8,7 +8,7 @@ import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.client.{PacketSender => ClientPacketSender, ComponentTracker => ClientComponentTracker}
-import li.cil.oc.client.renderer.{MonospaceFontRenderer, TextBufferRenderCache}
+import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender, ComponentTracker => ServerComponentTracker}
 import li.cil.oc.server.component.Keyboard
@@ -293,10 +293,10 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   override def renderText() = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
-  override def renderWidth = MonospaceFontRenderer.fontWidth * data.width
+  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * data.width
 
   @SideOnly(Side.CLIENT)
-  override def renderHeight = MonospaceFontRenderer.fontHeight * data.height
+  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * data.height
 
   @SideOnly(Side.CLIENT)
   override def setRenderingEnabled(enabled: Boolean) = isRendering = enabled

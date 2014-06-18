@@ -3,7 +3,7 @@ package li.cil.oc.client.gui
 import java.util
 import li.cil.oc.api
 import li.cil.oc.Settings
-import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
 import li.cil.oc.common.container
@@ -261,8 +261,8 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   }
 
   override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
-    val bw = w * MonospaceFontRenderer.fontWidth
-    val bh = h * MonospaceFontRenderer.fontHeight
+    val bw = w * TextBufferRenderCache.renderer.charRenderWidth
+    val bh = h * TextBufferRenderCache.renderer.charRenderHeight
     val scaleX = math.min(bufferWidth / (bw + bufferMargin * 2.0), 1)
     val scaleY = math.min(bufferHeight / (bh + bufferMargin * 2.0), 1)
     math.min(scaleX, scaleY)

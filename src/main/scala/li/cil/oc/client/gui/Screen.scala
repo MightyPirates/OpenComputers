@@ -1,7 +1,7 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.api
-import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
@@ -27,8 +27,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
       val mouseX = Mouse.getEventX * width / mc.displayWidth
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
-      val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
-      val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+      val bx = (mouseX - x - bufferMargin) / TextBufferRenderCache.renderer.charRenderWidth + 1
+      val by = (mouseY - y - bufferMargin) / TextBufferRenderCache.renderer.charRenderHeight + 1
       val bw = buffer.getWidth
       val bh = buffer.getHeight
       if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
@@ -60,8 +60,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (button >= 0) {
       if (didDrag) {
-        val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
-        val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+        val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
+        val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
         val bw = buffer.getWidth
         val bh = buffer.getHeight
         if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
@@ -78,8 +78,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
   }
 
   private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
-    val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
-    val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+    val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
+    val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
     val bw = buffer.getWidth
     val bh = buffer.getHeight
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
