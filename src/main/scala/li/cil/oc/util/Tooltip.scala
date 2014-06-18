@@ -5,11 +5,11 @@ import li.cil.oc.Settings
 import net.minecraft.client.Minecraft
 import net.minecraft.util.StatCollector
 import scala.collection.convert.WrapAsJava._
-import scala.collection.mutable
+import scala.collection.convert.WrapAsScala._
 import org.lwjgl.input.Keyboard
 
 object Tooltip {
-  val maxWidth = 200
+  val maxWidth = 220
 
   def get(name: String, args: Any*): java.util.List[String] = {
     val tooltip = StatCollector.translateToLocal(Settings.namespace + "tooltip." + name).format(args.map(_.toString): _*)
@@ -22,50 +22,11 @@ object Tooltip {
     }
     else {
       val nl = """\[nl\]"""
-      val lines = mutable.ArrayBuffer.empty[String]
-      tooltip.split(nl).foreach(line => {
-        val formatted = line.trim.stripLineEnd
-        var position = 0
-        var start = 0
-        var lineEnd = 0
-        var width = 0
-        var lineWidth = 0
-        val iterator = formatted.iterator
-        while (iterator.hasNext) {
-          val c = iterator.next()
-          if (c == '§') {
-            iterator.next()
-            position += 2
-          }
-          else {
-            if (c == ' ') {
-              lineEnd = position
-              lineWidth = width
-            }
-            else {
-              width += font.getCharWidth(c)
-            }
-            position += 1
-            if (width > maxWidth) {
-              if (lineEnd > start) {
-                lines += formatted.substring(start, lineEnd)
-                start = lineEnd + 1
-                width -= lineWidth
-                lineWidth = 0
-              }
-              else {
-                lines += formatted.substring(start, position)
-                start = position
-                width = 0
-              }
-            }
-          }
-        }
-        if (start < formatted.length) {
-          lines += formatted.substring(start)
-        }
-      })
-      lines
+      tooltip.
+        split(nl).
+        map(font.listFormattedStringToWidth(_, maxWidth).map(_.asInstanceOf[String].trim() + " ")).
+        flatten.
+        toList
     }
   }
 }

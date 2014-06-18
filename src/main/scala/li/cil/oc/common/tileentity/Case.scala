@@ -1,17 +1,17 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.Connector
+import li.cil.oc.{Settings, common}
+import li.cil.oc.common.InventorySlots
 import li.cil.oc.server.driver.Registry
-import li.cil.oc.Settings
 import li.cil.oc.util.Color
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.InventorySlots
 
 class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor with traits.Computer with traits.Colored {
   def this() = this(0, false)
@@ -76,6 +76,20 @@ class Case(var tier: Int, val isRemote: Boolean) extends traits.PowerAcceptor wi
   }
 
   // ----------------------------------------------------------------------- //
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskInsert(this)
+    }
+  }
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    if (InventorySlots.computer(tier)(slot).slot == Slot.Disk) {
+      common.Sound.playDiskEject(this)
+    }
+  }
 
   override def onInventoryChanged() {
     super.onInventoryChanged()

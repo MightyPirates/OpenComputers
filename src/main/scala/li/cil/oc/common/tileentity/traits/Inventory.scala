@@ -50,7 +50,7 @@ trait Inventory extends TileEntity with inventory.Inventory {
     }
   }
 
-  def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) = {
+  def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) = if (world != null) {
     val rng = world.rand
     val (tx, ty, tz) = (
       0.1 * rng.nextGaussian + direction.offsetX * 0.45,
@@ -64,4 +64,5 @@ trait Inventory extends TileEntity with inventory.Inventory {
     world.spawnEntityInWorld(entity)
     entity
   }
+  else null
 }

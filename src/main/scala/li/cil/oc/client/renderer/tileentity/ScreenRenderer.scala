@@ -182,9 +182,17 @@ object ScreenRenderer extends TileEntitySpecialRenderer with Callable[Int] with 
       GL11.glEndList()
     }
 
+    RenderState.checkError(getClass.getName + ".draw: text")
+
     true
   }
-  else GL11.glCallList(list)
+  else {
+    GL11.glCallList(list)
+
+    RenderState.checkError(getClass.getName + ".draw: glCallList")
+
+    true
+  }
 
   private def playerDistanceSq() = {
     val player = Minecraft.getMinecraft.thePlayer

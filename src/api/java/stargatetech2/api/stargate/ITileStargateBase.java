@@ -14,6 +14,10 @@ package stargatetech2.api.stargate;
  * @author LordFokas
  */
 public interface ITileStargateBase extends ITileStargate{
+	public enum DialMethod{
+		MANUAL,	// Dialing Computers
+		AUTO	// DHDs
+	}
 	
 	/**
 	 * Used to try making the Stargate dial an address.
@@ -22,5 +26,5 @@ public interface ITileStargateBase extends ITileStargate{
 	 * @param timeout How many seconds the connection will last. (1 - 38; default: 38);
 	 * @return whether the dialing sequence started (true) or failed (false).
 	 */
-	public boolean dial(Address address, int timeout);
+	public DialError dial(Address address, int timeout, DialMethod method);
 }

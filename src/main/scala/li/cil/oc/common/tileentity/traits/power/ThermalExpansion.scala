@@ -8,7 +8,7 @@ import net.minecraftforge.common.ForgeDirection
 @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "ThermalExpansion")
 trait ThermalExpansion extends Common with IEnergyHandler {
   @Optional.Method(modid = "ThermalExpansion")
-  def canInterface(from: ForgeDirection) = canConnect(from)
+  def canInterface(from: ForgeDirection) = canConnectPower(from)
 
   @Optional.Method(modid = "ThermalExpansion")
   def receiveEnergy(from: ForgeDirection, maxReceive: Int, simulate: Boolean) =

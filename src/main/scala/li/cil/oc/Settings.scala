@@ -30,13 +30,13 @@ class Settings(config: Config) {
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
   val rTreeDebugRenderer = false // *Not* to be configurable via config file.
+  val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
 
   // ----------------------------------------------------------------------- //
   // computer
   val threads = config.getInt("computer.threads") max 1
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
-  val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3) =>
       // For compatibility with older config files.
@@ -64,6 +64,7 @@ class Settings(config: Config) {
   val allowBytecode = config.getBoolean("computer.allowBytecode")
   val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
+  val executionDelay = config.getInt("computer.executionDelay") max 0
 
   // ----------------------------------------------------------------------- //
   // robot

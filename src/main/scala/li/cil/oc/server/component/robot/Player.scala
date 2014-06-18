@@ -161,8 +161,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
-        tryUseItem(getCurrentEquippedItem, duration)
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal))) {
+        tryUseItem(stack, duration)
       }
       else false
     })
@@ -195,7 +195,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      if (stackChanged) {
+        robot.setInventorySlotContents(0, newStack)
+      }
+      stackChanged
     }
   }
 
@@ -337,13 +341,14 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       f(stack)
     }
     finally {
-      if (stack != null) {
-        if (stack.stackSize <= 0) {
+      val newStack = inventory.getStackInSlot(slot)
+      if (newStack != null) {
+        if (newStack.stackSize <= 0) {
           inventory.setInventorySlotContents(slot, null)
         }
         if (repair) {
-          if (stack.stackSize > 0) tryRepair(stack, oldStack)
-          else ForgeEventFactory.onPlayerDestroyItem(this, stack)
+          if (newStack.stackSize > 0) tryRepair(newStack, oldStack)
+          else ForgeEventFactory.onPlayerDestroyItem(this, newStack)
         }
       }
       collectDroppedItems(itemsBefore)

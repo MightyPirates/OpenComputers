@@ -66,12 +66,15 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
   override def drawSlotInventory(slot: Slot) {
     RenderState.makeItBlend()
     super.drawSlotInventory(slot)
+    GL11.glColor3f(1, 1, 1)
     GL11.glDisable(GL11.GL_BLEND)
     if (!slot.getHasStack) slot match {
       case component: ComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
         GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_LIGHTING)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+        GL11.glEnable(GL11.GL_LIGHTING)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
       case _ =>
     }

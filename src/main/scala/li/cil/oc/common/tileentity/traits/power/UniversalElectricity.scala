@@ -11,7 +11,7 @@ import universalelectricity.api.energy.{IEnergyInterface, IEnergyContainer}
 ))
 trait UniversalElectricity extends Common with IEnergyInterface with IEnergyContainer {
   @Optional.Method(modid = "UniversalElectricity")
-  override def canConnect(direction: ForgeDirection, source: AnyRef) = canConnect(direction)
+  override def canConnect(direction: ForgeDirection, source: AnyRef) = canConnectPower(direction)
 
   @Optional.Method(modid = "UniversalElectricity")
   override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =

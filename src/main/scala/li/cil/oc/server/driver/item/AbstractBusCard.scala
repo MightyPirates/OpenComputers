@@ -12,7 +12,7 @@ object AbstractBusCard extends Item {
   override def worksWith(stack: ItemStack) = isOneOf(stack, Items.abstractBus)
 
   override def createEnvironment(stack: ItemStack, container: TileEntity) = if (Mods.StargateTech2.isAvailable) container match {
-    case device: IBusDevice => new component.AbstractBus(device)
+    case device: IBusDevice => new component.AbstractBusCard(device)
     case _ => null
   }
   else null

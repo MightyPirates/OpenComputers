@@ -46,6 +46,11 @@ object ItemCosts {
   terminate(Item.slimeBall)
   terminate(Item.stick)
 
+  def hasCosts(stack: ItemStack) = {
+    val ingredients = computeIngredients(stack)
+    ingredients.size > 0 && (ingredients.size > 1 || !ingredients.head._1.isItemEqual(stack))
+  }
+
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {
     tooltip.add(StatCollector.translateToLocal(Settings.namespace + "tooltip.Materials"))
     for ((ingredient, count) <- computeIngredients(stack)) {

@@ -63,7 +63,7 @@ local function findProcess(co)
     for _, instance in pairs(process.instances) do
       if instance == co then
         return process
-      end
+  end
     end
   end
 end
@@ -107,7 +107,24 @@ sandbox = {
   rawlen = rawlen,
   rawset = rawset,
   select = select,
-  setmetatable = setmetatable,
+  setmetatable = function(t, mt)
+    local gc = rawget(mt, "__gc")
+    if type(gc) == "function" then
+      rawset(mt, "__gc", function(self)
+        local co = coroutine.create(gc)
+        debug.sethook(co, checkDeadline, "", hookInterval)
+        local result, reason = coroutine.resume(co, self)
+        debug.sethook(co)
+        checkDeadline()
+        if not result then
+          error(reason, 0)
+        end
+      end)
+    end
+    local result = setmetatable(t, mt)
+    rawset(mt, "__gc", gc)
+    return result
+  end,
   tonumber = tonumber,
   tostring = tostring,
   type = type,

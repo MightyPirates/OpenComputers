@@ -94,7 +94,7 @@ trait Connector extends network.Connector with Node {
         }
         localBufferSize = math.max(size, 0)
         val surplus = math.max(localBuffer - localBufferSize, 0)
-        localBuffer = math.min(localBuffer, localBufferSize)
+        changeBuffer(-surplus)
         d.changeBuffer(surplus)
       }
       case _ =>
@@ -106,11 +106,10 @@ trait Connector extends network.Connector with Node {
   // ----------------------------------------------------------------------- //
 
   override def onDisconnect(node: ImmutableNode) {
-    if (node == this) this.synchronized {
-      setLocalBufferSize(0)
-      distributor = None
-    }
     super.onDisconnect(node)
+    if (node == this) {
+      this.synchronized(distributor = None)
+    }
   }
 
   // ----------------------------------------------------------------------- //

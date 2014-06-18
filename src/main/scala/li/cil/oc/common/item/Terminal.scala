@@ -83,7 +83,7 @@ class Terminal(val parent: Delegator) extends Delegate {
           true
         }
         else false
-      case _ => super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
+      case _ => super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ)
     }
   }
 

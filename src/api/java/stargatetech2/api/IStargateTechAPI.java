@@ -3,6 +3,7 @@ package stargatetech2.api;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fluids.Fluid;
 import stargatetech2.api.stargate.IStargateNetwork;
+import stargatetech2.api.stargate.IStargatePlacer;
 
 public interface IStargateTechAPI {
 	/**
@@ -19,6 +20,11 @@ public interface IStargateTechAPI {
 	 * @return The IStargateNetwork singleton instance.
 	 */
 	public IStargateNetwork getStargateNetwork();
+	
+	/**
+	 * @return The IStargatePlacer singleton instance, a.k.a Seeding Ship for the fans.
+	 */
+	public IStargatePlacer getSeedingShip();
 	
 	/**
 	 * @return The current IFactory instance.

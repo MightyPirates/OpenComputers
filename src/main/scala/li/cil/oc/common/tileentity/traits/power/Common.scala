@@ -14,7 +14,7 @@ trait Common extends TileEntity {
 
   // ----------------------------------------------------------------------- //
 
-  def canConnect(side: ForgeDirection) =
+  def canConnectPower(side: ForgeDirection) =
     !Settings.get.ignorePower && side != null && side != ForgeDirection.UNKNOWN &&
       (if (isClient) hasConnector(side) else connector(side).isDefined)
 

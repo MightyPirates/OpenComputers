@@ -2,25 +2,26 @@ package li.cil.oc.server.component.machine
 
 import java.io
 import java.lang.reflect.Constructor
-import java.util.concurrent.Callable
+import java.util.concurrent.{Callable, TimeUnit}
 import java.util.logging.Level
+
 import li.cil.oc.api.detail.MachineAPI
-import li.cil.oc.api.machine.{LimitReachedException, Architecture, Owner, ExecutionResult}
+import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException, Owner}
 import li.cil.oc.api.network._
-import li.cil.oc.api.{fs, machine, FileSystem, Network}
+import li.cil.oc.api.{FileSystem, Network, fs, machine}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server
+import li.cil.oc.server.PacketSender
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.fs.CompositeReadOnlyFileSystem
-import li.cil.oc.server.PacketSender
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{OpenComputers, Settings, server}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
-import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.DimensionManager
+
 import scala.Array.canBuildFrom
 import scala.collection.mutable
 
@@ -708,7 +709,7 @@ class Machine(val owner: Owner, val rom: Option[ManagedEnvironment], constructor
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.submit(this)
+      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.

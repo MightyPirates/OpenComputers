@@ -1,22 +1,23 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.{Items, api, OpenComputers, Settings}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.component.ManagedComponent
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.block.{BlockFluid, Block}
-import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, EntityItem}
-import net.minecraft.entity.{EntityLivingBase, Entity}
+import li.cil.oc.{Items, OpenComputers, Settings, api}
+import net.minecraft.block.{Block, BlockFluid}
+import net.minecraft.entity.item.{EntityItem, EntityMinecart, EntityMinecartContainer}
+import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.inventory.{IInventory, ISidedInventory}
-import net.minecraft.item.{ItemStack, ItemBlock}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.{MovingObjectPosition, EnumMovingObjectType}
-import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
+import net.minecraft.util.{EnumMovingObjectType, MovingObjectPosition}
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
