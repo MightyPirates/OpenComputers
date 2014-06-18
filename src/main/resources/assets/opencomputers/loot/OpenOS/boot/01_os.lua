@@ -15,7 +15,8 @@ local env = {
   PWD="/",
   SHELL="/bin/sh",
   TMP="/tmp", -- Depricated
-  TMPDIR="/tmp"
+  TMPDIR="/tmp",
+  HISTSIZE="10"
 }
 
 os.execute = function(command)
