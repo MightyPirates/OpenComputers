@@ -3,6 +3,8 @@ package li.cil.oc.util
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
 
+import scala.collection.convert.WrapAsScala._
+
 object Color {
   val Black = 0x444444
   // 0x1E1B1B
@@ -49,7 +51,9 @@ object Color {
 
   val byTier = Array(LightGray, Yellow, Cyan, Magenta)
 
-  def isDye(stack: ItemStack) = byOreName.contains(OreDictionary.getOreName(OreDictionary.getOreID(stack)))
+  def findDye(stack: ItemStack) = byOreName.keys.find(OreDictionary.getOres(_).exists(oreStack => OreDictionary.itemMatches(stack, oreStack, false)))
 
-  def dyeColor(stack: ItemStack) = byOreName.get(OreDictionary.getOreName(OreDictionary.getOreID(stack))).getOrElse(0xFF00FF)
+  def isDye(stack: ItemStack) = findDye(stack).isDefined
+
+  def dyeColor(stack: ItemStack) = findDye(stack).fold(0xFF00FF)(byOreName(_))
 }

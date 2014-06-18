@@ -12,7 +12,7 @@ end
 local args, options = shell.parse(...)
 
 if #args < 1 then
-  io.write("Usage: wget [-fq] url <filename>\n")
+  io.write("Usage: wget [-fq] <url> [<filename>]\n")
   io.write(" -f: Force overwriting existing files.\n")
   io.write(" -q: Quiet mode - no status messages.")
   return
@@ -56,11 +56,11 @@ if not options.q then
 end
 local result, response = pcall(internet.request, url)
 if result then
-  if not options.q then
-    io.write("success.\n")
-  end
   for chunk in response do
     f:write(chunk)
+  end
+  if not options.q then
+    io.write("success.\n")
   end
 
   f:close()

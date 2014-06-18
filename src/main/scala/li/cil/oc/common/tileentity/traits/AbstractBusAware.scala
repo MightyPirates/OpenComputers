@@ -32,7 +32,7 @@ trait AbstractBusAware extends TileEntity with network.Environment {
     if (isAbstractBusAvailable) {
       if (isServer) {
         installedComponents.collect {
-          case abstractBus: component.AbstractBus => abstractBus.busInterface
+          case abstractBus: component.AbstractBusCard => abstractBus.busInterface
         }.toArray
       }
       else fakeInterface.map(_.asInstanceOf[IBusInterface])

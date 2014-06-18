@@ -10,7 +10,7 @@ import net.minecraft.entity.item.{EntityMinecart, EntityMinecartContainer, Entit
 import net.minecraft.entity.{EntityLivingBase, Entity}
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.{IInventory, ISidedInventory}
-import net.minecraft.item.{ItemStack, ItemBlock}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraft.util.MovingObjectPosition
@@ -19,6 +19,7 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {

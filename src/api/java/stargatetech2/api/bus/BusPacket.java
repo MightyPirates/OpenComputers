@@ -1,6 +1,9 @@
 package stargatetech2.api.bus;
 
-public abstract class BusPacket {
+import java.util.LinkedList;
+
+public abstract class BusPacket<R>{
+	private LinkedList<R> responses;
 	private final short sender;
 	private final short target;
 	private final boolean hasLIP;
@@ -11,6 +14,7 @@ public abstract class BusPacket {
 	 * @param hasLIP Whether or not this packet supports being converted to a plain text (LIP) format.
 	 */
 	protected BusPacket(short sender, short target, boolean hasLIP){
+		this.responses = new LinkedList();
 		this.sender = sender;
 		this.target = target;
 		this.hasLIP = hasLIP;
@@ -64,5 +68,26 @@ public abstract class BusPacket {
 	 */
 	public final boolean hasPlainText(){
 		return hasLIP;
+	}
+	
+	/**
+	 * Adds a response to this packet that to give the sender some feedback.
+	 * The object type depends on the packet subclass.
+	 * 
+	 * Note that clients converting the packet to LIP format
+	 * lose the ability to send feedback.
+	 * 
+	 * @param response The response to add.
+	 */
+	public final void addResponse(R response){
+		if(response == null) throw new IllegalArgumentException("A Response cannot be null!");
+		responses.add(response);
+	}
+	
+	/**
+	 * @return All the responses other clients added to this packet.
+	 */
+	public final LinkedList<R> getResponses(){
+		return new LinkedList<R>(responses);
 	}
 }

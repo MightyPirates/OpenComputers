@@ -332,6 +332,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
       case Some(subBlock) => subBlock.tooltipLines(stack, player, tooltip, advanced)
       case _ =>
     }
+    if (ItemCosts.hasCosts(stack)) {
     if (KeyBindings.showMaterialCosts) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
@@ -340,6 +341,7 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
         Settings.namespace + "tooltip.MaterialCosts",
         input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
     }
+  }
   }
 
   override def getRenderType = if (FMLCommonHandler.instance.getEffectiveSide.isClient) BlockRenderer.getRenderId else -1

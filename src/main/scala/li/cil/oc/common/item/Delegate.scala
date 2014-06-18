@@ -52,6 +52,7 @@ trait Delegate {
 
   @SideOnly(Side.CLIENT)
   def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: java.util.List[String], advanced: Boolean) {
+    if (ItemCosts.hasCosts(stack)) {
     if (KeyBindings.showMaterialCosts) {
       ItemCosts.addTooltip(stack, tooltip.asInstanceOf[util.List[String]])
     }
@@ -59,6 +60,7 @@ trait Delegate {
       tooltip.add(StatCollector.translateToLocalFormatted(
         Settings.namespace + "tooltip.MaterialCosts",
         input.Keyboard.getKeyName(KeyBindings.materialCosts.getKeyCode)))
+    }
     }
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
       val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")

@@ -48,7 +48,6 @@ class Proxy {
   }
 
   def init(e: FMLInitializationEvent) {
-    api.Driver.add(driver.item.AbstractBusCard)
     api.Driver.add(driver.item.FileSystem)
     api.Driver.add(driver.item.GraphicsCard)
     api.Driver.add(driver.item.InternetCard)
@@ -68,9 +67,15 @@ class Proxy {
     if (Mods.ComputerCraft.isAvailable) {
       api.Driver.add(driver.item.ComputerCraftMedia)
     }
+    if (Mods.StargateTech2.isAvailable) {
+      api.Driver.add(server.driver.item.AbstractBusCard)
+    }
 
     api.Driver.add(driver.converter.FluidTankInfo)
     api.Driver.add(driver.converter.ItemStack)
+    if (Mods.StargateTech2.isAvailable) {
+      api.Driver.add(server.driver.converter.BusPacketNetScanDevice)
+    }
 
     Recipes.init()
 

@@ -73,12 +73,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       // The kernel thread will always be at stack index one.
       assert(lua.isThread(1))
 
-      if (Settings.get.activeGC) {
-        // Help out the GC a little. The emergency GC has a few limitations
-        // that will make it free less memory than doing a full step manually.
-        lua.gc(LuaState.GcAction.COLLECT, 0)
-      }
-
       // Resume the Lua state and remember the number of results we get.
       val results = if (isSynchronizedReturn) {
         // If we were doing a synchronized call, continue where we left off.
@@ -148,7 +142,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       else {
         assert(lua.isThread(1))
         // We're expecting the result of a pcall, if anything, so boolean + (result | string).
-        if (!lua.isBoolean(2) || !(lua.isString(3) || lua.isNil(3))) {
+        if (!lua.isBoolean(2) || !(lua.isString(3) || lua.isNoneOrNil(3))) {
           OpenComputers.log.warning("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
@@ -158,7 +152,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
         }
         else {
           lua.setTotalMemory(Int.MaxValue)
-          val error = lua.toString(3)
+          val error =
+            if (lua.isJavaObjectRaw(3)) lua.toJavaObjectRaw(3).toString
+            else lua.toString(3)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }

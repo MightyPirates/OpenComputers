@@ -124,7 +124,9 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
       case component: ComponentSlot if component.tierIcon != null =>
         mc.getTextureManager.bindTexture(TextureMap.locationItemsTexture)
         GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_LIGHTING)
         drawTexturedModelRectFromIcon(slot.xDisplayPosition, slot.yDisplayPosition, component.tierIcon, 16, 16)
+        GL11.glEnable(GL11.GL_LIGHTING)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
       case _ =>
     }
