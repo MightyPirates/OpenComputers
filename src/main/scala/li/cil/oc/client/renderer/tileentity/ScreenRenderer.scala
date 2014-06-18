@@ -7,8 +7,8 @@ import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.BuildCraft
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11

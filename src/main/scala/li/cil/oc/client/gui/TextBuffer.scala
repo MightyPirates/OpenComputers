@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.client.{Textures, KeyBindings}
-import li.cil.oc.client.renderer.MonospaceFontRenderer
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
@@ -35,7 +34,6 @@ trait TextBuffer extends GuiScreen {
 
   override def initGui() = {
     super.initGui()
-    MonospaceFontRenderer.init(Minecraft.getMinecraft.renderEngine)
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
   }

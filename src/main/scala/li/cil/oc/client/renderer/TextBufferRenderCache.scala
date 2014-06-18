@@ -1,18 +1,23 @@
 package li.cil.oc.client.renderer
 
-import com.google.common.cache.{RemovalListener, RemovalNotification, CacheBuilder}
-import cpw.mods.fml.common.{ITickHandler, TickType}
 import java.util
 import java.util.concurrent.{Callable, TimeUnit}
+
+import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
+import cpw.mods.fml.common.{ITickHandler, TickType}
+import li.cil.oc.client.renderer.font.StaticFontRenderer
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
-import net.minecraft.client.Minecraft
 
 object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
-  val cache = com.google.common.cache.CacheBuilder.newBuilder().
+  val renderer =
+  new StaticFontRenderer()
+//  new DynamicFontRenderer("Terminal")
+
+  private val cache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(2, TimeUnit.SECONDS).
     removalListener(this).
     asInstanceOf[CacheBuilder[TextBuffer, Int]].
@@ -26,7 +31,6 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   // ----------------------------------------------------------------------- //
 
   def render(buffer: TextBuffer) {
-    MonospaceFontRenderer.init(Minecraft.getMinecraft.getTextureManager)
     currentBuffer = buffer
     compileOrDraw(cache.get(currentBuffer, this))
   }
@@ -34,6 +38,10 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   private def compileOrDraw(list: Int) = {
     if (currentBuffer.proxy.dirty) {
       RenderState.checkError(getClass.getName + ".compileOrDraw: entering (aka: wasntme)")
+
+      for (line <- currentBuffer.data.buffer) {
+        renderer.generateChars(line)
+      }
 
       val doCompile = !RenderState.compilingDisplayList
       if (doCompile) {
@@ -43,9 +51,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
         RenderState.checkError(getClass.getName + ".compileOrDraw: glNewList")
       }
 
-      for (((line, color), i) <- currentBuffer.data.buffer.zip(currentBuffer.data.color).zipWithIndex) {
-        MonospaceFontRenderer.drawString(0, i * MonospaceFontRenderer.fontHeight, line, color, currentBuffer.data.format)
-      }
+      renderer.drawBuffer(currentBuffer.data)
 
       RenderState.checkError(getClass.getName + ".compileOrDraw: drawString")
 
