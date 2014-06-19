@@ -1,6 +1,7 @@
 package li.cil.oc.util.mods
 
 import net.minecraft.item.ItemStack
+
 // TODO Upgrade to UE 1.7 once it's available.
 //import universalelectricity.api.CompatibilityModule
 

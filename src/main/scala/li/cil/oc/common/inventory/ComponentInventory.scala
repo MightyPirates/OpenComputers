@@ -1,14 +1,14 @@
 package li.cil.oc.common.inventory
 
-import org.apache.logging.log4j.Level
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver, Container}
-import li.cil.oc.api.network
-import li.cil.oc.api.network.{Node, ManagedEnvironment}
+import li.cil.oc.api.driver.{Container, Item => ItemDriver}
+import li.cil.oc.api.{Driver, network}
+import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
+import org.apache.logging.log4j.Level
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

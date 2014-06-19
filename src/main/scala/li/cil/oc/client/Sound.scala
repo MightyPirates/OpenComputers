@@ -1,20 +1,22 @@
 package li.cil.oc.client
 
+import java.net.{MalformedURLException, URL, URLConnection, URLStreamHandler}
+import java.util.{Timer, TimerTask, UUID}
+
 import cpw.mods.fml.client.FMLClientHandler
-import org.apache.logging.log4j.Level
-import java.util.{TimerTask, Timer, UUID}
-import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.Minecraft
-import net.minecraft.tileentity.TileEntity
-import net.minecraftforge.client.event.sound.SoundLoadEvent
-import net.minecraftforge.event.world.WorldEvent
-import paulscode.sound.{SoundSystem, SoundSystemConfig}
-import scala.collection.mutable
-import net.minecraft.client.audio.{SoundPoolEntry, SoundManager, SoundCategory}
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.ReflectionHelper
+import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.audio.{SoundCategory, SoundManager, SoundPoolEntry}
+import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.ResourceLocation
-import java.net.{MalformedURLException, URLConnection, URLStreamHandler, URL}
+import net.minecraftforge.client.event.sound.SoundLoadEvent
+import net.minecraftforge.event.world.WorldEvent
+import org.apache.logging.log4j.Level
+import paulscode.sound.{SoundSystem, SoundSystemConfig}
+
+import scala.collection.mutable
 
 object Sound {
   private val sources = mutable.Map.empty[TileEntity, PseudoLoopingStream]

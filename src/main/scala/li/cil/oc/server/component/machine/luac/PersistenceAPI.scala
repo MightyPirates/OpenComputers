@@ -1,9 +1,11 @@
 package li.cil.oc.server.component.machine.luac
 
-import com.naef.jnlua.LuaState
 import java.util.UUID
+
+import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
+
 import scala.collection.mutable
 
 class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {

@@ -1,12 +1,14 @@
 package li.cil.oc.server.driver
 
 import java.util
-import org.apache.logging.log4j.Level
+
 import li.cil.oc.api.driver.Converter
 import li.cil.oc.api.machine.Value
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+import org.apache.logging.log4j.Level
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.math.ScalaNumber

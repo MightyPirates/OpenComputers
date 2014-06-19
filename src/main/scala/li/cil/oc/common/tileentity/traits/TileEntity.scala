@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity.traits
 
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import org.apache.logging.log4j.Level
-import li.cil.oc.client.Sound
 import li.cil.oc.OpenComputers
+import li.cil.oc.client.Sound
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity
-import cpw.mods.fml.common.FMLCommonHandler
+import org.apache.logging.log4j.Level
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def world = getWorldObj

@@ -2,9 +2,10 @@ package li.cil.oc.common.block
 
 import java.util
 import java.util.Random
+
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{CreativeTab, api, Settings}
+import li.cil.oc.{CreativeTab, Settings, api}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.entity.player.EntityPlayer

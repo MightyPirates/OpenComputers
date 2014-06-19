@@ -1,19 +1,21 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
-import li.cil.oc.{OpenComputers, Settings, CreativeTab}
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{CreativeTab, OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack, Item}
-import net.minecraft.util.{WeightedRandomChestContent, IIcon}
+import net.minecraft.item.{EnumRarity, Item, ItemStack}
+import net.minecraft.util.{IIcon, WeightedRandomChestContent}
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
-import scala.collection.mutable
-import net.minecraft.entity.Entity
 import org.apache.logging.log4j.Level
+
+import scala.collection.mutable
 
 class Delegator extends Item {
   setHasSubtypes(true)

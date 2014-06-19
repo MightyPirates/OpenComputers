@@ -1,9 +1,10 @@
 package li.cil.oc.common.component
 
 import li.cil.oc.api
-import li.cil.oc.api.network.{ManagedEnvironment, Node, Message}
+import li.cil.oc.api.network.{ManagedEnvironment, Message, Node}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.math.ScalaNumber
 
 abstract class ManagedComponent extends ManagedEnvironment {

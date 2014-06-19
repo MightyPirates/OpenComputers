@@ -1,17 +1,17 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.{Loot, item}
 import li.cil.oc.util.mods.Mods
-import net.minecraft.item.{Item, ItemBlock}
-import scala.collection.mutable
-import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 import net.minecraft.block.Block
-import li.cil.oc.common.recipe.Recipes
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.creativetab.CreativeTabs
-import li.cil.oc.common.InventorySlots.Tier
-import net.minecraft.item.ItemStack
+import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.mutable
 
 object Items extends ItemAPI {
   private val descriptors = mutable.Map.empty[String, ItemInfo]

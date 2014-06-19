@@ -6,22 +6,22 @@ import cpw.mods.fml.common.Optional.Method
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Network
-import li.cil.oc.api.network.{Analyzable, Connector, Visibility, Node}
+import li.cil.oc.api.network.{Analyzable, Connector, Node, Visibility}
 import li.cil.oc.client.Sound
-import li.cil.oc.common
-import li.cil.oc.server.{PacketSender => ServerPacketSender, driver, component}
+import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
-import li.cil.oc.{api, Settings}
+import li.cil.oc.{Settings, api, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
-import stargatetech2.api.bus.IBusDevice
-import scala.collection.mutable
 import net.minecraftforge.event.world.WorldEvent
+import stargatetech2.api.bus.IBusDevice
+
+import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")

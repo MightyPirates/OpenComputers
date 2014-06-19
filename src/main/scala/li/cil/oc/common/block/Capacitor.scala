@@ -1,19 +1,19 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.common.tileentity
+
+import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
-import net.minecraft.util.StatCollector
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.util.{IIcon, StatCollector}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
-import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
-import cpw.mods.fml.common.Optional
 
 class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Capacitor"

@@ -5,6 +5,7 @@ import net.minecraft.block.Block
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagList
+
 import scala.util.control.Breaks._
 
 class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {

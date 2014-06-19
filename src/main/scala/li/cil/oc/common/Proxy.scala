@@ -1,22 +1,23 @@
 package li.cil.oc.common
 
+import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.server._
 import li.cil.oc.server.component.machine
 import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
 import li.cil.oc.server.network.WirelessNetwork
-import li.cil.oc.server._
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
-import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraft.item.ItemStack
+import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraftforge.oredict.OreDictionary
+
 import scala.collection.convert.WrapAsScala._
 
 class Proxy {

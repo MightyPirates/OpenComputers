@@ -1,23 +1,22 @@
 package li.cil.oc.common.recipe
 
+import java.io.{File, FileReader}
+
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
-import java.io.{FileReader, File}
-import org.apache.logging.log4j.Level
-import li.cil.oc._
+import li.cil.oc.{api, common, _}
 import li.cil.oc.util.mods.GregTech
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
-import net.minecraft.item.{ItemStack, Item}
-import net.minecraftforge.oredict.{RecipeSorter, OreDictionary}
+import net.minecraft.item.{Item, ItemStack}
+import net.minecraftforge.oredict.RecipeSorter.Category
+import net.minecraftforge.oredict.{OreDictionary, RecipeSorter}
 import org.apache.commons.io.FileUtils
+import org.apache.logging.log4j.Level
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import scala.Some
-import li.cil.oc.common
-import li.cil.oc.api
-import net.minecraftforge.oredict.RecipeSorter.Category
 
 object Recipes {
   val list = mutable.LinkedHashMap.empty[ItemStack, String]

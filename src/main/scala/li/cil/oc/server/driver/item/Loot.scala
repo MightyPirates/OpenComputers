@@ -1,8 +1,9 @@
 package li.cil.oc.server.driver.item
 
 import java.io
-import li.cil.oc.{api, OpenComputers, Settings}
+
 import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraftforge.common.DimensionManager
 

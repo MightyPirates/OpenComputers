@@ -6,6 +6,7 @@ import li.cil.oc.common.block.Delegate
 import net.minecraft.entity.Entity
 import net.minecraft.util.MovingObjectPosition
 import net.minecraftforge.common.util.ForgeDirection
+
 import scala.collection.convert.WrapAsJava
 
 abstract class DelegatePart extends TMultiPart with TIconHitEffects {

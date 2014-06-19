@@ -1,11 +1,12 @@
 package li.cil.oc.common.item
 
-import net.minecraft.item.ItemStack
-import net.minecraft.entity.player.EntityPlayer
+import java.util
+
+import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IIconRegister
-import li.cil.oc.Settings
-import java.util
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 
 class LinkedCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "LinkedCard"

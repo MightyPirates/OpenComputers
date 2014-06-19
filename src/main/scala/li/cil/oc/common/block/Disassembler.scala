@@ -1,16 +1,17 @@
 package li.cil.oc.common.block
 
 import java.util
+
+import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
-import net.minecraftforge.common.util.ForgeDirection
-import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.world.World
-import li.cil.oc.client.Textures
+import net.minecraftforge.common.util.ForgeDirection
 
 class Disassembler(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Disassembler"

@@ -1,14 +1,16 @@
 package li.cil.oc.util
 
 import java.nio.ByteBuffer
-import net.minecraft.client.Minecraft
-import scala.collection.mutable
-import org.lwjgl.openal.{Util, AL10}
-import org.lwjgl.BufferUtils
+
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
+import org.lwjgl.BufferUtils
+import org.lwjgl.openal.{AL10, Util}
+
+import scala.collection.mutable
 
 /**
  * This class contains the logic used by computers' internal "speakers".

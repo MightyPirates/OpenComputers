@@ -1,12 +1,11 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
+import li.cil.oc.client.Textures
+import li.cil.oc.common.{container, tileentity}
+import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
-import li.cil.oc.client.Textures
-import net.minecraft.client.renderer.Tessellator
 
 class Disassembler(playerInventory: InventoryPlayer, val disassembler: tileentity.Disassembler) extends DynamicGuiContainer(new container.Disassembler(playerInventory, disassembler)) {
   private def disassemblerContainer = inventorySlots.asInstanceOf[container.Disassembler]

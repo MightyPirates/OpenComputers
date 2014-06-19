@@ -1,8 +1,8 @@
 package li.cil.oc.client
 
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiType}
-import li.cil.oc.{Settings, Items}
+import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
+import li.cil.oc.{Items, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ChatComponentTranslation

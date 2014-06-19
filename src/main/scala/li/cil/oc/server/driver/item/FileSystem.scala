@@ -4,7 +4,7 @@ import li.cil.oc
 import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.api.fs.Label
 import li.cil.oc.common.item.{FloppyDisk, HardDiskDrive}
-import li.cil.oc.{api, Settings, Items}
+import li.cil.oc.{Items, Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 

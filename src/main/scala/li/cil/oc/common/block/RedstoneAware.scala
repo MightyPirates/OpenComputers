@@ -2,7 +2,7 @@ package li.cil.oc.common.block
 
 import li.cil.oc.common.tileentity.traits
 import net.minecraft.block.Block
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 abstract class RedstoneAware extends Delegate {

@@ -4,7 +4,7 @@ import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.network.{Analyzable, Component, Visibility}
 import li.cil.oc.common.Sound
-import li.cil.oc.{api, Settings}
+import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 

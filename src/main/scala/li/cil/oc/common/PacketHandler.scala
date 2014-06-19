@@ -1,17 +1,18 @@
 package li.cil.oc.common
 
-import io.netty.buffer.{ByteBufInputStream, ByteBuf}
-import java.io.{InputStream, DataInputStream}
-import org.apache.logging.log4j.Level
+import java.io.{DataInputStream, InputStream}
 import java.util.zip.GZIPInputStream
+
+import io.netty.buffer.{ByteBuf, ByteBufInputStream}
 import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import scala.reflect.ClassTag
-import scala.reflect.classTag
+import org.apache.logging.log4j.Level
+
+import scala.reflect.{ClassTag, classTag}
 
 abstract class PacketHandler {
   /** Top level dispatcher based on packet type. */

@@ -1,11 +1,12 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Optional
 import java.util
+
+import cpw.mods.fml.common.Optional
+import li.cil.oc.Settings
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.common.tileentity
-import li.cil.oc.Settings
-import mcp.mobius.waila.api.{IWailaDataProvider, IWailaConfigHandler, IWailaDataAccessor, IWailaRegistrar}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaDataProvider, IWailaRegistrar}
 import net.minecraft.item.ItemStack
 
 object Waila {

@@ -1,9 +1,10 @@
 package li.cil.oc.common.recipe
 
-import cpw.mods.fml.common.FMLCommonHandler
 import java.util.UUID
-import li.cil.oc.{Settings, api}
+
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Settings, api}
 import net.minecraft.inventory.InventoryCrafting
 import net.minecraft.item.ItemStack
 

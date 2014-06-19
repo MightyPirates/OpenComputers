@@ -1,8 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api
-import li.cil.oc.Settings
-import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 
@@ -35,8 +34,8 @@ class Geolyzer extends traits.Environment {
         val block = world.getBlock(bx, by, bz)
         if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, x, y, z))) {
           values(ry) = block.getBlockHardness(world, bx, by, bz)
+        }
       }
-    }
     }
 
     result(values)

@@ -1,14 +1,15 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.api.network.{Packet, Message}
+import dan200.computercraft.api.lua.ILuaContext
+import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
+import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.util.ForgeDirection
+
 import scala.collection.mutable
-import dan200.computercraft.api.peripheral.{IComputerAccess, IPeripheral}
-import dan200.computercraft.api.lua.ILuaContext
 
 @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")
 class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {

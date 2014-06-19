@@ -2,11 +2,12 @@ package li.cil.oc.server.fs
 
 import java.io
 import java.net.URL
-import li.cil.oc.{Settings, api}
+
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.Label
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
 

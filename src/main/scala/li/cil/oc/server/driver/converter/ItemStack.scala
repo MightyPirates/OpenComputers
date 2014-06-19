@@ -1,10 +1,12 @@
 package li.cil.oc.server.driver.converter
 
 import java.util
+
 import li.cil.oc.api
 import net.minecraft.item
-import scala.collection.convert.WrapAsScala._
 import net.minecraft.item.Item
+
+import scala.collection.convert.WrapAsScala._
 
 object ItemStack extends api.driver.Converter {
   override def convert(value: AnyRef, output: util.Map[AnyRef, AnyRef]) =

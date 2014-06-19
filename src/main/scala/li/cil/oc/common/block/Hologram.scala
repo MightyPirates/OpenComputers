@@ -1,18 +1,18 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
-import li.cil.oc.common.tileentity
+
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{ItemStack, EnumRarity}
-import net.minecraft.util.StatCollector
-import net.minecraft.util.{IIcon, AxisAlignedBB}
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.util.{AxisAlignedBB, IIcon, StatCollector}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {

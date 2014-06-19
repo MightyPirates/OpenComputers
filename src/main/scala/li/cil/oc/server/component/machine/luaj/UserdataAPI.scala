@@ -1,12 +1,12 @@
 package li.cil.oc.server.component.machine.luaj
 
-import li.cil.oc.server.component.machine.LuaJLuaArchitecture
-import org.luaj.vm3.{Varargs, LuaValue}
-import li.cil.oc.util.ScalaClosure._
-import li.cil.oc.api.machine.Value
-import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.machine.Value
+import li.cil.oc.server.component.machine.LuaJLuaArchitecture
+import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
+import li.cil.oc.util.ScalaClosure._
 import org.apache.logging.log4j.Level
+import org.luaj.vm3.{LuaValue, Varargs}
 
 class UserdataAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
   override def initialize() {

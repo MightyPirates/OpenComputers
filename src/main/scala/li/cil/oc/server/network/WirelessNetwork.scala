@@ -1,11 +1,12 @@
 package li.cil.oc.server.network
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
-import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.Settings
+import li.cil.oc.api.network.WirelessEndpoint
 import li.cil.oc.util.RTree
 import net.minecraft.util.Vec3
 import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

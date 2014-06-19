@@ -1,12 +1,14 @@
 package li.cil.oc.client.gui
 
-import net.minecraft.client.gui.inventory.GuiContainer
 import java.util
+
 import net.minecraft.client.gui.FontRenderer
-import org.lwjgl.opengl.{GL12, GL11}
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.RenderHelper
-import scala.collection.convert.WrapAsScala._
 import net.minecraft.inventory.Container
+import org.lwjgl.opengl.{GL11, GL12}
+
+import scala.collection.convert.WrapAsScala._
 
 // Workaround because certain other mods *cough*TMI*cough* do base class
 // transformations that break things! Such fun. Many annoyed. And yes, this

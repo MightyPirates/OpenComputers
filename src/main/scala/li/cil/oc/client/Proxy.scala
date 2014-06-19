@@ -1,18 +1,17 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.{RenderingRegistry, ClientRegistry}
-import cpw.mods.fml.common.event.{FMLPreInitializationEvent, FMLPostInitializationEvent, FMLInitializationEvent}
+import cpw.mods.fml.client.registry.{ClientRegistry, RenderingRegistry}
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
-import li.cil.oc.client
+import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
-import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
-import li.cil.oc.{Items, OpenComputers}
+import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
+import li.cil.oc.{Items, OpenComputers, client}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
 

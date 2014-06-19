@@ -1,11 +1,11 @@
 package li.cil.oc.server.driver
 
-import org.apache.logging.log4j.Level
 import li.cil.oc.api.driver
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.nbt.NBTTagCompound
+import org.apache.logging.log4j.Level
 
 class CompoundBlockEnvironment(val name: String, val environments: (driver.Block, ManagedEnvironment)*) extends ManagedEnvironment {
   // Block drivers with visibility < network usually won't make much sense,

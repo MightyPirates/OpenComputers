@@ -1,8 +1,8 @@
 package li.cil.oc.common.block
 
 import java.util
-import li.cil.oc.Settings
-import li.cil.oc.api
+
+import li.cil.oc.{Settings, api}
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.ItemUtils
 import net.minecraft.block.Block

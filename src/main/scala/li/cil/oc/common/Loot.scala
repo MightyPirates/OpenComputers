@@ -1,18 +1,20 @@
 package li.cil.oc.common
 
-import net.minecraftforge.common.{DimensionManager, ChestGenHooks}
-import net.minecraft.util.WeightedRandomChestContent
-import net.minecraft.nbt.NBTTagCompound
-import scala.collection.convert.WrapAsScala._
+import java.io
 import java.util.Random
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import scala.collection.mutable
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.common.recipe.Recipes
-import java.io
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.WeightedRandomChestContent
+import net.minecraftforge.common.{ChestGenHooks, DimensionManager}
 import net.minecraftforge.event.world.WorldEvent
+
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createItemStack(1), 1, 1, Settings.get.lootProbability) {
   val containers = Array(

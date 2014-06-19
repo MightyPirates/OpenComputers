@@ -1,5 +1,6 @@
 package li.cil.oc.server.component
 
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Robot
@@ -11,8 +12,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+
 import scala.collection.mutable
-import cpw.mods.fml.common.FMLCommonHandler
 
 class UpgradeCrafting(val owner: Container with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).

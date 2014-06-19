@@ -1,11 +1,12 @@
 package li.cil.oc.common.item
 
 import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.client.renderer.texture.IIconRegister
 
 class UpgradeContainerCard(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "UpgradeContainerCard"

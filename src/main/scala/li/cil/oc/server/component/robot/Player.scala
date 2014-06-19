@@ -1,32 +1,32 @@
 package li.cil.oc.server.component.robot
 
 import com.mojang.authlib.GameProfile
-import cpw.mods.fml.common.eventhandler.Event
 import cpw.mods.fml.common.ObfuscationReflectionHelper
-import org.apache.logging.log4j.Level
+import cpw.mods.fml.common.eventhandler.Event
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{Mods, TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{Mods, PortalGun, TinkersConstruct}
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.block.{BlockPistonBase, Block}
+import net.minecraft.block.{Block, BlockPistonBase}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayer.EnumStatus
-import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
-import net.minecraft.init.{Items, Blocks}
+import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
+import net.minecraft.init.{Blocks, Items}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.WorldServer
 import net.minecraft.util._
-import net.minecraftforge.common.ForgeHooks
-import net.minecraftforge.common.MinecraftForge
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.{ForgeHooks, MinecraftForge}
 import net.minecraftforge.common.util.{FakePlayer, ForgeDirection}
-import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.ForgeEventFactory
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+import org.apache.logging.log4j.Level
+
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 

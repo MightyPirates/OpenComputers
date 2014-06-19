@@ -1,7 +1,8 @@
 package li.cil.oc.server.fs
 
-import dan200.computercraft.api.filesystem.IWritableMount
 import java.io.{IOException, OutputStream}
+
+import dan200.computercraft.api.filesystem.IWritableMount
 import li.cil.oc.api.fs.Mode
 
 class ComputerCraftWritableFileSystem(override val mount: IWritableMount)

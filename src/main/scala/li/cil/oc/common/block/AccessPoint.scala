@@ -1,19 +1,19 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import java.util
-import li.cil.oc.common.tileentity
+
+import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
-import net.minecraft.client.renderer.texture.IIconRegister
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
-import net.minecraft.util.StatCollector
+import net.minecraft.util.{IIcon, StatCollector}
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 
 class AccessPoint(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "WirelessRouter"

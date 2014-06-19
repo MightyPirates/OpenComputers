@@ -1,20 +1,19 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, Tooltip}
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.IIcon
-import net.minecraft.util.StatCollector
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.util.{IIcon, StatCollector}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
 abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {

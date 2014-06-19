@@ -3,8 +3,8 @@ package li.cil.oc.client
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
-import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.Minecraft
+import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.ForgeDirection
 

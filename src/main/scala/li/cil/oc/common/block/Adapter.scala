@@ -1,16 +1,17 @@
 package li.cil.oc.common.block
 
 import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraft.block.Block
 
 class Adapter(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Adapter"

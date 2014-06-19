@@ -2,8 +2,8 @@ package li.cil.oc.util
 
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network.Arguments
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraft.inventory.IInventory
+import net.minecraftforge.common.util.ForgeDirection
 
 object ExtendedArguments {
 

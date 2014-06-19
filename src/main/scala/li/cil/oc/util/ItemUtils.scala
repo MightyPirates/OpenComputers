@@ -1,16 +1,16 @@
 package li.cil.oc.util
 
 import com.google.common.base.Strings
-import org.apache.logging.log4j.Level
-import li.cil.oc.{OpenComputers, Blocks, Settings, api}
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.server
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Blocks, OpenComputers, Settings, api, server}
 import net.minecraft.item.{ItemMap, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
+import org.apache.logging.log4j.Level
+
 import scala.io.Source
 
 object ItemUtils {

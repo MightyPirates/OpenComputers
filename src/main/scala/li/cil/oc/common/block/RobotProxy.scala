@@ -1,22 +1,23 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import java.util
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.server.component.robot
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.component.robot
 import li.cil.oc.util.{ItemUtils, Tooltip}
-import li.cil.oc.{Blocks, Settings, OpenComputers}
-import net.minecraft.client.renderer.texture.IIconRegister
+import li.cil.oc.{Blocks, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{IIcon, MovingObjectPosition, AxisAlignedBB, Vec3}
+import net.minecraft.util.{AxisAlignedBB, IIcon, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
-import li.cil.oc.client.KeyBindings
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"

@@ -1,19 +1,21 @@
 package li.cil.oc.common
 
+import java.io.{ByteArrayOutputStream, DataOutputStream, OutputStream}
+import java.util.zip.GZIPOutputStream
+
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.network.internal.FMLProxyPacket
 import io.netty.buffer.Unpooled
-import java.io.{OutputStream, ByteArrayOutputStream, DataOutputStream}
-import java.util.zip.GZIPOutputStream
 import li.cil.oc.OpenComputers
+import li.cil.oc.api.driver.Container
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.api.driver.Container
 
 // Necessary to keep track of the GZIP stream.
 abstract class PacketBuilderBase[T <: OutputStream](protected val stream: T) extends DataOutputStream(stream) {

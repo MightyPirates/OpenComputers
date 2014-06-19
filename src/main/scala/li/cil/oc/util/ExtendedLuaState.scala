@@ -1,9 +1,11 @@
 package li.cil.oc.util
 
-import com.naef.jnlua.{LuaType, JavaFunction, LuaState}
 import java.util
+
+import com.naef.jnlua.{JavaFunction, LuaState, LuaType}
 import li.cil.oc.api.machine.Value
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.language.implicitConversions

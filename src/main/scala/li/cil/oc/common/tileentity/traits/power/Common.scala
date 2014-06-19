@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.common.tileentity.traits.TileEntity
-import li.cil.oc.Settings
 import net.minecraftforge.common.util.ForgeDirection
 
 trait Common extends TileEntity {

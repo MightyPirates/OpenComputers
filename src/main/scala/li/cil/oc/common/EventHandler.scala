@@ -4,20 +4,21 @@ import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
-import cpw.mods.fml.common.{Optional, FMLCommonHandler}
+import cpw.mods.fml.common.{FMLCommonHandler, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
-import org.apache.logging.log4j.Level
+import li.cil.oc._
 import li.cil.oc.api.Network
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ProjectRed}
-import li.cil.oc._
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{ChatComponentTranslation, ChatComponentText}
+import net.minecraft.util.{ChatComponentText, ChatComponentTranslation}
 import net.minecraftforge.common.MinecraftForge
+import org.apache.logging.log4j.Level
+
 import scala.collection.mutable
 
 object EventHandler {

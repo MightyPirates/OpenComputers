@@ -1,13 +1,17 @@
 package li.cil.oc.server.component.robot
 
-import li.cil.oc.{api, OpenComputers, Settings}
+import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api.network._
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.entity.item.{EntityMinecart, EntityItem}
-import net.minecraft.entity.{EntityLivingBase, Entity}
-import net.minecraft.item.{ItemStack, ItemBlock}
+import li.cil.oc.util.InventoryUtils
+import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft.entity.item.{EntityItem, EntityMinecart}
+import net.minecraft.entity.{Entity, EntityLivingBase}
+import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
@@ -15,11 +19,8 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.fluids.FluidRegistry
+
 import scala.collection.convert.WrapAsScala._
-import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.api.event.RobotPlaceInAirEvent
-import li.cil.oc.util.InventoryUtils
-import li.cil.oc.util.ExtendedArguments._
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Neighbors).

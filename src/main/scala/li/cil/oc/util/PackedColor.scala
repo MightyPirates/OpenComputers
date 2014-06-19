@@ -1,8 +1,8 @@
 package li.cil.oc.util
 
 import li.cil.oc.api.Persistable
-import net.minecraft.nbt.NBTTagCompound
 import li.cil.oc.api.component.TextBuffer.ColorDepth
+import net.minecraft.nbt.NBTTagCompound
 
 object PackedColor {
 

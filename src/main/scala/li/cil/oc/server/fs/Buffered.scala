@@ -1,9 +1,11 @@
 package li.cil.oc.server.fs
 
 import java.io
+
 import li.cil.oc.api.fs.Mode
 import net.minecraft.nbt.NBTTagCompound
 import org.apache.commons.io.FileUtils
+
 import scala.collection.mutable
 
 trait Buffered extends OutputStreamFileSystem {

@@ -1,16 +1,17 @@
 package li.cil.oc.server.component.machine
 
-import org.apache.logging.log4j.Level
-import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
+import java.io.{FileNotFoundException, IOException}
+
+import com.google.common.base.Strings
+import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
 import li.cil.oc.server.component.machine.luaj._
 import li.cil.oc.util.ScalaClosure
-import li.cil.oc.{api, OpenComputers, Settings}
+import li.cil.oc.util.ScalaClosure._
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+import org.apache.logging.log4j.Level
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
-import li.cil.oc.util.ScalaClosure._
-import java.io.{IOException, FileNotFoundException}
-import com.google.common.base.Strings
 
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: Globals = _
@@ -124,7 +125,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
             // Fake zero sleep to avoid stopping if there are no signals.
             LuaValue.varargsOf(LuaValue.TRUE, LuaValue.valueOf(0))
           }
-          }
+        }
         else machine.popSignal() match {
           case signal if signal != null =>
             thread.resume(LuaValue.varargsOf(Array(LuaValue.valueOf(signal.name)) ++ signal.args.map(ScalaClosure.toLuaValue)))

@@ -1,20 +1,20 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import java.util
+
+import cpw.mods.fml.common.Optional
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.client.renderer.texture.IIconRegister
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.IIcon
-import net.minecraft.util.StatCollector
+import net.minecraft.util.{IIcon, StatCollector}
 import net.minecraft.world.World
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.common.util.Constants.NBT
+import net.minecraftforge.common.util.ForgeDirection
 
 class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "DiskDrive"

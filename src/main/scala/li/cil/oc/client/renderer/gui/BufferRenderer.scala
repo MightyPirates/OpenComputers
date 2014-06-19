@@ -1,11 +1,11 @@
 package li.cil.oc.client.renderer.gui
 
+import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.client.Textures
 import li.cil.oc.util.RenderState
-import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL11
-import li.cil.oc.api.component.TextBuffer
 
 object BufferRenderer {
   val margin = 7

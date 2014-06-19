@@ -1,13 +1,15 @@
 package li.cil.oc.util
 
 import java.util
+
 import li.cil.oc.Settings
 import net.minecraft.block.Block
-import net.minecraft.init.{Items, Blocks}
+import net.minecraft.init.{Blocks, Items}
 import net.minecraft.item.crafting._
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.util.StatCollector
-import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
+import net.minecraftforge.oredict.{OreDictionary, ShapedOreRecipe, ShapelessOreRecipe}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

@@ -5,9 +5,10 @@ import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import net.minecraft.nbt.NBTTagCompound
-import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.StargateTechAPI
 import stargatetech2.api.bus._
+
+import scala.collection.convert.WrapAsScala._
 
 class AbstractBusCard(val device: IBusDevice) extends component.ManagedComponent with IBusDriver {
   val node = Network.newNode(this, Visibility.Neighbors).

@@ -1,8 +1,8 @@
 package li.cil.oc.common.event
 
-import li.cil.oc.api.event.RobotPlaceInAirEvent
-import li.cil.oc.api
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import li.cil.oc.api
+import li.cil.oc.api.event.RobotPlaceInAirEvent
 
 object AngelUpgradeHandler {
   @SubscribeEvent

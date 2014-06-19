@@ -2,15 +2,14 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
+import li.cil.oc.Settings
 import li.cil.oc.api.component
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
-import li.cil.oc.Settings
-import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection

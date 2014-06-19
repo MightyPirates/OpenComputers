@@ -2,14 +2,13 @@ package li.cil.oc.server
 
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
-import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, tileentity}
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.util.ForgeDirection
 import net.minecraft.world.World
+import net.minecraftforge.common.util.ForgeDirection
 
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {

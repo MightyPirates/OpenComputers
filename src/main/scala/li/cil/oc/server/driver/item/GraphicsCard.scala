@@ -1,8 +1,8 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.{api, Items, common}
 import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.server.component
+import li.cil.oc.{Items, api, common}
 import net.minecraft.item.ItemStack
 
 object GraphicsCard extends Item {

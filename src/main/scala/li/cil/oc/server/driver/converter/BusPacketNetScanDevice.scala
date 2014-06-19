@@ -1,9 +1,11 @@
 package li.cil.oc.server.driver.converter
 
 import java.util
+
 import li.cil.oc.api
-import scala.collection.convert.WrapAsScala._
 import stargatetech2.api.bus.BusPacketNetScan
+
+import scala.collection.convert.WrapAsScala._
 
 object BusPacketNetScanDevice extends api.driver.Converter {
   override def convert(value: scala.Any, output: util.Map[AnyRef, AnyRef]) =

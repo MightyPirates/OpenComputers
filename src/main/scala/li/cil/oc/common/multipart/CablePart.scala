@@ -1,18 +1,18 @@
 package li.cil.oc.common.multipart
 
-import codechicken.lib.vec.{Vector3, Cuboid6}
+import codechicken.lib.vec.{Cuboid6, Vector3}
 import codechicken.multipart._
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.{Items, network}
 import li.cil.oc.api.network.{Message, Node, Visibility}
+import li.cil.oc.api.{Items, network}
 import li.cil.oc.client.renderer.tileentity.CableRenderer
-import li.cil.oc.common
-import li.cil.oc.common.block.{Delegator, Cable}
+import li.cil.oc.common.block.{Cable, Delegator}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Settings, api, common}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
+
 import scala.collection.convert.WrapAsJava
 import scala.collection.convert.WrapAsScala._
 

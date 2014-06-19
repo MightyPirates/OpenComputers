@@ -1,30 +1,30 @@
 package li.cil.oc.server.component.machine
 
 import java.lang.reflect.Constructor
-import org.apache.logging.log4j.Level
+import java.util.concurrent.TimeUnit
+
 import li.cil.oc.api.detail.MachineAPI
 import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
-import li.cil.oc.api.{machine, FileSystem, Network}
+import li.cil.oc.api.{FileSystem, Network, machine}
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
-import li.cil.oc.server
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{OpenComputers, Settings, server}
+import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
-import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
 import net.minecraftforge.common.util.Constants.NBT
+import org.apache.logging.log4j.Level
+
 import scala.Array.canBuildFrom
 import scala.collection.mutable
-import scala.Some
-import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
-import li.cil.oc.server.driver.Registry
-import net.minecraft.entity.player.EntityPlayer
-import li.cil.oc.common.component.ManagedComponent
-import net.minecraft.client.Minecraft
-import java.util.concurrent.TimeUnit
 
 class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).

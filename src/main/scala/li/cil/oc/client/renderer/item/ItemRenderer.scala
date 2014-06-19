@@ -3,17 +3,18 @@ package li.cil.oc.client.renderer.item
 import li.cil.oc.api.detail.ItemInfo
 import li.cil.oc.client.Textures
 import li.cil.oc.server.driver.item.Item
-import li.cil.oc.{Settings, api}
-import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.entity.{RenderManager, RenderItem}
-import net.minecraft.item.ItemStack
-import net.minecraft.util.{EnumChatFormatting, AxisAlignedBB}
-import net.minecraftforge.client.IItemRenderer
-import net.minecraftforge.client.IItemRenderer.{ItemRendererHelper, ItemRenderType}
-import org.lwjgl.opengl.GL11
-import scala.collection.convert.WrapAsScala._
 import li.cil.oc.util.RenderState
+import li.cil.oc.{Settings, api}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.entity.{RenderItem, RenderManager}
+import net.minecraft.item.ItemStack
+import net.minecraft.util.{AxisAlignedBB, EnumChatFormatting}
+import net.minecraftforge.client.IItemRenderer
+import net.minecraftforge.client.IItemRenderer.{ItemRenderType, ItemRendererHelper}
+import org.lwjgl.opengl.GL11
+
+import scala.collection.convert.WrapAsScala._
 
 object ItemRenderer extends IItemRenderer {
   val renderItem = new RenderItem()

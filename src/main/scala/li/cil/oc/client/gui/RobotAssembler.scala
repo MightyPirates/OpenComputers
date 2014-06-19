@@ -1,17 +1,17 @@
 package li.cil.oc.client.gui
 
 import java.util
-import li.cil.oc.api
-import li.cil.oc.Settings
-import li.cil.oc.api.driver.{Slot, Inventory, Memory, Processor}
-import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
+
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.driver.{Inventory, Memory, Processor, Slot}
+import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
+import li.cil.oc.common.{container, tileentity}
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
+
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 

@@ -1,16 +1,17 @@
 package li.cil.oc.common.block
 
 import java.util
+
 import li.cil.oc.Settings
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.IIcon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
-import net.minecraft.client.renderer.texture.IIconRegister
-import li.cil.oc.client.Textures
 
 class Geolyzer(val parent: SimpleDelegator) extends SimpleDelegate {
   val unlocalizedName = "Geolyzer"

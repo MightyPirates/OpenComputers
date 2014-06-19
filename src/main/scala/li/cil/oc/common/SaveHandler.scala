@@ -1,12 +1,14 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import java.io
-import org.apache.logging.log4j.Level
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.{ChunkDataEvent, WorldEvent}
+import org.apache.logging.log4j.Level
+
 import scala.collection.mutable
 
 // Used by the native lua state to store kernel and stack data in auxiliary

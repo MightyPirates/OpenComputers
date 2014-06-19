@@ -2,6 +2,7 @@ package li.cil.oc.server.fs
 
 import java.io
 import java.io.RandomAccessFile
+
 import li.cil.oc.api.fs.Mode
 
 trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputStreamFileSystem {

@@ -1,16 +1,17 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.client.{Textures, KeyBindings}
+import li.cil.oc.api
 import li.cil.oc.client.renderer.gui.BufferRenderer
+import li.cil.oc.client.{KeyBindings, Textures}
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.NEI
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.Tessellator
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+
 import scala.collection.mutable
-import li.cil.oc.api
-import net.minecraft.client.renderer.Tessellator
 
 trait TextBuffer extends GuiScreen {
   protected def buffer: api.component.TextBuffer

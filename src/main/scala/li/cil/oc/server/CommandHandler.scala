@@ -3,6 +3,7 @@ package li.cil.oc.server
 import cpw.mods.fml.common.event.FMLServerStartingEvent
 import li.cil.oc.Settings
 import net.minecraft.command.{CommandBase, ICommandSender}
+
 import scala.collection.convert.wrapAsJava._
 import scala.collection.mutable
 

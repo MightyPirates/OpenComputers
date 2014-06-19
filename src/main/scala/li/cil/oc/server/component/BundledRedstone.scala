@@ -1,6 +1,6 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.network.{Arguments, Context, Callback}
+import li.cil.oc.api.network.{Arguments, Callback, Context}
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
 class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {

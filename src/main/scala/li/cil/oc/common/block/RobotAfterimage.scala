@@ -2,7 +2,7 @@ package li.cil.oc.common.block
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
-import li.cil.oc.{Settings, Blocks}
+import li.cil.oc.{Blocks, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.EnumRarity

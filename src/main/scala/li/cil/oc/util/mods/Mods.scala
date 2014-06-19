@@ -1,7 +1,7 @@
 package li.cil.oc.util.mods
 
 import cpw.mods.fml.common.versioning.VersionParser
-import cpw.mods.fml.common.{ModAPIManager, Loader}
+import cpw.mods.fml.common.{Loader, ModAPIManager}
 
 object Mods {
   val BattleGear2 = new SimpleMod("battlegear2")

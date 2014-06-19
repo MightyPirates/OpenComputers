@@ -1,10 +1,11 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.Settings
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.common.tileentity
-import li.cil.oc.Settings
 import li.cil.oc.util.ItemCosts
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
@@ -12,7 +13,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EnumCreatureType}
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.util.Vec3
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.input
 

@@ -1,8 +1,8 @@
 package li.cil.oc.client
 
 import li.cil.oc.Settings
-import net.minecraft.util.{IIcon, ResourceLocation}
 import net.minecraft.client.renderer.texture.TextureManager
+import net.minecraft.util.{IIcon, ResourceLocation}
 
 object Textures {
   val fontAntiAliased = new ResourceLocation(Settings.resourceDomain, "textures/font/chars.png")

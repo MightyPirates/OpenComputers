@@ -1,12 +1,13 @@
 package li.cil.oc.util
 
-import net.minecraft.world.World
+import net.minecraft.entity.item.EntityMinecartContainer
+import net.minecraft.inventory.{IInventory, ISidedInventory}
 import net.minecraft.item.ItemStack
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.inventory.{IInventory, ISidedInventory}
-import net.minecraft.entity.item.EntityMinecartContainer
 import net.minecraft.util.AxisAlignedBB
+import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
+
 import scala.collection.convert.WrapAsScala._
 
 object InventoryUtils {

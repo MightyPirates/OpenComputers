@@ -2,10 +2,11 @@ package li.cil.oc.common.block
 
 import java.text.DecimalFormat
 import java.util
-import li.cil.oc.common.tileentity
+
 import li.cil.oc.Settings
-import li.cil.oc.util.mods.Mods
+import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.Mods
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack

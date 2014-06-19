@@ -1,11 +1,11 @@
 package li.cil.oc.server.network
 
 import codechicken.lib.vec.Cuboid6
-import codechicken.multipart.{TileMultipart, JNormalOcclusion, NormalOcclusionTest, TFacePart}
+import codechicken.multipart.{JNormalOcclusion, NormalOcclusionTest, TFacePart, TileMultipart}
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network
-import li.cil.oc.api.network.{Node => ImmutableNode, WirelessEndpoint, SidedEnvironment, Environment, Visibility}
+import li.cil.oc.api.network.{Environment, SidedEnvironment, Visibility, WirelessEndpoint, Node => ImmutableNode}
 import li.cil.oc.common.block.Cable
 import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
@@ -15,6 +15,7 @@ import li.cil.oc.{Settings, api}
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer

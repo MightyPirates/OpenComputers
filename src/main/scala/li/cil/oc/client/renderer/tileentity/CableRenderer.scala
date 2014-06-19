@@ -2,12 +2,12 @@ package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
+import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{GLAllocation, Tessellator}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.util.RenderState
 
 object CableRenderer extends TileEntitySpecialRenderer {
   private val displayLists = GLAllocation.generateDisplayLists(64)

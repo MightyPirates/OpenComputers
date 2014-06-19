@@ -1,13 +1,15 @@
 package li.cil.oc.server.fs
 
 import java.io.{FileNotFoundException, IOException}
+import java.nio.ByteBuffer
+import java.nio.channels.ReadableByteChannel
+
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraftforge.common.util.Constants.NBT
+
 import scala.collection.mutable
-import java.nio.channels.ReadableByteChannel
-import java.nio.ByteBuffer
 
 trait InputStreamFileSystem extends api.fs.FileSystem {
   private val handles = mutable.Map.empty[Int, Handle]

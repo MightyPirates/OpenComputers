@@ -1,8 +1,9 @@
 package li.cil.oc.common
 
 import li.cil.oc.Settings
-import scala.collection.mutable
 import li.cil.oc.api.driver.Container
+
+import scala.collection.mutable
 
 object Sound {
   val lastPlayed = mutable.WeakHashMap.empty[Container, Long]

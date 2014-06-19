@@ -1,7 +1,9 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.client.Textures
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.{OpenComputers, Settings}
@@ -10,7 +12,6 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
-import li.cil.oc.client.Textures
 
 class Rack(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "ServerRack"

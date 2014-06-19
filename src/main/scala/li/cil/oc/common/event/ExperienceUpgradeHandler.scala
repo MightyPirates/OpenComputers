@@ -1,11 +1,11 @@
 package li.cil.oc.common.event
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.server.component
 import net.minecraft.util.ChatComponentTranslation
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 
 object ExperienceUpgradeHandler {

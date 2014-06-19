@@ -1,6 +1,7 @@
 package li.cil.oc.server.network
 
 import li.cil.oc.api.network
+
 import scala.collection.convert.WrapAsJava._
 import scala.collection.mutable
 

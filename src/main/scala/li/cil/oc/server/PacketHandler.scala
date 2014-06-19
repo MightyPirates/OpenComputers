@@ -2,15 +2,12 @@ package li.cil.oc.server
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.api.machine.Machine
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.util.ChatComponentTranslation
