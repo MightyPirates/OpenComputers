@@ -64,7 +64,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computer.getID}_${computer.getAttachmentName}", null, sendPort, data.toArray)
-      result(tryEnqueuePacket(null, packet))
+      result(tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
     case "isWireless" => result(this.isInstanceOf[WirelessRouter])
     case _ => null
   }
