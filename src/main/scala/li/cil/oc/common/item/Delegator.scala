@@ -4,6 +4,7 @@ import java.util
 import java.util.Random
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.tileentity
 import li.cil.oc.{CreativeTab, OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.creativetab.CreativeTabs
@@ -81,6 +82,13 @@ class Delegator extends Item {
   }
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
+
+  override def doesSneakBypassUse(world: World, x: Int, y: Int, z: Int, player: EntityPlayer) = {
+    world.getTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive => true
+      case _ => super.doesSneakBypassUse(world, x, y, z, player)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 

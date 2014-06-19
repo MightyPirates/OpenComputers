@@ -15,9 +15,9 @@ import scala.collection.mutable
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
 class DynamicFontRenderer(val font: Font) extends TextureFontRenderer {
-  def this(name: String) = this(new Font(name, Font.PLAIN, 11))
+  def this(name: String, size: Int) = this(new Font(name, Font.PLAIN, size))
 
-  def this(stream: InputStream) = this(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(11f))
+  def this(stream: InputStream, size: Int) = this(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size))
 
   private val charRenderer = new DynamicCharRenderer(font)
 

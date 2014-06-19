@@ -68,12 +68,30 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
-      }
-      true
+    world.getTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive =>
+        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+        if (!player.isSneaking) {
+          if (!world.isRemote) {
+            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+          }
+          true
+        }
+        else {
+          val isDiskInDrive = drive.getStackInSlot(0) != null
+          val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+          if (isDiskInDrive) {
+            if (!world.isRemote) {
+              drive.dropSlot(0, 1, drive.facing)
+            }
+          }
+          if (isHoldingDisk) {
+            // Insert the disk.
+            drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
+          }
+          isDiskInDrive || isHoldingDisk
+        }
+      case _ => false
     }
-    else false
   }
 }
