@@ -68,26 +68,30 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    val te = world.getBlockTileEntity(x, y, z).asInstanceOf[tileentity.DiskDrive]
-    if (!player.isSneaking) {
-      if (te.isItemValidForSlot(0, player.getCurrentEquippedItem)) {
-        if (te.getStackInSlot(0) != null) {
-          // if there is stuff inside ...
-          if (!world.isRemote) te.dropSlot(0, 1, te.facing) // drop it
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive =>
+        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+        if (!player.isSneaking) {
+          if (!world.isRemote) {
+            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+          }
+          true
         }
-        te.setInventorySlotContents(0, player.getCurrentEquippedItem.splitStack(1)) // insert the disk
-      } else {
-        if (!world.isRemote) {
-          player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+        else {
+          val isDiskInDrive = drive.getStackInSlot(0) != null
+          val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+          if (isDiskInDrive) {
+            if (!world.isRemote) {
+              drive.dropSlot(0, 1, drive.facing)
+            }
+          }
+          if (isHoldingDisk) {
+            // Insert the disk.
+            drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
+          }
+          isDiskInDrive || isHoldingDisk
         }
-      }
-      true
-    } else {
-      if (te.getStackInSlot(0) != null) {
-        if (!world.isRemote) te.dropSlot(0, 1, te.facing)
-        true
-      }
-      else false
+      case _ => false
     }
   }
 }

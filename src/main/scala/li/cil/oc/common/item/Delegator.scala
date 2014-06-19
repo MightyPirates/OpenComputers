@@ -5,6 +5,7 @@ import java.util.Random
 import java.util.logging.Level
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.tileentity
 import li.cil.oc.{CreativeTab, OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
@@ -81,6 +82,13 @@ class Delegator(id: Int) extends Item(id) {
   }
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
+
+  override def shouldPassSneakingClickToBlock(world: World, x: Int, y: Int, z: Int) = {
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive => true
+      case _ => super.shouldPassSneakingClickToBlock(world, x, y, z)
+    }
+  }
 
   // ----------------------------------------------------------------------- //
 
