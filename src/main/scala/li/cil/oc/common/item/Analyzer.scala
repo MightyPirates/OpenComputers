@@ -1,12 +1,13 @@
 package li.cil.oc.common.item
 
 import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
-import net.minecraft.entity.player.{EntityPlayerMP, EntityPlayer}
+import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ChatMessageComponent
 import net.minecraft.world.World

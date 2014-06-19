@@ -1,6 +1,6 @@
 package li.cil.oc.util.mods
 
-import dan200.computer.api.{IMount, IWritableMount, IMedia}
+import dan200.computer.api.{IMedia, IMount, IWritableMount}
 import li.cil.oc
 import li.cil.oc.server.fs.{CC15FileSystem, CC15WritableFileSystem}
 import net.minecraft.item.ItemStack

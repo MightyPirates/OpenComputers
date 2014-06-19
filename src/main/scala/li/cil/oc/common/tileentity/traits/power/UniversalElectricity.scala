@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits.power
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import net.minecraftforge.common.ForgeDirection
-import universalelectricity.api.energy.{IEnergyInterface, IEnergyContainer}
+import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),

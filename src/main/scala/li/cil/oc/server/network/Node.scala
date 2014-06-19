@@ -1,9 +1,11 @@
 package li.cil.oc.server.network
 
 import java.util.logging.Level
+
 import li.cil.oc.api.network.{Environment, Visibility, Node => ImmutableNode}
 import li.cil.oc.{OpenComputers, api}
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 

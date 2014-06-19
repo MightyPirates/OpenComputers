@@ -1,26 +1,27 @@
 package li.cil.oc.client.renderer.tileentity
 
-import com.google.common.base.Strings
 import java.util.logging.Level
+
+import com.google.common.base.Strings
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.entity.{RendererLivingEntity, RenderManager}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.entity.{RenderManager, RendererLivingEntity}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{RenderBlocks, Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{GLAllocation, RenderBlocks, Tessellator}
 import net.minecraft.item.Item
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
+import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
-import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
-import org.lwjgl.opengl.{GL12, GL11}
-import net.minecraft.client.Minecraft
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
+import org.lwjgl.opengl.{GL11, GL12}
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)

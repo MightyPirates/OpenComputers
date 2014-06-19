@@ -1,8 +1,9 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
 import java.util.UUID
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.Tooltip

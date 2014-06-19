@@ -1,13 +1,12 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.{Settings, OpenComputers}
-import li.cil.oc.api
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.common.event.ChunkloaderUpgradeHandler
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraftforge.common.ForgeChunkManager
 import net.minecraftforge.common.ForgeChunkManager.Ticket
-import li.cil.oc.api.driver.Container
 
 class UpgradeChunkloader(val owner: Container) extends component.ManagedComponent {
   val node = api.Network.newNode(this, Visibility.Network).

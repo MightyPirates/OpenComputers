@@ -1,12 +1,14 @@
 package li.cil.oc.client.renderer.font
 
-import scala.io.Source
+import java.util.logging.Level
+
+import li.cil.oc.client.Textures
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
-import li.cil.oc.{OpenComputers, Settings}
-import java.util.logging.Level
-import li.cil.oc.client.Textures
 import org.lwjgl.opengl.GL11
+
+import scala.io.Source
 
 /**
  * Font renderer using a user specified texture file, meaning the list of

@@ -1,19 +1,20 @@
 package li.cil.oc.server.component
 
-import java.io.{IOException, OutputStreamWriter, BufferedWriter, FileNotFoundException}
+import java.io.{BufferedWriter, FileNotFoundException, IOException, OutputStreamWriter}
 import java.net._
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import java.util.concurrent.{ExecutionException, Callable}
-import li.cil.oc.{OpenComputers, Settings}
-import li.cil.oc.api
+import java.util.concurrent.{Callable, ExecutionException}
+
 import li.cil.oc.api.Network
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
+
 import scala.collection.mutable
 
 class InternetCard extends component.ManagedComponent {

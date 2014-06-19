@@ -1,15 +1,14 @@
 package li.cil.oc.common.component
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api
 import li.cil.oc.api.component.Keyboard.UsabilityChecker
 import li.cil.oc.api.network.{Component, Node, Visibility}
-import li.cil.oc.common.item
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{item, tileentity}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Items, Settings}
+import li.cil.oc.{Items, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
+
 import scala.collection.mutable
 
 class Terminal(val rack: tileentity.Rack, val number: Int) {

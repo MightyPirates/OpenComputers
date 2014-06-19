@@ -1,7 +1,7 @@
 package li.cil.oc.common
 
-import li.cil.oc.api.network.ManagedEnvironment
 import com.google.common.cache.CacheBuilder
+import li.cil.oc.api.network.ManagedEnvironment
 
 /**
  * Keeps track of loaded components by ID. Used to send messages between

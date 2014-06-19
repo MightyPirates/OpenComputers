@@ -5,9 +5,10 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.api.network
 import li.cil.oc.api.network.{Node => ImmutableNode, _}
 import li.cil.oc.server.component.machine.Machine
-import li.cil.oc.server.driver.{Registry, CompoundBlockEnvironment}
-import li.cil.oc.server.network.Callbacks.{PeripheralCallback, ComponentCallback}
+import li.cil.oc.server.driver.{CompoundBlockEnvironment, Registry}
+import li.cil.oc.server.network.Callbacks.{ComponentCallback, PeripheralCallback}
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
 

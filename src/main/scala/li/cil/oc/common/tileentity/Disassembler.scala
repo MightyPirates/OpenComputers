@@ -1,21 +1,23 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.{OpenComputers, api, Settings}
+import java.util.logging.Level
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{ItemUtils, InventoryUtils}
-import net.minecraft.item.{ItemBucket, Item, ItemStack}
-import net.minecraft.item.crafting.{ShapelessRecipes, ShapedRecipes, IRecipe, CraftingManager}
+import li.cil.oc.util.{InventoryUtils, ItemUtils}
+import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft.item.crafting.{CraftingManager, IRecipe, ShapedRecipes, ShapelessRecipes}
+import net.minecraft.item.{Item, ItemBucket, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
+import net.minecraftforge.oredict.{ShapedOreRecipe, ShapelessOreRecipe}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import li.cil.oc.common.inventory.ServerInventory
-import java.util.logging.Level
-import li.cil.oc.common.InventorySlots.Tier
 
 class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
   val node = api.Network.newNode(this, Visibility.None).

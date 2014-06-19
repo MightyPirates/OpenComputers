@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.CraftingManager
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent
+
 import scala.collection.mutable
 
 class UpgradeCrafting(val owner: Container with Robot) extends component.ManagedComponent {

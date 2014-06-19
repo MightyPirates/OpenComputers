@@ -1,8 +1,8 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.{Settings, api}
-import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
+import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
 import li.cil.oc.common.component
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 
 class UpgradeExperience extends component.ManagedComponent {

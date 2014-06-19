@@ -1,16 +1,16 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.{OpenComputers, Settings, api}
 import li.cil.oc.api.Network
+import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntityFurnace
-import li.cil.oc.api.driver.Container
 
 class UpgradeGenerator(val owner: Container with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).

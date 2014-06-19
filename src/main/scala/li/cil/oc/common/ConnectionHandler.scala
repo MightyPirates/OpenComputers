@@ -1,12 +1,12 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.network.{Player, IConnectionHandler}
+import cpw.mods.fml.common.network.{IConnectionHandler, Player}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ProjectRed}
-import li.cil.oc.{OpenComputers, UpdateCheck, Settings}
+import li.cil.oc.{OpenComputers, Settings, UpdateCheck}
 import net.minecraft.entity.player.EntityPlayerMP
-import net.minecraft.network.packet.{Packet1Login, NetHandler}
-import net.minecraft.network.{NetLoginHandler, INetworkManager}
+import net.minecraft.network.packet.{NetHandler, Packet1Login}
+import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ChatMessageComponent
 

@@ -1,11 +1,13 @@
 package li.cil.oc.server.component
 
 import java.io._
+
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
-import li.cil.oc.{api, Settings}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(val owner: Container) extends NetworkCard with WirelessEndpoint {

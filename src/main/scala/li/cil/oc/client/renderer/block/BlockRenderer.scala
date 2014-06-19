@@ -1,16 +1,16 @@
 package li.cil.oc.client.renderer.block
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler
+import li.cil.oc.client.Textures
 import li.cil.oc.client.renderer.tileentity.{CableRenderer, RobotRenderer}
 import li.cil.oc.common.block._
 import li.cil.oc.common.tileentity
+import li.cil.oc.util.RenderState
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.{Tessellator, RenderBlocks}
+import net.minecraft.client.renderer.{RenderBlocks, Tessellator}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.client.Textures
-import li.cil.oc.util.RenderState
 
 object BlockRenderer extends ISimpleBlockRenderingHandler {
   var getRenderId = -1

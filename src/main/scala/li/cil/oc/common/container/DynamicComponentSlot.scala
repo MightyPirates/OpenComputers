@@ -1,11 +1,11 @@
 package li.cil.oc.common.container
 
+import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
 import li.cil.oc.common.InventorySlots.InventorySlot
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory.{Slot, IInventory}
-import cpw.mods.fml.common.FMLCommonHandler
+import net.minecraft.inventory.{IInventory, Slot}
 
 class DynamicComponentSlot(val container: Player, inventory: IInventory, index: Int, x: Int, y: Int, val info: Array[Array[InventorySlot]], val tierGetter: () => Int) extends Slot(inventory, index, x, y) with ComponentSlot {
   override def tier = {

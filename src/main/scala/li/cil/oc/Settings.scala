@@ -1,15 +1,17 @@
 package li.cil.oc
 
-import com.google.common.net.InetAddresses
-import com.typesafe.config._
-import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
-import cpw.mods.fml.common.Loader
 import java.io._
 import java.net.{Inet4Address, InetAddress}
 import java.util.logging.Level
+
+import com.google.common.net.InetAddresses
+import com.typesafe.config._
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
+
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
 
@@ -355,4 +357,5 @@ object Settings {
 
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
+
 }

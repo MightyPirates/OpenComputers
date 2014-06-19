@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network._
 import li.cil.oc.Settings
+import li.cil.oc.api.network._
 import li.cil.oc.util.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
@@ -11,6 +11,7 @@ import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 import scala.language.postfixOps
 

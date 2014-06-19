@@ -1,9 +1,10 @@
 package li.cil.oc.util
 
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt._
+
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import net.minecraft.item.ItemStack
 
 object ExtendedNBT {
 

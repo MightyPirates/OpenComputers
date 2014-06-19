@@ -1,7 +1,7 @@
 package li.cil.oc.common.event
 
-import net.minecraftforge.event.ForgeSubscribe
 import li.cil.oc.api.event.RobotUsedTool
+import net.minecraftforge.event.ForgeSubscribe
 
 object TinkersConstructToolHandler {
   @ForgeSubscribe

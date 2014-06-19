@@ -1,8 +1,9 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.FMLClientHandler
 import java.util.logging.Level
-import java.util.{TimerTask, Timer, UUID}
+import java.util.{Timer, TimerTask, UUID}
+
+import cpw.mods.fml.client.FMLClientHandler
 import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.tileentity.TileEntity
@@ -10,6 +11,7 @@ import net.minecraftforge.client.event.sound.SoundLoadEvent
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 import paulscode.sound.SoundSystemConfig
+
 import scala.collection.mutable
 
 object Sound {

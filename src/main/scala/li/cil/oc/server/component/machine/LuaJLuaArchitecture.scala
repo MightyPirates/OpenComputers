@@ -1,16 +1,17 @@
 package li.cil.oc.server.component.machine
 
+import java.io.{FileNotFoundException, IOException}
 import java.util.logging.Level
-import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
+
+import com.google.common.base.Strings
+import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
 import li.cil.oc.server.component.machine.luaj._
 import li.cil.oc.util.ScalaClosure
-import li.cil.oc.{api, OpenComputers, Settings}
+import li.cil.oc.util.ScalaClosure._
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import org.luaj.vm3._
 import org.luaj.vm3.lib.jse.JsePlatform
-import li.cil.oc.util.ScalaClosure._
-import java.io.{IOException, FileNotFoundException}
-import com.google.common.base.Strings
 
 class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: Globals = _

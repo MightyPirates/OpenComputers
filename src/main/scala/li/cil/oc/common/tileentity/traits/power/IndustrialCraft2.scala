@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
 import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.server.TickHandler
 import li.cil.oc.Settings
+import li.cil.oc.server.TickHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 

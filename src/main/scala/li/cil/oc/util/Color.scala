@@ -2,6 +2,7 @@ package li.cil.oc.util
 
 import net.minecraft.item.ItemStack
 import net.minecraftforge.oredict.OreDictionary
+
 import scala.collection.convert.WrapAsScala._
 
 object Color {

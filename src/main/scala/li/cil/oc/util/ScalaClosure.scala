@@ -1,14 +1,15 @@
 package li.cil.oc.util
 
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.api.machine.Value
+import li.cil.oc.{OpenComputers, Settings}
 import org.luaj.vm3.lib.VarArgFunction
 import org.luaj.vm3.{LuaValue, Varargs}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.ScalaNumber
 import scala.runtime.BoxedUnit
-import li.cil.oc.api.machine.Value
 
 class ScalaClosure(val f: (Varargs) => Varargs) extends VarArgFunction {
   override def invoke(args: Varargs) = f(args)

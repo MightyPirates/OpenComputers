@@ -1,26 +1,28 @@
 package li.cil.oc.server.component.robot
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper
 import java.util.logging.Level
+
+import cpw.mods.fml.common.ObfuscationReflectionHelper
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{Mods, TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{Mods, PortalGun, TinkersConstruct}
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
+import net.minecraft.block.{Block, BlockFluid, BlockPistonBase}
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
-import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
+import net.minecraft.entity.player.{EntityPlayer, EnumStatus}
+import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.WorldServer
 import net.minecraft.util._
-import net.minecraftforge.common.{FakePlayer, MinecraftForge, ForgeHooks, ForgeDirection}
-import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.{FakePlayer, ForgeDirection, ForgeHooks, MinecraftForge}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
+
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 

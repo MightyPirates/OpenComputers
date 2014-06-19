@@ -1,17 +1,17 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.{Settings, api}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.{Slot, UpgradeContainer}
 import li.cil.oc.api.network.{SidedEnvironment, Visibility}
 import li.cil.oc.common.InventorySlots
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ItemUtils
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.ItemUtils
+import li.cil.oc.{Settings, api}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import net.minecraftforge.common.ForgeDirection
 
 class RobotAssembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory with traits.Rotatable with SidedEnvironment {

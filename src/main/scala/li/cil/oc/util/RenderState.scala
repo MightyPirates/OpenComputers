@@ -1,6 +1,6 @@
 package li.cil.oc.util
 
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.OpenGlHelper
 import org.lwjgl.opengl._
 import org.lwjgl.util.glu.GLU

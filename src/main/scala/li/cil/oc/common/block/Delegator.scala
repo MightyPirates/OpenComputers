@@ -1,28 +1,30 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.{FMLCommonHandler, Optional}
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
+
+import cpw.mods.fml.common.{FMLCommonHandler, Optional}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.client.KeyBindings
 import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.common.tileentity.traits.{Colored, Rotatable, BundledRedstoneAware}
+import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Colored, Rotatable}
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.{Color, ItemCosts}
-import li.cil.oc.{Settings, CreativeTab}
+import li.cil.oc.{CreativeTab, Settings}
 import net.minecraft.block.Block
 import net.minecraft.block.material.Material
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.{EnumCreatureType, Entity, EntityLivingBase}
+import net.minecraft.entity.{Entity, EntityLivingBase, EnumCreatureType}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{StatCollector, MovingObjectPosition, Vec3, AxisAlignedBB}
+import net.minecraft.util.{AxisAlignedBB, MovingObjectPosition, StatCollector, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input
-import powercrystals.minefactoryreloaded.api.rednet.{IRedNetNetworkContainer, RedNetConnectionType, IConnectableRedNet}
+import powercrystals.minefactoryreloaded.api.rednet.{IConnectableRedNet, IRedNetNetworkContainer, RedNetConnectionType}
+
 import scala.collection.mutable
 
 class Delegator[Child <: Delegate](id: Int) extends Block(id, Material.iron) {

@@ -1,22 +1,21 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.tileentity
+
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, PackedColor, Tooltip}
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{StatCollector, Icon}
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.util.{Icon, StatCollector}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {

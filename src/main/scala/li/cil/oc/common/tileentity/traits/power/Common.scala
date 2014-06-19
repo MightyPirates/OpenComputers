@@ -1,10 +1,10 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import li.cil.oc.common.tileentity.traits.TileEntity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.api.network.Connector
 import li.cil.oc.Settings
+import li.cil.oc.api.network.Connector
+import li.cil.oc.common.tileentity.traits.TileEntity
+import net.minecraftforge.common.ForgeDirection
 
 trait Common extends TileEntity {
   @SideOnly(Side.CLIENT)

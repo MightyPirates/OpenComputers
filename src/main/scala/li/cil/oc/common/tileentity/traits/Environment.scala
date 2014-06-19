@@ -1,13 +1,13 @@
 package li.cil.oc.common.tileentity.traits
 
-import li.cil.oc.api.driver
-import li.cil.oc.api.network
+import li.cil.oc.Settings
+import li.cil.oc.api.{driver, network}
 import li.cil.oc.api.network.{Connector, SidedEnvironment}
 import li.cil.oc.server.TickHandler
-import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+
 import scala.math.ScalaNumber
 
 trait Environment extends TileEntity with network.Environment with driver.Container {

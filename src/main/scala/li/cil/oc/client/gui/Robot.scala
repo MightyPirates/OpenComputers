@@ -1,14 +1,13 @@
 package li.cil.oc.client.gui
 
 import java.util
-import li.cil.oc.api
-import li.cil.oc.Settings
+
+import li.cil.oc.{Settings, api}
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
-import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
-import li.cil.oc.common.container
+import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.container.StaticComponentSlot
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{container, tileentity}
 import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
 import net.minecraft.client.Minecraft
@@ -18,7 +17,7 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
 import net.minecraft.util.StatCollector
-import org.lwjgl.input.{Mouse, Keyboard}
+import org.lwjgl.input.{Keyboard, Mouse}
 import org.lwjgl.opengl.GL11
 
 class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) extends CustomGuiContainer(new container.Robot(playerInventory, robot)) with TextBuffer {

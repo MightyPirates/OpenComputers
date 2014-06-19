@@ -1,17 +1,18 @@
 package li.cil.oc.server.component.machine
 
+import java.io.{FileNotFoundException, IOException}
+import java.util.logging.Level
+
+import com.google.common.base.Strings
 import com.naef.jnlua._
-import li.cil.oc.api.machine.{LimitReachedException, Architecture, ExecutionResult}
+import li.cil.oc.api.machine.{Architecture, ExecutionResult, LimitReachedException}
 import li.cil.oc.common.SaveHandler
 import li.cil.oc.server.component.machine.luac._
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.{api, OpenComputers, Settings}
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
-import java.util.logging.Level
-import java.io.{IOException, FileNotFoundException}
-import com.google.common.base.Strings
 
 class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architecture {
   private[machine] var lua: LuaState = null

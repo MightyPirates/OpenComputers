@@ -1,19 +1,21 @@
 package li.cil.oc.client.renderer.tileentity
 
-import com.google.common.cache.{RemovalNotification, RemovalListener, CacheBuilder}
-import cpw.mods.fml.common.{TickType, ITickHandler}
+import java.nio.IntBuffer
 import java.util
 import java.util.concurrent.{Callable, TimeUnit}
+
+import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
+import cpw.mods.fml.common.{ITickHandler, TickType}
+import li.cil.oc.Settings
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Hologram
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
-import org.lwjgl.opengl.{GL15, GL11}
-import scala.util.Random
 import org.lwjgl.BufferUtils
-import li.cil.oc.Settings
-import java.nio.IntBuffer
+import org.lwjgl.opengl.{GL11, GL15}
+
+import scala.util.Random
 
 object HologramRenderer extends TileEntitySpecialRenderer with Callable[Int] with RemovalListener[TileEntity, Int] with ITickHandler {
   private val random = new Random()

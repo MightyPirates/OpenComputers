@@ -1,7 +1,8 @@
 package li.cil.oc.server.fs
 
+import java.io.{IOException, OutputStream}
+
 import dan200.computer.api.IWritableMount
-import java.io.{OutputStream, IOException}
 import li.cil.oc.api.fs.Mode
 
 class CC15WritableFileSystem(override val mount: IWritableMount)

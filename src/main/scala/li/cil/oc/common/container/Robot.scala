@@ -1,11 +1,11 @@
 package li.cil.oc.common.container
 
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api
 import li.cil.oc.client.gui.Icons
-import li.cil.oc.common.tileentity
 import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
 import net.minecraft.inventory.IInventory
 

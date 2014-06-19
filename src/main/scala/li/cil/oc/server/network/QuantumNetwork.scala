@@ -1,7 +1,8 @@
 package li.cil.oc.server.network
 
-import scala.collection.mutable
 import li.cil.oc.server.component.LinkedCard
+
+import scala.collection.mutable
 
 // Just because the name if so fancy!
 object QuantumNetwork {

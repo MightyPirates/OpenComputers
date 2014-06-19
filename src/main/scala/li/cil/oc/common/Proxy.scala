@@ -2,23 +2,24 @@ package li.cil.oc.common
 
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkRegistry
-import cpw.mods.fml.common.registry.{TickRegistry, GameRegistry}
+import cpw.mods.fml.common.registry.{GameRegistry, TickRegistry}
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc._
 import li.cil.oc.common.asm.SimpleComponentTickHandler
 import li.cil.oc.common.event._
 import li.cil.oc.common.multipart.MultiPart
 import li.cil.oc.common.recipe.Recipes
-import li.cil.oc.server.component.{Keyboard, machine}
-import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
-import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.server._
+import li.cil.oc.server.component.machine.{LuaJLuaArchitecture, NativeLuaArchitecture}
+import li.cil.oc.server.component.{Keyboard, machine}
+import li.cil.oc.server.network.WirelessNetwork
 import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{Mods, ComputerCraft16}
-import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
-import net.minecraft.item.{Item, ItemStack}
+import li.cil.oc.util.mods.{ComputerCraft16, Mods}
 import net.minecraft.block.Block
+import net.minecraft.item.{Item, ItemStack}
+import net.minecraftforge.common.{ForgeChunkManager, MinecraftForge}
 import net.minecraftforge.oredict.OreDictionary
+
 import scala.collection.convert.WrapAsScala._
 
 class Proxy {

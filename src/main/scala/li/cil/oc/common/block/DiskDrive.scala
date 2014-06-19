@@ -1,17 +1,18 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import java.util
+
+import cpw.mods.fml.common.Optional
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.Mods
 import li.cil.oc.{OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.util.{Icon, StatCollector}
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 

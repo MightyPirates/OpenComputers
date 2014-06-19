@@ -2,7 +2,7 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
 import li.cil.oc.api.driver.{Container, Slot}
-import li.cil.oc.common.tileentity.traits.{RedstoneAware, BundledRedstoneAware}
+import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, RedstoneAware}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.BundledRedstone
 import net.minecraft.item.ItemStack

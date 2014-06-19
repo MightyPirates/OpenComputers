@@ -1,9 +1,9 @@
 package li.cil.oc.server.component.machine.luac
 
+import com.naef.jnlua.LuaType
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import li.cil.oc.util.GameTimeFormatter
-import com.naef.jnlua.LuaType
 
 class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -95,7 +95,7 @@ class OSAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
         val year = getField("year", -1)
 
         GameTimeFormatter.mktime(year, mon, mday, hour, min, sec) match {
-          case Some(time) =>lua.pushNumber(time)
+          case Some(time) => lua.pushNumber(time)
           case _ => lua.pushNil()
         }
       }

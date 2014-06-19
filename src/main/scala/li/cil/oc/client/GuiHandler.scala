@@ -1,12 +1,12 @@
 package li.cil.oc.client
 
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiType}
-import li.cil.oc.{Settings, Items}
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.world.World
-import net.minecraft.util.StatCollector
+import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
+import li.cil.oc.{Items, Settings}
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.StatCollector
+import net.minecraft.world.World
 
 object GuiHandler extends CommonGuiHandler {
   override def getClientGuiElement(id: Int, player: EntityPlayer, world: World, x: Int, y: Int, z: Int): AnyRef =

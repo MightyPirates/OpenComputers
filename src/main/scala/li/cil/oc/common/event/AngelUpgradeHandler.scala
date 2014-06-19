@@ -1,7 +1,7 @@
 package li.cil.oc.common.event
 
-import li.cil.oc.api.event.RobotPlaceInAirEvent
 import li.cil.oc.api
+import li.cil.oc.api.event.RobotPlaceInAirEvent
 import net.minecraftforge.event.ForgeSubscribe
 
 object AngelUpgradeHandler {

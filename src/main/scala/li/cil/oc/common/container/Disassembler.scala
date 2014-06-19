@@ -1,9 +1,9 @@
 package li.cil.oc.common.container
 
+import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
 import net.minecraft.entity.player.InventoryPlayer
-import cpw.mods.fml.relauncher.{Side, SideOnly}
-import cpw.mods.fml.common.FMLCommonHandler
 
 class Disassembler(playerInventory: InventoryPlayer, disassembler: tileentity.Disassembler) extends Player(playerInventory, disassembler) {
   addSlotToContainer(80, 35)

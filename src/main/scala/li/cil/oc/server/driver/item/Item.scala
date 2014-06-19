@@ -1,7 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.api.driver
 import li.cil.oc.common.InventorySlots.Tier
 import net.minecraft.item.ItemStack

@@ -3,10 +3,9 @@ package li.cil.oc.client
 import cpw.mods.fml.common.network.Player
 import li.cil.oc.Settings
 import li.cil.oc.api.component
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer

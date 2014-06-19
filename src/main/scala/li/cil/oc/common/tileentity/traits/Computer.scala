@@ -2,22 +2,22 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.Settings
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.Owner
-import li.cil.oc.api.network.{Node, Analyzable}
+import li.cil.oc.api.network.{Analyzable, Node}
 import li.cil.oc.client.Sound
 import li.cil.oc.common.tileentity.RobotProxy
-import li.cil.oc.server.driver
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.Settings
+import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagString, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
-import scala.collection.mutable
 import stargatetech2.api.bus.IBusDevice
+
+import scala.collection.mutable
 
 // See AbstractBusAware as to why we have to define the IBusDevice here.
 @Optional.Interface(iface = "stargatetech2.api.bus.IBusDevice", modid = "StargateTech2")

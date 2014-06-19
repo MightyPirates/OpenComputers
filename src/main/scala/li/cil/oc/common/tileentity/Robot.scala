@@ -1,28 +1,29 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.robot
-import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
+import li.cil.oc.server.component.robot.Inventory
+import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import net.minecraft.block.{BlockFlowing, Block}
+import net.minecraft.block.{Block, BlockFlowing}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
+
 import scala.collection.mutable
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.server.component.robot.Inventory
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any

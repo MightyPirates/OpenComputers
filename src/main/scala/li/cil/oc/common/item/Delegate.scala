@@ -1,18 +1,18 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
-import li.cil.oc.api
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{Settings, api}
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.Settings
-import li.cil.oc.util.{Rarity, ItemCosts}
+import li.cil.oc.util.{ItemCosts, Rarity}
 import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.item.ItemStack
+import net.minecraft.util.{Icon, StatCollector}
 import net.minecraft.world.World
 import org.lwjgl.input
-import net.minecraft.entity.Entity
 
 trait Delegate {
   val parent: Delegator

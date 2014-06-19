@@ -1,9 +1,8 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.api
-import li.cil.oc.Settings
-import li.cil.oc.api.network.{Arguments, Context, Callback, Visibility}
-import net.minecraft.block.{BlockFluid, Block}
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
+import net.minecraft.block.{Block, BlockFluid}
 import net.minecraftforge.fluids.FluidRegistry
 
 class Geolyzer extends traits.Environment {

@@ -1,17 +1,19 @@
 package li.cil.oc.util
 
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.nio.channels.Channels
+import java.util.logging.Level
+
 import com.naef.jnlua
 import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport.Loader
-import java.io.{FileInputStream, File, FileOutputStream}
-import java.nio.channels.Channels
-import java.util.logging.Level
+import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
+
 import scala.util.Random
 import scala.util.control.Breaks._
-import li.cil.oc.server.component.machine.Machine
 
 /**
  * Factory singleton used to spawn new LuaState instances.

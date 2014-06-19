@@ -1,8 +1,9 @@
 package li.cil.oc.server.component.machine.luac
 
+import li.cil.oc.server
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
-import li.cil.oc.server
+
 import scala.collection.convert.WrapAsScala._
 
 class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {

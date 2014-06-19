@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.api.network.{Packet, Message}
+import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
+import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 
 // Note on the CC1.5+1.6 compatibility

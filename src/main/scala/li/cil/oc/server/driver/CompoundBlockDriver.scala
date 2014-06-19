@@ -4,12 +4,12 @@ import com.google.common.base.Strings
 import cpw.mods.fml.relauncher.ReflectionHelper
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.NamedBlock
+import li.cil.oc.api.network.ManagedEnvironment
 import net.minecraft.block.Block
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.World
-import li.cil.oc.api.network.ManagedEnvironment
 
 class CompoundBlockDriver(val blocks: driver.Block*) extends driver.Block {
   override def createEnvironment(world: World, x: Int, y: Int, z: Int) = {

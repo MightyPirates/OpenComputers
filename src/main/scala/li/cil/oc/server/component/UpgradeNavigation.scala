@@ -1,8 +1,8 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.api.{Rotatable, Network}
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
+import li.cil.oc.api.{Network, Rotatable}
 import li.cil.oc.common.component
 import li.cil.oc.util.ItemUtils.NavigationUpgradeData
 import net.minecraft.nbt.NBTTagCompound

@@ -1,14 +1,16 @@
 package li.cil.oc.common.item
 
 import java.util
+
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.util.{Rarity, Tooltip}
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.world.World
+
 import scala.collection.mutable
 
 class Server(val parent: Delegator, val tier: Int) extends Delegate {

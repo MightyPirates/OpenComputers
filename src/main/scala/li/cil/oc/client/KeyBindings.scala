@@ -1,9 +1,10 @@
 package li.cil.oc.client
 
+import java.util
+
 import cpw.mods.fml.client.FMLClientHandler
 import cpw.mods.fml.client.registry.KeyBindingRegistry.KeyHandler
 import cpw.mods.fml.common.TickType
-import java.util
 import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 

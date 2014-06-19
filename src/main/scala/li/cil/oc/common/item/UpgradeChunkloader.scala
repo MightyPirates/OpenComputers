@@ -2,9 +2,9 @@ package li.cil.oc.common.item
 
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.client.renderer.texture.IconRegister
 
 class UpgradeChunkloader(val parent: Delegator) extends Delegate {
   val unlocalizedName = "UpgradeChunkloader"

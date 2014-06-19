@@ -1,10 +1,10 @@
 package li.cil.oc.client.gui
 
 import java.util
+
 import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
+import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
+import li.cil.oc.common.{container, tileentity}
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector

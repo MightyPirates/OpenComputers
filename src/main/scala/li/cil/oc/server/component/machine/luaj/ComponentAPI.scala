@@ -1,9 +1,10 @@
 package li.cil.oc.server.component.machine.luaj
 
+import li.cil.oc.server
 import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.util.ScalaClosure._
-import li.cil.oc.server
-import org.luaj.vm3.{Varargs, LuaValue}
+import org.luaj.vm3.{LuaValue, Varargs}
+
 import scala.collection.convert.WrapAsScala._
 
 class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {

@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.{KeyBindingRegistry, RenderingRegistry, ClientRegistry}
-import cpw.mods.fml.common.event.{FMLPreInitializationEvent, FMLPostInitializationEvent, FMLInitializationEvent}
+import cpw.mods.fml.client.registry.{ClientRegistry, KeyBindingRegistry, RenderingRegistry}
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
@@ -9,9 +9,9 @@ import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
 import li.cil.oc.client.renderer.{TextBufferRenderCache, WirelessNetworkDebugRenderer}
-import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
+import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
 import li.cil.oc.{Items, OpenComputers}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager

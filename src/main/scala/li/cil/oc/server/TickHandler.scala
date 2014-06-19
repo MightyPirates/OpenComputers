@@ -1,16 +1,18 @@
 package li.cil.oc.server
 
-import codechicken.multipart.TMultiPart
-import cpw.mods.fml.common.{FMLCommonHandler, Optional, TickType, ITickHandler}
-import ic2.api.energy.event.{EnergyTileUnloadEvent, EnergyTileLoadEvent}
 import java.util
+import java.util.logging.Level
+
+import codechicken.multipart.TMultiPart
+import cpw.mods.fml.common.{FMLCommonHandler, ITickHandler, Optional, TickType}
+import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.Network
 import li.cil.oc.common.tileentity.traits.power
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.MinecraftForge
+
 import scala.collection.mutable
-import li.cil.oc.OpenComputers
-import java.util.logging.Level
 
 object TickHandler extends ITickHandler {
   val pending = mutable.Buffer.empty[() => Unit]

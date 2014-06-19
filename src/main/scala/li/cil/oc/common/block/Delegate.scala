@@ -1,9 +1,11 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
+import li.cil.oc.common.tileentity.traits.Inventory
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -11,10 +13,8 @@ import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.tileentity.traits.Inventory
 
 trait Delegate {
   val unlocalizedName: String

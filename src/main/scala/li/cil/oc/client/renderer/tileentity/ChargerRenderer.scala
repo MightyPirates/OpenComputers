@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -8,7 +9,6 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.client.Textures
 
 object ChargerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {

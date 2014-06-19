@@ -1,16 +1,17 @@
 package li.cil.oc.common.event
 
 import java.util
+
+import li.cil.oc.api.event.RobotMoveEvent
+import li.cil.oc.server.component.UpgradeChunkloader
 import net.minecraft.world.{ChunkCoordIntPair, World}
-import net.minecraftforge.common.ForgeChunkManager.{Ticket, LoadingCallback}
+import net.minecraftforge.common.ForgeChunkManager
+import net.minecraftforge.common.ForgeChunkManager.{LoadingCallback, Ticket}
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.WorldEvent
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
-import li.cil.oc.api.event.RobotMoveEvent
-import net.minecraftforge.event.ForgeSubscribe
-import li.cil.oc.server.component.UpgradeChunkloader
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.common.ForgeChunkManager
-import li.cil.oc.OpenComputers
 
 object ChunkloaderUpgradeHandler extends LoadingCallback {
   val restoredTickets = mutable.Map.empty[String, Ticket]

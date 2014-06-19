@@ -1,12 +1,13 @@
 package li.cil.oc.util
 
-import li.cil.oc.client.KeyBindings
 import li.cil.oc.Settings
+import li.cil.oc.client.KeyBindings
 import net.minecraft.client.Minecraft
 import net.minecraft.util.StatCollector
+import org.lwjgl.input.Keyboard
+
 import scala.collection.convert.WrapAsJava._
 import scala.collection.convert.WrapAsScala._
-import org.lwjgl.input.Keyboard
 
 object Tooltip {
   val maxWidth = 220
