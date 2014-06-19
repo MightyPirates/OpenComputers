@@ -10,7 +10,7 @@ object Mods {
     val isAvailable = Loader.isModLoaded("ComputerCraft") && (try Class.forName("dan200.computercraft.api.ComputerCraftAPI") != null catch {
       case _: Throwable => false
     })
-    }
+  }
   val ForgeMultipart = new SimpleMod("ForgeMultipart")
   val GregTech = new SimpleMod("gregtech_addon")
   val IndustrialCraft2 = new SimpleMod("IC2")

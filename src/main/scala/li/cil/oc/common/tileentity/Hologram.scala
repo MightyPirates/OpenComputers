@@ -213,7 +213,7 @@ class Hologram extends traits.Environment with SidedEnvironment with Analyzable 
 
   override def shouldRenderInPass(pass: Int) = pass == 1
 
-  override def getRenderBoundingBox = AxisAlignedBB.getAABBPool.getAABB(xCoord + 0.5 - 1.5 * scale, yCoord, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + 2 * scale, zCoord + 0.5 + 1.5 * scale)
+  override def getRenderBoundingBox = AxisAlignedBB.getBoundingBox(xCoord + 0.5 - 1.5 * scale, yCoord, zCoord - scale, xCoord + 0.5 + 1.5 * scale, yCoord + 0.25 + 2 * scale, zCoord + 0.5 + 1.5 * scale)
 
   // ----------------------------------------------------------------------- //
 

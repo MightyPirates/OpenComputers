@@ -81,7 +81,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def closestEntity[Type <: Entity : ClassTag](side: ForgeDirection = facing) = {
     val (x, y, z) = (robot.x + side.offsetX, robot.y + side.offsetY, robot.z + side.offsetZ)
-    val bounds = AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
     Option(world.findNearestEntityWithinAABB(classTag[Type].runtimeClass, bounds, this)).map(_.asInstanceOf[Type])
   }
 
@@ -91,12 +91,12 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
   }
 
   def entitiesInBlock[Type <: Entity : ClassTag](x: Int, y: Int, z: Int) = {
-    val bounds = AxisAlignedBB.getAABBPool.getAABB(x, y, z, x + 1, y + 1, z + 1)
+    val bounds = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1)
     world.getEntitiesWithinAABB(classTag[Type].runtimeClass, bounds).map(_.asInstanceOf[Type])
   }
 
   private def adjacentItems = {
-    val bounds = AxisAlignedBB.getAABBPool.getAABB(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
+    val bounds = AxisAlignedBB.getBoundingBox(robot.x - 2, robot.y - 2, robot.z - 2, robot.x + 3, robot.y + 3, robot.z + 3)
     world.getEntitiesWithinAABB(classOf[EntityItem], bounds).map(_.asInstanceOf[EntityItem])
   }
 
@@ -146,7 +146,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def activateBlockOrUseItem(x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float, duration: Double): ActivationType.Value = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
         return ActivationType.None
       }
 
@@ -176,7 +176,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal))) {
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal, world))) {
         tryUseItem(stack, duration)
       }
       else false
@@ -220,7 +220,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def placeBlock(slot: Int, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean = {
     callUsingItemInSlot(slot, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_BLOCK, x, y, z, side, world))) {
         return false
       }
 
@@ -230,7 +230,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Play
 
   def clickBlock(x: Int, y: Int, z: Int, side: Int): Double = {
     callUsingItemInSlot(0, stack => {
-      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side))) {
+      if (shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.LEFT_CLICK_BLOCK, x, y, z, side, world))) {
         return 0
       }
 

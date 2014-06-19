@@ -34,7 +34,7 @@ object UpgradeRenderer extends IItemRenderer {
     Items.multi.subItem(stack) match {
       case Some(subItem) if subItem == Items.upgradeCrafting =>
         // TODO display list?
-        val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
+        val b = AxisAlignedBB.getBoundingBox(0.4, 0.2, 0.64, 0.6, 0.4, 0.84)
         tm.bindTexture(Textures.upgradeCrafting)
 
         // Front.
@@ -75,7 +75,7 @@ object UpgradeRenderer extends IItemRenderer {
       case Some(subItem) if subItem == Items.upgradeGenerator =>
         // TODO display lists?
         val onOffset = if (Item.dataTag(stack).getInteger("remainingTicks") > 0) 0.5 else 0
-        val b = AxisAlignedBB.getAABBPool.getAABB(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
+        val b = AxisAlignedBB.getBoundingBox(0.4, 0.2, 0.16, 0.6, 0.4, 0.36)
         tm.bindTexture(Textures.upgradeGenerator)
 
         // Back.
