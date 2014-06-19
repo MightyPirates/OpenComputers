@@ -19,7 +19,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val maxQueueSize = 20
 
-  protected var relayCooldown = 0
+  protected var relayCooldown = -1
 
   protected val relayDelay = 5
 
