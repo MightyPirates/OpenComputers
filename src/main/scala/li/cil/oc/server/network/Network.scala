@@ -11,7 +11,7 @@ import li.cil.oc.common.multipart.CablePart
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.network.{Node => MutableNode}
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt._
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.util.ForgeDirection
@@ -484,6 +484,7 @@ object Network extends api.detail.NetworkAPI {
       if (nbt.hasKey("data" + i)) {
         nbt.getTag("data" + i) match {
           case boolean: NBTTagByte => Boolean.box(boolean.func_150290_f == 1)
+          case integer: NBTTagInt => Int.box(integer.func_150287_d)
           case double: NBTTagDouble => Double.box(double.func_150286_g)
           case string: NBTTagString => string.func_150285_a_(): AnyRef
           case array: NBTTagByteArray => array.func_150292_c
@@ -629,9 +630,11 @@ object Network extends api.detail.NetworkAPI {
       for (i <- 0 until dataArray.length) dataArray(i) match {
         case null | Unit | None =>
         case value: java.lang.Boolean => nbt.setBoolean("data" + i, value)
+        case value: java.lang.Integer => nbt.setInteger("data" + i, value)
         case value: java.lang.Double => nbt.setDouble("data" + i, value)
         case value: java.lang.String => nbt.setString("data" + i, value)
         case value: Array[Byte] => nbt.setByteArray("data" + i, value)
+        case value => OpenComputers.log.warn("Unexpected type while saving network packet: " + value.getClass.getName)
       }
     }
   }
