@@ -65,8 +65,10 @@ for i = 1, #dirs do
       end
     end
     setColor(0xFFFFFF)
-    io.write("\nDirectorys: "..tostring(#lsd))
-    io.write("\nFiles: "..tostring(#lsf))
+    if options.c then
+      io.write("\nDirectorys: "..tostring(#lsd))
+      io.write("\nFiles: "..tostring(#lsf))
+    end
     if not options.l then
       io.write("\n")
     end
