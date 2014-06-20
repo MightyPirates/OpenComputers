@@ -95,7 +95,6 @@ object PetRenderer {
       y *= 0.05
       z *= 0.05
       yaw += dYaw * 0.2f
-      println(yaw)
     }
 
     def applyInterpolatedTransformations(dt: Float) {
