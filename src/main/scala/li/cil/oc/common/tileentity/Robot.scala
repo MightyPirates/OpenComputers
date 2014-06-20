@@ -19,7 +19,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
 
@@ -115,10 +114,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   def name = info.name
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotOwner", owner))
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
+    player.sendChatToPlayer(Localization.Analyzer.RobotOwner(owner))
+    player.sendChatToPlayer(Localization.Analyzer.RobotName(player_.getCommandSenderName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }

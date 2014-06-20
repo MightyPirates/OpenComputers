@@ -7,12 +7,12 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, Tooltip}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{Icon, StatCollector}
+import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
@@ -41,8 +41,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     val nbt = accessor.getNBTData
     val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
   }
 

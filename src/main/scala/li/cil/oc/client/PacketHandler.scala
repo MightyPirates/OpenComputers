@@ -1,7 +1,7 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
+import li.cil.oc.{Localization, Settings}
 import li.cil.oc.api.component
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
@@ -68,8 +68,7 @@ class PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)
-      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(
-        Settings.namespace + "gui.Analyzer.AddressCopied"))
+      player.sendChatToPlayer(Localization.Analyzer.AddressCopied)
     }
   }
 

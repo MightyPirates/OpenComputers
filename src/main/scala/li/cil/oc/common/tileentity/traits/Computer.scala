@@ -2,7 +2,6 @@ package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Settings
 import li.cil.oc.api.Machine
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Analyzable, Node}
@@ -11,9 +10,9 @@ import li.cil.oc.common.tileentity.RobotProxy
 import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
+import li.cil.oc.{Localization, Settings}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import stargatetech2.api.bus.IBusDevice
 
@@ -193,16 +192,13 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
     computer.lastError match {
       case value if value != null =>
-        player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-          Settings.namespace + "gui.Analyzer.LastError", ChatMessageComponent.createFromTranslationKey(value)))
+        player.sendChatToPlayer(Localization.Analyzer.LastError(value))
       case _ =>
     }
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + maxComponents))
+    player.sendChatToPlayer(Localization.Analyzer.Components(computer.componentCount, maxComponents))
     val list = users
     if (list.size > 0) {
-      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-        Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
+      player.sendChatToPlayer(Localization.Analyzer.Users(list))
     }
     Array(computer.node)
   }

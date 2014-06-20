@@ -2,14 +2,13 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.{Settings, api}
 import li.cil.oc.api.driver.{Inventory, Memory, Processor, Slot}
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.{Localization, api}
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
 import org.lwjgl.opengl.GL11
 
 import scala.collection.convert.WrapAsJava._
@@ -106,39 +105,35 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
       def drawMessage(message: String) {
-        fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + message),
-          30, 94, 0x404040)
+        fontRenderer.drawString(message, 30, 94, 0x404040)
       }
       if (!inventorySlots.getSlot(0).getHasStack) {
-        drawMessage("gui.RobotAssembler.InsertCase")
+        drawMessage(Localization.RobotAssembler.InsertCase)
       }
       else if (api.Items.get(inventorySlots.getSlot(0).getStack) == api.Items.get("robot")) {
-        drawMessage("gui.RobotAssembler.CollectRobot")
+        drawMessage(Localization.RobotAssembler.CollectRobot)
       }
       else if (!hasCPU) {
-        drawMessage("gui.RobotAssembler.InsertCPU")
+        drawMessage(Localization.RobotAssembler.InsertCPU)
       }
       else if (!hasRAM) {
-        drawMessage("gui.RobotAssembler.InsertRAM")
+        drawMessage(Localization.RobotAssembler.InsertRAM)
       }
       else {
-        fontRenderer.drawString(
-          StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Complexity", Int.box(assembler.complexity), Int.box(assembler.maxComplexity)),
-          30, 94, if (isCapacityValid) 0x404040 else 0x804040)
+        fontRenderer.drawString(Localization.RobotAssembler.Complexity(assembler.complexity, assembler.maxComplexity), 30, 94, if (isCapacityValid) 0x404040 else 0x804040)
       }
       if (runButton.func_82252_a) {
         val tooltip = new java.util.ArrayList[String]
-        tooltip.add(StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Run"))
+        tooltip.add(Localization.RobotAssembler.Run)
         if (canBuild) {
           var warnings = mutable.ArrayBuffer.empty[String]
           for ((name, check) <- suggestedComponents) {
             if (!check()) {
-              warnings += "§7- " + StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Warning." + name)
+              warnings += Localization.RobotAssembler.Warning(name)
             }
           }
           if (warnings.length > 0) {
-            tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Warnings"))
+            tooltip.add(Localization.RobotAssembler.Warnings)
             tooltip.addAll(warnings)
           }
         }
@@ -148,7 +143,7 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
     else if (isPointInRegion(progressX, progressY, progressWidth, progressHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
-      tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Progress", assemblerContainer.assemblyProgress.toInt.toString, timeRemaining))
+      tooltip.add(Localization.RobotAssembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()

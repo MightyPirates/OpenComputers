@@ -2,7 +2,7 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.Settings
+import li.cil.oc.Localization
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.{container, tileentity}
 import net.minecraft.client.gui.GuiButton
@@ -40,8 +40,7 @@ class Case(playerInventory: InventoryPlayer, val computer: tileentity.Case) exte
       8, 6, 0x404040)
     if (powerButton.func_82252_a) {
       val tooltip = new java.util.ArrayList[String]
-      val which = if (computer.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
-      tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
+      tooltip.add(if (computer.isRunning) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()

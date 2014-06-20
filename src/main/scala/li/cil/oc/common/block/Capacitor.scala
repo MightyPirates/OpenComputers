@@ -3,14 +3,14 @@ package li.cil.oc.common.block
 import java.util
 
 import cpw.mods.fml.common.Optional
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{Icon, StatCollector}
+import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
@@ -29,8 +29,7 @@ class Capacitor(val parent: SimpleDelegator) extends SimpleDelegate {
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("buffer")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.StoredEnergy", node.getDouble("buffer").toInt.toString))
+      tooltip.add(Localization.Analyzer.StoredEnergy(node.getDouble("buffer").toInt.toString).toString)
     }
   }
 

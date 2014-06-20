@@ -2,10 +2,9 @@ package li.cil.oc.client
 
 import li.cil.oc.common.inventory.ServerInventory
 import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
-import li.cil.oc.{Items, Settings}
+import li.cil.oc.{Items, Localization, Settings}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.StatCollector
 import net.minecraft.world.World
 
 object GuiHandler extends CommonGuiHandler {
@@ -60,10 +59,10 @@ object GuiHandler extends CommonGuiHandler {
                       }
                       true
                     })
-                    else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.InvalidKey"))
+                    else player.addChatMessage(Localization.Terminal.InvalidKey)
                   }
-                  else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
-                case _ => player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
+                  else player.addChatMessage(Localization.Terminal.OutOfRange)
+                case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
               }
             }
           }

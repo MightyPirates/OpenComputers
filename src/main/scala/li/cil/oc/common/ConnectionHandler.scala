@@ -3,28 +3,27 @@ package li.cil.oc.common
 import cpw.mods.fml.common.network.{IConnectionHandler, Player}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ProjectRed}
-import li.cil.oc.{OpenComputers, Settings, UpdateCheck}
+import li.cil.oc.{Localization, OpenComputers, Settings, UpdateCheck}
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.packet.{NetHandler, Packet1Login}
 import net.minecraft.network.{INetworkManager, NetLoginHandler}
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.ChatMessageComponent
 
 object ConnectionHandler extends IConnectionHandler {
   def playerLoggedIn(player: Player, netHandler: NetHandler, manager: INetworkManager) {
     if (netHandler.isServerHandler) player match {
       case p: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningLuaFallback"))
+          p.sendChatToPlayer(Localization.Chat.WarningLuaFallback)
         }
         if (Mods.ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningProjectRed"))
+          p.sendChatToPlayer(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addKey(Settings.namespace + "gui.Chat.WarningPower"))
+          p.sendChatToPlayer(Localization.Chat.WarningPower)
         }
         OpenComputers.tampered match {
-          case Some(event) => p.sendChatToPlayer(ChatMessageComponent.createFromText("§aOpenComputers§f: ").addFormatted(Settings.namespace + "gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", ")))
+          case Some(event) => p.sendChatToPlayer(Localization.Chat.WarningFingerprint(event))
           case _ =>
         }
         // Do update check in local games and for OPs.
