@@ -7,10 +7,11 @@ import cpw.mods.fml.common.network.NetworkRegistry
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.{PetRenderer, WirelessNetworkDebugRenderer}
+import li.cil.oc.client.renderer.{TextBufferRenderCache, PetRenderer, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
+import li.cil.oc.util.Audio
 import li.cil.oc.{Items, OpenComputers, client}
 import net.minecraftforge.client.MinecraftForgeClient
 import net.minecraftforge.common.MinecraftForge
@@ -57,12 +58,15 @@ private[oc] class Proxy extends CommonProxy {
   override def postInit(e: FMLPostInitializationEvent) {
     super.postInit(e)
 
-    FMLCommonHandler.instance().bus().register(HologramRenderer)
-    FMLCommonHandler.instance().bus().register(ScreenRenderer)
+    FMLCommonHandler.instance.bus.register(Audio)
+    FMLCommonHandler.instance.bus.register(HologramRenderer)
+    FMLCommonHandler.instance.bus.register(PetRenderer)
+    FMLCommonHandler.instance.bus.register(ScreenRenderer)
+    FMLCommonHandler.instance.bus.register(TextBufferRenderCache)
 
-    MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
     MinecraftForge.EVENT_BUS.register(Rack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
-    MinecraftForge.EVENT_BUS.register(PetRenderer)
+    MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
   }
 }
