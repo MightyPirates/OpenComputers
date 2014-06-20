@@ -17,7 +17,7 @@ setmetatable(component, { __index = function(_, key)
 function component.get(address, componentType)
   checkArg(1, address, "string")
   checkArg(2, componentType, "string", "nil")
-  for c in component.list(componentType) do
+  for c in component.list(componentType, true) do
     if c:sub(1, address:len()) == address then
       return c
     end
@@ -31,7 +31,7 @@ function component.isAvailable(componentType)
     -- This is mostly to avoid out of memory errors preventing proxy
     -- creation cause confusion by trying to create the proxy again,
     -- causing the oom error to be thrown again.
-    component.setPrimary(componentType, component.list(componentType)())
+    component.setPrimary(componentType, component.list(componentType, true)())
   end
   return primaries[componentType] ~= nil
 end
@@ -108,7 +108,7 @@ local function onComponentRemoved(_, address, componentType)
   if primaries[componentType] and primaries[componentType].address == address or
      adding[componentType] and adding[componentType].address == address
   then
-    component.setPrimary(componentType, component.list(componentType)())
+    component.setPrimary(componentType, component.list(componentType, true)())
   end
 end
 

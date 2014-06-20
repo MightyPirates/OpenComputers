@@ -464,9 +464,9 @@ libcomponent = {
     end
     error("no such method", 1)
   end,
-  list = function(filter)
+  list = function(filter, exact)
     checkArg(1, filter, "string", "nil")
-    local list = spcall(component.list, filter)
+    local list = spcall(component.list, filter, not not exact)
     local key = nil
     return function()
       key = next(list, key)

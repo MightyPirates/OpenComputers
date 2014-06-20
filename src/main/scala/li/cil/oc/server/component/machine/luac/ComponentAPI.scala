@@ -12,9 +12,11 @@ class ComponentAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => components.synchronized {
       val filter = if (lua.isString(1)) Option(lua.toString(1)) else None
+      val exact = if (lua.isBoolean(2)) lua.toBoolean(2) else true
       lua.newTable(0, components.size)
+      def matches(name: String) = if (exact) name == filter.get else name.contains(filter.get)
       for ((address, name) <- components) {
-        if (filter.isEmpty || name.contains(filter.get)) {
+        if (filter.isEmpty || matches(name)) {
           lua.pushString(address)
           lua.pushString(name)
           lua.rawSet(-3)
