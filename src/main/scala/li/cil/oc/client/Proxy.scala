@@ -8,7 +8,7 @@ import cpw.mods.fml.relauncher.Side
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.{TextBufferRenderCache, WirelessNetworkDebugRenderer}
+import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
@@ -65,8 +65,10 @@ private[oc] class Proxy extends CommonProxy {
 
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
     TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
+    TickRegistry.registerTickHandler(PetRenderer, Side.CLIENT)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     MinecraftForge.EVENT_BUS.register(Rack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
   }
 }

@@ -173,8 +173,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     mountPoints(6).rotation.setW(-90)
   }
 
-  def renderChassis(robot: tileentity.Robot = null, offset: Double = 0) {
-    val isRunning = if (robot == null) false else robot.isRunning
+  def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
+    val isRunning = if (robot == null) isRunningOverride else robot.isRunning
 
     val size = 0.3f
     val l = 0.5f - size
