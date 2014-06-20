@@ -121,6 +121,10 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
         })
         false
       }
+      else if (owner.maxComponents == 0) {
+        crash("gui.Error.NoCPU")
+        false
+      }
       else if (owner.installedMemory > 0) {
         if (Settings.get.ignorePower || node.globalBuffer > cost) {
           init() && {
