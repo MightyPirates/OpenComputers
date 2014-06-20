@@ -20,7 +20,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
   @Callback(doc = """function():number -- Get the number of slots in the inventory on the specified side of the robot.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = checkSideForAction(args, 0)
-    InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
       case Some(inventory) => result(inventory.getSizeInventory)
       case _ => result(Unit, "no inventory")
     }
@@ -33,7 +33,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val selectedSlot = owner.selectedSlot
     val stack = owner.getStackInSlot(selectedSlot)
     if (stack != null && stack.stackSize > 0) {
-      InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
+      InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
         case Some(inventory) =>
           val slot = args.checkSlot(inventory, 1)
           if (!InventoryUtils.insertIntoInventorySlot(stack, inventory, facing.getOpposite, slot, count)) {
@@ -63,7 +63,7 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     val facing = checkSideForAction(args, 0)
     val count = args.optionalItemCount(2)
 
-    InventoryUtils.inventoryAt(owner.world, owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
+    InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
       case Some(inventory) =>
         val slot = args.checkSlot(inventory, 1)
         if (InventoryUtils.extractFromInventorySlot(owner.player.inventory.addItemStackToInventory, inventory, facing.getOpposite, slot, count)) {

@@ -17,7 +17,7 @@ class UpgradeSign(val owner: Container with Rotatable) extends component.Managed
   @Callback(doc = """function():string -- Get the text on the sign in front of the robot.""")
   def getValue(context: Context, args: Arguments): Array[AnyRef] = {
     val facing = owner.facing
-    owner.world.getTileEntity(owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ) match {
+    owner.world.getTileEntity(math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
       case sign: TileEntitySign => result(sign.signText.mkString("\n"))
       case _ => result(Unit, "no sign")
     }
@@ -27,7 +27,7 @@ class UpgradeSign(val owner: Container with Rotatable) extends component.Managed
   def setValue(context: Context, args: Arguments): Array[AnyRef] = {
     val text = args.checkString(0).lines.padTo(4, "").map(line => if (line.length > 15) line.substring(0, 15) else line)
     val facing = owner.facing
-    val (sx, sy, sz) = (owner.xPosition.toInt + facing.offsetX, owner.yPosition.toInt + facing.offsetY, owner.zPosition.toInt + facing.offsetZ)
+    val (sx, sy, sz) = (math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ)
     owner.world.getTileEntity(sx, sy, sz) match {
       case sign: TileEntitySign =>
         text.copyToArray(sign.signText)
