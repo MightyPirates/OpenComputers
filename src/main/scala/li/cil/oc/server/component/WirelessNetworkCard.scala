@@ -20,11 +20,11 @@ class WirelessNetworkCard(val owner: Container) extends NetworkCard with Wireles
 
   // ----------------------------------------------------------------------- //
 
-  override def x = owner.xPosition.toInt
+  override def x = math.round(owner.xPosition - 0.5).toInt
 
-  override def y = owner.yPosition.toInt
+  override def y = math.round(owner.yPosition - 0.5).toInt
 
-  override def z = owner.zPosition.toInt
+  override def z = math.round(owner.zPosition - 0.5).toInt
 
   override def world = owner.world
 

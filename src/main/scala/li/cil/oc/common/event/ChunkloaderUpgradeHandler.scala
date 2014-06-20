@@ -50,7 +50,7 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
   }
 
   def updateLoadedChunk(loader: UpgradeChunkloader) {
-    val robotChunk = new ChunkCoordIntPair(loader.owner.xPosition.toInt / 16, loader.owner.zPosition.toInt / 16)
+    val robotChunk = new ChunkCoordIntPair(math.round(loader.owner.xPosition - 0.5).toInt / 16, math.round(loader.owner.zPosition - 0.5).toInt / 16)
     loader.ticket.foreach(ticket => {
       ticket.getChunkList.collect {
         case chunk: ChunkCoordIntPair if chunk != robotChunk => ForgeChunkManager.unforceChunk(ticket, chunk)
