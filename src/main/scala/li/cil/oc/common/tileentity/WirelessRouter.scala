@@ -3,10 +3,9 @@ package li.cil.oc.common.tileentity
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -20,8 +19,7 @@ class WirelessRouter extends Router with WirelessEndpoint {
   // ----------------------------------------------------------------------- //
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float): Array[Node] = {
-    player.addChatMessage(new ChatComponentTranslation(
-      Settings.namespace + "gui.Analyzer.WirelessStrength", Double.box(strength)))
+    player.addChatMessage(Localization.Analyzer.WirelessStrength(strength))
     Array(componentNodes(side))
   }
 

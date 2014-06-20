@@ -1,9 +1,9 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network._
 import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection

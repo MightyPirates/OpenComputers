@@ -2,9 +2,9 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.Settings
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
 import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.{Localization, Settings}
 import net.minecraft.client.gui.{GuiButton, GuiScreen}
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.entity.player.InventoryPlayer
@@ -19,14 +19,14 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
   protected var rangeButtons = new Array[GuiButton](2)
 
-  def sideName(number: Int) = StatCollector.translateToLocal(Settings.namespace + (rack.sides(number) match {
-    case ForgeDirection.UP => "gui.ServerRack.Top"
-    case ForgeDirection.DOWN => "gui.ServerRack.Bottom"
-    case ForgeDirection.EAST => "gui.ServerRack.Left"
-    case ForgeDirection.WEST => "gui.ServerRack.Right"
-    case ForgeDirection.NORTH => "gui.ServerRack.Back"
-    case _ => "gui.ServerRack.None"
-  }))
+  def sideName(number: Int) = rack.sides(number) match {
+    case ForgeDirection.UP => Localization.ServerRack.Top
+    case ForgeDirection.DOWN => Localization.ServerRack.Bottom
+    case ForgeDirection.EAST => Localization.ServerRack.Left
+    case ForgeDirection.WEST => Localization.ServerRack.Right
+    case ForgeDirection.NORTH => Localization.ServerRack.Back
+    case _ => Localization.ServerRack.None
+  }
 
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
@@ -91,9 +91,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
       StatCollector.translateToLocal(rack.getInventoryName),
       8, 6, 0x404040)
 
-    fontRendererObj.drawString(
-      StatCollector.translateToLocal(Settings.namespace + "gui.ServerRack.WirelessRange"),
-      8, 31, 0x404040)
+    fontRendererObj.drawString(Localization.ServerRack.WirelessRange, 8, 31, 0x404040)
 
     {
       // Background for range value.
@@ -120,8 +118,7 @@ class Rack(playerInventory: InventoryPlayer, val rack: tileentity.Rack) extends 
 
     for (i <- 0 to 3 if powerButtons(i).func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      val which = if (rack.isRunning(i)) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
-      tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
+      tooltip.add(if (rack.isRunning(i)) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
 

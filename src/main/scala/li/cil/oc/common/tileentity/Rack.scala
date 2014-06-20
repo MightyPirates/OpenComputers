@@ -11,11 +11,10 @@ import li.cil.oc.client.Sound
 import li.cil.oc.server.{component, driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Waila
-import li.cil.oc.{Settings, api, common}
+import li.cil.oc.{Localization, Settings, api, common}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagString}
-import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
 import net.minecraftforge.event.world.WorldEvent
@@ -166,16 +165,13 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
         val computer = servers(slot).get.machine
         computer.lastError match {
           case value if value != null =>
-            player.addChatMessage(new ChatComponentTranslation(
-              Settings.namespace + "gui.Analyzer.LastError", new ChatComponentTranslation(value)))
+            player.addChatMessage(Localization.Analyzer.LastError(value))
           case _ =>
         }
-        player.addChatMessage(new ChatComponentTranslation(
-          Settings.namespace + "gui.Analyzer.Components", computer.componentCount + "/" + servers(slot).get.maxComponents))
+        player.addChatMessage(Localization.Analyzer.Components(computer.componentCount, servers(slot).get.maxComponents))
         val list = computer.users
         if (list.size > 0) {
-          player.addChatMessage(new ChatComponentTranslation(
-            Settings.namespace + "gui.Analyzer.Users", list.mkString(", ")))
+          player.addChatMessage(Localization.Analyzer.Users(list))
         }
         Array(computer.node)
       }

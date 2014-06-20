@@ -4,10 +4,10 @@ import cpw.mods.fml.client.registry.{ClientRegistry, RenderingRegistry}
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
-import li.cil.oc.client.renderer.WirelessNetworkDebugRenderer
 import li.cil.oc.client.renderer.block.BlockRenderer
 import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
+import li.cil.oc.client.renderer.{PetRenderer, WirelessNetworkDebugRenderer}
 import li.cil.oc.common.component.TextBuffer
 import li.cil.oc.common.tileentity.Rack
 import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
@@ -59,8 +59,10 @@ private[oc] class Proxy extends CommonProxy {
 
     FMLCommonHandler.instance().bus().register(HologramRenderer)
     FMLCommonHandler.instance().bus().register(ScreenRenderer)
+
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
     MinecraftForge.EVENT_BUS.register(Rack)
     MinecraftForge.EVENT_BUS.register(TextBuffer)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
   }
 }

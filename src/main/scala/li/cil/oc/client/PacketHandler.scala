@@ -2,7 +2,7 @@ package li.cil.oc.client
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent
-import li.cil.oc.Settings
+import li.cil.oc.{Localization, Settings}
 import li.cil.oc.api.component
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
@@ -74,8 +74,7 @@ object PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)
-      p.player.addChatMessage(new ChatComponentTranslation(
-        Settings.namespace + "gui.Analyzer.AddressCopied"))
+      p.player.addChatMessage(Localization.Analyzer.AddressCopied)
     }
   }
 

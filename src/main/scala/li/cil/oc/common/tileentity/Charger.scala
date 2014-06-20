@@ -3,10 +3,9 @@ package li.cil.oc.common.tileentity
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Analyzable, Node, Visibility}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatComponentTranslation
 import net.minecraftforge.common.util.ForgeDirection
 
 class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with Analyzable {
@@ -30,9 +29,7 @@ class Charger extends traits.Environment with traits.PowerAcceptor with traits.R
   override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.addChatMessage(new ChatComponentTranslation(
-      Settings.namespace + "gui.Analyzer.ChargerSpeed",
-      (chargeSpeed * 100).toInt + "%"))
+    player.addChatMessage(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
   }
 

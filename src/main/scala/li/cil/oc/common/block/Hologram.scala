@@ -4,14 +4,14 @@ import java.util
 
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.Settings
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{AxisAlignedBB, IIcon, StatCollector}
+import net.minecraft.util.{AxisAlignedBB, IIcon}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -30,8 +30,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
   }
 

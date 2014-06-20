@@ -1,7 +1,7 @@
 package li.cil.oc.common.tileentity
 
-import li.cil.oc.{Settings, api}
 import li.cil.oc.api.network.{Arguments, Callback, Context, Visibility}
+import li.cil.oc.{Settings, api}
 import net.minecraft.block.Block
 import net.minecraftforge.fluids.FluidRegistry
 

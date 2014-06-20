@@ -6,12 +6,12 @@ import cpw.mods.fml.common.Optional
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{IIcon, StatCollector}
+import net.minecraft.util.{IIcon}
 import net.minecraft.world.World
 import net.minecraftforge.common.util.Constants.NBT
 import net.minecraftforge.common.util.ForgeDirection
@@ -40,8 +40,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
         getCompoundTag(Settings.namespace + "data").
         getCompoundTag("node")
       if (node.hasKey("address")) {
-        tooltip.add(StatCollector.translateToLocalFormatted(
-          Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+        tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
       }
     }
   }

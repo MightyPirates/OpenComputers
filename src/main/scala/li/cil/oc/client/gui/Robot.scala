@@ -2,7 +2,6 @@ package li.cil.oc.client.gui
 
 import java.util
 
-import li.cil.oc.{Settings, api}
 import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
@@ -10,13 +9,13 @@ import li.cil.oc.common.container.StaticComponentSlot
 import li.cil.oc.common.{container, tileentity}
 import li.cil.oc.server.driver
 import li.cil.oc.util.RenderState
+import li.cil.oc.{Localization, api}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import net.minecraft.util.StatCollector
 import org.lwjgl.input.{Keyboard, Mouse}
 import org.lwjgl.opengl.GL11
 
@@ -124,7 +123,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (func_146978_c(powerX, powerY, powerWidth, powerHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
-      val format = StatCollector.translateToLocal(Settings.namespace + "gui.Robot.Power") + ": %d%% (%d/%d)"
+      val format = Localization.Robot.Power + ": %d%% (%d/%d)"
       tooltip.add(format.format(
         ((robot.globalBuffer / robot.globalBufferSize) * 100).toInt,
         robot.globalBuffer.toInt,
@@ -133,8 +132,7 @@ class Robot(playerInventory: InventoryPlayer, val robot: tileentity.Robot) exten
     }
     if (powerButton.func_146115_a) {
       val tooltip = new java.util.ArrayList[String]
-      val which = if (robot.isRunning) "gui.Robot.TurnOff" else "gui.Robot.TurnOn"
-      tooltip.add(StatCollector.translateToLocal(Settings.namespace + which))
+      tooltip.add(if (robot.isRunning) Localization.Robot.TurnOff else Localization.Robot.TurnOn)
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRendererObj)
     }
     GL11.glPopAttrib()

@@ -2,14 +2,13 @@ package li.cil.oc.common.item
 
 import java.util
 
-import li.cil.oc.Settings
 import li.cil.oc.api.network._
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Localization, Settings}
 import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.item.ItemStack
-import net.minecraft.util.ChatComponentTranslation
 import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection
 
@@ -50,27 +49,19 @@ class Analyzer(val parent: Delegator) extends Delegate {
     node match {
       case connector: Connector =>
         if (connector.localBufferSize > 0) {
-          player.addChatMessage(new ChatComponentTranslation(
-            Settings.namespace + "gui.Analyzer.StoredEnergy",
-            "%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize)))
+          player.addChatMessage(Localization.Analyzer.StoredEnergy("%.2f/%.2f".format(connector.localBuffer, connector.localBufferSize)))
         }
-        player.addChatMessage(new ChatComponentTranslation(
-          Settings.namespace + "gui.Analyzer.TotalEnergy",
-          "%.2f/%.2f".format(connector.globalBuffer, connector.globalBufferSize)))
+        player.addChatMessage(Localization.Analyzer.TotalEnergy("%.2f/%.2f".format(connector.globalBuffer, connector.globalBufferSize)))
       case _ =>
     }
     node match {
       case component: Component =>
-        player.addChatMessage(new ChatComponentTranslation(
-          Settings.namespace + "gui.Analyzer.ComponentName",
-          component.name))
+        player.addChatMessage(Localization.Analyzer.ComponentName(component.name))
       case _ =>
     }
     val address = node.address()
     if (address != null && !address.isEmpty) {
-      player.addChatMessage(new ChatComponentTranslation(
-        Settings.namespace + "gui.Analyzer.Address",
-        address))
+      player.addChatMessage(Localization.Analyzer.Address(address))
       PacketSender.sendAnalyze(address, player)
     }
   }
