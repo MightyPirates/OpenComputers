@@ -13,9 +13,12 @@ import net.minecraftforge.client.event.RenderPlayerEvent
 import org.lwjgl.opengl.{GL11, GL12}
 
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 object PetRenderer {
-  private val entitledPlayers = Map("Kethtar" -> (0.3, 0.9, 0.6))
+  val hidden = mutable.Set.empty[String]
+
+  private val entitledPlayers = Map("Kethtar" ->(0.3, 0.9, 0.6))
 
   private val petLocations = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(5, TimeUnit.SECONDS).
@@ -27,7 +30,7 @@ object PetRenderer {
   @SubscribeEvent
   def onPlayerRender(e: RenderPlayerEvent.Pre) {
     val name = e.entityPlayer.getCommandSenderName
-    if (!entitledPlayers.contains(name)) return
+    if (hidden.contains(name) || !entitledPlayers.contains(name)) return
     rendering = Some(entitledPlayers(name))
 
     val worldTime = e.entityPlayer.getEntityWorld.getWorldTime

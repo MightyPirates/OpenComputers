@@ -249,7 +249,6 @@ sandbox = {
     traceback = debug.traceback
   },
 
-  _OSVERSION = "OpenOS 1.2",
   checkArg = checkArg
 }
 sandbox._G = sandbox
@@ -622,7 +621,7 @@ local function bootstrap()
     end
   end
   if not init then
-    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""))
+    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
   end
 
   return coroutine.create(init), {n=0}

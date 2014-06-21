@@ -282,12 +282,17 @@ abstract class GraphicsCard extends component.ManagedComponent {
             else s.setBackgroundColor(0x000000)
             s.fill(0, 0, w, h, ' ')
             try {
-              val message = "Unrecoverable error:\n" + Localization.localizeImmediately(machine.lastError) + "\n"
               val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
-              val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
+              val lines = wrapRegEx.replaceAllIn(Localization.localizeImmediately(machine.lastError).replace("\t", "  ") + "\n", m => m.group(1) + "\n").lines.toArray
+              val firstRow = ((h - lines.length) / 2) max 2
+
+              val message = "Unrecoverable Error"
+              s.set((w - message.length) / 2, firstRow - 2, message, false)
+
+              val maxLineLength = lines.map(_.length).max
+              val col = ((w - maxLineLength) / 2) max 0
               for ((line, idx) <- lines.zipWithIndex) {
-                val col = (w - line.length) / 2
-                val row = (h - lines.length) / 2 + idx
+                val row = firstRow + idx
                 s.set(col, row, line, false)
               }
             }

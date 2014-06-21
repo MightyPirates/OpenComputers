@@ -15,6 +15,7 @@ object PacketType extends Enumeration {
   HologramPowerChange,
   HologramScale,
   HologramSet,
+  PetVisibility, // Goes both ways.
   PowerState,
   RedstoneState,
   RobotAnimateSwing,

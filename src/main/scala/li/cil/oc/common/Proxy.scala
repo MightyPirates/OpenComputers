@@ -140,8 +140,9 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
-    FMLCommonHandler.instance().bus().register(EventHandler)
-    FMLCommonHandler.instance().bus().register(SimpleComponentTickHandler.Instance)
+    FMLCommonHandler.instance.bus.register(EventHandler)
+    FMLCommonHandler.instance.bus.register(SimpleComponentTickHandler.Instance)
+    MinecraftForge.EVENT_BUS.register(EventHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
   }

@@ -1,4 +1,6 @@
 do
+  _G._OSVERSION = "OpenOS 1.2"
+
   local component = component
   local computer = computer
   local unicode = unicode

@@ -4,18 +4,22 @@ import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
+import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import cpw.mods.fml.common.{FMLCommonHandler, Optional}
 import ic2.api.energy.event.{EnergyTileLoadEvent, EnergyTileUnloadEvent}
 import li.cil.oc._
 import li.cil.oc.api.Network
+import li.cil.oc.client.renderer.PetRenderer
+import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
 import li.cil.oc.util.LuaStateFactory
 import li.cil.oc.util.mods.{Mods, ProjectRed}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.server.MinecraftServer
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.{ChatComponentText, ChatComponentTranslation}
 import net.minecraftforge.common.MinecraftForge
 import org.apache.logging.log4j.Level
 
@@ -69,28 +73,34 @@ object EventHandler {
     if (FMLCommonHandler.instance.getEffectiveSide.isServer) e.player match {
       case player: EntityPlayerMP =>
         if (!LuaStateFactory.isAvailable) {
-          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
-            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningLuaFallback")))
+          player.addChatMessage(Localization.Chat.WarningLuaFallback)
         }
         if (Mods.ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
-          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
-            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningProjectRed")))
+          player.addChatMessage(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {
-          player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
-            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningPower")))
+          player.addChatMessage(Localization.Chat.WarningPower)
         }
         OpenComputers.tampered match {
-          case Some(event) => player.addChatMessage(new ChatComponentText("§aOpenComputers§f: ").appendSibling(
-            new ChatComponentTranslation(Settings.namespace + "gui.Chat.WarningFingerprint", event.expectedFingerprint, event.fingerprints.toArray.mkString(", "))))
+          case Some(event) => player.addChatMessage(Localization.Chat.WarningFingerprint(event))
           case _ =>
         }
+        ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
         if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player.getCommandSenderName)) {
           UpdateCheck.checkForPlayer(player)
         }
       case _ =>
     }
+  }
+
+  @SubscribeEvent
+  def clientLoggedIn(e: ClientConnectedToServerEvent) {
+    PetRenderer.hidden.clear()
+    if (Settings.get.hideOwnPet) {
+      PetRenderer.hidden += Minecraft.getMinecraft.thePlayer.getCommandSenderName
+    }
+    ClientPacketSender.sendPetVisibility()
   }
 
   lazy val navigationUpgrade = api.Items.get("navigationUpgrade")

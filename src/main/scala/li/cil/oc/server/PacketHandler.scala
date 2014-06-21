@@ -8,6 +8,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.{Localization, Settings, api}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.network.NetHandlerPlayServer
 import net.minecraftforge.common.DimensionManager
@@ -31,6 +32,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
@@ -121,6 +123,22 @@ object PacketHandler extends CommonPacketHandler {
   def onMultiPartPlace(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP => EventHandler.place(player)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onPetVisibility(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayerMP if player != Minecraft.getMinecraft.thePlayer =>
+        if (if (p.readBoolean()) {
+          PetVisibility.hidden.remove(player.getCommandSenderName)
+        }
+        else {
+          PetVisibility.hidden.add(player.getCommandSenderName)
+        }) {
+          // Something changed.
+          PacketSender.sendPetVisibility(Some(player.getCommandSenderName))
+        }
       case _ => // Invalid packet.
     }
   }
