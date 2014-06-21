@@ -205,24 +205,29 @@ class Hologram(var tier: Int) extends traits.Environment with SidedEnvironment w
     null
   }
 
+  @Callback(direct = true, doc = """function():number -- The color depth supported by the hologram.""")
+  def maxDepth(context: Context, args: Arguments): Array[AnyRef] = {
+    result(tier + 1)
+  }
+
   @Callback(doc = """function(index:number):number -- Get the color defined for the specified value.""")
   def getPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
-    if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
+    if (index < 1 || index > colors.length) throw new ArrayIndexOutOfBoundsException()
     // Colors are stored as 0xAABBGGRR for rendering convenience, so convert them.
-    result(convertColor(colors(index)))
+    result(convertColor(colors(index - 1)))
   }
 
   @Callback(doc = """function(index:number, value:number):number -- Set the color defined for the specified value.""")
   def setPaletteColor(computer: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
-    if (index < 0 || index >= colors.length) throw new ArrayIndexOutOfBoundsException()
+    if (index < 1 || index > colors.length) throw new ArrayIndexOutOfBoundsException()
     val value = args.checkInteger(1)
-    val oldValue = colors(index)
+    val oldValue = colors(index - 1)
     // Change byte order here to allow passing stored color to OpenGL "as-is"
     // (as whole Int, i.e. 0xAABBGGRR, alpha is unused but present for alignment)
-    colors(index) = convertColor(value)
-    ServerPacketSender.sendHologramColor(this, index, value)
+    colors(index - 1) = convertColor(value)
+    ServerPacketSender.sendHologramColor(this, index - 1, value)
     result(oldValue)
   }
 
