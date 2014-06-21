@@ -18,7 +18,13 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
 
   override def ticketsLoaded(tickets: util.List[Ticket], world: World) {
     for (ticket <- tickets) {
-      restoredTickets += ticket.getModData.getString("address") -> ticket
+      val data = ticket.getModData
+      restoredTickets += data.getString("address") -> ticket
+      if (data.hasKey("x") && data.hasKey("z")) {
+        val x = data.getInteger("x")
+        val z = data.getInteger("z")
+        ForgeChunkManager.forceChunk(ticket, new ChunkCoordIntPair(x, z))
+      }
     }
   }
 
@@ -35,9 +41,12 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
     restoredTickets.clear()
   }
 
-  // TODO it might be necessary to use pre move to force load the target chunk
+  // Note: it might be necessary to use pre move to force load the target chunk
   // in case the robot moves across a chunk border into an otherwise unloaded
-  // chunk (I think it would just fail to move otherwise)
+  // chunk (I think it would just fail to move otherwise).
+  // Update 2014-06-21: did some testing, seems not to be necessary. My guess
+  // is that the access to the block in the direction the robot moves causes
+  // the chunk it might move into to get loaded.
 
   @ForgeSubscribe
   def onMove(e: RobotMoveEvent.Post) {
@@ -57,6 +66,8 @@ object ChunkloaderUpgradeHandler extends LoadingCallback {
       }
       ForgeChunkManager.forceChunk(ticket, robotChunk)
       ticket.getModData.setString("address", loader.node.address)
+      ticket.getModData.setInteger("x", robotChunk.chunkXPos)
+      ticket.getModData.setInteger("z", robotChunk.chunkZPos)
     })
   }
 }

@@ -130,7 +130,7 @@ object PacketSender {
   }
 
   def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
-    val pb = new PacketBuilder(PacketType.ComputerState)
+    val pb = new PacketBuilder(PacketType.PetVisibility)
 
     name match {
       case Some(n) =>
