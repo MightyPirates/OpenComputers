@@ -7,9 +7,8 @@ import li.cil.oc.api.network.{Message, Node, Visibility}
 import li.cil.oc.api.{Items, network}
 import li.cil.oc.client.renderer.tileentity.CableRenderer
 import li.cil.oc.common.block.{Cable, Delegator}
-import li.cil.oc.server.TickHandler
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Settings, api, common}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import org.lwjgl.opengl.GL11
@@ -44,7 +43,7 @@ class CablePart(val original: Option[Node] = None) extends DelegatePart with TCu
 
   override def onWorldJoin() {
     super.onWorldJoin()
-    TickHandler.schedule(this)
+    common.EventHandler.schedule(this)
   }
 
   override def onWorldSeparate() {

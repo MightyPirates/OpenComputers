@@ -25,6 +25,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
@@ -114,6 +115,22 @@ class PacketHandler extends CommonPacketHandler {
   def onMultiPartPlace(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP => EventHandler.place(player)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onPetVisibility(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayerMP =>
+        if (if (p.readBoolean()) {
+          PetVisibility.hidden.remove(player.getCommandSenderName)
+        }
+        else {
+          PetVisibility.hidden.add(player.getCommandSenderName)
+        }) {
+          // Something changed.
+          PacketSender.sendPetVisibility(Some(player.getCommandSenderName))
+        }
       case _ => // Invalid packet.
     }
   }

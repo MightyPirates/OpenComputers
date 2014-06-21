@@ -129,6 +129,28 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
+    val pb = new PacketBuilder(PacketType.ComputerState)
+
+    name match {
+      case Some(n) =>
+        pb.writeInt(1)
+        pb.writeUTF(n)
+        pb.writeBoolean(!PetVisibility.hidden.contains(n))
+      case _ =>
+        pb.writeInt(PetVisibility.hidden.size)
+        for (n <- PetVisibility.hidden) {
+          pb.writeUTF(n)
+          pb.writeBoolean(false)
+        }
+    }
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
   def sendPowerState(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 

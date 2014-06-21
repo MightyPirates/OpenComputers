@@ -1,15 +1,15 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.{Localization, Settings}
+import li.cil.oc.Localization
 import li.cil.oc.api.component
+import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 
@@ -34,6 +34,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
+      case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
@@ -171,6 +172,19 @@ class PacketHandler extends CommonPacketHandler {
         t.dirty = true
       case _ => // Invalid packet.
     }
+
+  def onPetVisibility(p: PacketParser) {
+    val count = p.readInt()
+    for (i <- 0 until count) {
+      val name = p.readUTF()
+      if (p.readBoolean()) {
+        PetRenderer.hidden -= name
+      }
+      else {
+        PetRenderer.hidden += name
+      }
+    }
+  }
 
   def onPowerState(p: PacketParser) =
     p.readTileEntity[PowerInformation]() match {

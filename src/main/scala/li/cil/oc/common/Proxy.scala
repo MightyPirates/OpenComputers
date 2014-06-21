@@ -120,7 +120,7 @@ class Proxy {
 
     OpenComputers.log.info("Initializing event handlers.")
 
-    GameRegistry.registerCraftingHandler(CraftingHandler)
+    GameRegistry.registerCraftingHandler(EventHandler)
 
     ForgeChunkManager.setForcedChunkLoadingCallback(OpenComputers, ChunkloaderUpgradeHandler)
 
@@ -146,10 +146,10 @@ class Proxy {
     // Don't allow driver registration after this point, to avoid issues.
     driver.Registry.locked = true
 
-    TickRegistry.registerTickHandler(TickHandler, Side.SERVER)
+    TickRegistry.registerTickHandler(EventHandler, Side.SERVER)
     TickRegistry.registerTickHandler(SimpleComponentTickHandler.Instance, Side.SERVER)
     GameRegistry.registerPlayerTracker(Keyboard)
-    NetworkRegistry.instance.registerConnectionHandler(ConnectionHandler)
+    NetworkRegistry.instance.registerConnectionHandler(EventHandler)
     MinecraftForge.EVENT_BUS.register(WirelessNetwork)
     MinecraftForge.EVENT_BUS.register(SaveHandler)
   }

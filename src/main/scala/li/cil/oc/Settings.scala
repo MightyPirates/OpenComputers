@@ -219,6 +219,7 @@ class Settings(config: Config) {
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
+  val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
 }
 
 object Settings {
