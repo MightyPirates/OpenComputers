@@ -50,6 +50,8 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
 
   override def getDefaultEyeHeight = 0f
 
+  override def getDisplayName = robot.name
+
   // ----------------------------------------------------------------------- //
 
   def updatePositionAndRotation(facing: ForgeDirection, side: ForgeDirection) {
