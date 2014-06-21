@@ -24,8 +24,9 @@ trait TextBuffer extends GuiScreen {
 
   protected def bufferY: Int
 
-  protected var currentWidth, currentHeight = -1
+  protected var guiSizeChanged = false
 
+  protected var currentWidth, currentHeight = -1
 
   private var showKeyboardMissing = 0L
 
@@ -37,6 +38,7 @@ trait TextBuffer extends GuiScreen {
     super.initGui()
     BufferRenderer.init(Minecraft.getMinecraft.renderEngine)
     Keyboard.enableRepeatEvents(true)
+    guiSizeChanged = true
   }
 
   override def onGuiClosed() = {
@@ -58,7 +60,7 @@ trait TextBuffer extends GuiScreen {
       currentWidth = 0
       currentHeight = 0
     }
-    scale = changeSize(currentWidth, currentHeight, oldWidth != currentWidth || oldHeight != currentHeight)
+    scale = changeSize(currentWidth, currentHeight, guiSizeChanged || oldWidth != currentWidth || oldHeight != currentHeight)
 
     RenderState.checkError(getClass.getName + ".drawBufferLayer: entering (aka: wasntme)")
 

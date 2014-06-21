@@ -7,6 +7,7 @@ import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
 import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.{Settings, api}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.{DimensionManager, ForgeDirection}
@@ -121,7 +122,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onPetVisibility(p: PacketParser) {
     p.player match {
-      case player: EntityPlayerMP =>
+      case player: EntityPlayerMP if player != Minecraft.getMinecraft.thePlayer =>
         if (if (p.readBoolean()) {
           PetVisibility.hidden.remove(player.getCommandSenderName)
         }
