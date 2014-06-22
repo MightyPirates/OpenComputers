@@ -1,25 +1,37 @@
 package li.cil.oc.common.item
 
-import java.util.concurrent.{Callable, TimeUnit}
+import java.util
 import java.util.UUID
-import com.google.common.cache.{RemovalNotification, RemovalListener, CacheBuilder}
-import li.cil.oc.{OpenComputers, Settings, api}
+import java.util.concurrent.{Callable, TimeUnit}
+
+import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
+import cpw.mods.fml.common.{ITickHandler, TickType}
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Owner
 import li.cil.oc.api.network.{Connector, Message, Node}
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
+import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.world.World
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.World
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
   val unlocalizedName = "Tablet"
 
   override def maxStackSize = 1
+
+  override def registerIcons(iconRegister: IconRegister) = {
+    super.registerIcons(iconRegister)
+
+    icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":tablet"))
+  }
 
   override def update(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
     Tablet.get(stack, player).update(world, player, slot, selected)
@@ -42,16 +54,24 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
   lazy val computer = if (holder.worldObj.isRemote) null else Machine.create(this)
 
   val items = Array(
+    Option(api.Items.get("cpu1").createItemStack(1)),
+    Option(api.Items.get("ram4").createItemStack(1)),
     Option(api.Items.get("screen1").createItemStack(1)),
     Option(api.Items.get("keyboard").createItemStack(1)),
-    Option(api.Items.get("graphicsCard1").createItemStack(1)),
+    Option(api.Items.get("graphicsCard2").createItemStack(1)),
+    Option(api.Items.get("batteryUpgrade2").createItemStack(1)),
+    Option(api.Items.get("navigationUpgrade").createItemStack(1)),
     Option(api.Items.get("openOS").createItemStack(1)),
     Option(api.Items.get("wlanCard").createItemStack(1))
   )
 
   def readFromNBT() {
     if (stack.hasTagCompound) {
-      load(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+      val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
+      if (!world.isRemote) {
+        computer.node.load(data)
+      }
+      load(data)
     }
   }
 
@@ -63,12 +83,21 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
     if (!nbt.hasKey(Settings.namespace + "data")) {
       nbt.setTag(Settings.namespace + "data", new NBTTagCompound())
     }
-    save(stack.getTagCompound.getCompoundTag(Settings.namespace + "data"))
+    val data = stack.getTagCompound.getCompoundTag(Settings.namespace + "data")
+    if (!world.isRemote) {
+      computer.node.save(data)
+    }
+    save(data)
   }
 
   readFromNBT()
   if (world.isRemote) {
     connectComponents()
+    components collect {
+      case Some(buffer: api.component.TextBuffer) =>
+        buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+        buffer.setMaximumResolution(80, 25)
+    }
   }
   else {
     api.Network.joinNewNetwork(computer.node)
@@ -80,6 +109,12 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
   override def onConnect(node: Node) {
     if (node == this.node) {
       connectComponents()
+    }
+    else node.host match {
+      case buffer: api.component.TextBuffer =>
+        buffer.setMaximumColorDepth(api.component.TextBuffer.ColorDepth.FourBit)
+        buffer.setMaximumResolution(80, 25)
+      case _ =>
     }
   }
 
@@ -123,9 +158,21 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def world = holder.worldObj
 
-  override def installedMemory = 256 * 1024
+  override def installedMemory = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
+    case Some(item) => Option(api.Driver.driverFor(item)) match {
+      case Some(driver: api.driver.Memory) => driver.amount(item)
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
-  override def maxComponents() = 8
+  override def maxComponents = items.foldLeft(0)((acc, itemOption) => acc + (itemOption match {
+    case Some(item) => Option(api.Driver.driverFor(item)) match {
+      case Some(driver: api.driver.Processor) => driver.supportedComponents(item)
+      case _ => 0
+    }
+    case _ => 0
+  }))
 
   override def markAsChanged() {}
 
@@ -163,7 +210,7 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
   }
 }
 
-object Tablet extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
+object Tablet extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] with ITickHandler {
   val clientCache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(10, TimeUnit.SECONDS).
     removalListener(this).
@@ -197,6 +244,14 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
       serverCache.get(id, this)
   }
 
+  def get(stack: ItemStack) = clientCache.synchronized {
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
+      val id = stack.getTagCompound.getString(Settings.namespace + "tablet")
+      Option(clientCache.getIfPresent(id))
+    }
+    else None
+  }
+
   def call = {
     new TabletWrapper(currentStack, currentHolder)
   }
@@ -209,4 +264,23 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
     }
     tablet.writeToNBT()
   }
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    clientCache.invalidateAll()
+    clientCache.cleanUp()
+    serverCache.invalidateAll()
+    serverCache.cleanUp()
+  }
+
+  override def getLabel = "OpenComputers Tablet Cleanup Ticker"
+
+  override def ticks = util.EnumSet.of(TickType.CLIENT, TickType.SERVER)
+
+  override def tickStart(tickType: util.EnumSet[TickType], tickData: AnyRef*) {
+    clientCache.cleanUp()
+    serverCache.cleanUp()
+  }
+
+  override def tickEnd(tickType: util.EnumSet[TickType], tickData: AnyRef*) {}
 }

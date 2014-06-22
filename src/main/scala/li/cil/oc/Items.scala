@@ -228,6 +228,7 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.One), "batteryUpgrade1", "oc:batteryUpgrade1")
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Two), "batteryUpgrade2", "oc:batteryUpgrade2")
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
+
     // Experimental
     registerItem(new item.Tablet(multi), "tablet")
   }
