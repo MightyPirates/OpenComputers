@@ -1,27 +1,28 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc._
 import li.cil.oc.api.Driver
 import li.cil.oc.api.driver.Slot
 import li.cil.oc.api.event.{RobotAnalyzeEvent, RobotMoveEvent}
 import li.cil.oc.api.network._
 import li.cil.oc.client.gui
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.server.component.robot
-import li.cil.oc.server.{PacketSender => ServerPacketSender, driver}
+import li.cil.oc.server.component.robot.Inventory
+import li.cil.oc.server.{driver, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ItemUtils
-import net.minecraft.block.{BlockFlowing, Block}
+import net.minecraft.block.{Block, BlockFlowing}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
 import net.minecraftforge.fluids.{BlockFluidBase, FluidRegistry}
+
 import scala.collection.mutable
-import li.cil.oc.common.InventorySlots.Tier
 
 // Implementation note: this tile entity is never directly added to the world.
 // It is always wrapped by a `RobotProxy` tile entity, which forwards any
@@ -38,17 +39,24 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   val bot = if (isServer) new robot.Robot(this) else null
 
+  val inventory = new Inventory(this)
+
   if (isServer) {
     computer.setCostPerTick(Settings.get.robotCost)
   }
 
   // ----------------------------------------------------------------------- //
 
-  val actualInventorySize = 83
+  val actualInventorySize = 86
+
+  def maxInventorySize = actualInventorySize - 1 - containerCount - componentCount
 
   var inventorySize = -1
 
   var selectedSlot = actualSlot(0)
+
+  // For client.
+  var renderingErrored = false
 
   // Fixed number of containers (mostly due to GUI limitation, but also because
   // I find three to be a large enough number for sufficient flexibility).
@@ -60,15 +68,15 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def player() = player(facing, facing)
 
-  override def saveUpgrade() = this.synchronized {
-    components(3) match {
-      case Some(environment) =>
-        val stack = getStackInSlot(3)
+  override def synchronizeSlot(slot: Int) = if (slot >= 0 && slot < getSizeInventory) this.synchronized {
+    val stack = getStackInSlot(slot)
+    components(slot) match {
+      case Some(component) =>
         // We're guaranteed to have a driver for entries.
-        environment.save(dataTag(Driver.driverFor(stack), stack))
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, stack)
+        save(component, Driver.driverFor(stack), stack)
       case _ =>
     }
+    ServerPacketSender.sendRobotInventory(this, slot, stack)
   }
 
   def containerSlots = 1 to info.containers.length
@@ -87,10 +95,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var owner = "OpenComputers"
 
-  var equippedItem: Option[ItemStack] = None
-
-  var equippedUpgrade: Option[ItemStack] = None
-
   var animationTicksLeft = 0
 
   var animationTicksTotal = 0
@@ -101,6 +105,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   var turnAxis = 0
 
+  var appliedToolEnchantments = false
+
   private lazy val player_ = new robot.Player(this)
 
   // ----------------------------------------------------------------------- //
@@ -108,10 +114,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   def name = info.name
 
   override def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotOwner", owner))
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.RobotName", player_.getCommandSenderName))
+    player.sendChatToPlayer(Localization.Analyzer.RobotOwner(owner))
+    player.sendChatToPlayer(Localization.Analyzer.RobotName(player_.getCommandSenderName))
     MinecraftForge.EVENT_BUS.post(new RobotAnalyzeEvent(this, player))
     super.onAnalyze(player, side, hitX, hitY, hitZ)
   }
@@ -201,7 +205,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def isAnimatingTurn = animationTicksLeft > 0 && turnAxis != 0
 
-  def animateSwing(duration: Double) = {
+  def animateSwing(duration: Double) = if (items(0).isDefined) {
     setAnimateSwing((duration * 20).toInt)
     ServerPacketSender.sendRobotAnimateSwing(this)
   }
@@ -262,37 +266,50 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     }
     super.updateEntity()
     if (isServer) {
-      globalBuffer = bot.node.globalBuffer
-      globalBufferSize = bot.node.globalBufferSize
-      info.totalEnergy = globalBuffer.toInt
-      info.robotEnergy = bot.node.localBuffer.toInt
-      updatePowerInformation()
+      if (world.getWorldTime % Settings.get.tickFrequency == 0) {
+        if (info.tier == 3) {
+          bot.node.changeBuffer(Double.PositiveInfinity)
+        }
+        globalBuffer = bot.node.globalBuffer
+        globalBufferSize = bot.node.globalBufferSize
+        info.totalEnergy = globalBuffer.toInt
+        info.robotEnergy = bot.node.localBuffer.toInt
+        updatePowerInformation()
+      }
+      if (!appliedToolEnchantments) {
+        appliedToolEnchantments = true
+        Option(getStackInSlot(0)) match {
+          case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
+          case _ =>
+        }
+      }
     }
     else if (isRunning && isAnimatingMove) {
       client.Sound.updatePosition(this)
     }
-    player().inventory.decrementAnimations()
+    inventory.decrementAnimations()
   }
 
   override protected def initialize() {
     if (isServer) {
-      Option(getStackInSlot(0)) match {
-        case Some(item) => player_.getAttributeMap.applyAttributeModifiers(item.getAttributeModifiers)
-        case _ =>
-      }
-
       // Ensure we have a node address, because the proxy needs this to initialize
       // its own node to the same address ours has.
       api.Network.joinNewNetwork(node)
+
+      // Flush excess energy to other components (mostly relevant for upgrading
+      // robots from 1.2 to 1.3, to move energy to the experience upgrade).
+      bot.node.setLocalBufferSize(bot.node.localBufferSize)
     }
   }
 
   override protected def dispose() {
     super.dispose()
-    Minecraft.getMinecraft.currentScreen match {
-      case robotGui: gui.Robot if robotGui.robot == this =>
-        Minecraft.getMinecraft.displayGuiScreen(null)
-      case _ =>
+    if (isClient) {
+      Minecraft.getMinecraft.currentScreen match {
+        case robotGui: gui.Robot if robotGui.robot == this =>
+          Minecraft.getMinecraft.displayGuiScreen(null)
+        case _ =>
+      }
     }
   }
 
@@ -346,17 +363,12 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
   @SideOnly(Side.CLIENT)
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
+    load(nbt)
     info.load(nbt)
 
     updateInventorySize()
 
     selectedSlot = nbt.getInteger("selectedSlot")
-    if (nbt.hasKey("equipped")) {
-      equippedItem = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("equipped")))
-    }
-    if (nbt.hasKey("upgrade")) {
-      equippedUpgrade = Option(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("upgrade")))
-    }
     animationTicksTotal = nbt.getInteger("animationTicksTotal")
     animationTicksLeft = nbt.getInteger("animationTicksLeft")
     moveFromX = nbt.getInteger("moveFromX")
@@ -371,24 +383,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def writeToNBTForClient(nbt: NBTTagCompound) = this.synchronized {
     super.writeToNBTForClient(nbt)
+    save(nbt)
     info.save(nbt)
+
     nbt.setInteger("selectedSlot", selectedSlot)
-    if (getStackInSlot(0) != null) {
-      nbt.setNewCompoundTag("equipped", getStackInSlot(0).writeToNBT)
-    }
-    if (getStackInSlot(3) != null) {
-      // Force saving to item's NBT if necessary before sending, to make sure
-      // we transfer the component's current state (e.g. running or not for
-      // generator upgrades).
-      components(3) match {
-        case Some(environment) =>
-          val stack = getStackInSlot(3)
-          // We're guaranteed to have a driver for entries.
-          environment.save(dataTag(Driver.driverFor(stack), stack))
-        case _ => // See onConnect()
-      }
-      nbt.setNewCompoundTag("upgrade", getStackInSlot(3).writeToNBT)
-    }
     if (isAnimatingMove || isAnimatingSwing || isAnimatingTurn) {
       nbt.setInteger("animationTicksTotal", animationTicksTotal)
       nbt.setInteger("animationTicksLeft", animationTicksLeft)
@@ -407,17 +405,6 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (node == this.node) {
       node.connect(bot.node)
       node.asInstanceOf[Connector].setLocalBufferSize(0)
-
-      // There's a chance the server sends a robot tile entity to its clients
-      // before the tile entity's first update was called, in which case the
-      // component list isn't initialized (e.g. when a client triggers a chunk
-      // load, most noticeable in single player). In that case the current
-      // equipment will be initialized incorrectly. So we have to send it
-      // again when the first update is run. One of the two (this and the info
-      // sent in writeToNBTForClient) may be superfluous, but the packet is
-      // quite small compared to what else is sent on a chunk load, so we don't
-      // really worry about it and just send it.
-      saveUpgrade()
     }
   }
 
@@ -438,10 +425,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       if (isToolSlot(slot)) {
         player_.getAttributeMap.applyAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, getStackInSlot(slot))
+        ServerPacketSender.sendRobotInventory(this, slot, stack)
       }
       if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, getStackInSlot(slot))
+        ServerPacketSender.sendRobotInventory(this, slot, stack)
       }
       if (isFloppySlot(slot)) {
         common.Sound.playDiskInsert(this)
@@ -460,10 +447,10 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     if (isServer) {
       if (isToolSlot(slot)) {
         player_.getAttributeMap.removeAttributeModifiers(stack.getAttributeModifiers)
-        ServerPacketSender.sendRobotEquippedItemChange(this, null)
+        ServerPacketSender.sendRobotInventory(this, slot, null)
       }
       if (isUpgradeSlot(slot)) {
-        ServerPacketSender.sendRobotEquippedUpgradeChange(this, null)
+        ServerPacketSender.sendRobotInventory(this, slot, null)
       }
       if (isFloppySlot(slot)) {
         common.Sound.playDiskEject(this)
@@ -478,6 +465,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
     super.onInventoryChanged()
     updateInventorySize()
     updateMaxComponentCount()
+    renderingErrored = false
   }
 
   override protected def connectItemNode(node: Node) {
@@ -524,7 +512,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   def isToolSlot(slot: Int) = slot == 0
 
-  def isInventorySlot(slot: Int) = slot >= 0 && slot < getSizeInventory && !isToolSlot(slot) && !isComponentSlot(slot)
+  def isContainerSlot(slot: Int) = containerSlots contains slot
+
+  def isInventorySlot(slot: Int) = inventorySlots contains slot
 
   def isFloppySlot(slot: Int) = isComponentSlot(slot) && (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
@@ -548,7 +538,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def hasRedstoneCard = (containerSlots ++ componentSlots).exists(slot => Option(getStackInSlot(slot)).fold(false)(driver.item.RedstoneCard.worksWith))
 
-  private def computeInventorySize() = math.min(64, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
+  private def computeInventorySize() = math.min(maxInventorySize, (containerSlots ++ componentSlots).foldLeft(0)((acc, slot) => acc + (Option(getStackInSlot(slot)) match {
     case Some(stack) => Option(Driver.driverFor(stack)) match {
       case Some(driver: api.driver.Inventory) => driver.inventoryCapacity(stack)
       case _ => 0
@@ -585,10 +575,9 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       }
       getSizeInventory = realSize + componentCount
       if (world != null && isServer) {
-        val p = player()
         for (stack <- removed) {
-          p.inventory.addItemStackToInventory(stack)
-          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+          inventory.addItemStackToInventory(stack)
+          spawnStackInWorld(stack, facing)
         }
       } // else: save is screwed and we potentially lose items. Life is hard.
       selectedSlot = math.max(actualSlot(0), math.min(actualSlot(inventorySize) - 1, actualSlot(oldSelected)))
@@ -623,9 +612,8 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
       if (stack != null && stack.stackSize > 1 && isComponentSlot(slot)) {
         super.setInventorySlotContents(slot, stack.splitStack(1))
         if (stack.stackSize > 0 && isServer) {
-          val p = player()
-          p.inventory.addItemStackToInventory(stack)
-          p.dropPlayerItemWithRandomChoice(stack, inPlace = false)
+          inventory.addItemStackToInventory(stack)
+          spawnStackInWorld(stack, facing)
         }
       }
       else super.setInventorySlotContents(slot, stack)
@@ -641,7 +629,7 @@ class Robot(val isRemote: Boolean) extends traits.Computer with traits.PowerInfo
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
     case (0, _) => true // Allow anything in the tool slot.
-    case (i, Some(driver)) if containerSlots contains i =>
+    case (i, Some(driver)) if isContainerSlot(i) =>
       // Yay special cases! Dynamic screens kind of work, but are pretty derpy
       // because the item gets send around on changes, including the screen
       // state, which leads to weird effects. Also, it's really illogical that

@@ -1,19 +1,19 @@
 package li.cil.oc.common.recipe
 
+import java.io.{File, FileReader}
+import java.util.logging.Level
+
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
-import java.io.{FileReader, File}
-import java.util.logging.Level
-import li.cil.oc.{Items, OpenComputers}
-import li.cil.oc.api
-import li.cil.oc.common
 import li.cil.oc.util.mods.GregTech
+import li.cil.oc.{Items, OpenComputers, api, common}
 import net.minecraft.block.Block
 import net.minecraft.item.crafting.FurnaceRecipes
-import net.minecraft.item.{ItemStack, Item}
+import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 import org.apache.commons.io.FileUtils
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 

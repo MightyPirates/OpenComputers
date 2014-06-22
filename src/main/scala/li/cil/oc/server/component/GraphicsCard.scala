@@ -1,17 +1,15 @@
 package li.cil.oc.server.component
 
-import li.cil.oc.Settings
 import li.cil.oc.api.Network
+import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.network._
-import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.component
 import li.cil.oc.util.PackedColor
+import li.cil.oc.{Localization, Settings}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.StatCollector
-import li.cil.oc.api.component.TextBuffer
 
-abstract class GraphicsCard extends ManagedComponent {
+abstract class GraphicsCard extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Neighbors).
     withComponent("gpu").
     withConnector().
@@ -80,10 +78,16 @@ abstract class GraphicsCard extends ManagedComponent {
   def setBackground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => {
-      val oldColor = s.getBackgroundColor
-      val oldIsPalette = s.isBackgroundFromPalette
+      val oldValue = s.getBackgroundColor
+      val (oldColor, oldIndex) =
+        if (s.isBackgroundFromPalette) {
+          (s.getPaletteColor(oldValue), oldValue)
+        }
+        else {
+          (oldValue, Unit)
+        }
       s.setBackgroundColor(color, args.count > 1 && args.checkBoolean(1))
-      result(oldColor, oldIsPalette)
+      result(oldColor, oldIndex)
     })
   }
 
@@ -94,17 +98,25 @@ abstract class GraphicsCard extends ManagedComponent {
   def setForeground(context: Context, args: Arguments): Array[AnyRef] = {
     val color = args.checkInteger(0)
     screen(s => {
-      val oldColor = s.getForegroundColor
-      val oldIsPalette = s.isForegroundFromPalette
+      val oldValue = s.getForegroundColor
+      val (oldColor, oldIndex) =
+        if (s.isForegroundFromPalette) {
+          (s.getPaletteColor(oldValue), oldValue)
+        }
+        else {
+          (oldValue, Unit)
+        }
       s.setForegroundColor(color, args.count > 1 && args.checkBoolean(1))
-      result(oldColor, oldIsPalette)
+      result(oldColor, oldIndex)
     })
   }
 
   @Callback(direct = true)
   def getPaletteColor(context: Context, args: Arguments): Array[AnyRef] = {
     val index = args.checkInteger(0)
-    screen(s => result(s.getPaletteColor(index)))
+    screen(s => try result(s.getPaletteColor(index)) catch {
+      case _: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("invalid palette index")
+    })
   }
 
   @Callback
@@ -112,10 +124,13 @@ abstract class GraphicsCard extends ManagedComponent {
     val index = args.checkInteger(0)
     val color = args.checkInteger(1)
     context.pause(0.1)
-    screen(s => {
+    screen(s => try {
       val oldColor = s.getPaletteColor(index)
       s.setPaletteColor(index, color)
       result(oldColor)
+    }
+    catch {
+      case _: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("invalid palette index")
     })
   }
 
@@ -172,7 +187,25 @@ abstract class GraphicsCard extends ManagedComponent {
     val x = args.checkInteger(0) - 1
     val y = args.checkInteger(1) - 1
     screen(s => {
-      result(s.get(x, y), s.getForegroundColor(x, y), s.getBackgroundColor(x, y), s.isForegroundFromPalette(x, y), s.isBackgroundFromPalette(x, y))
+      val fgValue = s.getForegroundColor(x, y)
+      val (fgColor, fgIndex) =
+        if (s.isForegroundFromPalette(x, y)) {
+          (s.getPaletteColor(fgValue), fgValue)
+        }
+        else {
+          (fgValue, Unit)
+        }
+
+      val bgValue = s.getBackgroundColor(x, y)
+      val (bgColor, bgIndex) =
+        if (s.isBackgroundFromPalette(x, y)) {
+          (s.getPaletteColor(bgValue), bgValue)
+        }
+        else {
+          (bgValue, Unit)
+        }
+
+      result(s.get(x, y), fgColor, bgColor, fgIndex, bgIndex)
     })
   }
 
@@ -234,36 +267,44 @@ abstract class GraphicsCard extends ManagedComponent {
   override def onMessage(message: Message) {
     super.onMessage(message)
     if (message.name == "computer.stopped" && node.isNeighborOf(message.source)) {
-      screenInstance match {
-        case Some(buffer) => buffer.synchronized {
-          val w = buffer.getWidth
-          val h = buffer.getHeight
-          buffer.setForegroundColor(0xFFFFFF)
-          message.source.host match {
-            case machine: machine.Machine if machine.lastError != null =>
-              if (buffer.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) buffer.setBackgroundColor(0x0000FF)
-              else buffer.setBackgroundColor(0x000000)
-              buffer.fill(0, 0, w, h, ' ')
-              try {
-                val message = "Unrecoverable error:\n" + StatCollector.translateToLocal(machine.lastError) + "\n"
-                val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
-                val lines = wrapRegEx.replaceAllIn(message, m => m.group(1) + "\n").lines.toArray
-                for ((line, idx) <- lines.zipWithIndex) {
-                  val col = (w - line.length) / 2
-                  val row = (h - lines.length) / 2 + idx
-                  buffer.set(col, row, line, false)
-                }
+      screen(s => {
+        val (gmw, gmh) = maxResolution
+        val smw = s.getMaximumWidth
+        val smh = s.getMaximumHeight
+        s.setResolution(math.min(gmw, smw), math.min(gmh, smh))
+        s.setColorDepth(ColorDepth.values.apply(math.min(maxDepth.ordinal, s.getMaximumColorDepth.ordinal)))
+        s.setForegroundColor(0xFFFFFF)
+        val w = s.getWidth
+        val h = s.getHeight
+        message.source.host match {
+          case machine: machine.Machine if machine.lastError != null =>
+            if (s.getColorDepth.ordinal > ColorDepth.OneBit.ordinal) s.setBackgroundColor(0x0000FF)
+            else s.setBackgroundColor(0x000000)
+            s.fill(0, 0, w, h, ' ')
+            try {
+              val wrapRegEx = s"(.{1,${math.max(1, w - 2)}})\\s".r
+              val lines = wrapRegEx.replaceAllIn(Localization.localizeImmediately(machine.lastError).replace("\t", "  ") + "\n", m => m.group(1) + "\n").lines.toArray
+              val firstRow = ((h - lines.length) / 2) max 2
+
+              val message = "Unrecoverable Error"
+              s.set((w - message.length) / 2, firstRow - 2, message, false)
+
+              val maxLineLength = lines.map(_.length).max
+              val col = ((w - maxLineLength) / 2) max 0
+              for ((line, idx) <- lines.zipWithIndex) {
+                val row = firstRow + idx
+                s.set(col, row, line, false)
               }
-              catch {
-                case t: Throwable => t.printStackTrace()
-              }
-            case _ =>
-              buffer.setBackgroundColor(0x000000)
-              buffer.fill(0, 0, w, h, ' ')
-          }
+            }
+            catch {
+              case t: Throwable => t.printStackTrace()
+            }
+          case _ =>
+            s.setBackgroundColor(0x000000)
+            s.fill(0, 0, w, h, ' ')
         }
-        case _ =>
-      }
+        null // For screen()
+      })
     }
   }
 

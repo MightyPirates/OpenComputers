@@ -1,31 +1,50 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.{OpenComputers, api, Settings}
-import li.cil.oc.api.network.Visibility
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.util.{ItemUtils, InventoryUtils}
-import net.minecraft.item.{ItemBucket, Item, ItemStack}
-import net.minecraft.item.crafting.{ShapelessRecipes, ShapedRecipes, IRecipe, CraftingManager}
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraftforge.common.ForgeDirection
-import net.minecraftforge.oredict.{ShapelessOreRecipe, ShapedOreRecipe}
-import scala.collection.convert.WrapAsScala._
-import scala.collection.mutable
-import li.cil.oc.common.inventory.ServerInventory
 import java.util.logging.Level
 
-class Disassembler extends traits.Environment with traits.Inventory {
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.inventory.ServerInventory
+import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.util.ExtendedNBT._
+import li.cil.oc.util.{InventoryUtils, ItemUtils}
+import li.cil.oc.{OpenComputers, Settings, api}
+import net.minecraft.item.crafting.{CraftingManager, IRecipe, ShapedRecipes, ShapelessRecipes}
+import net.minecraft.item.{Item, ItemBucket, ItemStack}
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.common.ForgeDirection
+import net.minecraftforge.oredict.{ShapedOreRecipe, ShapelessOreRecipe}
+
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
+
+class Disassembler extends traits.Environment with traits.PowerAcceptor with traits.Inventory {
   val node = api.Network.newNode(this, Visibility.None).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
 
   var isActive = false
 
   val queue = mutable.ArrayBuffer.empty[ItemStack]
 
+  var totalRequiredEnergy = 0.0
+
   var buffer = 0.0
+
+  def progress = if (queue.isEmpty) 0 else (1 - (queue.size * Settings.get.disassemblerItemCost - buffer) / totalRequiredEnergy) * 100
+
+  private def setActive(value: Boolean) = if (value != isActive) {
+    isActive = value
+    ServerPacketSender.sendDisassemblerActive(this, isActive)
+  }
+
+  // ----------------------------------------------------------------------- //
+
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = side != ForgeDirection.UP
+
+  override protected def connector(side: ForgeDirection) = Option(if (side != ForgeDirection.UP) node else null)
 
   // ----------------------------------------------------------------------- //
 
@@ -35,24 +54,17 @@ class Disassembler extends traits.Environment with traits.Inventory {
     super.updateEntity()
     if (world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
-        val stack = decrStackSize(0, 1)
-        if (stack != null) {
-          disassemble(stack)
-          if (!isActive && !queue.isEmpty) {
-            isActive = true
-            ServerPacketSender.sendDisassemblerActive(this, isActive)
-          }
-        }
-        else if (isActive) {
-          isActive = false
-          ServerPacketSender.sendDisassemblerActive(this, isActive)
-        }
+        disassemble(decrStackSize(0, 1))
+        setActive(!queue.isEmpty)
       }
       else {
         if (buffer < Settings.get.disassemblerItemCost) {
           val want = Settings.get.disassemblerTickAmount
-          val have = want - node.changeBuffer(-want)
-          buffer += have
+          val success = node.tryChangeBuffer(-want)
+          setActive(success) // If energy is insufficient indicate it visually.
+          if (success) {
+            buffer += want
+          }
         }
         if (buffer >= Settings.get.disassemblerItemCost) {
           buffer -= Settings.get.disassemblerItemCost
@@ -67,7 +79,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
 
   def disassemble(stack: ItemStack) {
     // Validate the item, never trust Minecraft / other Mods on anything!
-    if (isItemValidForSlot(0, stack)) {
+    if (stack != null && isItemValidForSlot(0, stack)) {
       if (api.Items.get(stack) == api.Items.get("robot")) enqueueRobot(stack)
       else if (api.Items.get(stack) == api.Items.get("server1")) enqueueServer(stack, 0)
       else if (api.Items.get(stack) == api.Items.get("server2")) enqueueServer(stack, 1)
@@ -76,12 +88,16 @@ class Disassembler extends traits.Environment with traits.Inventory {
         enqueueNavigationUpgrade(stack)
       }
       else queue ++= getIngredients(stack)
+      totalRequiredEnergy = queue.size * Settings.get.disassemblerItemCost
     }
   }
 
   private def enqueueRobot(robot: ItemStack) {
     val info = new ItemUtils.RobotData(robot)
-    queue += api.Items.get("case" + (info.tier + 1)).createItemStack(1)
+    val itemName =
+      if (info.tier == Tier.Four) "caseCreative"
+      else "case" + (info.tier + 1)
+    queue += api.Items.get(itemName).createItemStack(1)
     queue ++= info.containers
     queue ++= info.components
     node.changeBuffer(info.robotEnergy)
@@ -177,6 +193,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
     queue.clear()
     queue ++= nbt.getTagList(Settings.namespace + "queue").map(ItemStack.loadItemStackFromNBT)
     buffer = nbt.getDouble(Settings.namespace + "buffer")
+    totalRequiredEnergy = nbt.getDouble(Settings.namespace + "total")
     isActive = !queue.isEmpty
   }
 
@@ -184,6 +201,7 @@ class Disassembler extends traits.Environment with traits.Inventory {
     super.writeToNBT(nbt)
     nbt.setNewTagList(Settings.namespace + "queue", queue)
     nbt.setDouble(Settings.namespace + "buffer", buffer)
+    nbt.setDouble(Settings.namespace + "total", totalRequiredEnergy)
   }
 
   @SideOnly(Side.CLIENT)

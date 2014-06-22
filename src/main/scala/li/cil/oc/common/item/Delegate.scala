@@ -1,17 +1,18 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.{Settings, api}
 import li.cil.oc.client.KeyBindings
-import li.cil.oc.Settings
-import li.cil.oc.util.ItemCosts
+import li.cil.oc.util.{ItemCosts, Rarity}
 import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.item.ItemStack
+import net.minecraft.util.{Icon, StatCollector}
 import net.minecraft.world.World
 import org.lwjgl.input
-import net.minecraft.entity.Entity
 
 trait Delegate {
   val parent: Delegator
@@ -48,7 +49,15 @@ trait Delegate {
 
   // ----------------------------------------------------------------------- //
 
-  def rarity = EnumRarity.common
+  def rarity = Rarity.byTier(tierFromDriver)
+
+  protected def tierFromDriver = {
+    val stack = createItemStack()
+    api.Driver.driverFor(stack) match {
+      case driver: api.driver.Item => driver.tier(stack)
+      case _ => 0
+    }
+  }
 
   def displayName(stack: ItemStack): Option[String] = None
 

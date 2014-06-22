@@ -1,14 +1,15 @@
 package li.cil.oc.common.inventory
 
 import java.util.logging.Level
+
 import li.cil.oc.OpenComputers
-import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.{Item => ItemDriver, Container}
-import li.cil.oc.api.network
-import li.cil.oc.api.network.{Node, ManagedEnvironment}
+import li.cil.oc.api.driver.{Container, Item => ItemDriver}
+import li.cil.oc.api.{Driver, network}
+import li.cil.oc.api.network.{ManagedEnvironment, Node}
 import li.cil.oc.server.driver.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -124,10 +125,12 @@ trait ComponentInventory extends Inventory with network.Environment {
         // being installed into a different computer, even!)
         components(slot) = None
         updatingComponents -= component
-        if (component.node != null) {
-          component.node.remove()
-        }
+        Option(component.node).foreach(_.remove())
         Option(Driver.driverFor(stack)).foreach(save(component, _, stack))
+        // However, nodes then may add themselves to a network again, to
+        // ensure they have an address that gets sent to the client, used
+        // for associating some components with each other. So we do it again.
+        Option(component.node).foreach(_.remove())
       }
       case _ => // Nothing to do.
     }

@@ -77,7 +77,24 @@ sandbox = {
   rawlen = rawlen,
   rawset = rawset,
   select = select,
-  setmetatable = setmetatable,
+  setmetatable = function(t, mt)
+    local gc = rawget(mt, "__gc")
+    if type(gc) == "function" then
+      rawset(mt, "__gc", function(self)
+        local co = coroutine.create(gc)
+        debug.sethook(co, checkDeadline, "", hookInterval)
+        local result, reason = coroutine.resume(co, self)
+        debug.sethook(co)
+        checkDeadline()
+        if not result then
+          error(reason, 0)
+        end
+      end)
+    end
+    local result = setmetatable(t, mt)
+    rawset(mt, "__gc", gc)
+    return result
+  end,
   tonumber = tonumber,
   tostring = tostring,
   type = type,
@@ -232,7 +249,6 @@ sandbox = {
     traceback = debug.traceback
   },
 
-  _OSVERSION = "OpenOS 1.2",
   checkArg = checkArg
 }
 sandbox._G = sandbox
@@ -240,10 +256,30 @@ sandbox._G = sandbox
 -------------------------------------------------------------------------------
 -- Start of non-standard stuff.
 
-local wrapUserdata
+-- JNLua derps when the metatable of userdata is changed, so we have to
+-- wrap and isolate it, to make sure it can't be touched by user code.
+-- These functions provide the logic for wrapping and unwrapping (when
+-- pushed to user code and when pushed back to the host, respectively).
+local wrapUserdata, wrapSingleUserdata, unwrapUserdata, wrappedUserdataMeta
+
+wrappedUserdataMeta = {
+  -- Weak keys, clean up once a proxy is no longer referenced anywhere.
+  __mode="k",
+  -- We need custom persist logic here to avoid ERIS trying to save the
+  -- userdata referenced in this table directly. It will be repopulated
+  -- in the load methods of the persisted userdata wrappers (see below).
+  [persistKey or "LuaJ"] = function()
+    return function()
+      -- When using special persistence we have to manually reassign the
+      -- metatable of the persisted value.
+      return setmetatable({}, wrappedUserdataMeta)
+    end
+  end
+}
+local wrappedUserdata = setmetatable({}, wrappedUserdataMeta)
 
 local function processResult(result)
-  wrapUserdata(result)
+  wrapUserdata(result) -- needed for metamethods.
   if not result[1] then -- error that should be re-thrown.
     error(result[2], 0)
   else -- success or already processed error.
@@ -262,84 +298,130 @@ local function invoke(target, direct, ...)
   if not result then
     local args = table.pack(...) -- for access in closure
     result = select(1, coroutine.yield(function()
-      return table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      unwrapUserdata(args)
+      local result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
+      wrapUserdata(result)
+      return result
     end))
   end
   return processResult(result)
 end
 
-function wrapUserdata(values)
-  -- JNLua derps when the metatable of userdata is changed, so we have to
-  -- wrap and isolate it, to make sure it can't be touched by user code.
-  -- This sadly means we need a separate metatable for each userdata value,
-  -- which means higher memory consumption.
-  local function wrap(data)
-    local proxy = {type = "userdata"}
-    local methods, reason = spcall(userdata.methods, data)
-    if not methods then
-      return nil, reason
+local function udinvoke(f, data, ...)
+  local args = table.pack(...)
+  unwrapUserdata(args)
+  local result = table.pack(f(data, table.unpack(args)))
+  return processResult(result)
+end
+
+-- Metatable for additional functionality on userdata.
+local userdataWrapper = {
+  __index = function(self, ...)
+    return udinvoke(userdata.apply, wrappedUserdata[self], ...)
+  end,
+  __newindex = function(self, ...)
+    return udinvoke(userdata.unapply, wrappedUserdata[self], ...)
+  end,
+  __call = function(self, ...)
+    return udinvoke(userdata.call, wrappedUserdata[self], ...)
+  end,
+  __gc = function(self)
+    local data = wrappedUserdata[self]
+    wrappedUserdata[self] = nil
+    userdata.dispose(data)
+  end,
+  -- This is the persistence protocol for userdata. Userdata is considered
+  -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
+  -- of the actual class when saving, so we can create a new instance via
+  -- reflection when loading again (and then immediately wrap it again).
+  -- Collect wrapped callback methods.
+  [persistKey or "LuaJ"] = function(self)
+    print("start saving userdata " .. tostring(wrappedUserdata[self]))
+    local className, nbt = userdata.save(wrappedUserdata[self])
+    print("done saving userdata")
+    -- The returned closure is what actually gets persisted, including the
+    -- upvalues, that being the classname and a byte array representing the
+    -- nbt data of the userdata value.
+    return function()
+      return wrapSingleUserdata(userdata.load(className, nbt))
     end
-    do
-      local userdataCallback = {
-        __call = function(self, ...)
-          local methods, reason = spcall(userdata.methods, data)
-          if not methods then
-            return nil, reason
-          end
-          for name, direct in pairs(methods) do
-            if name == self.name then
-              return invoke(userdata, direct, data, name, ...)
-            end
-          end
-          error("no such method", 1)
-        end,
-        __tostring = function(self)
-          return userdata.doc(data, self.name) or "function"
-        end
-      }
-      for method in pairs(methods) do
-        proxy[method] = setmetatable({name=method}, userdataCallback)
+  end,
+  -- Do not allow changing the metatable to avoid the gc callback being
+  -- unset, leading to potential resource leakage on the host side.
+  __metatable = "userdata",
+  __tostring = "userdata"
+}
+
+local userdataCallback = {
+  __call = function(self, ...)
+    local methods = spcall(userdata.methods, wrappedUserdata[self.proxy])
+    for name, direct in pairs(methods) do
+      if name == self.name then
+        return invoke(userdata, direct, wrappedUserdata[self.proxy], name, ...)
       end
     end
-    -- Metatable for additional functionality on userdata.
-    return setmetatable(proxy, {
-      __index = function(_, ...)
-        return processResult(table.pack(userdata.apply(data, ...)))
-      end,
-      __newindex = function(_, ...)
-        return processResult(table.pack(userdata.unapply(data, ...)))
-      end,
-      __call = function(_, ...)
-        return processResult(table.pack(userdata.call(data, ...)))
-      end,
-      __gc = function()
-        userdata.dispose(data)
-      end,
-      -- This is the persistence protocol for userdata. Userdata is considered
-      -- to be 'owned' by Lua, and is saved to an NBT tag. We also get the name
-      -- of the actual class when saving, so we can create a new instance via
-      -- reflection when loading again (and then immediately wrap it again).
-      -- Collect wrapped callback methods.
-      __persist = function()
-        local className, nbt = userdata.save(data)
-        -- The returned closure is what actually gets persisted, including the
-        -- upvalues, that being the classname and a byte array representing the
-        -- nbt data of the userdata value.
-        return function()
-          return wrap(userdata.load(className, nbt))
-        end
-      end,
-      -- Do not allow changing the metatable to avoid the gc callback being
-      -- unset, leading to potential resource leakage on the host side.
-      __metatable = "userdata",
-      __tostring = "userdata"
-    })
+    error("no such method", 1)
+  end,
+  __tostring = function(self)
+    return userdata.doc(wrappedUserdata[self.proxy], self.name) or "function"
   end
-  for i = 1, values.n do
-    if type(values[i]) == "userdata" then
-      values[i] = wrap(values[i])
+}
+
+function wrapSingleUserdata(data)
+  -- Reuse proxies for lower memory consumption and more logical behavior
+  -- without the need of metamethods like __eq, as well as proper reference
+  -- behavior after saving and loading again.
+  for k, v in pairs(wrappedUserdata) do
+    -- We need a custom 'equals' check for userdata because metamethods on
+    -- userdata introduced by JNLua tend to crash the game for some reason.
+    if v == data then
+      return k
     end
   end
+  local proxy = {type = "userdata"}
+  local methods = spcall(userdata.methods, data)
+  for method in pairs(methods) do
+    proxy[method] = setmetatable({name=method, proxy=proxy}, userdataCallback)
+  end
+  wrappedUserdata[proxy] = data
+  return setmetatable(proxy, userdataWrapper)
+end
+
+function wrapUserdata(values)
+  local processed = {}
+  local function wrapRecursively(value)
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = wrapRecursively(v)
+        end
+      end
+    elseif type(value) == "userdata" then
+      return wrapSingleUserdata(value)
+    end
+    return value
+  end
+  wrapRecursively(values)
+end
+
+function unwrapUserdata(values)
+  local processed = {}
+  local function unwrapRecursively(value)
+    if wrappedUserdata[value] then
+      return wrappedUserdata[value]
+    end
+    if type(value) == "table" then
+      if not processed[value] then
+        processed[value] = true
+        for k, v in pairs(value) do
+          value[k] = unwrapRecursively(v)
+        end
+      end
+    end
+    return value
+  end
+  unwrapRecursively(values)
 end
 
 -------------------------------------------------------------------------------
@@ -354,6 +436,8 @@ local componentCallback = {
     return libcomponent.doc(self.address, self.name) or "function"
   end
 }
+
+local proxyCache = setmetatable({}, {__mode="v"})
 
 libcomponent = {
   doc = function(address, method)
@@ -379,9 +463,9 @@ libcomponent = {
     end
     error("no such method", 1)
   end,
-  list = function(filter)
+  list = function(filter, exact)
     checkArg(1, filter, "string", "nil")
-    local list = spcall(component.list, filter)
+    local list = spcall(component.list, filter, not not exact)
     local key = nil
     return function()
       key = next(list, key)
@@ -396,6 +480,9 @@ libcomponent = {
     if not type then
       return nil, reason
     end
+    if proxyCache[address] then
+      return proxyCache[address]
+    end
     local proxy = {address = address, type = type}
     local methods, reason = spcall(component.methods, address)
     if not methods then
@@ -404,6 +491,7 @@ libcomponent = {
     for method in pairs(methods) do
       proxy[method] = setmetatable({address=address,name=method}, componentCallback)
     end
+    proxyCache[address] = proxy
     return proxy
   end,
   type = function(address)
@@ -487,28 +575,35 @@ sandbox.unicode = libunicode
 -------------------------------------------------------------------------------
 
 local function bootstrap()
-  local function tryLoadFrom(address)
-    function boot_invoke(method, ...)
-      local result = table.pack(pcall(invoke, component, true, address, method, ...))
-      if not result[1] then
-        return nil, result[2]
-      else
-        return table.unpack(result, 2, result.n)
-      end
+  function boot_invoke(address, method, ...)
+    local result = table.pack(pcall(invoke, component, true, address, method, ...))
+    if not result[1] then
+      return nil, result[2]
+    else
+      return table.unpack(result, 2, result.n)
     end
-    local handle, reason = boot_invoke("open", "/init.lua")
+  end
+  do
+    local screen = libcomponent.list("screen")()
+    local gpu = libcomponent.list("gpu")()
+    if gpu and screen then
+      boot_invoke(gpu, "bind", screen)
+    end
+  end
+  local function tryLoadFrom(address)
+    local handle, reason = boot_invoke(address, "open", "/init.lua")
     if not handle then
       return nil, reason
     end
     local buffer = ""
     repeat
-      local data, reason = boot_invoke("read", handle, math.huge)
+      local data, reason = boot_invoke(address, "read", handle, math.huge)
       if not data and reason then
         return nil, reason
       end
       buffer = buffer .. (data or "")
     until not data
-    boot_invoke("close", handle)
+    boot_invoke(address, "close", handle)
     return load(buffer, "=init", "t", sandbox)
   end
   local init, reason
@@ -526,7 +621,7 @@ local function bootstrap()
     end
   end
   if not init then
-    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""))
+    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
   end
 
   return coroutine.create(init), {n=0}
@@ -540,10 +635,22 @@ local function main()
 
   -- After memory footprint to avoid init.lua bumping the baseline.
   local co, args = bootstrap()
+  local forceGC = 10
 
   while true do
     deadline = computer.realTime() + system.timeout()
     hitDeadline = false
+
+    -- NOTE: since this is run in an executor thread and we enforce timeouts
+    -- in user-defined garbage collector callbacks this should be safe.
+    if persistKey then -- otherwise we're in LuaJ
+      forceGC = forceGC - 1
+      if forceGC < 1 then
+        collectgarbage("collect")
+        forceGC = 10
+      end
+    end
+
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
@@ -552,7 +659,6 @@ local function main()
       error("computer stopped unexpectedly", 0)
     else
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
-      wrapUserdata(args)
     end
   end
 end

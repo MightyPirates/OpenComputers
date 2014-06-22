@@ -16,8 +16,11 @@ object Textures extends ResourceManagerReloadListener {
   val guiButtonScroll = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_scroll.png")
   val guiButtonSide = new ResourceLocation(Settings.resourceDomain, "textures/gui/button_side.png")
   val guiComputer = new ResourceLocation(Settings.resourceDomain, "textures/gui/computer.png")
+  val guiDisassembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/disassembler.png")
+  val guiKeyboardMissing = new ResourceLocation(Settings.resourceDomain, "textures/gui/keyboard_missing.png")
   val guiRange = new ResourceLocation(Settings.resourceDomain, "textures/gui/range.png")
   val guiRobot = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot.png")
+  val guiRobotNoScreen = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_noscreen.png")
   val guiRobotAssembler = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_assembler.png")
   val guiRobotSelection = new ResourceLocation(Settings.resourceDomain, "textures/gui/robot_selection.png")
   val guiServer = new ResourceLocation(Settings.resourceDomain, "textures/gui/server.png")
@@ -32,6 +35,7 @@ object Textures extends ResourceManagerReloadListener {
 
   val upgradeCrafting = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_crafting_equipped.png")
   val upgradeGenerator = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_generator_equipped.png")
+  val upgradeInventory = new ResourceLocation(Settings.resourceDomain, "textures/items/upgrade_inventory_equipped.png")
 
   object Charger {
     var iconFrontCharging: Icon = _

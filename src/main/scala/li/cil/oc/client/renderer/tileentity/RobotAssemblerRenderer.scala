@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.RobotAssembler
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -7,13 +8,14 @@ import net.minecraft.client.renderer.texture.TextureMap
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import org.lwjgl.opengl.GL11
-import li.cil.oc.client.Textures
 
 object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val assembler = tileEntity.asInstanceOf[RobotAssembler]
 
-    GL11.glPushAttrib(0xFFFFFF)
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
@@ -62,5 +64,7 @@ object RobotAssemblerRenderer extends TileEntitySpecialRenderer {
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

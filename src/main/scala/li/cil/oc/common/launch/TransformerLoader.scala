@@ -1,11 +1,12 @@
 package li.cil.oc.common.launch
 
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin
 import java.util
+
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin
 import li.cil.oc.common.asm.ClassTransformer
 
 class TransformerLoader extends IFMLLoadingPlugin {
-//  override def getLibraryRequestClass = null
+  //  override def getLibraryRequestClass = null
 
   override def getASMTransformerClass = Array(classOf[ClassTransformer].getName)
 

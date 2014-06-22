@@ -32,10 +32,9 @@ end
 function stderrStream:write(str)
   local component = require("component")
   if component.isAvailable("gpu") and component.gpu.getDepth() > 1 then
-    local foreground, palette = component.gpu.getForeground()
-    component.gpu.setForeground(0xFF0000)
+    local foreground = component.gpu.setForeground(0xFF0000)
     term.write(str, true)
-    component.gpu.setForeground(foreground, palette)
+    component.gpu.setForeground(foreground)
   else
     term.write(str, true)
   end

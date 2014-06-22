@@ -1,16 +1,15 @@
 package li.cil.oc.common.item
 
-import net.minecraft.item.ItemStack
-import net.minecraft.entity.player.EntityPlayer
-import li.cil.oc.util.{Rarity, Tooltip}
-import net.minecraft.client.renderer.texture.IconRegister
-import li.cil.oc.{server, Settings}
 import java.util
+
+import li.cil.oc.Settings
+import li.cil.oc.util.Tooltip
+import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 
 class LinkedCard(val parent: Delegator) extends Delegate {
   val unlocalizedName = "LinkedCard"
-
-  override def rarity = Rarity.byTier(server.driver.item.LinkedCard.tier(createItemStack()))
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {

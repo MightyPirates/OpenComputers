@@ -1,8 +1,8 @@
 package li.cil.oc.common.event
 
-import net.minecraftforge.event.ForgeSubscribe
 import li.cil.oc.api.event.RobotUsedTool
 import li.cil.oc.util.mods.UniversalElectricity
+import net.minecraftforge.event.ForgeSubscribe
 
 object UniversalElectricityToolHandler {
   @ForgeSubscribe

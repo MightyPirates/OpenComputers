@@ -1,12 +1,11 @@
 package li.cil.oc.client
 
 import li.cil.oc.common.inventory.ServerInventory
-import li.cil.oc.common.{GuiHandler => CommonGuiHandler, item, tileentity, GuiType}
-import li.cil.oc.{Settings, Items}
+import li.cil.oc.common.{GuiType, item, tileentity, GuiHandler => CommonGuiHandler}
+import li.cil.oc.{Items, Localization, Settings}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
-import net.minecraft.util.StatCollector
-import net.minecraft.client.Minecraft
 import li.cil.oc.api.component.TextBuffer
 import li.cil.oc.common.item.Tablet
 
@@ -26,7 +25,7 @@ object GuiHandler extends CommonGuiHandler {
       case assembler: tileentity.RobotAssembler if id == GuiType.RobotAssembler.id =>
         new gui.RobotAssembler(player.inventory, assembler)
       case screen: tileentity.Screen if id == GuiType.Screen.id =>
-        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.buffer.isRenderingEnabled)
+        new gui.Screen(screen.origin.buffer, screen.tier > 0, () => screen.origin.hasKeyboard, () => screen.origin.buffer.isRenderingEnabled)
       case _ => Items.multi.subItem(player.getCurrentEquippedItem) match {
         case Some(server: item.Server) if id == GuiType.Server.id =>
           new gui.Server(player.inventory, new ServerInventory {
@@ -53,7 +52,7 @@ object GuiHandler extends CommonGuiHandler {
             val address = stack.getTagCompound.getString(Settings.namespace + "server")
             val key = stack.getTagCompound.getString(Settings.namespace + "key")
             if (key != null && !key.isEmpty && address != null && !address.isEmpty) {
-              tileentity.Rack.list.
+              tileentity.Rack.list.keys.
                 flatMap(_.terminals).
                 find(term => term.rack.isPresent(term.number) match {
                 case Some(value) => value == address
@@ -62,7 +61,7 @@ object GuiHandler extends CommonGuiHandler {
                 case Some(term) =>
                   def inRange = player.isEntityAlive && !term.rack.isInvalid && term.rack.getDistanceFrom(player.posX, player.posY, player.posZ) < term.rack.range * term.rack.range
                   if (inRange) {
-                    if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => {
+                    if (term.keys.contains(key)) return new gui.Screen(term.buffer, true, () => true, () => {
                       // Check if someone else bound a term to our server.
                       if (stack.getTagCompound.getString(Settings.namespace + "key") != key) {
                         Minecraft.getMinecraft.displayGuiScreen(null)
@@ -73,10 +72,10 @@ object GuiHandler extends CommonGuiHandler {
                       }
                       true
                     })
-                    else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.InvalidKey"))
+                    else player.addChatMessage(Localization.Terminal.InvalidKey)
                   }
-                  else player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
-                case _ => player.addChatMessage(StatCollector.translateToLocal(Settings.namespace + "gui.Terminal.OutOfRange"))
+                  else player.addChatMessage(Localization.Terminal.OutOfRange)
+                case _ => player.addChatMessage(Localization.Terminal.OutOfRange)
               }
             }
           }

@@ -2,8 +2,8 @@ package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
 import li.cil.oc.common.block._
-import li.cil.oc.common.tileentity
 import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.common.tileentity
 
 object Blocks {
   var blockSimple: SimpleDelegator = _
@@ -77,7 +77,7 @@ object Blocks {
     Recipes.addBlock(new AccessPoint(blockSimple), "accessPoint", "oc:accessPoint")
 
     // v1.2.6
-    new Case.TierCreative(blockSimpleWithRedstone)
+    Items.registerBlock(new Case.TierCreative(blockSimpleWithRedstone), "caseCreative")
 
     // v1.3.0
     Recipes.addBlock(new Hologram.Tier2(blockSpecial), "hologram2", "oc:hologram2")

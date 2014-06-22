@@ -1,24 +1,64 @@
 local component = require("component")
 local computer = require("computer")
 local event = require("event")
+local fs = require("filesystem")
 local process = require("process")
 local shell = require("shell")
 local term = require("term")
 local text = require("text")
 
 local function expand(value)
-  return value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
+  local result = value:gsub("%$(%w+)", os.getenv):gsub("%$%b{}",
     function(match) return os.getenv(expand(match:sub(3, -2))) or match end)
+  return result
+end
+
+local function glob(value)
+  if not value:find("*", 1, true) and not value:find("?", 1, true) then
+    -- Nothing to do here.
+    return {expand(value)}
+  end
+  local segments = fs.segments(value)
+  local paths = {value:sub(1, 1) == "/" and "/" or shell.getWorkingDirectory()}
+  for i, segment in ipairs(segments) do
+    local nextPaths = {}
+    local pattern = segment:gsub("*", ".*"):gsub("?", ".")
+    if pattern == segment then
+      -- Nothing to do, concatenate as-is.
+      for _, path in ipairs(paths) do
+        table.insert(nextPaths, fs.concat(path, segment))
+      end
+    else
+      pattern = "^(" .. pattern .. ")/?$"
+      for _, path in ipairs(paths) do
+        for file in fs.list(path) do
+          if file:match(pattern) then
+            table.insert(nextPaths, fs.concat(path, file))
+          end
+        end
+      end
+      if #nextPaths == 0 then
+        error("no matches found: " .. segment)
+      end
+    end
+    paths = nextPaths
+  end
+  for i, path in ipairs(paths) do
+    paths[i] = expand(path)
+  end
+  return paths
 end
 
 local function evaluate(value)
-  local init, result = 1, ""
+  local init, results = 1, {""}
   repeat
     local match = value:match("^%b''", init)
     if match then -- single quoted string. no variable expansion.
       match = match:sub(2, -2)
       init = init + 2
-      result = result .. match
+      for i, result in ipairs(results) do
+        results[i] = result .. match
+      end
     else
       match = value:match('^%b""', init)
       if match then -- double quoted string.
@@ -34,14 +74,20 @@ local function evaluate(value)
           end
         end
       end
-      result = result .. expand(match)
+      local newResults = {}
+      for _, globbed in ipairs(glob(match)) do
+        for i, result in ipairs(results) do
+          table.insert(newResults, result .. globbed)
+        end
+      end
+      results = newResults
     end
     init = init + #match
   until init > #value
-  return result
+  return results
 end
 
-local function execute(command, ...)
+local function execute(env, command, ...)
   local parts, reason = text.tokenize(command)
   if not parts then
     return false, reason
@@ -49,14 +95,21 @@ local function execute(command, ...)
     return true
   end
   local program, args = shell.resolveAlias(parts[1], table.pack(select(2, table.unpack(parts))))
+  local eargs = {}
   program = evaluate(program)
-  local program, reason = shell.resolve(program, "lua")
+  for i = 2, #program do
+    table.insert(eargs, program[i])
+  end
+  local program, reason = shell.resolve(program[1], "lua")
   if not program then
     return false, reason
   end
   for i = 1, args.n do
-    args[i] = evaluate(args[i])
+    for _, arg in ipairs(evaluate(args[i])) do
+      table.insert(eargs, arg)
+    end
   end
+  args = eargs
   for _, arg in ipairs(table.pack(...)) do
     table.insert(args, arg)
   end
@@ -104,22 +157,22 @@ if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
       term.clear()
     end
     while term.isAvailable() do
-      local foreground, palette = component.gpu.setForeground(0xFF0000)
+      local foreground = component.gpu.setForeground(0xFF0000)
       term.write(expand(os.getenv("PS1") or "$ "))
-      component.gpu.setForeground(foreground, palette)
+      component.gpu.setForeground(foreground)
       local command = term.read(history)
       if not command then
         term.write("exit\n")
         return -- eof
       end
-      while #history > 10 do
+      while #history > (tonumber(os.getenv("HISTSIZE")) or 10) do
         table.remove(history, 1)
       end
       command = text.trim(command)
       if command == "exit" then
         return
       elseif command ~= "" then
-        local result, reason = execute(command)
+        local result, reason = os.execute(command)
         if term.getCursor() > 1 then
           term.write("\n")
         end

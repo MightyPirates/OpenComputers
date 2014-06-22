@@ -1,20 +1,22 @@
 package li.cil.oc.common
 
-import net.minecraftforge.common.{DimensionManager, ChestGenHooks}
-import net.minecraft.util.WeightedRandomChestContent
-import net.minecraft.nbt.NBTTagCompound
-import scala.collection.convert.WrapAsScala._
+import java.io
 import java.util.Random
+
+import li.cil.oc.common.recipe.Recipes
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.inventory.IInventory
 import net.minecraft.item.ItemStack
-import scala.collection.mutable
-import li.cil.oc.{OpenComputers, Settings, api}
-import li.cil.oc.common.recipe.Recipes
-import java.io
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.WeightedRandomChestContent
+import net.minecraftforge.common.{ChestGenHooks, DimensionManager}
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 
-object Loot extends WeightedRandomChestContent(api.Items.get("lootDisk").createItemStack(1), 1, 1, Settings.get.lootProbability) {
+import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
+
+object Loot extends WeightedRandomChestContent(api.Items.get("openOS").createItemStack(1), 1, 1, Settings.get.lootProbability) {
   val containers = Array(
     ChestGenHooks.DUNGEON_CHEST,
     ChestGenHooks.PYRAMID_DESERT_CHEST,
@@ -80,13 +82,13 @@ object Loot extends WeightedRandomChestContent(api.Items.get("lootDisk").createI
       if (splitAt >= 0) {
         val (name, count) = value.splitAt(splitAt)
         try {
-          acc += key -> (createLootDisk(name, key), count.substring(1).toInt)
+          acc += key ->(createLootDisk(name, key), count.substring(1).toInt)
         }
         catch {
           case _: Throwable => OpenComputers.log.warning("Bad loot descriptor: " + value)
         }
       }
-      else acc += key -> (createLootDisk(value, key), 1)
+      else acc += key ->(createLootDisk(value, key), 1)
     }
   }
 

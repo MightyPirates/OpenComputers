@@ -1,11 +1,11 @@
 package li.cil.oc.common.tileentity
 
 import li.cil.oc.api.network._
-import li.cil.oc.server.driver
 import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 
 class Adapter extends traits.Environment with Analyzable {

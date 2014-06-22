@@ -2,12 +2,12 @@ package li.cil.oc.common.multipart
 
 import codechicken.lib.vec.BlockCoord
 import codechicken.multipart.MultiPartRegistry.{IPartConverter, IPartFactory}
-import codechicken.multipart.{TMultiPart, MultiPartRegistry}
-import li.cil.oc.common.tileentity.Cable
+import codechicken.multipart.{MultiPartRegistry, TMultiPart}
 import li.cil.oc.Settings
+import li.cil.oc.api.Items
+import li.cil.oc.common.tileentity.Cable
 import net.minecraft.world.World
 import net.minecraftforge.common.MinecraftForge
-import li.cil.oc.api.Items
 
 object MultiPart extends IPartFactory with IPartConverter {
   def init() {

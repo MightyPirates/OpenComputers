@@ -1,13 +1,15 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.Loader
-import cpw.mods.fml.common.versioning.ComparableVersion
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Level
+
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.versioning.ComparableVersion
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.util.ChatMessageComponent
+
 import scala.io.Source
-import scala.util.parsing.json.{JSONObject, JSONArray, JSON}
+import scala.util.parsing.json.{JSON, JSONArray, JSONObject}
 
 object UpdateCheck {
   val releasesUrl = new URL("https://api.github.com/repos/MightyPirates/OpenComputers/releases")

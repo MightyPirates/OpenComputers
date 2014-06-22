@@ -30,12 +30,24 @@ function internet.request(url, data)
     error(reason, 2)
   end
 
+  local handle = setmetatable({value=result}, {__gc=function(self)
+    pcall(inet.close, self.value)
+  end})
+
   return function()
-    local data, reason = result.read()
-    if not data and reason then
-      error(reason, 2)
-    else
-      return data
+    while true do
+      local data, reason = inet.read(handle.value)
+      if not data then
+        inet.close(handle.value)
+        if reason then
+          error(reason, 2)
+        else
+          return nil -- eof
+        end
+      elseif #data > 0 then
+        return data
+      end
+      -- else: no data, block
     end
   end
 end

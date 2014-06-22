@@ -1,13 +1,14 @@
 package li.cil.oc.common.tileentity.traits
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util.logging.Level
-import li.cil.oc.client.Sound
+
+import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.OpenComputers
+import li.cil.oc.client.Sound
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet132TileEntityData
-import cpw.mods.fml.common.FMLCommonHandler
 
 trait TileEntity extends net.minecraft.tileentity.TileEntity {
   def world = getWorldObj
@@ -25,6 +26,13 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
   val isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
 
   // ----------------------------------------------------------------------- //
+
+  override def updateEntity() {
+    super.updateEntity()
+    if (world.getWorldTime % 40 == 0 && block.getLightValue(world, x, y, z) > 0) {
+      world.markBlockForUpdate(x, y, z)
+    }
+  }
 
   override def validate() {
     super.validate()

@@ -3,7 +3,7 @@ package li.cil.oc.common.tileentity.traits.power
 import cpw.mods.fml.common.Optional
 import li.cil.oc.Settings
 import net.minecraftforge.common.ForgeDirection
-import universalelectricity.api.energy.{IEnergyInterface, IEnergyContainer}
+import universalelectricity.api.energy.{IEnergyContainer, IEnergyInterface}
 
 @Optional.InterfaceList(Array(
   new Optional.Interface(iface = "universalelectricity.api.energy.IEnergyInterface", modid = "UniversalElectricity"),
@@ -11,7 +11,7 @@ import universalelectricity.api.energy.{IEnergyInterface, IEnergyContainer}
 ))
 trait UniversalElectricity extends Common with IEnergyInterface with IEnergyContainer {
   @Optional.Method(modid = "UniversalElectricity")
-  override def canConnect(direction: ForgeDirection, source: AnyRef) = canConnect(direction)
+  override def canConnect(direction: ForgeDirection, source: AnyRef) = canConnectPower(direction)
 
   @Optional.Method(modid = "UniversalElectricity")
   override def onReceiveEnergy(from: ForgeDirection, receive: Long, doReceive: Boolean) =

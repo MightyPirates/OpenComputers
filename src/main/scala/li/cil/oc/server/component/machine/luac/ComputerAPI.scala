@@ -1,8 +1,8 @@
 package li.cil.oc.server.component.machine.luac
 
+import li.cil.oc.Settings
 import li.cil.oc.api.network.Connector
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
-import li.cil.oc.Settings
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 
 class ComputerAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {

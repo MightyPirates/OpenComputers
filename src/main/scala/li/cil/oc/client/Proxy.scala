@@ -1,15 +1,17 @@
 package li.cil.oc.client
 
-import cpw.mods.fml.client.registry.{KeyBindingRegistry, RenderingRegistry, ClientRegistry}
-import cpw.mods.fml.common.event.{FMLPreInitializationEvent, FMLPostInitializationEvent, FMLInitializationEvent}
+import cpw.mods.fml.client.registry.{ClientRegistry, KeyBindingRegistry, RenderingRegistry}
+import cpw.mods.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 import cpw.mods.fml.common.network.NetworkRegistry
 import cpw.mods.fml.common.registry.TickRegistry
 import cpw.mods.fml.relauncher.Side
 import li.cil.oc.client.renderer.block.BlockRenderer
-import li.cil.oc.client.renderer.item.UpgradeRenderer
+import li.cil.oc.client.renderer.item.ItemRenderer
 import li.cil.oc.client.renderer.tileentity._
-import li.cil.oc.client.renderer.{TextBufferRenderCache, WirelessNetworkDebugRenderer}
-import li.cil.oc.common.{Proxy => CommonProxy, tileentity}
+import li.cil.oc.client.renderer.{PetRenderer, TextBufferRenderCache, WirelessNetworkDebugRenderer}
+import li.cil.oc.common.component.TextBuffer
+import li.cil.oc.common.tileentity.Rack
+import li.cil.oc.common.{tileentity, Proxy => CommonProxy}
 import li.cil.oc.{Items, OpenComputers}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.ReloadableResourceManager
@@ -45,7 +47,7 @@ private[oc] class Proxy extends CommonProxy {
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.RobotProxy], RobotRenderer)
     ClientRegistry.bindTileEntitySpecialRenderer(classOf[tileentity.Screen], ScreenRenderer)
 
-    MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, UpgradeRenderer)
+    MinecraftForgeClient.registerItemRenderer(Items.multi.itemID, ItemRenderer)
 
     MinecraftForge.EVENT_BUS.register(gui.Icons)
 
@@ -63,6 +65,10 @@ private[oc] class Proxy extends CommonProxy {
 
     TickRegistry.registerTickHandler(HologramRenderer, Side.CLIENT)
     TickRegistry.registerTickHandler(TextBufferRenderCache, Side.CLIENT)
+    TickRegistry.registerTickHandler(PetRenderer, Side.CLIENT)
     MinecraftForge.EVENT_BUS.register(WirelessNetworkDebugRenderer)
+    MinecraftForge.EVENT_BUS.register(Rack)
+    MinecraftForge.EVENT_BUS.register(TextBuffer)
+    MinecraftForge.EVENT_BUS.register(PetRenderer)
   }
 }

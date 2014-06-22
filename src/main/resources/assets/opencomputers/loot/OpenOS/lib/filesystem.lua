@@ -2,7 +2,7 @@ local component = require("component")
 local unicode = require("unicode")
 
 local filesystem, fileStream = {}, {}
-local isAutorunEnabled = true
+local isAutorunEnabled = nil
 local mtab = {name="", children={}, links={}}
 
 local function segments(path)
@@ -29,6 +29,18 @@ local function segments(path)
     end
   end
   return parts
+end
+
+local function saveConfig()
+  local root = filesystem.get("/")
+  if root and not root.isReadOnly() then
+    filesystem.makeDirectory("/etc")
+    local f = io.open("/etc/filesystem.cfg", "w")
+    if f then
+      f:write("autorun="..tostring(isAutorunEnabled))
+      f:close()
+    end
+  end
 end
 
 local function findNode(path, create, depth)
@@ -80,12 +92,28 @@ end
 -------------------------------------------------------------------------------
 
 function filesystem.isAutorunEnabled()
+  if isAutorunEnabled == nil then
+    local env = {}
+    local config = loadfile("/etc/filesystem.cfg", nil, env)
+    if config then
+      pcall(config)
+      isAutorunEnabled = not not env.autorun
+    else
+      isAutorunEnabled = true
+    end
+    saveConfig()
+  end
   return isAutorunEnabled
 end
 
 function filesystem.setAutorunEnabled(value)
   checkArg(1, value, "boolean")
   isAutorunEnabled = value
+  saveConfig()
+end
+
+function filesystem.segments(path)
+  return segments(path)
 end
 
 function filesystem.canonical(path)
@@ -112,7 +140,7 @@ end
 function filesystem.get(path)
   local node, rest = findNode(path)
   if node.fs then
-    local proxy = node.fs
+    local proxy = component.proxy(node.fs)
     path = ""
     while node and node.parent do
       path = filesystem.concat(node.name, path)
@@ -161,7 +189,7 @@ function filesystem.mount(fs, path)
   if vnode.fs then
     return nil, "another filesystem is already mounted here"
   end
-  vnode.fs = fs
+  vnode.fs = fs.address
   return true
 end
 
@@ -190,7 +218,7 @@ function filesystem.mounts()
           table.insert(queue, child)
         end
         if node.fs then
-          return node.fs, path(node)
+          return component.proxy(node.fs), path(node)
         end
       end
     end
@@ -199,7 +227,12 @@ end
 
 function filesystem.path(path)
   local parts = segments(path)
-  return table.concat(parts, "/", 1, #parts - 1) .. "/"
+  local result = table.concat(parts, "/", 1, #parts - 1) .. "/"
+  if unicode.sub(path, 1, 1) == "/" and unicode.sub(result, 1, 1) ~= "/" then
+    return "/" .. result
+  else
+    return result
+  end
 end
 
 function filesystem.name(path)
@@ -259,7 +292,7 @@ function filesystem.exists(path)
     return true
   end
   if node and node.fs then
-    return node.fs.exists(rest)
+    return component.proxy(node.fs).exists(rest)
   end
   return false
 end
@@ -270,7 +303,7 @@ function filesystem.size(path)
     return 0 -- virtual directory or symlink
   end
   if node.fs and rest then
-    return node.fs.size(rest)
+    return component.proxy(node.fs).size(rest)
   end
   return 0 -- no such file or directory
 end
@@ -281,7 +314,7 @@ function filesystem.isDirectory(path)
     return true -- virtual directory
   end
   if node.fs then
-    return not rest or node.fs.isDirectory(rest)
+    return not rest or component.proxy(node.fs).isDirectory(rest)
   end
   return false
 end
@@ -292,7 +325,7 @@ function filesystem.lastModified(path)
     return 0 -- virtual directory
   end
   if node.fs and rest then
-    return node.fs.lastModified(rest)
+    return component.proxy(node.fs).lastModified(rest)
   end
   return 0 -- no such file or directory
 end
@@ -304,7 +337,7 @@ function filesystem.list(path)
   end
   local result, reason
   if node and node.fs then
-    result, reason = node.fs.list(rest or "")
+    result, reason = component.proxy(node.fs).list(rest or "")
   end
   result = result or {}
   if not vrest then
@@ -338,7 +371,7 @@ function filesystem.makeDirectory(path)
   end
   local node, rest = findNode(path)
   if node.fs and rest then
-    return node.fs.makeDirectory(rest)
+    return component.proxy(node.fs).makeDirectory(rest)
   end
   if node.fs then
     return nil, "virtual directory with that name already exists"
@@ -360,7 +393,7 @@ function filesystem.remove(path)
   else
     node, rest = findNode(path)
     if node.fs and rest then
-      return node.fs.remove(rest)
+      return component.proxy(node.fs).remove(rest)
     end
     return nil, "no such file or directory"
   end
@@ -379,8 +412,8 @@ function filesystem.rename(oldPath, newPath)
     local oldNode, oldRest = findNode(oldPath)
     local newNode, newRest = findNode(newPath)
     if oldNode.fs and oldRest and newNode.fs and newRest then
-      if oldNode.fs.address == newNode.fs.address then
-        return oldNode.fs.rename(oldRest, newRest)
+      if oldNode.fs == newNode.fs then
+        return component.proxy(oldNode.fs).rename(oldRest, newRest)
       else
         local result, reason = filesystem.copy(oldPath, newPath)
         if result then
@@ -427,7 +460,7 @@ end
 
 function fileStream:close()
   if self.handle then
-    self.fs.close(self.handle)
+    component.proxy(self.fs).close(self.handle)
     self.handle = nil
   end
 end
@@ -436,21 +469,21 @@ function fileStream:read(n)
   if not self.handle then
     return nil, "file is closed"
   end
-  return self.fs.read(self.handle, n)
+  return component.proxy(self.fs).read(self.handle, n)
 end
 
 function fileStream:seek(whence, offset)
   if not self.handle then
     return nil, "file is closed"
   end
-  return self.fs.seek(self.handle, whence, offset)
+  return component.proxy(self.fs).seek(self.handle, whence, offset)
 end
 
 function fileStream:write(str)
   if not self.handle then
     return nil, "file is closed"
   end
-  return self.fs.write(self.handle, str)
+  return component.proxy(self.fs).write(self.handle, str)
 end
 
 function filesystem.open(path, mode)
@@ -465,7 +498,7 @@ function filesystem.open(path, mode)
     return nil, "file not found"
   end
 
-  local handle, reason = node.fs.open(rest, mode)
+  local handle, reason = component.proxy(node.fs).open(rest, mode)
   if not handle then
     return nil, reason
   end
@@ -474,7 +507,7 @@ function filesystem.open(path, mode)
 
   local function cleanup(self)
     if not self.handle then return end
-    pcall(self.fs.close, self.handle)
+    pcall(component.proxy(self.fs).close, self.handle)
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,

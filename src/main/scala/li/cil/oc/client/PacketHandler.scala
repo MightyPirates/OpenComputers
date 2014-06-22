@@ -1,16 +1,15 @@
 package li.cil.oc.client
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
+import li.cil.oc.Localization
 import li.cil.oc.api.component
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.common.PacketType
+import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits._
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
 import li.cil.oc.util.Audio
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.input.Keyboard
 
@@ -35,13 +34,13 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.HologramPowerChange => onHologramPowerChange(p)
       case PacketType.HologramScale => onHologramScale(p)
       case PacketType.HologramSet => onHologramSet(p)
+      case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.PowerState => onPowerState(p)
       case PacketType.RedstoneState => onRedstoneState(p)
       case PacketType.RobotAnimateSwing => onRobotAnimateSwing(p)
       case PacketType.RobotAnimateTurn => onRobotAnimateTurn(p)
       case PacketType.RobotAssemblingState => onRobotAssemblingState(p)
-      case PacketType.RobotEquippedItemChange => onRobotEquippedItemChange(p)
-      case PacketType.RobotEquippedUpgradeChange => onRobotEquippedUpgradeChange(p)
+      case PacketType.RobotInventoryChange => onRobotInventoryChange(p)
       case PacketType.RobotMove => onRobotMove(p)
       case PacketType.RobotSelectedSlotChange => onRobotSelectedSlotChange(p)
       case PacketType.RotatableState => onRotatableState(p)
@@ -70,8 +69,7 @@ class PacketHandler extends CommonPacketHandler {
     val address = p.readUTF()
     if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
       GuiScreen.setClipboardString(address)
-      player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(
-        Settings.namespace + "gui.Analyzer.AddressCopied"))
+      player.sendChatToPlayer(Localization.Analyzer.AddressCopied)
     }
   }
 
@@ -79,6 +77,7 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Charger]() match {
       case Some(t) =>
         t.chargeSpeed = p.readDouble()
+        t.hasPower = p.readBoolean()
         t.world.markBlockForRenderUpdate(t.x, t.y, t.z)
       case _ => // Invalid packet.
     }
@@ -154,7 +153,6 @@ class PacketHandler extends CommonPacketHandler {
     p.readTileEntity[Hologram]() match {
       case Some(t) =>
         t.scale = p.readDouble()
-        t.dirty = true
       case _ => // Invalid packet.
     }
 
@@ -174,6 +172,19 @@ class PacketHandler extends CommonPacketHandler {
         t.dirty = true
       case _ => // Invalid packet.
     }
+
+  def onPetVisibility(p: PacketParser) {
+    val count = p.readInt()
+    for (i <- 0 until count) {
+      val name = p.readUTF()
+      if (p.readBoolean()) {
+        PetRenderer.hidden -= name
+      }
+      else {
+        PetRenderer.hidden += name
+      }
+    }
+  }
 
   def onPowerState(p: PacketParser) =
     p.readTileEntity[PowerInformation]() match {
@@ -213,15 +224,16 @@ class PacketHandler extends CommonPacketHandler {
       case _ => // Invalid packet.
     }
 
-  def onRobotEquippedItemChange(p: PacketParser) =
+  def onRobotInventoryChange(p: PacketParser) =
     p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.equippedItem = Option(p.readItemStack())
-      case _ => // Invalid packet.
-    }
-
-  def onRobotEquippedUpgradeChange(p: PacketParser) =
-    p.readTileEntity[RobotProxy]() match {
-      case Some(t) => t.robot.equippedUpgrade = Option(p.readItemStack())
+      case Some(t) =>
+        val robot = t.robot
+        val slot = p.readInt()
+        val stack = p.readItemStack()
+        if (slot >= robot.getSizeInventory - robot.componentCount) {
+          robot.info.components(slot - (robot.getSizeInventory - robot.componentCount)) = stack
+        }
+        else t.robot.setInventorySlotContents(slot, stack)
       case _ => // Invalid packet.
     }
 

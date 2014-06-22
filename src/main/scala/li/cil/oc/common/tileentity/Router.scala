@@ -1,12 +1,13 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.common.Optional
-import dan200.computer.api.{ILuaContext, IComputerAccess, IPeripheral}
-import li.cil.oc.api.network.{Packet, Message}
+import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
+import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
 import li.cil.oc.{Settings, api}
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 
 // Note on the CC1.5+1.6 compatibility
@@ -88,7 +89,7 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
       val answerPort = checkPort(arguments, 1)
       val data = Seq(Int.box(answerPort)) ++ arguments.drop(2)
       val packet = api.Network.newPacket(s"cc${computerId}_$attachmentName", null, sendPort, data.toArray)
-      result(tryEnqueuePacket(null, packet))
+      result(tryEnqueuePacket(ForgeDirection.UNKNOWN, packet))
     case "isWireless" => result(this.isInstanceOf[WirelessRouter])
     case _ => null
   }

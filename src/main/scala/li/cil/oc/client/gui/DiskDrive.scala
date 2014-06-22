@@ -1,7 +1,6 @@
 package li.cil.oc.client.gui
 
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{container, tileentity}
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.util.StatCollector
 

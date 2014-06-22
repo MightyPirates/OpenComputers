@@ -1,14 +1,14 @@
 package li.cil.oc.server.component.robot
 
+import li.cil.oc.common.tileentity
 import net.minecraft.block.Block
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagList
+
 import scala.util.control.Breaks._
 
-class Inventory(player: Player) extends InventoryPlayer(player) {
-  val robot = player.robot
-
+class Inventory(val robot: tileentity.Robot) extends InventoryPlayer(null) {
   def selectedSlot = robot.selectedSlot
 
   def selectedItemStack = robot.getStackInSlot(selectedSlot)
@@ -40,7 +40,9 @@ class Inventory(player: Player) extends InventoryPlayer(player) {
   override def decrementAnimations() {
     for (slot <- 0 until getSizeInventory) {
       Option(getStackInSlot(slot)) match {
-        case Some(stack) => stack.updateAnimation(player.world, player, slot, slot == 0)
+        case Some(stack) => try stack.updateAnimation(robot.world, if (robot.isServer) robot.player() else null, slot, slot == 0) catch {
+          case ignored: NullPointerException => // Client side item updates that need a player instance...
+        }
         case _ =>
       }
     }

@@ -1,31 +1,35 @@
 package li.cil.oc.common.tileentity
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network.{Analyzable, Node, Visibility}
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Localization, Settings, api}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.ChatMessageComponent
 import net.minecraftforge.common.ForgeDirection
 
-class Charger extends traits.Environment with traits.RedstoneAware with traits.Rotatable with Analyzable {
+class Charger extends traits.Environment with traits.PowerAcceptor with traits.RedstoneAware with traits.Rotatable with Analyzable {
   val node = api.Network.newNode(this, Visibility.None).
-    withConnector().
+    withConnector(Settings.get.bufferConverter).
     create()
 
   val robots = Array.fill(6)(None: Option[RobotProxy])
 
   var chargeSpeed = 0.0
 
+  var hasPower = false
+
   var invertSignal = false
 
   // ----------------------------------------------------------------------- //
 
+  @SideOnly(Side.CLIENT)
+  override protected def hasConnector(side: ForgeDirection) = side != facing
+
+  override protected def connector(side: ForgeDirection) = Option(if (side != facing) node else null)
+
   def onAnalyze(player: EntityPlayer, side: Int, hitX: Float, hitY: Float, hitZ: Float) = {
-    player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-      Settings.namespace + "gui.Analyzer.ChargerSpeed",
-      (chargeSpeed * 100).toInt + "%"))
+    player.sendChatToPlayer(Localization.Analyzer.ChargerSpeed(chargeSpeed))
     null
   }
 
@@ -37,11 +41,20 @@ class Charger extends traits.Environment with traits.RedstoneAware with traits.R
     super.updateEntity()
     if (isServer) {
       val charge = Settings.get.chargeRate * chargeSpeed
-      robots.collect {
+      val canCharge = charge > 0 && node.globalBuffer >= charge
+      if (hasPower && !canCharge) {
+        hasPower = false
+        ServerPacketSender.sendChargerState(this)
+      }
+      if (!hasPower && canCharge) {
+        hasPower = true
+        ServerPacketSender.sendChargerState(this)
+      }
+      if (canCharge) robots.collect {
         case Some(proxy) => node.changeBuffer(proxy.robot.bot.node.changeBuffer(charge + node.changeBuffer(-charge)))
       }
     }
-    else if (chargeSpeed > 0 && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
+    else if (chargeSpeed > 0 && hasPower && world.getWorldInfo.getWorldTotalTime % 10 == 0) {
       ForgeDirection.VALID_DIRECTIONS.map(side => world.getBlockTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ)).collect {
         case proxy: RobotProxy if proxy.globalBuffer / proxy.globalBufferSize < 0.95 =>
           val theta = world.rand.nextDouble * Math.PI
@@ -66,12 +79,14 @@ class Charger extends traits.Environment with traits.RedstoneAware with traits.R
   override def readFromNBT(nbt: NBTTagCompound) {
     super.readFromNBT(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed") max 0 min 1
+    hasPower = nbt.getBoolean("hasPower")
     invertSignal = nbt.getBoolean("invertSignal")
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
     super.writeToNBT(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
+    nbt.setBoolean("hasPower", hasPower)
     nbt.setBoolean("invertSignal", invertSignal)
   }
 
@@ -79,11 +94,13 @@ class Charger extends traits.Environment with traits.RedstoneAware with traits.R
   override def readFromNBTForClient(nbt: NBTTagCompound) {
     super.readFromNBTForClient(nbt)
     chargeSpeed = nbt.getDouble("chargeSpeed")
+    hasPower = nbt.getBoolean("hasPower")
   }
 
   override def writeToNBTForClient(nbt: NBTTagCompound) {
     super.writeToNBTForClient(nbt)
     nbt.setDouble("chargeSpeed", chargeSpeed)
+    nbt.setBoolean("hasPower", hasPower)
   }
 
   // ----------------------------------------------------------------------- //

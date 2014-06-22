@@ -1,14 +1,15 @@
 package li.cil.oc.server.component.machine.luac
 
-import java.io.{DataInputStream, ByteArrayInputStream, DataOutputStream, ByteArrayOutputStream}
-import li.cil.oc.api.machine.Value
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
+import java.util.logging.Level
+
+import li.cil.oc.OpenComputers
 import li.cil.oc.api.Persistable
+import li.cil.oc.api.machine.Value
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
-import li.cil.oc.server.network.{Callbacks, ArgumentsImpl}
+import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
 import net.minecraft.nbt.{CompressedStreamTools, NBTTagCompound}
-import li.cil.oc.OpenComputers
-import java.util.logging.Level
 
 class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   def initialize() {
@@ -28,16 +29,23 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     lua.setField(-2, "save")
 
     lua.pushScalaFunction(lua => {
-      val className = lua.toString(1)
-      val clazz = Class.forName(className)
-      val persistable = clazz.newInstance.asInstanceOf[Persistable]
-      val data = lua.toByteArray(2)
-      val bais = new ByteArrayInputStream(data)
-      val dis = new DataInputStream(bais)
-      val nbt = CompressedStreamTools.read(dis)
-      persistable.load(nbt)
-      lua.pushJavaObjectRaw(persistable)
-      1
+      try {
+        val className = lua.toString(1)
+        val clazz = Class.forName(className)
+        val persistable = clazz.newInstance.asInstanceOf[Persistable]
+        val data = lua.toByteArray(2)
+        val bais = new ByteArrayInputStream(data)
+        val dis = new DataInputStream(bais)
+        val nbt = CompressedStreamTools.read(dis)
+        persistable.load(nbt)
+        lua.pushJavaObjectRaw(persistable)
+        1
+      }
+      catch {
+        case t: Throwable =>
+          OpenComputers.log.log(Level.WARNING, "Error in userdata load function.", t)
+          throw t
+      }
     })
     lua.setField(-2, "load")
 
@@ -76,7 +84,7 @@ class UserdataAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
 
     lua.pushScalaFunction(lua => {
       val value = lua.toJavaObjectRaw(1).asInstanceOf[Value]
-      lua.pushTable(Callbacks(value).map(entry => entry._1 -> entry._2.direct))
+      lua.pushValue(Callbacks(value).map(entry => entry._1 -> entry._2.direct))
       1
     })
     lua.setField(-2, "methods")

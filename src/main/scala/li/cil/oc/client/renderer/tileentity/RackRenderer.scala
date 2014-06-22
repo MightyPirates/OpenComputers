@@ -11,9 +11,11 @@ import org.lwjgl.opengl.GL11
 
 object RackRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) = {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val rack = tileEntity.asInstanceOf[Rack]
     if (rack.anyRunning) {
-      GL11.glPushAttrib(0xFFFFFF)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
@@ -51,5 +53,7 @@ object RackRenderer extends TileEntitySpecialRenderer {
       GL11.glPopMatrix()
       GL11.glPopAttrib()
     }
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

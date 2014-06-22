@@ -4,9 +4,10 @@ import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network._
 import li.cil.oc.common.tileentity.traits
 import li.cil.oc.util.ExtendedNBT._
-import li.cil.oc.{api, Settings}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 
 trait Hub extends traits.Environment with SidedEnvironment {
@@ -18,7 +19,7 @@ trait Hub extends traits.Environment with SidedEnvironment {
 
   protected val maxQueueSize = 20
 
-  protected var relayCooldown = 0
+  protected var relayCooldown = -1
 
   protected val relayDelay = 5
 
@@ -39,14 +40,19 @@ trait Hub extends traits.Environment with SidedEnvironment {
     else if (queue.nonEmpty) queue.synchronized {
       val (sourceSide, packet) = queue.dequeue()
       relayPacket(sourceSide, packet)
-      relayCooldown = relayDelay
+      if (queue.nonEmpty) {
+        relayCooldown = relayDelay
+      }
+      else {
+        relayCooldown = -1
+      }
     }
   }
 
   protected def tryEnqueuePacket(sourceSide: ForgeDirection, packet: Packet) = queue.synchronized {
     if (packet.ttl > 0 && queue.size < maxQueueSize) {
       queue += sourceSide -> packet.hop()
-      if (relayCooldown <= 0) {
+      if (relayCooldown < 0) {
         relayCooldown = relayDelay
       }
       true

@@ -1,16 +1,18 @@
 package li.cil.oc.client.gui
 
 import java.util
-import li.cil.oc.api
-import li.cil.oc.Settings
-import li.cil.oc.client.{PacketSender => ClientPacketSender, Textures}
-import li.cil.oc.common.container
-import li.cil.oc.common.tileentity
+
+import li.cil.oc.api.driver.{Inventory, Memory, Processor, Slot}
+import li.cil.oc.client.{Textures, PacketSender => ClientPacketSender}
+import li.cil.oc.common.{container, tileentity}
+import li.cil.oc.{Localization, api}
 import net.minecraft.client.gui.GuiButton
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.util.StatCollector
-import org.lwjgl.opengl.GL11
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.entity.player.InventoryPlayer
+import org.lwjgl.opengl.GL11
+
+import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable
 
 class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends DynamicGuiContainer(new container.RobotAssembler(playerInventory, assembler)) {
   xSize = 176
@@ -26,16 +28,69 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   private val progressWidth = 140
   private val progressHeight = 12
 
+  val suggestedComponents = Array(
+    "Screen" -> (() => hasComponent("screen1")),
+    "Keyboard" -> (() => hasComponent("keyboard")),
+    "GraphicsCard" -> (() => Array("graphicsCard1", "graphicsCard2", "graphicsCard3").exists(hasComponent)),
+    "Inventory" -> (() => hasInventory),
+    "OS" -> (() => hasFileSystem))
+
   def add[T](list: util.List[T], value: Any) = list.add(value.asInstanceOf[T])
 
+  private def hasCase = assembler.isItemValidForSlot(0, assembler.getStackInSlot(0))
+
+  private def hasCPU = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case _: Processor => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasRAM = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case _: Memory => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasComponent(name: String) = assembler.items.exists {
+    case Some(stack) => Option(api.Items.get(stack)) match {
+      case Some(descriptor) => descriptor.name == name
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasInventory = assembler.items.exists {
+    case Some(stack) => api.Driver.driverFor(stack) match {
+      case _: Inventory => true
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def hasFileSystem = assembler.items.exists {
+    case Some(stack) => Option(api.Driver.driverFor(stack)) match {
+      case Some(driver) => driver.slot(stack) == Slot.Disk || driver.slot(stack) == Slot.HardDiskDrive
+      case _ => false
+    }
+    case _ => false
+  }
+
+  private def isCapacityValid = assembler.complexity <= assembler.maxComplexity
+
+  private def canBuild = !assemblerContainer.isAssembling && hasCase && hasCPU && hasRAM && isCapacityValid
+
   protected override def actionPerformed(button: GuiButton) {
-    if (button.id == 0 && !assemblerContainer.isAssembling && assembler.complexity <= assembler.maxComplexity) {
+    if (button.id == 0 && canBuild) {
       ClientPacketSender.sendRobotAssemblerStart(assembler)
     }
   }
 
   override def drawScreen(mouseX: Int, mouseY: Int, dt: Float) {
-    runButton.enabled = assembler.complexity <= assembler.maxComplexity && !assemblerContainer.isAssembling && assembler.isItemValidForSlot(0, assembler.getStackInSlot(0))
+    runButton.enabled = canBuild
     runButton.toggled = !runButton.enabled
     super.drawScreen(mouseX, mouseY, dt)
   }
@@ -47,33 +102,48 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
   }
 
   override def drawGuiContainerForegroundLayer(mouseX: Int, mouseY: Int) = {
-    GL11.glPushAttrib(0xFFFFFFFF) // Me lazy... prevents NEI render glitch.
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS) // Me lazy... prevents NEI render glitch.
     if (!assemblerContainer.isAssembling) {
+      def drawMessage(message: String) {
+        fontRenderer.drawString(message, 30, 94, 0x404040)
+      }
       if (!inventorySlots.getSlot(0).getHasStack) {
-        fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.InsertCase"),
-          30, 94, 0x404040)
+        drawMessage(Localization.RobotAssembler.InsertCase)
       }
       else if (api.Items.get(inventorySlots.getSlot(0).getStack) == api.Items.get("robot")) {
-        fontRenderer.drawString(
-          StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.CollectRobot"),
-          30, 94, 0x404040)
+        drawMessage(Localization.RobotAssembler.CollectRobot)
+      }
+      else if (!hasCPU) {
+        drawMessage(Localization.RobotAssembler.InsertCPU)
+      }
+      else if (!hasRAM) {
+        drawMessage(Localization.RobotAssembler.InsertRAM)
       }
       else {
-        fontRenderer.drawString(
-          StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Complexity", Int.box(assembler.complexity), Int.box(assembler.maxComplexity)),
-          30, 94, if (assembler.complexity <= assembler.maxComplexity) 0x404040 else 0x804040)
+        fontRenderer.drawString(Localization.RobotAssembler.Complexity(assembler.complexity, assembler.maxComplexity), 30, 94, if (isCapacityValid) 0x404040 else 0x804040)
       }
       if (runButton.func_82252_a) {
         val tooltip = new java.util.ArrayList[String]
-        tooltip.add(StatCollector.translateToLocal(Settings.namespace + "gui.RobotAssembler.Run"))
+        tooltip.add(Localization.RobotAssembler.Run)
+        if (canBuild) {
+          var warnings = mutable.ArrayBuffer.empty[String]
+          for ((name, check) <- suggestedComponents) {
+            if (!check()) {
+              warnings += Localization.RobotAssembler.Warning(name)
+            }
+          }
+          if (warnings.length > 0) {
+            tooltip.add(Localization.RobotAssembler.Warnings)
+            tooltip.addAll(warnings)
+          }
+        }
         drawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
       }
     }
     else if (isPointInRegion(progressX, progressY, progressWidth, progressHeight, mouseX, mouseY)) {
       val tooltip = new java.util.ArrayList[String]
       val timeRemaining = formatTime(assemblerContainer.assemblyRemainingTime)
-      tooltip.add(StatCollector.translateToLocalFormatted(Settings.namespace + "gui.RobotAssembler.Progress", assemblerContainer.assemblyProgress.toInt.toString, timeRemaining))
+      tooltip.add(Localization.RobotAssembler.Progress(assemblerContainer.assemblyProgress, timeRemaining))
       copiedDrawHoveringText(tooltip, mouseX - guiLeft, mouseY - guiTop, fontRenderer)
     }
     GL11.glPopAttrib()

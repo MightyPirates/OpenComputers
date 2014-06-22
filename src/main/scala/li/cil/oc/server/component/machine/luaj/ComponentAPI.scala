@@ -1,9 +1,10 @@
 package li.cil.oc.server.component.machine.luaj
 
+import li.cil.oc.server
 import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.util.ScalaClosure._
-import li.cil.oc.server
-import org.luaj.vm3.{Varargs, LuaValue}
+import org.luaj.vm3.{LuaValue, Varargs}
+
 import scala.collection.convert.WrapAsScala._
 
 class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
@@ -13,9 +14,11 @@ class ComponentAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
 
     component.set("list", (args: Varargs) => components.synchronized {
       val filter = if (args.isstring(1)) Option(args.tojstring(1)) else None
+      val exact = args.optboolean(2, false)
       val table = LuaValue.tableOf(0, components.size)
+      def matches(name: String) = if (exact) name == filter.get else name.contains(filter.get)
       for ((address, name) <- components) {
-        if (filter.isEmpty || name.contains(filter.get)) {
+        if (filter.isEmpty || matches(name)) {
           table.set(address, name)
         }
       }

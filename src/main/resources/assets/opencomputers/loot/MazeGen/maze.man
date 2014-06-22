@@ -1,0 +1,23 @@
+NAME
+  maze - random maze generator
+
+SYNOPSIS
+  maze WIDTH LENGTH
+  maze WIDTH LENGTH HEIGHT
+  maze WIDTH LENGTH HEIGHT DIAMETER
+  maze WIDTH LENGTH HEIGHT DIAMETER REFUEL
+
+DESCRIPTION
+  Lets the robot dig a random maze using a Depth-First search algorithm. He will always start at the bottom left corner of the maze. If the cell height is set bigger than one he will expand the cells upwards. Keep in mind that increasing the cell diameter will increase the actual maze size in Minecraft blocks (see examples). For technical reasons a maze width or length of one are not supported.
+
+EXAMPLES
+  maze 10 10
+    Digs a 10x10 maze and will pick the
+    default values for the other arguments.
+    HEIGHT = 1, DIAMETER = 1, REFUEL = false
+
+  maze 10 10 2 3 true
+    Digs a 10x10 maze with a cell height of 2
+    and a cell diameter of 3. Refuel is set
+    to true. The actual size of the maze would
+    be 30x30 blocks.

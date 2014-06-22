@@ -1,22 +1,23 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import java.util
+import li.cil.oc.client.KeyBindings
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.server.component.robot
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.component.robot
 import li.cil.oc.util.{ItemUtils, Tooltip}
-import li.cil.oc.{Blocks, Settings, OpenComputers}
+import li.cil.oc.{Blocks, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{Icon, MovingObjectPosition, AxisAlignedBB, Vec3}
+import net.minecraft.util.{AxisAlignedBB, Icon, MovingObjectPosition, Vec3}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.client.KeyBindings
 
 class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with SpecialDelegate {
   val unlocalizedName = "Robot"
@@ -26,6 +27,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
   var moving = new ThreadLocal[Option[tileentity.Robot]] {
     override protected def initialValue = None
   }
+
+  showInItemList = false
 
   // ----------------------------------------------------------------------- //
 
@@ -146,6 +149,15 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
       }
       true
     }
+    else if (player.getCurrentEquippedItem == null) {
+      if (!world.isRemote) {
+        world.getBlockTileEntity(x, y, z) match {
+          case proxy: tileentity.RobotProxy if !proxy.isRunning => proxy.start()
+          case _ =>
+        }
+      }
+      true
+    }
     else false
   }
 
@@ -172,8 +184,8 @@ class RobotProxy(val parent: SpecialDelegator) extends RedstoneAware with Specia
     world.getBlockTileEntity(x, y, z) match {
       case proxy: tileentity.RobotProxy =>
         val robot = proxy.robot
-        if (robot.player == player) return false
         if (!world.isRemote) {
+          if (robot.player == player) return false
           robot.saveComponents()
           parent.dropBlockAsItem(world, x, y, z, robot.info.createItemStack())
         }

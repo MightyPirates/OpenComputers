@@ -2,14 +2,13 @@ package li.cil.oc.server
 
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
-import li.cil.oc.common.tileentity
 import li.cil.oc.common.tileentity.traits._
-import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
+import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType, tileentity}
 import li.cil.oc.util.PackedColor
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
-import net.minecraftforge.common.ForgeDirection
 import net.minecraft.world.World
+import net.minecraftforge.common.ForgeDirection
 
 object PacketSender {
   def sendAbstractBusState(t: AbstractBusAware) {
@@ -34,6 +33,7 @@ object PacketSender {
 
     pb.writeTileEntity(t)
     pb.writeDouble(t.chargeSpeed)
+    pb.writeBoolean(t.hasPower)
 
     pb.sendToNearbyPlayers(t)
   }
@@ -129,6 +129,28 @@ object PacketSender {
     pb.sendToNearbyPlayers(t)
   }
 
+  def sendPetVisibility(name: Option[String] = None, player: Option[EntityPlayerMP] = None) {
+    val pb = new PacketBuilder(PacketType.PetVisibility)
+
+    name match {
+      case Some(n) =>
+        pb.writeInt(1)
+        pb.writeUTF(n)
+        pb.writeBoolean(!PetVisibility.hidden.contains(n))
+      case _ =>
+        pb.writeInt(PetVisibility.hidden.size)
+        for (n <- PetVisibility.hidden) {
+          pb.writeUTF(n)
+          pb.writeBoolean(false)
+        }
+    }
+
+    player match {
+      case Some(p) => pb.sendToPlayer(p)
+      case _ => pb.sendToAllPlayers()
+    }
+  }
+
   def sendPowerState(t: PowerInformation) {
     val pb = new PacketBuilder(PacketType.PowerState)
 
@@ -192,19 +214,11 @@ object PacketSender {
     pb.sendToNearbyPlayers(t, 64)
   }
 
-  def sendRobotEquippedItemChange(t: tileentity.Robot, stack: ItemStack) {
-    val pb = new PacketBuilder(PacketType.RobotEquippedItemChange)
+  def sendRobotInventory(t: tileentity.Robot, slot: Int, stack: ItemStack) {
+    val pb = new PacketBuilder(PacketType.RobotInventoryChange)
 
     pb.writeTileEntity(t.proxy)
-    pb.writeItemStack(stack)
-
-    pb.sendToNearbyPlayers(t)
-  }
-
-  def sendRobotEquippedUpgradeChange(t: tileentity.Robot, stack: ItemStack) {
-    val pb = new PacketBuilder(PacketType.RobotEquippedUpgradeChange)
-
-    pb.writeTileEntity(t.proxy)
+    pb.writeInt(slot)
     pb.writeItemStack(stack)
 
     pb.sendToNearbyPlayers(t)

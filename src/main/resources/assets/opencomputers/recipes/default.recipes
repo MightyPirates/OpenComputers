@@ -29,7 +29,7 @@ server3 {
 }
 
 ram1 {
-  input: [["oc:circuitChip1", "", "oc:circuitChip1"]
+  input: [["oc:circuitChip1", nuggetIron, "oc:circuitChip1"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram2 {
@@ -37,7 +37,7 @@ ram2 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram3 {
-  input: [["oc:circuitChip2", "", "oc:circuitChip2"]
+  input: [["oc:circuitChip2", nuggetIron, "oc:circuitChip2"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram4 {
@@ -45,7 +45,7 @@ ram4 {
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram5 {
-  input: [["oc:circuitChip3", "", "oc:circuitChip3"]
+  input: [["oc:circuitChip3", nuggetIron, "oc:circuitChip3"]
           ["", "oc:materialCircuitBoardPrinted", ""]]
 }
 ram6 {
@@ -79,7 +79,7 @@ openOS {
 }
 
 abstractBusCard {
-  input: [[busCable, {item=naquadah, subID=8}, ""]
+  input: [["StargateTech2:block.busCable", {item="StargateTech2:item.naquadah", subID=3}, ""]
           ["", "oc:materialCard", ""]]
 }
 graphicsCard1 {
@@ -122,10 +122,20 @@ angelUpgrade {
           ["oc:circuitChip1", pistonStickyBase, "oc:circuitChip1"]
           [ingotIron, enderPearl, ingotIron]]
 }
-capacitorUpgrade {
-  input: [[ingotIron, "oc:capacitor", ingotIron]
-          ["oc:capacitor", ingotGold, "oc:capacitor"]
-          [ingotIron, "oc:capacitor", ingotIron]]
+batteryUpgrade1 {
+  input: [[ingotIron, nuggetGold, ingotIron]
+          [fenceIron, "oc:capacitor", fenceIron]
+          [ingotIron, nuggetGold, ingotIron]]
+}
+batteryUpgrade2 {
+  input: [[ingotGold, "oc:capacitor", ingotGold]
+          [fenceIron, nuggetGold, fenceIron]
+          [ingotGold, "oc:capacitor", ingotGold]]
+}
+batteryUpgrade3 {
+  input: [[diamond, "oc:capacitor", diamond]
+          [fenceIron, "oc:capacitor", fenceIron]
+          [diamond, "oc:capacitor", diamond]]
 }
 chunkloaderUpgrade {
   input: [[ingotGold, glass, ingotGold]

@@ -2,11 +2,11 @@ package li.cil.oc.common.container
 
 import cpw.mods.fml.common.FMLCommonHandler
 import li.cil.oc.api
-import li.cil.oc.common.InventorySlots.{Tier, InventorySlot}
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.InventoryPlayer
-import net.minecraft.inventory.{ICrafting, Container, IInventory, Slot}
+import li.cil.oc.common.InventorySlots.{InventorySlot, Tier}
+import net.minecraft.entity.player.{EntityPlayer, InventoryPlayer}
+import net.minecraft.inventory.{Container, ICrafting, IInventory, Slot}
 import net.minecraft.item.ItemStack
+
 import scala.collection.convert.WrapAsScala._
 
 abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: IInventory) extends Container {
@@ -52,7 +52,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       if (intoPlayerInventory) (inventorySlots.size - 1, 0)
       else (0, inventorySlots.size - 1)
 
-    if (fromStack.isStackable) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
+    if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
       val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
       if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack

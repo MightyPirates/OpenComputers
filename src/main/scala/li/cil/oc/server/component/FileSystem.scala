@@ -1,23 +1,23 @@
 package li.cil.oc.server.component
 
 import java.io.{FileNotFoundException, IOException}
-import li.cil.oc.Settings
-import li.cil.oc.api
+
+import li.cil.oc.{Settings, api}
+import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.{Label, Mode, FileSystem => IFileSystem}
-import li.cil.oc.api.Network
 import li.cil.oc.api.network._
-import li.cil.oc.common.Sound
-import li.cil.oc.common.component.ManagedComponent
-import li.cil.oc.server.driver.item.{CC16Media, CC15Media}
+import li.cil.oc.common.{Sound, component}
 import li.cil.oc.server.driver.item.FileSystem.ItemLabel
+import li.cil.oc.server.driver.item.{CC15Media, CC16Media}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.Mods
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagInt, NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagInt, NBTTagList}
+
 import scala.collection.mutable
 
-class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends ManagedComponent {
+class FileSystem(val fileSystem: IFileSystem, var label: Label, val container: Option[Container] = None) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("filesystem", Visibility.Neighbors).
     withConnector().

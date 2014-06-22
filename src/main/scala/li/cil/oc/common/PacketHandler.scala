@@ -1,10 +1,10 @@
 package li.cil.oc.common
 
-import cpw.mods.fml.common.network.IPacketHandler
-import cpw.mods.fml.common.network.Player
-import java.io.{InputStream, ByteArrayInputStream, DataInputStream}
+import java.io.{ByteArrayInputStream, DataInputStream, InputStream}
 import java.util.logging.Level
 import java.util.zip.GZIPInputStream
+
+import cpw.mods.fml.common.network.{IPacketHandler, Player}
 import li.cil.oc.{Blocks, OpenComputers}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompressedStreamTools
@@ -12,8 +12,8 @@ import net.minecraft.network.INetworkManager
 import net.minecraft.network.packet.Packet250CustomPayload
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
-import scala.reflect.ClassTag
-import scala.reflect.classTag
+
+import scala.reflect.{ClassTag, classTag}
 
 abstract class PacketHandler extends IPacketHandler {
   /** Top level dispatcher based on packet type. */

@@ -7,8 +7,8 @@ import li.cil.oc.common.tileentity.Screen
 import li.cil.oc.util.RenderState
 import li.cil.oc.util.mods.BuildCraft
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -27,6 +27,8 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
   // ----------------------------------------------------------------------- //
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     screen = t.asInstanceOf[Screen]
     if (!screen.isOrigin) {
       return
@@ -44,7 +46,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
       return
     }
 
-    GL11.glPushAttrib(0xFFFFFF)
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: checks")
+
+    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
     RenderState.disableLighting()
     RenderState.makeItBlend()
@@ -53,18 +57,26 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
 
     GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5)
 
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: setup")
+
     drawOverlay()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: overlay")
 
     if (distance > fadeDistanceSq) {
       RenderState.setBlendAlpha(math.max(0, 1 - ((distance - fadeDistanceSq) * fadeRatio).toFloat))
     }
 
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: fade")
+
     if (screen.buffer.isRenderingEnabled) {
-      compileOrDraw()
+      draw()
     }
 
     GL11.glPopMatrix()
     GL11.glPopAttrib()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 
   private def transform() {
@@ -115,7 +127,9 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     }
   }
 
-  private def compileOrDraw() {
+  private def draw() {
+    RenderState.checkError(getClass.getName + ".draw: entering (aka: wasntme)")
+
     val sx = screen.width
     val sy = screen.height
     val tw = sx * 16f
@@ -153,8 +167,12 @@ object ScreenRenderer extends TileEntitySpecialRenderer {
     // Slightly offset the text so it doesn't clip into the screen.
     GL11.glTranslatef(0, 0, 0.01f)
 
+    RenderState.checkError(getClass.getName + ".draw: setup")
+
     // Render the actual text.
     screen.buffer.renderText()
+
+    RenderState.checkError(getClass.getName + ".draw: text")
   }
 
   private def playerDistanceSq() = {

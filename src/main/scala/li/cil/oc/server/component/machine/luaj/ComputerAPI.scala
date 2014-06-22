@@ -1,10 +1,10 @@
 package li.cil.oc.server.component.machine.luaj
 
-import li.cil.oc.server.component.machine.LuaJLuaArchitecture
 import li.cil.oc.Settings
-import li.cil.oc.util.ScalaClosure._
-import org.luaj.vm3.{Varargs, LuaValue}
 import li.cil.oc.api.network.Connector
+import li.cil.oc.server.component.machine.LuaJLuaArchitecture
+import li.cil.oc.util.ScalaClosure._
+import org.luaj.vm3.{LuaValue, Varargs}
 
 class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
   override def initialize() {
@@ -25,6 +25,18 @@ class ComputerAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     computer.set("address", (_: Varargs) => Option(node.address) match {
       case Some(address) => LuaValue.valueOf(address)
       case _ => LuaValue.NIL
+    })
+
+    // Get/set address of boot device.
+    computer.set("getBootAddress", (_: Varargs) => owner.bootAddress match {
+      case "" => LuaValue.NIL
+      case address => LuaValue.valueOf(address)
+    })
+
+    computer.set("setBootAddress", (args: Varargs) => {
+      if (args.isnoneornil(1)) owner.bootAddress = ""
+      else owner.bootAddress = args.checkjstring(1)
+      LuaValue.NIL
     })
 
     computer.set("freeMemory", (_: Varargs) => LuaValue.valueOf(owner.memory / 2))

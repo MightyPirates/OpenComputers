@@ -1,25 +1,27 @@
 package li.cil.oc.client.renderer.tileentity
 
-import com.google.common.base.Strings
 import java.util.logging.Level
+
+import com.google.common.base.Strings
 import li.cil.oc.api.event.RobotRenderEvent
 import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.util.RenderState
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{OpenComputers, Settings}
 import net.minecraft.block.Block
-import net.minecraft.client.renderer.entity.{RendererLivingEntity, RenderManager}
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.entity.{RenderManager, RendererLivingEntity}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{RenderBlocks, Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{GLAllocation, RenderBlocks, Tessellator}
 import net.minecraft.item.Item
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.IItemRenderer.ItemRenderType
 import net.minecraftforge.client.IItemRenderer.ItemRenderType._
+import net.minecraftforge.client.IItemRenderer.ItemRendererHelper._
 import net.minecraftforge.client.MinecraftForgeClient
-import net.minecraftforge.common.{MinecraftForge, ForgeDirection}
-import org.lwjgl.opengl.{GL12, GL11}
+import net.minecraftforge.common.{ForgeDirection, MinecraftForge}
+import org.lwjgl.opengl.{GL11, GL12}
 
 object RobotRenderer extends TileEntitySpecialRenderer {
   private val displayList = GLAllocation.generateDisplayLists(2)
@@ -107,63 +109,72 @@ object RobotRenderer extends TileEntitySpecialRenderer {
 
   compileList()
 
-  def resetMountPoints() {
-    // Back.
-    mountPoints(0).offset.xCoord = 0
-    mountPoints(0).offset.yCoord = 0.33
-    mountPoints(0).offset.zCoord = -0.33
-    mountPoints(0).normal.xCoord = 0
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = -1
+  def resetMountPoints(running: Boolean) {
+    val offset = if (running) 0 else -0.06f
 
-    mountPoints(0).offset.xCoord = 0
-    mountPoints(0).offset.yCoord = -0.33
-    mountPoints(0).offset.zCoord = -0.33
-    mountPoints(0).normal.xCoord = 0
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = -1
+    // Back.
+    mountPoints(0).offset.setX(0)
+    mountPoints(0).offset.setY(-0.2f)
+    mountPoints(0).offset.setZ(0.24f)
+    mountPoints(0).rotation.setX(0)
+    mountPoints(0).rotation.setY(1)
+    mountPoints(0).rotation.setZ(0)
+    mountPoints(0).rotation.setW(180)
+
+    mountPoints(1).offset.setX(0)
+    mountPoints(1).offset.setY(0.2f + offset)
+    mountPoints(1).offset.setZ(0.24f)
+    mountPoints(1).rotation.setX(0)
+    mountPoints(1).rotation.setY(1)
+    mountPoints(1).rotation.setZ(0)
+    mountPoints(1).rotation.setW(180)
 
     // Front.
-    mountPoints(0).offset.xCoord = 0
-    mountPoints(0).offset.yCoord = -0.33
-    mountPoints(0).offset.zCoord = 0.33
-    mountPoints(0).normal.xCoord = 0
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = 1
+    mountPoints(2).offset.setX(0)
+    mountPoints(2).offset.setY(-0.2f)
+    mountPoints(2).offset.setZ(0.24f)
+    mountPoints(2).rotation.setX(0)
+    mountPoints(2).rotation.setY(1)
+    mountPoints(2).rotation.setZ(0)
+    mountPoints(2).rotation.setW(0)
 
     // Left.
-    mountPoints(0).offset.xCoord = -0.33
-    mountPoints(0).offset.yCoord = 0.33
-    mountPoints(0).offset.zCoord = 0
-    mountPoints(0).normal.xCoord = -1
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = 0
+    mountPoints(3).offset.setX(0)
+    mountPoints(3).offset.setY(-0.2f)
+    mountPoints(3).offset.setZ(0.24f)
+    mountPoints(3).rotation.setX(0)
+    mountPoints(3).rotation.setY(1)
+    mountPoints(3).rotation.setZ(0)
+    mountPoints(3).rotation.setW(90)
 
-    mountPoints(0).offset.xCoord = -0.33
-    mountPoints(0).offset.yCoord = -0.33
-    mountPoints(0).offset.zCoord = 0
-    mountPoints(0).normal.xCoord = -1
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = 0
+    mountPoints(4).offset.setX(0)
+    mountPoints(4).offset.setY(0.2f + offset)
+    mountPoints(4).offset.setZ(0.24f)
+    mountPoints(4).rotation.setX(0)
+    mountPoints(4).rotation.setY(1)
+    mountPoints(4).rotation.setZ(0)
+    mountPoints(4).rotation.setW(90)
 
     // Right.
-    mountPoints(0).offset.xCoord = 0.33
-    mountPoints(0).offset.yCoord = 0.33
-    mountPoints(0).offset.zCoord = 0
-    mountPoints(0).normal.xCoord = 1
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = 0
+    mountPoints(5).offset.setX(0)
+    mountPoints(5).offset.setY(-0.2f)
+    mountPoints(5).offset.setZ(0.24f)
+    mountPoints(5).rotation.setX(0)
+    mountPoints(5).rotation.setY(1)
+    mountPoints(5).rotation.setZ(0)
+    mountPoints(5).rotation.setW(-90)
 
-    mountPoints(0).offset.xCoord = 0.33
-    mountPoints(0).offset.yCoord = -0.33
-    mountPoints(0).offset.zCoord = 0
-    mountPoints(0).normal.xCoord = 1
-    mountPoints(0).normal.yCoord = 0
-    mountPoints(0).normal.zCoord = 0
+    mountPoints(6).offset.setX(0)
+    mountPoints(6).offset.setY(0.2f + offset)
+    mountPoints(6).offset.setZ(0.24f)
+    mountPoints(6).rotation.setX(0)
+    mountPoints(6).rotation.setY(1)
+    mountPoints(6).rotation.setZ(0)
+    mountPoints(6).rotation.setW(-90)
   }
 
-  def renderChassis(robot: tileentity.Robot = null, offset: Double = 0) {
-    val isRunning = if (robot == null) false else robot.isRunning
+  def renderChassis(robot: tileentity.Robot = null, offset: Double = 0, isRunningOverride: Boolean = false) {
+    val isRunning = if (robot == null) isRunningOverride else robot.isRunning
 
     val size = 0.3f
     val l = 0.5f - size
@@ -178,7 +189,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
         (0.25f - vStep, 0.25f + vStep, 0.75f - vStep, 0.75f + vStep)
     }
 
-    resetMountPoints()
+    resetMountPoints(robot != null && robot.isRunning)
     val event = new RobotRenderEvent(robot, mountPoints)
     MinecraftForge.EVENT_BUS.post(event)
     if (!event.isCanceled) {
@@ -229,6 +240,8 @@ object RobotRenderer extends TileEntitySpecialRenderer {
   }
 
   override def renderTileEntityAt(entity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val proxy = entity.asInstanceOf[tileentity.RobotProxy]
     val robot = proxy.robot
     val worldTime = entity.getWorldObj.getTotalWorldTime + f
@@ -283,115 +296,119 @@ object RobotRenderer extends TileEntitySpecialRenderer {
       renderChassis(robot, offset)
     }
 
-    robot.equippedItem match {
-      case Some(stack) =>
-        val player = robot.player()
-        val itemRenderer = RenderManager.instance.itemRenderer
+    if (!robot.renderingErrored && x * x + y * y + z * z < 24 * 24) {
+      Option(robot.getStackInSlot(0)) match {
+        case Some(stack) =>
+          val itemRenderer = RenderManager.instance.itemRenderer
 
-        GL11.glPushMatrix()
-        try {
-          // Copy-paste from player render code, with minor adjustments for
-          // robot scale.
+          GL11.glPushMatrix()
+          try {
+            // Copy-paste from player render code, with minor adjustments for
+            // robot scale.
 
-          GL11.glDisable(GL11.GL_CULL_FACE)
-          GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+            GL11.glDisable(GL11.GL_CULL_FACE)
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL)
 
-          GL11.glScalef(1, -1, -1)
-          GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
+            GL11.glScalef(1, -1, -1)
+            GL11.glTranslatef(0, -8 * 0.0625F - 0.0078125F, -0.5F)
 
-          if (robot.isAnimatingSwing) {
-            val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
-            GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
-          }
-
-          val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
-          val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
-          val isBlock = stack.itemID < Block.blocksList.length && stack.getItemSpriteNumber == 0
-
-          if (is3D || (isBlock && RenderBlocks.renderItemIn3d(Block.blocksList(stack.itemID).getRenderType))) {
-            val scale = 0.375f
-            GL11.glTranslatef(0, 0.1875f, -0.3125f)
-            GL11.glRotatef(20, 1, 0, 0)
-            GL11.glRotatef(45, 0, 1, 0)
-            GL11.glScalef(-scale, -scale, scale)
-          }
-          else if (stack.itemID == Item.bow.itemID) {
-            val scale = 0.375f
-            GL11.glTranslatef(0, 0.2f, -0.2f)
-            GL11.glRotatef(-10, 0, 1, 0)
-            GL11.glScalef(scale, -scale, scale)
-            GL11.glRotatef(-20, 1, 0, 0)
-            GL11.glRotatef(45, 0, 1, 0)
-          }
-          else if (Item.itemsList(stack.itemID).isFull3D) {
-            val scale = 0.375f
-            if (Item.itemsList(stack.itemID).shouldRotateAroundWhenRendering) {
-              GL11.glRotatef(180, 0, 0, 1)
-              GL11.glTranslatef(0, -0.125f, 0)
+            if (robot.isAnimatingSwing) {
+              val remaining = (robot.animationTicksLeft - f) / robot.animationTicksTotal.toDouble
+              GL11.glRotatef((Math.sin(remaining * Math.PI) * 45).toFloat, 1, 0, 0)
             }
-            GL11.glTranslatef(0, 0.1f, 0)
-            GL11.glScalef(scale, -scale, scale)
-            GL11.glRotatef(-100, 1, 0, 0)
-            GL11.glRotatef(45, 0, 1, 0)
-          }
-          else {
-            val scale = 0.375f
-            GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
-            GL11.glScalef(scale, scale, scale)
-            GL11.glRotatef(60, 0, 0, 1)
-            GL11.glRotatef(-90, 1, 0, 0)
-            GL11.glRotatef(20, 0, 0, 1)
-          }
 
-          if (stack.getItem.requiresMultipleRenderPasses) {
-            for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
-              val tint = stack.getItem.getColorFromItemStack(stack, pass)
+            val customRenderer = MinecraftForgeClient.getItemRenderer(stack, EQUIPPED)
+            val is3D = customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, stack, BLOCK_3D)
+            val isBlock = stack.itemID < Block.blocksList.length && stack.getItemSpriteNumber == 0
+
+            if (is3D || (isBlock && RenderBlocks.renderItemIn3d(Block.blocksList(stack.itemID).getRenderType))) {
+              val scale = 0.375f
+              GL11.glTranslatef(0, 0.1875f, -0.3125f)
+              GL11.glRotatef(20, 1, 0, 0)
+              GL11.glRotatef(45, 0, 1, 0)
+              GL11.glScalef(-scale, -scale, scale)
+            }
+            else if (stack.itemID == Item.bow.itemID) {
+              val scale = 0.375f
+              GL11.glTranslatef(0, 0.2f, -0.2f)
+              GL11.glRotatef(-10, 0, 1, 0)
+              GL11.glScalef(scale, -scale, scale)
+              GL11.glRotatef(-20, 1, 0, 0)
+              GL11.glRotatef(45, 0, 1, 0)
+            }
+            else if (Item.itemsList(stack.itemID).isFull3D) {
+              val scale = 0.375f
+              if (Item.itemsList(stack.itemID).shouldRotateAroundWhenRendering) {
+                GL11.glRotatef(180, 0, 0, 1)
+                GL11.glTranslatef(0, -0.125f, 0)
+              }
+              GL11.glTranslatef(0, 0.1f, 0)
+              GL11.glScalef(scale, -scale, scale)
+              GL11.glRotatef(-100, 1, 0, 0)
+              GL11.glRotatef(45, 0, 1, 0)
+            }
+            else {
+              val scale = 0.375f
+              GL11.glTranslatef(0.25f, 0.1875f, -0.1875f)
+              GL11.glScalef(scale, scale, scale)
+              GL11.glRotatef(60, 0, 0, 1)
+              GL11.glRotatef(-90, 1, 0, 0)
+              GL11.glRotatef(20, 0, 0, 1)
+            }
+
+            if (stack.getItem.requiresMultipleRenderPasses) {
+              for (pass <- 0 until stack.getItem.getRenderPasses(stack.getItemDamage)) {
+                val tint = stack.getItem.getColorFromItemStack(stack, pass)
+                val r = ((tint >> 16) & 0xFF) / 255f
+                val g = ((tint >> 8) & 0xFF) / 255f
+                val b = ((tint >> 0) & 0xFF) / 255f
+                GL11.glColor4f(r, g, b, 1)
+                itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, pass)
+              }
+            }
+            else {
+              val tint = stack.getItem.getColorFromItemStack(stack, 0)
               val r = ((tint >> 16) & 0xFF) / 255f
               val g = ((tint >> 8) & 0xFF) / 255f
               val b = ((tint >> 0) & 0xFF) / 255f
               GL11.glColor4f(r, g, b, 1)
-              itemRenderer.renderItem(player, stack, pass)
+              itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, 0)
             }
           }
-          else {
-            val tint = stack.getItem.getColorFromItemStack(stack, 0)
-            val r = ((tint >> 16) & 0xFF) / 255f
-            val g = ((tint >> 8) & 0xFF) / 255f
-            val b = ((tint >> 0) & 0xFF) / 255f
-            GL11.glColor4f(r, g, b, 1)
-            itemRenderer.renderItem(player, stack, 0)
+          catch {
+            case e: Throwable =>
+              OpenComputers.log.log(Level.WARNING, "Failed rendering equipped item.", e)
+              robot.renderingErrored = true
           }
-        }
-        catch {
-          case e: Throwable =>
-            OpenComputers.log.log(Level.WARNING, "Failed rendering equipped item.", e)
-            robot.equippedItem = None
-        }
-        GL11.glEnable(GL11.GL_CULL_FACE)
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL)
-        GL11.glPopMatrix()
-      case _ =>
-    }
+          GL11.glEnable(GL11.GL_CULL_FACE)
+          GL11.glDisable(GL12.GL_RESCALE_NORMAL)
+          GL11.glPopMatrix()
+        case _ =>
+      }
 
-    robot.equippedUpgrade match {
-      case Some(stack) =>
+      val stacks = (robot.componentSlots ++ robot.containerSlots).map(robot.getStackInSlot).filter(stack => stack != null && MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null).padTo(mountPoints.length, null).take(mountPoints.length)
+      for ((stack, mountPoint) <- stacks.zip(mountPoints)) {
         try {
-          if (MinecraftForgeClient.getItemRenderer(stack, ItemRenderType.EQUIPPED) != null &&
-            (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
+          if (stack != null && (stack.getItem.requiresMultipleRenderPasses() || MinecraftForgeClient.getRenderPass == 0)) {
             val tint = stack.getItem.getColorFromItemStack(stack, MinecraftForgeClient.getRenderPass)
             val r = ((tint >> 16) & 0xFF) / 255f
             val g = ((tint >> 8) & 0xFF) / 255f
             val b = ((tint >> 0) & 0xFF) / 255f
             GL11.glColor4f(r, g, b, 1)
-            RenderManager.instance.itemRenderer.renderItem(robot.player(), stack, MinecraftForgeClient.getRenderPass)
+            GL11.glPushMatrix()
+            GL11.glTranslatef(0.5f, 0.5f, 0.5f)
+            GL11.glRotatef(mountPoint.rotation.getW, mountPoint.rotation.getX, mountPoint.rotation.getY, mountPoint.rotation.getZ)
+            GL11.glTranslatef(mountPoint.offset.getX, mountPoint.offset.getY, mountPoint.offset.getZ)
+            RenderManager.instance.itemRenderer.renderItem(Minecraft.getMinecraft.thePlayer, stack, MinecraftForgeClient.getRenderPass)
+            GL11.glPopMatrix()
           }
         }
         catch {
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Failed rendering equipped upgrade.", e)
-            robot.equippedUpgrade = None
+            robot.renderingErrored = true
         }
-      case _ =>
+      }
     }
     GL11.glPopMatrix()
 
@@ -438,5 +455,7 @@ object RobotRenderer extends TileEntitySpecialRenderer {
     }
 
     GL11.glPopMatrix()
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

@@ -1,5 +1,6 @@
 package li.cil.oc.client.renderer.tileentity
 
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity.Charger
 import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.Tessellator
@@ -8,13 +9,14 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
-import li.cil.oc.client.Textures
 
 object ChargerRenderer extends TileEntitySpecialRenderer {
   override def renderTileEntityAt(tileEntity: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     val charger = tileEntity.asInstanceOf[Charger]
     if (charger.chargeSpeed > 0) {
-      GL11.glPushAttrib(0xFFFFFF)
+      GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
       RenderState.disableLighting()
       RenderState.makeItBlend()
@@ -45,26 +47,30 @@ object ChargerRenderer extends TileEntitySpecialRenderer {
       t.addVertexWithUV(1, inverse, 0.005, frontIcon.getMaxU, frontIcon.getInterpolatedV(inverse * 16))
       t.addVertexWithUV(0, inverse, 0.005, frontIcon.getMinU, frontIcon.getInterpolatedV(inverse * 16))
 
-      val sideIcon = Textures.Charger.iconSideCharging
-      t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(-0.005, 0, -1, sideIcon.getMinU, sideIcon.getMinV)
+      if (charger.hasPower) {
+        val sideIcon = Textures.Charger.iconSideCharging
+        t.addVertexWithUV(-0.005, 1, -1, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(-0.005, 1, 0, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(-0.005, 0, 0, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(-0.005, 0, -1, sideIcon.getMinU, sideIcon.getMinV)
 
-      t.addVertexWithUV(1, 1, -1.005, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(0, 1, -1.005, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(0, 0, -1.005, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(1, 0, -1.005, sideIcon.getMinU, sideIcon.getMinV)
+        t.addVertexWithUV(1, 1, -1.005, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(0, 1, -1.005, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(0, 0, -1.005, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(1, 0, -1.005, sideIcon.getMinU, sideIcon.getMinV)
 
-      t.addVertexWithUV(1.005, 1, 0, sideIcon.getMinU, sideIcon.getMaxV)
-      t.addVertexWithUV(1.005, 1, -1, sideIcon.getMaxU, sideIcon.getMaxV)
-      t.addVertexWithUV(1.005, 0, -1, sideIcon.getMaxU, sideIcon.getMinV)
-      t.addVertexWithUV(1.005, 0, 0, sideIcon.getMinU, sideIcon.getMinV)
+        t.addVertexWithUV(1.005, 1, 0, sideIcon.getMinU, sideIcon.getMaxV)
+        t.addVertexWithUV(1.005, 1, -1, sideIcon.getMaxU, sideIcon.getMaxV)
+        t.addVertexWithUV(1.005, 0, -1, sideIcon.getMaxU, sideIcon.getMinV)
+        t.addVertexWithUV(1.005, 0, 0, sideIcon.getMinU, sideIcon.getMinV)
+      }
 
       t.draw()
 
       GL11.glPopMatrix()
       GL11.glPopAttrib()
     }
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

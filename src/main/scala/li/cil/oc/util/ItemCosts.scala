@@ -1,12 +1,13 @@
 package li.cil.oc.util
 
 import java.util
-import li.cil.oc.{Settings, Items}
+
+import li.cil.oc.{Items, Localization}
 import net.minecraft.block.Block
 import net.minecraft.item.crafting._
 import net.minecraft.item.{Item, ItemStack}
-import net.minecraft.util.StatCollector
-import net.minecraftforge.oredict.{OreDictionary, ShapelessOreRecipe, ShapedOreRecipe}
+import net.minecraftforge.oredict.{OreDictionary, ShapedOreRecipe, ShapelessOreRecipe}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 
@@ -52,7 +53,7 @@ object ItemCosts {
   }
 
   def addTooltip(stack: ItemStack, tooltip: util.List[String]) {
-    tooltip.add(StatCollector.translateToLocal(Settings.namespace + "tooltip.Materials"))
+    tooltip.add(Localization.Tooltip.Materials)
     for ((ingredient, count) <- computeIngredients(stack)) {
       val line = math.ceil(count).toInt + "x " + ingredient.getDisplayName
       tooltip.add(line)
@@ -136,9 +137,9 @@ object ItemCosts {
   // for example by components being assigned an address, which will break the
   // equals check.
   private def fuzzyEquals(stack1: ItemStack, stack2: ItemStack) =
-      stack1.itemID == stack2.itemID &&
-        (stack1.getItemDamage == stack2.getItemDamage ||
-          stack1.getItemDamage == OreDictionary.WILDCARD_VALUE ||
-          stack2.getItemDamage == OreDictionary.WILDCARD_VALUE ||
-          stack1.getItem.isDamageable) // && ItemStack.areItemStackTagsEqual(stack1, stack2)
+    stack1.itemID == stack2.itemID &&
+      (stack1.getItemDamage == stack2.getItemDamage ||
+        stack1.getItemDamage == OreDictionary.WILDCARD_VALUE ||
+        stack2.getItemDamage == OreDictionary.WILDCARD_VALUE ||
+        stack1.getItem.isDamageable) // && ItemStack.areItemStackTagsEqual(stack1, stack2)
 }

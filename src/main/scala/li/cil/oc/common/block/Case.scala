@@ -1,19 +1,19 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import java.util
 import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, Tooltip}
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{StatCollector, Icon}
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.util.Icon
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
@@ -41,8 +41,7 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     val nbt = accessor.getNBTData
     val node = nbt.getCompoundTag(Settings.namespace + "computer").getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
   }
 
@@ -92,6 +91,15 @@ abstract class Case(val parent: SimpleDelegator) extends RedstoneAware with Simp
     if (!player.isSneaking && !BuildCraft.holdsApplicableWrench(player, x, y, z)) {
       if (!world.isRemote) {
         player.openGui(OpenComputers, GuiType.Case.id, world, x, y, z)
+      }
+      true
+    }
+    else if (player.getCurrentEquippedItem == null) {
+      if (!world.isRemote) {
+        world.getBlockTileEntity(x, y, z) match {
+          case computer: tileentity.Case if !computer.isRunning => computer.start()
+          case _ =>
+        }
       }
       true
     }

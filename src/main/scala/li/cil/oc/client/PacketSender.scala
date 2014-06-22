@@ -1,5 +1,6 @@
 package li.cil.oc.client
 
+import li.cil.oc.Settings
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.Computer
 import li.cil.oc.common.{CompressedPacketBuilder, PacketBuilder, PacketType}
@@ -93,6 +94,14 @@ object PacketSender {
 
   def sendMultiPlace() {
     val pb = new PacketBuilder(PacketType.MultiPartPlace)
+    pb.sendToServer()
+  }
+
+  def sendPetVisibility() {
+    val pb = new PacketBuilder(PacketType.PetVisibility)
+
+    pb.writeBoolean(!Settings.get.hideOwnPet)
+
     pb.sendToServer()
   }
 

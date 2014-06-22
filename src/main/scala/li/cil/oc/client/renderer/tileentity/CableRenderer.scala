@@ -2,8 +2,9 @@ package li.cil.oc.client.renderer.tileentity
 
 import li.cil.oc.client.Textures
 import li.cil.oc.common.block
+import li.cil.oc.util.RenderState
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-import net.minecraft.client.renderer.{Tessellator, GLAllocation}
+import net.minecraft.client.renderer.{GLAllocation, Tessellator}
 import net.minecraft.tileentity.TileEntity
 import net.minecraftforge.common.ForgeDirection
 import org.lwjgl.opengl.GL11
@@ -117,9 +118,13 @@ object CableRenderer extends TileEntitySpecialRenderer {
   }
 
   override def renderTileEntityAt(t: TileEntity, x: Double, y: Double, z: Double, f: Float) {
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: entering (aka: wasntme)")
+
     GL11.glEnable(GL11.GL_LIGHTING)
     GL11.glTranslated(x, y, z)
     renderCable(block.Cable.neighbors(t.getWorldObj, t.xCoord, t.yCoord, t.zCoord))
     GL11.glTranslated(-x, -y, -z)
+
+    RenderState.checkError(getClass.getName + ".renderTileEntityAt: leaving")
   }
 }

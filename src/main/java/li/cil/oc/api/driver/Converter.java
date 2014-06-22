@@ -12,12 +12,11 @@ import java.util.Map;
  */
 public interface Converter {
     /**
-     * Converts a type to a Map that only contains valid values, i.e. values
-     * that can be directly pushed to an architecture, without further
-     * conversion steps.
+     * Converts a type to a Map.
      * <p/>
-     * This is primarily enforced to avoid cycles in conversion steps. If the
-     * returned map contains any unsupported values, they will not be retained.
+     * The keys and values in the resulting map will be converted in turn.
+     * If after those conversions the map still contains unsupported values,
+     * they will not be retained.
      * <p/>
      * The conversion result should be placed into the the passed map, i.e. the
      * map will represent the original object. For example, if the value had a

@@ -1,10 +1,9 @@
 package li.cil.oc.common.event
 
-import li.cil.oc.Settings
 import li.cil.oc.api.event._
 import li.cil.oc.api.machine.Robot
 import li.cil.oc.server.component
-import net.minecraft.util.ChatMessageComponent
+import li.cil.oc.{Localization, Settings}
 import net.minecraftforge.event.ForgeSubscribe
 import org.lwjgl.opengl.GL11
 
@@ -14,8 +13,7 @@ object ExperienceUpgradeHandler {
     val (level, experience) = getLevelAndExperience(e.robot)
     // This is basically a 'does it have an experience upgrade' check.
     if (experience != 0.0) {
-      e.player.sendChatToPlayer(ChatMessageComponent.createFromTranslationWithSubstitutions(
-        Settings.namespace + "gui.Analyzer.RobotXp", "%.2f".format(experience), level: Integer))
+      e.player.sendChatToPlayer(Localization.Analyzer.RobotXp(experience, level))
     }
   }
 

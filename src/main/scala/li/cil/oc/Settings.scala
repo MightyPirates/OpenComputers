@@ -1,15 +1,19 @@
 package li.cil.oc
 
-import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory}
 import java.io._
+import java.net.{Inet4Address, InetAddress}
 import java.util.logging.Level
+
+import com.google.common.net.InetAddresses
+import com.typesafe.config._
+import cpw.mods.fml.common.Loader
+import cpw.mods.fml.common.versioning.{DefaultArtifactVersion, VersionRange}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.util.mods.Mods
 import org.apache.commons.lang3.StringEscapeUtils
+
 import scala.collection.convert.WrapAsScala._
 import scala.io.Source
-import java.net.{Inet4Address, InetAddress}
-import com.google.common.net.InetAddresses
 
 class Settings(config: Config) {
   val itemId = config.getInt("ids.item")
@@ -31,13 +35,16 @@ class Settings(config: Config) {
   val robotLabels = config.getBoolean("client.robotLabels")
   val soundVolume = config.getDouble("client.soundVolume").toFloat max 0 min 2
   val fontCharScale = config.getDouble("client.fontCharScale") max 0.5 min 2
+  val hologramFadeStartDistance = config.getDouble("client.hologramFadeStartDistance") max 0
+  val hologramRenderDistance = config.getDouble("client.hologramRenderDistance") max 0
+  val hologramFlickerFrequency = config.getDouble("client.hologramFlickerFrequency") max 0
+  val logOpenGLErrors = config.getBoolean("client.logOpenGLErrors")
 
   // ----------------------------------------------------------------------- //
   // computer
   val threads = config.getInt("computer.threads") max 1
   val timeout = config.getDouble("computer.timeout") max 0
   val startupDelay = config.getDouble("computer.startupDelay") max 0.05
-  val activeGC = config.getBoolean("computer.activeGC")
   val ramSizes = Array(config.getIntList("computer.ramSizes"): _*) match {
     case Array(tier1, tier2, tier3, tier4, tier5, tier6) =>
       Array(tier1: Int, tier2: Int, tier3: Int, tier4: Int, tier5: Int, tier6: Int)
@@ -57,8 +64,17 @@ class Settings(config: Config) {
   val maxUsers = config.getInt("computer.maxUsers") max 0
   val maxUsernameLength = config.getInt("computer.maxUsernameLength") max 0
   val allowBytecode = config.getBoolean("computer.allowBytecode")
-  val logLuaCallbackErrors = config.getBoolean("computer.logCallbackErrors")
   val eraseTmpOnReboot = config.getBoolean("computer.eraseTmpOnReboot")
+  val executionDelay = config.getInt("computer.executionDelay") max 0
+
+  // ----------------------------------------------------------------------- //
+  // computer.debug
+
+  val logLuaCallbackErrors = config.getBoolean("computer.debug.logCallbackErrors")
+  val forceLuaJ = config.getBoolean("computer.debug.forceLuaJ")
+  val allowUserdata = !config.getBoolean("computer.debug.disableUserdata")
+  val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
+  val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
 
   // ----------------------------------------------------------------------- //
   // robot
@@ -122,7 +138,13 @@ class Settings(config: Config) {
   val bufferRobot = config.getDouble("power.buffer.robot") max 0
   val bufferConverter = config.getDouble("power.buffer.converter") max 0
   val bufferDistributor = config.getDouble("power.buffer.distributor") max 0
-  val bufferCapacitorUpgrade = config.getDouble("power.buffer.capacitorUpgrade") max 0
+  val bufferCapacitorUpgrades = Array(config.getDoubleList("power.buffer.batteryUpgrades"): _*) match {
+    case Array(tier1, tier2, tier3) =>
+      Array(tier1: Double, tier2: Double, tier3: Double)
+    case _ =>
+      OpenComputers.log.warning("Bad number of battery upgrade buffer sizes, ignoring.")
+      Array(10000.0, 15000.0, 20000.0)
+  }
 
   // power.cost
   val computerCost = config.getDouble("power.cost.computer") max 0
@@ -193,10 +215,11 @@ class Settings(config: Config) {
   val updateCheck = config.getBoolean("misc.updateCheck")
   val alwaysTryNative = config.getBoolean("misc.alwaysTryNative")
   val lootProbability = config.getInt("misc.lootProbability")
-  val debugPersistence = true
+  val debugPersistence = config.getBoolean("misc.verbosePersistenceErrors")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
+  val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
 }
 
 object Settings {
@@ -207,7 +230,7 @@ object Settings {
   val screenResolutionsByTier = Array((50, 16), (80, 25), (160, 50))
   val screenDepthsByTier = Array(ColorDepth.OneBit, ColorDepth.FourBit, ColorDepth.EightBit)
   val hologramMaxScaleByTier = Array(3, 4)
-  val robotComplexityByTier = Array(12, 24, 32)
+  val robotComplexityByTier = Array(12, 24, 32, 9001)
   var rTreeDebugRenderer = false
 
   // Power conversion values. These are the same values used by Universal
@@ -245,7 +268,7 @@ object Settings {
     val config =
       try {
         val plain = Source.fromFile(file).mkString.replace("\r\n", "\n")
-        val config = ConfigFactory.parseString(plain).withFallback(defaults)
+        val config = patchConfig(ConfigFactory.parseString(plain), defaults).withFallback(defaults)
         settings = new Settings(config.getConfig("opencomputers"))
         config
       }
@@ -277,6 +300,38 @@ object Settings {
     }
   }
 
+  private val configPatches = Array(
+    // Upgrading to version 1.3, increased lower bounds for default RAM sizes
+    // and reworked the way black- and whitelisting works (IP based).
+    VersionRange.createFromVersionSpec("[0.0,1.3-alpha)") -> Array(
+      "computer.ramSizes",
+      "internet.blacklist",
+      "internet.whitelist"
+    )
+  )
+
+  // Checks the config version (i.e. the version of the mod the config was
+  // created by) against the current version to see if some hard changes
+  // were made. If so, the new default values are copied over.
+  private def patchConfig(config: Config, defaults: Config) = {
+    val mod = Loader.instance.activeModContainer
+    val prefix = "opencomputers."
+    val configVersion = new DefaultArtifactVersion(if (config.hasPath(prefix + "version")) config.getString(prefix + "version") else "0.0.0")
+    var patched = config
+    if (configVersion.compareTo(mod.getProcessedVersion) != 0) {
+      OpenComputers.log.info(s"Updating config from version '${configVersion.getVersionString}' to '${defaults.getString(prefix + "version")}'.")
+      patched = patched.withValue(prefix + "version", defaults.getValue(prefix + "version"))
+      for ((version, paths) <- configPatches if version.containsVersion(configVersion)) {
+        for (path <- paths) {
+          val fullPath = prefix + path
+          OpenComputers.log.info(s"Updating setting '$fullPath'. ")
+          patched = patched.withValue(fullPath, defaults.getValue(fullPath))
+        }
+      }
+    }
+    patched
+  }
+
   val cidrPattern = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:/(\d{1,2}))""".r
 
   class AddressValidator(val value: String) {
@@ -303,4 +358,5 @@ object Settings {
 
     def apply(inetAddress: InetAddress, host: String) = validator(inetAddress, host)
   }
+
 }

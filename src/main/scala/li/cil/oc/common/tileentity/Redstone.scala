@@ -2,12 +2,12 @@ package li.cil.oc.common.tileentity
 
 import li.cil.oc.Settings
 import li.cil.oc.api.network.Visibility
+import li.cil.oc.common.tileentity.traits.{BundledRedstoneAware, Environment}
 import li.cil.oc.server.component
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.mods.BundledRedstone
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.common.tileentity.traits.{Environment, BundledRedstoneAware}
 
 class Redstone extends Environment with BundledRedstoneAware {
   val instance = if (BundledRedstone.isAvailable) new component.BundledRedstone(this) else new component.Redstone(this)

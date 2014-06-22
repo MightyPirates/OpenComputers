@@ -1,8 +1,8 @@
 package li.cil.oc.common.block
 
-import net.minecraft.world.{World, IBlockAccess}
-import net.minecraftforge.common.ForgeDirection
 import li.cil.oc.common.tileentity.traits
+import net.minecraft.world.{IBlockAccess, World}
+import net.minecraftforge.common.ForgeDirection
 
 abstract class RedstoneAware extends Delegate {
   override def hasTileEntity = true

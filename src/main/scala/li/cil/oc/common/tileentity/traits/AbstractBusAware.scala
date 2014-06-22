@@ -4,13 +4,11 @@ import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.network
 import li.cil.oc.api.network.ManagedEnvironment
-import li.cil.oc.server.component
-import li.cil.oc.server.{PacketSender => ServerPacketSender}
+import li.cil.oc.server.{component, PacketSender => ServerPacketSender}
 import li.cil.oc.util.mods.{Mods, StargateTech2}
 import net.minecraft.nbt.NBTTagCompound
-import stargatetech2.api.bus.{IBusInterface, IBusDevice}
 import stargatetech2.api.StargateTechAPI
-import li.cil.oc.server.component.AbstractBus
+import stargatetech2.api.bus.{IBusDevice, IBusInterface}
 
 // IMPORTANT: for some reason that is beyond me we cannot implement the
 // IBusDevice here directly, since we'll get an error if the interface is not
@@ -33,7 +31,7 @@ trait AbstractBusAware extends TileEntity with network.Environment {
     if (isAbstractBusAvailable) {
       if (isServer) {
         installedComponents.collect {
-          case abstractBus: AbstractBus => abstractBus.busInterface
+          case abstractBus: component.AbstractBusCard => abstractBus.busInterface
         }.toArray
       }
       else fakeInterface.map(_.asInstanceOf[IBusInterface])

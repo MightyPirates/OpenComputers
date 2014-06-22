@@ -1,13 +1,19 @@
 package li.cil.oc.client.gui
 
 import li.cil.oc.api
-import li.cil.oc.client.renderer.MonospaceFontRenderer
+import li.cil.oc.client.renderer.TextBufferRenderCache
 import li.cil.oc.client.renderer.gui.BufferRenderer
 import li.cil.oc.util.RenderState
 import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
 
-class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasPower: () => Boolean) extends TextBuffer {
+class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val hasKeyboardCallback: () => Boolean, val hasPower: () => Boolean) extends TextBuffer {
+  override protected def hasKeyboard = hasKeyboardCallback()
+
+  override protected def bufferX = 8 + x
+
+  override protected def bufferY = 8 + y
+
   private val bufferMargin = BufferRenderer.margin + BufferRenderer.innerMargin
 
   private var didDrag = false
@@ -21,8 +27,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     if (Mouse.hasWheel && Mouse.getEventDWheel != 0) {
       val mouseX = Mouse.getEventX * width / mc.displayWidth
       val mouseY = height - Mouse.getEventY * height / mc.displayHeight - 1
-      val bx = (mouseX - x - bufferMargin) / MonospaceFontRenderer.fontWidth + 1
-      val by = (mouseY - y - bufferMargin) / MonospaceFontRenderer.fontHeight + 1
+      val bx = (mouseX - x - bufferMargin) / TextBufferRenderCache.renderer.charRenderWidth + 1
+      val by = (mouseY - y - bufferMargin) / TextBufferRenderCache.renderer.charRenderHeight + 1
       val bw = buffer.getWidth
       val bh = buffer.getHeight
       if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
@@ -54,8 +60,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     super.mouseMovedOrUp(mouseX, mouseY, button)
     if (button >= 0) {
       if (didDrag) {
-        val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
-        val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+        val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
+        val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
         val bw = buffer.getWidth
         val bh = buffer.getHeight
         if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
@@ -72,8 +78,8 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
   }
 
   private def clickOrDrag(mouseX: Int, mouseY: Int, button: Int) {
-    val bx = ((mouseX - x - bufferMargin) / scale / MonospaceFontRenderer.fontWidth).toInt + 1
-    val by = ((mouseY - y - bufferMargin) / scale / MonospaceFontRenderer.fontHeight).toInt + 1
+    val bx = ((mouseX - x - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderWidth).toInt + 1
+    val by = ((mouseY - y - bufferMargin) / scale / TextBufferRenderCache.renderer.charRenderHeight).toInt + 1
     val bw = buffer.getWidth
     val bh = buffer.getHeight
     if (bx > 0 && by > 0 && bx <= bw && by <= bh) {
@@ -99,13 +105,11 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
       GL11.glTranslatef(bufferMargin, bufferMargin, 0)
       GL11.glScaled(scale, scale, 1)
       RenderState.makeItBlend()
-      if (BufferRenderer.drawText(buffer)) {
-        adjustToBufferChange()
-      }
+      BufferRenderer.drawText(buffer)
     }
   }
 
-  override protected def changeSize(w: Double, h: Double) = {
+  override protected def changeSize(w: Double, h: Double, recompile: Boolean) = {
     val bw = buffer.renderWidth
     val bh = buffer.renderHeight
     val scaleX = math.min(width / (bw + bufferMargin * 2.0), 1)
@@ -115,7 +119,9 @@ class Screen(val buffer: api.component.TextBuffer, val hasMouse: Boolean, val ha
     val innerHeight = (bh * scale).toInt
     x = (width - (innerWidth + bufferMargin * 2)) / 2
     y = (height - (innerHeight + bufferMargin * 2)) / 2
-    BufferRenderer.compileBackground(innerWidth, innerHeight)
+    if (recompile) {
+      BufferRenderer.compileBackground(innerWidth, innerHeight)
+    }
     scale
   }
 }

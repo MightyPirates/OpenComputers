@@ -1,15 +1,16 @@
 package li.cil.oc.util
 
-import com.google.common.base.Strings
 import java.util.logging.Level
-import li.cil.oc.{OpenComputers, Blocks, Settings, api}
+
+import com.google.common.base.Strings
 import li.cil.oc.api.Persistable
 import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.server
 import li.cil.oc.util.ExtendedNBT._
-import net.minecraft.item.{ItemMap, Item, ItemStack}
+import li.cil.oc.{Blocks, OpenComputers, Settings, api, server}
+import net.minecraft.item.{Item, ItemMap, ItemStack}
 import net.minecraft.nbt.{NBTBase, NBTTagCompound}
 import net.minecraft.world.World
+
 import scala.io.Source
 
 object ItemUtils {
@@ -18,6 +19,7 @@ object ItemUtils {
     if (descriptor == api.Items.get("case1")) Tier.One
     else if (descriptor == api.Items.get("case2")) Tier.Two
     else if (descriptor == api.Items.get("case3")) Tier.Three
+    else if (descriptor == api.Items.get("caseCreative")) Tier.Four
     else Tier.None
   }
 
@@ -89,8 +91,8 @@ object ItemUtils {
         )
         containers = Array(
           api.Items.get("cardContainer2").createItemStack(1),
-          api.Items.get("upgradeContainer3").createItemStack(1),
-          api.Items.get("diskDrive").createItemStack(1)
+          api.Items.get("diskDrive").createItemStack(1),
+          api.Items.get("upgradeContainer3").createItemStack(1)
         )
         robotEnergy = totalEnergy
       }

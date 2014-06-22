@@ -1,30 +1,32 @@
 package li.cil.oc.server.component.robot
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper
 import java.util.logging.Level
+
+import cpw.mods.fml.common.ObfuscationReflectionHelper
 import li.cil.oc.api.event._
 import li.cil.oc.common.tileentity
-import li.cil.oc.util.mods.{Mods, TinkersConstruct, PortalGun}
+import li.cil.oc.util.mods.{Mods, PortalGun, TinkersConstruct}
 import li.cil.oc.{OpenComputers, Settings}
-import net.minecraft.block.{BlockPistonBase, BlockFluid, Block}
+import net.minecraft.block.{Block, BlockFluid, BlockPistonBase}
 import net.minecraft.entity.item.EntityItem
-import net.minecraft.entity.player.{EnumStatus, EntityPlayer}
-import net.minecraft.entity.{IMerchant, EntityLivingBase, Entity}
+import net.minecraft.entity.player.{EntityPlayer, EnumStatus}
+import net.minecraft.entity.{Entity, EntityLivingBase, IMerchant}
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
 import net.minecraft.potion.PotionEffect
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util._
-import net.minecraft.world.World
-import net.minecraftforge.common.{MinecraftForge, ForgeHooks, ForgeDirection}
-import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
+import net.minecraft.world.WorldServer
+import net.minecraftforge.common.{FakePlayer, ForgeDirection, ForgeHooks, MinecraftForge}
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
+import net.minecraftforge.event.entity.player.{EntityInteractEvent, PlayerInteractEvent}
 import net.minecraftforge.event.world.BlockEvent
 import net.minecraftforge.event.{Event, ForgeEventFactory}
 import net.minecraftforge.fluids.FluidRegistry
+
 import scala.collection.convert.WrapAsScala._
 import scala.reflect._
 
-class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
+class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInstanceOf[WorldServer], Settings.get.nameFormat.replace("$player$", robot.owner).replace("$random$", (robot.world.rand.nextInt(0xFFFFFF) + 1).toString)) {
   capabilities.allowFlying = true
   capabilities.disableDamage = true
   capabilities.isFlying = true
@@ -33,11 +35,10 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   eyeHeight = 0f
   setSize(1, 1)
 
-  val robotInventory = new Inventory(this)
   if (Mods.BattleGear2.isAvailable) {
-    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robotInventory, "inventory", "field_71071_by")
+    ObfuscationReflectionHelper.setPrivateValue(classOf[EntityPlayer], this, robot.inventory, "inventory", "field_71071_by")
   }
-  else inventory = robotInventory
+  else inventory = robot.inventory
 
   var facing, side = ForgeDirection.UNKNOWN
 
@@ -46,6 +47,10 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   def world = robot.world
 
   override def getPlayerCoordinates = new ChunkCoordinates(robot.x, robot.y, robot.z)
+
+  override def getDefaultEyeHeight = 0f
+
+  override def getDisplayName = robot.name
 
   // ----------------------------------------------------------------------- //
 
@@ -164,8 +169,8 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   def useEquippedItem(duration: Double) = {
     callUsingItemInSlot(0, stack => {
-      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, -1))) {
-        tryUseItem(getCurrentEquippedItem, duration)
+      if (!shouldCancel(() => ForgeEventFactory.onPlayerInteract(this, Action.RIGHT_CLICK_AIR, 0, 0, 0, ForgeDirection.UNKNOWN.ordinal))) {
+        tryUseItem(stack, duration)
       }
       else false
     })
@@ -198,7 +203,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       def sizeOrDamageChanged = newStack.stackSize != oldSize || newStack.getItemDamage != oldDamage
       def tagChanged = (oldData == null && newStack.hasTagCompound) || (oldData != null && !newStack.hasTagCompound) ||
         (oldData != null && newStack.hasTagCompound && !oldData.equals(newStack.getTagCompound))
-      newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      val stackChanged = newStack != stack || (newStack != null && (sizeOrDamageChanged || tagChanged || PortalGun.isStandardPortalGun(stack)))
+      if (stackChanged) {
+        robot.setInventorySlotContents(0, newStack)
+      }
+      stackChanged
     }
   }
 
@@ -344,13 +353,14 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
       f(stack)
     }
     finally {
-      if (stack != null) {
-        if (stack.stackSize <= 0) {
+      val newStack = inventory.getStackInSlot(slot)
+      if (newStack != null) {
+        if (newStack.stackSize <= 0) {
           inventory.setInventorySlotContents(slot, null)
         }
         if (repair) {
-          if (stack.stackSize > 0) tryRepair(stack, oldStack)
-          else ForgeEventFactory.onPlayerDestroyItem(this, stack)
+          if (newStack.stackSize > 0) tryRepair(newStack, oldStack)
+          else ForgeEventFactory.onPlayerDestroyItem(this, newStack)
         }
       }
       collectDroppedItems(itemsBefore)
@@ -358,10 +368,13 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
   }
 
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
-    val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
-    MinecraftForge.EVENT_BUS.post(damageRate)
-    if (damageRate.getDamageRate < 1) {
-      MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
+    // Only if the underlying type didn't change.
+    if (stack.getItem == oldStack.getItem) {
+      val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
+      MinecraftForge.EVENT_BUS.post(damageRate)
+      if (damageRate.getDamageRate < 1) {
+        MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
+      }
     }
   }
 
@@ -410,8 +423,6 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
     MinecraftForge.EVENT_BUS.post(new RobotExhaustionEvent(robot, amount))
   }
 
-  override def openGui(mod: AnyRef, modGuiId: Int, world: World, x: Int, y: Int, z: Int) {}
-
   override def displayGUIMerchant(merchant: IMerchant, name: String) {
     merchant.setCustomer(null)
   }
@@ -420,8 +431,7 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def swingItem() {}
 
-  override def canAttackPlayer(player: EntityPlayer) =
-    Settings.get.canAttackPlayers && super.canAttackPlayer(player)
+  override def canAttackPlayer(player: EntityPlayer) = Settings.get.canAttackPlayers
 
   override def canEat(value: Boolean) = false
 
@@ -431,17 +441,11 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def attackEntityFrom(source: DamageSource, damage: Float) = false
 
-  override def isEntityInvulnerable = true
-
   override def heal(amount: Float) {}
 
   override def setHealth(value: Float) {}
 
   override def setDead() = isDead = true
-
-  override def onDeath(source: DamageSource) {}
-
-  override def onUpdate() {}
 
   override def onLivingUpdate() {}
 
@@ -455,11 +459,5 @@ class Player(val robot: tileentity.Robot) extends EntityPlayer(robot.world, Sett
 
   override def mountEntity(entity: Entity) {}
 
-  override def travelToDimension(dimension: Int) {}
-
   override def sleepInBedAt(x: Int, y: Int, z: Int) = EnumStatus.OTHER_PROBLEM
-
-  override def canCommandSenderUseCommand(i: Int, s: String) = false
-
-  override def sendChatToPlayer(message: ChatMessageComponent) {}
 }

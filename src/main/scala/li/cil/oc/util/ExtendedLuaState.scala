@@ -1,8 +1,11 @@
 package li.cil.oc.util
 
-import com.naef.jnlua.{LuaType, JavaFunction, LuaState}
+import java.util
+
+import com.naef.jnlua.{JavaFunction, LuaState, LuaType}
 import li.cil.oc.api.machine.Value
-import li.cil.oc.OpenComputers
+import li.cil.oc.{OpenComputers, Settings}
+
 import scala.collection.convert.WrapAsScala._
 import scala.collection.mutable
 import scala.language.implicitConversions
@@ -18,43 +21,49 @@ object ExtendedLuaState {
       override def invoke(state: LuaState) = f(state)
     })
 
-    def pushValue(value: Any) {
-      (value match {
-        case number: ScalaNumber => number.underlying
-        case reference: AnyRef => reference
-        case null => null
-        case primitive => primitive.asInstanceOf[AnyRef]
-      }) match {
-        case null | Unit | _: BoxedUnit => lua.pushNil()
-        case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
-        case value: java.lang.Byte => lua.pushNumber(value.byteValue)
-        case value: java.lang.Character => lua.pushString(String.valueOf(value))
-        case value: java.lang.Short => lua.pushNumber(value.shortValue)
-        case value: java.lang.Integer => lua.pushNumber(value.intValue)
-        case value: java.lang.Long => lua.pushNumber(value.longValue)
-        case value: java.lang.Float => lua.pushNumber(value.floatValue)
-        case value: java.lang.Double => lua.pushNumber(value.doubleValue)
-        case value: java.lang.String => lua.pushString(value)
-        case value: Array[Byte] => lua.pushByteArray(value)
-        case value: Array[_] => pushList(value.zipWithIndex.iterator)
-        case value: Value => lua.pushJavaObjectRaw(value)
-        case value: Product => pushList(value.productIterator.zipWithIndex)
-        case value: Seq[_] => pushList(value.zipWithIndex.iterator)
-        case value: java.util.Map[_, _] => pushTable(value.toMap)
-        case value: Map[_, _] => pushTable(value)
-        case value: mutable.Map[_, _] => pushTable(value.toMap)
-        case _ =>
-          OpenComputers.log.warning("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
-          lua.pushNil()
+    def pushValue(value: Any, memo: util.IdentityHashMap[Any, Int] = new util.IdentityHashMap()) {
+      if (memo.containsKey(value)) {
+        lua.pushValue(memo.get(value))
+      }
+      else {
+        (value match {
+          case number: ScalaNumber => number.underlying
+          case reference: AnyRef => reference
+          case null => null
+          case primitive => primitive.asInstanceOf[AnyRef]
+        }) match {
+          case null | Unit | _: BoxedUnit => lua.pushNil()
+          case value: java.lang.Boolean => lua.pushBoolean(value.booleanValue)
+          case value: java.lang.Byte => lua.pushNumber(value.byteValue)
+          case value: java.lang.Character => lua.pushString(String.valueOf(value))
+          case value: java.lang.Short => lua.pushNumber(value.shortValue)
+          case value: java.lang.Integer => lua.pushNumber(value.intValue)
+          case value: java.lang.Long => lua.pushNumber(value.longValue)
+          case value: java.lang.Float => lua.pushNumber(value.floatValue)
+          case value: java.lang.Double => lua.pushNumber(value.doubleValue)
+          case value: java.lang.String => lua.pushString(value)
+          case value: Array[Byte] => lua.pushByteArray(value)
+          case value: Array[_] => pushList(value, value.zipWithIndex.iterator, memo)
+          case value: Value if Settings.get.allowUserdata => lua.pushJavaObjectRaw(value)
+          case value: Product => pushList(value, value.productIterator.zipWithIndex, memo)
+          case value: Seq[_] => pushList(value, value.zipWithIndex.iterator, memo)
+          case value: java.util.Map[_, _] => pushTable(value, value.toMap, memo)
+          case value: Map[_, _] => pushTable(value, value, memo)
+          case value: mutable.Map[_, _] => pushTable(value, value.toMap, memo)
+          case _ =>
+            OpenComputers.log.warning("Tried to push an unsupported value of type to Lua: " + value.getClass.getName + ".")
+            lua.pushNil()
+        }
       }
     }
 
-    def pushList(list: Iterator[(Any, Int)]) {
+    def pushList(obj: AnyRef, list: Iterator[(Any, Int)], memo: util.IdentityHashMap[Any, Int]) {
       lua.newTable()
+      memo += obj -> lua.getTop
       var count = 0
       list.foreach {
         case (value, index) =>
-          pushValue(value)
+          pushValue(value, memo)
           lua.rawSet(-2, index + 1)
           count = count + 1
       }
@@ -63,12 +72,13 @@ object ExtendedLuaState {
       lua.rawSet(-3)
     }
 
-    def pushTable(map: Map[_, _]) {
+    def pushTable(obj: AnyRef, map: Map[_, _], memo: util.IdentityHashMap[Any, Int]) {
       lua.newTable(0, map.size)
+      memo += obj -> lua.getTop
       for ((key: AnyRef, value: AnyRef) <- map) {
         if (key != null && key != Unit && !key.isInstanceOf[BoxedUnit]) {
-          pushValue(key)
-          pushValue(value)
+          pushValue(key, memo)
+          pushValue(value, memo)
           lua.setTable(-3)
         }
       }

@@ -10,7 +10,8 @@ local function onInit()
   for _, run in ipairs(pendingAutoruns) do
     local result, reason = pcall(run)
     if not result then
-      local log = io.open("/tmp/event.log", "a")
+      local path = fs.concat(os.getenv("TMPDIR") or "/tmp", "event.log")
+      local log = io.open(path, "a")
       if log then
         log:write(reason .. "\n")
         log:close()

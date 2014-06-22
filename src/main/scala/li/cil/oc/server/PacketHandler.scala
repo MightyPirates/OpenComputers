@@ -1,17 +1,16 @@
 package li.cil.oc.server
 
 import cpw.mods.fml.common.network.Player
-import li.cil.oc.Settings
-import li.cil.oc.api
 import li.cil.oc.api.machine.Machine
-import li.cil.oc.common.{PacketHandler => CommonPacketHandler}
-import li.cil.oc.common.PacketType
 import li.cil.oc.common.multipart.EventHandler
 import li.cil.oc.common.tileentity._
 import li.cil.oc.common.tileentity.traits.{Computer, TileEntity}
+import li.cil.oc.common.{PacketType, PacketHandler => CommonPacketHandler}
+import li.cil.oc.{Settings, api}
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.util.ChatMessageComponent
-import net.minecraftforge.common.{ForgeDirection, DimensionManager}
+import net.minecraftforge.common.{DimensionManager, ForgeDirection}
 
 class PacketHandler extends CommonPacketHandler {
   override protected def world(player: Player, dimension: Int) =
@@ -27,6 +26,7 @@ class PacketHandler extends CommonPacketHandler {
       case PacketType.MouseScroll => onMouseScroll(p)
       case PacketType.MouseUp => onMouseUp(p)
       case PacketType.MultiPartPlace => onMultiPartPlace(p)
+      case PacketType.PetVisibility => onPetVisibility(p)
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerRange => onServerRange(p)
@@ -56,7 +56,7 @@ class PacketHandler extends CommonPacketHandler {
         if (!computer.isPaused) {
           computer.start()
           computer.lastError match {
-            case message if message != null => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(message))
+            case message if message != null => player.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(Settings.namespace + message))
             case _ =>
           }
         }
@@ -116,6 +116,22 @@ class PacketHandler extends CommonPacketHandler {
   def onMultiPartPlace(p: PacketParser) {
     p.player match {
       case player: EntityPlayerMP => EventHandler.place(player)
+      case _ => // Invalid packet.
+    }
+  }
+
+  def onPetVisibility(p: PacketParser) {
+    p.player match {
+      case player: EntityPlayerMP if player != Minecraft.getMinecraft.thePlayer =>
+        if (if (p.readBoolean()) {
+          PetVisibility.hidden.remove(player.getCommandSenderName)
+        }
+        else {
+          PetVisibility.hidden.add(player.getCommandSenderName)
+        }) {
+          // Something changed.
+          PacketSender.sendPetVisibility(Some(player.getCommandSenderName))
+        }
       case _ => // Invalid packet.
     }
   }

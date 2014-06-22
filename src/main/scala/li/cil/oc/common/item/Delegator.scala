@@ -1,18 +1,22 @@
 package li.cil.oc.common.item
 
-import cpw.mods.fml.relauncher.{Side, SideOnly}
 import java.util
 import java.util.Random
-import li.cil.oc.{Settings, CreativeTab}
+import java.util.logging.Level
+
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.tileentity
+import li.cil.oc.{CreativeTab, OpenComputers, Settings}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.creativetab.CreativeTabs
+import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack, Item}
-import net.minecraft.util.{WeightedRandomChestContent, Icon}
+import net.minecraft.item.{EnumRarity, Item, ItemStack}
+import net.minecraft.util.{Icon, WeightedRandomChestContent}
 import net.minecraft.world.World
 import net.minecraftforge.common.ChestGenHooks
+
 import scala.collection.mutable
-import net.minecraft.entity.Entity
 
 class Delegator(id: Int) extends Item(id) {
   setHasSubtypes(true)
@@ -79,6 +83,13 @@ class Delegator(id: Int) extends Item(id) {
 
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
+  override def shouldPassSneakingClickToBlock(world: World, x: Int, y: Int, z: Int) = {
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive => true
+      case _ => super.shouldPassSneakingClickToBlock(world, x, y, z)
+    }
+  }
+
   // ----------------------------------------------------------------------- //
 
   override def onItemUseFirst(stack: ItemStack, player: EntityPlayer, world: World, x: Int, y: Int, z: Int, side: Int, hitX: Float, hitY: Float, hitZ: Float): Boolean =
@@ -114,7 +125,9 @@ class Delegator(id: Int) extends Item(id) {
   override def addInformation(stack: ItemStack, player: EntityPlayer, tooltip: util.List[_], advanced: Boolean) {
     super.addInformation(stack, player, tooltip, advanced)
     subItem(stack) match {
-      case Some(subItem) => subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced)
+      case Some(subItem) => try subItem.tooltipLines(stack, player, tooltip.asInstanceOf[util.List[String]], advanced) catch {
+        case t: Throwable => OpenComputers.log.log(Level.WARNING, "Error in item tooltip.", t)
+      }
       case _ => // Nothing to add.
     }
   }
@@ -131,6 +144,11 @@ class Delegator(id: Int) extends Item(id) {
       case _ => super.getMaxDamage(stack)
     }
 
+  override def isDamaged(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.damage(stack) > 0
+      case _ => false
+    }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
     subItem(stack) match {

@@ -1,17 +1,18 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
 import java.util
+
+import cpw.mods.fml.common.Optional
 import li.cil.oc.common.{GuiType, tileentity}
-import li.cil.oc.util.mods.Mods
 import li.cil.oc.util.Tooltip
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.util.mods.Mods
+import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.util.Icon
 import net.minecraft.world.World
 import net.minecraftforge.common.ForgeDirection
 
@@ -39,8 +40,7 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
         getCompoundTag(Settings.namespace + "data").
         getCompoundTag("node")
       if (node.hasKey("address")) {
-        tooltip.add(StatCollector.translateToLocalFormatted(
-          Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+        tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
       }
     }
   }
@@ -67,12 +67,30 @@ class DiskDrive(val parent: SimpleDelegator) extends SimpleDelegate {
 
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
-    if (!player.isSneaking) {
-      if (!world.isRemote) {
-        player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
-      }
-      true
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.DiskDrive =>
+        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+        if (!player.isSneaking) {
+          if (!world.isRemote) {
+            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+          }
+          true
+        }
+        else {
+          val isDiskInDrive = drive.getStackInSlot(0) != null
+          val isHoldingDisk = drive.isItemValidForSlot(0, player.getCurrentEquippedItem)
+          if (isDiskInDrive) {
+            if (!world.isRemote) {
+              drive.dropSlot(0, 1, drive.facing)
+            }
+          }
+          if (isHoldingDisk) {
+            // Insert the disk.
+            drive.setInventorySlotContents(0, player.inventory.decrStackSize(player.inventory.currentItem, 1))
+          }
+          isDiskInDrive || isHoldingDisk
+        }
+      case _ => false
     }
-    else false
   }
 }

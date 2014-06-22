@@ -1,7 +1,7 @@
 package li.cil.oc.server.driver.item
 
 import li.cil.oc.api
-import li.cil.oc.api.driver.{Container, UpgradeContainer, Slot}
+import li.cil.oc.api.driver.{Container, Slot, UpgradeContainer}
 import net.minecraft.item.ItemStack
 
 object UpgradeContainerFloppy extends Item with UpgradeContainer {

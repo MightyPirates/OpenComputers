@@ -1,15 +1,15 @@
 package li.cil.oc
 
-import cpw.mods.fml.common.Mod
+import java.util.logging.Logger
+
 import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common.SidedProxy
+import cpw.mods.fml.common.{Mod, SidedProxy}
 import cpw.mods.fml.common.event._
 import cpw.mods.fml.common.network.NetworkMod
 import cpw.mods.fml.common.network.NetworkMod._
-import java.util.logging.Logger
 import li.cil.oc.client.{PacketHandler => ClientPacketHandler}
 import li.cil.oc.common.Proxy
-import li.cil.oc.server.{PacketHandler => ServerPacketHandler, CommandHandler}
+import li.cil.oc.server.{CommandHandler, PacketHandler => ServerPacketHandler}
 
 @Mod(modid = OpenComputers.ID, name = OpenComputers.Name,
   version = OpenComputers.Version, /* certificateFingerprint = OpenComputers.Fingerprint, */
@@ -35,10 +35,8 @@ object OpenComputers {
 
   var tampered: Option[FMLFingerprintViolationEvent] = None
 
-  scala.collection.mutable.Map.empty[String, Int].keySet
-
-//  @EventHandler
-//  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
+  //  @EventHandler
+  //  def invalidFingerprint(e: FMLFingerprintViolationEvent) = tampered = Some(e)
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent) = proxy.preInit(e)

@@ -99,20 +99,21 @@ public interface Robot extends ISidedInventory, Rotatable {
     int selectedSlot();
 
     /**
-     * Causes the currently installed upgrade to be saved and synchronized.
+     * Sends the state of the <em>item</em> in the specified slot to the client
+     * if it is an upgrade.
      * <p/>
-     * If no upgrade is installed in the robot this does nothing.
+     * Use this to update the state of an upgrade in that slot for rendering
+     * purposes (e.g. this is used by the generator upgrade to update the
+     * active state so the renderer knows which texture to use).
      * <p/>
-     * This is intended for upgrade components, to allow them to update their
-     * client side representation for rendering purposes. The component will be
-     * saved to its item's NBT tag compound, as it would be when the game is
-     * saved, and then re-sent to the client. Keep the number of calls to this
-     * function low, since each call causes a network packet to be sent.
+     * This is necessary because inventories are not synchronized by default,
+     * only if a player is currently 'looking into' the inventory (opened the
+     * GUI of the inventory).
      * <p/>
-     * This is somewhat of a 'meh, it works' approach that I'm not really happy
-     * with and plan to replace with something cleaner. Don't use unless you
-     * absolutely really have to.
+     * The component will be saved to its item's NBT tag compound, as it would
+     * be when the game is saved, and then the item is re-sent to the client.
+     * Keep the number of calls to this function low, since each call causes a
+     * network packet to be sent.
      */
-    @Deprecated
-    void saveUpgrade();
+    void synchronizeSlot(int slot);
 }

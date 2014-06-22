@@ -2,8 +2,8 @@ package li.cil.oc.common.tileentity.traits.power
 
 import cpw.mods.fml.common.Optional
 import ic2.api.energy.tile.IEnergySink
-import li.cil.oc.server.TickHandler
 import li.cil.oc.Settings
+import li.cil.oc.common.EventHandler
 import li.cil.oc.util.mods.Mods
 import net.minecraftforge.common.ForgeDirection
 
@@ -17,27 +17,27 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   override def validate() {
     super.validate()
-    if (useIndustrialCraft2Power && !addedToPowerGrid) TickHandler.scheduleIC2Add(this)
+    if (useIndustrialCraft2Power && !addedToPowerGrid) EventHandler.scheduleIC2Add(this)
   }
 
   override def invalidate() {
     super.invalidate()
-    if (useIndustrialCraft2Power && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   override def onChunkUnload() {
     super.onChunkUnload()
-    if (useIndustrialCraft2Power && addedToPowerGrid) TickHandler.scheduleIC2Remove(this)
+    if (useIndustrialCraft2Power && addedToPowerGrid) EventHandler.scheduleIC2Remove(this)
   }
 
   // ----------------------------------------------------------------------- //
 
   @Optional.Method(modid = "IC2")
-  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnect(direction)
+  def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = "IC2")
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =
-    tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
+    amount - tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
 
   @Optional.Method(modid = "IC2")
   def getMaxSafeInput = Integer.MAX_VALUE

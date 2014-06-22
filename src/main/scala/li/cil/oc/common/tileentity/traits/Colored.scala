@@ -1,8 +1,8 @@
 package li.cil.oc.common.tileentity.traits
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.server.PacketSender
 import li.cil.oc.Settings
+import li.cil.oc.server.PacketSender
 import net.minecraft.nbt.NBTTagCompound
 
 trait Colored extends TileEntity {

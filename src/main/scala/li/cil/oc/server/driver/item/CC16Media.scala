@@ -1,11 +1,11 @@
 package li.cil.oc.server.driver.item
 
-import net.minecraft.item.ItemStack
+import dan200.computercraft.api.media.IMedia
 import li.cil.oc
 import li.cil.oc.api.driver.{Container, Slot}
 import li.cil.oc.api.fs.Label
 import li.cil.oc.util.mods.{ComputerCraft16, Mods}
-import dan200.computercraft.api.media.IMedia
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 
 object CC16Media extends Item {

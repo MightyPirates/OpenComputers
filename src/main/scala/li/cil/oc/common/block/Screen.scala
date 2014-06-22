@@ -1,22 +1,21 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
-import li.cil.oc.common.GuiType
-import li.cil.oc.common.tileentity
+
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.{Color, PackedColor, Tooltip}
-import li.cil.oc.{Settings, OpenComputers}
+import li.cil.oc.{Localization, OpenComputers, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.item.{EnumRarity, ItemStack}
-import net.minecraft.util.{StatCollector, Icon}
-import net.minecraft.world.IBlockAccess
-import net.minecraft.world.World
+import net.minecraft.util.Icon
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
@@ -38,10 +37,9 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
 
   @Optional.Method(modid = "Waila")
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
-    val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
+    val node = accessor.getNBTData.getCompoundTag("node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
   }
 
@@ -329,7 +327,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
     }
 
   override def collide(world: World, x: Int, y: Int, z: Int, entity: Entity) =
-    if (!world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
+    if (world.isRemote) (entity, world.getBlockTileEntity(x, y, z)) match {
       case (arrow: EntityArrow, screen: tileentity.Screen) if screen.tier > 0 =>
         val hitX = math.max(0, math.min(1, arrow.posX - x))
         val hitY = math.max(0, math.min(1, arrow.posY - y))
@@ -350,7 +348,7 @@ abstract class Screen(val parent: SimpleDelegator) extends RedstoneAware with Si
           else ForgeDirection.SOUTH
         }
         if (side == screen.facing) {
-          screen.shot(arrow, hitX, hitY, hitZ)
+          screen.shot(arrow)
         }
       case _ =>
     }

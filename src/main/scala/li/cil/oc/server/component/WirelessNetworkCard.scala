@@ -1,11 +1,13 @@
 package li.cil.oc.server.component
 
 import java.io._
+
 import li.cil.oc.api.Network
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
-import li.cil.oc.{api, Settings}
+import li.cil.oc.{Settings, api}
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.language.implicitConversions
 
 class WirelessNetworkCard(val owner: Container) extends NetworkCard with WirelessEndpoint {
@@ -18,11 +20,11 @@ class WirelessNetworkCard(val owner: Container) extends NetworkCard with Wireles
 
   // ----------------------------------------------------------------------- //
 
-  override def x = owner.xPosition.toInt
+  override def x = math.round(owner.xPosition - 0.5).toInt
 
-  override def y = owner.yPosition.toInt
+  override def y = math.round(owner.yPosition - 0.5).toInt
 
-  override def z = owner.zPosition.toInt
+  override def z = math.round(owner.zPosition - 0.5).toInt
 
   override def world = owner.world
 

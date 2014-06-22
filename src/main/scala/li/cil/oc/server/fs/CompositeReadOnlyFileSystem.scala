@@ -2,10 +2,12 @@ package li.cil.oc.server.fs
 
 import java.io.FileNotFoundException
 import java.util.concurrent.Callable
+
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.collection.mutable
 
 class CompositeReadOnlyFileSystem(factories: mutable.LinkedHashMap[String, Callable[api.fs.FileSystem]]) extends api.fs.FileSystem {

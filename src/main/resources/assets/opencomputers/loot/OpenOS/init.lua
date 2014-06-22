@@ -1,4 +1,6 @@
 do
+  _G._OSVERSION = "OpenOS 1.2"
+
   local component = component
   local computer = computer
   local unicode = unicode
@@ -106,9 +108,6 @@ do
   -- system module from this point on.
   local filesystem = require("filesystem")
   filesystem.mount(computer.getBootAddress(), "/")
-  if computer.tmpAddress() then
-    filesystem.mount(computer.tmpAddress(), "/tmp")
-  end
 
   status("Running boot scripts...")
 

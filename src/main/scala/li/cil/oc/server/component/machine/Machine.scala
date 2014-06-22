@@ -1,27 +1,28 @@
 package li.cil.oc.server.component.machine
 
 import java.lang.reflect.Constructor
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
+
 import li.cil.oc.api.detail.MachineAPI
 import li.cil.oc.api.machine._
 import li.cil.oc.api.network._
-import li.cil.oc.api.{machine, FileSystem, Network}
+import li.cil.oc.api.{FileSystem, Network, machine}
+import li.cil.oc.common.component.ManagedComponent
 import li.cil.oc.common.tileentity
-import li.cil.oc.server
 import li.cil.oc.server.PacketSender
+import li.cil.oc.server.driver.Registry
+import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.ThreadPoolFactory
-import li.cil.oc.{OpenComputers, Settings}
+import li.cil.oc.{OpenComputers, Settings, server}
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt._
-import net.minecraft.server.integrated.IntegratedServer
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.integrated.IntegratedServer
+
 import scala.Array.canBuildFrom
 import scala.collection.mutable
-import scala.Some
-import li.cil.oc.server.network.{ArgumentsImpl, Callbacks}
-import li.cil.oc.server.driver.Registry
-import net.minecraft.entity.player.EntityPlayer
-import li.cil.oc.common.component.ManagedComponent
 
 class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) extends ManagedComponent with machine.Machine with Runnable {
   val node = Network.newNode(this, Visibility.Network).
@@ -107,15 +108,19 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       verifyComponents()
       val rules = owner.world.getWorldInfo.getGameRulesInstance
       if (rules.hasRule("doDaylightCycle") && !rules.getGameRuleBooleanValue("doDaylightCycle")) {
-        crash(Settings.namespace + "gui.Error.DaylightCycle")
+        crash("gui.Error.DaylightCycle")
         false
       }
       else if (componentCount > owner.maxComponents) {
-        crash(Settings.namespace + (owner match {
+        crash(owner match {
           case t: tileentity.Case if !t.hasCPU => "gui.Error.NoCPU"
           case s: server.component.Server if !s.hasCPU => "gui.Error.NoCPU"
           case _ => "gui.Error.ComponentOverflow"
-        }))
+        })
+        false
+      }
+      else if (owner.maxComponents == 0) {
+        crash("gui.Error.NoCPU")
         false
       }
       else if (owner.installedMemory > 0) {
@@ -128,12 +133,12 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
           }
         }
         else {
-          crash(Settings.namespace + "gui.Error.NoEnergy")
+          crash("gui.Error.NoEnergy")
           false
         }
       }
       else {
-        crash(Settings.namespace + "gui.Error.NoRAM")
+        crash("gui.Error.NoRAM")
         false
       }
     case Machine.State.Paused if remainingPause > 0 =>
@@ -328,7 +333,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     // Component overflow check, crash if too many components are connected, to
     // avoid confusion on the user's side due to components not showing up.
     if (componentCount > owner.maxComponents) {
-      crash(Settings.namespace + "gui.Error.ComponentOverflow")
+      crash("gui.Error.ComponentOverflow")
     }
 
     // Update world time for time().
@@ -353,11 +358,11 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
              Machine.State.Stopped => // No power consumption.
         case Machine.State.Sleeping if remainIdle > 0 && signals.isEmpty =>
           if (!node.tryChangeBuffer(-cost * Settings.get.sleepCostFactor)) {
-            crash(Settings.namespace + "gui.Error.NoEnergy")
+            crash("gui.Error.NoEnergy")
           }
         case _ =>
           if (!node.tryChangeBuffer(-cost)) {
-            crash(Settings.namespace + "gui.Error.NoEnergy")
+            crash("gui.Error.NoEnergy")
           }
       })
     }
@@ -391,7 +396,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
         node.sendToReachable("computer.stopped")
         start()
       // Resume from pauses based on sleep or signal underflow.
-      case Machine.State.Sleeping if remainIdle <= 0 || !signals.isEmpty =>
+      case Machine.State.Sleeping if remainIdle <= 0 || signals.nonEmpty =>
         switchTo(Machine.State.Yielded)
       // Resume in case we paused  because the game was paused.
       case Machine.State.Paused =>
@@ -430,10 +435,10 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
         }
         catch {
           case e: java.lang.Error if e.getMessage == "not enough memory" =>
-            crash(Settings.namespace + "gui.Error.OutOfMemory")
+            crash("gui.Error.OutOfMemory")
           case e: Throwable =>
             OpenComputers.log.log(Level.WARNING, "Faulty architecture implementation for synchronized calls.", e)
-            crash(Settings.namespace + "gui.Error.InternalError")
+            crash("gui.Error.InternalError")
         }
 
         assert(state.top != Machine.State.Running)
@@ -719,7 +724,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0
-      Machine.threadPool.submit(this)
+      Machine.threadPool.schedule(this, Settings.get.executionDelay, TimeUnit.MILLISECONDS)
     }
 
     // Mark state change in owner, to send it to clients.
@@ -779,7 +784,12 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
                   switchTo(Machine.State.Stopping)
                 }
               case result: ExecutionResult.Error =>
-                crash(result.message)
+                if (result.message != null) {
+                  crash(result.message)
+                }
+                else {
+                  crash("unknown error")
+                }
             }
           case Machine.State.Paused =>
             state.pop() // Paused
@@ -795,7 +805,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
     catch {
       case e: Throwable =>
         OpenComputers.log.log(Level.WARNING, "Architecture's runThreaded threw an error. This should never happen!", e)
-        crash(Settings.namespace + "gui.Error.InternalError")
+        crash("gui.Error.InternalError")
     }
 
     // Keep track of time spent executing the computer.

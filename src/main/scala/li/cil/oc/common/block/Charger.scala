@@ -1,21 +1,22 @@
 package li.cil.oc.common.block
 
+import java.util
+
 import cpw.mods.fml.common.Optional
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import java.util
+import li.cil.oc.client.Textures
 import li.cil.oc.common.tileentity
 import li.cil.oc.server.PacketSender
-import li.cil.oc.Settings
-import li.cil.oc.util.mods.BuildCraft
 import li.cil.oc.util.Tooltip
+import li.cil.oc.util.mods.BuildCraft
+import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.{StatCollector, Icon}
+import net.minecraft.util.Icon
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
-import li.cil.oc.client.Textures
 
 class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDelegate {
   val unlocalizedName = "Charger"
@@ -30,9 +31,7 @@ class Charger(val parent: SimpleDelegator) extends RedstoneAware with SimpleDele
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     accessor.getTileEntity match {
       case charger: tileentity.Charger =>
-        tooltip.add(StatCollector.translateToLocalFormatted(
-          Settings.namespace + "gui.Analyzer.ChargerSpeed",
-          (charger.chargeSpeed * 100).toInt + "%"))
+        tooltip.add(Localization.Analyzer.ChargerSpeed(charger.chargeSpeed).toString)
       case _ =>
     }
   }

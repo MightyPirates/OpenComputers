@@ -1,15 +1,17 @@
 package li.cil.oc.common.tileentity
 
 import cpw.mods.fml.relauncher.{Side, SideOnly}
-import li.cil.oc.api.network._
 import li.cil.oc.Settings
+import li.cil.oc.api.network._
 import li.cil.oc.util.Color
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.ForgeDirection
+
 import scala.collection.mutable
 import scala.language.postfixOps
 
@@ -89,6 +91,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     if (ax <= border || ay <= border || ax >= width - border || ay >= height - border) {
       return false
     }
+    if (!world.isRemote) return true
+
     val (iw, ih) = (width - border * 2, height - border * 2)
     val (rx, ry) = ((ax - border) / iw, (ay - border) / ih)
 
@@ -100,7 +104,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       val rh = bph.toDouble / bpw.toDouble
       val bry = (ry - (1 - rh) * 0.5) / rh
       if (bry <= 0 || bry >= 1) {
-        return false
+        return true
       }
       (rx, bry)
     }
@@ -108,7 +112,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
       val rw = bpw.toDouble / bph.toDouble
       val brx = (rx - (1 - rw) * 0.5) / rw
       if (brx <= 0 || brx >= 1) {
-        return false
+        return true
       }
       (brx, ry)
     }
@@ -117,9 +121,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
 
     // Convert to absolute coordinates and send the packet to the server.
-    if (world.isRemote) {
-      origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
-    }
+    origin.buffer.mouseDown((brx * bw).toInt + 1, (bry * bh).toInt + 1, 0, null)
+
     true
   }
 
@@ -133,19 +136,8 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
   }
 
-  def shot(arrow: EntityArrow, hitX: Double, hitY: Double, hitZ: Double) {
-    // This is nasty, but I see no other way: arrows can trigger two collisions,
-    // once on their own when hitting a block, a second time via their entity's
-    // common collision checker. The second one (collision checker) has the
-    // better coordinates (arrow moved back out of the block it collided with),
-    // so use that when possible, otherwise resolve in next update.
-    if (!arrows.add(arrow)) {
-      arrows.remove(arrow)
-      arrow.shootingEntity match {
-        case player: EntityPlayer => click(player, hitX, hitY, hitZ)
-        case _ =>
-      }
-    }
+  def shot(arrow: EntityArrow) {
+    arrows.add(arrow)
   }
 
   // ----------------------------------------------------------------------- //
@@ -218,12 +210,22 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
     }
     if (arrows.size > 0) {
       for (arrow <- arrows) {
-        val hitX = math.max(0, math.min(1, arrow.posX - x))
-        val hitY = math.max(0, math.min(1, arrow.posY - y))
-        val hitZ = math.max(0, math.min(1, arrow.posZ - z))
-        shot(arrow, hitX, hitY, hitZ)
+        val hitX = arrow.posX - x
+        val hitY = arrow.posY - y
+        val hitZ = arrow.posZ - z
+        val hitXInner = math.abs(hitX - 0.5) < 0.45
+        val hitYInner = math.abs(hitY - 0.5) < 0.45
+        val hitZInner = math.abs(hitZ - 0.5) < 0.45
+        if (hitXInner && hitYInner && !hitZInner ||
+          hitXInner && !hitYInner && hitZInner ||
+          !hitXInner && hitYInner && hitZInner) {
+          arrow.shootingEntity match {
+            case player: EntityPlayer if player == Minecraft.getMinecraft.thePlayer => click(player, hitX, hitY, hitZ)
+            case _ =>
+          }
+        }
       }
-      assert(arrows.isEmpty)
+      arrows.clear()
     }
   }
 

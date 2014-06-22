@@ -360,7 +360,7 @@ end
 
 -------------------------------------------------------------------------------
 
-local function execute(command, env, ...)
+local function execute(env, command, ...)
   checkArg(1, command, "string")
   local commands, reason = parseCommands(command)
   if not commands then
@@ -479,39 +479,12 @@ local args, options = shell.parse(...)
 local history = {}
 
 if #args == 0 and (io.input() == io.stdin or options.i) and not options.c then
-  -- interactive shell.
-  while true do
-    if not term.isAvailable() then -- don't clear unless we lost the term
-      while not term.isAvailable() do
-        event.pull("term_available")
-      end
-      term.clear()
-    end
-    while term.isAvailable() do
-      local foreground = component.gpu.setForeground(0xFF0000)
-      term.write(expand(os.getenv("PS1") or "$ "))
-      component.gpu.setForeground(foreground)
-      local command = term.read(history)
-      if not command then
-        term.write("exit\n")
-        return -- eof
-      end
-      while #history > 10 do
-        table.remove(history, 1)
-      end
-      command = text.trim(command)
-      if command == "exit" then
-        return
-      elseif command ~= "" then
-        local result, reason = execute(command)
-        if not result then
-          io.stderr:write((tostring(reason) or "unknown error").. "\n")
-        elseif term.getCursor() > 1 then
-          term.write("\n")
-        end
-      end
-    end
-  end
+  -- interactive shell. use original shell for input but register self as
+  -- global SHELL for command execution.
+  local oldShell = os.getenv("SHELL")
+  os.setenv("SHELL", process.running())
+  os.execute("/bin/sh")
+  os.setenv("SHELL", oldShell)
 else
   -- execute command.
   local result = table.pack(execute(...))

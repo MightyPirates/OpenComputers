@@ -1,17 +1,18 @@
 package li.cil.oc.common.block
 
-import cpw.mods.fml.common.Optional
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import java.util
+
+import cpw.mods.fml.common.Optional
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.common.tileentity
-import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
+import li.cil.oc.{Localization, Settings}
 import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor}
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{ItemStack, EnumRarity}
-import net.minecraft.util.{StatCollector, Icon, AxisAlignedBB}
-import net.minecraft.world.{World, IBlockAccess}
+import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.util.{AxisAlignedBB, Icon}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.ForgeDirection
 
 abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
@@ -29,8 +30,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   override def wailaBody(stack: ItemStack, tooltip: util.List[String], accessor: IWailaDataAccessor, config: IWailaConfigHandler) {
     val node = accessor.getNBTData.getCompoundTag(Settings.namespace + "node")
     if (node.hasKey("address")) {
-      tooltip.add(StatCollector.translateToLocalFormatted(
-        Settings.namespace + "gui.Analyzer.Address", node.getString("address")))
+      tooltip.add(Localization.Analyzer.Address(node.getString("address")).toString)
     }
   }
 
@@ -48,10 +48,10 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
   }
 
   override def bounds(world: IBlockAccess, x: Int, y: Int, z: Int) =
-    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1)
+    AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 0.5f, 1)
 
   override def itemBounds() {
-    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 7 / 16f, 1))
+    parent.setBlockBounds(AxisAlignedBB.getAABBPool.getAABB(0, 0, 0, 1, 0.5f, 1))
   }
 
   override def registerIcons(iconRegister: IconRegister) = {
@@ -72,6 +72,7 @@ abstract class Hologram(val parent: SpecialDelegator) extends SpecialDelegate {
 }
 
 object Hologram {
+
   class Tier1(parent: SpecialDelegator) extends Hologram(parent) {
     def tier = 0
   }
@@ -79,4 +80,5 @@ object Hologram {
   class Tier2(parent: SpecialDelegator) extends Hologram(parent) {
     def tier = 1
   }
+
 }

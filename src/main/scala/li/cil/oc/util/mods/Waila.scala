@@ -1,11 +1,12 @@
 package li.cil.oc.util.mods
 
-import cpw.mods.fml.common.Optional
 import java.util
+
+import cpw.mods.fml.common.Optional
+import li.cil.oc.Settings
 import li.cil.oc.common.block.Delegator
 import li.cil.oc.common.tileentity
-import li.cil.oc.Settings
-import mcp.mobius.waila.api.{IWailaDataProvider, IWailaConfigHandler, IWailaDataAccessor, IWailaRegistrar}
+import mcp.mobius.waila.api.{IWailaConfigHandler, IWailaDataAccessor, IWailaDataProvider, IWailaRegistrar}
 import net.minecraft.item.ItemStack
 
 object Waila {
@@ -16,7 +17,7 @@ object Waila {
     registrar.registerSyncedNBTKey(Settings.namespace + "items", classOf[tileentity.DiskDrive])
     registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Hologram])
     registrar.registerSyncedNBTKey(Settings.namespace + "keyboard", classOf[tileentity.Keyboard])
-    registrar.registerSyncedNBTKey(Settings.namespace + "node", classOf[tileentity.Screen])
+    registrar.registerSyncedNBTKey("node", classOf[tileentity.Screen])
     registrar.registerSyncedNBTKey(Settings.namespace + "componentNodes", classOf[tileentity.WirelessRouter])
     registrar.registerSyncedNBTKey(Settings.namespace + "strength", classOf[tileentity.WirelessRouter])
   }

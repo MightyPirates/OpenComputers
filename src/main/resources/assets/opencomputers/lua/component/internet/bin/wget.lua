@@ -10,11 +10,13 @@ if not component.isAvailable("internet") then
 end
 
 local args, options = shell.parse(...)
+options.q = options.q or options.Q
 
 if #args < 1 then
   io.write("Usage: wget [-fq] <url> [<filename>]\n")
   io.write(" -f: Force overwriting existing files.\n")
-  io.write(" -q: Quiet mode - no status messages.")
+  io.write(" -q: Quiet mode - no status messages.\n")
+  io.write(" -Q: Superquiet mode - no error messages.")
   return
 end
 
@@ -33,22 +35,28 @@ if not filename then
 end
 filename = text.trim(filename)
 if filename == "" then
-  io.stderr:write("could not infer filename, please specify one")
-  return
+  if not options.Q then
+    io.stderr:write("could not infer filename, please specify one")
+  end
+  return nil, "missing target filename" -- for programs using wget as a function
 end
 filename = shell.resolve(filename)
 
 if fs.exists(filename) then
   if not options.f or not os.remove(filename) then
-    io.stderr:write("file already exists")
-    return
+    if not options.Q then
+      io.stderr:write("file already exists")
+    end
+    return nil, "file already exists" -- for programs using wget as a function
   end
 end
 
 local f, reason = io.open(filename, "wb")
 if not f then
-  io.stderr:write("failed opening file for writing: " .. reason)
-  return
+  if not options.Q then
+    io.stderr:write("failed opening file for writing: " .. reason)
+  end
+  return nil, "failed opening file for writing: " .. reason -- for programs using wget as a function
 end
 
 if not options.q then
@@ -56,8 +64,21 @@ if not options.q then
 end
 local result, response = pcall(internet.request, url)
 if result then
-  for chunk in response do
-    f:write(chunk)
+  local result, reason = pcall(function()
+    for chunk in response do
+      f:write(chunk)
+    end
+  end)
+  if not result then
+    if not options.q then
+      io.stderr:write("failed.\n")
+    end
+    f:close()
+    fs.remove(filename)
+    if not options.Q then
+      io.stderr:write("HTTP request failed: " .. reason .. "\n")
+    end
+    return nil, reason -- for programs using wget as a function
   end
   if not options.q then
     io.write("success.\n")
@@ -73,5 +94,9 @@ else
   end
   f:close()
   fs.remove(filename)
-  io.stderr:write("HTTP request failed: " .. response .. "\n")
+  if not options.Q then
+    io.stderr:write("HTTP request failed: " .. response .. "\n")
+  end
+  return nil, response -- for programs using wget as a function
 end
+return true -- for programs using wget as a function

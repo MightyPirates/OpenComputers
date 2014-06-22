@@ -1,9 +1,10 @@
 package li.cil.oc.common.component
 
 import li.cil.oc.api
-import li.cil.oc.api.network.{ManagedEnvironment, Node, Message}
+import li.cil.oc.api.network.{ManagedEnvironment, Message, Node}
 import li.cil.oc.util.ExtendedNBT._
 import net.minecraft.nbt.NBTTagCompound
+
 import scala.math.ScalaNumber
 
 abstract class ManagedComponent extends ManagedEnvironment {
@@ -26,8 +27,10 @@ abstract class ManagedComponent extends ManagedEnvironment {
     // the address is embedded in the saved data that gets sent to the client,
     // so that that address can be used to associate components on server and
     // client (for example keyboard and screen/text buffer).
-    if (node == null) api.Network.joinNewNetwork(node)
-    if (node != null) nbt.setNewCompoundTag("node", node.save)
+    if (node != null) {
+      if (node.network == null) api.Network.joinNewNetwork(node)
+      nbt.setNewCompoundTag("node", node.save)
+    }
   }
 
   final protected def result(args: Any*): Array[AnyRef] = {

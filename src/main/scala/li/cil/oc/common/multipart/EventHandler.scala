@@ -2,8 +2,9 @@ package li.cil.oc.common.multipart
 
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.raytracer.RayTracer
-import codechicken.lib.vec.{Vector3, BlockCoord}
+import codechicken.lib.vec.{BlockCoord, Vector3}
 import codechicken.multipart.TileMultipart
+import li.cil.oc.api.Items
 import li.cil.oc.client.PacketSender
 import li.cil.oc.common.block.Delegator
 import net.minecraft.block.Block
@@ -14,7 +15,6 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action
 import net.minecraftforge.event.entity.player.{PlayerDestroyItemEvent, PlayerInteractEvent}
-import li.cil.oc.api.Items
 
 object EventHandler {
   @ForgeSubscribe

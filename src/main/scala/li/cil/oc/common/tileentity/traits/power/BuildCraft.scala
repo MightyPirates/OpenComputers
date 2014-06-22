@@ -1,6 +1,6 @@
 package li.cil.oc.common.tileentity.traits.power
 
-import buildcraft.api.power.{PowerHandler, IPowerReceptor}
+import buildcraft.api.power.{IPowerReceptor, PowerHandler}
 import cpw.mods.fml.common.{ModAPIManager, Optional}
 import li.cil.oc.Settings
 import net.minecraftforge.common.ForgeDirection
@@ -45,7 +45,7 @@ trait BuildCraft extends Common with IPowerReceptor {
 
   @Optional.Method(modid = "BuildCraftAPI|power")
   def getPowerReceiver(side: ForgeDirection) =
-    if (canConnect(side))
+    if (canConnectPower(side))
       getPowerProvider.getPowerReceiver
     else null
 

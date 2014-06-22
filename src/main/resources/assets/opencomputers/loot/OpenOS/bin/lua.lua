@@ -24,9 +24,9 @@ term.write("Press Ctrl+C to exit the interpreter.\n")
 component.gpu.setForeground(0xFFFFFF)
 
 while term.isAvailable() do
-  local foreground, palette = component.gpu.setForeground(0x00FF00)
+  local foreground = component.gpu.setForeground(0x00FF00)
   term.write(tostring(env._PROMPT or "lua> "))
-  component.gpu.setForeground(foreground, palette)
+  component.gpu.setForeground(foreground)
   local command = term.read(history)
   if command == nil then -- eof
     return

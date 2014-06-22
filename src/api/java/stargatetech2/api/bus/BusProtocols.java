@@ -2,7 +2,7 @@ package stargatetech2.api.bus;
 
 import java.util.ArrayList;
 
-public final class BusProtocols {
+public final class BusProtocols {	
 	private static final ArrayList<Class<? extends BusPacket>> protocols = new ArrayList();
 	
 	/**
@@ -29,4 +29,10 @@ public final class BusProtocols {
 	}
 	
 	private BusProtocols(){}
+	
+	
+	
+	// A list of all the protocols implemented by StargateTech 2
+	public static final int PROTOCOL_LIP = addProtocol(BusPacketLIP.class);
+	public static final int PROTOCOL_NETSCAN = addProtocol(BusPacketNetScan.class);
 }

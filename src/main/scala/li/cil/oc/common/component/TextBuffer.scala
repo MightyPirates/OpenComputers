@@ -1,21 +1,26 @@
 package li.cil.oc.common.component
 
+import com.google.common.base.Strings
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.relauncher.{SideOnly, Side}
-import li.cil.oc.{api, Settings}
+import cpw.mods.fml.relauncher.{Side, SideOnly}
 import li.cil.oc.api.component.TextBuffer.ColorDepth
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.network._
-import li.cil.oc.client.{PacketSender => ClientPacketSender, ComponentTracker => ClientComponentTracker}
-import li.cil.oc.client.renderer.{MonospaceFontRenderer, TextBufferRenderCache}
+import li.cil.oc.client.renderer.TextBufferRenderCache
+import li.cil.oc.client.{ComponentTracker => ClientComponentTracker, PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity
-import li.cil.oc.server.{PacketSender => ServerPacketSender, ComponentTracker => ServerComponentTracker}
-import li.cil.oc.util
+import li.cil.oc.server.component.Keyboard
+import li.cil.oc.server.{ComponentTracker => ServerComponentTracker, PacketSender => ServerPacketSender}
 import li.cil.oc.util.ExtendedNBT._
 import li.cil.oc.util.PackedColor
+import li.cil.oc.{Settings, api, util}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraftforge.event.ForgeSubscribe
+import net.minecraftforge.event.world.{ChunkEvent, WorldEvent}
+
 import scala.collection.convert.WrapAsScala._
+import scala.collection.mutable
 
 class TextBuffer(val owner: Container) extends ManagedComponent with api.component.TextBuffer {
   val node = api.Network.newNode(this, Visibility.Network).
@@ -117,6 +122,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   @Callback(doc = """function():number, number -- The aspect ratio of the screen. For multi-block screens this is the number of blocks, horizontal and vertical.""")
   def getAspectRatio(context: Context, args: Arguments): Array[AnyRef] = {
     result(aspectRatio._1, aspectRatio._2)
+  }
+
+  @Callback(doc = """function():table -- The list of keyboards attached to the screen.""")
+  def getKeyboards(context: Context, args: Arguments): Array[AnyRef] = {
+    context.pause(0.25)
+    Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
   }
 
   // ----------------------------------------------------------------------- //
@@ -257,29 +268,35 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   def get(col: Int, row: Int) = data.get(col, row)
 
   override def getForegroundColor(column: Int, row: Int) =
-    PackedColor.unpackForeground(data.color(row)(column), data.format)
+    if (isForegroundFromPalette(column, row)) {
+      PackedColor.extractForeground(data.color(row)(column))
+    }
+    else {
+      PackedColor.unpackForeground(data.color(row)(column), data.format)
+    }
 
-  override def isForegroundFromPalette(column: Int, row: Int) = data.format match {
-    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
-    case _ => false
-  }
+  override def isForegroundFromPalette(column: Int, row: Int) =
+    data.format.isFromPalette(PackedColor.extractForeground(data.color(row)(column)))
 
   override def getBackgroundColor(column: Int, row: Int) =
-    PackedColor.unpackBackground(data.color(row)(column), data.format)
+    if (isBackgroundFromPalette(column, row)) {
+      PackedColor.extractBackground(data.color(row)(column))
+    }
+    else {
+      PackedColor.unpackBackground(data.color(row)(column), data.format)
+    }
 
-  override def isBackgroundFromPalette(column: Int, row: Int) = data.format match {
-    case palette: PackedColor.PaletteFormat => palette.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
-    case _ => false
-  }
+  override def isBackgroundFromPalette(column: Int, row: Int) =
+    data.format.isFromPalette(PackedColor.extractBackground(data.color(row)(column)))
 
   @SideOnly(Side.CLIENT)
   override def renderText() = relativeLitArea != 0 && proxy.render()
 
   @SideOnly(Side.CLIENT)
-  override def renderWidth = MonospaceFontRenderer.fontWidth * data.width
+  override def renderWidth = TextBufferRenderCache.renderer.charRenderWidth * data.width
 
   @SideOnly(Side.CLIENT)
-  override def renderHeight = MonospaceFontRenderer.fontHeight * data.height
+  override def renderHeight = TextBufferRenderCache.renderer.charRenderHeight * data.height
 
   @SideOnly(Side.CLIENT)
   override def setRenderingEnabled(enabled: Boolean) = isRendering = enabled
@@ -326,13 +343,14 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 
   // ----------------------------------------------------------------------- //
 
-  override def load(nbt: NBTTagCompound) = {
+  override def load(nbt: NBTTagCompound) {
     super.load(nbt)
-    data.load(nbt.getCompoundTag("buffer"))
     if (FMLCommonHandler.instance.getEffectiveSide.isClient) {
+      if (!Strings.isNullOrEmpty(proxy.nodeAddress)) return // Only load once.
       proxy.nodeAddress = nbt.getCompoundTag("node").getString("address")
-      ClientComponentTracker.add(proxy.nodeAddress, this)
+      TextBuffer.registerClientBuffer(this)
     }
+    data.load(nbt.getCompoundTag("buffer"))
 
     if (nbt.hasKey(Settings.namespace + "isOn")) {
       isDisplaying = nbt.getBoolean(Settings.namespace + "isOn")
@@ -355,7 +373,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
     // execution and pausing them (which will make them resume in the next tick
     // when their update() runs).
     if (node.network != null) {
-      for (node <- node.reachableNodes) node.host match {
+      for (node <- node.network.nodes) node.host match {
         case host: tileentity.traits.Computer if !host.isPaused =>
           host.pause(0.1)
         case _ =>
@@ -369,13 +387,49 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 }
 
 object TextBuffer {
+  var clientBuffers = mutable.LinkedList.empty[TextBuffer]
+
+  @ForgeSubscribe
+  def onChunkUnload(e: ChunkEvent.Unload) {
+    val chunk = e.getChunk
+    clientBuffers = clientBuffers.filter(t => {
+      val keep = t.owner.world != e.world || !chunk.isAtLocation(math.round(t.owner.xPosition - 0.5).toInt << 4, math.round(t.owner.zPosition - 0.5).toInt << 4)
+      if (!keep) {
+        ClientComponentTracker.remove(t.proxy.nodeAddress)
+      }
+      keep
+    })
+  }
+
+  @ForgeSubscribe
+  def onWorldUnload(e: WorldEvent.Unload) {
+    clientBuffers = clientBuffers.filter(t => {
+      val keep = t.owner.world != e.world
+      if (!keep) {
+        ClientComponentTracker.remove(t.proxy.nodeAddress)
+      }
+      keep
+    })
+  }
+
+  def registerClientBuffer(t: TextBuffer) {
+    ClientComponentTracker.add(t.proxy.nodeAddress, t)
+    clientBuffers ++= mutable.LinkedList(t)
+  }
 
   abstract class Proxy {
     def owner: TextBuffer
 
     var dirty = false
 
+    var lastChange = 0L
+
     var nodeAddress = ""
+
+    def markDirty() {
+      dirty = true
+      lastChange = owner.owner.world.getWorldTime
+    }
 
     def render() = false
 
@@ -418,36 +472,35 @@ object TextBuffer {
 
   class ClientProxy(val owner: TextBuffer) extends Proxy {
     override def render() = {
-      val wasDirty = dirty
       TextBufferRenderCache.render(owner)
-      wasDirty
+      lastChange == owner.owner.world.getWorldTime
     }
 
     override def onScreenColorChange() {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onScreenCopy(col, row, w, h, tx, ty)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onScreenFill(col, row, w, h, c)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenPaletteChange(index: Int) {
-      dirty = true
+      markDirty()
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
       super.onScreenResolutionChange(w, h)
-      dirty = true
+      markDirty()
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {

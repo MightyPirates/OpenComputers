@@ -1,19 +1,18 @@
 package li.cil.oc.common.item
 
 import java.util
+
 import li.cil.oc.Settings
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.item.{EnumRarity, ItemStack}
+import net.minecraft.item.ItemStack
 
 class Memory(val parent: Delegator, val tier: Int) extends Delegate {
   val baseName = "Memory"
   val unlocalizedName = baseName + tier
 
   val kiloBytes = Settings.get.ramSizes(tier)
-
-  override def rarity = Array(EnumRarity.common, EnumRarity.common, EnumRarity.uncommon, EnumRarity.uncommon, EnumRarity.rare, EnumRarity.rare).apply(tier max 0 min Settings.get.ramSizes.length)
 
   override def displayName(stack: ItemStack) =
     Some(parent.getItemStackDisplayName(stack) + " (%dKB)".format(kiloBytes))

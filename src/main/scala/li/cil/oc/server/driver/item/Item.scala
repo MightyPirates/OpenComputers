@@ -1,7 +1,6 @@
 package li.cil.oc.server.driver.item
 
-import li.cil.oc.Settings
-import li.cil.oc.api
+import li.cil.oc.{Settings, api}
 import li.cil.oc.api.driver
 import li.cil.oc.common.InventorySlots.Tier
 import net.minecraft.item.ItemStack
@@ -12,7 +11,7 @@ trait Item extends driver.Item {
 
   override def dataTag(stack: ItemStack) = Item.dataTag(stack)
 
-  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.contains(api.Items.get(stack))
+  protected def isOneOf(stack: ItemStack, items: api.detail.ItemInfo*) = items.filter(_ != null).contains(api.Items.get(stack))
 }
 
 object Item {

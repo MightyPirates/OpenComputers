@@ -1,9 +1,11 @@
 package li.cil.oc.server.fs
 
 import java.io.{FileNotFoundException, IOException}
+
 import li.cil.oc.api
 import li.cil.oc.api.fs.Mode
-import net.minecraft.nbt.{NBTTagList, NBTTagCompound}
+import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+
 import scala.collection.mutable
 
 trait OutputStreamFileSystem extends InputStreamFileSystem {

@@ -2,11 +2,12 @@ package li.cil.oc.client.gui
 
 import li.cil.oc.Settings
 import li.cil.oc.api.driver.Slot
+import li.cil.oc.common.InventorySlots.Tier
 import net.minecraft.util.Icon
 import net.minecraftforge.client.event.TextureStitchEvent
 import net.minecraftforge.event.ForgeSubscribe
+
 import scala.collection.mutable
-import li.cil.oc.common.InventorySlots.Tier
 
 object Icons {
   private val bySlotType = mutable.Map.empty[Slot, Icon]

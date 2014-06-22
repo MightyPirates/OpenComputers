@@ -1,14 +1,14 @@
 package li.cil.oc.common.container
 
-import cpw.mods.fml.relauncher.{SideOnly, Side}
 import cpw.mods.fml.common.FMLCommonHandler
+import cpw.mods.fml.relauncher.{Side, SideOnly}
+import li.cil.oc.client.gui.Icons
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.{InventorySlots, tileentity}
 import li.cil.oc.util.ItemUtils
+import li.cil.oc.{Settings, api}
 import net.minecraft.entity.player.InventoryPlayer
 import net.minecraft.inventory.Slot
-import li.cil.oc.{Settings, api}
-import li.cil.oc.common.InventorySlots.Tier
-import li.cil.oc.client.gui.Icons
 
 class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity.RobotAssembler) extends Player(playerInventory, assembler) {
   // Computer case.
@@ -82,8 +82,8 @@ class RobotAssembler(playerInventory: InventoryPlayer, val assembler: tileentity
         isAssembling = assembler.isAssembling
         sendProgressBarUpdate(0, if (isAssembling) 1 else 0)
       }
-      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount * Settings.get.tickFrequency / 20).toInt
-      if (assembler.progress - assemblyProgress > 0.2 || assemblyRemainingTime != timeRemaining) {
+      val timeRemaining = (assembler.requiredEnergy / Settings.get.assemblerTickAmount / 20).toInt
+      if (math.abs(assembler.progress - assemblyProgress) > 0.2 || assemblyRemainingTime != timeRemaining) {
         assemblyProgress = assembler.progress
         assemblyRemainingTime = timeRemaining
         sendProgressBarUpdate(1, (assemblyProgress * 5).toInt)

@@ -1,16 +1,17 @@
 package li.cil.oc
 
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
+import li.cil.oc.common.InventorySlots.Tier
+import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.{Loot, item}
 import li.cil.oc.util.mods.Mods
-import net.minecraft.item.{Item, ItemBlock, ItemStack}
-import scala.collection.mutable
-import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 import net.minecraft.block.Block
-import li.cil.oc.common.recipe.Recipes
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.creativetab.CreativeTabs
-import li.cil.oc.common.InventorySlots.Tier
+import net.minecraft.item.{Item, ItemBlock, ItemStack}
+import net.minecraft.nbt.NBTTagCompound
+
+import scala.collection.mutable
 
 object Items extends ItemAPI {
   private val descriptors = mutable.Map.empty[String, ItemInfo]
@@ -24,51 +25,59 @@ object Items extends ItemAPI {
     case _ => null
   }
 
-  def registerBlock[T <: common.block.Delegate](delegate: T, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerBlock[T <: common.block.Delegate](delegate: T, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = delegate.parent
 
       override def item = null
 
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
-    names += delegate -> name
+    names += delegate -> id
     delegate
   }
 
-  def registerBlock(instance: Block, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerBlock(instance: Block, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = instance
 
       override def item = null
 
       override def createItemStack(size: Int) = new ItemStack(instance, size)
     }
-    names += instance -> name
+    names += instance -> id
     instance
   }
 
-  def registerItem[T <: common.item.Delegate](delegate: T, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerItem[T <: common.item.Delegate](delegate: T, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = null
 
       override def item = delegate.parent
 
       override def createItemStack(size: Int) = delegate.createItemStack(size)
     }
-    names += delegate -> name
+    names += delegate -> id
     delegate
   }
 
-  def registerItem(instance: Item, name: String) = {
-    descriptors += name -> new ItemInfo {
+  def registerItem(instance: Item, id: String) = {
+    descriptors += id -> new ItemInfo {
+      override def name = id
+
       override def block = null
 
       override def item = instance
 
       override def createItemStack(size: Int) = new ItemStack(instance, size)
     }
-    names += instance -> name
+    names += instance -> id
     instance
   }
 
@@ -216,7 +225,9 @@ object Items extends ItemAPI {
 
     Recipes.addItem(new item.UpgradeInventoryController(multi), "inventoryControllerUpgrade", "oc:inventoryControllerUpgrade")
     Recipes.addItem(new item.UpgradeChunkloader(multi), "chunkloaderUpgrade", "oc:chunkloaderUpgrade")
-    Recipes.addItem(new item.UpgradeCapacitor(multi), "capacitorUpgrade", "oc:capacitorUpgrade")
+    Recipes.addItem(new item.UpgradeBattery(multi, Tier.One), "batteryUpgrade1", "oc:batteryUpgrade1")
+    Recipes.addItem(new item.UpgradeBattery(multi, Tier.Two), "batteryUpgrade2", "oc:batteryUpgrade2")
+    Recipes.addItem(new item.UpgradeBattery(multi, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
     // Experimental
     registerItem(new item.Tablet(multi), "tablet")
   }
