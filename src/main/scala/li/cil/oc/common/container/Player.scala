@@ -52,7 +52,7 @@ abstract class Player(val playerInventory: InventoryPlayer, val otherInventory: 
       if (intoPlayerInventory) (inventorySlots.size - 1, 0)
       else (0, inventorySlots.size - 1)
 
-    if (fromStack.isStackable) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
+    if (fromStack.getMaxStackSize > 1) for (i <- begin to end by step if i >= 0 && i < inventorySlots.size && from.getHasStack && from.getStack.stackSize > 0) {
       val intoSlot = inventorySlots.get(i).asInstanceOf[Slot]
       if (intoSlot.inventory != from.inventory && intoSlot.getHasStack) {
         val intoStack = intoSlot.getStack
