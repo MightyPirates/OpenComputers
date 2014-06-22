@@ -37,7 +37,7 @@ trait IndustrialCraft2 extends Common with IEnergySink {
 
   @Optional.Method(modid = "IC2")
   def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =
-    tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
+    amount - tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
 
   @Optional.Method(modid = "IC2")
   def getMaxSafeInput = Integer.MAX_VALUE
