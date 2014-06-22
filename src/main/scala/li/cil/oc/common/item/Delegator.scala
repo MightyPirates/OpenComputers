@@ -146,6 +146,11 @@ class Delegator extends Item {
       case _ => super.getMaxDamage(stack)
     }
 
+  override def isDamaged(stack: ItemStack) =
+    subItem(stack) match {
+      case Some(subItem) if subItem.isDamageable => subItem.damage(stack) > 0
+      case _ => false
+    }
 
   override def onUpdate(stack: ItemStack, world: World, player: Entity, slot: Int, selected: Boolean) =
     subItem(stack) match {
