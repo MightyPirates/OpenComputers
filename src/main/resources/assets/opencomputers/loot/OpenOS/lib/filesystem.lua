@@ -228,7 +228,7 @@ end
 function filesystem.path(path)
   local parts = segments(path)
   local result = table.concat(parts, "/", 1, #parts - 1) .. "/"
-  if unicode.sub(path, 1, 1) == "/" then
+  if unicode.sub(path, 1, 1) == "/" and unicode.sub(result, 1, 1) ~= "/" then
     return "/" .. result
   else
     return result
