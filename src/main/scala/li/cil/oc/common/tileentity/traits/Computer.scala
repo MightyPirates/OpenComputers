@@ -141,7 +141,9 @@ trait Computer extends Environment with ComponentInventory with Rotatable with B
         proxy.robot.zCoord = zCoord
       case _ =>
     }
-    computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+    if (isServer) {
+      computer.load(nbt.getCompoundTag(Settings.namespace + "computer"))
+    }
   }
 
   override def writeToNBT(nbt: NBTTagCompound) {
