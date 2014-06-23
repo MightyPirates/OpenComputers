@@ -1,6 +1,11 @@
 local buffer = require("buffer")
 local term = require("term")
 
+local io_open = io.open
+function io.open(path, mode)
+  return io_open(require("shell").resolve(path), mode)
+end
+
 local stdinStream = {handle="stdin"}
 local stdoutStream = {handle="stdout"}
 local stderrStream = {handle="stderr"}
