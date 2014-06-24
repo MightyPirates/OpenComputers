@@ -3,6 +3,7 @@ package li.cil.oc.common
 import codechicken.multipart.TMultiPart
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent._
+import cpw.mods.fml.common.gameevent.TickEvent
 import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent
 import cpw.mods.fml.common.{FMLCommonHandler, Optional}
@@ -56,7 +57,7 @@ object EventHandler {
   }
 
   @SubscribeEvent
-  def onTick(e: ServerTickEvent) = {
+  def onTick(e: ServerTickEvent) = if (e.phase == TickEvent.Phase.START) {
     pending.synchronized {
       val adds = pending.toArray
       pending.clear()

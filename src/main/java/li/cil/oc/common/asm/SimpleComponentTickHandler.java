@@ -33,13 +33,15 @@ public final class SimpleComponentTickHandler {
 
     @SubscribeEvent
     public void onTick(TickEvent.ServerTickEvent e) {
-        final Runnable[] adds;
-        synchronized (pending) {
-            adds = pending.toArray(new Runnable[pending.size()]);
-            pending.clear();
-        }
-        for (Runnable runnable : adds) {
-            runnable.run();
+        if (e.phase == TickEvent.Phase.START) {
+            final Runnable[] adds;
+            synchronized (pending) {
+                adds = pending.toArray(new Runnable[pending.size()]);
+                pending.clear();
+            }
+            for (Runnable runnable : adds) {
+                runnable.run();
+            }
         }
     }
 }
