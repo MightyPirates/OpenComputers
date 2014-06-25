@@ -54,7 +54,7 @@ if not result then
 end
 computer.setBootAddress(choice.address)
 
-print("All done! Would you like to reboot now? [Y/n]")
+print("All done! Would you like to reboot now? [Y/N]")
 local result = io.read()
 if not result or result == "" or result:sub(1, 1):lower() == "y" then
   print("\nRebooting now!")
