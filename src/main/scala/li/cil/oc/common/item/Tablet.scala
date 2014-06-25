@@ -1,11 +1,11 @@
 package li.cil.oc.common.item
 
-import java.util
 import java.util.UUID
 import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.{CacheBuilder, RemovalListener, RemovalNotification}
-import cpw.mods.fml.common.{ITickHandler, TickType}
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import cpw.mods.fml.common.gameevent.TickEvent.{ClientTickEvent, ServerTickEvent}
 import li.cil.oc.api.Machine
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.machine.Owner
@@ -13,13 +13,12 @@ import li.cil.oc.api.network.{Connector, Message, Node}
 import li.cil.oc.common.GuiType
 import li.cil.oc.common.inventory.ComponentInventory
 import li.cil.oc.{OpenComputers, Settings, api}
-import net.minecraft.client.renderer.texture.IconRegister
+import net.minecraft.client.renderer.texture.IIconRegister
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
-import net.minecraftforge.event.ForgeSubscribe
 import net.minecraftforge.event.world.WorldEvent
 
 class Tablet(val parent: Delegator) extends Delegate {
@@ -27,7 +26,7 @@ class Tablet(val parent: Delegator) extends Delegate {
 
   override def maxStackSize = 1
 
-  override def registerIcons(iconRegister: IconRegister) = {
+  override def registerIcons(iconRegister: IIconRegister) = {
     super.registerIcons(iconRegister)
 
     icon_=(iconRegister.registerIcon(Settings.resourceDomain + ":tablet"))
@@ -77,7 +76,7 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
 
   def writeToNBT() {
     if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
+      stack.setTagCompound(new NBTTagCompound())
     }
     val nbt = stack.getTagCompound
     if (!nbt.hasKey(Settings.namespace + "data")) {
@@ -130,13 +129,13 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
 
   override def getSizeInventory = items.length
 
-  override def getInvName = Settings.namespace + "container.Tablet"
+  override def getInventoryName = Settings.namespace + "container.Tablet"
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = true
 
   override def isUseableByPlayer(player: EntityPlayer) = canInteract(player.getCommandSenderName)
 
-  override def onInventoryChanged() {}
+  override def markDirty() {}
 
   // ----------------------------------------------------------------------- //
 
@@ -210,7 +209,7 @@ class TabletWrapper(val stack: ItemStack, var holder: Entity) extends ComponentI
   }
 }
 
-object Tablet extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] with ITickHandler {
+object Tablet extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
   val clientCache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(10, TimeUnit.SECONDS).
     removalListener(this).
@@ -232,7 +231,7 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
     currentStack = stack
     currentHolder = holder
     if (!stack.hasTagCompound) {
-      stack.setTagCompound(new NBTTagCompound("tag"))
+      stack.setTagCompound(new NBTTagCompound())
     }
     if (!stack.getTagCompound.hasKey(Settings.namespace + "tablet")) {
       stack.getTagCompound.setString(Settings.namespace + "tablet", UUID.randomUUID().toString)
@@ -265,7 +264,7 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
     tablet.writeToNBT()
   }
 
-  @ForgeSubscribe
+  @SubscribeEvent
   def onWorldUnload(e: WorldEvent.Unload) {
     clientCache.invalidateAll()
     clientCache.cleanUp()
@@ -273,14 +272,12 @@ object Tablet extends Callable[TabletWrapper] with RemovalListener[String, Table
     serverCache.cleanUp()
   }
 
-  override def getLabel = "OpenComputers Tablet Cleanup Ticker"
-
-  override def ticks = util.EnumSet.of(TickType.CLIENT, TickType.SERVER)
-
-  override def tickStart(tickType: util.EnumSet[TickType], tickData: AnyRef*) {
+  @SubscribeEvent
+  def onClientTick(e: ClientTickEvent) {
     clientCache.cleanUp()
-    serverCache.cleanUp()
   }
 
-  override def tickEnd(tickType: util.EnumSet[TickType], tickData: AnyRef*) {}
+  def onServerTick(e: ServerTickEvent) {
+    serverCache.cleanUp()
+  }
 }
