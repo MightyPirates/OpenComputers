@@ -13,7 +13,7 @@ local function nextLine(file, line, num)
     if not line then
       line = file:read("*l")
       if not line then -- eof
-        return 1
+        return true
       end
     end
     local wrapped
@@ -24,7 +24,7 @@ local function nextLine(file, line, num)
   term.setCursor(1, h)
   term.write(":")
   term.setCursorBlink(true)
-  return 0
+  return false
 end
 
 local args = shell.parse(...)
