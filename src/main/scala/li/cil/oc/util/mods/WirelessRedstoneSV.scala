@@ -3,6 +3,8 @@ package li.cil.oc.util.mods
 import li.cil.oc.server.component.RedstoneWireless
 import net.minecraft.world.World
 
+import scala.language.reflectiveCalls
+
 object WirelessRedstoneSV {
   private val ether = try {
     Option(Class.forName("wirelessredstone.ether.RedstoneEther").getMethod("getInstance").invoke(null).asInstanceOf[ {

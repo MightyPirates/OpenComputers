@@ -5,6 +5,8 @@ import li.cil.oc.api.network.Arguments
 import net.minecraft.inventory.IInventory
 import net.minecraftforge.common.util.ForgeDirection
 
+import scala.language.implicitConversions
+
 object ExtendedArguments {
 
   implicit def extendedArguments(args: Arguments) = new ExtendedArguments(args)

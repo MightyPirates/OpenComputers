@@ -3,6 +3,8 @@ package li.cil.oc.util.mods
 import codechicken.wirelessredstone.core.{WirelessReceivingDevice, WirelessTransmittingDevice}
 import li.cil.oc.server.component.RedstoneWireless
 
+import scala.language.reflectiveCalls
+
 object WirelessRedstoneCBE {
   private def ether = try Option(Class.forName("codechicken.wirelessredstone.core.RedstoneEther").getMethod("server").invoke(null).asInstanceOf[ {
     def addReceivingDevice(device: WirelessReceivingDevice)
