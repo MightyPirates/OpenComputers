@@ -13,8 +13,8 @@ import li.cil.oc.client.renderer.PetRenderer
 import li.cil.oc.client.{PacketSender => ClientPacketSender}
 import li.cil.oc.common.tileentity.traits.power
 import li.cil.oc.server.{PacketSender => ServerPacketSender}
-import li.cil.oc.util.LuaStateFactory
-import li.cil.oc.util.mods.{Mods, ProjectRed}
+import li.cil.oc.util.{LuaStateFactory, mods}
+import li.cil.oc.util.mods.Mods
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.{EntityPlayer, EntityPlayerMP}
 import net.minecraft.inventory.IInventory
@@ -42,7 +42,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
     }
 
   @Optional.Method(modid = "IC2")
-  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) = pending.synchronized {
+  def scheduleIC2Add(tileEntity: power.IndustrialCraft2) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
     pending += (() => if (!tileEntity.addedToPowerGrid && !tileEntity.isInvalid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(tileEntity))
       tileEntity.addedToPowerGrid = true
@@ -50,10 +50,17 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
   }
 
   @Optional.Method(modid = "IC2")
-  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) = pending.synchronized {
+  def scheduleIC2Remove(tileEntity: power.IndustrialCraft2) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
     pending += (() => if (tileEntity.addedToPowerGrid) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(tileEntity))
       tileEntity.addedToPowerGrid = false
+    })
+  }
+
+  def scheduleWirelessRedstone(rs: server.component.RedstoneWireless) = if (FMLCommonHandler.instance.getEffectiveSide.isServer) pending.synchronized {
+    pending += (() => if (!rs.owner.isInvalid) {
+      mods.WirelessRedstone.addReceiver(rs)
+      mods.WirelessRedstone.updateOutput(rs)
     })
   }
 
@@ -81,7 +88,7 @@ object EventHandler extends ITickHandler with IConnectionHandler with ICraftingH
         if (!LuaStateFactory.isAvailable) {
           p.sendChatToPlayer(Localization.Chat.WarningLuaFallback)
         }
-        if (Mods.ProjectRed.isAvailable && !ProjectRed.isAPIAvailable) {
+        if (Mods.ProjectRed.isAvailable && !mods.ProjectRed.isAPIAvailable) {
           p.sendChatToPlayer(Localization.Chat.WarningProjectRed)
         }
         if (!Settings.get.pureIgnorePower && Settings.get.ignorePower) {

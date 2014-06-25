@@ -6,7 +6,7 @@ import li.cil.oc.common.component
 import li.cil.oc.common.tileentity.traits.RedstoneAware
 import net.minecraftforge.common.ForgeDirection
 
-class Redstone(val owner: RedstoneAware) extends component.ManagedComponent {
+class Redstone[+Owner <: RedstoneAware](val owner: Owner) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
     withComponent("redstone", Visibility.Neighbors).
     create()
