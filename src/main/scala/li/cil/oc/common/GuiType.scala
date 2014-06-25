@@ -11,6 +11,7 @@ object GuiType extends Enumeration {
   Robot,
   Screen,
   Server,
+  Tablet,
   Terminal
 
   = Value
