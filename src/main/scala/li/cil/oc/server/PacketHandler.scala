@@ -122,7 +122,7 @@ class PacketHandler extends CommonPacketHandler {
 
   def onPetVisibility(p: PacketParser) {
     p.player match {
-      case player: EntityPlayerMP if player != Minecraft.getMinecraft.thePlayer =>
+      case player: EntityPlayerMP =>
         if (if (p.readBoolean()) {
           PetVisibility.hidden.remove(player.getCommandSenderName)
         }
