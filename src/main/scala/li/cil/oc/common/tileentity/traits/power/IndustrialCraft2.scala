@@ -11,6 +11,8 @@ import net.minecraftforge.common.ForgeDirection
 trait IndustrialCraft2 extends Common with IEnergySink {
   var addedToPowerGrid = false
 
+  private var lastInjectedAmount = 0.0
+
   private lazy val useIndustrialCraft2Power = isServer && !Settings.get.ignorePower && Mods.IndustrialCraft2.isAvailable
 
   // ----------------------------------------------------------------------- //
@@ -36,8 +38,10 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   def acceptsEnergyFrom(emitter: net.minecraft.tileentity.TileEntity, direction: ForgeDirection) = canConnectPower(direction)
 
   @Optional.Method(modid = "IC2")
-  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) =
+  def injectEnergyUnits(directionFrom: ForgeDirection, amount: Double) = {
+    lastInjectedAmount = amount
     amount - tryChangeBuffer(directionFrom, amount * Settings.ratioIC2) / Settings.ratioIC2
+  }
 
   @Optional.Method(modid = "IC2")
   def getMaxSafeInput = Integer.MAX_VALUE
@@ -45,6 +49,17 @@ trait IndustrialCraft2 extends Common with IEnergySink {
   @Optional.Method(modid = "IC2")
   def demandedEnergyUnits = {
     if (Settings.get.ignorePower || isClient) 0
-    else ForgeDirection.VALID_DIRECTIONS.map(side => globalBufferSize(side) - globalBuffer(side)).max / Settings.ratioIC2
+    else {
+      var force = false
+      val demand = ForgeDirection.VALID_DIRECTIONS.map(side => {
+        val size = globalBufferSize(side)
+        val value = globalBuffer(side)
+        val space = size - value
+        force = force || (space > size / 2)
+        space
+      }).max / Settings.ratioIC2
+      if (force || lastInjectedAmount <= 0 || demand >= lastInjectedAmount) demand
+      else 0
+    }
   }
 }
