@@ -96,9 +96,13 @@ internetCard {
   input: [["oc:materialInterweb", "oc:circuitChip3", torchRedstoneActive]
           ["", "oc:wlanCard", obsidian]]
 }
-redstoneCard {
+redstoneCard1 {
   input: [[torchRedstoneActive, "oc:circuitChip1", ""]
           ["", "oc:materialCard", ""]]
+}
+redstoneCard2 {
+  input: [[blockRedstone, "oc:circuitChip2", enderPearl]
+          ["", "oc:redstoneCard1", ""]]
 }
 lanCard {
   input: [["oc:cable", "oc:circuitChip1", ""]
@@ -298,8 +302,8 @@ rack {
           ["oc:switch", "oc:materialCircuitBoardPrinted","oc:powerDistributor"]]
 }
 redstone {
-  input: [[ingotIron, blockRedstone, ingotIron]
-          [blockRedstone, "oc:redstoneCard", blockRedstone]
+  input: [[ingotIron, "oc:circuitChip2", ingotIron]
+          [blockRedstone, "oc:redstoneCard1", blockRedstone]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
 switch {

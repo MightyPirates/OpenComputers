@@ -24,6 +24,8 @@ object Mods {
   val ThermalExpansion = new SimpleMod("ThermalExpansion")
   val TinkersConstruct = new SimpleMod("TConstruct")
   val UniversalElectricity = new SimpleMod("UniversalElectricity@[3.1,)")
+  val WirelessRedstoneCBE = new SimpleMod("WR-CBE|Core")
+  val WirelessRedstoneSV = new SimpleMod("WirelessRedstoneCore")
 
   trait Mod {
     def isAvailable: Boolean

@@ -2,6 +2,7 @@ package li.cil.oc.server.driver.item
 
 import li.cil.oc.api.driver
 import li.cil.oc.api.driver.{Container, Slot}
+import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.item
 import li.cil.oc.{Items, api}
 import net.minecraft.item.ItemStack
@@ -21,6 +22,6 @@ object Memory extends Item with driver.Memory {
   override def tier(stack: ItemStack) =
     Items.multi.subItem(stack) match {
       case Some(memory: item.Memory) => memory.tier / 2
-      case _ => 0
+      case _ => Tier.One
     }
 }

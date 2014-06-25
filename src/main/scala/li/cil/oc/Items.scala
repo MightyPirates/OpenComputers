@@ -132,7 +132,7 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.GraphicsCard(multi, Tier.Two), "graphicsCard2", "oc:graphicsCard2")
     Recipes.addItem(new item.GraphicsCard(multi, Tier.Three), "graphicsCard3", "oc:graphicsCard3")
     Recipes.addItem(new item.NetworkCard(multi), "lanCard", "oc:lanCard")
-    Recipes.addItem(new item.RedstoneCard(multi), "redstoneCard", "oc:redstoneCard")
+    Recipes.addItem(new item.RedstoneCard(multi, Tier.Two), "redstoneCard2", "oc:redstoneCard2")
     Recipes.addItem(new item.WirelessNetworkCard(multi), "wlanCard", "oc:wlanCard")
 
     Recipes.addItem(new item.UpgradeCrafting(multi), "craftingUpgrade", "oc:craftingUpgrade")
@@ -228,5 +228,9 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.One), "batteryUpgrade1", "oc:batteryUpgrade1")
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Two), "batteryUpgrade2", "oc:batteryUpgrade2")
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
+    Recipes.addItem(new item.RedstoneCard(multi, Tier.One), "redstoneCard1", "oc:redstoneCard1")
+
+    // Experimental
+//    registerItem(new item.Tablet(multi), "tablet")
   }
 }

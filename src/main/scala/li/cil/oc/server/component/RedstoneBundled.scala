@@ -3,8 +3,7 @@ package li.cil.oc.server.component
 import li.cil.oc.api.network.{Arguments, Callback, Context}
 import li.cil.oc.common.tileentity.traits.BundledRedstoneAware
 
-class BundledRedstone(override val owner: BundledRedstoneAware) extends Redstone(owner) {
-
+trait RedstoneBundled extends Redstone[BundledRedstoneAware] {
   @Callback(direct = true, doc = """function(side:number, color:number):number -- Get the bundled redstone input on the specified side and with the specified color.""")
   def getBundledInput(context: Context, args: Arguments): Array[AnyRef] = {
     val side = checkSide(args, 0)

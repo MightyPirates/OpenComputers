@@ -28,8 +28,14 @@ abstract class ManagedComponent extends ManagedEnvironment {
     // so that that address can be used to associate components on server and
     // client (for example keyboard and screen/text buffer).
     if (node != null) {
-      if (node.network == null) api.Network.joinNewNetwork(node)
-      nbt.setNewCompoundTag("node", node.save)
+      if (node.address == null) {
+        api.Network.joinNewNetwork(node)
+        nbt.setNewCompoundTag("node", node.save)
+        node.remove()
+      }
+      else {
+        nbt.setNewCompoundTag("node", node.save)
+      }
     }
   }
 
