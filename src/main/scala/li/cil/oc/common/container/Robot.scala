@@ -36,6 +36,11 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
 
   addPlayerInventorySlots(6, 160 - deltaY)
 
+  // This factor is used to make the energy values transferable using
+  // MCs 'progress bar' stuff, even though those internally send the
+  // values as shorts over the net (for whatever reason).
+  private val factor = 100
+
   private var lastSentBuffer = -1
 
   private var lastSentBufferSize = -1
@@ -44,24 +49,24 @@ class Robot(playerInventory: InventoryPlayer, robot: tileentity.Robot) extends P
   override def updateProgressBar(id: Int, value: Int) {
     super.updateProgressBar(id, value)
     if (id == 0) {
-      robot.globalBuffer = value
+      robot.globalBuffer = value * factor
     }
 
     if (id == 1) {
-      robot.globalBufferSize = value
+      robot.globalBufferSize = value * factor
     }
   }
 
   override def detectAndSendChanges() {
     super.detectAndSendChanges()
     if (FMLCommonHandler.instance.getEffectiveSide.isServer) {
-      val currentBuffer = robot.globalBuffer.toInt
+      val currentBuffer = robot.globalBuffer.toInt / factor
       if (currentBuffer != lastSentBuffer) {
         lastSentBuffer = currentBuffer
         sendProgressBarUpdate(0, lastSentBuffer)
       }
 
-      val currentBufferSize = robot.globalBufferSize.toInt
+      val currentBufferSize = robot.globalBufferSize.toInt / factor
       if (currentBufferSize != lastSentBufferSize) {
         lastSentBufferSize = currentBufferSize
         sendProgressBarUpdate(1, lastSentBufferSize)

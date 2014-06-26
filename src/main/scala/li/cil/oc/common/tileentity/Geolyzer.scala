@@ -27,15 +27,20 @@ class Geolyzer extends traits.Environment {
     if (!node.tryChangeBuffer(-Settings.get.geolyzerScanCost))
       return result(Unit, "not enough energy")
 
-    val values = new Array[Float](64)
-    for (ry <- 0 until values.length) {
+    val count = 64
+    val noise = new Array[Byte](count)
+    world.rand.nextBytes(noise)
+    // Map to [-1, 1). The additional /33f is for normalization below.
+    val values = noise.map(_ / 128f / 33f)
+    for (ry <- 0 until count) {
       val by = y + ry - 32
       if (!world.isAirBlock(bx, by, bz)) {
         val block = world.getBlock(bx, by, bz)
         if (block != null && (includeReplaceable || isFluid(block) || !block.isReplaceable(world, x, y, z))) {
-          values(ry) = block.getBlockHardness(world, bx, by, bz)
+          values(ry) = values(ry) * (math.abs(ry - 32) + 1) * Settings.get.geolyzerNoise + block.getBlockHardness(world, bx, by, bz)
         }
       }
+      else values(ry) = 0
     }
 
     result(values)

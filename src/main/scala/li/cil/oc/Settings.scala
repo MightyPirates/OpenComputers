@@ -194,6 +194,7 @@ class Settings(config: Config) {
   val inputUsername = config.getBoolean("misc.inputUsername")
   val maxClipboard = config.getInt("misc.maxClipboard") max 0
   val maxNetworkPacketSize = config.getInt("misc.maxNetworkPacketSize") max 0
+  val maxOpenPorts = config.getInt("misc.maxOpenPorts") max 0
   val maxWirelessRange = config.getDouble("misc.maxWirelessRange") max 0
   val rTreeMaxEntries = 10
   val terminalsPerTier = Array(config.getIntList("misc.terminalsPerTier"): _*) match {
@@ -208,6 +209,7 @@ class Settings(config: Config) {
   val lootProbability = config.getInt("misc.lootProbability")
   val debugPersistence = config.getBoolean("misc.verbosePersistenceErrors")
   val geolyzerRange = config.getInt("misc.geolyzerRange")
+  val geolyzerNoise = config.getDouble("misc.geolyzerNoise").toFloat max 0
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")

@@ -71,7 +71,7 @@ object ExperienceUpgradeHandler {
 
   private def getLevel(robot: Robot) = {
     var level = 0
-    for (index <- 1 to robot.getSizeInventory) {
+    for (index <- 0 until robot.getSizeInventory) {
       robot.getComponentInSlot(index) match {
         case upgrade: component.UpgradeExperience =>
           level += upgrade.level
@@ -84,7 +84,7 @@ object ExperienceUpgradeHandler {
   private def getLevelAndExperience(robot: Robot) = {
     var level = 0
     var experience = 0.0
-    for (index <- 1 to robot.getSizeInventory) {
+    for (index <- 0 until robot.getSizeInventory) {
       robot.getComponentInSlot(index) match {
         case upgrade: component.UpgradeExperience =>
           level += upgrade.level
@@ -96,7 +96,7 @@ object ExperienceUpgradeHandler {
   }
 
   private def addExperience(robot: Robot, amount: Double) {
-    for (index <- 1 to robot.getSizeInventory) {
+    for (index <- 0 until robot.getSizeInventory) {
       robot.getComponentInSlot(index) match {
         case upgrade: component.UpgradeExperience =>
           upgrade.addExperience(amount)
