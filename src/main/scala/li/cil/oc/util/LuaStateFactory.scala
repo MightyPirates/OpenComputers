@@ -99,16 +99,8 @@ object LuaStateFactory {
     }
 
     // Found file with proper extension. Create a temporary file.
-    val file = new File(tmpPath + "OpenComputersMod-" + library)
-    // Try to delete an old instance of the library, in case we have an update
-    // and deleteOnExit fails (which it regularly does on Windows it seems).
-    try {
-      file.delete()
-    }
-    catch {
-      case t: Throwable => // Ignore.
-    }
-    // If we can't delete the file, make sure it's the same we need, if it's
+    val file = new File(tmpPath + "OpenComputersMod-" + OpenComputers.Version + library)
+    // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.
     if (file.exists()) {
       val inCurrent = libraryUrl.openStream()
@@ -129,9 +121,21 @@ object LuaStateFactory {
       inCurrent.close()
       inExisting.close()
       if (!matching) {
-        OpenComputers.log.error("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
+        // Try to delete an old instance of the library, in case we have an update
+        // and deleteOnExit fails (which it regularly does on Windows it seems).
+        // Note that this should only ever be necessary for dev-builds, where the
+        // version number didn't change (since the version number is part of the name).
+        try {
+          file.delete()
+        }
+        catch {
+          case t: Throwable => // Ignore.
+        }
+        if (file.exists()) {
+          OpenComputers.log.error("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
         break()
       }
+    }
     }
     // Copy the file contents to the temporary file.
     try {
@@ -141,6 +145,10 @@ object LuaStateFactory {
       in.close()
       out.close()
       file.deleteOnExit()
+      // Set file permissions more liberally for multi-user+instance servers.
+      file.setReadable(true, false)
+      file.setWritable(true, false)
+      file.setExecutable(true, false)
     }
     catch {
       // Java (or Windows?) locks the library file when opening it, so any
