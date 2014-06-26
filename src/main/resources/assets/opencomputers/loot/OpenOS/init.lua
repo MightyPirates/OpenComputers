@@ -141,39 +141,43 @@ end
 local component = require("component")
 local computer = require("computer")
 local event = require("event")
+local text = require("text")
+local unicode = require("unicode")
 
 local function greet()
   if not component.isAvailable("gpu") then
     return
   end
-  local f = io.open("/usr/misc/greetings.txt")
-  if f then
-    local greetings = {}
-    pcall(function()
-      for line in f:lines() do table.insert(greetings, line) end
-    end)
-    f:close()
-    local greeting = greetings[math.random(1, #greetings)]
-    if greeting then
-      local text = require("text")
-      local unicode = require("unicode")
-      local width = math.max(10, component.gpu.getResolution())
-      local lines = {_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)"}
-      local maxWidth = 0
-      for line in text.wrappedLines(greeting, width - 4, width - 4) do
-        table.insert(lines, line)
-        maxWidth = math.max(maxWidth, unicode.len(line))
+  local lines = {_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)"}
+  local maxWidth = unicode.len(lines[1])
+  local config = {}
+  pcall(loadfile("/etc/openos.conf", "t", config))
+  if config.greet ~= false then
+    local f = io.open("/usr/misc/greetings.txt")
+    if f then
+      local greetings = {}
+      pcall(function()
+        for line in f:lines() do table.insert(greetings, line) end
+      end)
+      f:close()
+      local greeting = greetings[math.random(1, #greetings)]
+      if greeting then
+        local width = math.max(10, component.gpu.getResolution())
+        for line in text.wrappedLines(greeting, width - 4, width - 4) do
+          table.insert(lines, line)
+          maxWidth = math.max(maxWidth, unicode.len(line))
+        end
       end
-      local borders = {{unicode.char(0x2552), unicode.char(0x2550), unicode.char(0x2555)},
-                       {unicode.char(0x2502), nil, unicode.char(0x2502)},
-                       {unicode.char(0x2514), unicode.char(0x2500), unicode.char(0x2518)}}
-      io.write(borders[1][1] .. string.rep(borders[1][2], maxWidth + 2) .. borders[1][3] .. "\n")
-      for _, line in ipairs(lines) do
-        io.write(borders[2][1] .. " " .. text.padRight(line, maxWidth) .. " " .. borders[2][3] .. "\n")
-      end
-      io.write(borders[3][1] .. string.rep(borders[3][2], maxWidth + 2) .. borders[3][3] .. "\n")
     end
   end
+  local borders = {{unicode.char(0x2552), unicode.char(0x2550), unicode.char(0x2555)},
+                   {unicode.char(0x2502), nil, unicode.char(0x2502)},
+                   {unicode.char(0x2514), unicode.char(0x2500), unicode.char(0x2518)}}
+  io.write(borders[1][1] .. string.rep(borders[1][2], maxWidth + 2) .. borders[1][3] .. "\n")
+  for _, line in ipairs(lines) do
+    io.write(borders[2][1] .. " " .. text.padRight(line, maxWidth) .. " " .. borders[2][3] .. "\n")
+  end
+  io.write(borders[3][1] .. string.rep(borders[3][2], maxWidth + 2) .. borders[3][3] .. "\n")
 end
 
 while true do
