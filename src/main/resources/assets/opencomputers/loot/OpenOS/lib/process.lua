@@ -29,7 +29,24 @@ function process.load(path, env, init, name)
     env = env or process.env
   end
   env = setmetatable({}, {__index=env or _G})
-  local code, reason = loadfile(path, "t", env)
+  local f, reason = io.open(path)
+  if not f then
+    return nil, reason
+  end
+  local code, reason
+  if f:read(2) == "#!" then
+    local command = f:read()
+    f:close()
+    if require("text").trim(command) == "" then
+      reason = "no exec command"
+    else
+      code = function()
+        return require("shell").execute(command, env, path)
+      end
+    end
+  else
+    code, reason = loadfile(path, "t", env)
+  end
   if not code then
     return nil, reason
   end
