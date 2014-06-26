@@ -370,10 +370,10 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
   private def tryRepair(stack: ItemStack, oldStack: ItemStack) {
     // Only if the underlying type didn't change.
     if (stack.getItem == oldStack.getItem) {
-      val damageRate = new RobotUsedTool.ComputeDamageRate(robot, stack, oldStack, Settings.get.itemDamageRate)
+      val damageRate = new RobotUsedTool.ComputeDamageRate(robot, oldStack, stack, Settings.get.itemDamageRate)
       MinecraftForge.EVENT_BUS.post(damageRate)
       if (damageRate.getDamageRate < 1) {
-        MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, stack, oldStack, damageRate.getDamageRate))
+        MinecraftForge.EVENT_BUS.post(new RobotUsedTool.ApplyDamageRate(robot, oldStack, stack, damageRate.getDamageRate))
       }
     }
   }
