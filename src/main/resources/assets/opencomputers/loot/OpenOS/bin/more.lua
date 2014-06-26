@@ -1,31 +1,10 @@
 local component = require("component")
+local event = require("event")
 local keyboard = require("keyboard")
 local shell = require("shell")
 local term = require("term")
 local text = require("text")
 local unicode = require("unicode")
-
-local function nextLine(file, line, num)
-  local w, h = component.gpu.getResolution()
-  term.setCursorBlink(false)
-  local i = 1
-  while i < num do
-    if not line then
-      line = file:read("*l")
-      if not line then -- eof
-        return true
-      end
-    end
-    local wrapped
-    wrapped, line = text.wrap(text.detab(line), w, w)
-    io.write(wrapped .. "\n")
-    i = i + 1
-  end
-  term.setCursor(1, h)
-  term.write(":")
-  term.setCursorBlink(true)
-  return false
-end
 
 local args = shell.parse(...)
 if #args == 0 then
@@ -39,17 +18,35 @@ if not file then
   return
 end
 
+local function readlines(file, line, num)
+  local w, h = component.gpu.getResolution()
+  num = num or (h - 1)
+  term.setCursorBlink(false)
+  for _ = 1, num do
+    if not line then
+      line = file:read("*l")
+      if not line then -- eof
+        return nil
+      end
+    end
+    local wrapped
+    wrapped, line = text.wrap(text.detab(line), w, w)
+    io.write(wrapped .. "\n")
+  end
+  term.setCursor(1, h)
+  term.write(":")
+  term.setCursorBlink(true)
+  return true
+end
+
 local line = nil
 while true do
-  local w, h = component.gpu.getResolution()
   term.clear()
-  local num = h
-  local r = nextLine(file, line, num)
-  if r then
+  if not readlines(file, line) then
     return
   end
   while true do
-    local event, address, char, code = coroutine.yield("key_down")
+    local event, address, char, code = event.pull("key_down")
     if component.isPrimary(address) then
       if code == keyboard.keys.q then
         term.setCursorBlink(false)
@@ -59,7 +56,9 @@ while true do
         break
       elseif code == keyboard.keys.enter or code == keyboard.keys.down then
         term.clearLine()
-        nextLine(file, line, 2)
+        if not readlines(file, line, 1) then
+          return
+        end
       end
     end
   end
