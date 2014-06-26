@@ -5,5 +5,5 @@ import net.minecraft.entity.player.EntityPlayer;
 
 public interface IScrewdriver
 {
-	public void damageScrewdriver(World world, EntityPlayer player); // Damage the item on usage
+    public void damageScrewdriver(World world, EntityPlayer player); // Damage the item on usage
 }
