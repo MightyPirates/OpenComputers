@@ -507,7 +507,8 @@ function filesystem.open(path, mode)
 
   local function cleanup(self)
     if not self.handle then return end
-    pcall(component.proxy(self.fs).close, self.handle)
+    local proxy = component.proxy(self.fs)
+    if proxy then pcall(proxy.close, self.handle) end
   end
   local metatable = {__index = fileStream,
                      __gc = cleanup,
