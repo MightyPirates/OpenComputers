@@ -129,7 +129,6 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
   override def recomputeMemory() = Option(lua) match {
     case Some(l) if Settings.get.limitMemory =>
       l.setTotalMemory(Int.MaxValue)
-      l.gc(LuaState.GcAction.COLLECT, 0)
       if (kernelMemory > 0) {
         l.setTotalMemory(kernelMemory + math.ceil(machine.owner.installedMemory * ramScale).toInt)
       }
