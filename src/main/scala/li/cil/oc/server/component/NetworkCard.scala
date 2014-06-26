@@ -22,7 +22,11 @@ class NetworkCard extends component.ManagedComponent {
   @Callback(doc = """function(port:number):boolean -- Opens the specified port. Returns true if the port was opened.""")
   def open(context: Context, args: Arguments): Array[AnyRef] = {
     val port = checkPort(args.checkInteger(0))
-    result(openPorts.add(port))
+    if (openPorts.contains(port)) result(false)
+    else if (openPorts.size >= Settings.get.maxOpenPorts) {
+      throw new java.io.IOException("too many open ports")
+    }
+    else result(openPorts.add(port))
   }
 
   @Callback(doc = """function([port:number]):boolean -- Closes the specified port (default: all ports). Returns true if ports were closed.""")
