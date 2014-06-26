@@ -1,17 +1,19 @@
 package li.cil.oc.util
 
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.nio.channels.Channels
+import java.util.logging.Level
+
 import com.naef.jnlua
 import com.naef.jnlua.LuaState
 import com.naef.jnlua.NativeSupport.Loader
-import java.io.{FileInputStream, File, FileOutputStream}
-import java.nio.channels.Channels
-import java.util.logging.Level
+import li.cil.oc.server.component.machine.Machine
 import li.cil.oc.util.ExtendedLuaState._
 import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
+
 import scala.util.Random
 import scala.util.control.Breaks._
-import li.cil.oc.server.component.machine.Machine
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -97,16 +99,8 @@ object LuaStateFactory {
     }
 
     // Found file with proper extension. Create a temporary file.
-    val file = new File(tmpPath + "OpenComputersMod-" + library)
-    // Try to delete an old instance of the library, in case we have an update
-    // and deleteOnExit fails (which it regularly does on Windows it seems).
-    try {
-      file.delete()
-    }
-    catch {
-      case t: Throwable => // Ignore.
-    }
-    // If we can't delete the file, make sure it's the same we need, if it's
+    val file = new File(tmpPath + "OpenComputersMod-1.2" + library)
+    // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.
     if (file.exists()) {
       val inCurrent = libraryUrl.openStream()
@@ -127,8 +121,20 @@ object LuaStateFactory {
       inCurrent.close()
       inExisting.close()
       if (!matching) {
-        OpenComputers.log.severe("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
-        break()
+        // Try to delete an old instance of the library, in case we have an update
+        // and deleteOnExit fails (which it regularly does on Windows it seems).
+        // Note that this should only ever be necessary for dev-builds, where the
+        // version number didn't change (since the version number is part of the name).
+        try {
+          file.delete()
+        }
+        catch {
+          case t: Throwable => // Ignore.
+        }
+        if (file.exists()) {
+          OpenComputers.log.severe("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
+          break()
+        }
       }
     }
     // Copy the file contents to the temporary file.
@@ -139,6 +145,10 @@ object LuaStateFactory {
       in.close()
       out.close()
       file.deleteOnExit()
+      // Set file permissions more liberally for multi-user+instance servers.
+      file.setReadable(true, false)
+      file.setWritable(true, false)
+      file.setExecutable(true, false)
     }
     catch {
       // Java (or Windows?) locks the library file when opening it, so any
