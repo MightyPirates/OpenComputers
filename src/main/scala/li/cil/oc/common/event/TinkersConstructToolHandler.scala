@@ -10,7 +10,7 @@ object TinkersConstructToolHandler {
     if (isTinkerTool) {
       val nbtBefore = e.toolBeforeUse.getTagCompound.getCompoundTag("InfiTool")
       val nbtAfter = e.toolAfterUse.getTagCompound.getCompoundTag("InfiTool")
-      val damage = nbtBefore.getInteger("Damage") - nbtAfter.getInteger("Damage")
+      val damage = nbtAfter.getInteger("Damage") - nbtBefore.getInteger("Damage")
       if (damage > 0) {
         val actualDamage = damage * e.getDamageRate
         val repairedDamage =
@@ -18,7 +18,7 @@ object TinkersConstructToolHandler {
             damage - math.floor(actualDamage).toInt
           else
             damage - math.ceil(actualDamage).toInt
-        nbtAfter.setInteger("Damage", damage - repairedDamage)
+        nbtAfter.setInteger("Damage", nbtAfter.getInteger("Damage") - repairedDamage)
       }
     }
   }
