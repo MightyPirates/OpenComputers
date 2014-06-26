@@ -4,7 +4,7 @@ import java.io
 import java.net.URL
 
 import li.cil.oc.api.driver.Container
-import li.cil.oc.api.fs.Label
+import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{ComputerCraft, Mods}
 import li.cil.oc.{Settings, api}
@@ -120,6 +120,26 @@ object FileSystem extends api.detail.FileSystemAPI {
   private class BufferedFileSystem(protected val fileRoot: io.File, protected val capacity: Long)
     extends VirtualFileSystem
     with Buffered
-    with Capacity
+    with Capacity {
+    // Worst-case: we're on Windows or using a FAT32 partition mounted in *nix.
+    // Note: we allow / as the path separator and expect all \s to be converted
+    // accordingly before the path is passed to the file system.
+    private val invalidChars = """\:*?"<>|""".toSet
+
+    override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
+
+    override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
+
+    private def validatePath(path: String) = {
+      if (path.exists(invalidChars.contains)) {
+        throw new java.io.IOException("path contains invalid characters")
+      }
+      // TODO Add fix for #338.
+      // If on a system with case insensitive file systems, check if path
+      // already exists, if so return that name instead (i.e. re-use the
+      // existing path, with exact same casing).
+      path
+    }
+  }
 
 }
