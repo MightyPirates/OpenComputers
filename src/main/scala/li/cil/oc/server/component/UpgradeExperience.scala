@@ -15,7 +15,9 @@ class UpgradeExperience extends component.ManagedComponent {
 
   var level = 0
 
-  def xpForLevel(level: Int) = Settings.get.baseXpToLevel + Math.pow(level * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
+  def xpForLevel(level: Int) =
+    if (level == 0) 0
+    else Settings.get.baseXpToLevel + Math.pow(level * Settings.get.constantXpGrowth, Settings.get.exponentialXpGrowth)
 
   def xpForNextLevel = xpForLevel(level + 1)
 
