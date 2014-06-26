@@ -40,7 +40,7 @@ object EventHandler {
     val world = player.getEntityWorld
     if (world.isRemote && !player.isSneaking) {
       // Attempt to use block activated like normal and tell the server the right stuff
-      val f = new Vector3(hit.hitVec).add(-hit.blockX, -hit.blockY, -hit.blockZ)
+      val f = new Vector3(hit.hitVec.xCoord - hit.blockX, hit.hitVec.yCoord - hit.blockY, hit.hitVec.zCoord - hit.blockZ)
       val block = world.getBlock(hit.blockX, hit.blockY, hit.blockZ)
       if (block != null && block.onBlockActivated(world, hit.blockX, hit.blockY, hit.blockZ, player, hit.sideHit, f.x.toFloat, f.y.toFloat, f.z.toFloat)) {
         player.swingItem()

@@ -46,7 +46,7 @@ function text.wrap(value, width, maxWidth)
   local line, nl = value:match("([^\r\n]*)(\r?\n?)") -- read until newline
   if unicode.len(line) > width then -- do we even need to wrap?
     local partial = unicode.sub(line, 1, width)
-    local wrapped = partial:match("(.*[^a-zA-Z0-9._])")
+    local wrapped = partial:match("(.*[^a-zA-Z0-9._()'`=])")
     if wrapped or unicode.len(line) > maxWidth then
       partial = wrapped or partial
       return partial, unicode.sub(value, unicode.len(partial) + 1), true
@@ -56,6 +56,16 @@ function text.wrap(value, width, maxWidth)
   end
   local start = unicode.len(line) + unicode.len(nl) + 1
   return line, start <= unicode.len(value) and unicode.sub(value, start) or nil, unicode.len(nl) > 0
+end
+
+function text.wrappedLines(value, width, maxWidth)
+  local line, nl
+  return function()
+    if value then
+      line, value, nl = text.wrap(value, width, maxWidth)
+      return line
+    end
+  end
 end
 
 -------------------------------------------------------------------------------

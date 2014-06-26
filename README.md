@@ -50,7 +50,7 @@ dependencies {
 ```
 Adjust the version number accordingly to the version you'd like to build against.
 
-To run the mod in your development environment, download the [`deobf` JAR from the build server][deobf-jar] and drop it into your dev env's `eclipse/mods` folder.
+To run the mod in your development environment, download the [`deobf` JAR from the build server][deobf-jar] and drop it into your dev env's `eclipse/mods` folder. **Important**: mark the `api/java/codechicken/lib/vec` folder as *excluded* in your IDE, to avoid issues when running/building the project in it.
 
 Alternatively, leave out the `api` classifier and you can build against the deobf JAR directly. This way you don't have to add it to your mods folder, but you will have to add `-Dfml.coreMods.load=li.cil.oc.common.launch.TransformerLoader` to the VM options in your run configuration.
 

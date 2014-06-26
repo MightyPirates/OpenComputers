@@ -7,7 +7,14 @@ import net.minecraft.tileentity.TileEntity;
 // I can't get gradle to give a shit about dependencies in the API compilation
 // tasks.
 public class Vector3 {
-    public static Vector3 fromTileEntityCenter(TileEntity tileEntity) {
+    public double x;
+    public double y;
+    public double z;
+
+    public Vector3(final double x, final double y, final double z) {
+    }
+
+    public static Vector3 fromTileEntityCenter(final TileEntity tileEntity) {
         return null;
     }
 }
