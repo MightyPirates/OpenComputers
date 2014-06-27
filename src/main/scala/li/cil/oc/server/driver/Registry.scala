@@ -110,7 +110,6 @@ private[oc] object Registry extends api.detail.DriverAPI {
       case arg =>
         val converted = new util.HashMap[AnyRef, AnyRef]()
         memo += arg -> converted
-        println("applying " + converters.size + " converters to " + arg.getClass.getName)
         converters.foreach(converter => try converter.convert(arg, converted) catch {
           case t: Throwable => OpenComputers.log.log(Level.WARNING, "Type converter threw an exception.", t)
         })
