@@ -13,7 +13,7 @@ import net.minecraft.entity.item.{EntityItem, EntityMinecart}
 import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.item.{ItemBlock, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.MovingObjectPosition
+import net.minecraft.util.{Vec3, MovingObjectPosition}
 import net.minecraft.util.MovingObjectPosition.MovingObjectType
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.util.ForgeDirection
@@ -559,7 +559,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
   }
 
   private def pick(player: Player, range: Double) = {
-    val origin = world.getWorldVec3Pool.getVecFromPool(
+    val origin = Vec3.createVectorHelper(
       player.posX + player.facing.offsetX * 0.5,
       player.posY + player.facing.offsetY * 0.5,
       player.posZ + player.facing.offsetZ * 0.5)
@@ -573,7 +573,7 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
       player.side.offsetZ * range)
     val hit = world.rayTraceBlocks(origin, target)
     player.closestEntity[Entity]() match {
-      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || world.getWorldVec3Pool.getVecFromPool(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
+      case Some(entity@(_: EntityLivingBase | _: EntityMinecart)) if hit == null || Vec3.createVectorHelper(player.posX, player.posY, player.posZ).distanceTo(hit.hitVec) > player.getDistanceToEntity(entity) => new MovingObjectPosition(entity)
       case _ => hit
     }
   }

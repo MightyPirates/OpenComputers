@@ -105,10 +105,9 @@ object WirelessNetwork {
       // we reach a point where the surplus strength does not suffice we block
       // the message.
       val world = endpoint.world
-      val pool = world.getWorldVec3Pool
 
-      val origin = pool.getVecFromPool(reference.x, reference.y, reference.z)
-      val target = pool.getVecFromPool(endpoint.x, endpoint.y, endpoint.z)
+      val origin = Vec3.createVectorHelper(reference.x, reference.y, reference.z)
+      val target = Vec3.createVectorHelper(endpoint.x, endpoint.y, endpoint.z)
 
       // Vector from reference endpoint (sender) to this one (receiver).
       val delta = subtract(target, origin)
@@ -117,10 +116,10 @@ object WirelessNetwork {
       // Get the vectors that are orthogonal to the direction vector.
       val up = if (v.xCoord == 0 && v.zCoord == 0) {
         assert(v.yCoord != 0)
-        pool.getVecFromPool(1, 0, 0)
+        Vec3.createVectorHelper(1, 0, 0)
       }
       else {
-        pool.getVecFromPool(0, 1, 0)
+        Vec3.createVectorHelper(0, 1, 0)
       }
       val side = crossProduct(v, up)
       val top = crossProduct(v, side)
