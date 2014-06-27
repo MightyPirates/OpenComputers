@@ -43,8 +43,6 @@ class Terminal(val rack: tileentity.Rack, val number: Int) {
 
   val keys = mutable.ListBuffer.empty[String]
 
-  def isServer = rack.isServer
-
   def connect(node: Node) {
     if (keys.size > 0) {
       node.connect(buffer.node)

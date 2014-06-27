@@ -146,7 +146,7 @@ class Screen(var tier: Int) extends traits.TextBuffer with SidedEnvironment with
 
   override def updateEntity() {
     super.updateEntity()
-    if (shouldCheckForMultiBlock) {
+    if (shouldCheckForMultiBlock && (isClient || isConnected)) {
       // Make sure we merge in a deterministic order, to avoid getting
       // different results on server and client due to the update order
       // differing between the two. This also saves us from having to save

@@ -20,7 +20,9 @@ trait TextBuffer extends Environment {
 
   override def updateEntity() {
     super.updateEntity()
-    buffer.update()
+    if (isClient || isConnected) {
+      buffer.update()
+    }
   }
 
   // ----------------------------------------------------------------------- //

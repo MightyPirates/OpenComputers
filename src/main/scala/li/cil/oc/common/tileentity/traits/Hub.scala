@@ -13,6 +13,8 @@ import scala.collection.mutable
 trait Hub extends traits.Environment with SidedEnvironment {
   override def node: Node = null
 
+  override protected def isConnected = plugs.exists(plug => plug.node.address != null && plug.node.network != null)
+
   protected val plugs = ForgeDirection.VALID_DIRECTIONS.map(side => new Plug(side))
 
   protected val queue = mutable.Queue.empty[(ForgeDirection, Packet)]
