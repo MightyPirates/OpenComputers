@@ -20,9 +20,9 @@ trait TileEntity extends net.minecraft.tileentity.TileEntity {
 
   def block = getBlockType
 
-  val isClient = FMLCommonHandler.instance.getEffectiveSide.isClient
+  def isClient = FMLCommonHandler.instance.getEffectiveSide.isClient
 
-  val isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
+  def isServer = FMLCommonHandler.instance.getEffectiveSide.isServer
 
   // ----------------------------------------------------------------------- //
 
