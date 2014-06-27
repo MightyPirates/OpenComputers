@@ -186,7 +186,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
 
   override def updateEntity() {
     super.updateEntity()
-    if (isServer) {
+    if (isServer && isConnected) {
       if (range > 0 && !Settings.get.ignorePower && anyRunning) {
         val running = servers.count {
           case Some(server) => server.machine.isRunning

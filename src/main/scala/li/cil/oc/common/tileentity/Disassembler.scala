@@ -55,7 +55,7 @@ class Disassembler extends traits.Environment with traits.PowerAcceptor with tra
     if (world.getWorldTime % Settings.get.tickFrequency == 0) {
       if (queue.isEmpty) {
         disassemble(decrStackSize(0, 1))
-        setActive(!queue.isEmpty)
+        setActive(queue.nonEmpty)
       }
       else {
         if (buffer < Settings.get.disassemblerItemCost) {

@@ -531,51 +531,43 @@ object TextBuffer {
   }
 
   class ServerProxy(val owner: TextBuffer) extends Proxy {
-    // TODO This is a to prevent a NPE reported in #350.
-    // It is a workaround at best, as this is treating the symptons, and not
-    // the cause - which seems to be that the TickHandler used for adding nodes
-    // to the network may fail to run before the tile entities' update is
-    // performed -- even though it is marked to run at the start of the tick.
-    // I have no idea why that would be, however, so this has to do for now.
-    private def isValid = owner.node != null && owner.node.address != null
-
     override def onScreenColorChange() {
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferColorChange(owner.node.address, owner.data.foreground, owner.data.background, owner.owner)
+      ServerPacketSender.sendTextBufferColorChange(owner.node.address, owner.data.foreground, owner.data.background, owner.owner)
     }
 
     override def onScreenCopy(col: Int, row: Int, w: Int, h: Int, tx: Int, ty: Int) {
       super.onScreenCopy(col, row, w, h, tx, ty)
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferCopy(owner.node.address, col, row, w, h, tx, ty, owner.owner)
+      ServerPacketSender.sendTextBufferCopy(owner.node.address, col, row, w, h, tx, ty, owner.owner)
     }
 
     override def onScreenDepthChange(depth: ColorDepth) {
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferDepthChange(owner.node.address, depth, owner.owner)
+      ServerPacketSender.sendTextBufferDepthChange(owner.node.address, depth, owner.owner)
     }
 
     override def onScreenFill(col: Int, row: Int, w: Int, h: Int, c: Char) {
       super.onScreenFill(col, row, w, h, c)
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferFill(owner.node.address, col, row, w, h, c, owner.owner)
+      ServerPacketSender.sendTextBufferFill(owner.node.address, col, row, w, h, c, owner.owner)
     }
 
     override def onScreenPaletteChange(index: Int) {
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferPaletteChange(owner.node.address, index, owner.getPaletteColor(index), owner.owner)
+      ServerPacketSender.sendTextBufferPaletteChange(owner.node.address, index, owner.getPaletteColor(index), owner.owner)
     }
 
     override def onScreenResolutionChange(w: Int, h: Int) {
       super.onScreenResolutionChange(w, h)
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferResolutionChange(owner.node.address, w, h, owner.owner)
+      ServerPacketSender.sendTextBufferResolutionChange(owner.node.address, w, h, owner.owner)
     }
 
     override def onScreenSet(col: Int, row: Int, s: String, vertical: Boolean) {
       super.onScreenSet(col, row, s, vertical)
       owner.owner.markChanged()
-      if (isValid) ServerPacketSender.sendTextBufferSet(owner.node.address, col, row, s, vertical, owner.owner)
+      ServerPacketSender.sendTextBufferSet(owner.node.address, col, row, s, vertical, owner.owner)
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
