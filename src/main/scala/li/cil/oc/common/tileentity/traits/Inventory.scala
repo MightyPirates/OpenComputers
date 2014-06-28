@@ -53,13 +53,13 @@ trait Inventory extends TileEntity with inventory.Inventory {
   def spawnStackInWorld(stack: ItemStack, direction: ForgeDirection) = if (world != null) {
     val rng = world.rand
     val (tx, ty, tz) = (
-      0.1 * rng.nextGaussian + direction.offsetX * 0.45,
-      0.1 * rng.nextGaussian + direction.offsetY * 0.65 + (direction.offsetX + direction.offsetZ) * 0.1,
-      0.1 * rng.nextGaussian + direction.offsetZ * 0.45)
+      0.1 * (rng.nextDouble - 0.5) + direction.offsetX * 0.65,
+      0.1 * (rng.nextDouble - 0.5) + direction.offsetY * 0.75 + (direction.offsetX + direction.offsetZ) * 0.25,
+      0.1 * (rng.nextDouble - 0.5) + direction.offsetZ * 0.65)
     val entity = new EntityItem(world, x + 0.5 + tx, y + 0.5 + ty, z + 0.5 + tz, stack.copy())
-    entity.motionX = 0.0125 * rng.nextGaussian + direction.offsetX * 0.03
-    entity.motionY = 0.0125 * rng.nextGaussian + direction.offsetY * 0.08 + (direction.offsetX + direction.offsetZ) * 0.03
-    entity.motionZ = 0.0125 * rng.nextGaussian + direction.offsetZ * 0.03
+    entity.motionX = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetX * 0.03
+    entity.motionY = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetY * 0.08 + (direction.offsetX + direction.offsetZ) * 0.03
+    entity.motionZ = 0.0125 * (rng.nextDouble - 0.5) + direction.offsetZ * 0.03
     entity.delayBeforeCanPickup = 15
     world.spawnEntityInWorld(entity)
     entity
