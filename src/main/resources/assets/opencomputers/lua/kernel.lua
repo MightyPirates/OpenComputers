@@ -99,8 +99,16 @@ sandbox = {
   tostring = tostring,
   type = type,
   _VERSION = "Lua 5.2",
-  xpcall = function(...)
-    local result = table.pack(xpcall(...))
+  xpcall = function(f, msgh, ...)
+    local handled = false
+    local result = table.pack(xpcall(f, function(...)
+      if handled then
+        return ...
+      else
+        handled = true
+        return msgh(...)
+      end
+    end, ...))
     checkDeadline()
     return table.unpack(result, 1, result.n)
   end,
