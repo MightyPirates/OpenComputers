@@ -11,7 +11,7 @@ trait PowerBalancer extends PowerInformation with SidedEnvironment {
     super.updateEntity()
     if (isServer && world.getWorldTime % Settings.get.tickFrequency == 0) {
       val nodes = connectors
-      def network(connector: Connector) = if (connector != null) connector.network else this
+      def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
       // Yeeeeah, so that just happened... it's not a beauty, but it works. This
       // is necessary because power in networks can be updated asynchronously,
       // i.e. in separate threads (e.g. to allow screens to consume energy when
