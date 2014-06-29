@@ -166,7 +166,7 @@ object PackedColor {
   private val bgMask = 0x000000FF
 
   def pack(foreground: Color, background: Color, format: ColorFormat) = {
-    ((format.deflate(foreground) << fgShift) | format.deflate(background)).toShort
+    (((format.deflate(foreground) & 0xFF) << fgShift) | (format.deflate(background) & 0xFF)).toShort
   }
 
   def extractForeground(color: Short) = (color & 0xFFFF) >>> fgShift
