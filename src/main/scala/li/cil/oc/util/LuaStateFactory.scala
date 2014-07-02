@@ -103,10 +103,10 @@ object LuaStateFactory {
     // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.
     if (file.exists()) {
+      var matching = true
       try {
         val inCurrent = libraryUrl.openStream()
         val inExisting = new FileInputStream(file)
-        var matching = true
         var inCurrentByte = 0
         var inExistingByte = 0
         do {

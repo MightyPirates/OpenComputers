@@ -12,6 +12,10 @@ OPTIONS
     do not ignore entries starting with .
   -l
     use a long listing format
+  -p
+    append / indicator to directories
+  -M
+    display Microsoft-style file and directory count after listing
 
 EXAMPLES
   ls
