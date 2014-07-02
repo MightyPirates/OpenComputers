@@ -103,23 +103,29 @@ object LuaStateFactory {
     // If the file, already exists, make sure it's the same we need, if it's
     // not disable use of the natives.
     if (file.exists()) {
-      val inCurrent = libraryUrl.openStream()
-      val inExisting = new FileInputStream(file)
-      var matching = true
-      var inCurrentByte = 0
-      var inExistingByte = 0
-      do {
-        inCurrentByte = inCurrent.read()
-        inExistingByte = inExisting.read()
-        if (inCurrentByte != inExistingByte) {
-          matching = false
-          inCurrentByte = -1
-          inExistingByte = -1
+      try {
+        val inCurrent = libraryUrl.openStream()
+        val inExisting = new FileInputStream(file)
+        var matching = true
+        var inCurrentByte = 0
+        var inExistingByte = 0
+        do {
+          inCurrentByte = inCurrent.read()
+          inExistingByte = inExisting.read()
+          if (inCurrentByte != inExistingByte) {
+            matching = false
+            inCurrentByte = -1
+            inExistingByte = -1
+          }
         }
+        while (inCurrentByte != -1 && inExistingByte != -1)
+        inCurrent.close()
+        inExisting.close()
       }
-      while (inCurrentByte != -1 && inExistingByte != -1)
-      inCurrent.close()
-      inExisting.close()
+      catch {
+        case _: Throwable =>
+          matching = false
+      }
       if (!matching) {
         // Try to delete an old instance of the library, in case we have an update
         // and deleteOnExit fails (which it regularly does on Windows it seems).
