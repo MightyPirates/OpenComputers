@@ -30,7 +30,11 @@ for i = 1, #dirs do
     local lsf = {}
     for f in list do
       if f:sub(-1) == "/" then
-        table.insert(lsd, f)
+        if options.p then
+          table.insert(lsd, f)
+        else
+          table.insert(lsd, f:sub(1, -2))
+        end
       else
         table.insert(lsf, f)
       end
@@ -65,9 +69,14 @@ for i = 1, #dirs do
       end
     end
     setColor(0xFFFFFF)
+    if options.M then
+      io.write("\n" .. tostring(#lsf) .. " File(s)")
+      io.write("\n" .. tostring(#lsd) .. " Dir(s)")
+    end
     if not options.l then
       io.write("\n")
     end
   end
 end
 io.output():setvbuf("no")
+io.output():flush()
