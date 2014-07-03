@@ -94,6 +94,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           lua.pushNil()
           lua.pushString("i/o error")
           3
+        case _: UnsupportedOperationException =>
+          lua.pushBoolean(false)
+          lua.pushString("unsupported operation")
+          2
         case e: Throwable =>
           OpenComputers.log.log(Level.WARNING, "Unexpected error in Lua callback.", e)
           lua.pushBoolean(true)
