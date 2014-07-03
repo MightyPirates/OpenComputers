@@ -8,7 +8,7 @@ import cpw.mods.fml.common.{ITickHandler, TickType}
 import cpw.mods.fml.relauncher.Side
 import net.minecraft.client.Minecraft
 import org.lwjgl.BufferUtils
-import org.lwjgl.openal.{AL10, Util}
+import org.lwjgl.openal.{AL, AL10, Util}
 
 import scala.collection.mutable
 
@@ -29,7 +29,7 @@ object Audio extends ITickHandler {
   def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int) {
     val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
     val gain = distanceBasedGain * volume
-    if (gain > 0) {
+    if (gain > 0 && AL.isCreated) {
       val sampleCount = durationInMilliseconds * sampleRate / 1000
       val data = BufferUtils.createByteBuffer(sampleCount)
       val step = frequencyInHz / sampleRate.toFloat
@@ -57,7 +57,9 @@ object Audio extends ITickHandler {
     sources.synchronized(sources --= sources.filter(_.checkFinished))
 
     // Clear error stack.
-    AL10.alGetError()
+    if (AL.isCreated) {
+      AL10.alGetError()
+    }
   }
 
   private class Source(val x: Float, y: Float, z: Float, val data: ByteBuffer, val gain: Float) {

@@ -5,13 +5,20 @@ import java.util.UUID
 import com.naef.jnlua.LuaState
 import li.cil.oc.Settings
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
+import li.cil.oc.util.ExtendedLuaState._
+import net.minecraft.nbt.NBTTagCompound
 
 import scala.collection.mutable
 
 class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
+  private var persistKey = "__persist" + UUID.randomUUID().toString.replaceAll("-", "")
+
   override def initialize() {
     // Will be replaced by old value in load.
-    lua.pushString("__persist" + UUID.randomUUID().toString.replaceAll("-", ""))
+    lua.pushScalaFunction(lua => {
+      lua.pushString(persistKey)
+      1
+    })
     lua.setGlobal("persistKey")
 
     if (Settings.get.allowPersistence) {
@@ -84,20 +91,30 @@ class PersistenceAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
     }
   }
 
+  override def load(nbt: NBTTagCompound) {
+    super.load(nbt)
+    if (nbt.hasKey("persistKey")) {
+      persistKey = nbt.getString("persistKey")
+    }
+  }
+
+  override def save(nbt: NBTTagCompound) {
+    super.save(nbt)
+    nbt.setString("persistKey", persistKey)
+  }
+
   def configure() {
     lua.getGlobal("eris")
 
     lua.getField(-1, "settings")
     lua.pushString("spkey")
-    lua.getGlobal("persistKey")
+    lua.pushString(persistKey)
     lua.call(2, 0)
 
-    if (Settings.get.debugPersistence) {
-      lua.getField(-1, "settings")
-      lua.pushString("path")
-      lua.pushBoolean(true)
-      lua.call(2, 0)
-    }
+    lua.getField(-1, "settings")
+    lua.pushString("path")
+    lua.pushBoolean(Settings.get.debugPersistence)
+    lua.call(2, 0)
 
     lua.pop(1)
   }

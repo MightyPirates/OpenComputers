@@ -276,7 +276,7 @@ wrappedUserdataMeta = {
   -- We need custom persist logic here to avoid ERIS trying to save the
   -- userdata referenced in this table directly. It will be repopulated
   -- in the load methods of the persisted userdata wrappers (see below).
-  [persistKey or "LuaJ"] = function()
+  [persistKey and persistKey() or "LuaJ"] = function()
     return function()
       -- When using special persistence we have to manually reassign the
       -- metatable of the persisted value.
@@ -343,7 +343,7 @@ local userdataWrapper = {
   -- of the actual class when saving, so we can create a new instance via
   -- reflection when loading again (and then immediately wrap it again).
   -- Collect wrapped callback methods.
-  [persistKey or "LuaJ"] = function(self)
+  [persistKey and persistKey() or "LuaJ"] = function(self)
     local className, nbt = userdata.save(wrappedUserdata[self])
     -- The returned closure is what actually gets persisted, including the
     -- upvalues, that being the classname and a byte array representing the
