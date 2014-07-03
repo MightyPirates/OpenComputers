@@ -49,7 +49,7 @@ public class OpenComponents {
         modBlacklist = config.get("mods", "blacklist", modBlacklist, "" +
                 "A list of mods (by mod id) for which support should NOT be\n" +
                 "enabled. Use this to disable support for mods you feel should\n" +
-                "not be controllable via computers (such as magic related mods," +
+                "not be controllable via computers (such as magic related mods,\n" +
                 "which is why Thaumcraft is on this list by default.)").
                 getStringList();
 
