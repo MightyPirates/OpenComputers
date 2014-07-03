@@ -11,9 +11,9 @@ import java.util.Map;
 
 public class ConverterIAspectContainer implements Converter {
     @Override
-    public void convert(Object value, Map<Object, Object> output) {
+    public void convert(final Object value, final Map<Object, Object> output) {
         if (value instanceof IAspectContainer) {
-            IAspectContainer container = (IAspectContainer) value;
+            final IAspectContainer container = (IAspectContainer) value;
             output.put("aspectList", container.getAspects());
         }
 
@@ -22,7 +22,7 @@ public class ConverterIAspectContainer implements Converter {
             int i = 0;
             for (Aspect aspect : aspectList.getAspects()) {
                 if (aspect == null) continue;
-                HashMap<Object, Object> aspectMap = Maps.newHashMap();
+                final HashMap<Object, Object> aspectMap = Maps.newHashMap();
                 aspectMap.put("name", aspect.getName());
                 aspectMap.put("quantity", aspectList.getAmount(aspect));
                 output.put(++i, aspectMap);

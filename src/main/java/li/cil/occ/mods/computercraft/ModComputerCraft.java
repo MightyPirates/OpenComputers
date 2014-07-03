@@ -12,7 +12,11 @@ public final class ModComputerCraft implements IMod {
     @Override
     public void initialize() {
         try {
-            Driver.add(new DriverPeripheral16());
+            final DriverPeripheral16 driver = new DriverPeripheral16();
+            if (driver.isValid()) {
+                Driver.add(new ConverterLuaObject16());
+                Driver.add(driver);
+            }
         } catch (Throwable ignored) {
         }
     }

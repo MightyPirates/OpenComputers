@@ -1,6 +1,5 @@
 package li.cil.occ.mods.computercraft;
 
-import com.google.common.collect.Iterables;
 import cpw.mods.fml.common.Loader;
 import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
@@ -17,7 +16,10 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
     private static final Set<Class<?>> blacklist = new HashSet<Class<?>>();
@@ -42,6 +44,10 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
             }
         }
         ComputerCraft_getPeripheralAt = getPeripheralAt;
+    }
+
+    public boolean isValid() {
+        return ComputerCraft_getPeripheralAt != null;
     }
 
     private boolean isBlacklisted(final Object o) {
@@ -85,13 +91,13 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
     public static class Environment extends li.cil.oc.api.prefab.ManagedEnvironment implements li.cil.oc.api.network.ManagedPeripheral {
         protected final IPeripheral peripheral;
 
-        protected final List<String> _methods;
+        protected final CallableHelper helper;
 
         protected final Map<String, FakeComputerAccess> accesses = new HashMap<String, FakeComputerAccess>();
 
         public Environment(final IPeripheral peripheral) {
             this.peripheral = peripheral;
-            _methods = Arrays.asList(peripheral.getMethodNames());
+            helper = new CallableHelper(peripheral.getMethodNames());
             node = Network.newNode(this, Visibility.Network).create();
         }
 
@@ -102,16 +108,8 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
 
         @Override
         public Object[] invoke(final String method, final Context context, final Arguments args) throws Exception {
-            final int index = _methods.indexOf(method);
-            if (index < 0) {
-                throw new NoSuchMethodException();
-            }
-            final Object[] argArray = Iterables.toArray(args, Object.class);
-            for (int i = 0; i < argArray.length; ++i) {
-                if (argArray[i] instanceof byte[]) {
-                    argArray[i] = new String((byte[]) argArray[i], "UTF-8");
-                }
-            }
+            final int index = helper.methodIndex(method);
+            final Object[] argArray = helper.convertArguments(args);
             final FakeComputerAccess access;
             if (accesses.containsKey(context.node().address())) {
                 access = accesses.get(context.node().address());
@@ -153,7 +151,7 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
         /**
          * Map interaction with the computer to our format as good as we can.
          */
-        private static class FakeComputerAccess implements IComputerAccess {
+        public static class FakeComputerAccess implements IComputerAccess {
             protected final Environment owner;
             protected final Context context;
             protected final Map<String, ManagedEnvironment> fileSystems = new HashMap<String, ManagedEnvironment>();
@@ -220,7 +218,7 @@ public final class DriverPeripheral16 implements li.cil.oc.api.driver.Block {
          * Since we abstract away anything language specific, we cannot support the
          * Lua context specific operations ComputerCraft provides.
          */
-        private final static class UnsupportedLuaContext implements ILuaContext {
+        public final static class UnsupportedLuaContext implements ILuaContext {
             protected static final UnsupportedLuaContext Instance = new UnsupportedLuaContext();
 
             private UnsupportedLuaContext() {
