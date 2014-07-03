@@ -344,9 +344,7 @@ local userdataWrapper = {
   -- reflection when loading again (and then immediately wrap it again).
   -- Collect wrapped callback methods.
   [persistKey or "LuaJ"] = function(self)
-    print("start saving userdata " .. tostring(wrappedUserdata[self]))
     local className, nbt = userdata.save(wrappedUserdata[self])
-    print("done saving userdata")
     -- The returned closure is what actually gets persisted, including the
     -- upvalues, that being the classname and a byte array representing the
     -- nbt data of the userdata value.
@@ -667,6 +665,7 @@ local function main()
       error("computer stopped unexpectedly", 0)
     else
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
+      wrapUserdata(args)
     end
   end
 end
