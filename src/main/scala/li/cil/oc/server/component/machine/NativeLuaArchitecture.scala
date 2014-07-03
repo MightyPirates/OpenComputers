@@ -355,6 +355,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       }
 
       kernelMemory = (nbt.getInteger("kernelMemory") * ramScale).toInt
+
+      for (api <- apis) {
+        api.load(nbt)
+      }
     } catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warn("Could not unpersist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
@@ -397,6 +401,10 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       }
 
       nbt.setInteger("kernelMemory", math.ceil(kernelMemory / ramScale).toInt)
+
+      for (api <- apis) {
+        api.save(nbt)
+      }
     } catch {
       case e: LuaRuntimeException =>
         OpenComputers.log.warn("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))

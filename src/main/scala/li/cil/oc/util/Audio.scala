@@ -29,7 +29,7 @@ object Audio {
   def play(x: Float, y: Float, z: Float, frequencyInHz: Int, durationInMilliseconds: Int) {
     val distanceBasedGain = math.max(0, 1 - Minecraft.getMinecraft.thePlayer.getDistance(x, y, z) / 12).toFloat
     val gain = distanceBasedGain * volume
-    if (gain > 0) {
+    if (gain > 0 && AL.isCreated) {
       val sampleCount = durationInMilliseconds * sampleRate / 1000
       val data = BufferUtils.createByteBuffer(sampleCount)
       val step = frequencyInHz / sampleRate.toFloat

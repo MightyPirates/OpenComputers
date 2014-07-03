@@ -181,7 +181,7 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
     }
     catch {
       case e: LuaError =>
-        OpenComputers.log.log(Level.WARN, "Kernel crashed. This is a bug!" + e)
+        OpenComputers.log.log(Level.WARN, "Kernel crashed. This is a bug!", e)
         new ExecutionResult.Error("kernel panic: this is a bug, check your log file and report it")
       case e: Throwable =>
         OpenComputers.log.log(Level.WARN, "Unexpected error in kernel. This is a bug!", e)
