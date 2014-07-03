@@ -97,8 +97,11 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   override def canInteract(player: String) = !Settings.get.canComputersBeOwned ||
     _users.synchronized(_users.isEmpty || _users.contains(player)) ||
-    MinecraftServer.getServer.isSinglePlayer ||
-    MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player)
+    MinecraftServer.getServer.isSinglePlayer || {
+    val config = MinecraftServer.getServer.getConfigurationManager
+    val entity = config.func_152612_a(player)
+    entity != null && config.func_152596_g(entity.getGameProfile)
+  }
 
   override def isRunning = state.synchronized(state.top != Machine.State.Stopped && state.top != Machine.State.Stopping)
 
@@ -791,8 +794,8 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
                 }
               case result: ExecutionResult.Error =>
                 if (result.message != null) {
-                crash(result.message)
-            }
+                  crash(result.message)
+                }
                 else {
                   crash("unknown error")
                 }

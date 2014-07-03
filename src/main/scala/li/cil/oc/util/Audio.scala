@@ -8,7 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundCategory
 import org.lwjgl.BufferUtils
-import org.lwjgl.openal.{AL10, Util}
+import org.lwjgl.openal.{AL, AL10, Util}
 
 import scala.collection.mutable
 
@@ -57,7 +57,9 @@ object Audio {
     sources.synchronized(sources --= sources.filter(_.checkFinished))
 
     // Clear error stack.
-    AL10.alGetError()
+    if (AL.isCreated) {
+      AL10.alGetError()
+    }
   }
 
   private class Source(val x: Float, y: Float, z: Float, val data: ByteBuffer, val gain: Float) {

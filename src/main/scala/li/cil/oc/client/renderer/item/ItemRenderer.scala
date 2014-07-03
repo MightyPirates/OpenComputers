@@ -76,7 +76,7 @@ object ItemRenderer extends IItemRenderer {
 
     else if (isFloppy(descriptor)) {
       renderItem.renderItemIntoGUI(null, tm, stack, 0, 0)
-      val res = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight)
+      val res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight)
       val fontRenderer = renderItem.getFontRendererFromRenderManager
       if (fontRenderer != null && res.getScaleFactor > 1) {
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)

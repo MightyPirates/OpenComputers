@@ -152,7 +152,7 @@ object WirelessNetwork {
     else true
   }
 
-  private def subtract(v1: Vec3, v2: Vec3) = v1.myVec3LocalPool.getVecFromPool(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
+  private def subtract(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.xCoord - v2.xCoord, v1.yCoord - v2.yCoord, v1.zCoord - v2.zCoord)
 
-  private def crossProduct(v1: Vec3, v2: Vec3) = v1.myVec3LocalPool.getVecFromPool(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
+  private def crossProduct(v1: Vec3, v2: Vec3) = Vec3.createVectorHelper(v1.yCoord * v2.zCoord - v1.zCoord * v2.yCoord, v1.zCoord * v2.xCoord - v1.xCoord * v2.zCoord, v1.xCoord * v2.yCoord - v1.yCoord * v2.xCoord)
 }
