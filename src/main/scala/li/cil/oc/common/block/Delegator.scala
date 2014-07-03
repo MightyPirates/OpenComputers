@@ -283,7 +283,6 @@ class Delegator[Child <: Delegate] extends Block(Material.iron) {
     super.breakBlock(world, x, y, z, block, metadata)
   }
 
-  // TODO Will not replace with non-deprecated version just yet, because if something calls the deprecated one directly, this would never get executed...
   override def removedByPlayer(world: World, player: EntityPlayer, x: Int, y: Int, z: Int) =
     (subBlock(world, x, y, z) match {
       case Some(subBlock) => subBlock.removedByEntity(world, x, y, z, player)

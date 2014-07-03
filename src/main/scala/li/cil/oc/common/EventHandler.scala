@@ -95,7 +95,7 @@ object EventHandler {
         }
         ServerPacketSender.sendPetVisibility(None, Some(player))
         // Do update check in local games and for OPs.
-        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.func_152596_g(player.getGameProfile)) {
+        if (!MinecraftServer.getServer.isDedicatedServer || MinecraftServer.getServer.getConfigurationManager.isPlayerOpped(player.getCommandSenderName)) {
           UpdateCheck.checkForPlayer(player)
         }
       case _ =>

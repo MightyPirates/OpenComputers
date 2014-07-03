@@ -1,7 +1,5 @@
 package li.cil.oc.server.component.robot
 
-import java.util.UUID
-
 import com.mojang.authlib.GameProfile
 import cpw.mods.fml.common.ObfuscationReflectionHelper
 import cpw.mods.fml.common.eventhandler.Event
@@ -38,7 +36,7 @@ object Player {
     val name = Settings.get.nameFormat.
       replace("$player$", robot.owner).
       replace("$random$", randomId)
-    new GameProfile(UUID.nameUUIDFromBytes(name.getBytes), "Robot")
+    new GameProfile(name, "Robot")
   }
 }
 
@@ -318,7 +316,7 @@ class Player(val robot: tileentity.Robot) extends FakePlayer(robot.world.asInsta
       }
 
       block.onBlockHarvested(world, x, y, z, metadata, this)
-      if (block.removedByPlayer(world, this, x, y, z, block.canHarvestBlock(this, metadata))) {
+      if (block.removedByPlayer(world, this, x, y, z)) {
         block.onBlockDestroyedByPlayer(world, x, y, z, metadata)
         // Note: the block has been destroyed by `removeBlockByPlayer`. This
         // check only serves to test whether the block can drop anything at all.
