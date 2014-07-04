@@ -161,19 +161,29 @@ class LuaJLuaArchitecture(val machine: api.machine.Machine) extends Architecture
       }
       // The kernel thread returned. If it threw we'd be in the catch below.
       else {
-        // We're expecting the result of a pcall, if anything, so boolean + (result | string).
-        if (results.`type`(1) != LuaValue.TBOOLEAN || !(results.isstring(2) || results.isnoneornil(2))) {
+        // This is a little... messy because we run a pcall inside the kernel
+        // to be able to catch errors before JNLua gets its claws on them. So
+        // we can either have (boolean, string | error) if the main kernel
+        // fails, or (boolean, boolean, string | error) if something inside
+        // that pcall goes bad.
+        def isInnerError = results.`type`(2) == LuaValue.TBOOLEAN && (results.isstring(3) || results.isnoneornil(3))
+        def isOuterError = results.isstring(2) || results.isnoneornil(2)
+        if (results.`type`(1) != LuaValue.TBOOLEAN || !isInnerError || !isOuterError) {
           OpenComputers.log.warn("Kernel returned unexpected results.")
         }
         // The pcall *should* never return normally... but check for it nonetheless.
-        if (results.toboolean(1)) {
+        if ((isOuterError && results.toboolean(1)) || (isInnerError && results.toboolean(2))) {
           OpenComputers.log.warn("Kernel stopped unexpectedly.")
           new ExecutionResult.Shutdown(false)
         }
         else {
           val error =
-            if (results.isuserdata(2)) results.touserdata(2).toString
-            else results.tojstring(2)
+            if (isInnerError)
+              if (results.isuserdata(3)) results.touserdata(3).toString
+              else results.tojstring(3)
+            else
+              if (results.isuserdata(2)) results.touserdata(2).toString
+              else results.tojstring(2)
           if (error != null) new ExecutionResult.Error(error)
           else new ExecutionResult.Error("unknown error")
         }
