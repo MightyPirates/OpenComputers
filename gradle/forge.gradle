@@ -1,6 +1,18 @@
+repositories {
+    maven {
+        name "Mobius"
+        url "http://mobiusstrip.eu/maven"
+    }
+    maven {
+        name "ChickenBones"
+        url "http://chickenbones.net/maven"
+    }
+}
 dependencies {
+    compile "codechicken:CodeChickenCore:${config.minecraft.version}-${config.ccc.version}:dev"
     compile "codechicken:CodeChickenLib:${config.minecraft.version}-${config.ccl.version}:dev"
     compile "codechicken:ForgeMultipart:${config.minecraft.version}-${config.fmp.version}:dev"
+    compile "mcp.mobius.waila:Waila:${config.waila.version}"
 }
 
 minecraft {
