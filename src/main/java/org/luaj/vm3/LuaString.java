@@ -27,6 +27,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import org.luaj.vm3.lib.MathLib;
 import org.luaj.vm3.lib.StringLib;
