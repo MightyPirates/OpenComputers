@@ -145,6 +145,8 @@ object FileSystem extends api.detail.FileSystemAPI {
     // accordingly before the path is passed to the file system.
     private val invalidChars = """\:*?"<>|""".toSet
 
+    override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
+
     override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
 
     protected override def segments(path: String) = {
