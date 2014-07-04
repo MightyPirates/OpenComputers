@@ -7,11 +7,15 @@ import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.{Label, Mode}
 import li.cil.oc.server.component
 import li.cil.oc.util.mods.{ComputerCraft15, ComputerCraft16, Mods}
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
+import java.util.UUID
 
 object FileSystem extends api.detail.FileSystemAPI {
+
+  lazy val isCaseSensitive = !Settings.get.forceCaseInsensitive && calculateCaseSensitive
+
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
 
@@ -107,6 +111,17 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
+  private def calculateCaseSensitive = {
+    val uuid = UUID.randomUUID().toString
+    val checkFile1 = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
+    val checkFile2 = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
+    checkFile2.exists() && checkFile2.delete() // this should NEVER happen but could also lead to VERY weird bugs
+    checkFile1.createNewFile()
+    val ret = checkFile2.exists()
+    checkFile1.delete()
+    ret
+  }
+
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem
     with FileInputStreamFileSystem
@@ -130,19 +145,60 @@ object FileSystem extends api.detail.FileSystemAPI {
     // accordingly before the path is passed to the file system.
     private val invalidChars = """\:*?"<>|""".toSet
 
-    override def makeDirectory(path: String) = super.makeDirectory(validatePath(path))
-
     override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
 
+    protected override def segments(path: String) = {
+      super.segments(
+        if (isCaseSensitive) {
+          path
+        } else {
+          "/" + toCaseInsensitive(withoutSourroundingSlashes(path), root)
+        }
+      )
+    }
+
     private def validatePath(path: String) = {
+
       if (path.exists(invalidChars.contains)) {
         throw new java.io.IOException("path contains invalid characters")
       }
-      // TODO Add fix for #338.
-      // If on a system with case insensitive file systems, check if path
-      // already exists, if so return that name instead (i.e. re-use the
-      // existing path, with exact same casing).
+
       path
+    }
+
+    private def withoutSourroundingSlashes(path: String) = {
+      val path2 = if (path.startsWith("/"))
+        path.substring(1)
+      else
+        path
+      if (path2.endsWith("/"))
+        path2.substring(0, path2.length - 1)
+      else
+        path2
+    }
+
+    private def toCaseInsensitive(path: String, node: VirtualDirectory): String = {
+      val idx = path.indexOf('/')
+      val first = if (idx == -1) path else path.substring(0, idx)
+      val rest = if (idx == -1) "" else path.substring(idx + 1)
+
+      val lowerFirst = first.toLowerCase
+      var name = first
+      node.children.foreach {
+        case (childName, child) =>
+          if (childName.toLowerCase == lowerFirst) {
+            child match {
+              case file: VirtualFile =>
+                name = childName + "/" + rest
+              case dir: VirtualDirectory =>
+                name = childName + "/" + toCaseInsensitive(rest, dir)
+              case abc: Object =>
+                OpenComputers.log.warning(s"[WTF] when resolving case insensitive name, child was a ${abc.getClass.getName}")
+            }
+          }
+      }
+
+      name
     }
   }
 

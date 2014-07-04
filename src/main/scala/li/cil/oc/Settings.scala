@@ -75,6 +75,7 @@ class Settings(config: Config) {
   val allowUserdata = !config.getBoolean("computer.debug.disableUserdata")
   val allowPersistence = !config.getBoolean("computer.debug.disablePersistence")
   val limitMemory = !config.getBoolean("computer.debug.disableMemoryLimit")
+  val forceCaseInsensitive = config.getBoolean("computer.debug.forceCaseInsensitiveFS")
 
   // ----------------------------------------------------------------------- //
   // robot
