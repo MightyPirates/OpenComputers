@@ -2,6 +2,8 @@ package li.cil.oc.server.fs
 
 import java.io
 import java.net.URL
+import java.util.UUID
+import java.util.logging.Level
 
 import li.cil.oc.api.driver.Container
 import li.cil.oc.api.fs.{Label, Mode}
@@ -10,11 +12,29 @@ import li.cil.oc.util.mods.{ComputerCraft15, ComputerCraft16, Mods}
 import li.cil.oc.{OpenComputers, Settings, api}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.common.DimensionManager
-import java.util.UUID
 
 object FileSystem extends api.detail.FileSystemAPI {
-
-  lazy val isCaseSensitive = !Settings.get.forceCaseInsensitive && calculateCaseSensitive
+  lazy val isCaseInsensitive = Settings.get.forceCaseInsensitive || (try {
+    val uuid = UUID.randomUUID().toString
+    val lowerCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
+    val upperCase = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
+    // This should NEVER happen but could also lead to VERY weird bugs, so we
+    // make sure the files don't exist.
+    lowerCase.exists() && lowerCase.delete()
+    upperCase.exists() && upperCase.delete()
+    lowerCase.createNewFile()
+    val insensitive = upperCase.exists()
+    lowerCase.delete()
+    insensitive
+  }
+  catch {
+    case t: Throwable =>
+      // Among the security errors, createNewFile can throw an IOException.
+      // We just fall back to assuming case insensitive, since that's always
+      // safe in those cases.
+      OpenComputers.log.log(Level.WARNING, "Couldn't determine if file system is case sensitive, falling back to insensitive.", t)
+      true
+  })
 
   override def fromClass(clazz: Class[_], domain: String, root: String): api.fs.FileSystem = {
     val innerPath = ("/assets/" + domain + "/" + (root.trim + "/")).replace("//", "/")
@@ -111,17 +131,6 @@ object FileSystem extends api.detail.FileSystemAPI {
     }
   }
 
-  private def calculateCaseSensitive = {
-    val uuid = UUID.randomUUID().toString
-    val checkFile1 = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "oc_rox")
-    val checkFile2 = new io.File(DimensionManager.getCurrentSaveRootDirectory, uuid + "OC_ROX")
-    checkFile2.exists() && checkFile2.delete() // this should NEVER happen but could also lead to VERY weird bugs
-    checkFile1.createNewFile()
-    val ret = checkFile2.exists()
-    checkFile1.delete()
-    ret
-  }
-
   private class ReadOnlyFileSystem(protected val root: io.File)
     extends InputStreamFileSystem
     with FileInputStreamFileSystem
@@ -150,57 +159,31 @@ object FileSystem extends api.detail.FileSystemAPI {
     override protected def openOutputHandle(id: Int, path: String, mode: Mode) = super.openOutputHandle(id, validatePath(path), mode)
 
     protected override def segments(path: String) = {
-      super.segments(
-        if (isCaseSensitive) {
-          path
-        } else {
-          "/" + toCaseInsensitive(withoutSourroundingSlashes(path), root)
-        }
-      )
+      val parts = super.segments(path)
+      if (isCaseInsensitive) toCaseInsensitive(parts) else parts
     }
 
     private def validatePath(path: String) = {
-
       if (path.exists(invalidChars.contains)) {
         throw new java.io.IOException("path contains invalid characters")
       }
-
       path
     }
 
-    private def withoutSourroundingSlashes(path: String) = {
-      val path2 = if (path.startsWith("/"))
-        path.substring(1)
-      else
-        path
-      if (path2.endsWith("/"))
-        path2.substring(0, path2.length - 1)
-      else
-        path2
-    }
-
-    private def toCaseInsensitive(path: String, node: VirtualDirectory): String = {
-      val idx = path.indexOf('/')
-      val first = if (idx == -1) path else path.substring(0, idx)
-      val rest = if (idx == -1) "" else path.substring(idx + 1)
-
-      val lowerFirst = first.toLowerCase
-      var name = first
-      node.children.foreach {
-        case (childName, child) =>
-          if (childName.toLowerCase == lowerFirst) {
-            child match {
-              case file: VirtualFile =>
-                name = childName + "/" + rest
-              case dir: VirtualDirectory =>
-                name = childName + "/" + toCaseInsensitive(rest, dir)
-              case abc: Object =>
-                OpenComputers.log.warning(s"[WTF] when resolving case insensitive name, child was a ${abc.getClass.getName}")
-            }
-          }
-      }
-
-      name
+    private def toCaseInsensitive(path: Array[String]): Array[String] = {
+      var node = root
+      path.map(segment => {
+        assert(node != null, "corrupted virtual file system")
+        node.children.find(entry => entry._1.toLowerCase == segment.toLowerCase) match {
+          case Some((name, child: VirtualDirectory)) =>
+            node = child
+            name
+          case Some((name, child: VirtualFile)) =>
+            node = null
+            name
+          case _ => segment
+        }
+      })
     }
   }
 
