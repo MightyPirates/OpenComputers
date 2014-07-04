@@ -73,6 +73,8 @@ abstract class DynamicGuiContainer(container: Container) extends CustomGuiContai
 
   override def drawTexturedModelRectFromIcon(x: Int, y: Int, icon: IIcon, width: Int, height: Int) {
     GL11.glColor4f(1, 1, 1, 1)
+    RenderState.makeItBlend()
+    GL11.glDisable(GL11.GL_LIGHTING)
     super.drawTexturedModelRectFromIcon(x, y, icon, width, height)
   }
 }
