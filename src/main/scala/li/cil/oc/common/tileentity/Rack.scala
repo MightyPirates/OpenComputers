@@ -117,7 +117,7 @@ class Rack extends traits.PowerAcceptor with traits.Hub with traits.PowerBalance
   override protected def distribute() = {
     def node(side: Int) = if (sides(side) == ForgeDirection.UNKNOWN) servers(side).fold(null: Connector)(_.node.asInstanceOf[Connector]) else null
     val nodes = (0 to 3).map(node)
-    def network(connector: Connector) = if (connector != null) connector.network else this
+    def network(connector: Connector) = if (connector != null && connector.network != null) connector.network else this
     val (sumBuffer, sumSize) = super.distribute()
     var sumBufferServers, sumSizeServers = 0.0
     network(nodes(0)).synchronized {
