@@ -2,9 +2,9 @@ package li.cil.oc.common.block
 
 import java.util
 
-import li.cil.oc.Settings
+import li.cil.oc.{OpenComputers, Settings}
 import li.cil.oc.client.Textures
-import li.cil.oc.common.tileentity
+import li.cil.oc.common.{GuiType, tileentity}
 import li.cil.oc.util.Tooltip
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
@@ -43,4 +43,20 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
   override def hasTileEntity = true
 
   override def createTileEntity(world: World) = Some(new tileentity.Router)
+
+  override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
+                          side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
+    world.getBlockTileEntity(x, y, z) match {
+      case drive: tileentity.Router =>
+        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
+        if (!player.isSneaking) {
+          if (!world.isRemote) {
+            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+          }
+          true
+        }
+        else false
+
+    }
+  }
 }

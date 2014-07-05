@@ -5,10 +5,14 @@ import dan200.computer.api.{IComputerAccess, ILuaContext, IPeripheral}
 import li.cil.oc.api.network.{Message, Packet}
 import li.cil.oc.server.PacketSender
 import li.cil.oc.util.mods.Mods
-import li.cil.oc.{Settings, api}
+import li.cil.oc.{Items, Settings, api}
+import li.cil.oc.common.item
 import net.minecraftforge.common.ForgeDirection
 
 import scala.collection.mutable
+import net.minecraft.item.ItemStack
+import li.cil.oc.api.Driver
+import li.cil.oc.api.driver.Slot
 
 // Note on the CC1.5+1.6 compatibility
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,12 +28,14 @@ import scala.collection.mutable
 // old API, so there should be no ClassNotFoundExceptions anyway.
 
 @Optional.Interface(iface = "dan200.computer.api.IPeripheral", modid = "ComputerCraft")
-class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
+class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with traits.ComponentInventory {
   var lastMessage = 0L
 
   val computers = mutable.Map.empty[AnyRef, ComputerWrapper]
 
   val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
+
+
 
   override def canUpdate = isServer
 
@@ -140,6 +146,27 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral {
           }
         case _ =>
       }
+    }
+  }
+
+  override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Memory
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Processor
+    case _ => false
+  }
+
+  override def getInvName: String = "container.Router"
+
+  override def getSizeInventory: Int = 2
+
+  override protected def onItemAdded(slot: Int, stack: ItemStack) {
+    super.onItemAdded(slot, stack)
+    slot match {
+      case 0 =>
+        maxQueueSize = 20 + (Items.multi.subItem(stack) match {
+          case ram: item.Memory => ram.tier * 5
+          case _ => Driver.driverFor(stack).tier(stack) * 10
+        })
     }
   }
 }
