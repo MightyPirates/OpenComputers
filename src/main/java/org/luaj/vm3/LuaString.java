@@ -27,6 +27,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import org.luaj.vm3.lib.MathLib;
 import org.luaj.vm3.lib.StringLib;
@@ -394,7 +395,7 @@ public class LuaString extends LuaValue {
 	 * beginIndex and extending for (endIndex - beginIndex ) characters.
 	 */
 	public LuaString substring( int beginIndex, int endIndex ) {
-		return valueOf( m_bytes, m_offset + beginIndex, endIndex - beginIndex );
+		return new LuaString(Arrays.copyOfRange(m_bytes, beginIndex, endIndex), 0, endIndex - beginIndex);
 	}
 	
 	public int hashCode() {
@@ -704,8 +705,8 @@ public class LuaString extends LuaValue {
 		if ( i>=j )
 			return Double.NaN;
 		if ( m_bytes[i]=='0' && i+1<j && (m_bytes[i+1]=='x'||m_bytes[i+1]=='X'))
-			return scanlong(16, i+2, j);
-		double l = scanlong(10, i, j);
+			return scandouble(16, i+2, j);
+		double l = scandouble(10, i, j);
 		return Double.isNaN(l)? scandouble(i,j): l;
 	}
 	
@@ -722,25 +723,25 @@ public class LuaString extends LuaValue {
 		while ( i<j && m_bytes[j-1]==' ' ) --j;
 		if ( i>=j )
 			return Double.NaN;
-		return scanlong( base, i, j );
+		return scandouble( base, i, j );
 	}
 	
 	/**
-	 * Scan and convert a long value, or return Double.NaN if not found.
+	 * Scan and convert a double value, or return Double.NaN if not found.
 	 * @param base the base to use, such as 10
 	 * @param start the index to start searching from
 	 * @param end the first index beyond the search range
 	 * @return double value if conversion is valid, 
 	 * or Double.NaN if not
 	 */
-	private double scanlong( int base, int start, int end ) {
-		long x = 0;
+	private double scandouble( int base, int start, int end ) {
+		double x = 0;
 		boolean neg = (m_bytes[start] == '-');
 		for ( int i=(neg?start+1:start); i<end; i++ ) {
 			int digit = m_bytes[i] - (base<=10||(m_bytes[i]>='0'&&m_bytes[i]<='9')? '0':
 					m_bytes[i]>='A'&&m_bytes[i]<='Z'? ('A'-10): ('a'-10));
-			if ( digit < 0 || digit >= base )
-				return Double.NaN;		
+			if ( digit < 0 || digit >= base || (m_bytes[i] >= '9' && digit < 10))
+				return Double.NaN;
 			x = x * base + digit;
 			if ( x < 0 )
 				return Double.NaN; // overflow
