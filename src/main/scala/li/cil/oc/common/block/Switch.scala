@@ -48,10 +48,9 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
       case drive: tileentity.Router =>
-        // Behavior: sneaking -> Insert[+Eject], not sneaking -> GUI.
         if (!player.isSneaking) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.DiskDrive.id, world, x, y, z)
+            player.openGui(OpenComputers, GuiType.Router.id, world, x, y, z)
           }
           true
         }

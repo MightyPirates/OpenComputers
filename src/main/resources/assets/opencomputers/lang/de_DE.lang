@@ -155,6 +155,7 @@ oc:container.Disassembler=Recycler
 oc:container.DiskDrive=Diskettenlaufwerk
 oc:container.Rack=Serverschrank
 oc:container.Server=Server
+oc:container.Router=Switch
 
 # Keybinds
 key.materialCosts=Materialkosten anzeigen

@@ -154,6 +154,7 @@ oc:container.Case=Computer
 oc:container.Disassembler=Disassembler
 oc:container.DiskDrive=Disk Drive
 oc:container.Rack=Server Rack
+oc:container.Router=Switch
 oc:container.Server=Server
 
 # Keybinds

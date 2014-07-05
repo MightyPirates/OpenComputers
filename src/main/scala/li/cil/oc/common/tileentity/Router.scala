@@ -150,25 +150,37 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   }
 
   override def isItemValidForSlot(slot: Int, stack: ItemStack) = (slot, Option(Driver.driverFor(stack))) match {
-    case (0, Some(driver)) => driver.slot(stack) == Slot.Memory
-    case (1, Some(driver)) => driver.slot(stack) == Slot.Processor
+    case (1, Some(driver)) => driver.slot(stack) == Slot.Memory
+    case (0, Some(driver)) => driver.slot(stack) == Slot.Processor
     case _ => false
   }
 
-  override def getInvName: String = "container.Router"
+  override def getInvName = Settings.namespace + "container.Router"
 
-  override def getSizeInventory: Int = 2
+  override def getSizeInventory = 2
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
     slot match {
-      case 0 =>
+      case 1 =>
         maxQueueSize = 20 + (Items.multi.subItem(stack) match {
-          case ram: item.Memory => ram.tier * 5
-          case _ => Driver.driverFor(stack).tier(stack) * 10
+          case Some(ram: item.Memory) => (ram.tier + 1) * 5
+          case _ => (Driver.driverFor(stack).tier(stack) + 1) * 10
         })
+      case 0 =>
+        relayDelay = 5 - Driver.driverFor(stack).tier(stack)
     }
   }
+
+
+  override protected def onItemRemoved(slot: Int, stack: ItemStack) {
+    super.onItemRemoved(slot, stack)
+    slot match {
+      case 0 => relayDelay = 5
+      case 1 => maxQueueSize = 20
+    }
+  }
+
 }
 
 // Abstraction layer for CC computers to support 1.5 and 1.6 API.
