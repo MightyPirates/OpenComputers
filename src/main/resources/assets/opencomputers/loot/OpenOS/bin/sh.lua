@@ -115,12 +115,11 @@ local function execute(env, command, ...)
   end
   table.insert(args, 1, true)
   args.n = #args
-  local thread, reason = process.load(shell.resolve(program, "lua"), env, nil, command)
+  local thread, reason = process.load(program, env, nil, command)
   if not thread then
     return false, reason
-  else
-    os.setenv ( '_', shell.resolve (program, "lua") )
   end 
+  os.setenv("_", program)
   local result = nil
   -- Emulate CC behavior by making yields a filtered event.pull()
   while args[1] and coroutine.status(thread) ~= "dead" do
