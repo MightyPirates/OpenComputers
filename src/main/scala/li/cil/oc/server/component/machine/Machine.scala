@@ -730,6 +730,9 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
   private def switchTo(value: Machine.State.Value) = {
     val result = state.pop()
+    if (value == Machine.State.Stopping || value == Machine.State.Restarting) {
+      state.clear()
+    }
     state.push(value)
     if (value == Machine.State.Yielded || value == Machine.State.SynchronizedReturn) {
       remainIdle = 0

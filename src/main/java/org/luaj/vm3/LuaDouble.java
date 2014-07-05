@@ -219,7 +219,7 @@ public class LuaDouble extends LuaNumber {
 	
 	// string comparison
 	public int strcmp( LuaString rhs )      { typerror("attempt to compare number with string"); return 0; }
-			
+	
 	public String tojstring() {
 		/*
 		if ( v == 0.0 ) { // never occurs in J2me 
@@ -227,14 +227,11 @@ public class LuaDouble extends LuaNumber {
 			return ( bits >> 63 == 0 ) ? "0" : "-0";
 		}
 		*/
-		long l = (long) v;
-		if ( l == v ) 
-			return Long.toString(l);
 		if ( Double.isNaN(v) )
 			return JSTR_NAN;
-		if ( Double.isInfinite(v) ) 
+		if ( Double.isInfinite(v) )
 			return (v<0? JSTR_NEGINF: JSTR_POSINF);
-		return Float.toString((float)v);
+		return Double.toString(v);
 	}
 	
 	public LuaString strvalue() {
