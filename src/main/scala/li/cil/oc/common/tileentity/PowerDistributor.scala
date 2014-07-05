@@ -15,6 +15,8 @@ class PowerDistributor extends traits.Environment with traits.PowerBalancer with
     withConnector(Settings.get.bufferDistributor).
     create())
 
+  override protected def isConnected = nodes.exists(node => node.address != null && node.network != null)
+
   override def canUpdate = isServer
 
   // ----------------------------------------------------------------------- //
