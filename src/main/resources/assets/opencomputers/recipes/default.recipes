@@ -385,6 +385,11 @@ keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]
           ["oc:materialButtonGroup", "oc:materialArrowKey", "oc:materialNumPad"]]
 }
+motionSensor {
+  input: [[ingotGold, diamond, ingotGold]
+          [thinGlass, "oc:cpu1", thinGlass]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
+}
 powerConverter {
   input: [[ingotIron, "oc:cable", ingotIron]
           [ingotGold, "oc:circuitChip1", ingotGold]
