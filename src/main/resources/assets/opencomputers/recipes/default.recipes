@@ -186,6 +186,12 @@ solarGeneratorUpgrade {
           ["oc:circuitChip3", blockLapis, "oc:circuitChip3"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+tractorBeamUpgrade {
+  input: [[ingotGold, craftingPiston, ingotGold]
+          [ingotIron, "oc:capacitor", ingotIron]
+          [ingotGold, "oc:circuitChip3", ingotGold]]
+}
+
 cardContainer1 {
   input: [[ingotIron, "oc:materialTransistor", ingotIron]
           [craftingPiston, chest, ""]

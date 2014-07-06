@@ -79,6 +79,7 @@ class Proxy {
     api.Driver.add(driver.item.Processor)
     api.Driver.add(driver.item.RedstoneCard)
     api.Driver.add(driver.item.Screen)
+    api.Driver.add(driver.item.UpgradeAngel)
     api.Driver.add(driver.item.UpgradeBattery)
     api.Driver.add(driver.item.UpgradeChunkloader)
     api.Driver.add(driver.item.UpgradeContainerCard)
@@ -92,7 +93,7 @@ class Proxy {
     api.Driver.add(driver.item.UpgradeNavigation)
     api.Driver.add(driver.item.UpgradeSign)
     api.Driver.add(driver.item.UpgradeSolarGenerator)
-    api.Driver.add(driver.item.UpgradeAngel)
+    api.Driver.add(driver.item.UpgradeTractorBeam)
     api.Driver.add(driver.item.WirelessNetworkCard)
 
     if (Mods.StargateTech2.isAvailable) {

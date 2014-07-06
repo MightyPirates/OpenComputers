@@ -230,6 +230,9 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
     Recipes.addItem(new item.RedstoneCard(multi, Tier.One), "redstoneCard1", "oc:redstoneCard1")
 
+    // ???
+    Recipes.addItem(new item.UpgradeTractorBeam(multi), "tractorBeamUpgrade", "oc:tractorBeamUpgrade")
+
     // Experimental
 //    registerItem(new item.Tablet(multi), "tablet")
   }
