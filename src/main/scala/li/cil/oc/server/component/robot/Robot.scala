@@ -23,7 +23,7 @@ import net.minecraftforge.fluids.FluidRegistry
 import scala.collection.convert.WrapAsScala._
 
 class Robot(val robot: tileentity.Robot) extends ManagedComponent {
-  val node = api.Network.newNode(this, Visibility.Neighbors).
+  val node = api.Network.newNode(this, Visibility.Network).
     withComponent("robot").
     withConnector(Settings.get.bufferRobot).
     create()
@@ -496,6 +496,14 @@ class Robot(val robot: tileentity.Robot) extends ManagedComponent {
         fs.node.asInstanceOf[Component].setVisibility(Visibility.Network)
         node.connect(fs.node)
       })
+    }
+  }
+
+  override def onMessage(message: Message) {
+    super.onMessage(message)
+    if (message.name == "network.message" && message.source != robot.proxy.node) message.data match {
+      case Array(packet: Packet) => robot.proxy.node.sendToReachable(message.name, packet)
+      case _ =>
     }
   }
 
