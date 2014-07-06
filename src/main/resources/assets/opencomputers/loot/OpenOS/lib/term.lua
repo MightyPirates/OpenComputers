@@ -80,7 +80,7 @@ function term.isAvailable()
   return component.isAvailable("gpu") and component.isAvailable("screen")
 end
 
-function term.read(history)
+function term.read(history, dobreak)
   checkArg(1, history, "table", "nil")
   history = history or {}
   table.insert(history, "")
@@ -286,7 +286,7 @@ function term.read(history)
       table.remove(history)
     end
     term.setCursorBlink(false)
-    if term.getCursor() > 1 then
+    if term.getCursor() > 1 and dobreak ~= false then
       print()
     end
   end
