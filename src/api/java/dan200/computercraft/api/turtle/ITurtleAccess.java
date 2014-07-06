@@ -7,6 +7,7 @@
 package dan200.computercraft.api.turtle;
 
 import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
@@ -119,7 +120,7 @@ public interface ITurtleAccess
      * unchanged if called from a peripheral method.
      * @see ITurtleCommand
      */
-    public Object[] executeCommand( ILuaContext context, ITurtleCommand command ) throws Exception;
+    public Object[] executeCommand( ILuaContext context, ITurtleCommand command ) throws LuaException, InterruptedException;
 
     /**
      * TODO: Document me

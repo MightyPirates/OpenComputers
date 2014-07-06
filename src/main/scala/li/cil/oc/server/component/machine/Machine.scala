@@ -796,17 +796,27 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
                   switchTo(Machine.State.Stopping)
                 }
               case result: ExecutionResult.Error =>
-                if (result.message != null) {
-                  crash(result.message)
-                }
-                else {
-                  crash("unknown error")
-                }
+                crash(Option(result.message).getOrElse("unknown error"))
             }
           case Machine.State.Paused =>
             state.pop() // Paused
             state.pop() // Running, no switchTo to avoid new future.
-            state.push(Machine.State.Yielded)
+            result match {
+              case result: ExecutionResult.Sleep =>
+                remainIdle = result.ticks
+                state.push(Machine.State.Sleeping)
+              case result: ExecutionResult.SynchronizedCall =>
+                state.push(Machine.State.SynchronizedCall)
+              case result: ExecutionResult.Shutdown =>
+                if (result.reboot) {
+                  state.push(Machine.State.Restarting)
+                }
+                else {
+                  state.push(Machine.State.Stopping)
+                }
+              case result: ExecutionResult.Error =>
+                crash(Option(result.message).getOrElse("unknown error"))
+            }
             state.push(Machine.State.Paused)
           case Machine.State.Stopping => // Nothing to do, we'll die anyway.
           case _ => throw new AssertionError("Invalid state in executor post-processing.")

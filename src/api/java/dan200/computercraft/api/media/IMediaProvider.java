@@ -6,9 +6,7 @@
 
 package dan200.computercraft.api.media;
 
-import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 
 /**
  * This interface is used to provide IMedia implementations for ItemStack

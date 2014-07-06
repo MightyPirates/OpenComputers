@@ -13,7 +13,7 @@ import net.minecraft.util.IIcon;
 /**
  * The primary interface for defining an turtle for Turtles. A turtle turtle
  * can either be a new tool, or a new peripheral.
- * @see dan200.computercraft.api.ComputerCraftAPI#registerUpgrade( ITurtleUpgrade )
+ * @see dan200.computercraft.api.ComputerCraftAPI#registerTurtleUpgrade( dan200.computercraft.api.turtle.ITurtleUpgrade )
  */
 public interface ITurtleUpgrade
 {
@@ -24,7 +24,7 @@ public interface ITurtleUpgrade
 	 * The ID must be in the range 64 to 255, as the ID is stored as an 8-bit value,
 	 * and 0-64 is reserved for future use by ComputerCraft. The turtle will
 	 * fail registration if an already used ID is specified.
-	 * @see dan200.computercraft.api.ComputerCraftAPI#registerUpgrade( ITurtleUpgrade )
+	 * @see dan200.computercraft.api.ComputerCraftAPI#registerTurtleUpgrade( dan200.computercraft.api.turtle.ITurtleUpgrade )
 	 */
 	public int getUpgradeID();
 	
@@ -32,7 +32,7 @@ public interface ITurtleUpgrade
 	 * Return a String to describe this type of turtle in turtle item names.
 	 * Examples of built-in adjectives are "Wireless", "Mining" and "Crafty".
 	 */	
-	public String getAdjective();
+	public String getUnlocalisedAdjective();
 
 	/**
 	 * Return whether this turtle adds a tool or a peripheral to the turtle.
@@ -78,12 +78,12 @@ public interface ITurtleUpgrade
 	public TurtleCommandResult useTool( ITurtleAccess turtle, TurtleSide side, TurtleVerb verb, int direction );
 
 	/**
-	 * Called to obtain the Icon to be used when rendering a turtle peripheral. Needs to be a "common"
-	 * type Icon for now, as there is no way to determine which texture sheet an Icon is from by the 
-	 * Icon itself.
+	 * Called to obtain the IIcon to be used when rendering a turtle peripheral. Needs to be a "common"
+	 * type IIcon for now, as there is no way to determine which texture sheet an IIcon is from by the
+	 * IIcon itself.
 	 * @param turtle Access to the turtle that the peripheral resides on.
 	 * @param side Which side of the turtle (left or right) the peripheral resides on.
-	 * @return The Icon that you wish to be used to render your turtle peripheral.
+	 * @return The IIcon that you wish to be used to render your turtle peripheral.
 	 */
 	public IIcon getIcon( ITurtleAccess turtle, TurtleSide side );
 

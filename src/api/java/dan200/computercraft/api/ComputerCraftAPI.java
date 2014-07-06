@@ -154,7 +154,7 @@ public final class ComputerCraftAPI
         {
             try {
                 computerCraft_registerBundledRedstoneProvider.invoke( null, handler );
-            } catch (Exception e){
+            } catch (Exception e) {
                 // It failed
             }
         }
@@ -241,7 +241,11 @@ public final class ComputerCraftAPI
 	private static Method findCCMethod( String name, Class[] args )
 	{
 		try {
-			return computerCraft.getMethod( name, args );
+            if( computerCraft != null )
+            {
+    			return computerCraft.getMethod( name, args );
+            }
+            return null;
 		} catch( NoSuchMethodException e ) {
 			System.out.println( "ComputerCraftAPI: ComputerCraft method " + name + " not found." );
 			return null;
