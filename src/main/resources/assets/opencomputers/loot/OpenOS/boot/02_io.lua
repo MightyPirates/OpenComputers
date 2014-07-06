@@ -21,8 +21,8 @@ end
 stdoutStream.close = stdinStream.close
 stderrStream.close = stdinStream.close
 
-function stdinStream:read(n, dowrap)
-  local result = term.read(stdinHistory, dowrap)
+function stdinStream:read(n, dobreak)
+  local result = term.read(stdinHistory, dobreak)
   while #stdinHistory > 10 do
     table.remove(stdinHistory, 1)
   end
