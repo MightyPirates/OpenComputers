@@ -22,7 +22,7 @@ public interface ILuaContext
 	 * Do not attempt to common this exception, unless you wish to prevent termination, which is not recommended.
 	 * @throws InterruptedException If the user shuts down or reboots the computercraft while pullEvent() is waiting for an event, InterruptedException will be thrown. This exception must not be caught or intercepted, or the computercraft will leak memory and end up in a broken state.
 	 */
-	public Object[] pullEvent( String filter ) throws Exception, InterruptedException;
+	public Object[] pullEvent( String filter ) throws LuaException, InterruptedException;
 	
 	/**
 	 * The same as pullEvent(), except "terminated" events are ignored. Only use this if you want to prevent program termination, which is not recommended. This method is exactly equivalent to os.pullEventRaw() in lua.
@@ -32,7 +32,6 @@ public interface ILuaContext
 	 * @see #pullEvent(String)
 	 */
 	public Object[] pullEventRaw( String filter ) throws InterruptedException;
-
 	
 	/**
 	 * Yield the current coroutine with some arguments until it is resumed. This method is exactly equivalent to coroutine.yield() in lua. Use pullEvent() if you wish to wait for events.

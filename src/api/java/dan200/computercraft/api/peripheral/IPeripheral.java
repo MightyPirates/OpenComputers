@@ -7,6 +7,7 @@
 package dan200.computercraft.api.peripheral;
 
 import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.lua.LuaException;
 
 /**
  * The interface that defines a peripheral. This should be implemented by the
@@ -59,7 +60,7 @@ public interface IPeripheral
 	 *						arguments are supplied to your method.
 	 * @see 	#getMethodNames
 	 */
-    public Object[] callMethod( IComputerAccess computer, ILuaContext context, int method, Object[] arguments ) throws Exception;
+    public Object[] callMethod( IComputerAccess computer, ILuaContext context, int method, Object[] arguments ) throws LuaException, InterruptedException;
     
 	/**
 	 * Is called when canAttachToSide has returned true, and a computercraft is attaching to the peripheral.
