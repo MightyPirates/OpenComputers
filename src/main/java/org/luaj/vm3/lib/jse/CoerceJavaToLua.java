@@ -99,6 +99,16 @@ public class CoerceJavaToLua {
 				return LuaString.valueOf( javaValue.toString() );
 			} 
 		} ;
+		Coercion bytesCoercion = new Coercion() {
+			public LuaValue coerce( Object javaValue ) {
+				return LuaValue.valueOf((byte[]) javaValue);
+			} 
+		} ;
+		Coercion classCoercion = new Coercion() {
+			public LuaValue coerce( Object javaValue ) {
+				return JavaClass.forClass((Class) javaValue);
+			} 
+		} ;
 		COERCIONS.put( Boolean.class, boolCoercion );
 		COERCIONS.put( Byte.class, intCoercion );
 		COERCIONS.put( Character.class, charCoercion );
@@ -108,6 +118,8 @@ public class CoerceJavaToLua {
 		COERCIONS.put( Float.class, doubleCoercion );
 		COERCIONS.put( Double.class, doubleCoercion );
 		COERCIONS.put( String.class, stringCoercion );
+		COERCIONS.put( byte[].class, bytesCoercion );
+		COERCIONS.put( Class.class, classCoercion );
 	}
 
 	/**
@@ -117,6 +129,7 @@ public class CoerceJavaToLua {
 	 * will become {@link LuaInteger};
 	 * {@code long}, {@code float}, and {@code double} will become {@link LuaDouble};
 	 * {@code String} and {@code byte[]} will become {@link LuaString}; 
+	 * types inheriting from {@link LuaValue} will be returned without coercion;
 	 * other types will become {@link LuaUserdata}.
 	 * @param o Java object needing conversion
 	 * @return {@link LuaValue} corresponding to the supplied Java value. 
@@ -129,13 +142,12 @@ public class CoerceJavaToLua {
 	public static LuaValue coerce(Object o) {
 		if ( o == null )
 			return LuaValue.NIL;
-		if (o instanceof Class)
-			return JavaClass.forClass((Class) o);
 		Class clazz = o.getClass();
 		Coercion c = (Coercion) COERCIONS.get( clazz );
 		if ( c == null ) {
 			c = clazz.isArray()? arrayCoercion:
-				instanceCoercion;
+				o instanceof LuaValue ? luaCoercion:
+					instanceCoercion;
 			COERCIONS.put( clazz, c );
 		}
 		return c.coerce(o);
@@ -153,4 +165,10 @@ public class CoerceJavaToLua {
 			return new JavaArray(javaValue);
 		}
 	};	
+
+	static final Coercion luaCoercion = new Coercion() {
+		public LuaValue coerce( Object javaValue ) {
+			return (LuaValue) javaValue;
+		} 
+	} ;
 }
