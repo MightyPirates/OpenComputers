@@ -255,13 +255,13 @@ object Settings {
     // reportedly fixed the problem.
     val defaults = {
       val in = classOf[Settings].getResourceAsStream("/reference.conf")
-      val config = Source.fromInputStream(in).mkString.replace("\r\n", "\n")
+      val config = Source.fromInputStream(in)("UTF-8").getLines().mkString("", "\n", "")
       in.close()
       ConfigFactory.parseString(config)
     }
     val config =
       try {
-        val plain = Source.fromFile(file).mkString.replace("\r\n", "\n")
+        val plain = Source.fromFile(file)("UTF-8").getLines().mkString("", "\n", "")
         val config = patchConfig(ConfigFactory.parseString(plain), defaults).withFallback(defaults)
         settings = new Settings(config.getConfig("opencomputers"))
         config

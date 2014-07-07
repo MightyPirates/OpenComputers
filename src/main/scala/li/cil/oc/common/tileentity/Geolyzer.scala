@@ -13,7 +13,7 @@ class Geolyzer extends traits.Environment {
 
   override def canUpdate = false
 
-  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean) -- Analyzes the density of the column at the specified relative coordinates.""")
+  @Callback(doc = """function(x:number, z:number[, ignoreReplaceable:boolean]):table -- Analyzes the density of the column at the specified relative coordinates.""")
   def scan(computer: Context, args: Arguments): Array[AnyRef] = {
     val rx = args.checkInteger(0)
     val rz = args.checkInteger(1)
