@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.logging.log4j.Level
 
 import scala.collection.convert.WrapAsScala._
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 class Settings(config: Config) {
   // ----------------------------------------------------------------------- //
@@ -248,20 +248,21 @@ object Settings {
   def get = settings
 
   def load(file: File) = {
+    import scala.compat.Platform.EOL
     // typesafe config's internal method for loading the reference.conf file
     // seems to fail on some systems (as does their parseResource method), so
     // we'll have to load the default config manually. This was reported on the
     // Minecraft Forums, I could not reproduce the issue, but this version has
     // reportedly fixed the problem.
     val defaults = {
-      val in = classOf[Settings].getResourceAsStream("/reference.conf")
-      val config = Source.fromInputStream(in)("UTF-8").getLines().mkString("", "\n", "")
+      val in = classOf[Settings].getResourceAsStream("/application.conf")
+      val config = Source.fromInputStream(in)(Codec.UTF8).getLines().mkString("", EOL, EOL)
       in.close()
       ConfigFactory.parseString(config)
     }
     val config =
       try {
-        val plain = Source.fromFile(file)("UTF-8").getLines().mkString("", "\n", "")
+        val plain = Source.fromFile(file)(Codec.UTF8).getLines().mkString("", EOL, EOL)
         val config = patchConfig(ConfigFactory.parseString(plain), defaults).withFallback(defaults)
         settings = new Settings(config.getConfig("opencomputers"))
         config
