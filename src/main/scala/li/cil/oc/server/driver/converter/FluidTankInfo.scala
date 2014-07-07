@@ -18,7 +18,7 @@ object FluidTankInfo extends api.driver.Converter {
           val fluid = tankInfo.fluid.getFluid
           if (fluid != null) {
             output += "name" -> fluid.getName
-            output += "label" -> fluid.getLocalizedName
+            output += "label" -> fluid.getLocalizedName(tankInfo.fluid)
           }
         }
         else output += "amount" -> Int.box(0)

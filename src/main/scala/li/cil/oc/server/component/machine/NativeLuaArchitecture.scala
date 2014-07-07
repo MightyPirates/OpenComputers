@@ -63,7 +63,7 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
           lua.pushNil()
           lua.pushString(e.getMessage)
           if (Settings.get.logLuaCallbackErrors) {
-            lua.pushString(e.getStackTraceString.replace("\r\n", "\n"))
+            lua.pushString(e.getStackTrace.mkString("", "\n", "\n"))
             4
           }
           else 3

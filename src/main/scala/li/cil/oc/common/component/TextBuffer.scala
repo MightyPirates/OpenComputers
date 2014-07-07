@@ -387,7 +387,7 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
 }
 
 object TextBuffer {
-  var clientBuffers = mutable.LinkedList.empty[TextBuffer]
+  var clientBuffers = mutable.ListBuffer.empty[TextBuffer]
 
   @SubscribeEvent
   def onChunkUnload(e: ChunkEvent.Unload) {
@@ -414,7 +414,7 @@ object TextBuffer {
 
   def registerClientBuffer(t: TextBuffer) {
     ClientComponentTracker.add(t.proxy.nodeAddress, t)
-    clientBuffers ++= mutable.LinkedList(t)
+    clientBuffers += t
   }
 
   abstract class Proxy {
