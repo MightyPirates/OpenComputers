@@ -298,10 +298,13 @@ end
 local function invoke(target, direct, ...)
   local result
   if direct then
-    result = table.pack(target.invoke(...))
+    local args = table.pack(...) -- for unwrapping
+    unwrapUserdata(args)
+    result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
     if result.n == 0 then -- limit for direct calls reached
       result = nil
     end
+    -- no need to wrap here, will be wrapped in processResult
   end
   if not result then
     local args = table.pack(...) -- for access in closure
