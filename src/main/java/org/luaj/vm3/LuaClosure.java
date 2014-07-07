@@ -195,12 +195,12 @@ public class LuaClosure extends LuaFunction {
 
 		// process instructions
 		try {
-			while ( true ) {
+			for (; true; ++pc) {
 				if (globals != null && globals.debuglib != null)
 					globals.debuglib.onInstruction( pc, v, top ); 
 				
 				// pull out instruction
-				i = code[pc++];
+				i = code[pc];
 				a = ((i>>6) & 0xff);
 				
 				// process the op code
@@ -217,7 +217,7 @@ public class LuaClosure extends LuaFunction {
 				case Lua.OP_LOADBOOL:/*	A B C	R(A):= (Bool)B: if (C) pc++			*/
 	                stack[a] = (i>>>23!=0)? LuaValue.TRUE: LuaValue.FALSE;
 	                if ((i&(0x1ff<<14)) != 0)
-	                    pc++; /* skip next instruction (if C) */
+	                    ++pc; /* skip next instruction (if C) */
 	                continue;
 	
 				case Lua.OP_LOADNIL: /*	A B	R(A):= ...:= R(A+B):= nil			*/
@@ -444,7 +444,7 @@ public class LuaClosure extends LuaFunction {
 				case Lua.OP_SETLIST: /*	A B C	R(A)[(C-1)*FPF+i]:= R(A+i), 1 <= i <= B	*/
 					{
 		                if ( (c=(i>>14)&0x1ff) == 0 )
-		                    c = code[pc++];
+		                    c = code[++pc];
 		                int offset = (c-1) * Lua.LFIELDS_PER_FLUSH;
 		                o = stack[a];
 		                if ( (b=i>>>23) == 0 ) {
