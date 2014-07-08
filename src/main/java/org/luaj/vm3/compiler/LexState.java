@@ -252,7 +252,7 @@ public class LexState {
 		case TK_NAME:
 		case TK_STRING:
 		case TK_NUMBER:
-			return new String( buff, 0, nbuff );
+			return new String( buff, 0, nbuff ).replace("\0", "");
 		default:
 			return token2str( token );
 		}
@@ -263,7 +263,10 @@ public class LexState {
 		L.pushfstring( cid+":"+linenumber+": "+msg );
 		if ( token != 0 )
 			L.pushfstring( "syntax error: "+msg+" near "+txtToken(token) );
-		throw new LuaError(cid+":"+linenumber+": "+msg);
+		if ( token != 0 )
+			throw new LuaError(cid+":"+linenumber+": "+msg+" near "+LUA_QS(txtToken(token)));
+		else
+			throw new LuaError(cid+":"+linenumber+": "+msg);
 	}
 
 	void syntaxerror( String msg ) {
@@ -553,7 +556,7 @@ public class LexState {
 					continue;
 				default:
 					if (!isdigit(current))
-						syntaxerror("invalid escape sequence near '\\" + ((char) current) + "'");
+						lexerror("invalid escape sequence near '\\" + ((char) current) + "'", 0);
 					else { /* \xxx */
 						int i = 0;
 						c = 0;
@@ -562,7 +565,7 @@ public class LexState {
 							nextChar();
 						} while (++i < 3 && isdigit(current));
 						if (c > UCHAR_MAX)
-							syntaxerror("decimal escape too large near '\\" + c + "'");
+							lexerror("decimal escape too large near '\\" + c + "'", 0);
 						save(c);
 					}
 					continue;
@@ -1390,7 +1393,7 @@ public class LexState {
 			return;
 		}
 		default: {
-			this.syntaxerror("unexpected symbol near '" + txtToken(t.token) + "'");
+			this.syntaxerror("unexpected symbol");
 			return;
 		}
 		}

@@ -298,6 +298,9 @@ public class LuaC extends Lua implements Globals.Compiler, Globals.Loader {
 		return s;
 	}
 
+	/**
+	 * This function is useless. It doesn't push to a stack nor format strings.
+	 */
 	public String pushfstring(String string) {
 		return string;
 	}
