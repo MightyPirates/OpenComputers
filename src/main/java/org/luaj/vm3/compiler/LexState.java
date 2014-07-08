@@ -539,23 +539,21 @@ public class LexState {
 					continue;
 				case EOZ:
 					continue; /* will raise an error next loop */
-				case 'z': {  /* zap following span of spaces */
+				case 'z': /* zap following span of spaces */
 					nextChar();  /* skip the 'z' */
 					while (isspace(current)) {
 						if (currIsNewline()) inclinenumber();
 						else nextChar();
 					}
 					continue;
-				}
 				case '\\':
 				case '"':
 				case '\'':
 					save_and_next();
 					continue;
-				default: {
-					if (!isdigit(current)) {
+				default:
+					if (!isdigit(current))
 						syntaxerror("invalid escape sequence near '\\" + ((char) current) + "'");
-					}
 					else { /* \xxx */
 						int i = 0;
 						c = 0;
@@ -568,7 +566,6 @@ public class LexState {
 						save(c);
 					}
 					continue;
-				}
 				}
 				save(c);
 				nextChar();
