@@ -39,42 +39,42 @@ import org.luaj.vm3.lib.MathLib;
 public class LexState {
 	
 	protected static final String RESERVED_LOCAL_VAR_FOR_CONTROL = "(for control)";
-    protected static final String RESERVED_LOCAL_VAR_FOR_STATE = "(for state)";
-    protected static final String RESERVED_LOCAL_VAR_FOR_GENERATOR = "(for generator)";
-    protected static final String RESERVED_LOCAL_VAR_FOR_STEP = "(for step)";
-    protected static final String RESERVED_LOCAL_VAR_FOR_LIMIT = "(for limit)";
-    protected static final String RESERVED_LOCAL_VAR_FOR_INDEX = "(for index)";
-    
-    // keywords array
-    protected static final String[] RESERVED_LOCAL_VAR_KEYWORDS = new String[] {
-        RESERVED_LOCAL_VAR_FOR_CONTROL,
-        RESERVED_LOCAL_VAR_FOR_GENERATOR,
-        RESERVED_LOCAL_VAR_FOR_INDEX,
-        RESERVED_LOCAL_VAR_FOR_LIMIT,
-        RESERVED_LOCAL_VAR_FOR_STATE,
-        RESERVED_LOCAL_VAR_FOR_STEP
-    };
-    private static final Hashtable RESERVED_LOCAL_VAR_KEYWORDS_TABLE = new Hashtable();
-    static {
-    	for ( int i=0; i<RESERVED_LOCAL_VAR_KEYWORDS.length; i++ )
-        	RESERVED_LOCAL_VAR_KEYWORDS_TABLE.put( RESERVED_LOCAL_VAR_KEYWORDS[i], Boolean.TRUE );
-    }
-                               
-    private static final int EOZ    = (-1);
+	protected static final String RESERVED_LOCAL_VAR_FOR_STATE = "(for state)";
+	protected static final String RESERVED_LOCAL_VAR_FOR_GENERATOR = "(for generator)";
+	protected static final String RESERVED_LOCAL_VAR_FOR_STEP = "(for step)";
+	protected static final String RESERVED_LOCAL_VAR_FOR_LIMIT = "(for limit)";
+	protected static final String RESERVED_LOCAL_VAR_FOR_INDEX = "(for index)";
+	
+	// keywords array
+	protected static final String[] RESERVED_LOCAL_VAR_KEYWORDS = new String[] {
+		RESERVED_LOCAL_VAR_FOR_CONTROL,
+		RESERVED_LOCAL_VAR_FOR_GENERATOR,
+		RESERVED_LOCAL_VAR_FOR_INDEX,
+		RESERVED_LOCAL_VAR_FOR_LIMIT,
+		RESERVED_LOCAL_VAR_FOR_STATE,
+		RESERVED_LOCAL_VAR_FOR_STEP
+	};
+	private static final Hashtable RESERVED_LOCAL_VAR_KEYWORDS_TABLE = new Hashtable();
+	static {
+		for ( int i=0; i<RESERVED_LOCAL_VAR_KEYWORDS.length; i++ )
+			RESERVED_LOCAL_VAR_KEYWORDS_TABLE.put( RESERVED_LOCAL_VAR_KEYWORDS[i], Boolean.TRUE );
+	}
+							   
+	private static final int EOZ    = (-1);
 	private static final int MAX_INT = Integer.MAX_VALUE-2;
-	private static final int UCHAR_MAX = 255; // TODO, convert to unicode CHAR_MAX? 
+	private static final int UCHAR_MAX = 255; // TODO, convert to unicode CHAR_MAX?
 	private static final int LUAI_MAXCCALLS = 200;
 	
 	private static final String LUA_QS(String s) { return "'"+s+"'"; }
 	private static final String LUA_QL(Object o) { return LUA_QS(String.valueOf(o)); }
 	
 	private static final int     LUA_COMPAT_LSTR   =    1; // 1 for compatibility, 2 for old behavior
-	private static final boolean LUA_COMPAT_VARARG = true;	
-    
-    public static boolean isReservedKeyword(String varName) {
-    	return RESERVED_LOCAL_VAR_KEYWORDS_TABLE.containsKey(varName);
-    }
-    
+	private static final boolean LUA_COMPAT_VARARG = true;
+	
+	public static boolean isReservedKeyword(String varName) {
+		return RESERVED_LOCAL_VAR_KEYWORDS_TABLE.containsKey(varName);
+	}
+	
 	/*
 	** Marks the end of a patch list. It is an invalid value both as an absolute
 	** address, and as a list link (would link an element to itself).
@@ -84,7 +84,7 @@ public class LexState {
 	/*
 	** grep "ORDER OPR" if you change these enums
 	*/
-	static final int 
+	static final int
 	  OPR_ADD=0, OPR_SUB=1, OPR_MUL=2, OPR_DIV=3, OPR_MOD=4, OPR_POW=5,
 	  OPR_CONCAT=6,
 	  OPR_NE=7, OPR_EQ=8,
@@ -92,11 +92,11 @@ public class LexState {
 	  OPR_AND=13, OPR_OR=14,
 	  OPR_NOBINOPR=15;
 
-	static final int 
+	static final int
 		OPR_MINUS=0, OPR_NOT=1, OPR_LEN=2, OPR_NOUNOPR=3;
 
 	/* exp kind */
-	static final int 	  
+	static final int
 	  VVOID = 0,	/* no value */
 	  VNIL = 1,
 	  VTRUE = 2,
@@ -145,22 +145,22 @@ public class LexState {
 
 	/* ORDER RESERVED */
 	final static String luaX_tokens [] = {
-	    "and", "break", "do", "else", "elseif",
-	    "end", "false", "for", "function", "goto", "if",
-	    "in", "local", "nil", "not", "or", "repeat",
-	    "return", "then", "true", "until", "while",
-	    "..", "...", "==", ">=", "<=", "~=",
-	    "::", "<eos>", "<number>", "<name>", "<string>", "<eof>",
+		"and", "break", "do", "else", "elseif",
+		"end", "false", "for", "function", "goto", "if",
+		"in", "local", "nil", "not", "or", "repeat",
+		"return", "then", "true", "until", "while",
+		"..", "...", "==", ">=", "<=", "~=",
+		"::", "<eos>", "<number>", "<name>", "<string>", "<eof>",
 	};
 
-	final static int 
+	final static int
 		/* terminal symbols denoted by reserved words */
-		TK_AND=257,  TK_BREAK=258, TK_DO=259, TK_ELSE=260, TK_ELSEIF=261, 
-		TK_END=262, TK_FALSE=263, TK_FOR=264, TK_FUNCTION=265, TK_GOTO=266, TK_IF=267, 
+		TK_AND=257,  TK_BREAK=258, TK_DO=259, TK_ELSE=260, TK_ELSEIF=261,
+		TK_END=262, TK_FALSE=263, TK_FOR=264, TK_FUNCTION=265, TK_GOTO=266, TK_IF=267,
 		TK_IN=268, TK_LOCAL=269, TK_NIL=270, TK_NOT=271, TK_OR=272, TK_REPEAT=273,
 		TK_RETURN=274, TK_THEN=275, TK_TRUE=276, TK_UNTIL=277, TK_WHILE=278,
 		/* other terminal symbols */
-		TK_CONCAT=279, TK_DOTS=280, TK_EQ=281, TK_GE=282, TK_LE=283, TK_NE=284, 
+		TK_CONCAT=279, TK_DOTS=280, TK_EQ=281, TK_GE=282, TK_LE=283, TK_NE=284,
 		TK_DBCOLON=285, TK_EOS=286, TK_NUMBER=287, TK_NAME=288, TK_STRING=289;
 	  
 	final static int FIRST_RESERVED = TK_AND;
@@ -539,17 +539,23 @@ public class LexState {
 					continue;
 				case EOZ:
 					continue; /* will raise an error next loop */
-		        case 'z': {  /* zap following span of spaces */
-		              nextChar();  /* skip the 'z' */
-		              while (isspace(current)) {
-		            	  if (currIsNewline()) inclinenumber();
-		            	  else nextChar();
-		              }
-		              continue;
-		        }
+				case 'z': {  /* zap following span of spaces */
+					nextChar();  /* skip the 'z' */
+					while (isspace(current)) {
+						if (currIsNewline()) inclinenumber();
+						else nextChar();
+					}
+					continue;
+				}
+				case '\\':
+				case '"':
+				case '\'':
+					save_and_next();
+					continue;
 				default: {
-					if (!isdigit(current))
-						save_and_next(); /* handles \\, \", \', and \? */
+					if (!isdigit(current)) {
+						syntaxerror("invalid escape sequence near '\\" + ((char) current) + "'");
+					}
 					else { /* \xxx */
 						int i = 0;
 						c = 0;
@@ -679,11 +685,11 @@ public class LexState {
 					return TK_NUMBER;
 				}
 			}
-		    case '0': case '1': case '2': case '3': case '4':
-		    case '5': case '6': case '7': case '8': case '9': {
-		        read_numeral(seminfo);
-		        return TK_NUMBER;
-		    }
+			case '0': case '1': case '2': case '3': case '4':
+			case '5': case '6': case '7': case '8': case '9': {
+				read_numeral(seminfo);
+				return TK_NUMBER;
+			}
 		 	case EOZ: {
 				return TK_EOS;
 			}
@@ -952,10 +958,10 @@ public class LexState {
 		FuncState fs = this.fs;
 		if (FuncState.singlevaraux(fs, varname, var, 1) == VVOID) { /* global name? */
 			expdesc key = new expdesc();
-		    FuncState.singlevaraux(fs, this.envn, var, 1);  /* get environment variable */
-		    LuaC._assert(var.k == VLOCAL || var.k == VUPVAL);
-		    this.codestring(key, varname);  /* key is variable name */
-		    fs.indexed(var, key);  /* env[varname] */
+			FuncState.singlevaraux(fs, this.envn, var, 1);  /* get environment variable */
+			LuaC._assert(var.k == VLOCAL || var.k == VUPVAL);
+			this.codestring(key, varname);  /* key is variable name */
+			fs.indexed(var, key);  /* env[varname] */
 		}
 	}
 	
@@ -1396,7 +1402,7 @@ public class LexState {
 
 	void suffixedexp (expdesc v) {
 		/* suffixedexp ->
-       	primaryexp { '.' NAME | '[' exp ']' | ':' NAME funcargs | funcargs } */
+	   	primaryexp { '.' NAME | '[' exp ']' | ':' NAME funcargs | funcargs } */
 		int line = linenumber;
 		primaryexp(v);
 		for (;;) {
@@ -1431,7 +1437,7 @@ public class LexState {
 				return;
 			}
 		}
-    }
+	}
 
 
 	void simpleexp(expdesc v) {
@@ -1569,7 +1575,7 @@ public class LexState {
 		this.enterlevel();
 		uop = getunopr(this.t.token);
 		if (uop != OPR_NOUNOPR) {
-		    int line = linenumber;
+			int line = linenumber;
 			this.next();
 			this.subexpr(v, UNARY_PRIORITY);
 			fs.prefix(uop, v, line);
@@ -1608,11 +1614,11 @@ public class LexState {
 
 	boolean block_follow (boolean withuntil) {
 		switch (t.token) {
-		    case TK_ELSE: case TK_ELSEIF: case TK_END: case TK_EOS:
-		    	return true;
-			case TK_UNTIL: 
-		    	return withuntil;
-		    default: return false;
+			case TK_ELSE: case TK_ELSEIF: case TK_END: case TK_EOS:
+				return true;
+			case TK_UNTIL:
+				return withuntil;
+			default: return false;
 		}
 	}
 
@@ -1634,7 +1640,7 @@ public class LexState {
 	static class LHS_assign {
 		LHS_assign prev;
 		/* variable (global, local, upvalue, or indexed) */
-		expdesc v = new expdesc(); 
+		expdesc v = new expdesc();
 	};
 
 
@@ -1664,43 +1670,42 @@ public class LexState {
 			}
 		}
 		if (conflict) {
-		    /* copy upvalue/local value to a temporary (in position 'extra') */
-		    int op = (v.k == VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
-		    fs.codeABC(op, extra, v.u.info, 0);
-		    fs.reserveregs(1);
+			/* copy upvalue/local value to a temporary (in position 'extra') */
+			int op = (v.k == VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
+			fs.codeABC(op, extra, v.u.info, 0);
+			fs.reserveregs(1);
 		}
 	}
 
 
 	void assignment (LHS_assign lh, int nvars) {
 		expdesc e = new expdesc();
-		this.check_condition(VLOCAL <= lh.v.k && lh.v.k <= VINDEXED,
-	                      "syntax error");
+		this.check_condition(VLOCAL <= lh.v.k && lh.v.k <= VINDEXED, "syntax error");
 		if (this.testnext(',')) {  /* assignment -> `,' primaryexp assignment */
-		    LHS_assign nv = new LHS_assign();
-		    nv.prev = lh;
-		    this.suffixedexp(nv.v);
-		    if (nv.v.k != VINDEXED)
-		      this.check_conflict(lh, nv.v);
-		    this.assignment(nv, nvars+1);
+			LHS_assign nv = new LHS_assign();
+			nv.prev = lh;
+			this.suffixedexp(nv.v);
+			if (nv.v.k != VINDEXED)
+				this.check_conflict(lh, nv.v);
+			this.assignment(nv, nvars+1);
 		}
 		else {  /* assignment . `=' explist1 */
-		    int nexps;
-		    this.checknext('=');
-		    nexps = this.explist(e);
-		    if (nexps != nvars) {
-		      this.adjust_assign(nvars, nexps, e);
-		      if (nexps > nvars)
-		        this.fs.freereg -= nexps - nvars;  /* remove extra values */
-	    }
-	    else {
-	    	fs.setoneret(e);  /* close last expression */
-	    	fs.storevar(lh.v, e);
-	    	return;  /* avoid default */
-	    }
-	  }
-	  e.init(VNONRELOC, this.fs.freereg-1);  /* default assignment */
-	  fs.storevar(lh.v, e);
+			int nexps;
+			this.checknext('=');
+			nexps = this.explist(e);
+			if (nexps != nvars) {
+				this.adjust_assign(nvars, nexps, e);
+				if (nexps > nvars)
+					this.fs.freereg -= nexps - nvars;  /* remove extra values */
+			}
+			else {
+				fs.setoneret(e);  /* close last expression */
+				fs.storevar(lh.v, e);
+				return;  /* avoid default */
+			}
+		}
+		e.init(VNONRELOC, this.fs.freereg-1);  /* default assignment */
+	  	fs.storevar(lh.v, e);
 	}
 
 
@@ -1786,7 +1791,7 @@ public class LexState {
 		this.check_match(TK_UNTIL, TK_REPEAT, line);
 		condexit = this.cond(); /* read condition (inside scope block) */
 		if (bl2.upval) { /* upvalues? */
-		    fs.patchclose(condexit, bl2.nactvar);
+			fs.patchclose(condexit, bl2.nactvar);
 		}
 		fs.leaveblock(); /* finish scope */
 		fs.patchlist(condexit, repeat_init); /* close the loop */
@@ -1937,9 +1942,9 @@ public class LexState {
 		IntPtr escapelist = new IntPtr(NO_JUMP);  /* exit list for finished parts */
 		test_then_block(escapelist);  /* IF cond THEN block */
 		while (t.token == TK_ELSEIF)
-		    test_then_block(escapelist);  /* ELSEIF cond THEN block */
+			test_then_block(escapelist);  /* ELSEIF cond THEN block */
 		if (testnext(TK_ELSE))
-		    block();  /* `else' part */
+			block();  /* `else' part */
 		check_match(TK_END, TK_IF, line);
 		fs.patchtohere(escapelist.i);  /* patch escape list to 'if' end */
 	}
@@ -2096,7 +2101,7 @@ public class LexState {
 			break;
 		}
 		case TK_RETURN: { /* stat -> retstat */
-		    next();  /* skip RETURN */
+			next();  /* skip RETURN */
 			this.retstat();
 			break;
 		}
