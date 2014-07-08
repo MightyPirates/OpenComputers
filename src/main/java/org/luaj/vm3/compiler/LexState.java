@@ -562,7 +562,7 @@ public class LexState {
 							nextChar();
 						} while (++i < 3 && isdigit(current));
 						if (c > UCHAR_MAX)
-							lexerror("escape sequence too large", TK_STRING);
+							syntaxerror("decimal escape too large near '\\" + c + "'");
 						save(c);
 					}
 					continue;
@@ -1390,7 +1390,7 @@ public class LexState {
 			return;
 		}
 		default: {
-			this.syntaxerror("unexpected symbol " + t.token + " (" + ((char) t.token) + ")");
+			this.syntaxerror("unexpected symbol near '" + txtToken(t.token) + "'");
 			return;
 		}
 		}
