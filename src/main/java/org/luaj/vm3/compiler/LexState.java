@@ -260,7 +260,6 @@ public class LexState {
 
 	void lexerror( String msg, int token ) {
 		String cid = Lua.chunkid( source.tojstring() );
-		// Is the string pushing needed?
 		L.pushfstring( cid+":"+linenumber+": "+msg );
 		if ( token != 0 )
 			L.pushfstring( "syntax error: "+msg+" near "+txtToken(token) );
