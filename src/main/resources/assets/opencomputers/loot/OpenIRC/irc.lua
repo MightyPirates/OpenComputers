@@ -404,9 +404,9 @@ local result, reason = pcall(function()
         end
       elseif line:lower():sub(1, 5) == "/lua " then
         local script = text.trim(line:sub(6))
-        local result, reason = load(script, "=stdin", setmetatable({print=print, socket=sock}, {__index=_G}))
+        local result, reason = load(script, "=stdin", nil, setmetatable({print=print, socket=sock}, {__index=_G}))
         if not result then
-          result, reason = load("return " .. script, "=stdin", setmetatable({print=print, socket=sock}, {__index=_G}))
+          result, reason = load("return " .. script, "=stdin", nil, setmetatable({print=print, socket=sock}, {__index=_G}))
         end
         line = ""
         if not result then
