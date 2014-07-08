@@ -652,7 +652,7 @@ public class StringLib extends TwoArgFunction {
 	 */
 	static Varargs rep( Varargs args ) {
 		LuaString s = args.checkstring( 1 );
-		int n = args.checkint( 2 );
+		int n = Math.max( args.checkint( 2 ), 0 );
 		final byte[] bytes = new byte[ s.length() * n ];
 		int len = s.length();
 		for ( int offset = 0; offset < bytes.length; offset += len ) {
