@@ -138,7 +138,7 @@ trait ComponentInventory extends Inventory with network.Environment {
   def isComponentSlot(slot: Int) = true
 
   protected def connectItemNode(node: Node) {
-    if (node != null) {
+    if (this.node != null && node != null) {
       this.node.connect(node)
     }
   }
