@@ -3,8 +3,8 @@ local shell = require("shell")
 
 local args, options = shell.parse(...)
 if #args < 2 then
-  io.write("Usage: cp [-frv] <from...> <to>\n")
-  io.write(" -f: overwrite file if it already exists.\n")
+  io.write("Usage: cp [-nrv] <from...> <to>\n")
+  io.write(" -n: skip existing files.\n")
   io.write(" -r: copy directories recursively.\n")
   io.write(" -v: verbose output.")
   return
@@ -36,8 +36,8 @@ local function recurse(fromPath, toPath)
       return nil, "cannot copy a directory, '" .. fromPath .. "', into itself, '" .. toPath .. "'\n"
     end
     if fs.exists(toPath) and not fs.isDirectory(toPath) then
-      if not options.f then
-        return nil, "target file exists"
+      if options.n then
+        goto skip
       end
       fs.remove(toPath)
     end
@@ -48,6 +48,7 @@ local function recurse(fromPath, toPath)
         return nil, reason
       end
     end
+    ::skip::
     return true
   else
     if fs.exists(toPath) then
