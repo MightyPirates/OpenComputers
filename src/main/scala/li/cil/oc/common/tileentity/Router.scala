@@ -12,7 +12,7 @@ import net.minecraftforge.common.ForgeDirection
 import scala.collection.mutable
 import net.minecraft.item.ItemStack
 import li.cil.oc.api.Driver
-import li.cil.oc.api.driver.Slot
+import li.cil.oc.api.driver.{Processor, Memory, Slot}
 
 // Note on the CC1.5+1.6 compatibility
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,8 +34,6 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   val computers = mutable.Map.empty[AnyRef, ComputerWrapper]
 
   val openPorts = mutable.Map.empty[AnyRef, mutable.Set[Int]]
-
-
 
   override def canUpdate = isServer
 
@@ -161,15 +159,15 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
 
   override protected def onItemAdded(slot: Int, stack: ItemStack) {
     super.onItemAdded(slot, stack)
-    slot match {
-      case 1 =>
+    Driver.driverFor(stack) match {
+      case mem: Memory =>
         maxQueueSize = queueDefaultSize + (Items.multi.subItem(stack) match {
           case Some(ram: item.Memory) => (ram.tier + 1) * queueUpgradeSize
-          case _ => (Driver.driverFor(stack).tier(stack) + 1) * (queueUpgradeSize * 2)
+          case _ => (mem.tier(stack) + 1) * (queueUpgradeSize * 2)
         })
-      case 0 =>
+      case cpu: Processor =>
         relayDelay = relayDefaultDelay -
-          (Driver.driverFor(stack).tier(stack) * relayUpgradeDelay)
+          (cpu.tier(stack) * relayUpgradeDelay)
     }
   }
 
