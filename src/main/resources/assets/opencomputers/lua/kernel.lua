@@ -80,12 +80,19 @@ sandbox = {
   setmetatable = function(t, mt)
     local gc = rawget(mt, "__gc")
     if type(gc) == "function" then
+      -- For all user __gc functions we enforce a much tighter deadline.
+      -- This is because these functions may be called from the main
+      -- thread under certain circumstanced (such as when saving the world),
+      -- which can lead to noticeable lag if the __gc function behaves badly.
       rawset(mt, "__gc", function(self)
+        local oldDeadline, oldHitDeadline = deadline, hitDeadline
         local co = coroutine.create(gc)
         debug.sethook(co, checkDeadline, "", hookInterval)
+        deadline, hitDeadline = math.min(oldDeadline, computer.realTime() + 0.5), true
         local result, reason = coroutine.resume(co, self)
         debug.sethook(co)
         checkDeadline()
+        deadline, hitDeadline = oldDeadline, oldHitDeadline
         if not result then
           error(reason, 0)
         end
@@ -440,16 +447,17 @@ end
 
 local libcomponent
 
+local proxyCache = setmetatable({}, {__mode="v"})
+local proxyDirectCache = setmetatable({}, {__mode="v"})
+
 local componentCallback = {
   __call = function(self, ...)
-    return libcomponent.invoke(self.address, self.name, ...)
+    return invoke(component, not not proxyDirectCache[self], self.address, self.name, ...)
   end,
   __tostring = function(self)
     return libcomponent.doc(self.address, self.name) or "function"
   end
 }
-
-local proxyCache = setmetatable({}, {__mode="v"})
 
 libcomponent = {
   doc = function(address, method)
@@ -500,8 +508,9 @@ libcomponent = {
     if not methods then
       return nil, reason
     end
-    for method in pairs(methods) do
+    for method, direct in pairs(methods) do
       proxy[method] = setmetatable({address=address,name=method}, componentCallback)
+      proxyDirectCache[proxy[method]] = direct
     end
     proxyCache[address] = proxy
     return proxy
