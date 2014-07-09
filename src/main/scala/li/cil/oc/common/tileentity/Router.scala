@@ -177,8 +177,8 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     slot match {
-      case 0 => relayDelay = Settings.get.switchDefaultRelayDelay
-      case 1 => maxQueueSize = Settings.get.switchDefaultMaxQueueSize
+      case 0 => relayDelay = relayDefaultDelay
+      case 1 => maxQueueSize = queueDefaultSize
     }
   }
 
