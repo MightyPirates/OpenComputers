@@ -67,7 +67,7 @@ public interface Environment {
      * it to query it for other nodes. Use this to perform initialization logic,
      * such as building lists of nodes of a certain type in the network.
      * <p/>
-     * For example, if node C is added to a network with nodes A and B, these
+     * For example, if node A is added to a network with nodes B and C, these
      * calls are made:
      * <ul>
      *     <li>A.onConnect(A)</li>
@@ -90,7 +90,7 @@ public interface Environment {
      * Use this to perform clean-up logic such as removing references to the
      * removed node.
      * <p/>
-     * For example, if node C is removed from a network with nodes A, B and C,
+     * For example, if node A is removed from a network with nodes A, B and C,
      * these calls are made:
      * <ul>
      *     <li>A.onDisconnect(A)</li>
