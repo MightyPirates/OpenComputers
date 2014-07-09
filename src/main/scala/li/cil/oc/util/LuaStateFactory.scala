@@ -13,7 +13,6 @@ import li.cil.oc.{OpenComputers, Settings}
 import org.apache.commons.lang3.SystemUtils
 
 import scala.util.Random
-import scala.util.control.Breaks._
 
 /**
  * Factory singleton used to spawn new LuaState instances.
@@ -30,165 +29,169 @@ object LuaStateFactory {
   /** Set to true in initialization code below if available. */
   private var haveNativeLibrary = false
 
-  private var isWindows = false
+  private val isWindows = SystemUtils.IS_OS_WINDOWS
 
   private var _is64Bit = false
+
+  private var currentLib = ""
 
   def isAvailable = haveNativeLibrary
 
   def is64Bit = _is64Bit
+
+  // Register a custom library loader with JNLua. We have to trigger
+  // library loads through JNLua to ensure the LuaState class is the
+  // one loading the library and not the other way around - the native
+  // library also references the LuaState class, and if it is loaded
+  // that way, it will fail to access native methods in its static
+  // initializer, because the native lib will not have been completely
+  // loaded at the time the initializer runs.
+  jnlua.NativeSupport.getInstance().setLoader(new Loader {
+    def load() {
+      System.load(currentLib)
+    }
+  })
 
   // Since we use native libraries we have to do some work. This includes
   // figuring out what we're running on, so that we can load the proper shared
   // libraries compiled for that system. It also means we have to unpack the
   // shared libraries somewhere so that we can load them, because we cannot
   // load them directly from a JAR.
-  breakable {
-    // See http://lopica.sourceforge.net/os.html
-    val architecture =
-      System.getProperty("sun.arch.data.model") match {
-        case "32" => "32"
-        case "64" => "64"
-        case _ =>
-          System.getProperty("os.arch").toLowerCase match {
-            case "i386" | "x86" => "32"
-            case "amd64" | "x86_64" => "64"
-            case "ppc" | "powerpc" => "ppc"
-            case _ =>
-              OpenComputers.log.warning("Unsupported architecture, you won't be able to host games with working computers.")
-              break()
-          }
-      }
-    _is64Bit = architecture == "64"
-
-    val extension = System.getProperty("os.name").toLowerCase match {
-      case name if name.startsWith("linux") => ".so"
-      case name if name.startsWith("mac") => ".dylib"
-      case name if name.startsWith("windows") => ".dll"
-      case name if name.contains("bsd") => ".bsd.so"
-      case _ =>
-        OpenComputers.log.warning("Unsupported operating system, you won't be able to host games with working computers.")
-        break()
-    }
-    isWindows = extension == ".dll"
-    val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
-
+  def init() {
     if (isWindows && !Settings.get.alwaysTryNative) {
       if (SystemUtils.IS_OS_WINDOWS_XP) {
-        OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft will stop supporting Windows XP in April 2014.")
-        break()
+        OpenComputers.log.warning("Sorry, but Windows XP isn't supported. I'm afraid you'll have to use a newer Windows. I very much recommend upgrading your Windows, anyway, since Microsoft has stopped supporting Windows XP in April 2014.")
+        return
       }
 
       if (SystemUtils.IS_OS_WINDOWS_2003) {
         OpenComputers.log.warning("Sorry, but Windows Server 2003 isn't supported. I'm afraid you'll have to use a newer Windows.")
-        break()
+        return
       }
     }
 
+    val sunArch = System.getProperty("sun.arch.data.model")
+    val osArch = System.getProperty("os.arch").toLowerCase
+    _is64Bit = sunArch == "64" || osArch == "amd64" || osArch == "x86_64"
+
+    val libPath = "/assets/" + Settings.resourceDomain + "/lib/"
+    val libNames = Array(
+      "native.32.arm.so",
+      "native.32.bsd.so",
+      "native.32.dll",
+      "native.32.dylib",
+      "native.32.so",
+      "native.64.bsd.so",
+      "native.64.dll",
+      "native.64.dylib",
+      "native.64.so"
+    )
     val tmpPath = {
       val path = System.getProperty("java.io.tmpdir")
       if (path.endsWith("/") || path.endsWith("\\")) path
       else path + "/"
     }
 
-    val library = "native." + architecture + extension
-    val libraryUrl = classOf[Machine].getResource(libPath + library)
-    if (libraryUrl == null) {
-      OpenComputers.log.warning("Unsupported platform, you won't be able to host games with working computers.")
-      break()
-    }
-
-    // Found file with proper extension. Create a temporary file.
-    val file = new File(tmpPath + "OpenComputersMod-" + OpenComputers.Version + library)
-    // If the file, already exists, make sure it's the same we need, if it's
-    // not disable use of the natives.
-    if (file.exists()) {
-      var matching = true
-      try {
-        val inCurrent = libraryUrl.openStream()
-        val inExisting = new FileInputStream(file)
-        var inCurrentByte = 0
-        var inExistingByte = 0
-        do {
-          inCurrentByte = inCurrent.read()
-          inExistingByte = inExisting.read()
-          if (inCurrentByte != inExistingByte) {
-            matching = false
-            inCurrentByte = -1
-            inExistingByte = -1
+    // Try to find a working lib.
+    for (library <- libNames if !haveNativeLibrary) {
+      OpenComputers.log.fine(s"Trying native library '$library'...")
+      val libraryUrl = classOf[Machine].getResource(libPath + library)
+      if (libraryUrl != null) {
+        // Create a temporary file.
+        val file = new File(tmpPath + "OpenComputersMod-" + OpenComputers.Version + "-" + library)
+        // If the file, already exists, make sure it's the same we need, if it's
+        // not disable use of the natives.
+        if (file.exists()) {
+          var matching = true
+          try {
+            val inCurrent = libraryUrl.openStream()
+            val inExisting = new FileInputStream(file)
+            var inCurrentByte = 0
+            var inExistingByte = 0
+            do {
+              inCurrentByte = inCurrent.read()
+              inExistingByte = inExisting.read()
+              if (inCurrentByte != inExistingByte) {
+                matching = false
+                inCurrentByte = -1
+                inExistingByte = -1
+              }
+            }
+            while (inCurrentByte != -1 && inExistingByte != -1)
+            inCurrent.close()
+            inExisting.close()
+          }
+          catch {
+            case _: Throwable =>
+              matching = false
+          }
+          if (!matching) {
+            // Try to delete an old instance of the library, in case we have an update
+            // and deleteOnExit fails (which it regularly does on Windows it seems).
+            // Note that this should only ever be necessary for dev-builds, where the
+            // version number didn't change (since the version number is part of the name).
+            try {
+              file.delete()
+            }
+            catch {
+              case t: Throwable => // Ignore.
+            }
+            if (file.exists()) {
+              OpenComputers.log.severe(s"Could not update native library '${file.getName}'!")
+            }
           }
         }
-        while (inCurrentByte != -1 && inExistingByte != -1)
-        inCurrent.close()
-        inExisting.close()
-      }
-      catch {
-        case _: Throwable =>
-          matching = false
-      }
-      if (!matching) {
-        // Try to delete an old instance of the library, in case we have an update
-        // and deleteOnExit fails (which it regularly does on Windows it seems).
-        // Note that this should only ever be necessary for dev-builds, where the
-        // version number didn't change (since the version number is part of the name).
+        // Copy the file contents to the temporary file.
         try {
-          file.delete()
+          val in = Channels.newChannel(libraryUrl.openStream())
+          try {
+            val out = new FileOutputStream(file).getChannel
+            try {
+              out.transferFrom(in, 0, Long.MaxValue)
+              file.deleteOnExit()
+              // Set file permissions more liberally for multi-user+instance servers.
+              file.setReadable(true, false)
+              file.setWritable(true, false)
+              file.setExecutable(true, false)
+            }
+            finally {
+              out.close()
+            }
+          }
+          finally {
+            in.close()
+          }
         }
         catch {
-          case t: Throwable => // Ignore.
+          // Java (or Windows?) locks the library file when opening it, so any
+          // further tries to update it while another instance is still running
+          // will fail. We still want to try each time, since the files may have
+          // been updated.
+          // Alternatively, the file could not be opened for reading/writing.
+          case t: Throwable => // Nothing.
         }
-        if (file.exists()) {
-          OpenComputers.log.severe("Could not update native library, is another instance of Minecraft with an older version of the mod already running?")
-          break()
-        }
-      }
-    }
-    // Copy the file contents to the temporary file.
-    try {
-      val in = Channels.newChannel(libraryUrl.openStream())
-      val out = new FileOutputStream(file).getChannel
-      out.transferFrom(in, 0, Long.MaxValue)
-      in.close()
-      out.close()
-      file.deleteOnExit()
-      // Set file permissions more liberally for multi-user+instance servers.
-      file.setReadable(true, false)
-      file.setWritable(true, false)
-      file.setExecutable(true, false)
-    }
-    catch {
-      // Java (or Windows?) locks the library file when opening it, so any
-      // further tries to update it while another instance is still running
-      // will fail. We still want to try each time, since the files may have
-      // been updated.
-      case t: Throwable => // Nothing.
-    }
-
-    // Remember the temporary file's location for the loader.
-    val libraryPath = file.getAbsolutePath
-
-    // Register a custom library loader with JNLua to actually load the ones we
-    // just extracted.
-    jnlua.NativeSupport.getInstance().setLoader(new Loader {
-      def load() {
+        // Try to load the lib.
+        currentLib = file.getAbsolutePath
         try {
-          System.load(libraryPath)
-        } catch {
-          case t: Throwable =>
-            haveNativeLibrary = false
-            throw t
+          LuaState.initializeNative()
+          new jnlua.LuaState().close()
+          OpenComputers.log.info(s"Found a compatible native library: '${file.getName}'.")
+          haveNativeLibrary = true
+        }
+        catch {
+          case _: Throwable =>
+            OpenComputers.log.log(Level.FINE, s"Could not load native library '${file.getName}'.")
+            file.delete()
         }
       }
-    })
+    }
 
-    haveNativeLibrary = true
+    if (!haveNativeLibrary) {
+      OpenComputers.log.warning("Unsupported platform, you won't be able to host games with persistent computers.")
+    }
   }
 
-  // Try creating a state once, to verify the libs are working.
-  createState() match {
-    case Some(state) => state.close()
-    case _ => haveNativeLibrary = false
-  }
+  init()
 
   // ----------------------------------------------------------------------- //
   // Factory

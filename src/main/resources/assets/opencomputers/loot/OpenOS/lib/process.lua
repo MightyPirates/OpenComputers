@@ -36,7 +36,6 @@ function process.load(path, env, init, name)
   local code, reason
   if f:read(2) == "#!" then
     local command = f:read()
-    f:close()
     if require("text").trim(command) == "" then
       reason = "no exec command"
     else
@@ -47,6 +46,7 @@ function process.load(path, env, init, name)
   else
     code, reason = loadfile(path, "t", env)
   end
+  f:close()
   if not code then
     return nil, reason
   end

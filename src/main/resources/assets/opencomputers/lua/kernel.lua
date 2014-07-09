@@ -298,10 +298,13 @@ end
 local function invoke(target, direct, ...)
   local result
   if direct then
-    result = table.pack(target.invoke(...))
+    local args = table.pack(...) -- for unwrapping
+    unwrapUserdata(args)
+    result = table.pack(target.invoke(table.unpack(args, 1, args.n)))
     if result.n == 0 then -- limit for direct calls reached
       result = nil
     end
+    -- no need to wrap here, will be wrapped in processResult
   end
   if not result then
     local args = table.pack(...) -- for access in closure
@@ -355,7 +358,10 @@ local userdataWrapper = {
   -- Do not allow changing the metatable to avoid the gc callback being
   -- unset, leading to potential resource leakage on the host side.
   __metatable = "userdata",
-  __tostring = "userdata"
+  __tostring = function(self)
+    local data = wrappedUserdata[self]
+    return tostring(select(2, pcall(data.toString, data)))
+  end
 }
 
 local userdataCallback = {

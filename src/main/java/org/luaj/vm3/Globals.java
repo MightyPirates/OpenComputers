@@ -231,7 +231,7 @@ public class Globals extends LuaTable {
 			if (undumper == null)
 				error("No undumper.");
 			if (!is.markSupported())
-				is = new MarkStream(is);
+				is = new BufferedStream(is);
 			is.mark(4);
 			final Prototype p = undumper.undump(is, chunkname);
 			if (p != null)
@@ -277,13 +277,17 @@ public class Globals extends LuaTable {
 	/** Reader implementation to read chars from a String in JME or JSE. */
 	static class StrReader extends Reader {
 		final String s;
-		int i = 0, n;
+		int i = 0;
+		final int n;
 		StrReader(String s) {
 			this.s = s;
 			n = s.length();
 		}
 		public void close() throws IOException {
 			i = n;
+		}
+		public int read() throws IOException {
+			return i < n ? s.charAt(i++) : -1;
 		}
 		public int read(char[] cbuf, int off, int len) throws IOException {
 			int j = 0;
@@ -293,54 +297,115 @@ public class Globals extends LuaTable {
 		}
 	}
 
+	/* Abstract base class to provide basic buffered input storage and delivery.
+	 * This class may be moved to its own package in the future.
+	 */
+	abstract static class AbstractBufferedStream extends InputStream {
+		protected byte[] b;
+		protected int i = 0, j = 0;
+		protected AbstractBufferedStream(int buflen) {
+			this.b = new byte[buflen];
+		}
+		abstract protected int avail() throws IOException;
+		public int read() throws IOException {
+			int a = avail();
+			return (a <= 0 ? -1 : 0xff & b[i++]);
+		}
+		public int read(byte[] b) throws IOException {
+			return read(b, 0, b.length);
+		}
+		public int read(byte[] b, int i0, int n) throws IOException {
+			int a = avail();
+			if (a <= 0) return -1;
+			final int n_read = Math.min(a, n);
+			System.arraycopy(this.b,  i,  b,  i0,  n_read);
+			i += n_read;
+			return n_read;
+		}
+		public long skip(long n) throws IOException {
+			final long k = Math.min(n, j - i);
+			i += k;
+			return k;
+		}		
+		public int available() throws IOException {
+			return j - i;
+		}
+	}
+
 	/**  Simple converter from Reader to InputStream using UTF8 encoding that will work
 	 * on both JME and JSE.
+	 * This class may be moved to its own package in the future.
 	 */
-	static class UTF8Stream extends InputStream {
-		final char[] c = new char[32];
-		final byte[] b = new byte[96];
-		int i = 0, j = 0;
-		final Reader r;
+	static class UTF8Stream extends AbstractBufferedStream {
+		private final char[] c = new char[32];
+		private final Reader r;
 		UTF8Stream(Reader r) {
+			super(96);
 			this.r = r;
 		}
-		public int read() throws IOException {
-			if (i < j)
-				return c[i++];
+		protected int avail() throws IOException {
+			if (i < j) return j - i;
 			int n = r.read(c);
 			if (n < 0)
 				return -1;
+			if (n == 0) {
+				int u = r.read();
+				if (u < 0)
+					return -1;
+				c[0] = (char) u;
+				n = 1;
+			}
 			j = LuaString.encodeToUtf8(c, n, b, i = 0);
-			return b[i++];
+			return j;
+		}
+		public void close() throws IOException {
+			r.close();
 		}
 	}
 	
-	/** Simple InputStream that supports mark.
+	/** Simple buffered InputStream that supports mark.
 	 * Used to examine an InputStream for a 4-byte binary lua signature, 
-	 * and fall back to text input when the signature is not found.
+	 * and fall back to text input when the signature is not found,
+	 * as well as speed up normal compilation and reading of lua scripts.
+	 * This class may be moved to its own package in the future.
 	 */
-	static class MarkStream extends InputStream {
-		private int[] b;
-		private int i = 0, j = 0;
+	static class BufferedStream extends AbstractBufferedStream {
 		private final InputStream s;
-		MarkStream(InputStream s) {
+		public BufferedStream(InputStream s) {
+			this(128, s);
+		}
+		BufferedStream(int buflen, InputStream s) {
+			super(buflen);
 			this.s = s;
 		}
-		public int read() throws IOException {
-			if (i < j)
-				return b[i++];
-			final int c = s.read();
-			if (c < 0)
+		protected int avail() throws IOException {
+			if (i < j) return j - i;
+			if (j >= b.length) i = j = 0;
+			// leave previous bytes in place to implement mark()/reset().
+			int n = s.read(b, j, b.length - j);
+			if (n < 0)
 				return -1;
-			if (j < b.length) {
-				b[j++] = c;
-				i = j;
+			if (n == 0) {
+				int u = s.read();
+				if (u < 0)
+					return -1;
+				b[j] = (byte) u;
+				n = 1;
 			}
-			return c;
+			j += n;
+			return n;
+		}
+		public void close() throws IOException {
+			s.close();
 		}
 		public synchronized void mark(int n) {
-			b = new int[n];
-			i = j = 0;
+			if (i > 0 || n > b.length) {
+				byte[] dest = n > b.length ? new byte[n] : b;
+				System.arraycopy(b, i, dest, 0, j - i);
+				j -= i;
+				i = 0;
+				b = dest;
+			}
 		}
 		public boolean markSupported() {
 			return true;
@@ -349,5 +414,4 @@ public class Globals extends LuaTable {
 			i = 0;
 		}
 	}
-
 }
