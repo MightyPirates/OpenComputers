@@ -13,7 +13,7 @@ object GuiType extends Enumeration {
   Server,
   Tablet,
   Terminal,
-  Router
+  Switch
 
   = Value
 }

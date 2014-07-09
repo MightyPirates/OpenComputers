@@ -163,12 +163,13 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
     super.onItemAdded(slot, stack)
     slot match {
       case 1 =>
-        maxQueueSize = 20 + (Items.multi.subItem(stack) match {
-          case Some(ram: item.Memory) => (ram.tier + 1) * 5
-          case _ => (Driver.driverFor(stack).tier(stack) + 1) * 10
+        maxQueueSize = queueDefaultSize + (Items.multi.subItem(stack) match {
+          case Some(ram: item.Memory) => (ram.tier + 1) * queueUpgradeSize
+          case _ => (Driver.driverFor(stack).tier(stack) + 1) * (queueUpgradeSize * 2)
         })
       case 0 =>
-        relayDelay = 5 - Driver.driverFor(stack).tier(stack)
+        relayDelay = relayDefaultDelay -
+          (Driver.driverFor(stack).tier(stack) * relayUpgradeDelay)
     }
   }
 
@@ -176,8 +177,8 @@ class Router extends traits.Hub with traits.NotAnalyzable with IPeripheral with 
   override protected def onItemRemoved(slot: Int, stack: ItemStack) {
     super.onItemRemoved(slot, stack)
     slot match {
-      case 0 => relayDelay = 5
-      case 1 => maxQueueSize = 20
+      case 0 => relayDelay = Settings.get.switchDefaultRelayDelay
+      case 1 => maxQueueSize = Settings.get.switchDefaultMaxQueueSize
     }
   }
 

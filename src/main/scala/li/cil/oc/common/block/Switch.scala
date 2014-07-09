@@ -47,10 +47,10 @@ class Switch(val parent: SimpleDelegator) extends SimpleDelegate {
   override def rightClick(world: World, x: Int, y: Int, z: Int, player: EntityPlayer,
                           side: ForgeDirection, hitX: Float, hitY: Float, hitZ: Float) = {
     world.getBlockTileEntity(x, y, z) match {
-      case drive: tileentity.Router =>
+      case switch: tileentity.Router =>
         if (!player.isSneaking) {
           if (!world.isRemote) {
-            player.openGui(OpenComputers, GuiType.Router.id, world, x, y, z)
+            player.openGui(OpenComputers, GuiType.Switch.id, world, x, y, z)
           }
           true
         }
