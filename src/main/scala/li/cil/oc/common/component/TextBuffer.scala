@@ -127,7 +127,12 @@ class TextBuffer(val owner: Container) extends ManagedComponent with api.compone
   @Callback(doc = """function():table -- The list of keyboards attached to the screen.""")
   def getKeyboards(context: Context, args: Arguments): Array[AnyRef] = {
     context.pause(0.25)
-    Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
+    node.host match {
+      case screen: tileentity.Screen =>
+        Array(screen.screens.map(_.node).flatMap(_.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address)).toArray)
+      case _ =>
+        Array(node.neighbors.filter(_.host.isInstanceOf[Keyboard]).map(_.address).toArray)
+    }
   }
 
   // ----------------------------------------------------------------------- //
@@ -571,15 +576,16 @@ object TextBuffer {
     }
 
     override def keyDown(character: Char, code: Int, player: EntityPlayer) {
-      owner.node.sendToVisible("keyboard.keyDown", player, Char.box(character), Int.box(code))
+      sendToKeyboards("keyboard.keyDown", player, Char.box(character), Int.box(code))
     }
 
+
     override def keyUp(character: Char, code: Int, player: EntityPlayer) {
-      owner.node.sendToVisible("keyboard.keyUp", player, Char.box(character), Int.box(code))
+      sendToKeyboards("keyboard.keyUp", player, Char.box(character), Int.box(code))
     }
 
     override def clipboard(value: String, player: EntityPlayer) {
-      owner.node.sendToVisible("keyboard.clipboard", player, value)
+      sendToKeyboards("keyboard.clipboard", player, value)
     }
 
     override def mouseDown(x: Int, y: Int, button: Int, player: EntityPlayer) {
@@ -600,6 +606,15 @@ object TextBuffer {
     override def mouseScroll(x: Int, y: Int, delta: Int, player: EntityPlayer) {
       if (Settings.get.inputUsername) owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta), player.getCommandSenderName)
       else owner.node.sendToReachable("computer.checked_signal", player, "scroll", Int.box(x), Int.box(y), Int.box(delta))
+    }
+
+    private def sendToKeyboards(name: String, values: AnyRef*) {
+      owner.owner match {
+        case screen: tileentity.Screen =>
+          screen.screens.foreach(_.node.sendToNeighbors(name, values: _*))
+        case _ =>
+          owner.node.sendToNeighbors(name, values: _*)
+      }
     }
   }
 
