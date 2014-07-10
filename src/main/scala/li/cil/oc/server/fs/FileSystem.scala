@@ -81,6 +81,9 @@ object FileSystem extends api.detail.FileSystemAPI {
 
   override def fromSaveDirectory(root: String, capacity: Long, buffered: Boolean) = {
     val path = new io.File(DimensionManager.getCurrentSaveRootDirectory, Settings.savePath + root)
+    if (!path.isDirectory) {
+      path.delete()
+    }
     path.mkdirs()
     if (path.exists() && path.isDirectory) {
       if (buffered) new BufferedFileSystem(path, capacity)
