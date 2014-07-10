@@ -43,7 +43,7 @@ class Keyboard extends SimpleBlock(Material.rock) {
     }
 
   override def canPlaceBlockOnSide(world: World, x: Int, y: Int, z: Int, side: ForgeDirection) = {
-    world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side) &&
+    world.isSideSolid(x + side.offsetX, y + side.offsetY, z + side.offsetZ, side.getOpposite) &&
       (world.getTileEntity(x + side.offsetX, y + side.offsetY, z + side.offsetZ) match {
         case screen: tileentity.Screen => screen.facing != side.getOpposite
         case _ => true
