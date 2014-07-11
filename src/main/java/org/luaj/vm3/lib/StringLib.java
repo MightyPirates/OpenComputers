@@ -357,6 +357,7 @@ public class StringLib extends TwoArgFunction {
 		private DecimalFormat floatingFormat;
 		
 		public FormatDesc(Varargs args, LuaString strfrmt, final int start) {
+			// TODO: force positive sign
 			scientificFormat = new DecimalFormat("0.000000E00");
 			floatingFormat = new DecimalFormat("0.000000");
 			int p = start, n = strfrmt.length();
@@ -445,8 +446,12 @@ public class StringLib extends TwoArgFunction {
 			int ndigits = minwidth;
 			int nzeros;
 			
+			boolean allowPlusSpace = conversion == 'd' || conversion == 'i';
+			
 			if ( number < 0 ) {
 				ndigits--;
+			} else if ( allowPlusSpace && (explicitPlus || space) ) {
+				minwidth++;
 			}
 			
 			if ( alternateForm ) {
@@ -479,6 +484,10 @@ public class StringLib extends TwoArgFunction {
 					buf.append( (byte)'-' );
 					digits = digits.substring( 1 );
 				}
+			} else if ( allowPlusSpace && explicitPlus ) {
+				buf.append( (byte)'+' );
+			} else if ( allowPlusSpace && space ) {
+				buf.append( (byte)' ' );
 			}
 			
 			if ( alternateForm ) {
@@ -504,24 +513,69 @@ public class StringLib extends TwoArgFunction {
 				pad( buf, ' ', nspaces );
 		}
 		
-		public void format(Buffer buf, double x) {
+		public void format(Buffer buf, double number) {
+			// TODO: precision, alternateForm
+			String digits;
+			
 			switch ( conversion ) {
 			case 'e':
-				buf.append( scientificFormat.format( x ).toLowerCase() );
+				digits = scientificFormat.format( number ).toLowerCase();
 				break;
 			case 'E':
-				buf.append( scientificFormat.format( x ) );
+				digits = scientificFormat.format( number );
 				break;
 			case 'f':
-				buf.append( floatingFormat.format(x) );
+				digits = floatingFormat.format(number);
 				break;
 			case 'g':
 			case 'G':
 			default:
 				//TODO: g, G
-				buf.append( String.valueOf( x ) );
+				digits = String.valueOf( number );
 				break;
 			}
+			
+			int minwidth = digits.length();
+			int ndigits = minwidth;
+			int nzeros;
+			
+			if ( number < 0 ) {
+				ndigits--;
+			} else if ( explicitPlus || space ) {
+				minwidth++;
+			}
+			
+			if ( precision > ndigits )
+				nzeros = precision - ndigits;
+			else if ( precision == -1 && zeroPad && width > minwidth )
+				nzeros = width - minwidth;
+			else
+				nzeros = 0;
+			
+			minwidth += nzeros;
+			int nspaces = width > minwidth ? width - minwidth : 0;
+			
+			if ( !leftAdjust )
+				pad( buf, ' ', nspaces );
+			
+			if ( number < 0 ) {
+				if ( nzeros > 0 ) {
+					buf.append( (byte)'-' );
+					digits = digits.substring( 1 );
+				}
+			} else if ( explicitPlus ) {
+				buf.append( (byte)'+' );
+			} else if ( space ) {
+				buf.append( (byte)' ' );
+			}
+			
+			if ( nzeros > 0 )
+				pad( buf, '0', nzeros );
+			
+			buf.append( digits );
+			
+			if ( leftAdjust )
+				pad( buf, ' ', nspaces );
 		}
 		
 		public void format(Buffer buf, LuaString s) {
