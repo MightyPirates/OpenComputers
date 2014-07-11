@@ -81,6 +81,12 @@ class Delegator(id: Int) extends Item(id) {
     case _ => EnumRarity.common
   }
 
+  override def getColorFromItemStack(stack: ItemStack, pass: Int) =
+    subItem(stack) match {
+      case Some(subItem) => subItem.color(stack, pass)
+      case _ => super.getColorFromItemStack(stack, pass)
+    }
+
   override def getChestGenBase(chest: ChestGenHooks, rnd: Random, original: WeightedRandomChestContent) = original
 
   override def shouldPassSneakingClickToBlock(world: World, x: Int, y: Int, z: Int) = {
@@ -165,6 +171,9 @@ class Delegator(id: Int) extends Item(id) {
       }
       case _ => super.getIcon(stack, pass)
     }
+
+  @SideOnly(Side.CLIENT)
+  override def getIconIndex(stack: ItemStack) = getIcon(stack, 0)
 
   @SideOnly(Side.CLIENT)
   override def getIconFromDamage(damage: Int): Icon =

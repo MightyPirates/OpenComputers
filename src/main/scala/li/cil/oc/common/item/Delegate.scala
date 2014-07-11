@@ -59,6 +59,8 @@ trait Delegate {
     }
   }
 
+  def color(stack: ItemStack, pass: Int) = 0xFFFFFF
+
   def displayName(stack: ItemStack): Option[String] = None
 
   @SideOnly(Side.CLIENT)

@@ -35,6 +35,7 @@ object Blocks {
     GameRegistry.registerTileEntity(classOf[tileentity.Keyboard], Settings.namespace + "keyboard")
     GameRegistry.registerTileEntity(classOf[tileentity.Hologram], Settings.namespace + "hologram")
     GameRegistry.registerTileEntity(classOf[tileentity.Geolyzer], Settings.namespace + "geolyzer")
+    GameRegistry.registerTileEntity(classOf[tileentity.MotionSensor], Settings.namespace + "motion_sensor")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerConverter], Settings.namespace + "power_converter")
     GameRegistry.registerTileEntity(classOf[tileentity.PowerDistributor], Settings.namespace + "power_distributor")
     GameRegistry.registerTileEntity(classOf[tileentity.Redstone], Settings.namespace + "redstone")
@@ -84,5 +85,8 @@ object Blocks {
     Recipes.addBlock(new Geolyzer(blockSimple), "geolyzer", "oc:geolyzer")
     Recipes.addBlock(new RobotAssembler(blockSpecial), "robotAssembler", "oc:robotAssembler")
     Recipes.addBlock(new Disassembler(blockSimple), "disassembler", "oc:disassembler")
+
+    // ???
+    Recipes.addBlock(new MotionSensor(blockSimple), "motionSensor", "oc:motionSensor")
   }
 }

@@ -413,6 +413,9 @@ class NativeLuaArchitecture(val machine: api.machine.Machine) extends Architectu
       case e: LuaRuntimeException =>
         OpenComputers.log.warning("Could not persist computer.\n" + e.toString + (if (e.getLuaStackTrace.isEmpty) "" else "\tat " + e.getLuaStackTrace.mkString("\n\tat ")))
         nbt.removeTag("state")
+      case e: LuaGcMetamethodException =>
+        OpenComputers.log.warning("Could not persist computer.\n" + e.toString)
+        nbt.removeTag("state")
     }
 
     // Limit memory again.

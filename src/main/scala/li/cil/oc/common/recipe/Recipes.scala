@@ -6,6 +6,7 @@ import java.util.logging.Level
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
 import li.cil.oc.{Items, OpenComputers, api, common}
 import net.minecraft.block.Block
@@ -68,7 +69,7 @@ object Recipes {
       if (!userRecipes.exists()) {
         FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
       }
-      val config = ConfigParseOptions.defaults.
+      lazy val config: ConfigParseOptions = ConfigParseOptions.defaults.
         setSyntax(ConfigSyntax.CONF).
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
         var fallback: ConfigIncluder = _
@@ -82,7 +83,7 @@ object Recipes {
 
         override def includeFile(context: ConfigIncludeContext, what: File) = {
           val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
-          val result = ConfigFactory.parseReader(in)
+          val result = ConfigFactory.parseReader(in, config)
           in.close()
           result.root()
         }
@@ -97,6 +98,12 @@ object Recipes {
       // Navigation upgrade recrafting.
       val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+
+      // Floppy disk coloring.
+      val floppy = api.Items.get("floppy").createItemStack(1)
+      for (dye <- Color.dyes) {
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy, floppy, dye))
+      }
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)

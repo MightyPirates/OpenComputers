@@ -186,6 +186,12 @@ solarGeneratorUpgrade {
           ["oc:circuitChip3", blockLapis, "oc:circuitChip3"]
           [ingotIron, "oc:materialCircuitBoardPrinted", ingotIron]]
 }
+tractorBeamUpgrade {
+  input: [[ingotGold, craftingPiston, ingotGold]
+          [ingotIron, "oc:capacitor", ingotIron]
+          [ingotGold, "oc:circuitChip3", ingotGold]]
+}
+
 cardContainer1 {
   input: [[ingotIron, "oc:materialTransistor", ingotIron]
           [craftingPiston, chest, ""]
@@ -384,6 +390,11 @@ hologram2 {
 keyboard {
   input: [["oc:materialButtonGroup", "oc:materialButtonGroup", "oc:materialButtonGroup"]
           ["oc:materialButtonGroup", "oc:materialArrowKey", "oc:materialNumPad"]]
+}
+motionSensor {
+  input: [[ingotGold, daylightDetector, ingotGold]
+          [daylightDetector, "oc:cpu2", daylightDetector]
+          [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 powerConverter {
   input: [[ingotIron, "oc:cable", ingotIron]

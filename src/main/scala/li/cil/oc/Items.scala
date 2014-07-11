@@ -5,6 +5,7 @@ import li.cil.oc.api.detail.{ItemAPI, ItemInfo}
 import li.cil.oc.common.InventorySlots.Tier
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.{Loot, item}
+import li.cil.oc.util.Color
 import li.cil.oc.util.mods.Mods
 import net.minecraft.block.Block
 import net.minecraft.creativetab.CreativeTabs
@@ -215,6 +216,7 @@ object Items extends ItemAPI {
         val nbt = new NBTTagCompound("tag")
         nbt.setTag(Settings.namespace + "data", data)
         nbt.setString(Settings.namespace + "lootPath", "OpenOS")
+        nbt.setInteger(Settings.namespace + "color", Color.dyes.indexOf("dyeGreen"))
 
         val stack = super.createItemStack(amount)
         stack.setTagCompound(nbt)
@@ -229,6 +231,9 @@ object Items extends ItemAPI {
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Two), "batteryUpgrade2", "oc:batteryUpgrade2")
     Recipes.addItem(new item.UpgradeBattery(multi, Tier.Three), "batteryUpgrade3", "oc:batteryUpgrade3")
     Recipes.addItem(new item.RedstoneCard(multi, Tier.One), "redstoneCard1", "oc:redstoneCard1")
+
+    // ???
+    Recipes.addItem(new item.UpgradeTractorBeam(multi), "tractorBeamUpgrade", "oc:tractorBeamUpgrade")
 
     // Experimental
 //    registerItem(new item.Tablet(multi), "tablet")
