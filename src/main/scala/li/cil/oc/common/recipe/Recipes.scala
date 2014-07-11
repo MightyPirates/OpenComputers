@@ -68,7 +68,7 @@ object Recipes {
       if (!userRecipes.exists()) {
         FileUtils.copyURLToFile(getClass.getResource("/assets/opencomputers/recipes/user.recipes"), userRecipes)
       }
-      val config = ConfigParseOptions.defaults.
+      lazy val config: ConfigParseOptions = ConfigParseOptions.defaults.
         setSyntax(ConfigSyntax.CONF).
         setIncluder(new ConfigIncluder with ConfigIncluderFile {
         var fallback: ConfigIncluder = _
@@ -82,7 +82,7 @@ object Recipes {
 
         override def includeFile(context: ConfigIncludeContext, what: File) = {
           val in = if (what.isAbsolute) new FileReader(what) else new FileReader(new File(userRecipes.getParentFile, what.getPath))
-          val result = ConfigFactory.parseReader(in)
+          val result = ConfigFactory.parseReader(in, config)
           in.close()
           result.root()
         }
