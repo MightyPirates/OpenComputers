@@ -28,10 +28,10 @@ class UpgradeChunkloader(val owner: Container) extends component.ManagedComponen
     }
   }
 
-  @Callback
+  @Callback(doc = """function():boolean -- Gets whether the chunkloader is currently active.""")
   def isActive(context: Context, args: Arguments): Array[AnyRef] = result(ticket.isDefined)
 
-  @Callback
+  @Callback(doc = """function(enabled:boolean):boolean -- Enables or disables the chunkloader.""")
   def setActive(context: Context, args: Arguments): Array[AnyRef] = {
     val enabled = args.checkBoolean(0)
     if (enabled && ticket.isEmpty) {
