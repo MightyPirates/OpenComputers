@@ -8,6 +8,7 @@ import li.cil.oc.api.network._
 import li.cil.oc.common.component
 import li.cil.oc.util.ExtendedArguments._
 import li.cil.oc.util.InventoryUtils
+import net.minecraftforge.common.ForgeDirection
 
 class UpgradeInventoryController(val owner: Container with Robot) extends component.ManagedComponent {
   val node = Network.newNode(this, Visibility.Network).
@@ -17,11 +18,28 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
 
   // ----------------------------------------------------------------------- //
 
-  @Callback(doc = """function():number -- Get the number of slots in the inventory on the specified side of the robot.""")
+  @Callback(doc = """function():number -- Get the number of slots in the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
   def getInventorySize(context: Context, args: Arguments): Array[AnyRef] = {
-    val facing = checkSideForAction(args, 0)
-    InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+    val facing = checkSideForInventory(args, 0)
+    if (facing == owner.facing.getOpposite) result(owner.inventorySize)
+    else InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
       case Some(inventory) => result(inventory.getSizeInventory)
+      case _ => result(Unit, "no inventory")
+    }
+  }
+
+  @Callback(doc = """function():table -- Get a description of the stack in the the inventory on the specified side of the robot. Back refers to the robot's own inventory.""")
+  def getStackInSlot(context: Context, args: Arguments): Array[AnyRef] = {
+    val facing = checkSideForInventory(args, 0)
+    val slot = args.checkInteger(1) - 1
+    if (facing == owner.facing.getOpposite) {
+      if (slot < 0 || slot >= owner.inventorySize) result(Unit)
+      else result(owner.getStackInSlot(slot + 1 + owner.containerCount))
+    }
+    else InventoryUtils.inventoryAt(owner.world, math.round(owner.xPosition - 0.5).toInt + facing.offsetX, math.round(owner.yPosition - 0.5).toInt + facing.offsetY, math.round(owner.zPosition - 0.5).toInt + facing.offsetZ) match {
+      case Some(inventory) =>
+        if (slot < 0 || slot > inventory.getSizeInventory) result(Unit)
+        else result(inventory.getStackInSlot(slot))
       case _ => result(Unit, "no inventory")
     }
   }
@@ -87,6 +105,8 @@ class UpgradeInventoryController(val owner: Container with Robot) extends compon
     }
     else result(false)
   }
+
+  private def checkSideForInventory(args: Arguments, n: Int) = owner.toGlobal(args.checkSide(n, ForgeDirection.SOUTH, ForgeDirection.NORTH, ForgeDirection.UP, ForgeDirection.DOWN))
 
   private def checkSideForAction(args: Arguments, n: Int) = owner.toGlobal(args.checkSideForAction(n))
 }
