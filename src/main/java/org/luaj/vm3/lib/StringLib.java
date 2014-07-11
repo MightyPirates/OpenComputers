@@ -408,8 +408,13 @@ public class StringLib extends TwoArgFunction {
 		}
 		
 		public void format(Buffer buf, byte c) {
-			// TODO: not clear that any of width, precision, or flags apply here.
+			if ( !leftAdjust )
+				pad( buf, ' ', width - 1 );
+			
 			buf.append(c);
+			
+			if ( leftAdjust )
+				pad( buf, ' ', width - 1 );
 		}
 		
 		public void format(Buffer buf, long number) {
