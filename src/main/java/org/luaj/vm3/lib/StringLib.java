@@ -353,13 +353,7 @@ public class StringLib extends TwoArgFunction {
 		public final int conversion;
 		public final int length;
 		
-		private DecimalFormat scientificFormat;
-		private DecimalFormat floatingFormat;
-		
 		public FormatDesc(Varargs args, LuaString strfrmt, final int start) {
-			// TODO: force positive sign
-			scientificFormat = new DecimalFormat("0.000000E00");
-			floatingFormat = new DecimalFormat("0.000000");
 			int p = start, n = strfrmt.length();
 			int c = 0;
 			
@@ -514,13 +508,18 @@ public class StringLib extends TwoArgFunction {
 		}
 		
 		public void format(Buffer buf, double number) {
-			// TODO: precision, alternateForm
+			// TODO: force positive sign
+			
+			int precise = precision == -1 ? 6 : precision;
+			String addDot = alternateForm || precise > 0 ? "." : "";
+			
+			DecimalFormat scientificFormat = new DecimalFormat("0" + addDot + new String(new char[precise]).replace("\0", "0") + "E00");
+			DecimalFormat floatingFormat   = new DecimalFormat("0" + addDot + new String(new char[precise]).replace("\0", "0"));
+			
 			String digits;
 			
 			switch ( conversion ) {
 			case 'e':
-				digits = scientificFormat.format( number ).toLowerCase();
-				break;
 			case 'E':
 				digits = scientificFormat.format( number );
 				break;
@@ -530,10 +529,14 @@ public class StringLib extends TwoArgFunction {
 			case 'g':
 			case 'G':
 			default:
-				//TODO: g, G
+				// TODO: g, G
+				// TODO: precision
 				digits = String.valueOf( number );
 				break;
 			}
+			
+			if ( conversion == 'e' || conversion == 'g' )
+				digits = digits.toLowerCase();
 			
 			int minwidth = digits.length();
 			int ndigits = minwidth;
