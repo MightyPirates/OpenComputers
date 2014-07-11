@@ -373,7 +373,7 @@ public class StringLib extends TwoArgFunction {
 				default: moreFlags = false; break;
 				}
 			}
-			if ( p - start > MAX_FLAGS )
+			if ( p - start - 1 > MAX_FLAGS )
 				error("invalid format (repeated flags)");
 			
 			width = -1;
@@ -442,8 +442,18 @@ public class StringLib extends TwoArgFunction {
 			
 			if ( number < 0 ) {
 				ndigits--;
-			} else if ( explicitPlus || space ) {
-				minwidth++;
+			}
+			
+			if ( alternateForm ) {
+				switch ( conversion ) {
+				case 'o':
+					minwidth++;
+					break;
+				case 'x':
+				case 'X':
+					minwidth+=2;
+					break;
+				}
 			}
 			
 			if ( precision > ndigits )
@@ -464,10 +474,19 @@ public class StringLib extends TwoArgFunction {
 					buf.append( (byte)'-' );
 					digits = digits.substring( 1 );
 				}
-			} else if ( explicitPlus ) {
-				buf.append( (byte)'+' );
-			} else if ( space ) {
-				buf.append( (byte)' ' );
+			}
+			
+			if ( alternateForm ) {
+				switch ( conversion ) {
+				case 'o':
+					buf.append( (byte)'0' );
+				case 'x':
+					buf.append( "0x" );
+					break;
+				case 'X':
+					buf.append( "0X" );
+					break;
+				}
 			}
 			
 			if ( nzeros > 0 )
