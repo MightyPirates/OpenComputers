@@ -23,6 +23,7 @@ package org.luaj.vm3.lib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 import org.luaj.vm3.LuaClosure;
 import org.luaj.vm3.Buffer;
@@ -248,6 +249,7 @@ public class StringLib extends TwoArgFunction {
 						result.append( (byte)L_ESC );
 					} else {
 						arg++;
+						args.checkvalue(arg);
 						FormatDesc fdsc = new FormatDesc(args, fmt, i );
 						i += fdsc.length;
 						switch ( fdsc.conversion ) {
@@ -256,12 +258,22 @@ public class StringLib extends TwoArgFunction {
 							break;
 						case 'i':
 						case 'd':
-							fdsc.format( result, args.checkint( arg ) );
+							// Still not right, but works better
+							double sNum = args.checkdouble( arg );
+							long sINum = args.checklong( arg );
+							double sDiff = sNum - sINum;
+							args.argcheck(-1 < sDiff && sDiff < 1, arg, "not a number in proper range");
+							fdsc.format( result, args.checklong( arg ) );
 							break;
 						case 'o':
 						case 'u':
 						case 'x':
 						case 'X':
+							// Still not right, but works better
+							double uNum = args.checkdouble( arg );
+							long uINum = args.checklong( arg );
+							double uDiff = uNum - uINum;
+							args.argcheck(-1 < uDiff && uDiff < 1 && uINum >= 0, arg, "not a non-negative number in proper range");
 							fdsc.format( result, args.checklong( arg ) );
 							break;
 						case 'e':
@@ -288,6 +300,8 @@ public class StringLib extends TwoArgFunction {
 						}
 					}
 				}
+				else
+					error("invalid option '%' to 'format'");
 			}
 		}
 		
@@ -339,7 +353,12 @@ public class StringLib extends TwoArgFunction {
 		public final int conversion;
 		public final int length;
 		
+		private DecimalFormat scientificFormat;
+		private DecimalFormat floatingFormat;
+		
 		public FormatDesc(Varargs args, LuaString strfrmt, final int start) {
+			scientificFormat = new DecimalFormat("0.000000E00");
+			floatingFormat = new DecimalFormat("0.000000");
 			int p = start, n = strfrmt.length();
 			int c = 0;
 			
@@ -461,15 +480,39 @@ public class StringLib extends TwoArgFunction {
 		}
 		
 		public void format(Buffer buf, double x) {
-			// TODO
-			buf.append( String.valueOf( x ) );
+			switch ( conversion ) {
+			case 'e':
+				buf.append( scientificFormat.format( x ).toLowerCase() );
+				break;
+			case 'E':
+				buf.append( scientificFormat.format( x ) );
+				break;
+			case 'f':
+				buf.append( floatingFormat.format(x) );
+				break;
+			case 'g':
+			case 'G':
+			default:
+				//TODO: g, G
+				buf.append( String.valueOf( x ) );
+				break;
+			}
 		}
 		
 		public void format(Buffer buf, LuaString s) {
 			int nullindex = s.indexOf( (byte)'\0', 0 );
 			if ( nullindex != -1 )
 				s = s.substring( 0, nullindex );
-			buf.append(s);
+			
+			int newLength = precision == -1 ? s.length() : Math.min(precision, s.length());
+			
+			if ( !leftAdjust )
+				pad( buf, ' ', width - newLength );
+			
+			buf.append(s.substring(0, newLength));
+			
+			if ( leftAdjust )
+				pad( buf, ' ', width - newLength );
 		}
 		
 		public static final void pad(Buffer buf, char c, int n) {
