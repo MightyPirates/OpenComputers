@@ -2,13 +2,24 @@ package li.cil.oc.common.item
 
 import java.util
 
+import cpw.mods.fml.relauncher.{SideOnly, Side}
 import li.cil.oc.Settings
 import net.minecraft.client.renderer.texture.IconRegister
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Icon
 
 class FloppyDisk(val parent: Delegator) extends Delegate {
   val unlocalizedName = "FloppyDisk"
+
+  val icons = Array.fill[Icon](16)(null)
+
+  @SideOnly(Side.CLIENT)
+  override def icon(stack: ItemStack, pass: Int) =
+    if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "color"))
+      Some(icons(stack.getTagCompound.getInteger(Settings.namespace + "color") max 0 min 15))
+    else
+      Some(icons(8))
 
   override def tooltipLines(stack: ItemStack, player: EntityPlayer, tooltip: util.List[String], advanced: Boolean) = {
     if (stack.hasTagCompound && stack.getTagCompound.hasKey(Settings.namespace + "data")) {
@@ -23,6 +34,21 @@ class FloppyDisk(val parent: Delegator) extends Delegate {
   override def registerIcons(iconRegister: IconRegister) {
     super.registerIcons(iconRegister)
 
-    icon = iconRegister.registerIcon(Settings.resourceDomain + ":disk_floppy")
+    icons(0) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_black")
+    icons(1) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_red")
+    icons(2) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_green")
+    icons(3) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_brown")
+    icons(4) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_blue")
+    icons(5) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_purple")
+    icons(6) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_cyan")
+    icons(7) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lightGray")
+    icons(8) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_gray")
+    icons(9) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_pink")
+    icons(10) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lime")
+    icons(11) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_yellow")
+    icons(12) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_lightBlue")
+    icons(13) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_magenta")
+    icons(14) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_orange")
+    icons(15) = iconRegister.registerIcon(Settings.resourceDomain + ":floppy_white")
   }
 }

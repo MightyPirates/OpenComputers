@@ -6,6 +6,7 @@ import java.util.logging.Level
 import com.typesafe.config._
 import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.registry.GameRegistry
+import li.cil.oc.util.Color
 import li.cil.oc.util.mods.GregTech
 import li.cil.oc.{Items, OpenComputers, api, common}
 import net.minecraft.block.Block
@@ -97,6 +98,12 @@ object Recipes {
       // Navigation upgrade recrafting.
       val navigationUpgrade = api.Items.get("navigationUpgrade").createItemStack(1)
       GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(navigationUpgrade, navigationUpgrade, new ItemStack(Item.map, 1, OreDictionary.WILDCARD_VALUE)))
+
+      // Floppy disk coloring.
+      val floppy = api.Items.get("floppy").createItemStack(1)
+      for (dye <- Color.dyes) {
+        GameRegistry.addRecipe(new ExtendedShapelessOreRecipe(floppy, floppy, dye))
+      }
     }
     catch {
       case e: Throwable => OpenComputers.log.log(Level.SEVERE, "Error parsing recipes, you may not be able to craft any items from this mod!", e)

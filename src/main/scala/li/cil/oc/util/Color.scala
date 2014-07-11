@@ -31,6 +31,24 @@ object Color {
   val Orange = 0xEB8844
   val White = 0xF0F0F0
 
+  val dyes = Array(
+    "dyeBlack",
+    "dyeRed",
+    "dyeGreen",
+    "dyeBrown",
+    "dyeBlue",
+    "dyePurple",
+    "dyeCyan",
+    "dyeLightGray",
+    "dyeGray",
+    "dyePink",
+    "dyeLime",
+    "dyeYellow",
+    "dyeLightBlue",
+    "dyeMagenta",
+    "dyeOrange",
+    "dyeWhite")
+
   val byOreName = Map(
     "dyeBlack" -> Black,
     "dyeRed" -> Red,
