@@ -39,7 +39,7 @@ class UpgradeExperience extends component.ManagedComponent {
     }
   }
 
-  @Callback(direct = true)
+  @Callback(direct = true, doc = """function():number -- The current level of experience stored in this experience upgrade.""")
   def level(context: Context, args: Arguments): Array[AnyRef] = {
     val xpNeeded = xpForNextLevel - xpForLevel(level)
     val xpProgress = math.max(0, experience - xpForLevel(level))
