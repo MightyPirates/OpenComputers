@@ -485,6 +485,7 @@ public class StringLib extends TwoArgFunction {
 				switch ( conversion ) {
 				case 'o':
 					buf.append( (byte)'0' );
+					break;
 				case 'x':
 					buf.append( "0x" );
 					break;
