@@ -392,8 +392,8 @@ keyboard {
           ["oc:materialButtonGroup", "oc:materialArrowKey", "oc:materialNumPad"]]
 }
 motionSensor {
-  input: [[ingotGold, diamond, ingotGold]
-          [thinGlass, "oc:cpu1", thinGlass]
+  input: [[ingotGold, daylightDetector, ingotGold]
+          [daylightDetector, "oc:cpu2", daylightDetector]
           [ingotGold, "oc:materialCircuitBoardPrinted", ingotGold]]
 }
 powerConverter {
