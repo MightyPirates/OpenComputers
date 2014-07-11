@@ -588,7 +588,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
     tmp.foreach(fs => fs.load(nbt.getCompoundTag("tmp")))
 
-    if (state.size > 0 && state.top != Machine.State.Stopped && init()) {
+    if (state.size > 0 && state.top != Machine.State.Stopped && init()) try {
       architecture.load(nbt)
 
       signals ++= nbt.getTagList("signals", NBT.TAG_COMPOUND).map((list, index) => {
@@ -621,6 +621,11 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
         pause(Settings.get.startupDelay)
       }
     }
+    catch {
+      case t: Throwable =>
+        OpenComputers.log.log(Level.ERROR, s"""Unexpected error loading a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
+    }
     else close() // Clean up in case we got a weird state stack.
   }
 
@@ -650,7 +655,7 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
 
     tmp.foreach(fs => nbt.setNewCompoundTag("tmp", fs.save))
 
-    if (state.top != Machine.State.Stopped) {
+    if (state.top != Machine.State.Stopped) try {
       architecture.save(nbt)
 
       val signalsNbt = new NBTTagList()
@@ -682,6 +687,11 @@ class Machine(val owner: Owner, constructor: Constructor[_ <: Architecture]) ext
       nbt.setLong("timeStarted", timeStarted)
       nbt.setLong("cpuTime", cpuTotal)
       nbt.setInteger("remainingPause", remainingPause)
+    }
+    catch {
+      case t: Throwable =>
+        OpenComputers.log.log(Level.ERROR, s"""Unexpected error saving a state of computer at (${owner.x}, ${owner.y}, ${owner.z}). """ +
+          s"""State: ${state.headOption.fold("no state")(_.toString)}. Unless you're upgrading/downgrading across a major version, please report this! Thank you.""", t)
     }
   }
 
