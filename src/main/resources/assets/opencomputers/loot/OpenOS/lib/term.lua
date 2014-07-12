@@ -104,14 +104,14 @@ function term.read(history, dobreak)
   table.insert(history, "")
   local offset = term.getCursor() - 1
   local scrollX, scrollY = 0, #history - 1
+  local cursorX = 1
 
   local function getCursor()
-    local cx, cy = term.getCursor()
-    return cx - offset + scrollX, 1 + scrollY
+    return cursorX, 1 + scrollY
   end
 
   local function line()
-    local cbx, cby = getCursor()
+    local _, cby = getCursor()
     return history[cby]
   end
 
@@ -121,7 +121,7 @@ function term.read(history, dobreak)
 
     scrollY = nby - 1
 
-    nbx = math.max(1, math.min(unicode.wlen(history[nby]) + 1, nbx))
+    nbx = math.max(1, math.min(unicode.len(history[nby]) + 1, nbx))
     local ncx = nbx + offset - scrollX
     if ncx > w then
       local sx = nbx - (w - offset)
@@ -141,6 +141,7 @@ function term.read(history, dobreak)
       component.gpu.set(1 + offset, cy, str)
     end
 
+    cursorX = nbx
     term.setCursor(nbx - scrollX + offset, cy)
   end
 
@@ -210,7 +211,7 @@ function term.read(history, dobreak)
   local function delete()
     copyIfNecessary()
     local cbx, cby = getCursor()
-    if cbx <= unicode.wlen(line()) then
+    if cbx <= unicode.len(line()) then
       local cw = unicode.charWidth(unicode.sub(line(), cbx))
       history[cby] = unicode.sub(line(), 1, cbx - 1) ..
                      unicode.sub(line(), cbx + 1)
