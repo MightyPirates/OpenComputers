@@ -589,6 +589,12 @@ local libunicode = {
   end,
   upper = function(s)
     return spcall(unicode.upper, s)
+  end,
+  isWide = function(s)
+    return spcall(unicode.isWide, s)
+  end,
+  charWidth = function(s)
+    return spcall(unicode.charWidth, s)
   end
 }
 sandbox.unicode = libunicode
