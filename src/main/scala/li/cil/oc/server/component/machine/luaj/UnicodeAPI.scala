@@ -37,10 +37,28 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
     })
 
     unicode.set("isWide", (args: Varargs) =>
-      LuaValue.valueOf(FontUtil.wcwidth(args.checkint(1)) > 1))
+      LuaValue.valueOf(FontUtil.wcwidth(args.checkjstring(1).codePointAt(0)) > 1))
 
     unicode.set("charWidth", (args: Varargs) =>
-      LuaValue.valueOf(FontUtil.wcwidth(args.checkint(1))))
+      LuaValue.valueOf(FontUtil.wcwidth(args.checkjstring(1).codePointAt(0))))
+
+    unicode.set( "wlen",  (args: Varargs) => {
+      val value = args.checkjstring(1)
+      LuaValue.valueOf(value.toCharArray.map(FontUtil.wcwidth(_)).sum)
+    })
+
+    unicode.set("wtrunc", (args: Varargs) => {
+      val value = args.checkjstring(1)
+      val count = args.checkint(2)
+      var width = 0
+      var end = 0
+      while (width < count) {
+        width += FontUtil.wcwidth(value(end))
+        end += 1
+      }
+      if (end > 1) LuaValue.valueOf(value.substring(0, end - 1))
+      else LuaValue.valueOf("")
+    })
 
     lua.set("unicode", unicode)
   }
