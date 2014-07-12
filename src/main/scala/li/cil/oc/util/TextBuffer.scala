@@ -119,8 +119,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
         var changed = false
         val line = buffer(row)
         val lineColor = color(row)
-        var bx = col
-        for (x <- col until math.min(col + s.length, width)) if (x >= 0) {
+        var bx = math.max(col, 0)
+        for (x <- bx until math.min(col + s.length, width) if bx < line.length) {
           val c = s(x - col)
           changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
           setChar(line, lineColor, bx, c)
@@ -139,9 +139,11 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     for (y <- math.max(row, 0) until math.min(row + h, height)) {
       val line = buffer(y)
       val lineColor = color(y)
-      for (x <- math.max(col, 0) until math.min(col + w, width) by FontUtil.wcwidth(c)) {
-        changed = changed || (line(x) != c) || (lineColor(x) != packed)
-        setChar(line, lineColor, x, c)
+      var bx = math.max(col, 0)
+      for (x <- bx until math.min(col + w, width) if bx < line.length) {
+        changed = changed || (line(bx) != c) || (lineColor(bx) != packed)
+        setChar(line, lineColor, bx, c)
+        bx += FontUtil.wcwidth(c)
       }
     }
     changed
@@ -179,8 +181,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
               nl(nx) = ol(ox)
               nc(nx) = oc(ox)
               for (offset <- 1 until FontUtil.wcwidth(nl(nx))) {
-                nl(nx + offset) = ol(nx + offset)
-                nc(nx + offset) = oc(nx + offset)
+                nl(nx + offset) = ol(' ')
+                nc(nx + offset) = oc(nx)
               }
             case _ => /* Got no source column. */
           }
@@ -215,7 +217,8 @@ class TextBuffer(var width: Int, var height: Int, initialFormat: PackedColor.Col
     val b = nbt.getTagList("buffer")
     for (i <- 0 until math.min(h, b.tagCount)) {
       b.tagAt(i) match {
-        case tag: NBTTagString => set(0, i, tag.data, vertical = false)
+        case tag: NBTTagString =>
+          System.arraycopy(tag.data.toCharArray, 0, buffer(i), 0, math.min(tag.data.length, buffer(i).length))
         case _ =>
       }
     }
