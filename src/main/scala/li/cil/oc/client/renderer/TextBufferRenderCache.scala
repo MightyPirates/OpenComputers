@@ -16,7 +16,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
   val renderer =
 //    new font.StaticFontRenderer()
 //    new font.DynamicFontRenderer(new FontCharRenderer("Terminal", 11))
-    new DynamicFontRenderer(new font.DataCharRenderer())
+    new DynamicFontRenderer()
 
   private val cache = com.google.common.cache.CacheBuilder.newBuilder().
     expireAfterAccess(2, TimeUnit.SECONDS).

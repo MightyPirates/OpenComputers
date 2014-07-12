@@ -1,8 +1,5 @@
 package li.cil.oc.client.renderer.font
 
-import java.awt.Font
-import java.io.InputStream
-
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
 import li.cil.oc.util.{FontUtil, RenderState}
 import org.lwjgl.BufferUtils
@@ -14,7 +11,9 @@ import scala.collection.mutable
  * Font renderer that dynamically generates lookup textures by rendering a font
  * to it. It's pretty broken right now, and font rendering looks crappy as hell.
  */
-class DynamicFontRenderer(val charRenderer: DynamicCharRenderer) extends TextureFontRenderer {
+class DynamicFontRenderer extends TextureFontRenderer {
+  private val glyphProvider = new FontParserUnifont()
+
   private val textures = mutable.ArrayBuffer(new DynamicFontRenderer.CharTexture(this))
 
   private val charMap = mutable.Map.empty[Char, DynamicFontRenderer.CharIcon]
@@ -38,9 +37,9 @@ class DynamicFontRenderer(val charRenderer: DynamicCharRenderer) extends Texture
 
   RenderState.checkError(getClass.getName + ".<init>: glGenFramebuffers")
 
-  override protected def charWidth = charRenderer.charWidth.toInt
+  override protected def charWidth = glyphProvider.getGlyphWidth.toInt
 
-  override protected def charHeight = charRenderer.charHeight.toInt
+  override protected def charHeight = glyphProvider.getGlyphHeight.toInt
 
   override protected def textureCount = textures.length
 
@@ -62,7 +61,7 @@ class DynamicFontRenderer(val charRenderer: DynamicCharRenderer) extends Texture
   }
 
   private def createCharIcon(char: Char): DynamicFontRenderer.CharIcon = {
-    if (!charRenderer.canDisplay(char)) {
+    if (FontUtil.wcwidth(char) < 1 || glyphProvider.getGlyph(char) == null) {
       if (char == '?') null
       else charMap.getOrElseUpdate('?', createCharIcon('?'))
     }
@@ -93,8 +92,8 @@ object DynamicFontRenderer {
     private val cellHeight = owner.charHeight + 2
     private val cols = size / cellWidth
     private val rows = size / cellHeight
-    private val uStep = cellWidth / size.toFloat
-    private val vStep = cellHeight / size.toFloat
+    private val uStep = cellWidth / size.toDouble
+    private val vStep = cellHeight / size.toDouble
     private val pad = 1.0 / size
     private val capacity = cols * rows
 
@@ -107,11 +106,14 @@ object DynamicFontRenderer {
     def isFull = chars >= capacity
 
     def add(char: Char) = {
-      // TODO force to next row if wide char and won't fit into row.
+      val glyphWidth = FontUtil.wcwidth(char)
+      val w = owner.charWidth * glyphWidth
+      val h = owner.charHeight
+      if (chars + glyphWidth > cols) {
+        chars += 1
+      }
       val x = chars % cols
       val y = chars / cols
-      val w = owner.charWidth * FontUtil.wcwidth(char)
-      val h = owner.charHeight
 
       GL11.glDisable(GL11.GL_DEPTH_TEST)
       GL11.glDepthMask(false)
@@ -121,7 +123,7 @@ object DynamicFontRenderer {
       GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0)
       GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
 
-      GL11.glViewport(0, 0, owner.charWidth, h)
+      GL11.glViewport(0, 0, w, h)
 
       GL11.glMatrixMode(GL11.GL_PROJECTION)
       GL11.glPushMatrix()
@@ -134,9 +136,8 @@ object DynamicFontRenderer {
       GL11.glLoadIdentity()
       GL11.glTranslatef(0, 0, -0.5f)
 
-      owner.charRenderer.drawChar(char)
-
-      GL43.glCopyImageSubData(owner.rbo, GL30.GL_RENDERBUFFER, 0, 0, 0, 0, id, GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, 0, w, h, 1)
+      GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, owner.glyphProvider.getGlyph(char))
 
       GL11.glMatrixMode(GL11.GL_PROJECTION)
       GL11.glPopMatrix()
@@ -145,21 +146,21 @@ object DynamicFontRenderer {
 
       GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
 
-      chars += FontUtil.wcwidth(char)
+      chars += glyphWidth
 
-      new CharIcon(this, w, h, pad + x * uStep, pad + y * vStep, (x + 1) * uStep - 2 * pad, (y + 1) * vStep - 2 * pad)
+      new CharIcon(this, w, h, pad + x * uStep, pad + y * vStep, (x + glyphWidth) * uStep - pad, (y + 1) * vStep - pad)
     }
   }
 
   class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
     def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2d(u1, v1)
-      GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2d(u2, v1)
-      GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2d(u2, v2)
-      GL11.glVertex2f(tx + w, ty)
       GL11.glTexCoord2d(u1, v2)
+      GL11.glVertex2f(tx, ty + h)
+      GL11.glTexCoord2d(u2, v2)
+      GL11.glVertex2f(tx + w, ty + h)
+      GL11.glTexCoord2d(u2, v1)
+      GL11.glVertex2f(tx + w, ty)
+      GL11.glTexCoord2d(u1, v1)
       GL11.glVertex2f(tx, ty)
     }
   }
