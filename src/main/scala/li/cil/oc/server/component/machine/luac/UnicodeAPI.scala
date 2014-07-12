@@ -2,6 +2,7 @@ package li.cil.oc.server.component.machine.luac
 
 import li.cil.oc.server.component.machine.NativeLuaArchitecture
 import li.cil.oc.util.ExtendedLuaState.extendLuaState
+import li.cil.oc.util.FontUtil
 
 class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
   override def initialize() {
@@ -55,6 +56,18 @@ class UnicodeAPI(owner: NativeLuaArchitecture) extends NativeLuaAPI(owner) {
       1
     })
     lua.setField(-2, "upper")
+
+    lua.pushScalaFunction(lua => {
+      lua.pushBoolean(FontUtil.wcwidth(lua.checkInteger(1)) > 1)
+      1
+    })
+    lua.setField(-2, "isWide")
+
+    lua.pushScalaFunction(lua => {
+      lua.pushInteger(FontUtil.wcwidth(lua.checkInteger(1)))
+      1
+    })
+    lua.setField(-2, "charWidth")
 
     lua.setGlobal("unicode")
   }

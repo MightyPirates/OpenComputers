@@ -1,5 +1,8 @@
 package li.cil.oc.client.renderer.font;
 
+import li.cil.oc.util.FontUtil;
+import org.lwjgl.BufferUtils;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,7 +43,7 @@ public class FontParserUnifont implements IFontParser {
         if (glyph.length == 16) glyphWidth = 8;
         else if (glyph.length == 32) glyphWidth = 16;
         else return null;
-        ByteBuffer buf = ByteBuffer.allocate(glyphWidth * 16 * 4);
+        ByteBuffer buf = BufferUtils.createByteBuffer(glyphWidth * 16 * 4);
         for (byte aGlyph : glyph) {
             int c = ((int) aGlyph) & 0xFF;
             for (int j = 0; j < 8; j++) {
@@ -49,6 +52,7 @@ public class FontParserUnifont implements IFontParser {
                 c <<= 1;
             }
         }
+        buf.rewind();
         return buf;
     }
 
@@ -65,12 +69,12 @@ public class FontParserUnifont implements IFontParser {
     public static void main(String[] args) {
         try {
             FontParserUnifont fpu = new FontParserUnifont();
-            ByteBuffer buf = fpu.getGlyph("な".codePointAt(0));
-            byte[] a = buf.array();
-            for (int i = 0; i < a.length; i += 4) {
-                if ((i % (a.length >> 4)) == 0 && i > 0) System.out.println("|");
-                if (a[i] != 0) System.out.print("#");
-                else System.out.print(" ");
+            ByteBuffer buf = fpu.getGlyph(9829);
+            System.out.println(FontUtil.wcwidth("a".codePointAt(0)));
+            for (int i = 0; i < buf.capacity(); i += 4) {
+                if ((i % (buf.capacity() >> 4)) == 0 && i > 0) System.out.println("|");
+                if (buf.get(i) != 0) System.out.print("#");
+                else System.out.print("話す ");
             }
         } catch (Exception e) {
             e.printStackTrace();

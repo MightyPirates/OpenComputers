@@ -1,6 +1,7 @@
 package li.cil.oc.server.component.machine.luaj
 
 import li.cil.oc.server.component.machine.LuaJLuaArchitecture
+import li.cil.oc.util.FontUtil
 import li.cil.oc.util.ScalaClosure._
 import org.luaj.vm3.{LuaValue, Varargs}
 
@@ -34,6 +35,12 @@ class UnicodeAPI(owner: LuaJLuaArchitecture) extends LuaJAPI(owner) {
       if (end <= start) LuaValue.valueOf("")
       else LuaValue.valueOf(string.substring(start, end))
     })
+
+    unicode.set("isWide", (args: Varargs) =>
+      LuaValue.valueOf(FontUtil.wcwidth(args.checkint(1)) > 1))
+
+    unicode.set("charWidth", (args: Varargs) =>
+      LuaValue.valueOf(FontUtil.wcwidth(args.checkint(1))))
 
     lua.set("unicode", unicode)
   }

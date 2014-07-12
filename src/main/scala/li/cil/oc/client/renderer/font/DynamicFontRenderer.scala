@@ -26,7 +26,7 @@ class DynamicFontRenderer(val charRenderer: DynamicCharRenderer) extends Texture
   GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fbo)
   GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, rbo)
 
-  GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_RGBA8, charWidth, charHeight)
+  GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_RGBA8, charWidth * 2, charHeight)
   GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_RENDERBUFFER, rbo)
 
   GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, 0)
@@ -95,7 +95,7 @@ object DynamicFontRenderer {
     private val rows = size / cellHeight
     private val uStep = cellWidth / size.toFloat
     private val vStep = cellHeight / size.toFloat
-    private val pad = 1f / size
+    private val pad = 1.0 / size
     private val capacity = cols * rows
 
     private var chars = 0
@@ -121,7 +121,7 @@ object DynamicFontRenderer {
       GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0)
       GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
 
-      GL11.glViewport(0, 0, w, h)
+      GL11.glViewport(0, 0, owner.charWidth, h)
 
       GL11.glMatrixMode(GL11.GL_PROJECTION)
       GL11.glPushMatrix()
@@ -151,15 +151,15 @@ object DynamicFontRenderer {
     }
   }
 
-  class CharIcon(val texture: CharTexture, val w: Float, val h: Float, val u1: Float, val v1: Float, val u2: Float, val v2: Float) {
+  class CharIcon(val texture: CharTexture, val w: Int, val h: Int, val u1: Double, val v1: Double, val u2: Double, val v2: Double) {
     def draw(tx: Float, ty: Float) {
-      GL11.glTexCoord2f(u1, v1)
+      GL11.glTexCoord2d(u1, v1)
       GL11.glVertex2f(tx, ty + h)
-      GL11.glTexCoord2f(u2, v1)
+      GL11.glTexCoord2d(u2, v1)
       GL11.glVertex2f(tx + w, ty + h)
-      GL11.glTexCoord2f(u2, v2)
+      GL11.glTexCoord2d(u2, v2)
       GL11.glVertex2f(tx + w, ty)
-      GL11.glTexCoord2f(u1, v2)
+      GL11.glTexCoord2d(u1, v2)
       GL11.glVertex2f(tx, ty)
     }
   }
