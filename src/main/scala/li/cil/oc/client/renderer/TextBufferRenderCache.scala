@@ -101,7 +101,7 @@ object TextBufferRenderCache extends Callable[Int] with RemovalListener[TileEnti
 
   def getLabel = "OpenComputers.TextBufferRenderer"
 
-  def ticks() = util.EnumSet.of(TickType.CLIENT)
+  def ticks = util.EnumSet.of(TickType.CLIENT)
 
   def tickStart(tickType: util.EnumSet[TickType], tickData: AnyRef*) = cache.cleanUp()
 

@@ -4,7 +4,7 @@ import java.awt.Font
 import java.io.InputStream
 
 import li.cil.oc.client.renderer.font.DynamicFontRenderer.CharTexture
-import li.cil.oc.util.RenderState
+import li.cil.oc.util.{FontUtil, RenderState}
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl._
 
@@ -19,7 +19,7 @@ class DynamicFontRenderer(val font: Font) extends TextureFontRenderer {
 
   def this(stream: InputStream, size: Int) = this(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size))
 
-  private val charRenderer = new DynamicCharRenderer(font)
+  private val charRenderer: DynamicCharRenderer = new FontCharRenderer(font)
 
   private val textures = mutable.ArrayBuffer(new DynamicFontRenderer.CharTexture(this))
 
@@ -63,14 +63,7 @@ class DynamicFontRenderer(val font: Font) extends TextureFontRenderer {
   override protected def drawChar(tx: Float, ty: Float, char: Char) {
     val icon = charMap(char)
     if (icon.texture == activeTexture) {
-      GL11.glTexCoord2f(icon.u1, icon.v2)
-      GL11.glVertex2f(tx, ty + charHeight)
-      GL11.glTexCoord2f(icon.u2, icon.v2)
-      GL11.glVertex2f(tx + charWidth, ty + charHeight)
-      GL11.glTexCoord2f(icon.u2, icon.v1)
-      GL11.glVertex2f(tx + charWidth, ty)
-      GL11.glTexCoord2f(icon.u1, icon.v1)
-      GL11.glVertex2f(tx, ty)
+      icon.draw(tx, ty)
     }
   }
 
@@ -120,8 +113,11 @@ object DynamicFontRenderer {
     def isFull = chars >= capacity
 
     def add(char: Char) = {
+      // TODO force to next row if wide char and won't fit into row.
       val x = chars % cols
       val y = chars / cols
+      val w = owner.charWidth * FontUtil.wcwidth(char)
+      val h = owner.charHeight
 
       GL11.glDisable(GL11.GL_DEPTH_TEST)
       GL11.glDepthMask(false)
@@ -131,13 +127,13 @@ object DynamicFontRenderer {
       GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0)
       GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
 
-      GL11.glViewport(0, 0, owner.charWidth, owner.charHeight)
+      GL11.glViewport(0, 0, w, h)
 
       GL11.glMatrixMode(GL11.GL_PROJECTION)
       GL11.glPushMatrix()
       GL11.glLoadIdentity()
 
-      GL11.glOrtho(0, owner.charWidth, owner.charHeight, 0, 0, 1)
+      GL11.glOrtho(0, w, h, 0, 0, 1)
 
       GL11.glMatrixMode(GL11.GL_MODELVIEW)
       GL11.glPushMatrix()
@@ -146,7 +142,7 @@ object DynamicFontRenderer {
 
       owner.charRenderer.drawChar(char)
 
-      GL43.glCopyImageSubData(owner.rbo, GL30.GL_RENDERBUFFER, 0, 0, 0, 0, id, GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, 0, owner.charWidth, owner.charHeight, 1)
+      GL43.glCopyImageSubData(owner.rbo, GL30.GL_RENDERBUFFER, 0, 0, 0, 0, id, GL11.GL_TEXTURE_2D, 0, 1 + x * cellWidth, 1 + y * cellHeight, 0, w, h, 1)
 
       GL11.glMatrixMode(GL11.GL_PROJECTION)
       GL11.glPopMatrix()
@@ -155,12 +151,23 @@ object DynamicFontRenderer {
 
       GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
 
-      chars += 1
+      chars += FontUtil.wcwidth(char)
 
-      new CharIcon(this, pad + x * uStep, pad + y * vStep, (x + 1) * uStep - 2 * pad, (y + 1) * vStep - 2 * pad)
+      new CharIcon(this, w, h, pad + x * uStep, pad + y * vStep, (x + 1) * uStep - 2 * pad, (y + 1) * vStep - 2 * pad)
     }
   }
 
-  class CharIcon(val texture: CharTexture, val u1: Float, val v1: Float, val u2: Float, val v2: Float)
+  class CharIcon(val texture: CharTexture, val w: Float, val h: Float, val u1: Float, val v1: Float, val u2: Float, val v2: Float) {
+    def draw(tx: Float, ty: Float) {
+      GL11.glTexCoord2f(u1, v1)
+      GL11.glVertex2f(tx, ty + h)
+      GL11.glTexCoord2f(u2, v1)
+      GL11.glVertex2f(tx + w, ty + h)
+      GL11.glTexCoord2f(u2, v2)
+      GL11.glVertex2f(tx + w, ty)
+      GL11.glTexCoord2f(u1, v2)
+      GL11.glVertex2f(tx, ty)
+    }
+  }
 
 }
